@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory
 class ProjectsLoader {
     Logger logger = LoggerFactory.getLogger(ProjectsLoader)
 
+    static final String GRADLE_PROPERTIES = 'gradle.properties'
+
     ProjectFactory projectFactory
 
     DefaultProject rootProject
@@ -60,15 +62,14 @@ class ProjectsLoader {
 
     private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir) {
         logger.debug("Creating the projects and evaluating the project files!")
-        File propertyFile = new File(gradleUserHomeDir, 'gradle.properties')
+        File propertyFile = new File(gradleUserHomeDir, GRADLE_PROPERTIES)
         Properties properties = new Properties()
-        logger.debug("Looking for properties from: $propertyFile")
+        logger.debug("Looking for user properties from: $propertyFile")
         if (!propertyFile.isFile()) {
-            logger.debug('Property file does not exists. We continue!')
+            logger.debug('user property file does not exists. We continue!')
         } else {
-            properties = new Properties()
             properties.load(new FileInputStream(propertyFile))
-            logger.debug("Adding properties: $properties")
+            logger.debug("Adding user properties: $properties")
         }
         DefaultProject rootProject = projectFactory.createProject(settings.rootDir.name, null, settings.rootDir, null, projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
         addPropertiesToProject(gradleUserHomeDir, properties, rootProject)
@@ -86,9 +87,19 @@ class ProjectsLoader {
         rootProject
     }
 
-    private addPropertiesToProject(File gradleUserHomeDir, Map properties, Project project) {
+    private addPropertiesToProject(File gradleUserHomeDir, Map userProperties, Project project) {
+        Properties projectProperties = new Properties()
+        File projectPropertiesFile = new File(project.projectDir, GRADLE_PROPERTIES)
+        logger.debug("Looking for project properties from: $projectPropertiesFile")
+        if (projectPropertiesFile.isFile()) {
+            projectProperties.load(new FileInputStream(projectPropertiesFile))
+            logger.debug("Adding project properties (if not overwritten by user properties): $projectProperties")
+        } else {
+            logger.debug('project property file does not exists. We continue!')
+        }
+        projectProperties.putAll(userProperties)
         project.gradleUserHome = gradleUserHomeDir.canonicalPath
-        properties.each {key, value ->
+        projectProperties.each {key, value ->
             project."$key" = value
         }
     }
