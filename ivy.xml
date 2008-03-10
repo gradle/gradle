@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="1.3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation=
+                   "http://ant.apache.org/ivy/schemas/ivy.xsd">
+    <info organisation="org.gradle" module="gradle"/>
+    <configurations defaultconfmapping="default">
+        <conf name="compile" visibility="private"/>
+        <conf name="test" extends="compile,runtime" visibility="private"/>
+        <conf name="master"/>
+        <conf name="runtime" extends="compile"/>
+        <conf name="default" extends="master,runtime"/>
+    </configurations>
+    <publications>
+        <artifact conf="master"/>
+    </publications>
+    <dependencies defaultconfmapping="*->default">
+        <dependency org="org.codehaus.groovy" name="groovy-all" rev="1.5.4" conf="compile">
+            <exclude module="jline" conf="compile"/>
+            <exclude module="junit" conf="compile"/>
+        </dependency>
+        <dependency org="commons-cli" name="commons-cli" rev="1.0" conf="compile" transitive="false"/>
+        <dependency org="org.apache.ivy" name="ivy" rev="2.0.0.beta2_20080305165542" conf="compile" transitive="false"/>
+        <dependency org="org.apache.ant" name="ant-launcher" rev="1.7.0" conf="compile"/>
+        <dependency org="org.apache.ant" name="ant-junit" rev="1.7.0" conf="compile">
+            <exclude module="junit" conf="compile"/>
+        </dependency>
+        <dependency org="junit" name="junit" rev="4.4" conf="test,runtime"/>
+        <dependency org="commons-io" name="commons-io" rev="1.3.1" conf="compile"/>
+        <dependency org="commons-lang" name="commons-lang" rev="2.3" conf="compile"/>
+        <dependency org="commons-httpclient" name="commons-httpclient" rev="3.0" conf="compile"/>
+        <dependency org="slide" name="webdavlib" rev="2.0" conf="compile"/>
+        <dependency org="ch.qos.logback" name="logback-classic" rev="0.9.8" conf="compile"/>
+    </dependencies>
+</ivy-module>
