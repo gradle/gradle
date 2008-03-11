@@ -33,6 +33,7 @@ import org.gradle.execution.Dag
 import org.gradle.initialization.ProjectsLoader
 import org.gradle.initialization.SettingsFileHandler
 import org.gradle.initialization.SettingsProcessor
+import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -72,6 +73,7 @@ class Main {
         cli.s(longOpt: 'stacktrace', 'Print out the stacktrace.')
         cli.D(longOpt: 'prop', 'Set system property of the JVM.', args: 1)
         cli.g(longOpt: 'gradleUserHome', 'The user specific gradle dir.', args: 1)
+        cli.v(longOpt: 'version', 'Prints put version info.')
 
         def options = cli.parse(args)
 
@@ -83,7 +85,12 @@ class Main {
 
         configureLogger(options)
 
-        if (options.h) cli.usage()
+        if (options.h) {cli.usage()}
+
+        if (options.v) {
+            println(new GradleVersion().prettyPrint())
+            System.exit(0)
+        }
 
         if (!gradleHome) {
             logger.error("The gradle.home property is not set. Please set it and try again.")
