@@ -18,6 +18,7 @@ package org.gradle
 
 import groovy.mock.interceptor.MockFor
 import groovy.mock.interceptor.StubFor
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildExecuter
@@ -31,11 +32,11 @@ import org.gradle.initialization.SettingsProcessor
 class BuildTest extends GroovyTestCase {
     StubFor projectLoaderMocker
     MockFor settingsProcessorMocker
-    MockFor buildScriptsProcessorMocker
+    MockFor buildConfigurerMocker
     File expectedCurrentDir
     File expectedGradleUserHomeDir
-    DefaultProject expectedProjectLoaderRoot
-    DefaultProject expectedProjectLoaderCurrent
+    DefaultProject expectedRootProject
+    DefaultProject expectedCurrentProject
     String expectedBuildFileName
     URLClassLoader expectedClassLoader
     boolean expectedRecursive
@@ -47,7 +48,7 @@ class BuildTest extends GroovyTestCase {
     void setUp() {
         settingsProcessorMocker = new MockFor(SettingsProcessor)
         projectLoaderMocker = new StubFor(ProjectsLoader)
-        buildScriptsProcessorMocker = new MockFor(BuildConfigurer)
+        buildConfigurerMocker = new MockFor(BuildConfigurer)
         expectedRecursive = false
         expectedSearchUpwards = false
         expectedBuildFileName = "buildFileName"
@@ -62,38 +63,58 @@ class BuildTest extends GroovyTestCase {
             expectedSettings
         }
 
-        expectedProjectLoaderRoot = [:] as DefaultProject
-        expectedProjectLoaderCurrent = [:] as DefaultProject
+        expectedRootProject = [:] as DefaultProject
+        expectedCurrentProject = [:] as DefaultProject
         projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir ->
             assertSame(expectedSettings, settings)
             assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
         }
-        projectLoaderMocker.demand.getRootProject(2..2) {expectedProjectLoaderRoot}
-        projectLoaderMocker.demand.getCurrentProject() {expectedProjectLoaderCurrent}
+        projectLoaderMocker.demand.getRootProject(0..10) {expectedRootProject}
+        projectLoaderMocker.demand.getCurrentProject(0..10) {expectedCurrentProject}
     }
 
     void testBuild() {
         List expectedTaskNames = ['a', 'b']
 
         MockFor buildExecuterMocker = new MockFor(BuildExecuter)
-        buildScriptsProcessorMocker.demand.process(1..1) {DefaultProject root, URLClassLoader urlClassLoader ->
+        buildConfigurerMocker.demand.process(1..1) {DefaultProject root, URLClassLoader urlClassLoader ->
             assert urlClassLoader.is(expectedClassLoader)
-            assertSame(expectedProjectLoaderRoot, root)
+            assertSame(expectedRootProject, root)
         }
-        buildExecuterMocker.demand.execute(1..1) {List taskNames, boolean recursive, DefaultProject projectLoaderCurrent, DefaultProject projectLoaderRoot ->
-            assertEquals(expectedTaskNames, taskNames)
+        buildExecuterMocker.demand.unknownTasks(1..1) {List taskNames, boolean recursive, DefaultProject currentProject ->
+            assertEquals(taskNames, expectedTaskNames)
             assertEquals(expectedRecursive, recursive)
-            assertSame(expectedProjectLoaderCurrent, projectLoaderCurrent)
-            assertSame(expectedProjectLoaderRoot, projectLoaderRoot)
+            assert currentProject.is(expectedCurrentProject)
+            []
+        }
+        buildExecuterMocker.demand.execute(1..1) {String taskName, boolean recursive, DefaultProject projectLoaderCurrent, DefaultProject projectLoaderRoot ->
+            assertEquals(expectedTaskNames[0], taskName)
+            assertEquals(expectedRecursive, recursive)
+            assertSame(expectedCurrentProject, projectLoaderCurrent)
+            assertSame(expectedRootProject, projectLoaderRoot)
+        }
+        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir ->
+            assertSame(expectedSettings, settings)
+            assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
+        }
+        buildConfigurerMocker.demand.process(1..1) {DefaultProject root, URLClassLoader urlClassLoader ->
+            assert urlClassLoader.is(expectedClassLoader)
+            assertSame(expectedRootProject, root)
+        }
+        buildExecuterMocker.demand.execute(1..1) {String taskName, boolean recursive, DefaultProject projectLoaderCurrent, DefaultProject projectLoaderRoot ->
+            assertEquals(expectedTaskNames[1], taskName)
+            assertEquals(expectedRecursive, recursive)
+            assertSame(expectedCurrentProject, projectLoaderCurrent)
+            assertSame(expectedRootProject, projectLoaderRoot)
         }
         MockFor settingsMocker = new MockFor(DefaultSettings)
-        settingsMocker.demand.createClassLoader(1..1) {
-            expectedClassLoader }
+        settingsMocker.demand.createClassLoader(2..2) {
+            expectedClassLoader}
 
         settingsMocker.use(expectedSettings) {
             settingsProcessorMocker.use {
                 projectLoaderMocker.use {
-                    buildScriptsProcessorMocker.use {
+                    buildConfigurerMocker.use {
                         buildExecuterMocker.use {
                             new Build(new SettingsProcessor(), new ProjectsLoader(), new BuildConfigurer(), new BuildExecuter()).run(
                                     expectedTaskNames, expectedCurrentDir, expectedGradleUserHomeDir, expectedBuildFileName, expectedRecursive, expectedSearchUpwards)
@@ -105,20 +126,54 @@ class BuildTest extends GroovyTestCase {
         projectLoaderMocker.expect.verify()
     }
 
-    void testTargetList() {
-        buildScriptsProcessorMocker.demand.taskList(1..1) {DefaultProject root, boolean recursive, DefaultProject current, URLClassLoader urlClassLoader ->
+    void testBuildWithUnknownTask() {
+        List expectedTaskNames = ['a', 'b']
+        buildConfigurerMocker.demand.process(1..1) {DefaultProject root, URLClassLoader urlClassLoader ->
             assert urlClassLoader.is(expectedClassLoader)
-            assertSame(expectedProjectLoaderRoot, root)
-            assertSame(expectedProjectLoaderCurrent, current)
+            assertSame(expectedRootProject, root)
+        }
+        MockFor buildExecuterMocker = new MockFor(BuildExecuter)
+        buildExecuterMocker.demand.unknownTasks(1..1) {List taskNames, boolean recursive, DefaultProject currentProject ->
+            assertEquals(taskNames, expectedTaskNames)
             assertEquals(expectedRecursive, recursive)
+            assert currentProject.is(expectedCurrentProject)
+            ['a']
         }
         MockFor settingsMocker = new MockFor(DefaultSettings)
-        settingsMocker.demand.createClassLoader(1..1) { expectedClassLoader }
+        settingsMocker.demand.createClassLoader(1..1) {
+            expectedClassLoader}
 
         settingsMocker.use(expectedSettings) {
             settingsProcessorMocker.use {
                 projectLoaderMocker.use {
-                    buildScriptsProcessorMocker.use {
+                    buildConfigurerMocker.use {
+                        buildExecuterMocker.use {
+                            shouldFail(UnknownTaskException) {
+                                new Build(new SettingsProcessor(), new ProjectsLoader(), new BuildConfigurer(), new BuildExecuter()).run(
+                                        expectedTaskNames, expectedCurrentDir, expectedGradleUserHomeDir, expectedBuildFileName, expectedRecursive,
+                                        expectedSearchUpwards)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void testTargetList() {
+        buildConfigurerMocker.demand.taskList(1..1) {DefaultProject root, boolean recursive, DefaultProject current, URLClassLoader urlClassLoader ->
+            assert urlClassLoader.is(expectedClassLoader)
+            assertSame(expectedRootProject, root)
+            assertSame(expectedCurrentProject, current)
+            assertEquals(expectedRecursive, recursive)
+        }
+        MockFor settingsMocker = new MockFor(DefaultSettings)
+        settingsMocker.demand.createClassLoader(1..1) {expectedClassLoader}
+
+        settingsMocker.use(expectedSettings) {
+            settingsProcessorMocker.use {
+                projectLoaderMocker.use {
+                    buildConfigurerMocker.use {
                         new Build(new SettingsProcessor(), new ProjectsLoader(), new BuildConfigurer(), new BuildExecuter()).taskList(
                                 expectedCurrentDir, expectedGradleUserHomeDir, expectedBuildFileName, expectedRecursive, expectedSearchUpwards)
                     }

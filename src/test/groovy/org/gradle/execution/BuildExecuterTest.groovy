@@ -40,9 +40,8 @@ class BuildExecuterTest extends GroovyTestCase {
         buildExecuter = new BuildExecuter(new Dag())
     }
 
-
     void testExecute() {
-        List expectedTaskNames = ['compile', 'test']
+        String expectedTaskName = 'test'
         boolean expectedRecursive = true
 
         DefaultTask rootCompile = new DefaultTask(root, 'compile')
@@ -57,31 +56,36 @@ class BuildExecuterTest extends GroovyTestCase {
 
         MockFor dagMocker = new MockFor(Dag)
         Map checkerFirstRun = [:]
+        dagMocker.demand.reset(1..1) {}
         dagMocker.demand.addTask(0..100) {task, dependencies ->
             checkerFirstRun[task] = dependencies
         }
         dagMocker.demand.execute(1..1) {[:] as Dag}
-        dagMocker.demand.reset(1..1) {}
-        Map checkerSecondRun = [:]
-        dagMocker.demand.addTask(0..100) {task , dependencies ->
-            checkerSecondRun[task ] = dependencies
-        }
-        dagMocker.demand.execute(1..1) {[:] as Dag}
-        dagMocker.demand.reset(1..1) {}
 
         dagMocker.use() {
-            buildExecuter.execute(expectedTaskNames, expectedRecursive, root, root)
+            buildExecuter.execute(expectedTaskName, expectedRecursive, root, root)
         }
 
-        assertEquals(checkerFirstRun.size(), 2)
+        assertEquals(checkerFirstRun.size(), 4)
+        assertEquals([rootCompile] as Set, checkerFirstRun[rootTest])
+        assertEquals([childCompile] as Set, checkerFirstRun[childTest])
         assertEquals([] as Set, checkerFirstRun[rootCompile])
         assertEquals([] as Set, checkerFirstRun[childCompile])
-        assertEquals(checkerSecondRun.size(), 4)
-        assertEquals([rootCompile] as Set, checkerSecondRun[rootTest])
-        assertEquals([childCompile] as Set, checkerSecondRun[childTest])
-        assertEquals([] as Set, checkerSecondRun[rootCompile])
-        assertEquals([] as Set, checkerSecondRun[childCompile])
+    }
 
+    void testUnknownTasks() {
+        DefaultTask rootCompile = new DefaultTask(root, 'compile')
+        DefaultTask rootTest = new DefaultTask(root, 'test')
+        DefaultTask childCompile = new DefaultTask(child, 'compile')
+        DefaultTask childOtherTask = new DefaultTask(child, 'other')
+
+        root.tasks = [(rootCompile.name): rootCompile, (rootTest.name): rootTest]
+        child.tasks = [(childCompile.name): childCompile, (childOtherTask.name): childOtherTask]
+
+        assertEquals([], buildExecuter.unknownTasks(['compile', 'test'], false, root))
+        assertEquals(['test'], buildExecuter.unknownTasks(['compile', 'test'], true, child))
+        assertEquals([], buildExecuter.unknownTasks(['compile', 'other'], true, root))
+        assertEquals(['other'], buildExecuter.unknownTasks(['compile', 'other'], false, root))
     }
 
     void testExecuteWithTransitiveTargetDependecies() {
@@ -91,14 +95,14 @@ class BuildExecuterTest extends GroovyTestCase {
         root.tasks = [task1: task1, task2: task2, task3: task3]
         MockFor dagMocker = new MockFor(Dag)
         Map checker = [:]
+        dagMocker.demand.reset(1..1) {}
         dagMocker.demand.addTask(3..3) {task, dependencies ->
             checker[task] = dependencies
         }
         dagMocker.demand.execute(1..1) {[:] as Dag}
-        dagMocker.demand.reset(1..1) {}
 
         dagMocker.use() {
-            buildExecuter.execute(['task3'], false, root, root)
+            buildExecuter.execute('task3', false, root, root)
         }
 
         assertEquals([task2] as Set, checker[task3])
@@ -111,7 +115,7 @@ class BuildExecuterTest extends GroovyTestCase {
         DefaultProject child = HelperUtil.createProjectMock([getTargetsByName: {a, b -> [(child): new DefaultTask(child, 'compile').dependsOn('/root/unknownchild/compile')] as TreeMap}], 'child', root)
         root.childProjects['child'] = child
         shouldFail(UnknownTaskException) {
-            buildExecuter.execute(['compile'], true, child, root)
+            buildExecuter.execute('compile', true, child, root)
         }
     }
 
@@ -119,29 +123,14 @@ class BuildExecuterTest extends GroovyTestCase {
         DefaultProject child = HelperUtil.createProjectMock([getTargetsByName: {a, b -> [(child): new DefaultTask(child, 'compile').dependsOn('/root/child/unknownTarget')] as TreeMap}], 'child', root)
         root.childProjects['child'] = child
         shouldFail(UnknownTaskException) {
-            buildExecuter.execute(['compile'], true, child, root)
+            buildExecuter.execute('compile', true, child, root)
         }
     }
 
     void testExecuteWithNonExistingTarget() {
         shouldFail(UnknownTaskException) {
-            buildExecuter.execute(['compil'], true, root, root)
+            buildExecuter.execute('compil', true, root, root)
         }
     }
 
-    void testExecuteWithOneNonExistingTarget() {
-        DefaultTask rootTarget = new DefaultTask(root, 'compile')
-        DefaultTask childTarget = new DefaultTask(child, 'compile')
-        root.tasks = [(rootTarget.name): rootTarget]
-        child.tasks = [(childTarget.name): childTarget]
-        MockFor dagMocker = new MockFor(Dag)
-        dagMocker.demand.addTask(2..2) {task, dependsOnTasks ->}
-        dagMocker.demand.execute(1..1) {[:] as Dag}
-        dagMocker.demand.reset(1..1) {}
-        dagMocker.use() {
-            shouldFail(UnknownTaskException) {
-                buildExecuter.execute(['compile', 'unknown'], true, root, root)
-            }
-        }
-    }
 }

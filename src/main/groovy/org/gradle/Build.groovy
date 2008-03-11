@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle
 
+import org.gradle.api.UnknownTaskException
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildExecuter
 import org.gradle.initialization.DefaultSettings
@@ -23,6 +24,7 @@ import org.gradle.initialization.ProjectsLoader
 import org.gradle.initialization.SettingsProcessor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
 
 /**
 * @author Hans Dockter
@@ -46,7 +48,17 @@ class Build {
     void run(List taskNames, File currentDir, File gradleUserHomeDir, String buildFileName, boolean recursive, boolean searchUpwards) {
         DefaultSettings settings = init(currentDir, gradleUserHomeDir, searchUpwards)
         buildConfigurer.process(projectLoader.rootProject, settings.createClassLoader())
-        buildExecuter.execute(taskNames, recursive, projectLoader.currentProject, projectLoader.rootProject)
+        List unknownTasks = buildExecuter.unknownTasks(taskNames, recursive, projectLoader.currentProject)
+        if (unknownTasks) {throw new UnknownTaskException("Task(s) $unknownTasks are unknown!")}
+        boolean newInit = false
+        taskNames.each {String taskName ->
+            if (newInit) {
+                projectLoader.load(settings, gradleUserHomeDir)
+                buildConfigurer.process(projectLoader.rootProject, settings.createClassLoader())
+            }
+            buildExecuter.execute(taskName, recursive, projectLoader.currentProject, projectLoader.rootProject)
+            newInit = true
+        }
     }
 
     String taskList(File currentDir, File gradleUserHomeDir, String buildFileName, boolean recursive, boolean searchUpwards) {

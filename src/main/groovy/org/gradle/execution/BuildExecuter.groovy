@@ -37,19 +37,26 @@ class BuildExecuter {
         this.dag = dag
     }
 
-    void execute(List taskNames, boolean recursive, DefaultProject currentProject, DefaultProject rootProject) {
-        assert taskNames
+    void execute(String taskName, boolean recursive, DefaultProject currentProject, DefaultProject rootProject) {
+        assert taskName
         assert currentProject
 
-        logger.info("Executing: $taskNames Recursive:$recursive Startproject: $currentProject")
+        logger.info("Executing: $taskName Recursive:$recursive Startproject: $currentProject")
 
-        taskNames.each {String taskName ->
+        dag.reset()
+        Map<DefaultProject, DefaultTask> calledTasks = currentProject.getTasksByName(taskName, recursive)
+        logger.debug("Found tasks: ${calledTasks.values()}")
+        if (!calledTasks) {
+            throw new UnknownTaskException("No tasks available for $taskName!")
+        }
+        fillDag(dag, calledTasks.values(), rootProject).execute()
+
+    }
+
+    List unknownTasks(List taskNames, boolean recursive, DefaultProject currentProject) {
+        taskNames.findAll { String taskName ->
             Map<DefaultProject, DefaultTask> calledTasks = currentProject.getTasksByName(taskName, recursive)
-            logger.debug("Found tasks: ${calledTasks.values()}")
-            if (!calledTasks) {
-                throw new UnknownTaskException("No tasks available for $taskName!")
-            }
-            fillDag(dag, calledTasks.values(), rootProject).execute().reset()
+            !calledTasks.values().collect { it.name }.contains(taskName)
         }
     }
 
@@ -64,6 +71,8 @@ class BuildExecuter {
                 logger.debug("Found no dependsOn tasks for $task")
             }
         }
+
+//        configureByDag(ji)
         dag
     }
 
@@ -73,7 +82,7 @@ class BuildExecuter {
             String absolutePath = task.project.absolutePath(taskPath)
             DefaultProject project = getProjectFromTaskPath(absolutePath, rootProject)
             String dependsOnTaskName = absolutePath - project.path
-            if (!project.is(project.rootProject)) { dependsOnTaskName = dependsOnTaskName.substring(1) }
+            if (!project.is(project.rootProject)) {dependsOnTaskName = dependsOnTaskName.substring(1)}
             DefaultTask dependsOnTask = project.tasks[dependsOnTaskName]
             if (!dependsOnTask) throw new UnknownTaskException("Task with path $taskPath could not be found.")
             dependsOnTask
