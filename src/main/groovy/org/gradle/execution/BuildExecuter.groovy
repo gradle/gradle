@@ -49,14 +49,17 @@ class BuildExecuter {
         if (!calledTasks) {
             throw new UnknownTaskException("No tasks available for $taskName!")
         }
-        fillDag(dag, calledTasks.values(), rootProject).execute()
-
+        Dag dag = fillDag(dag, calledTasks.values(), rootProject)
+        dag.projects.each {Project project ->
+            if (project.configureByDag) {project.configureByDag.call(dag)}
+        }
+        dag.execute()
     }
 
     List unknownTasks(List taskNames, boolean recursive, DefaultProject currentProject) {
-        taskNames.findAll { String taskName ->
+        taskNames.findAll {String taskName ->
             Map<DefaultProject, DefaultTask> calledTasks = currentProject.getTasksByName(taskName, recursive)
-            !calledTasks.values().collect { it.name }.contains(taskName)
+            !calledTasks.values().collect {it.name}.contains(taskName)
         }
     }
 
@@ -71,8 +74,6 @@ class BuildExecuter {
                 logger.debug("Found no dependsOn tasks for $task")
             }
         }
-
-//        configureByDag(ji)
         dag
     }
 

@@ -88,6 +88,8 @@ class DefaultProject implements Comparable, Project {
 
     def convention
 
+    Closure configureByDag = {}
+
     DefaultProject() {
 
     }

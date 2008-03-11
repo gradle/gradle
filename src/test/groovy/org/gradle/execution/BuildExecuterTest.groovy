@@ -50,6 +50,11 @@ class BuildExecuterTest extends GroovyTestCase {
         DefaultTask childTest = new DefaultTask(child, 'test')
         rootTest.dependsOn = [rootCompile.path]
         childTest.dependsOn = [childCompile.name]
+        boolean configureByDagCalled = false
+        root.configureByDag = {
+               configureByDagCalled = true
+        }
+        child.configureByDag  = null
 
         root.tasks = [(rootCompile.name): rootCompile, (rootTest.name): rootTest]
         child.tasks = [(childCompile.name): childCompile, (childTest.name): childTest]
@@ -60,6 +65,7 @@ class BuildExecuterTest extends GroovyTestCase {
         dagMocker.demand.addTask(0..100) {task, dependencies ->
             checkerFirstRun[task] = dependencies
         }
+        dagMocker.demand.getProjects(1..1) {[root, child]}
         dagMocker.demand.execute(1..1) {[:] as Dag}
 
         dagMocker.use() {
@@ -99,6 +105,7 @@ class BuildExecuterTest extends GroovyTestCase {
         dagMocker.demand.addTask(3..3) {task, dependencies ->
             checker[task] = dependencies
         }
+        dagMocker.demand.getProjects(1..1) {[root, child]}
         dagMocker.demand.execute(1..1) {[:] as Dag}
 
         dagMocker.use() {

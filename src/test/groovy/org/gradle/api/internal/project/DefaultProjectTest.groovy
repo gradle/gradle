@@ -87,6 +87,7 @@ class DefaultProjectTest extends GroovyTestCase {
         assertSame projectFactory, project.projectFactory
         assertSame buildScriptProcessor, project.buildScriptProcessor
         assertNotNull(project.ant)
+        assertNotNull(project.configureByDag)
         assert project.dependencies.is(dependencyManager)
         assert dependencyManager.project.is(project)
         assert pluginRegistry.is(project.pluginRegistry)

@@ -11,6 +11,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ import java.util.*;
  */
 public final class Dag {
     private static final Logger logger = LoggerFactory.getLogger(Dag.class);
-    
+
     /**
      * Multimap, supports <code>null</code> key, but not <code>null</code> values.
      */
@@ -237,6 +238,37 @@ public final class Dag {
                 task.execute();
             }
         }
+    }
+
+    public boolean hasTask(String path) {
+        assert path != null && path.length() > 0;
+        for (DefaultTask task : getAllTasks()) {
+            if (task.getPath().equals(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private SortedSet<DefaultTask> getAllTasks() {
+        return accumulateTasks(new TreeSet(getSources()));
+    }
+
+    private SortedSet<DefaultTask> accumulateTasks(SortedSet<DefaultTask> tasks) {
+        SortedSet<DefaultTask> resultTasks = new TreeSet<DefaultTask>();
+        for (DefaultTask task : tasks) {
+            resultTasks.addAll(accumulateTasks(new TreeSet(getChildren(task))));
+            resultTasks.add(task);
+        }
+        return resultTasks;
+    }
+
+    public Set getProjects() {
+        HashSet<Project> projects = new HashSet<Project>();
+        for (DefaultTask task : getAllTasks()) {
+            projects.add(task.getProject());
+        }
+        return projects;
     }
 
     public void reset() {
