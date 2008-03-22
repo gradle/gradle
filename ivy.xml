@@ -31,5 +31,7 @@
         <dependency org="commons-httpclient" name="commons-httpclient" rev="3.0" conf="compile"/>
         <dependency org="slide" name="webdavlib" rev="2.0" conf="compile"/>
         <dependency org="ch.qos.logback" name="logback-classic" rev="0.9.8" conf="compile"/>
+        <dependency org="org.tmatesoft.svnkit" name="svnkit" rev="1.1.6" conf="compile"/>
+        <dependency org="org.tmatesoft.svnkit" name="svnkit-javahl" rev="1.1.6" conf="compile"/>
     </dependencies>
 </ivy-module>
