@@ -56,6 +56,7 @@ class Main {
         def cli = new CliBuilder(usage: 'buildg -hnp "task1, ..., taskN')
         cli.h(longOpt: 'help', 'usage information')
         cli.n(longOpt: 'nonRecursive', 'Don\'t execute the tasks for the childprojects of the current project')
+        cli.S(longOpt: 'noJvmTermination', 'Don\'t trigger a System.exit(0) for normal termination. Useful for testing.')
         cli.u(longOpt: 'noSearchUpwards', 'Don\'t search in parent folders for gradlesettings file.')
         cli.p(longOpt: 'projectDir', 'Use this dir instead of the current dir as the project dir.', args: 1)
         cli.l(longOpt: 'pluginProperties', 'Name of the file with the plugin properties.', args: 1)
@@ -171,6 +172,7 @@ class Main {
                 } else {
                     println(build.taskList(currentDir, recursive, searchUpwards, startProperties, systemProperties))
                 }
+                if (!options.S) { System.exit(0) }
                 return
             }
 
@@ -191,7 +193,7 @@ class Main {
             System.exit(1)
         }
         finalOutput(buildStartTime)
-        System.exit(0)
+        if (!options.S) { System.exit(0) }
     }
 
     static void handleGradleException(Throwable t, boolean stacktrace, boolean debug, boolean fullStacktrace, long buildStartTime) {

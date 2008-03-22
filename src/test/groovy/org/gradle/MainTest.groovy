@@ -74,7 +74,7 @@ class MainTest extends GroovyTestCase {
     }
 
     void testMainWithoutAnyOptions() {
-        checkMain {Main.main(expectedTaskNames as String[])}
+        checkMain {Main.main(["-S"] + expectedTaskNames as String[])}
     }
 
     private checkMain(boolean embedded = false, boolean taskList = false, Closure mainCall) {
@@ -166,17 +166,17 @@ class MainTest extends GroovyTestCase {
 
     void testMainWithSpecifiedGradleUserHomeDirectory() {
         expectedGradleUserHome = HelperUtil.makeNewTestDir()
-        checkMain {Main.main(["-g", expectedGradleUserHome.canonicalFile] + expectedTaskNames as String[])}
+        checkMain {Main.main(["-Sg", expectedGradleUserHome.canonicalFile] + expectedTaskNames as String[])}
     }
 
     void testMainWithSpecifiedExistingProjectDirectory() {
         expectedProjectDir = HelperUtil.makeNewTestDir()
-        checkMain {Main.main(["-p", expectedProjectDir.canonicalFile] + expectedTaskNames as String[])}
+        checkMain {Main.main(["-Sp", expectedProjectDir.canonicalFile] + expectedTaskNames as String[])}
     }
 
     void testMainWithSpecifiedBuildFileName() {
         expectedBuildFileName = 'somename'
-        checkMain {Main.main(["-b", expectedBuildFileName] + expectedTaskNames as String[])}
+        checkMain {Main.main(["-Sb", expectedBuildFileName] + expectedTaskNames as String[])}
     }
 
     void testMainWithSystemProperties() {
@@ -185,7 +185,7 @@ class MainTest extends GroovyTestCase {
         String prop2 = 'gradle.prop2'
         String valueProp2 = 'value2'
         expectedSystemProperties = [(prop1): valueProp1, (prop2): valueProp2]
-        checkMain {Main.main(["-D$prop1=$valueProp1", "-D", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
+        checkMain {Main.main(["-D$prop1=$valueProp1", "-SD", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
     }
 
     void testMainWithStartProperties() {
@@ -194,42 +194,42 @@ class MainTest extends GroovyTestCase {
         String prop2 = 'prop2'
         String valueProp2 = 'value2'
         expectedProjectProperties = [(prop1): valueProp1, (prop2): valueProp2]
-        checkMain {Main.main(["-P$prop1=$valueProp1", "-P", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
+        checkMain {Main.main(["-SP$prop1=$valueProp1", "-P", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
     }
 
     void testMainWithNonRecursiveFlagSet() {
         expectedRecursive = false
-        checkMain {Main.main(["-n"] + expectedTaskNames as String[])}
+        checkMain {Main.main(["-Sn"] + expectedTaskNames as String[])}
     }
 
     void testMainWithSearchUpwardsFlagSet() {
         expectedSearchUpwards = false
-        checkMain {Main.main(["-u"] + expectedTaskNames as String[])}
+        checkMain {Main.main(["-Su"] + expectedTaskNames as String[])}
     }
 
     void testMainWithEmbeddedScript() {
-        checkMain(true) {Main.main(["-e", expectedEmbeddedScript] + expectedTaskNames as String[])}
+        checkMain(true) {Main.main(["-Se", expectedEmbeddedScript] + expectedTaskNames as String[])}
     }
 
     void testMainWithEmbeddedScriptAndConflictingOptions() {
         buildMockFor.use {
-            Main.main(["-e", "someScript", "-u", "clean"] as String[])
-            Main.main(["-e", "someScript", "-n", "clean"] as String[])
-            Main.main(["-e", "someScript", "-bsomeFile", "clean"] as String[])
+            Main.main(["-Se", "someScript", "-u", "clean"] as String[])
+            Main.main(["-Se", "someScript", "-n", "clean"] as String[])
+            Main.main(["-Se", "someScript", "-bsomeFile", "clean"] as String[])
         }
     }
 
     void testMainWithShowTargets() {
-        checkMain(false, true) {Main.main(["-t"] as String[])}
+        checkMain(false, true) {Main.main(["-St"] as String[])}
     }
 
     void testMainWithShowTargetsAndEmbeddedScript() {
-        checkMain(true, true) {Main.main(["-e$expectedEmbeddedScript", "-t"] as String[])}
+        checkMain(true, true) {Main.main(["-Se$expectedEmbeddedScript", "-t"] as String[])}
     }
 
     void testMainWithPParameterWithoutArgument() {
         buildMockFor.use {
-            Main.main(["-p"] as String[])
+            Main.main(["-Sp"] as String[])
         }
         // The projectLoaderMock throws an exception, if the main method does not return prematurely (what it should do).
     }
