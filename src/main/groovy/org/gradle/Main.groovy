@@ -191,6 +191,7 @@ class Main {
             System.exit(1)
         }
         finalOutput(buildStartTime)
+        System.exit(0)
     }
 
     static void handleGradleException(Throwable t, boolean stacktrace, boolean debug, boolean fullStacktrace, long buildStartTime) {
