@@ -52,7 +52,7 @@ public interface Task extends Comparable {
      * @return true if this task has been executed already, false otherwise. This is in particular relevant for
      * multiproject builds.
      */
-    boolean getExecuted();
+    boolean isExecuted();
 
     /**
      *
@@ -97,6 +97,6 @@ public interface Task extends Comparable {
 
     Task lateInitialize();
     
-    boolean getLateInitialized();
+    boolean isLateInitialized();
 
 }

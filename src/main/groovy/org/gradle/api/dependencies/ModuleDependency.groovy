@@ -49,7 +49,7 @@ class ModuleDependency extends AbstractDependency {
     }
 
     Class[] userDepencencyDescriptionType() {
-        [String]
+        [String, GString]
     }
 
     DependencyDescriptor createDepencencyDescriptor() {

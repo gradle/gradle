@@ -25,8 +25,6 @@ import org.gradle.api.tasks.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
-
 /**
 * @author Hans Dockter
 */
@@ -88,6 +86,8 @@ class DefaultProject implements Comparable, Project {
 
     DependencyManager dependencies
 
+    String buildDirName = Project.DEFAULT_BUILD_DIR_NAME 
+
     def convention
 
     Closure configureByDag = {}
@@ -141,7 +141,7 @@ class DefaultProject implements Comparable, Project {
             return this
         }
         state = STATE_INITIALIZING
-        projectScript = buildScriptProcessor.evaluate(this)
+        buildScriptProcessor.evaluate(this)
         state = STATE_INITIALIZED
         lateInitializeTasks(tasks)
         logger.info("Project=$path evaluated.")
@@ -241,6 +241,9 @@ class DefaultProject implements Comparable, Project {
         new File(rootDir.parent, relativeFilePath)
     }
 
+    File getBuildDir() {
+        new File(projectDir, buildDirName)
+    }
 
     void dependsOn(String path) {
         dependsOn(path, true)

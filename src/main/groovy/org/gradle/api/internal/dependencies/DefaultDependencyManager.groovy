@@ -99,18 +99,23 @@ class DefaultDependencyManager implements DependencyManager {
     Map conf2Tasks = [:]
     Map task2Conf = [:]
 
+    File buildResolverDir
+
     DefaultDependencyManager() {
 
     }
 
     DefaultDependencyManager(Ivy ivy, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
-                             SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter, Report2Classpath report2Classpath) {
+                             SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
+                             Report2Classpath report2Classpath, File buildResolverDir) {
+        assert buildResolverDir
         this.ivy = ivy
         this.dependencyFactory = dependencyFactory
         this.artifactFactory = artifactFactory
         this.settingsConverter = settingsConverter
         this.moduleDescriptorConverter = moduleDescriptorConverter
         this.report2Classpath = report2Classpath
+        this.buildResolverDir = buildResolverDir
     }
 
     DependencyManager configure(Closure closure) {
@@ -177,11 +182,12 @@ class DefaultDependencyManager implements DependencyManager {
     }
 
     ModuleRevisionId createModuleRevisionId() {
-        new ModuleRevisionId(new ModuleId(project.group, project.name), project.version)
+        new ModuleRevisionId(new ModuleId(project.group as String, project.name as String), project.version as String)
     }
 
     Ivy getIvy() {
-        ivy = ivy.newInstance(settingsConverter.convert(resolvers.resolverList, uploadResolvers.resolverList, new File(project.gradleUserHome)))
+        ivy = ivy.newInstance(settingsConverter.convert(resolvers.resolverList, uploadResolvers.resolverList, 
+                new File(project.gradleUserHome), buildResolverDir))
     }
 
     void addConf2Tasks(String conf, String[] tasks) {

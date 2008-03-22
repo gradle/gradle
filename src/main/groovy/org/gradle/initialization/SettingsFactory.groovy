@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api
+
+package org.gradle.initialization
+
+import org.gradle.api.DependencyManagerFactory
+import org.gradle.api.Settings
 
 /**
  * @author Hans Dockter
  */
-interface DependencyManagerFactory {
-    void setBuildResolverDir(File buildResolverDir)
-    
-    DependencyManager createDependencyManager()
+class SettingsFactory {
+    Settings createSettings(File currentDir, File rootDir, DependencyManagerFactory dependencyManagerFactory,
+                            BuildSourceBuilder buildSourceBuilder, File gradleUserHomeDir) {
+        new DefaultSettings(currentDir, rootDir, dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
+    }
 }

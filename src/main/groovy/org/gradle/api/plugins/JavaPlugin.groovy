@@ -24,7 +24,6 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.dependencies.SettingsConverter
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.tasks.Clean
 import org.gradle.api.tasks.Resources
@@ -60,6 +59,8 @@ class JavaPlugin implements Plugin {
         configureDependencyManager(javaConvention, project)
 
         project.convention = javaConvention
+
+        project.status = 'integration'
 
         project.createTask(CLEAN, type: Clean).convention(javaConvention, DefaultConventionsToPropertiesMapping.CLEAN)
 
@@ -101,7 +102,7 @@ class JavaPlugin implements Plugin {
             publishOptions.setOverwrite(true)
             publishOptions.srcIvyPattern = ivyFile.absolutePath
             deps.ivy.publishEngine.publish(deps.moduleDescriptorConverter.convert(deps),
-                    deps.artifactPatterns.collect {project.file(it).absolutePath}, deps.ivy.settings.getResolver(SettingsConverter.LOCAL_RESOLVER_NAME), publishOptions)
+                    deps.artifactPatterns.collect {project.file(it).absolutePath}, deps.ivy.settings.getResolver(DependencyManager.BUILD_RESOLVER_NAME), publishOptions)
         }
 
         project.createTask(DISTRIBUTE, dependsOn: DIST) {Task task ->

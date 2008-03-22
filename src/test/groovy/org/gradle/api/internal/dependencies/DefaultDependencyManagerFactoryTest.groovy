@@ -25,7 +25,8 @@ import org.gradle.api.dependencies.ProjectDependency
  */
 class DefaultDependencyManagerFactoryTest extends GroovyTestCase {
     void testCreate() {
-        DefaultDependencyManager dependencyManager = new DefaultDependencyManagerFactory().createDependencyManager()
+        File rootDir = new File('root')
+        DefaultDependencyManager dependencyManager = new DefaultDependencyManagerFactory(new File('root')).createDependencyManager()
         // todo: check when ivy management has improved
         //assertNotNull(dependencyManager.ivy)
         assertNotNull(dependencyManager.dependencyFactory)
@@ -34,6 +35,7 @@ class DefaultDependencyManagerFactoryTest extends GroovyTestCase {
         assertNotNull(dependencyManager.moduleDescriptorConverter)
         assertNotNull(dependencyManager.report2Classpath)
         assertEquals([ArtifactDependency, ModuleDependency, ProjectDependency], dependencyManager.dependencyFactory.dependencyImplementations)
+        assertEquals(rootDir, dependencyManager.buildResolverDir)
     }
     
 }

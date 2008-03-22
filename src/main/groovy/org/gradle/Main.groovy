@@ -20,19 +20,12 @@ import org.apache.ivy.util.DefaultMessageLogger
 import org.apache.ivy.util.Message
 import org.apache.tools.ant.BuildException
 import org.codehaus.groovy.runtime.StackTraceUtils
-import org.gradle.api.DependencyManager
 import org.gradle.api.GradleException
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
-import org.gradle.api.internal.project.*
-import org.gradle.configuration.BuildClasspathLoader
-import org.gradle.configuration.BuildConfigurer
-import org.gradle.configuration.ProjectDependencies2TasksResolver
-import org.gradle.configuration.ProjectTasksPrettyPrinter
-import org.gradle.execution.BuildExecuter
-import org.gradle.execution.Dag
-import org.gradle.initialization.ProjectsLoader
-import org.gradle.initialization.SettingsFileHandler
-import org.gradle.initialization.SettingsProcessor
+import org.gradle.api.Project
+import org.gradle.api.internal.project.BuildScriptFinder
+import org.gradle.api.internal.project.EmbeddedBuildScriptFinder
+import org.gradle.initialization.BuildSourceBuilder
+import org.gradle.initialization.EmbeddedBuildExecuter
 import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,7 +35,7 @@ import org.slf4j.LoggerFactory
 */
 class Main {
     static final String GRADLE_HOME = 'gradle.home'
-    static final String DEFAULT_GRADLE_USER_HOME = System.properties['user.home'] + '/.gradle' 
+    static final String DEFAULT_GRADLE_USER_HOME = System.properties['user.home'] + '/.gradle'
     static Logger logger = LoggerFactory.getLogger(Main)
     final static String DEFAULT_CONF_FILE = "conf.buildg"
     final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties"
@@ -54,15 +47,18 @@ class Main {
         boolean searchUpwards = true
         File currentDir = new File(System.properties.'user.dir')
         File gradleUserHomeDir = new File(DEFAULT_GRADLE_USER_HOME)
-        String buildFileName = BuildScriptProcessor.DEFAULT_PROJECT_FILE
+        String buildFileName = Project.DEFAULT_PROJECT_FILE
         String gradleHome = System.properties[GRADLE_HOME]
+        Map startProperties = [:]
+        Map systemProperties = [:]
+        String embeddedBuildScript = null
 
         def cli = new CliBuilder(usage: 'buildg -hnp "task1, ..., taskN')
         cli.h(longOpt: 'help', 'usage information')
-        cli.n(longOpt: 'nonRecursive', 'Don\'t execute the tasks for the cildprojects of the current project')
+        cli.n(longOpt: 'nonRecursive', 'Don\'t execute the tasks for the childprojects of the current project')
         cli.u(longOpt: 'noSearchUpwards', 'Don\'t search in parent folders for gradlesettings file.')
         cli.p(longOpt: 'projectDir', 'Use this dir instead of the current dir as the project dir.', args: 1)
-        cli.l(longOpt: 'pluginDirsPath', 'Colon separated string of the plugin dirs to scan for plugins.', args: 1)
+        cli.l(longOpt: 'pluginProperties', 'Name of the file with the plugin properties.', args: 1)
         cli.b(longOpt: 'buildfile', 'Use this build file name (also for subprojects)', args: 1)
         cli.t(longOpt: 'tasks', 'Show list of tasks.')
         cli.d(longOpt: 'debug', 'Log in debug mode (includes normal stacktrace)')
@@ -72,7 +68,9 @@ class Main {
         cli.f(longOpt: 'fullStacktrace', 'Print out the full (very verbose) stacktrace.')
         cli.s(longOpt: 'stacktrace', 'Print out the stacktrace.')
         cli.D(longOpt: 'prop', 'Set system property of the JVM.', args: 1)
+        cli.P(longOpt: 'projectProperty', 'Set project property of the root project.', args: 1)
         cli.g(longOpt: 'gradleUserHome', 'The user specific gradle dir.', args: 1)
+        cli.e(longOpt: 'embedded', 'Use an embedded build script.', args: 1)
         cli.v(longOpt: 'version', 'Prints put version info.')
 
         def options = cli.parse(args)
@@ -101,7 +99,15 @@ class Main {
             logger.info("Running with System props: $options.Ds")
             options.Ds.each {String keyValueExpression ->
                 List elements = keyValueExpression.split('=')
-                System.properties[elements[0]] = elements.size() == 1 ? '' : elements[1]
+                systemProperties[elements[0]] = elements.size() == 1 ? '' : elements[1]
+            }
+        }
+
+        if (options.P) {
+            logger.info("Running with Project props: $options.Ps")
+            options.Ps.each {String keyValueExpression ->
+                List elements = keyValueExpression.split('=')
+                startProperties[elements[0]] = elements.size() == 1 ? '' : elements[1]
             }
         }
 
@@ -130,6 +136,14 @@ class Main {
             pluginProperties = options.l
         }
 
+        if (options.e) {
+            if (options.b || options.n || options.u) {
+                logger.error("Error: The e option can't be used together with the b, n or u option.")
+                return
+            }
+            embeddedBuildScript = options.e
+        }
+
         logger.info("gradle.home=$gradleHome")
         logger.info("Current dir: $currentDir")
         logger.info("Gradle user home: $gradleUserHomeDir")
@@ -138,23 +152,33 @@ class Main {
         logger.info("Plugin properties: $pluginProperties")
 
         try {
-            Build build = new Build(new SettingsProcessor(new SettingsFileHandler(),
-                    createDependencyManagerForBuildClasspath(gradleUserHomeDir)),
-                    new ProjectsLoader(new ProjectFactory(new DefaultDependencyManagerFactory()), new BuildScriptProcessor(), new BuildScriptFinder(buildFileName), new PluginRegistry(pluginProperties)),
-                    new BuildConfigurer(new ProjectDependencies2TasksResolver(), new BuildClasspathLoader(), new ProjectsTraverser(), new ProjectTasksPrettyPrinter()),
-                    new BuildExecuter(new Dag()))
-
-            if (options.t) {
-                println(build.taskList(currentDir, gradleUserHomeDir, buildFileName, recursive, searchUpwards))
-                return
-            }
-
             def tasks = options.arguments()
-            if (!tasks) {
+            if (!tasks && !options.t) {
                 logger.error(NL + 'Build exits abnormally. No task names are specified!')
                 return
             }
-            build.run(tasks, currentDir, gradleUserHomeDir, buildFileName, recursive, searchUpwards)
+            
+            def buildScriptFinder = (embeddedBuildScript != null ? new EmbeddedBuildScriptFinder(embeddedBuildScript) :
+                new BuildScriptFinder(buildFileName))
+            Closure buildFactory = Build.newInstanceFactory(gradleUserHomeDir, pluginProperties)
+            Build build = buildFactory(buildScriptFinder, null)
+            build.settingsProcessor.buildSourceBuilder = new BuildSourceBuilder(
+                    new EmbeddedBuildExecuter(buildFactory, gradleUserHomeDir))
+
+            if (options.t) {
+                if (embeddedBuildScript != null) {
+                    println(build.taskList(currentDir, startProperties, systemProperties))
+                } else {
+                    println(build.taskList(currentDir, recursive, searchUpwards, startProperties, systemProperties))
+                }
+                return
+            }
+
+            if (embeddedBuildScript != null) {
+                build.run(tasks, currentDir, startProperties, systemProperties)
+            } else {
+                build.run(tasks, currentDir, recursive, searchUpwards, startProperties, systemProperties)
+            }
             logger.info(NL + "BUILD SUCCESSFUL")
         } catch (BuildException e) {
             handleGradleException(e, options.s, options.d, options.f, buildStartTime)
@@ -165,9 +189,8 @@ class Main {
             logger.error("Exception is:", e)
             finalOutput(buildStartTime)
             System.exit(1)
-        } finally {
-            finalOutput(buildStartTime)
         }
+        finalOutput(buildStartTime)
     }
 
     static void handleGradleException(Throwable t, boolean stacktrace, boolean debug, boolean fullStacktrace, long buildStartTime) {
@@ -177,9 +200,9 @@ class Main {
         introMessage += fullStacktrace ? '' : " Run (additionally) with -f option to get the full (very verbose) stacktrace"
         logger.error(NL + introMessage)
         if (debug || stacktrace || fullStacktrace) {
-           logger.error("Exception is:", fullStacktrace ? t : StackTraceUtils.deepSanitize(t))
+            logger.error("Exception is:", fullStacktrace ? t : StackTraceUtils.deepSanitize(t))
         } else {
-           logger.error("Exception: $t")
+            logger.error("Exception: $t")
         }
         finalOutput(buildStartTime)
         System.exit(1)
@@ -187,18 +210,6 @@ class Main {
 
     static void finalOutput(long buildStartTime) {
         logger.info(NL + "Total time: " + ((System.currentTimeMillis() - buildStartTime).intdiv(1000)) + ' seconds')
-    }
-
-    static private DependencyManager createDependencyManagerForBuildClasspath(File gradleUserHomeDir) {
-        DependencyManager dependencyManager = new DefaultDependencyManagerFactory().createDependencyManager()
-        DefaultProject dummyProjectForDepencencyManager = new DefaultProject()
-        dummyProjectForDepencencyManager.group = 'org.gradle'
-        dummyProjectForDepencencyManager.name = 'build'
-        dummyProjectForDepencencyManager.version = 'na'
-        dummyProjectForDepencencyManager.status = 'release'
-        dummyProjectForDepencencyManager.gradleUserHome = gradleUserHomeDir.canonicalPath
-        dependencyManager.project = dummyProjectForDepencencyManager
-        dependencyManager
     }
 
     static void configureLogger(def options) {

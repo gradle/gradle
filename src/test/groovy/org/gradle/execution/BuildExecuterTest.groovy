@@ -24,8 +24,6 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.util.HelperUtil
 
-
-
 /**
 * @author Hans Dockter
 */
@@ -37,7 +35,7 @@ class BuildExecuterTest extends GroovyTestCase {
     DefaultProject child
 
     void setUp() {
-        root = new DefaultProject("root", null, new File(""), null, new ProjectFactory(new DefaultDependencyManagerFactory()), new DefaultDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder('somebuildfile'), new PluginRegistry())
+        root = new DefaultProject("root", null, new File(""), null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder('somebuildfile'), new PluginRegistry())
         child = root.addChildProject("child")
         buildExecuter = new BuildExecuter(new Dag())
     }

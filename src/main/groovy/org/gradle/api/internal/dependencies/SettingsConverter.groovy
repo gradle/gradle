@@ -20,21 +20,21 @@ import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.gradle.api.DependencyManager
 
 /**
  * @author Hans Dockter
  */
 class SettingsConverter {
     static final String CHAIN_RESOLVER_NAME = 'chain'
-    static final String LOCAL_RESOLVER_NAME = 'local'
 
     IvySettings ivySettings
 
-    IvySettings convert(def resolvers, def uploadResolvers, File gradleUserHome) {
+    IvySettings convert(def resolvers, def uploadResolvers, File gradleUserHome, File buildResolverDir) {
         if (ivySettings) {return ivySettings}
         ChainResolver chainResolver = new ChainResolver()
         chainResolver.name = CHAIN_RESOLVER_NAME
-        chainResolver.add(createLocalResolver(gradleUserHome))
+        chainResolver.add(createLocalResolver(buildResolverDir))
         resolvers.each {
             chainResolver.add(it)
         }
@@ -46,10 +46,10 @@ class SettingsConverter {
         ivySettings
     }
 
-    private DependencyResolver createLocalResolver(File gradleUserHome) {
+    private DependencyResolver createLocalResolver(File buildResolverDir) {
         DependencyResolver localResolver = new FileSystemResolver()
-        localResolver.name = LOCAL_RESOLVER_NAME
-        String pattern = "$gradleUserHome.absolutePath/local/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+        localResolver.name = DependencyManager.BUILD_RESOLVER_NAME
+        String pattern = "$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"
         localResolver.addIvyPattern(pattern)
         localResolver.addArtifactPattern(pattern)
         localResolver

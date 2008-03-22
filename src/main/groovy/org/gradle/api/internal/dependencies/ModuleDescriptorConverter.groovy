@@ -22,17 +22,22 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
 
-
 /**
  * @author Hans Dockter
  */
 class ModuleDescriptorConverter {
+    static final String DEFAULT_STATUS = 'integration' 
 
     ModuleDescriptorConverter() {
     }
 
     ModuleDescriptor convert(DefaultDependencyManager dependencyManager) {
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(dependencyManager.createModuleRevisionId(), dependencyManager.project.status, null)
+        def status = DEFAULT_STATUS
+        if (dependencyManager.project.hasProperty('status')) {
+            status = dependencyManager.project.status
+        }
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(dependencyManager.createModuleRevisionId(),
+                status, null)
         dependencyManager.configurations.values().each {moduleDescriptor.addConfiguration(it)}
         addDependencyDescriptors(moduleDescriptor, dependencyManager)
         addArtifacts(moduleDescriptor, dependencyManager)

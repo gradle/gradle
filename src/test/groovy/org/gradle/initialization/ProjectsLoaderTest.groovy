@@ -17,7 +17,6 @@
 package org.gradle.initialization
 
 import org.gradle.api.Project
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.initialization.DefaultSettings
@@ -37,9 +36,11 @@ class ProjectsLoaderTest extends GroovyTestCase {
     File testUserDir
     File testRootProjectDir
     File testParentProjectDir
+    Map testStartProperties
 
     void setUp() {
-        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory())
+        testStartProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
+        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')))
         buildScriptProcessor = new BuildScriptProcessor()
         buildScriptFinder = new BuildScriptFinder()
         pluginRegistry = new PluginRegistry()
@@ -63,7 +64,8 @@ class ProjectsLoaderTest extends GroovyTestCase {
     }
 
     void testCreateProjects() {
-        DefaultSettings settings = new DefaultSettings(new File(testRootProjectDir, 'parent'), testRootProjectDir, new DefaultDependencyManager())
+        DefaultSettings settings = new DefaultSettings(new File(testRootProjectDir, 'parent'), 
+                testRootProjectDir, new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(), new File('gradleUserHome'))
         settings.include('parent' + Project.PATH_SEPARATOR + 'child1', 'parent' + Project.PATH_SEPARATOR + 'child2',
                 'parent' + Project.PATH_SEPARATOR + 'folder' + Project.PATH_SEPARATOR + 'child3')
         Map testUserProps = [prop1: 'value1', prop2: 'value2']
@@ -73,7 +75,7 @@ class ProjectsLoaderTest extends GroovyTestCase {
         new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
         new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
 
-        projectLoader.load(settings, testUserDir)
+        projectLoader.load(settings, testUserDir, testStartProperties)
 
         DefaultProject rootProject = projectLoader.rootProject
         assertSame(testRootProjectDir, rootProject.rootDir)
@@ -95,13 +97,16 @@ class ProjectsLoaderTest extends GroovyTestCase {
                 rootProject.childProjects.parent.childProjects.folder.childProjects.child3)
         checkProjectProperties(testRootProjectProps, rootProject, ['prop1'])
         checkProjectProperties(testParentProjectProps, rootProject.childProjects.parent, ['prop1'])
+        checkProjectProperties(testStartProperties, rootProject)
+        assertNull(rootProject.childProjects.parent.additionalProperties[new ArrayList(testStartProperties.keySet())[0]])
     }
 
-    void testCreateProjectsWithNonExistingUserAndProjectGradleProperties() {
-        DefaultSettings settings = new DefaultSettings(testRootProjectDir, testRootProjectDir, new DefaultDependencyManager())
+    void testCreateProjectsWithNonExistingUserAndProjectGradleAndStartProperties() {
+        DefaultSettings settings = new DefaultSettings(testRootProjectDir, testRootProjectDir, 
+                new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(), new File('gradleUserHome'))
 
         File nonExistingGradleUserHomeDir = new File('nonexistingGradleHome')
-        projectLoader.load(settings, nonExistingGradleUserHomeDir)
+        projectLoader.load(settings, nonExistingGradleUserHomeDir, [:])
 
         DefaultProject rootProject = projectLoader.rootProject
 

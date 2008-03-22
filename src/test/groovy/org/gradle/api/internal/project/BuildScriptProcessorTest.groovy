@@ -35,6 +35,8 @@ class BuildScriptProcessorTest extends GroovyTestCase {
 
     ClassLoader classLoader
 
+    Script projectScript
+
     void setUp() {
         classLoader = new InputStreamClassLoader()
         InputStream inputStream = this.getClass().getResourceAsStream('/org/gradle/api/ClasspathTester.dat')
@@ -42,7 +44,8 @@ class BuildScriptProcessorTest extends GroovyTestCase {
         buildScriptProcessor = new BuildScriptProcessor()
         buildScriptProcessor.classLoader = classLoader
         dummyProject = [someProjectMethod: {projectMethodCalled = true}, getRootDir: {new File("/psth/root")},
-                getServices: {HelperUtil.createTestProjectService()}, getName: {'projectname'}] as DefaultProject
+                getServices: {HelperUtil.createTestProjectService()}, getName: {'projectname'},
+                setProjectScript: { Script script -> projectScript = script}] as DefaultProject
         projectMethodCalled = false
 
     }
@@ -62,17 +65,17 @@ def scriptMethod() { 'scriptMethod' }
     def x = bindingProperty // leads to an exception if bindingProperty is not available 
 '''
         dummyProject.buildScriptFinder = mockBuildScriptFinder(scriptCode)
-        Script script = buildScriptProcessor.evaluate(dummyProject, [bindingProperty: 'somevalue'])
+        buildScriptProcessor.evaluate(dummyProject, [bindingProperty: 'somevalue'])
         assertTrue(projectMethodCalled)
-        assertEquals("scriptMethod", script.scriptMethod())
-        assertEquals(dummyProject.path + 'mySuffix', script.scriptProperty)
+        assertEquals("scriptMethod", projectScript.scriptMethod())
+        assertEquals(dummyProject.path + 'mySuffix', projectScript.scriptProperty)
         assertEquals(dummyProject.path + 'mySuffix', dummyProject.additionalProperties['scriptProperty'])
     }
 
     void testWithEmptyScript() {
         dummyProject.buildScriptFinder = mockBuildScriptFinder('')
-        Script script = buildScriptProcessor.evaluate(dummyProject)
-        assertNotNull(script)
+        buildScriptProcessor.evaluate(dummyProject)
+        assertNotNull(projectScript)
     }
 
     void testWithException() {

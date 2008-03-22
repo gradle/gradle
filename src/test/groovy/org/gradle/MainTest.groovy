@@ -18,7 +18,11 @@ package org.gradle
 
 import groovy.mock.interceptor.MockFor
 import groovy.mock.interceptor.StubFor
-import org.gradle.api.internal.project.BuildScriptProcessor
+import org.gradle.api.DependencyManager
+import org.gradle.api.Project
+import org.gradle.api.internal.project.BuildScriptFinder
+import org.gradle.api.internal.project.EmbeddedBuildScriptFinder
+import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 
 /**
@@ -28,12 +32,34 @@ import org.gradle.util.HelperUtil
 class MainTest extends GroovyTestCase {
     final static String TEST_DIR_NAME = "/testdir"
 
+    // This property has to be also set as system property gradle.home when running this test
+    final static TEST_GRADLE_HOME = 'roadToNowhere'
+
     StubFor fileStub
     MockFor buildMockFor
+
+    String expectedBuildFileName
+    File expectedGradleUserHome
+    File expectedProjectDir
+    List expectedTaskNames = ["clean", "compile"]
+    Map expectedSystemProperties
+    Map expectedProjectProperties
+    boolean expectedRecursive
+    boolean expectedSearchUpwards
+    String expectedEmbeddedScript
 
     void setUp() {
         fileStub = new StubFor(File)
         buildMockFor = new MockFor(Build)
+        expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME)
+        expectedTaskNames = ["clean", "compile"]
+        expectedProjectDir = new File("").canonicalFile
+        expectedProjectProperties = [:]
+        expectedSystemProperties = [:]
+        expectedBuildFileName = Project.DEFAULT_PROJECT_FILE
+        expectedRecursive = true
+        expectedSearchUpwards = true
+        expectedEmbeddedScript = 'somescript'
     }
 
     void testMainWithSpecifiedNonExistingProjectDirectory() {
@@ -48,67 +74,109 @@ class MainTest extends GroovyTestCase {
     }
 
     void testMainWithoutAnyOptions() {
-        Throwable assertException = null
+        checkMain {Main.main(expectedTaskNames as String[])}
+    }
 
-        buildMockFor.demand.run(1..1) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-            try {
-                assertEquals(["clean", "compile"], taskNames)
-                assertEquals(new File("").canonicalFile, currentDir)
-                assertEquals(new File(Main.DEFAULT_GRADLE_USER_HOME).canonicalFile, gradleUserHome)
-                assertTrue(recursive)
-                assertEquals(BuildScriptProcessor.DEFAULT_PROJECT_FILE, buildFileName)
-                assertTrue(searchUpwards)
-            } catch (Throwable e) {
-                assertException = e
+    private checkMain(boolean embedded = false, boolean taskList = false, Closure mainCall) {
+        File expectedBuildResolverRoot = new File(expectedProjectDir, DependencyManager.BUILD_RESOLVER_NAME)
+        Throwable assertException = null
+        SettingsProcessor settingsProcessor = new SettingsProcessor()
+        Closure buildFactory = {BuildScriptFinder buildScriptFinder, File buildResolverDir ->
+            assertNull(buildResolverDir)
+            if (embedded) {
+                assert buildScriptFinder instanceof EmbeddedBuildScriptFinder
+                assertEquals(expectedEmbeddedScript, buildScriptFinder.getBuildScript(null))
+            } else {
+                assert !(buildScriptFinder instanceof EmbeddedBuildScriptFinder)
+                assertEquals(expectedBuildFileName, buildScriptFinder.buildFileName)
+            }
+            new Build()
+        }
+        buildMockFor.demand.newInstanceFactory(1..1) {File gradleUserHomeDir, File pluginProperties ->
+            assertEquals(expectedGradleUserHome.canonicalFile, gradleUserHomeDir.canonicalFile)
+            assertEquals(new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES), pluginProperties)
+            buildFactory
+        }
+        buildMockFor.demand.getSettingsProcessor(1..1) {
+            settingsProcessor
+        }
+        if (embedded) {
+            if (taskList) {
+                buildMockFor.demand.taskList(1..1) {File currentDir,  Map projectProperties, Map systemProperties ->
+                    try {
+                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
+                        assertEquals(expectedProjectProperties, projectProperties)
+                        assertEquals(expectedSystemProperties, systemProperties)
+                    } catch (Throwable e) {
+                        assertException = e
+                    }
+                }
+            } else {
+                buildMockFor.demand.run(1..1) {List taskNames, File currentDir,  Map projectProperties, Map systemProperties ->
+                    try {
+                        assertEquals(expectedTaskNames, taskNames)
+                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
+                        assertEquals(expectedProjectProperties, projectProperties)
+                        assertEquals(expectedSystemProperties, systemProperties)
+                    } catch (Throwable e) {
+                        assertException = e
+                    }
+                }
+            }
+        } else {
+            if (taskList) {
+
+                buildMockFor.demand.taskList(1..1) {File currentDir,  boolean recursive, boolean searchUpwards,
+                                                    Map projectProperties, Map systemProperties ->
+                    try {
+                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
+                        assertEquals(expectedRecursive, recursive)
+                        assertEquals(expectedSearchUpwards, searchUpwards)
+                        assertEquals(expectedProjectProperties, projectProperties)
+                        assertEquals(expectedSystemProperties, systemProperties)
+                    } catch (Throwable e) {
+                        assertException = e
+                    }
+                }
+            } else {
+                buildMockFor.demand.run(1..1) {List taskNames, File currentDir,  boolean recursive, boolean searchUpwards,
+                                               Map projectProperties, Map systemProperties ->
+                    try {
+                        assertEquals(expectedTaskNames, taskNames)
+                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
+                        assertEquals(expectedRecursive, recursive)
+                        assertEquals(expectedSearchUpwards, searchUpwards)
+                        assertEquals(expectedProjectProperties, projectProperties)
+                        assertEquals(expectedSystemProperties, systemProperties)
+                    } catch (Throwable e) {
+                        assertException = e
+                    }
+                }
             }
         }
 
         buildMockFor.use {
-            Main.main(["clean", "compile"] as String[])
+            mainCall.call()
         }
+        assertNotNull(settingsProcessor.buildSourceBuilder)
+        assertEquals(expectedGradleUserHome.canonicalFile, settingsProcessor.buildSourceBuilder.embeddedBuildExecuter.gradleUserHome.canonicalFile)
+        assertEquals(buildFactory, settingsProcessor.buildSourceBuilder.embeddedBuildExecuter.buildFactory)
         if (assertException) throw assertException
     }
 
     void testMainWithSpecifiedGradleUserHomeDirectory() {
-        Throwable assertException = null
-
-        File expectedGradleUserHomeDir = HelperUtil.makeNewTestDir()
-        buildMockFor.demand.run(1..1) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-            try {
-                assertEquals(["clean"], taskNames)
-                assertEquals(expectedGradleUserHomeDir.canonicalFile, gradleUserHome)
-                assertTrue(recursive)
-                assertEquals(BuildScriptProcessor.DEFAULT_PROJECT_FILE, buildFileName)
-                assertTrue(searchUpwards)
-            } catch (Throwable e) {
-                assertException = e
-            }
-        }
-        buildMockFor.use {
-            Main.main(["-g", expectedGradleUserHomeDir.canonicalFile, "clean"] as String[])
-        }
-        if (assertException) throw assertException
+        expectedGradleUserHome = HelperUtil.makeNewTestDir()
+        checkMain {Main.main(["-g", expectedGradleUserHome.canonicalFile] + expectedTaskNames as String[])}
     }
 
     void testMainWithSpecifiedExistingProjectDirectory() {
-        Throwable assertException = null
+        expectedProjectDir = HelperUtil.makeNewTestDir()
+        checkMain {Main.main(["-p", expectedProjectDir.canonicalFile] + expectedTaskNames as String[])}
+    }
 
-        File expectedProjectDir = HelperUtil.makeNewTestDir()
-        buildMockFor.demand.run(1..1) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-            try {
-                assertEquals(["clean"], taskNames)
-                assertEquals(expectedProjectDir.canonicalFile, currentDir)
-                assertTrue(recursive)
-                assertEquals(BuildScriptProcessor.DEFAULT_PROJECT_FILE, buildFileName)
-                assertTrue(searchUpwards)
-            } catch (Throwable e) {
-                assertException = e
-            }
-        }
-        buildMockFor.use {
-            Main.main(["-p", expectedProjectDir.canonicalFile, "clean"] as String[])
-        }
-        if (assertException) throw assertException
+    void testMainWithSpecifiedBuildFileName() {
+        expectedBuildFileName = 'somename'
+        checkMain {Main.main(["-b", expectedBuildFileName] + expectedTaskNames as String[])}
     }
 
     void testMainWithSystemProperties() {
@@ -116,84 +184,47 @@ class MainTest extends GroovyTestCase {
         String valueProp1 = 'value1'
         String prop2 = 'gradle.prop2'
         String valueProp2 = 'value2'
-        Throwable assertException = null
-
-        File expectedProjectDir = HelperUtil.makeNewTestDir()
-        buildMockFor.demand.run(1..1) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-            try {
-                assertEquals(System.properties[prop1], valueProp1)
-                assertEquals(System.properties[prop2], valueProp2)
-            } catch (Throwable e) {
-                assertException = e
-            }
-        }
-        buildMockFor.use {
-            Main.main(["-D$prop1=$valueProp1", "-D", "$prop2=$valueProp2", "-p", expectedProjectDir.canonicalFile, "clean"] as String[])
-        }
-        if (assertException) throw assertException
+        expectedSystemProperties = [(prop1): valueProp1, (prop2): valueProp2]
+        checkMain {Main.main(["-D$prop1=$valueProp1", "-D", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
     }
 
+    void testMainWithStartProperties() {
+        String prop1 = 'prop1'
+        String valueProp1 = 'value1'
+        String prop2 = 'prop2'
+        String valueProp2 = 'value2'
+        expectedProjectProperties = [(prop1): valueProp1, (prop2): valueProp2]
+        checkMain {Main.main(["-P$prop1=$valueProp1", "-P", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
+    }
 
     void testMainWithNonRecursiveFlagSet() {
-        Throwable assertException = null
-
-        buildMockFor.demand.run(1..1) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-            try {
-                assertEquals(["clean"], taskNames)
-                assertEquals(new File("").canonicalFile, currentDir)
-                assertFalse(recursive)
-                assertEquals(BuildScriptProcessor.DEFAULT_PROJECT_FILE, buildFileName)
-                assertTrue(searchUpwards)
-            } catch (Throwable e) {
-                assertException = e
-            }
-        }
-
-        buildMockFor.use {
-            Main.main(["-n", "clean"] as String[])
-        }
-        if (assertException) throw assertException
+        expectedRecursive = false
+        checkMain {Main.main(["-n"] + expectedTaskNames as String[])}
     }
 
-    void testMainWithoSearchUpwardsFlagSet() {
-        Throwable assertException = null
+    void testMainWithSearchUpwardsFlagSet() {
+        expectedSearchUpwards = false
+        checkMain {Main.main(["-u"] + expectedTaskNames as String[])}
+    }
 
-        buildMockFor.demand.run(1..1) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-            try {
-                assertEquals(["clean"], taskNames)
-                assertEquals(new File("").canonicalFile, currentDir)
-                assertTrue(recursive)
-                assertEquals(BuildScriptProcessor.DEFAULT_PROJECT_FILE, buildFileName)
-                assertFalse(searchUpwards)
-            } catch (Throwable e) {
-                assertException = e
-            }
-        }
+    void testMainWithEmbeddedScript() {
+        checkMain(true) {Main.main(["-e", expectedEmbeddedScript] + expectedTaskNames as String[])}
+    }
 
+    void testMainWithEmbeddedScriptAndConflictingOptions() {
         buildMockFor.use {
-            Main.main(["-u", "clean"] as String[])
+            Main.main(["-e", "someScript", "-u", "clean"] as String[])
+            Main.main(["-e", "someScript", "-n", "clean"] as String[])
+            Main.main(["-e", "someScript", "-bsomeFile", "clean"] as String[])
         }
-        if (assertException) throw assertException
     }
 
     void testMainWithShowTargets() {
-        Throwable assertException = null
+        checkMain(false, true) {Main.main(["-t"] as String[])}
+    }
 
-        buildMockFor.demand.taskList(1..1) {File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-            try {
-                assertEquals(new File("").canonicalFile, currentDir)
-                assertTrue(recursive)
-                assertEquals(BuildScriptProcessor.DEFAULT_PROJECT_FILE, buildFileName)
-                assertTrue(searchUpwards)
-            } catch (Throwable e) {
-                assertException = e
-            }
-        }
-
-        buildMockFor.use {
-            Main.main(["-t"] as String[])
-        }
-        if (assertException) throw assertException
+    void testMainWithShowTargetsAndEmbeddedScript() {
+        checkMain(true, true) {Main.main(["-e$expectedEmbeddedScript", "-t"] as String[])}
     }
 
     void testMainWithPParameterWithoutArgument() {
@@ -203,13 +234,22 @@ class MainTest extends GroovyTestCase {
         // The projectLoaderMock throws an exception, if the main method does not return prematurely (what it should do).
     }
 
-    void testMainWithMissingTargets() {
-        buildMockFor.demand.run(0..0) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
+    void testMainWithMissingGradleHome() {
+        System.properties.remove('gradle.home')
+        buildMockFor.use {
+            Main.main(["clean"] as String[])
         }
+        // Tests are run in one JVM. Therefore we need to set it again.
+        System.properties['gradle.home'] = TEST_GRADLE_HOME
+    }
+
+    void testMainWithMissingTargets() {
         buildMockFor.use {
             Main.main([] as String[])
         }
     }
+
+
 
     //    void testMainWithException() {
     //        showProp()
@@ -221,15 +261,6 @@ class MainTest extends GroovyTestCase {
     //            // Getting here means the exception was caught. This is what we want to test.
     //        }
     //    }
-
-    void testMainWithMissingGradleHome() {
-        System.properties.remove('gradle.home')
-        buildMockFor.demand.run(0..0) {List taskNames, File currentDir, File gradleUserHome, String buildFileName, boolean recursive, boolean searchUpwards ->
-        }
-        buildMockFor.use {
-            Main.main(["clean"] as String[])
-        }
-    }
 
 
 

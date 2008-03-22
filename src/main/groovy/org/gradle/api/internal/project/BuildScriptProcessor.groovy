@@ -22,14 +22,11 @@ import org.gradle.api.internal.project.DefaultProject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
 /**
 * @author Hans Dockter
 */
 class BuildScriptProcessor {
     Logger logger = LoggerFactory.getLogger(BuildScriptProcessor)
-     
-    final static String DEFAULT_PROJECT_FILE = "gradle.groovy"
 
     ClassLoader classLoader
 
@@ -37,7 +34,7 @@ class BuildScriptProcessor {
 
     }
 
-    Script evaluate(DefaultProject project, Map bindingVariables = [:]) {
+    void evaluate(DefaultProject project, Map bindingVariables = [:]) {
         Binding binding = new Binding(bindingVariables)
         CompilerConfiguration conf = new CompilerConfiguration()
         conf.scriptBaseClass = 'org.gradle.api.internal.project.ProjectScript'
@@ -46,6 +43,7 @@ class BuildScriptProcessor {
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
             script = groovyShell.parse(project.buildScriptFinder.getBuildScript(project), project.buildScriptFinder.buildFileName)
             replaceMetaclass(script, project)
+            project.projectScript = script
             script.run()
         } catch (Throwable t) {
             throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)

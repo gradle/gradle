@@ -14,59 +14,68 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.api;
 
-import org.apache.ivy.Ivy
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.dependencies.ResolverContainer
+import groovy.lang.Closure;
+import org.apache.ivy.Ivy;
+import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.dependencies.ResolverContainer;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-interface DependencyManager {
-    Project getProject()
+public interface DependencyManager {
+    public static final String BUILD_RESOLVER_NAME = "build-resolver";
 
-    Ivy getIvy()
+    public static final String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
+
+    Project getProject();
+
+    Ivy getIvy();
 
     /**
     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
     */
-    Map getConfigurations()
+    Map getConfigurations();
 
     /**
     * A list of Gradle Dependency objects.
     */
-    List getDependencies()
+    List getDependencies();
 
     /**
     * A list for passing directly instances of Ivy DependencyDescriptor objects.
     */
-    List getDependencyDescriptors()
+    List getDependencyDescriptors();
 
-    ResolverContainer getResolvers()
+    ResolverContainer getResolvers();
 
     /**
     * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
     */
-    Map getArtifacts()
+    Map getArtifacts();
 
     /**
     * A map for passing directly instances of Ivy Artifact objects.
     */
-    Map getArtifactDescriptors()
+    Map getArtifactDescriptors();
 
     /**
     * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
     */
-    List getArtifactPatterns()
+    List getArtifactPatterns();
 
     /**
     * The name of the task which produces the artifacts of this project. This is needed by other projects,
     * which have a dependency on a project.
     */
-    String getArtifactProductionTaskName()
+    String getArtifactProductionTaskName();
 
     /**
     * A map where the key is the name of the configuration and the value is the name of a task. This is needed
@@ -75,21 +84,23 @@ interface DependencyManager {
     * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
     * the mapping can be specified via this map.
     */
-    Map getConf2Tasks()             
+    Map getConf2Tasks();
 
-    void addDependencies(List confs, Object[] dependencies)
+    void addDependencies(List confs, Object[] dependencies);
 
-    void addArtifacts(String configurationName, Object[] artifacts)
+    void addArtifacts(String configurationName, Object[] artifacts);
 
-    void addConfiguration(Configuration configuration)
+    void addConfiguration(Configuration configuration);
 
-    void addConfiguration(String configuration)
+    void addConfiguration(String configuration);
 
-    void addDependencyDescriptors(DependencyDescriptor[] dependencyDescriptors)
+    void addDependencyDescriptors(DependencyDescriptor[] dependencyDescriptors);
 
-    List resolveClasspath(String configurationName)
+    List resolveClasspath(String configurationName);
 
-    ModuleRevisionId createModuleRevisionId()
+    ModuleRevisionId createModuleRevisionId();
 
-    DependencyManager configure(Closure configureClosure)
+    DependencyManager configure(Closure configureClosure);
+
+    File getBuildResolverDir();
 }

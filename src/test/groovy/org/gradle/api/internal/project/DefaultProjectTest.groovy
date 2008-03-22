@@ -31,8 +31,6 @@ import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.util.HelperUtil
 import org.gradle.util.TestTask
 
-
-
 /**
  * @author Hans Dockter
  * todo: test for relativeFilePath
@@ -45,8 +43,6 @@ class DefaultProjectTest extends GroovyTestCase {
     static final File TEST_ROOT = new File("root")
 
     static final String TEST_SCRIPT_TEXT = '// somescriptcode'
-
-    static final Script TEST_SCRIPT = new GroovyShell().parse(TEST_SCRIPT_TEXT)
 
     DefaultProject project, child1, child2, childchild
 
@@ -64,7 +60,7 @@ class DefaultProjectTest extends GroovyTestCase {
 
     void setUp() {
         rootDir = new File("/path/root")
-        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory())
+        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')))
         pluginRegistry = new PluginRegistry(new File('somepath'))
         buildScriptProcessor = new BuildScriptProcessor()
         buildScriptFinder = new BuildScriptFinder('buildfile')
@@ -95,6 +91,7 @@ class DefaultProjectTest extends GroovyTestCase {
         assert pluginRegistry.is(project.pluginRegistry)
         assertEquals 'root', project.name
         assertEquals DefaultProject.STATE_CREATED, project.state
+        assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
 
         assertSame project, child1.parent
         assertSame project, child1.rootProject
@@ -117,7 +114,6 @@ class DefaultProjectTest extends GroovyTestCase {
         assertEquals(DefaultProject.STATE_INITIALIZED, project.state)
         assertTrue(project.tasks[TEST_TASK_NAME].lateInitialized)
         assertTrue(nestedTask.lateInitialized)
-        assert project.projectScript.is(TEST_SCRIPT)
     }
 
     private MockFor createBuildScriptFinderMocker() {
@@ -133,7 +129,6 @@ class DefaultProjectTest extends GroovyTestCase {
         if (!evaluateClosure) {
             evaluateClosure = {DefaultProject project ->
                 assert this.project.is(project)
-                TEST_SCRIPT
             }
         }
         MockFor buildScriptProcessorMocker = new MockFor(BuildScriptProcessor)
@@ -193,9 +188,8 @@ class DefaultProjectTest extends GroovyTestCase {
             project.evaluationDependsOn(child1.path)
             assertTrue(mockReader2Finished)
             mockReader1Called = true
-            TEST_SCRIPT
         }] as BuildScriptProcessor
-        final BuildScriptProcessor mockReader2 = [evaluate: {DefaultProject project -> mockReader2Finished = true; TEST_SCRIPT}] as BuildScriptProcessor
+        final BuildScriptProcessor mockReader2 = [evaluate: {DefaultProject project -> mockReader2Finished = true}] as BuildScriptProcessor
         project.buildScriptProcessor = mockReader1
         child1.buildScriptProcessor = mockReader2
         project.evaluate()
@@ -214,11 +208,9 @@ class DefaultProjectTest extends GroovyTestCase {
     void testEvaluationDependsOnWithCircularDependency() {
         final BuildScriptProcessor mockReader1 = [evaluate: {DefaultProject project ->
             project.evaluationDependsOn(child1.path)
-            TEST_SCRIPT
         }] as BuildScriptProcessor
         final BuildScriptProcessor mockReader2 = [evaluate: {DefaultProject project ->
             project.evaluationDependsOn(project.path)
-            TEST_SCRIPT
         }] as BuildScriptProcessor
         project.buildScriptProcessor = mockReader1
         child1.buildScriptProcessor = mockReader2
@@ -231,7 +223,6 @@ class DefaultProjectTest extends GroovyTestCase {
         boolean mockReaderCalled = false
         final BuildScriptProcessor mockReader = [evaluate: {DefaultProject project ->
             mockReaderCalled = true
-            TEST_SCRIPT
         }] as BuildScriptProcessor
         child1.buildScriptProcessor = mockReader
         project.dependsOn(child1.name, false)
@@ -245,7 +236,6 @@ class DefaultProjectTest extends GroovyTestCase {
         boolean mockReaderCalled = false
         final BuildScriptProcessor mockReader = [evaluate: {DefaultProject project ->
             mockReaderCalled = true
-            TEST_SCRIPT
         }] as BuildScriptProcessor
         child1.buildScriptProcessor = mockReader
         project.dependsOn(child1.name)
@@ -278,7 +268,6 @@ class DefaultProjectTest extends GroovyTestCase {
         Set evaluatedProjects = []
         buildScriptProcessorMocker.demand.evaluate(2..2) {DefaultProject project ->
             evaluatedProjects << project
-            TEST_SCRIPT
         }
         buildScriptProcessorMocker.use(child1.buildScriptProcessor) {
             project.dependsOnChildren(true)
@@ -654,6 +643,10 @@ def scriptMethod(Closure closure) {
 
     void testProjectDir() {
         assertEquals(new File("${rootDir.path}/${child1.name}"), child1.projectDir)
+    }
+
+    void testBuildDir() {
+        assertEquals(new File(child1.projectDir, "${Project.DEFAULT_BUILD_DIR_NAME}"), child1.buildDir)
     }
 
     void testFile() {

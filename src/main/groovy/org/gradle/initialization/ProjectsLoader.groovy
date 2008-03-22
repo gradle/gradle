@@ -47,39 +47,42 @@ class ProjectsLoader {
 
     }
 
-    ProjectsLoader(ProjectFactory projectFactory, BuildScriptProcessor buildScriptProcessor, BuildScriptFinder buildScriptFinder, PluginRegistry pluginRegistry) {
+    ProjectsLoader(ProjectFactory projectFactory, BuildScriptProcessor buildScriptProcessor,
+                   BuildScriptFinder buildScriptFinder, PluginRegistry pluginRegistry) {
         this.projectFactory = projectFactory
         this.buildScriptProcessor = buildScriptProcessor
         this.buildScriptFinder = buildScriptFinder
         this.pluginRegistry = pluginRegistry
     }
 
-    ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir) {
-        rootProject = createProjects(settings, gradleUserHomeDir)
+    ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map startProperties) {
+        rootProject = createProjects(settings, gradleUserHomeDir, startProperties)
         currentProject = DefaultProject.findProject(rootProject, PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.currentDir))
         this
     }
 
-    private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir) {
+    private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir, Map startProperties) {
+        assert startProperties != null
+                
         logger.debug("Creating the projects and evaluating the project files!")
         File propertyFile = new File(gradleUserHomeDir, GRADLE_PROPERTIES)
-        Properties properties = new Properties()
+        Properties userHomeProperties = new Properties()
         logger.debug("Looking for user properties from: $propertyFile")
         if (!propertyFile.isFile()) {
             logger.debug('user property file does not exists. We continue!')
         } else {
-            properties.load(new FileInputStream(propertyFile))
-            logger.debug("Adding user properties: $properties")
+            userHomeProperties.load(new FileInputStream(propertyFile))
+            logger.debug("Adding user properties: $userHomeProperties")
         }
         DefaultProject rootProject = projectFactory.createProject(settings.rootDir.name, null, settings.rootDir, null, projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
-        addPropertiesToProject(gradleUserHomeDir, properties, rootProject)
+        addPropertiesToProject(gradleUserHomeDir, userHomeProperties + startProperties, rootProject)
         settings.projectPaths.each {
             List folders = it.split(Project.PATH_SEPARATOR)
             DefaultProject parent = rootProject
             folders.each {name ->
                 if (!parent.childProjects[name]) {
                     parent.childProjects[name] = parent.addChildProject(name)
-                    addPropertiesToProject(gradleUserHomeDir, properties, parent.childProjects[name])
+                    addPropertiesToProject(gradleUserHomeDir, userHomeProperties, parent.childProjects[name])
                 }
                 parent = parent.childProjects[name]
             }

@@ -14,13 +14,27 @@
  * limitations under the License.
  */
  
-package org.gradle.api
+package org.gradle.api.internal.project
 
 /**
  * @author Hans Dockter
  */
-interface DependencyManagerFactory {
-    void setBuildResolverDir(File buildResolverDir)
+class EmbeddedBuildScriptFinder extends BuildScriptFinder {
+    static final String EMBEDDED_SCRIPT_NAME = 'Embeddedscript'
+
+    String embeddedScriptText
+
+    EmbeddedBuildScriptFinder(String embeddedScriptText) {
+        this.embeddedScriptText = embeddedScriptText
+    }
+
+    String getBuildScript(DefaultProject project) {
+        return embeddedScriptText
+    }
+
+    String getBuildFileName() {
+        return EMBEDDED_SCRIPT_NAME
+    }
     
-    DependencyManager createDependencyManager()
+
 }

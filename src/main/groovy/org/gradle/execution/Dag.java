@@ -233,7 +233,7 @@ public final class Dag {
     private void execute(Set<DefaultTask> tasks) {
         for (DefaultTask task : tasks) {
             execute(new TreeSet(getChildren(task)));
-            if (!task.getExecuted()) {
+            if (!task.isExecuted()) {
                 logger.info("Executing: " + task);
                 task.execute();
             }

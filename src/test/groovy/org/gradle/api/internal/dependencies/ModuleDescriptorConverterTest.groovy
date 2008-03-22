@@ -38,7 +38,7 @@ class ModuleDescriptorConverterTest extends GroovyTestCase {
 
     void setUp() {
         moduleDescriptorConverter = new ModuleDescriptorConverter()
-        dependencyManager = new DefaultDependencyManager(null, null, null, null, null, null)
+        dependencyManager = new DefaultDependencyManager(null, null, null, null, null, null, new File('buildResolverDir'))
         dependencyManager.project = new DefaultProject()
     }
 
@@ -75,5 +75,23 @@ class ModuleDescriptorConverterTest extends GroovyTestCase {
         assertEquals(expectedDepencencyDescriptors as HashSet, moduleDescriptor.dependencies as HashSet)
         assertEquals(dependencyManager.configurations.values() as HashSet, moduleDescriptor.configurations as HashSet)
         assertEquals(expectedArtifactsDescriptors.conf1 as HashSet, moduleDescriptor.allArtifacts as HashSet)
+    }
+
+    void testConvertWithDefaultStatus() {
+        Artifact ivyArtifact = [a:{}] as Artifact
+        DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
+        Dependency dependency = [createDepencencyDescriptor: {dependencyDescriptor}] as Dependency
+        GradleArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as GradleArtifact
+        dependencyManager.dependencies = [dependency]
+        dependencyManager.artifacts = [conf1: [gradleArtifact]]
+
+        dependencyManager.project.group = 'group'
+        dependencyManager.project.version = '1.1'
+        dependencyManager.project.name = 'someproject'
+        dependencyManager.configurations = [conf1: new Configuration('conf1'), conf2: new Configuration('conf2')]
+
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager)
+        assertEquals(ModuleDescriptorConverter.DEFAULT_STATUS, moduleDescriptor.status)
+
     }
 }

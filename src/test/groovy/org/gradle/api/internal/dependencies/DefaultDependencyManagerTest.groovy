@@ -32,6 +32,7 @@ import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.HelperUtil
 
 /**
 * @author Hans Dockter
@@ -52,17 +53,20 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
     Report2Classpath report2Classpath
     Ivy ivy
     DefaultProject project
-
+    File buildResolverDir
+    
     void setUp() {
-        project = new DefaultProject()
+        project = HelperUtil.createRootProject(new File('path', 'root'))
         project.gradleUserHome = 'gradleUserHome'
         ivy = new Ivy()
         report2Classpath = new Report2Classpath()
         settingsConverter = [:] as SettingsConverter
         dependencyFactory = new DependencyFactory()
         artifactFactory = new ArtifactFactory()
+        buildResolverDir = new File('buildResolverDir')
         moduleDescriptorConverter = new ModuleDescriptorConverter()
-        dependencyManager = new DefaultDependencyManager(ivy, dependencyFactory, artifactFactory, settingsConverter, moduleDescriptorConverter, report2Classpath)
+        dependencyManager = new DefaultDependencyManager(ivy, dependencyFactory, artifactFactory, settingsConverter,
+                moduleDescriptorConverter, report2Classpath, buildResolverDir)
         dependencyManager.project = project
     }
 
@@ -74,6 +78,7 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
         assert dependencyManager.settingsConverter.is(settingsConverter)
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
         assert dependencyManager.report2Classpath.is(report2Classpath)
+        assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.resolvers != null
     }
 
@@ -153,8 +158,9 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
         ResolveReport resolveReport = new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), '1.4'), 'status', null))
         IvySettings expectedSettings = [:] as IvySettings
         MockFor settingsConverterMocker = new MockFor(SettingsConverter)
-        settingsConverterMocker.demand.convert(1..1) {Collection resolvers, Collection uploadResolvers, File gradleUserHome ->
+        settingsConverterMocker.demand.convert(1..1) {Collection resolvers, Collection uploadResolvers, File gradleUserHome, File buildResolverDir ->
             assertEquals(gradleUserHome, new File(project.gradleUserHome))
+            assertEquals(buildResolverDir, dependencyManager.buildResolverDir)
             assertEquals(dependencyManager.resolvers.resolverList, resolvers)
             expectedSettings
         }
@@ -190,7 +196,8 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
             ivyMocker.use() {
                 settingsConverterMocker.use(settingsConverter) {
                     report2classpathMocker.use(report2Classpath) {
-                        dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(), settingsConverter, moduleDescriptorConverter, report2Classpath)
+                        dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
+                                settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
                         dependencyManager.addConf2Tasks(testConfiguration, testTaskName)
                         dependencyManager.project = project
                         assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))

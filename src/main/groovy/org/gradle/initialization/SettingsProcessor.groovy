@@ -17,6 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.api.DependencyManager
+import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.initialization.DefaultSettings
@@ -29,25 +30,41 @@ import org.slf4j.LoggerFactory
 */
 class SettingsProcessor {
     static Logger logger = LoggerFactory.getLogger(SettingsProcessor)
-    
+
     final static String DEFAULT_SETUP_FILE = "gradlesettings.groovy"
 
     SettingsFileHandler settingsFileHandler
 
-    DependencyManager dependencyManager
+    SettingsFactory settingsFactory
+
+    DependencyManagerFactory dependencyManagerFactory
+
+    BuildSourceBuilder buildSourceBuilder
+
+    File gradleUserHomeDir
+
+    File buildResolverDir
 
     SettingsProcessor() {
 
     }
 
-    SettingsProcessor(SettingsFileHandler settingsFileHandler, DependencyManager dependencyManager) {
+    SettingsProcessor(SettingsFileHandler settingsFileHandler, SettingsFactory settingsFactory,
+                      DependencyManagerFactory dependencyManagerFactory,
+                      BuildSourceBuilder buildSourceBuilder, File gradleUserHomeDir, File buildResolverDir) {
         this.settingsFileHandler = settingsFileHandler
-        this.dependencyManager = dependencyManager
+        this.settingsFactory = settingsFactory
+        this.dependencyManagerFactory = dependencyManagerFactory
+        this.buildSourceBuilder = buildSourceBuilder
+        this.gradleUserHomeDir = gradleUserHomeDir
+        this.buildResolverDir = buildResolverDir
     }
 
     DefaultSettings process(File currentDir, boolean searchUpwards) {
         settingsFileHandler.find(currentDir, searchUpwards)
-        DefaultSettings settings = new DefaultSettings(currentDir, settingsFileHandler.rootDir, dependencyManager)
+        initDependencyManagerFactory()
+        DefaultSettings settings = settingsFactory.createSettings(currentDir, settingsFileHandler.rootDir,
+                dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
         try {
             Script settingsScript = new GroovyShell().parse(settingsFileHandler.settingsText, DEFAULT_SETUP_FILE)
             replaceMetaclass(settingsScript, settings)
@@ -55,10 +72,22 @@ class SettingsProcessor {
         } catch (Throwable t) {
             throw new GradleScriptException(t, DEFAULT_SETUP_FILE)
         }
-        if (currentDir != settings.rootDir && !isCurrentDirIncluded(settings)) {
-            return new DefaultSettings(currentDir, currentDir, dependencyManager)
+        if (currentDir != settingsFileHandler.rootDir && !isCurrentDirIncluded(settings)) {
+            return createBasicSettings(currentDir)
         }
         settings
+    }
+
+    private def initDependencyManagerFactory() {
+        File buildResolverDir = this.buildResolverDir ?: new File(settingsFileHandler.rootDir, DependencyManager.BUILD_RESOLVER_NAME)
+        dependencyManagerFactory.buildResolverDir = buildResolverDir
+        logger.debug("Set build resolver dir to: $dependencyManagerFactory.buildResolverDir")
+
+    }
+
+    DefaultSettings createBasicSettings(File currentDir) {
+        initDependencyManagerFactory()
+        return settingsFactory.createSettings(currentDir, currentDir, dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
     }
 
     private void replaceMetaclass(Script script, DefaultSettings settings) {

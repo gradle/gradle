@@ -29,11 +29,11 @@ class HelperUtil {
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
         return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [projectName, parent, new File(""),
-                parent, new ProjectFactory(new DefaultDependencyManagerFactory()), new DefaultDependencyManager(), null, null, null] as Object[])
+                parent, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManager(), null, null, null] as Object[])
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        return new DefaultProject(rootDir.name, null, rootDir, null, new ProjectFactory(new DefaultDependencyManagerFactory()), new DefaultDependencyManagerFactory().createDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder(), new PluginRegistry())    
+        return new DefaultProject(rootDir.name, null, rootDir, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder(), new PluginRegistry())    
     }
 
     static def pureStringTransform(def collection) {

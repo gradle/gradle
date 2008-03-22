@@ -27,4 +27,9 @@ class GradleUtil {
         configureClosure.call()
         delegate
     }
+
+    static void deleteDir(File dir) {
+        assert !dir.isFile()
+        if (dir.isDirectory()) {new AntBuilder().delete(dir: dir)}
+    }
 }

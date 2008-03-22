@@ -28,7 +28,7 @@ import org.gradle.api.internal.project.ProjectFactory
 class ProjectDependencies2TargetResolverTest extends GroovyTestCase {
 
     void testExecuteWithSubBuildAndProjectDependencies() {
-        DefaultProject root = new DefaultProject("root", null, new File(""), null, new ProjectFactory(new DefaultDependencyManagerFactory()), new DefaultDependencyManager(), null, null, null)
+        DefaultProject root = new DefaultProject("root", null, new File(""), null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManager(), null, null, null)
         DefaultProject child = root.addChildProject("child")
         DefaultTask rootTarget = new DefaultTask(root, 'compile')
         DefaultTask childTarget = new DefaultTask(child, 'compile')
