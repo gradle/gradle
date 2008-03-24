@@ -89,7 +89,7 @@ class Svn {
     }
 
     def tagReleaseBranch() {
-        javaHlClient.copy(releaseBranchUrl, createUrl(svnUrl, "REL-$version" as String), "Tag release $releaseBranchName" as String)
+        javaHlClient.copy(releaseBranchUrl, createUrl(svnUrl, "REL-$version" as String), "Tag release $releaseBranchName" as String, Revision.HEADn)
     }
 
     def getReleaseBranchName() {
