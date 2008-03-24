@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.PathOrder
 import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.tasks.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -138,10 +139,7 @@ class DefaultTask implements Task {
     }
 
     Task configure(Closure closure) {
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        closure.delegate = this
-        closure()
-        this
+        GradleUtil.configure(closure, this)
     }
 
 }

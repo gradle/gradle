@@ -69,7 +69,12 @@ class JavaPlugin implements Plugin {
         configureCompile(project.createTask(COMPILE, dependsOn: RESOURCES, type: Compile), javaConvention,
                 DefaultConventionsToPropertiesMapping.COMPILE)
 
-        project.createTask(TEST_RESOURCES, dependsOn: COMPILE, type: Resources).convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
+        project.createTask(TEST_RESOURCES, dependsOn: COMPILE, type: Resources).configure {
+            skipProperties << Test.SKIP_TEST
+            // Warning: We need to add the delegate here, because otherwise the method argument with the name
+            // convention is addressed.
+            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
+        }
 
         configureCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile), javaConvention,
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE)
@@ -86,10 +91,14 @@ class JavaPlugin implements Plugin {
             }
         }
         project.createTask(LIB, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
+            // Warning: We need to add the delegate here, because otherwise the method argument with the name
+            // convention is addressed.
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.LIB)
         }
 
         project.createTask(DIST, type: Bundle, dependsOn: LIB).configure {
+            // Warning: We need to add the delegate here, because otherwise the method argument with the name
+            // convention is addressed.
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
         }
 
@@ -113,7 +122,7 @@ class JavaPlugin implements Plugin {
             PublishOptions publishOptions = new PublishOptions()
             publishOptions.setOverwrite(true)
             publishOptions.confs = [DISTRIBUTE]
-            deps.uploadResolvers.resolverList.each { resolver ->
+            deps.uploadResolvers.resolverList.each {resolver ->
                 deps.ivy.publishEngine.publish(deps.moduleDescriptorConverter.convert(deps),
                         deps.artifactPatterns.collect {pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
             }

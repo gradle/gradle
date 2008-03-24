@@ -377,7 +377,7 @@ class DefaultProject implements Comparable, Project {
     }
 
     def propertyMissing(String name) {
-        if (additionalProperties[name]) {
+        if (additionalProperties.keySet().contains(name)) {
             return additionalProperties[name]
         }
         if (convention?.metaClass?.hasProperty(convention, name)) {
@@ -388,7 +388,7 @@ class DefaultProject implements Comparable, Project {
         }
         DefaultProject projectLooper = parent
         while (projectLooper) {
-            if (projectLooper.additionalProperties[name]) {
+            if (projectLooper.additionalProperties.keySet().contains(name)) {
                 return projectLooper."$name"
             } else if (projectLooper.convention?.metaClass?.hasProperty(convention, name)) {
                 return projectLooper.convention."$name"
@@ -400,13 +400,13 @@ class DefaultProject implements Comparable, Project {
 
     boolean hasProperty(String name) {
         if (this.metaClass.hasProperty(this, name)) {return true}
-        if (additionalProperties[name]) {return true}
+        if (additionalProperties.keySet().contains(name)) {return true}
         if (convention?.metaClass?.hasProperty(convention, name)) {
             return true
         }
         DefaultProject projectLooper = parent
         while (projectLooper) {
-            if (projectLooper.additionalProperties[name]) {
+            if (projectLooper.additionalProperties.keySet().contains(name)) {
                 return true
             } else if (projectLooper.convention?.metaClass?.hasProperty(convention, name)) {
                 return true

@@ -598,6 +598,11 @@ def scriptMethod(Closure closure) {
         assertEquals('someothername', project.convention."$propertyName")
     }
 
+    void testPropertyMissingWithNullProperty() {
+        project.nullProp = null
+        assertNull(project.nullProp)
+        assert project.hasProperty('nullProp')
+    }
 
     void testPropertyMissingWithUnknownProperty() {
         shouldFail(MissingPropertyException) {
