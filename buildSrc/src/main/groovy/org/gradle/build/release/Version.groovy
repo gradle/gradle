@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.build.release
 
 import org.gradle.api.Project
@@ -36,9 +36,9 @@ class Version {
         this.project = project
         this.majorNotMinor = majorNotMinor
         this.svn = svn
-        majorInternal = project.hasProperty('previousMajor') ? project.previousMajor : 0
-        minorInternal = project.hasProperty('previousMinor') ? project.previousMinor : 0
-        revisionInternal = project.hasProperty('previousRevision') ? project.previousRevision : 0
+        majorInternal = project.hasProperty('previousMajor') ? project.previousMajor.toInteger() : 0
+        minorInternal = project.hasProperty('previousMinor') ? project.previousMinor.toInteger() : 0
+        revisionInternal = project.hasProperty('previousRevision') ? project.previousRevision.toInteger() : 0
     }
 
     void storeCurrentVersion() {
@@ -47,9 +47,9 @@ class Version {
         if (propertyFile.isFile()) {
             properties.load(new FileInputStream('gradle.properties'))
         }
-        properties['previousMajor'] = majorInternal
-        properties['previousMinor'] = minorInternal
-        properties['previousRevision'] = revisionInternal
+        properties['previousMajor'] = major as String
+        properties['previousMinor'] = minor as String
+        properties['previousRevision'] = revision as String
         properties.store(new FileOutputStream(propertyFile), '')
     }
 
@@ -58,7 +58,11 @@ class Version {
     }
 
     int getMinor() {
-        !majorNotMinor && svn.isTrunk() ? minorInternal + 1 : minorInternal
+        if (svn.isTrunk()) {
+            return majorNotMinor ? 0 : minorInternal + 1
+        } else {
+            return minorInternal
+        }
     }
 
     int getRevision() {

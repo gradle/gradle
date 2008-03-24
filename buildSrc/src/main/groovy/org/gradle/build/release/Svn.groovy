@@ -34,6 +34,8 @@ class Svn {
     SVNStatusClient statusClient
     SVNClientImpl javaHlClient
 
+    Svn() {}
+
     Svn(Project project) {
         assert project
         this.project = project
