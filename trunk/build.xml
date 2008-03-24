@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="gradle" default="dist" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+
+    <property file="build.properties"/>
+
+    <property name="sourceDirectory" value="${basedir}/src/main/groovy"/>
+    <property name="testsDirectory" value="${basedir}/src/test/groovy"/>
+    <property name="buildSrcDir" value="${basedir}/src/build"/>
+    <property name="integTestsDirectory" value="${basedir}/src/integtest/groovy"/>
+    <property name="projectName" value="gradle"/>
+    <property name="distName" value="${projectName}-${version}"/>
+    <property name="buildDirectory" value="${basedir}/target"/>
+    <property name="distDir" value="${buildDirectory}/dist"/>
+    <property name="distExplodedDir" value="${distDir}/${distName}"/>
+    <property name="distExplodedLibDir" value="${distExplodedDir}/lib"/>
+    <property name="distExplodedBinDir" value="${distExplodedDir}/bin"/>
+    <property name="distExplodedSamplesDir" value="${distExplodedDir}/samples"/>
+    <property name="distExplodedTutorialDir" value="${distExplodedDir}/samples/tutorial"/>
+    <property name="buildClassesDirectory" value="${buildDirectory}/classes"/>
+    <property name="buildInstrumentedCoverageClassesDirectory" value="${buildDirectory}/coverage-classes"/>
+    <property name="buildTestsDirectory" value="${buildDirectory}/test-classes"/>
+    <property name="buildIntegTestsDirectory" value="${buildDirectory}/integtest-classes"/>
+    <property name="buildLibDirectory" value="${buildDirectory}"/>
+    <property name="buildReportsDirectory" value="${buildDirectory}/reports"/>
+    <property name="buildTestReportsDirectory" value="${buildReportsDirectory}/test-reports"/>
+    <property name="buildXmlTestReportsDirectory" value="${buildTestReportsDirectory}/xml"/>
+    <property name="buildHtmlTestReportsDirectory" value="${buildTestReportsDirectory}/html"/>
+    <property name="buildIvyReportsDirectory" value="${buildReportsDirectory}/ivy-reports"/>
+    <property name="buildJDependsReportsDirectory" value="${buildReportsDirectory}/jdepend-reports"/>
+    <property name="buildJDependsReportsFileName" value="jdepend-report.xml"/>
+    <property name="buildCoberturaUnitTestsReportsDirectory"
+              value="${buildReportsDirectory}/cobertura-unittests-reports"/>
+    <property name="buildCoberturaDataFile"
+              value="${buildCoberturaUnitTestsReportsDirectory}/cobertura.ser"/>
+    <property name="buildCoberturaIntegTestsReportsDirectory"
+              value="${buildReportsDirectory}/cobertura-integtest-reports"/>
+    <property name="buildMetadataDirectory" value="${buildClassesDirectory}/META-INF"/>
+
+    <property name="ivy.install.version" value="2.0.0.beta2_20080305165542"/>
+    <property name="ivy.jar.dir" value="${basedir}/ivy"/>
+    <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy-${ivy.install.version}.jar"/>
+
+
+    <target name="check-ivy">
+        <echo>${ivy.jar.file}</echo>
+        <available property="skip.download"
+                   file="${ivy.jar.file}"/>
+        <echo>${skip.download}</echo>
+    </target>
+
+    <target name="download-ivy" depends="check-ivy" unless="skip.download">
+        <mkdir dir="${ivy.jar.dir}"/>
+        <!-- download Ivy from web site so that it can be used even without any special installation -->
+        <echo message="installing ivy..."/>
+        <get src="http://gradle.sourceforge.net/repository/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
+             dest="${ivy.jar.file}" usetimestamp="true"/>
+    </target>
+
+    <!-- =================================
+    target: install-ivy
+      this target is not necessary if you put ivy.jar in your ant lib directory
+      if you already have ivy in your ant lib, you can simply remove this
+      target and the dependency the 'go' target has on it
+   ================================= -->
+    <target name="install-ivy" depends="download-ivy" description="--> install ivy">
+        <!-- try to load ivy here from local ivy dir, in case the user has not already dropped
+                it into ant's lib dir (note that the latter copy will always take precedence).
+                We will not fail as long as local lib dir exists (it may be empty) and
+                ivy is in at least one of ant's lib dir or the local lib dir. -->
+        <path id="ivy.lib.path" location="${ivy.jar.file}"/>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml"
+                 uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+    </target>
+
+    <target name="initialize" depends="install-ivy">
+        <ivy:cachepath pathid="compile.path" conf="compile"/>
+        <ivy:cachepath pathid="runtime.path" conf="runtime"/>
+        <ivy:cachepath pathid="compileTest.path" conf="test"/>
+        <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="compile.path"/>
+        <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="compile.path"/>
+        <ivy:report todir="${buildIvyReportsDirectory}" conf="compile,runtime,test" graph="true"/>
+    </target>
+
+    <target name="resources" depends="initialize">
+        <mkdir dir="${buildClassesDirectory}"/>
+        <copy todir="${buildClassesDirectory}">
+            <fileset dir="src/main/resources"/>
+        </copy>
+    </target>
+
+    <target name="compile" depends="resources" description="Compile">
+        <property environment="env"/>
+        <echo>${env.JAVA_HOME}</echo>
+        <groovyc srcdir="${sourceDirectory}" destdir="${buildClassesDirectory}" classpathref="compile.path">
+            <javac source="1.5" target="1.5" debug="on" includeantruntime="no"/>
+        </groovyc>
+    </target>
+
+    <target name="testResources" depends="compile">
+        <mkdir dir="${buildTestsDirectory}"/>
+        <copy todir="${buildTestsDirectory}">
+            <fileset dir="src/test/resources"/>
+        </copy>
+    </target>
+
+    <target name="compileTests" depends="testResources" unless="test.skip" description="Compiles the tests.">
+        <mkdir dir="${buildTestsDirectory}"/>
+        <groovyc srcdir="${testsDirectory}" destdir="${buildTestsDirectory}">
+            <classpath>
+                <pathelement location="${buildClassesDirectory}"/>
+                <path refid="compileTest.path"/>
+            </classpath>
+            <javac source="1.5" target="1.5" debug="true" includeantruntime="no"/>
+        </groovyc>
+    </target>
+
+    <target name="instrument" depends="compile" unless="test.skip">
+        <ivy:cachepath organisation="net.sourceforge.cobertura" module="cobertura" revision="1.9"
+                       inline="true" conf="default" pathid="cobertura.classpath"/>
+        <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
+        <delete file="cobertura.ser"/>
+
+        <cobertura-instrument todir="${buildInstrumentedCoverageClassesDirectory}">
+            <fileset dir="${buildClassesDirectory}">
+                <include name="**/*.class"/>
+            </fileset>
+        </cobertura-instrument>
+    </target>
+
+    <!--<target name="instrument" depends="compile" unless="test.skip">-->
+    <!--<ivy:cachepath organisation="emma" module="emma" revision="2.0.5312"-->
+    <!--inline="true" conf="default" pathid="emma.classpath" />-->
+    <!--<ivy:cachepath organisation="emma" module="emma_ant" revision="2.0.5312"-->
+    <!--inline="true" conf="default" pathid="emma.ant.classpath" transitive="false" />-->
+    <!--<taskdef resource="emma_ant.properties">-->
+    <!--<classpath refid="emma.classpath" />-->
+    <!--<classpath refid="emma.ant.classpath" />-->
+    <!--</taskdef>-->
+    <!--<property name="emma.enabled" value="true" />-->
+    <!--<property name="coverage.dir" value="${buildDirectory}/coverage" />-->
+    <!--<property name="coverage.classes.dir" value="${coverage.dir}/classes" />-->
+    <!--<mkdir dir="${coverage.dir}" />-->
+    <!--<mkdir dir="${coverage.classes.dir}" />-->
+    <!--<emma enabled="${emma.enabled}">-->
+    <!--<instr mode="copy"-->
+    <!--destdir="${coverage.dir}/classes"-->
+    <!--metadatafile="${coverage.dir}/metadata.emma">-->
+    <!--<instrpath>-->
+    <!--<pathelement location="${buildClassesDirectory}" />-->
+    <!--</instrpath>-->
+    <!--</instr>-->
+    <!--</emma>-->
+    <!--<delete file="${coverage.dir}/coverage.emma" />-->
+    <!-- add emma path to test path, because emma jars need to be available when running-->
+    <!--instrumented classes -->
+    <!--<ivy:addpath topath="test.classpath" first="true">-->
+    <!--<pathelement location="${coverage.dir}/classes" />-->
+    <!--<path refid="emma.classpath" />-->
+    <!--</ivy:addpath>-->
+    <!--</target>-->
+
+    <target name="test-internal" depends="instrument,compileTests" description="Test a build." unless="test.skip">
+        <mkdir dir="${buildXmlTestReportsDirectory}"/>
+        <junit includeantruntime="no" printsummary="yes" fork="yes" forkmode="once" haltonfailure="off"
+               haltonerror="off"
+               errorproperty="test.failed"
+               failureproperty="test.failed">
+            <jvmarg value="-ea"/>
+            <jvmarg value="-Dgradle.home=roadToNowhere"/>
+            <!--<jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />-->
+            <!--<jvmarg value="-Demma.coverage.out.merge=true" />-->
+            <formatter type="xml"/>
+            <batchtest todir="${buildXmlTestReportsDirectory}">
+                <fileset dir="${buildTestsDirectory}" includes="**/*Test.class" excludes="**/Abstract*.class"/>
+            </batchtest>
+            <classpath>
+                <pathelement location="${buildTestsDirectory}"/>
+                <pathelement location="${buildInstrumentedCoverageClassesDirectory}"/>
+                <pathelement location="${buildClassesDirectory}"/>
+                <path refid="compileTest.path"/>
+                <path refid="cobertura.classpath"/>
+            </classpath>
+        </junit>
+    </target>
+
+    <target name="test-report" depends="test-internal" unless="test.skip">
+        <junitreport todir="${buildXmlTestReportsDirectory}">
+            <fileset dir="${buildXmlTestReportsDirectory}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${buildHtmlTestReportsDirectory}"/>
+        </junitreport>
+    </target>
+
+    <target name="test" depends="test-report" description="Run the test" unless="test.skip">
+        <fail if="test.failed"
+              message="At least one test has failed. See logs (in ${buildXmlTestReportsDirectory}) or report (in ${buildHtmlTestReportsDirectory})"/>
+    </target>
+
+    <!--<target name="coverage-report" depends="instrument, test-report"  unless="skip.test"-->
+    <!--description="run tests with instrumentation and generate coverage report">-->
+    <!--<mkdir dir="${buildCoberturaUnitTestsReportsDirectory}" />-->
+    <!--<emma>-->
+    <!--<report sourcepath="${sourceDirectory}">-->
+    <!--<fileset dir="${coverage.dir}">-->
+    <!--<include name="*.emma" />-->
+    <!--</fileset>-->
+
+    <!--<txt outfile="${buildCoberturaUnitTestsReportsDirectory}/coverage.txt" />-->
+    <!--<html outfile="${buildCoberturaUnitTestsReportsDirectory}/coverage.html" />-->
+    <!--</report>-->
+    <!--</emma>-->
+    <!--</target>-->
+
+    <target name="coverage-report" depends="test" unless="test.skip">
+        <mkdir dir="${buildCoberturaUnitTestsReportsDirectory}"/>
+        <cobertura-report srcdir="${sourceDirectory}" destdir="${buildCoberturaUnitTestsReportsDirectory}"/>
+    </target>
+
+    <!--For some reason this target leads to an build error on windows 2000-->
+    <target name="jdepend">
+        <!--<mkdir dir="${buildJDependsReportsDirectory}"/>-->
+        <!--<ivy:cachepath organisation="jdepend" module="jdepend" revision="2.9.1"-->
+        <!--inline="true" conf="default" pathid="jdepend.classpath"/>-->
+        <!--<jdepend format="xml" outputfile="${buildJDependsReportsDirectory}/${buildJDependsReportsFileName}">-->
+        <!--<classespath>-->
+        <!--<pathelement location="${buildClassesDirectory}"/>-->
+        <!--</classespath>-->
+        <!--<classpath>-->
+        <!--<pathelement location="${buildClassesDirectory}"/>-->
+        <!--<path refid="jdepend.classpath"/>-->
+        <!--</classpath>-->
+        <!--</jdepend>-->
+
+        <!--<style basedir="${buildJDependsReportsDirectory}" destdir="${buildJDependsReportsDirectory}"-->
+        <!--includes="${buildJDependsReportsFileName}"-->
+        <!--style="${ant.home}/etc/jdepend.xsl"/>-->
+    </target>
+
+    <target name="jar" depends="compile,coverage-report,jdepend">
+        <jar destfile="${buildDirectory}/${distName}.jar" basedir="${buildClassesDirectory}"/>
+    </target>
+
+    <target name="compileIntegtests" depends="initialize">
+        <mkdir dir="${buildIntegTestsDirectory}"/>
+        <groovyc srcdir="${integTestsDirectory}" destdir="${buildIntegTestsDirectory}" classpathref="compile.path">
+            <javac source="1.5" target="1.5" debug="on"/>
+        </groovyc>
+    </target>
+
+    <target name="buildExplodedDist" depends="jar, compileIntegtests">
+        <mkdir dir="${distExplodedLibDir}"/>
+        <mkdir dir="${distExplodedTutorialDir}"/>
+        <mkdir dir="${distExplodedBinDir}"/>
+        <copy file="${buildDirectory}/${distName}.jar" todir="${distExplodedLibDir}"/>
+        <copy todir="${distDir}/${distName}/src">
+            <fileset dir="src/main/groovy"/>
+            <fileset dir="src/main/resources"/>
+        </copy>
+        <ivy:retrieve conf="runtime" pattern="${distExplodedLibDir}/[artifact]-[revision].[ext]"/>
+        <echo>Generate start scripts</echo>
+        <groovy src="${buildSrcDir}/StartScriptGenerator.groovy"/>
+        <echo>Generate tutorials</echo>
+        <groovy src="${buildSrcDir}/SamplesGenerator.groovy">
+            <classpath>
+                <pathelement location="${buildIntegTestsDirectory}"/>
+            </classpath>
+        </groovy>
+        <copy todir="${distExplodedSamplesDir}">
+            <fileset dir="src/samples"/>
+        </copy>
+        <copy todir="${distExplodedDir}">
+            <fileset dir="src/toplevel"/>
+        </copy>
+        <chmod dir="${distExplodedDir}/bin" perm="ugo+rx" includes="**/*"/>
+    </target>
+
+    <target name="integtests" depends="buildExplodedDist" unless="integtest.skip">
+        <!--<delete file="cobertura.ser"/>-->
+        <!--<mkdir dir="${buildCoberturaIntegTestsReportsDirectory}"/>-->
+        <echo>Execute integration tests</echo>
+        <java classname="org.gradle.integtest.TutorialTest" failonerror="true">
+            <arg value="${distExplodedTutorialDir}"/>
+            <arg value="${distExplodedDir}"/>
+            <classpath>
+                <pathelement location="${buildCoberturaClassesDirectory}"/>
+                <pathelement location="${buildIntegTestsDirectory}"/>
+                <path refid="compile.path"/>
+            </classpath>
+        </java>
+        <java classname="org.gradle.integtest.WaterProject" failonerror="true">
+            <arg value="${distExplodedSamplesDir}"/>
+            <arg value="${distExplodedDir}"/>
+            <classpath>
+                <pathelement location="${buildCoberturaClassesDirectory}"/>
+                <pathelement location="${buildIntegTestsDirectory}"/>
+                <path refid="compile.path"/>
+            </classpath>
+        </java> 
+        <java classname="org.gradle.integtest.JavaProject" failonerror="true">
+            <arg value="${distExplodedSamplesDir}"/>
+            <arg value="${distExplodedDir}"/>
+            <classpath>
+                <pathelement location="${buildCoberturaClassesDirectory}"/>
+                <pathelement location="${buildIntegTestsDirectory}"/>
+                <path refid="compile.path"/>
+            </classpath>
+        </java>
+        <java classname="org.gradle.integtest.GroovyProject" failonerror="true">
+            <arg value="${distExplodedSamplesDir}"/>
+            <arg value="${distExplodedDir}"/>
+            <classpath>
+                <pathelement location="${buildIntegTestsDirectory}"/>
+                <path refid="compile.path"/>
+            </classpath>
+        </java>
+        <!--<cobertura-report srcdir="${sourceDirectory}" destdir="${buildCoberturaIntegTestsReportsDirectory}"/>-->
+    </target>
+
+    <target name="dist" depends="integtests">
+        <tar destfile="${distExplodedDir}.tar.gz" compression="gzip" longfile="gnu">
+            <zipfileset dir="${distExplodedDir}" prefix="${distName}">
+                <exclude name="bin/*"/>
+            </zipfileset>
+            <zipfileset dir="${distExplodedDir}" prefix="${distName}" filemode="775">
+                <include name="bin/*"/>
+            </zipfileset>
+        </tar>
+        <zip destfile="${distExplodedDir}.zip">
+            <zipfileset dir="${distExplodedDir}" prefix="${distName}">
+                <exclude name="bin/"/>
+            </zipfileset>
+             <zipfileset dir="${distExplodedDir}" prefix="${distName}" filemode="775">
+                <include name="bin/*"/>
+            </zipfileset>
+        </zip>
+        <zipfileset id="sourceDist" dir="${basedir}" prefix="${distName}">
+            <include name="src/"/>
+            <include name="build.xml,build.properties,ivy.xml,ivysettings.xml"/>
+            <include name="build.properties"/>
+            <include name="ivy.xml"/>
+            <include name="ivysettings.xml"/>
+        </zipfileset>
+        <tar destfile="${distExplodedDir}-src.tar.gz" compression="gzip">
+            <zipfileset refid="sourceDist"/>
+        </tar>
+        <zip destfile="${distExplodedDir}-src.zip">
+            <zipfileset refid="sourceDist"/>
+        </zip>
+    </target>
+
+    <target name="install" depends="dist">
+        <delete dir="/Users/hans/java/${distName}"/>
+        <exec dir="/Users/hans/java/" executable="rm">
+            <arg value="gradle"/>
+        </exec>
+        <exec dir="/Users/hans/java/" executable="unzip">
+            <arg value="-q"/>
+            <arg value="-d"/>
+            <arg value="/Users/hans/java/"/>
+            <arg value="${distExplodedDir}.zip"/>
+        </exec>
+        <exec dir="/Users/hans/java/" executable="ln">
+            <arg value="-s"/>
+            <arg value="/Users/hans/java/${distName}"/>
+            <arg value="gradle"/>
+        </exec>
+        <!--<chmod dir="/Users/hans/java/${distName}/bin" perm="ugo+rx" includes="**/*"/>-->
+    </target>
+
+    <target name="clean" description="Clean everything up.">
+        <delete dir="${buildDirectory}"/>
+        <delete>
+            <fileset dir="." includes="**/*~" defaultexcludes="false"/>
+        </delete>
+    </target>
+
+
+</project>
