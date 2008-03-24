@@ -46,7 +46,7 @@ class Svn {
 
     def release() {
         checkWorkingCopy()
-        if (svn.isTrunk() || version.toString() == branchVersion()) {
+        if (isTrunk() || project.version.toString() == branchVersion()) {
             majorOrMinorRelease()
         } else {
             revisionRelease()
@@ -57,7 +57,7 @@ class Svn {
         if (isTrunk()) {
             createReleaseBranchDirectory()
         }
-        version.storeCurrentVersion()
+        project.version.storeCurrentVersion()
         commitProperties()
         if (isTrunk()) {
             copyTrunkToReleaseBranch()
@@ -66,7 +66,7 @@ class Svn {
     }
 
     def revisionRelease() {
-        version.storeCurrentVersion()
+        project.version.storeCurrentVersion()
         commitProperties()
         tagReleaseBranch()
     }
@@ -91,7 +91,7 @@ class Svn {
     }
 
     def getReleaseBranchName() {
-        'RB-' + version
+        'RB-' + project.version
     }
 
     def getReleaseBranchUrl() {
