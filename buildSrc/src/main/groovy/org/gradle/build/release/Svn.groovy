@@ -76,7 +76,6 @@ class Svn {
 
     def commitProperties() {
         File props = new File(project.projectDir, 'gradle.properties')
-        javaHlClient.add(props.absolutePath, false)
         javaHlClient.commit([props.absolutePath,] as String[], "Incremented version properties", false)
     }
 
