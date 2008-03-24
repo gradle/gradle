@@ -84,7 +84,7 @@ class Svn {
     }
 
     def copyTrunkToReleaseBranch() {
-        javaHlClient.copy(trunkUrl, releaseBranchUrl, "Copy trunk to release branch $releaseBranchName")
+        javaHlClient.copy(trunkUrl, releaseBranchUrl, "Copy trunk to release branch $releaseBranchName" as String)
     }
 
     def tagReleaseBranch() {
