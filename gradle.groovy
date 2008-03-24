@@ -37,17 +37,17 @@ dependencies {
     addDependency(confs: ['compile'], id: "org.apache.ant:ant-junit:1.7.0") {
         exclude(module: 'junit')
     }
-    compile "commons-cli:commons-cli:1.0"
-    compile "commons-io:commons-io:1.3.1"
-    compile "commons-lang:commons-lang:2.3"
-    compile "commons-httpclient:commons-httpclient:3.0"
-    compile "slide:webdavlib:2.0"
-    compile "ch.qos.logback:logback-classic:0.9.8"
-    compile "org.apache.ant:ant-launcher:1.7.0"
-    compile "junit:junit:4.4"
-    compile "org.apache.ivy:ivy:2.0.0.beta2_20080305165542"
-    runtime "org.tmatesoft.svnkit:svnkit:1.1.6:jar"
-    runtime "org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar"
+    compile "commons-cli:commons-cli:1.0",
+            "commons-io:commons-io:1.3.1",
+            "commons-lang:commons-lang:2.3",
+            "commons-httpclient:commons-httpclient:3.0",
+            "slide:webdavlib:2.0",
+            "ch.qos.logback:logback-classic:0.9.8",
+            "org.apache.ant:ant-launcher:1.7.0",
+            "junit:junit:4.4",
+            "org.apache.ivy:ivy:2.0.0.beta2_20080305165542"
+    runtime "org.tmatesoft.svnkit:svnkit:1.1.6:jar",
+            "org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar"
 
     resolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
 
@@ -144,6 +144,13 @@ createTask('check') {
     ant.cachepath(organisation: "net.sourceforge.cobertura", module: "cobertura", revision: "1.9",
             inline: "true", conf: "default", pathid: "cobertura.classpath")
 }
+
+createTask('release', dependsOn: 'dist') {
+    svn.release()
+}
+
+distribute.dependsOn 'release'
+
 //<target name="instrument" depends="compile" unless="test.skip">
 //        <ivy:cachepath organisation="net.sourceforge.cobertura" module="cobertura" revision="1.9"
 //                       inline="true" conf="default" pathid="cobertura.classpath"/>
@@ -156,10 +163,6 @@ createTask('check') {
 //            </fileset>
 //        </cobertura-instrument>
 //    </target>
-
-createTask('release') {
-    svn.release()
-}
 
 
 
