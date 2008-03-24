@@ -18,6 +18,7 @@ package org.gradle.build.release
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.tigris.subversion.javahl.Revision
 import org.tigris.subversion.javahl.Status
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import org.tmatesoft.svn.core.javahl.SVNClientImpl
@@ -84,7 +85,7 @@ class Svn {
     }
 
     def copyTrunkToReleaseBranch() {
-        javaHlClient.copy(trunkUrl, releaseBranchUrl, "Copy trunk to release branch $releaseBranchName" as String)
+        javaHlClient.copy(trunkUrl, releaseBranchUrl, "Copy trunk to release branch $releaseBranchName" as String, Revision.HEAD)
     }
 
     def tagReleaseBranch() {
