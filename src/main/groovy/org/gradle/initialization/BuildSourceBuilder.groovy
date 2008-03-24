@@ -18,7 +18,6 @@ package org.gradle.initialization
 
 import org.apache.ivy.core.IvyPatternHelper
 import org.gradle.api.DependencyManager
-import org.gradle.api.tasks.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -54,7 +53,6 @@ targetCompatibility = 1.5
         assert buildSrcDir && buildScriptName && buildResolverDir
 
         logger.debug('Starting to build the build sources.')
-        GradleUtil.deleteDir(buildResolverDir)
         if (!buildSrcDir.isDirectory()) {
             logger.debug('Build source dir does not exists!. We leave.')
             return null
@@ -63,6 +61,7 @@ targetCompatibility = 1.5
             logger.debug('No task names specified. We leave..')
             return null
         }
+        logger.info(('=' * 50) + ' Start building buildSrc')
         Map allProjectProperties = projectProperties + dependencyProjectProps
         if (!new File(buildSrcDir, buildScriptName).isFile()) {
             logger.debug('Build script file does not exists. Using default one.')
@@ -74,8 +73,10 @@ targetCompatibility = 1.5
         }
         logger.info("Check if build artifact exists: ${buildArtifactFile(buildResolverDir)}")
         if (!buildArtifactFile(buildResolverDir).exists()) {
+            logger.info('Building buildSrc has not produced any artifact!')
             return null
         }
+        logger.info(('=' * 50) + ' Finished building buildSrc')
         BUILD_SRC_ID
     }
 

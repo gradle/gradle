@@ -46,6 +46,7 @@ class BuildConfigurer {
     }
 
     void process(Project rootProject, ClassLoader classLoader) {
+        logger.info('++ Configuring Project objects')
         rootProject.buildScriptProcessor.classLoader = classLoader
         projectsTraverser.traverse([rootProject]) {DefaultProject project ->
             project.evaluate()

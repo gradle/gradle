@@ -20,6 +20,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
+import org.gradle.api.tasks.util.GradleUtil
 import org.gradle.initialization.DefaultSettings
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
@@ -80,6 +81,7 @@ class SettingsProcessor {
 
     private def initDependencyManagerFactory() {
         File buildResolverDir = this.buildResolverDir ?: new File(settingsFileHandler.rootDir, DependencyManager.BUILD_RESOLVER_NAME)
+        GradleUtil.deleteDir(buildResolverDir)
         dependencyManagerFactory.buildResolverDir = buildResolverDir
         logger.debug("Set build resolver dir to: $dependencyManagerFactory.buildResolverDir")
 

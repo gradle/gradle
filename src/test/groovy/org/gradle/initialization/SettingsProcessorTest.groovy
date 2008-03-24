@@ -24,6 +24,7 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.SettingsFileHandler
 import org.gradle.initialization.SettingsProcessor
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
@@ -42,17 +43,21 @@ class SettingsProcessorTest extends GroovyTestCase {
     MockFor settingsFactoryMocker
 
     void setUp() {
+        buildResolverDir = HelperUtil.makeNewTestDir()
         expectedSettings = new DefaultSettings()
         settingsFileHandler = new SettingsFileHandler()
         settingsFactory = new SettingsFactory()
         dependencyManagerFactory = new DefaultDependencyManagerFactory(new File('root'))
         buildSourceBuilder = new BuildSourceBuilder()
         gradleUserHomeDir = new File('gradleUserHomeDir')
-        buildResolverDir = new File('buildResolverDir')
         settingsProcessor = new SettingsProcessor(settingsFileHandler, settingsFactory, dependencyManagerFactory, buildSourceBuilder,
                 gradleUserHomeDir, buildResolverDir)
 
         settingsFactoryMocker = new MockFor(SettingsFactory)
+    }
+
+    void tearDown() {
+        HelperUtil.deleteTestDir()
     }
 
     void testSettingsProcessor() {
@@ -67,11 +72,22 @@ class SettingsProcessorTest extends GroovyTestCase {
     void testCreateBasicSettings() {
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
         prepareSettingsFactoryMocker(expectedCurrentDir, expectedCurrentDir)
-        assertEquals([], expectedSettings.projectPaths)
         settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
             assert settingsProcessor.createBasicSettings(expectedCurrentDir).is(expectedSettings)
         }
-        assertEquals(buildResolverDir, settingsProcessor.dependencyManagerFactory.buildResolverDir)
+        assertEquals([], expectedSettings.projectPaths)
+        checkBuildResolverDir(buildResolverDir)
+    }
+
+    void testWithNonExistingBuildResolverDir() {
+        HelperUtil.deleteTestDir()
+        File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
+        prepareSettingsFactoryMocker(expectedCurrentDir, expectedCurrentDir)
+        settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
+            assert settingsProcessor.createBasicSettings(expectedCurrentDir).is(expectedSettings)
+        }
+        assertEquals([], expectedSettings.projectPaths)
+        checkBuildResolverDir(buildResolverDir)
     }
 
     void testProcessWithCurrentDirAsSubproject() {
@@ -143,8 +159,13 @@ class SettingsProcessorTest extends GroovyTestCase {
                 settings = settingsProcessor.process(currentDir, expectedSearchUpwards)
             }
         }
-        assertEquals(expectedBuildResolverRoot, settingsProcessor.dependencyManagerFactory.buildResolverDir)
+        checkBuildResolverDir(expectedBuildResolverRoot)
         settingsFileHandlerMocker.expect.verify()
         settings
+    }
+
+    private void checkBuildResolverDir(File buildResolverDir) {
+        assertEquals(buildResolverDir, settingsProcessor.dependencyManagerFactory.buildResolverDir)
+        assert !buildResolverDir.exists()
     }
 }

@@ -123,6 +123,12 @@ class DefaultSettingsTest extends GroovyTestCase {
         checkCreateClassLoader(testDependency)
     }
 
+    //    void testDeletionOfOldVersion() {
+//        createArtifact()
+//        buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir, 'somescript', [], [:], [:], true, true)
+//        assert !new File(testBuildResolverDir, DependencyManager.BUILD_RESOLVER_NAME).exists()
+//    }
+
     private checkCreateClassLoader(def expectedDependency, boolean srcBuilderNull = false) {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File

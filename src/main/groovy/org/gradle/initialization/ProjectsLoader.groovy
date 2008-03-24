@@ -56,6 +56,7 @@ class ProjectsLoader {
     }
 
     ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map startProperties) {
+        logger.info('++ Loading Project objects')
         rootProject = createProjects(settings, gradleUserHomeDir, startProperties)
         currentProject = DefaultProject.findProject(rootProject, PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.currentDir))
         this

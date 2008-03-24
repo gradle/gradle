@@ -24,8 +24,6 @@ import org.gradle.api.internal.project.DefaultProject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
-
 /**
 * @author Hans Dockter
 */
@@ -43,7 +41,7 @@ class BuildExecuter {
         assert taskName
         assert currentProject
 
-        logger.info("Executing: $taskName Recursive:$recursive Startproject: $currentProject")
+        logger.info("++ Executing: $taskName Recursive:$recursive Startproject: $currentProject")
 
         dag.reset()
         Map<DefaultProject, DefaultTask> calledTasks = currentProject.getTasksByName(taskName, recursive)

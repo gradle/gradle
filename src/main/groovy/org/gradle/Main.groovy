@@ -216,6 +216,7 @@ class Main {
     }
 
     static void configureLogger(def options) {
+        
         //String normalLayout = '%msg%n'
         String normalLayout = '%msg%n'
         String debugLayout = '%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'

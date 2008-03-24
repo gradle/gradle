@@ -30,8 +30,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class Build {
     private static Logger logger = LoggerFactory.getLogger(Build)
 
@@ -53,56 +53,53 @@ class Build {
     }
 
     void run(List taskNames, File currentDir, Map projectProperties, Map systemProperties) {
-        setSystemProperties(systemProperties)
-        runInternal(init(currentDir, projectProperties), taskNames, currentDir, false, projectProperties)
-    }               
+        runInternal(init(currentDir, projectProperties, systemProperties), taskNames, currentDir, false, projectProperties)
+    }
 
     void run(List taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemProperties) {
-        setSystemProperties(systemProperties)
-        DefaultSettings settings = init(currentDir, searchUpwards, projectProperties)
+        DefaultSettings settings = init(currentDir, searchUpwards, projectProperties, systemProperties)
         runInternal(settings, taskNames, currentDir, recursive, projectProperties)
     }
 
     private void runInternal(DefaultSettings settings, List taskNames, File currentDir, boolean recursive,
                              Map projectProperties) {
         ClassLoader classLoader = settings.createClassLoader()
-        buildConfigurer.process(projectLoader.rootProject, classLoader)
-        List unknownTasks = buildExecuter.unknownTasks(taskNames, recursive, projectLoader.currentProject)
-        if (unknownTasks) {throw new UnknownTaskException("Task(s) $unknownTasks are unknown!")}
-        boolean newInit = false
+        boolean unknownTaskCheck = false
         taskNames.each {String taskName ->
-            if (newInit) {
-                projectLoader.load(settings, gradleUserHomeDir, projectProperties)
-                buildConfigurer.process(projectLoader.rootProject, classLoader)
+            logger.info("++++ Starting build for primary task: $taskName")
+            projectLoader.load(settings, gradleUserHomeDir, projectProperties)
+            buildConfigurer.process(projectLoader.rootProject, classLoader)
+            if (!unknownTaskCheck) {
+                List unknownTasks = buildExecuter.unknownTasks(taskNames, recursive, projectLoader.currentProject)
+                if (unknownTasks) {throw new UnknownTaskException("Task(s) $unknownTasks are unknown!")}
+                unknownTaskCheck = true
             }
             buildExecuter.execute(taskName, recursive, projectLoader.currentProject, projectLoader.rootProject)
-            newInit = true
         }
     }
 
     String taskList(File currentDir, Map projectProperties, Map systemProperties) {
-        setSystemProperties(systemProperties)
-        taskListInternal(init(currentDir, projectProperties), currentDir, false, projectProperties)
+        taskListInternal(init(currentDir, projectProperties, systemProperties), currentDir, false, projectProperties)
     }
 
     String taskList(File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemProperties) {
-        setSystemProperties(systemProperties)
-        taskListInternal(init(currentDir, searchUpwards, projectProperties), currentDir, recursive, projectProperties)
+        taskListInternal(init(currentDir, searchUpwards, projectProperties, systemProperties), currentDir, recursive, projectProperties)
     }
 
     private String taskListInternal(DefaultSettings settings, File currentDir, boolean recursive, Map projectProperties) {
+        projectLoader.load(settings, gradleUserHomeDir, projectProperties)
         buildConfigurer.taskList(projectLoader.rootProject, recursive, projectLoader.currentProject, settings.createClassLoader())
     }
 
-    private DefaultSettings init(File currentDir, boolean searchUpwards, Map projectProperties) {
+    private DefaultSettings init(File currentDir, boolean searchUpwards, Map projectProperties, Map systemProperties) {
+        setSystemProperties(systemProperties)
         DefaultSettings settings = settingsProcessor.process(currentDir, searchUpwards)
-        projectLoader.load(settings, gradleUserHomeDir, projectProperties)
         settings
     }
 
-    private DefaultSettings init(File currentDir, Map projectProperties) {
+    private DefaultSettings init(File currentDir, Map projectProperties, Map systemProperties) {
+        setSystemProperties(systemProperties)
         DefaultSettings settings = settingsProcessor.createBasicSettings(currentDir)
-        projectLoader.load(settings, gradleUserHomeDir, projectProperties)
         settings
     }
 
@@ -124,6 +121,5 @@ class Build {
         }
     }
 
-    
 
 }

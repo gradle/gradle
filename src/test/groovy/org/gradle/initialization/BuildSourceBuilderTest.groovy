@@ -17,7 +17,6 @@
 package org.gradle.initialization
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.DependencyManager
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 
@@ -114,24 +113,16 @@ class BuildSourceBuilderTest extends GroovyTestCase {
     }
 
     void testCreateDependencyWithNoArtifactProducingBuild() {
-        createArtifact()
         embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, File projectDir, String embeddedScript, List taskNames,
                                                                         Map projectProperties, Map systemProperties ->}
         embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
             assertNull(buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir, 'somescript', ['sometask'], [:], [:], true, true))
         }
-        assert !new File(testBuildResolverDir, DependencyManager.BUILD_RESOLVER_NAME).exists()
     }
 
     void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
         assertNull(buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir, Project.DEFAULT_PROJECT_FILE, [], [:], [:], true, true))
-    }
-
-    void testDeletionOfOldVersion() {
-        createArtifact()
-        buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir, 'somescript', [], [:], [:], true, true)
-        assert !new File(testBuildResolverDir, DependencyManager.BUILD_RESOLVER_NAME).exists()
     }
 
     private createBuildFile() {

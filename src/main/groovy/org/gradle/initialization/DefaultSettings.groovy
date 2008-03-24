@@ -92,8 +92,12 @@ class DefaultSettings implements Settings {
             dependency = buildSourceBuilder.createDependency(new File(rootDir, buildSrcDir), dependencyManager.buildResolverDir, buildSrcScriptName,
                     buildSrcTaskNames, buildSrcProjectProperties, buildSrcSystemProperties, buildSrcRecursive, buildSrcSearchUpwards)
         }
-        logger.info("Build src dependency: $dependency")
-        if (dependency) {dependencyManager.addDependencies([BUILD_CONFIGURATION], dependency)}
+        logger.debug("Build src dependency: $dependency")
+        if (dependency) {
+            dependencyManager.addDependencies([BUILD_CONFIGURATION], dependency)
+        } else {
+            logger.info('No build sources found.')
+        }
         URL[] classpath = dependencyManager.resolveClasspath(BUILD_CONFIGURATION).collect {File file ->
             Locator.fileToURL(file)
         }

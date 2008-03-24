@@ -189,7 +189,7 @@ class BuildTest extends GroovyTestCase {
     }
 
     void testTaskList() {
-        checkTarget {
+        checkTask {
             testBuildFactory().taskList(
                     expectedCurrentDir, expectedRecursive, expectedSearchUpwards,
                     expectedStartProperties, expectedSystemProperties)
@@ -202,13 +202,13 @@ class BuildTest extends GroovyTestCase {
             assertSame(expectedCurrentDir, currentDir)
             expectedSettings
         }
-        checkTarget {
+        checkTask {
             testBuildFactory().taskList(
                     expectedCurrentDir, expectedStartProperties, expectedSystemProperties)
         }
     }
 
-    private void checkTarget(Closure taskListCall) {
+    private void checkTask(Closure taskListCall) {
         buildConfigurerMocker.demand.taskList(1..1) {DefaultProject root, boolean recursive, DefaultProject current, URLClassLoader urlClassLoader ->
             assert urlClassLoader.is(expectedClassLoader)
             assertSame(expectedRootProject, root)

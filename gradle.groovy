@@ -1,34 +1,24 @@
 import java.text.SimpleDateFormat
-import org.gradle.api.GradleException
-import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.WebdavResolver
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.build.integtests.GroovyProject
 import org.gradle.build.integtests.JavaProject
 import org.gradle.build.integtests.TutorialTest
 import org.gradle.build.integtests.WaterProject
+import org.gradle.build.release.Svn
+import org.gradle.build.release.Version
 import org.gradle.build.samples.TutorialCreator
 import org.gradle.build.samples.WaterProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.execution.Dag
-import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
-import org.tmatesoft.svn.core.javahl.SVNClientImpl
-import org.tmatesoft.svn.core.wc.ISVNStatusHandler
-import org.tmatesoft.svn.core.wc.SVNClientManager
-import org.tmatesoft.svn.core.wc.SVNStatus
-import org.tmatesoft.svn.core.wc.SVNWCUtil
 
-DAVRepositoryFactory.setup();
-clientManager = SVNClientManager.newInstance(
-        SVNWCUtil.createDefaultOptions(true), codehausUserName, codehausUserPassword)
-statusClient = clientManager.getStatusClient()
-javaHlClient = SVNClientImpl.newInstance()
+// todo: create version.properties file
 
+svn = new Svn(project)
 
 type = 'jar'
-version = new Version(project, false)
+version = new Version(svn, project, false)
 group = 'org.gradle'
-status = 'integration'
 versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(new Date())
 
 usePlugin('groovy')
@@ -80,6 +70,7 @@ test {
 }
 
 def jarBaseName = 'gradle'
+// todo: Add DefaultArchiveTask
 lib.lateInitalizeClosures << {it.project.task('gradle-core_jar').baseName = jarBaseName}
 
 distDir = file('build/distribution/exploded')
@@ -148,8 +139,6 @@ dist {
     }
 }
 
-
-
 createTask('check') {
     ant.taskdef(resource: 'org/apache/ivy/ant/antlib.xml')
     ant.cachepath(organisation: "net.sourceforge.cobertura", module: "cobertura", revision: "1.9",
@@ -168,142 +157,9 @@ createTask('check') {
 //        </cobertura-instrument>
 //    </target>
 
-
-createTask('svnInit') {
-
-}
-
-createTask('checkWorkingCopy', dependsOn: 'svnInit') {
-    List statuses = []
-    ISVNStatusHandler statusHandler = {SVNStatus status -> statuses << status} as ISVNStatusHandler
-    statusClient.doStatus(projectDir, true, true, false, false, statusHandler)
-    if (statuses) {
-        StringWriter stringWriter = new StringWriter()
-        statuses.each {SVNStatus status -> stringWriter.write(status.getURL().toString() + '\n')}
-        throw new GradleException("The working copy is not in sync with HEAD. We can't release!\n$stringWriter")
-    }
-}
-
-createTask('release', dependsOn: 'checkWorkingCopy') {
-    if (isTrunk() || version.toString() == branchVersion()) {
-        majorRelease()
-    } else {
-        minorRelease()
-    }
-}
-
-def majorRelease() {
-    if (isTrunk()) {
-        createReleaseBranchDirectory()
-    }
-    version.storeNextMajor()
-    commitProperties()
-    if (isTrunk()) {
-        copyTrunkToReleaseBranch()
-    }
-    tagReleaseBranch()
-}
-
-def minorRelease() {
-    version.storeNextMinor()
-    commitProperties()
-    tagReleaseBranch()
+createTask('release') {
+    svn.release()
 }
 
 
-def commitProperties() {
-    File props = new File(projectDir, 'gradle.properties')
-    javaHlClient.add(props.absolutePath, false)
-    javaHlClient.commit([props.absolutePath,] as String[], "Incremented version properties", false)
-}
 
-def createReleaseBranchDirectory() {
-    javaHlClient.mkdir([releaseBranchUrl] as String[], "Create new release branch $releaseBranchName")
-}
-
-def copyTrunkToReleaseBranch() {
-    javaHlClient.copy(trunkUrl, releaseBranchUrl, "Copy trunk to release branch $releaseBranchName")
-}
-
-def tagReleaseBranch() {
-    javaHlClient.copy(releaseBranchUrl, createUrl(svnUrl, "REL-$version"), "Tag release $releaseBranchName")
-}
-
-def getReleaseBranchName() {
-    'RB-' + version
-}
-
-def getReleaseBranchUrl() {
-    createUrl(svnUrl, releaseBranchName)
-}
-
-def getTrunkUrl() {
-    createUrl(svnUrl, 'trunk')
-}
-
-String getSvnUrl() {
-    statusClient.doStatus(projectDir, false).URL.toString()
-}
-
-def createUrl(String url, String newSuffix) {
-    int pos = url.lastIndexOf('/')
-    url.substring(0, pos + 1) + newSuffix
-}
-
-boolean isTrunk() {
-    svnDir == 'trunk'
-}
-
-String getSvnDir() {
-    svnUrl.substring(svnUrl.lastIndexOf('/') + 1)
-}
-
-String getBranchVersion() {
-    svnDir.replaceFirst('RB-', '')
-}
-
-class Version {
-    File propertyFile
-
-    Project project
-
-    boolean majorNotMinor
-
-    int majorInternal, minorInternal, revisionInternal
-
-    Version(Project project, boolean majorNotMinor) {
-        this.project = project
-        this.majorNotMinor = majorNotMinor
-        majorInternal = project.hasProperty('previousMajor') ? project.previousMajor : 0
-        minorInternal = project.hasProperty('previousMinor') ? project.previousMinor : 0
-        revisionInternal = project.hasProperty('previousRevision') ? project.previousRevision : 0
-    }
-
-    void storeCurrentVersion() {
-        Properties properties = new Properties()
-        propertyFile = new File(project.projectDir, 'gradle.properties')
-        if (propertyFile.isFile()) {
-            properties.load(new FileInputStream('gradle.properties'))
-        }
-        properties['previousMajor'] = majorInternal
-        properties['previousMinor'] = minorInternal
-        properties['previousRevision'] = revisionInternal
-        properties.store(new FileOutputStream(propertyFile), '')
-    }
-
-    int getMajor() {
-        majorNotMinor && project.isTrunk() ? majorInternal + 1 : majorInternal
-    }
-
-    int getMinor() {
-        !majorNotMinor && project.isTrunk() ? minorInternal + 1 : minorInternal
-    }
-
-    int getRevision() {
-        project.isTrunk() ? 0 : revisionInternal + 1
-    }
-
-    String toString() {
-        "${major}.${minor}${revision ? '.' + revision : ''}${project.versionModifier ? '-' + project.versionModifier : ''}"
-    }
-}
