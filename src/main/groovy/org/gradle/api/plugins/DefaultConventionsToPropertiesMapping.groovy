@@ -28,7 +28,7 @@ class DefaultConventionsToPropertiesMapping {
             sourceDirs: {_(it).resourceDirs}
     ]
     final static Map CLEAN = [
-            dir: {_(it).buildDir}
+            dir: {_(it).project.buildDir}
     ]
     final static Map RESOURCES = [
             targetDir: {_(it).classesDir},
@@ -56,11 +56,12 @@ class DefaultConventionsToPropertiesMapping {
     final static Map TEST = [
             compiledTestsDir: {_(it).testClassesDir},
             testResultsDir: {_(it).testResultsDir},
-            unmanagedClasspath: {[_(it).classesDir, _(it).testClassesDir]},
+            // Order of dirs is important because of classpath!
+            unmanagedClasspath: {[_(it).testClassesDir, _(it).classesDir]},
             dependencyManager: {_(it).project.dependencies}
     ]
     private final static Map ARCHIVE = [
-            destinationDir: {_(it).buildDir},
+            destinationDir: {_(it).project.buildDir},
             dependencyManager: {_(it).project.dependencies},
             version: {"${_(it).project.version}"},
             baseName: {"${_(it).project.name}"}

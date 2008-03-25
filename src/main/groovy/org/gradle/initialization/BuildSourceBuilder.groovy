@@ -37,6 +37,12 @@ class BuildSourceBuilder {
 usePlugin('groovy')
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
+test {
+    include '**/*Test.class'
+    exclude '**/Abstract*'
+    // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
+    options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)
+}
 '''
 
     EmbeddedBuildExecuter embeddedBuildExecuter

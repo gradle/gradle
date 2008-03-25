@@ -63,7 +63,7 @@ class DefaultSettings implements Settings {
         dependencyManager.resolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         buildSrcDir = DEFAULT_BUILD_SRC_DIR
         buildSrcScriptName = Project.DEFAULT_PROJECT_FILE
-        buildSrcTaskNames = [JavaPlugin.CLEAN, JavaPlugin.INSTALL]
+        buildSrcTaskNames = [JavaPlugin.CLEAN, JavaPlugin.INSTALL_LIB]
         buildSrcRecursive = true
         buildSrcSearchUpwards = true
         buildSrcProjectProperties = [:]

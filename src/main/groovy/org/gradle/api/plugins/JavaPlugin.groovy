@@ -44,7 +44,7 @@ class JavaPlugin implements Plugin {
     static final String TEST = 'test'
     static final String LIB = 'lib'
     static final String DIST = 'dist'
-    static final String INSTALL = 'install'
+    static final String INSTALL_LIB = 'installLib'
     static final String CLEAN = 'clean'
 
     static final String RUNTIME = 'runtime'
@@ -56,7 +56,7 @@ class JavaPlugin implements Plugin {
     void apply(Project project, PluginRegistry pluginRegistry, def convention = null) {
         def javaConvention = convention ?: new JavaConvention(project)
 
-        configureDependencyManager(javaConvention, project)
+        configureDependencyManager(project)
 
         project.convention = javaConvention
 
@@ -102,9 +102,9 @@ class JavaPlugin implements Plugin {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
         }
 
-        project.createTask(INSTALL, dependsOn: LIB) {Task task ->
+        project.createTask(INSTALL_LIB, dependsOn: LIB) {Task task ->
             DependencyManager deps = task.project.dependencies
-            File ivyFile = project.file("${task.project.convention.buildDir}/ivy.xml")
+            File ivyFile = project.file("${task.project.buildDir}/ivy.xml")
             DefaultModuleDescriptor moduleDescriptor = deps.moduleDescriptorConverter.convert(deps)
             moduleDescriptor.toIvyFile(ivyFile)
             PublishOptions publishOptions = new PublishOptions()
@@ -116,7 +116,7 @@ class JavaPlugin implements Plugin {
 
         project.createTask(DISTRIBUTE, dependsOn: DIST) {Task task ->
             DependencyManager deps = task.project.dependencies
-            File ivyFile = project.file("${task.project.convention.buildDir}/ivy.xml")
+            File ivyFile = project.file("${task.project.buildDir}/ivy.xml")
             DefaultModuleDescriptor moduleDescriptor = deps.moduleDescriptorConverter.convert(deps)
             moduleDescriptor.toIvyFile(ivyFile)
             PublishOptions publishOptions = new PublishOptions()
@@ -129,7 +129,7 @@ class JavaPlugin implements Plugin {
         }
     }
 
-    void configureDependencyManager(JavaConvention convention, Project project) {
+    void configureDependencyManager(Project project) {
         project.dependencies {
             addConfiguration(new Configuration(COMPILE, Visibility.PRIVATE, null, null, false, null))
             addConfiguration(new Configuration(RUNTIME, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
@@ -138,9 +138,9 @@ class JavaPlugin implements Plugin {
             addConfiguration(new Configuration(MASTER, Visibility.PUBLIC, null, null, true, null))
             addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, MASTER] as String[], true, null))
             addConfiguration(new Configuration(DISTRIBUTE, Visibility.PUBLIC, null, null, true, null))
-            artifactProductionTaskName = INSTALL
-            artifactPatterns << ("${convention.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
-            artifactPatterns << ("${convention.buildDir.absolutePath}/distribution/[artifact]-[revision].[ext]" as String)
+            artifactProductionTaskName = INSTALL_LIB
+            artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
+            artifactPatterns << ("${project.buildDir.absolutePath}/distribution/[artifact]-[revision].[ext]" as String)
             addConf2Tasks(RUNTIME, TEST)
             resolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         }

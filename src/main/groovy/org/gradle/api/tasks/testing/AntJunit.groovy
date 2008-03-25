@@ -29,11 +29,16 @@ class AntJunit {
 
     static final String CLASSPATH_ID = 'runtests.classpath'
 
+    static final String FAILURES_OR_ERRORS_PROPERTY = 'org.gradle.api.tasks.testing.failuresOrErrors'
+    
+
     void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, List includes, List excludes, JunitOptions junitOptions, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)
-        createAntClassPath(ant, classPath + [compiledTestsClassesDir])
+        createAntClassPath(ant, classPath)
         Map otherArgs = [
-                includeantruntime: 'true'
+                includeantruntime: 'true',
+                errorproperty: FAILURES_OR_ERRORS_PROPERTY,
+                failureproperty: FAILURES_OR_ERRORS_PROPERTY
         ]
         ant.junit(otherArgs + junitOptions.optionMap()) {
             junitOptions.forkOptions.jvmArgs.each {

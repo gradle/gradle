@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.DependencyManager
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
@@ -27,13 +28,13 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class Test extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Test)
 
     static final String SKIP_TEST = 'gradle.test.skip'
-
+    
     Test self
 
     AntJunit antJunit = new AntJunit()
@@ -55,7 +56,9 @@ class Test extends ConventionTask {
     ClasspathConverter classpathConverter = new ClasspathConverter()
 
     List unmanagedClasspath = []
-    
+
+    boolean stopAtFailuresOrErrors = true
+
     Test(DefaultProject project, String name) {
         super(project, name)
         actions << this.&executeTests
@@ -67,12 +70,15 @@ class Test extends ConventionTask {
         if (!self.compiledTestsDir) throw new InvalidUserDataException("The compiledTestDir property is not set, testing can't be triggered!")
         if (!self.testResultsDir) throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!")
 
-        if (!existingDirsFilter.checkExistenceAndLogExitMessage(self.compiledTestsDir)) { return }
+        if (!existingDirsFilter.checkExistenceAndLogExitMessage(self.compiledTestsDir)) {return}
 
         List classpath = classpathConverter.createFileClasspath(
                 project.rootDir, self.unmanagedClasspath as Object[]) + self.dependencyManager.resolveClasspath(name)
 
         antJunit.execute(self.compiledTestsDir, classpath, self.testResultsDir, includes, excludes, options, project.ant)
+        if (stopAtFailuresOrErrors && project.ant.project.getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY)) {
+            throw new GradleException("There were failing tests!")
+        }
     }
 
     Test include(String[] includes) {
@@ -84,5 +90,5 @@ class Test extends ConventionTask {
         this.excludes += excludes as List
         this
     }
-    
+
 }

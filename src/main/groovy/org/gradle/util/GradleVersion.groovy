@@ -22,19 +22,23 @@ import org.codehaus.groovy.runtime.InvokerHelper
  * @author Hans Dockter
  */
 class GradleVersion {
+    final static String BUILD_TIME = 'buildTime'
+    final static String VERSION = 'version'
+    final static String FILE_NAME = 'version.properties'
+
     Properties versionProperties
 
     GradleVersion() {
         versionProperties = new Properties()
-        versionProperties.load(getClass().getResourceAsStream('/version.properties'))
+        versionProperties.load(getClass().getResourceAsStream('/' + FILE_NAME))
     }
 
     String getVersion() {
-        versionProperties['version']
+        versionProperties[VERSION]
     }
 
     String getBuildTime() {
-        versionProperties['buildTime']
+        versionProperties[BUILD_TIME]
     }
 
     String prettyPrint() {

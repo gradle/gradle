@@ -13,30 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.api.tasks.util
+ 
+package org.gradle.build.integtests
 
 /**
  * @author Hans Dockter
  */
-class GradleUtil {
-    static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
-        if (!configureClosure) { return delegate}
-        configureClosure.resolveStrategy = resolveStrategy
-        configureClosure.delegate = delegate
-        configureClosure.call()
-        delegate
-    }
-
-    static void deleteDir(File dir) {
-        assert !dir.isFile()
-        if (dir.isDirectory()) {new AntBuilder().delete(dir: dir)}
-    }
-
-    static File makeNewDir(File dir) {
-        deleteDir(dir)
-        dir.mkdir()
-        dir.deleteOnExit()
-        dir
+class Version {
+    static void execute(String gradleHome) {
+        Executer.execute(gradleHome, System.properties['user.dir'], ['-v'])
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.build.release
 
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
+import org.gradle.api.tasks.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -27,12 +27,16 @@ class VersionTest extends GroovyTestCase {
     boolean trunk
     DefaultProject project
     Svn svn
+    File testDir
 
     void setUp() {
-        File testDir = HelperUtil.makeNewTestDir()
+        testDir = GradleUtil.makeNewDir(new File('tmpTest'))
         File rootDir = new File(testDir, 'root')
         rootDir.mkdir()
-        project = HelperUtil.createRootProject(rootDir)
+        project = new DefaultProject()
+        project.rootDir = rootDir
+        project.rootProject = project
+        project.name = rootDir.name
         project.previousMajor = '1'
         project.previousMinor = '2'
         project.previousRevision = '3'
@@ -41,7 +45,7 @@ class VersionTest extends GroovyTestCase {
     }
 
     void tearDown() {
-        HelperUtil.deleteTestDir()
+        GradleUtil.deleteDir(testDir)
     }
 
     void testFalseTrunkMinor() {

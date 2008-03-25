@@ -39,10 +39,9 @@ class JavaConventionTest extends GroovyTestCase {
         assert convention.manifest != null
         assert convention.metaInf != null
         assertEquals(new File(testDir, 'src'), convention.srcRoot)
-        assertEquals(new File(testDir, 'build'), convention.buildDir)
-        assertEquals(new File(convention.buildDir, 'classes'), convention.classesDir)
-        assertEquals(new File(convention.buildDir, 'test-classes'), convention.testClassesDir)
-        assertEquals(new File(convention.buildDir, 'test-results'), convention.testResultsDir)
+        assertEquals(new File(project.buildDir, 'classes'), convention.classesDir)
+        assertEquals(new File(project.buildDir, 'test-classes'), convention.testClassesDir)
+        assertEquals(new File(project.buildDir, 'test-results'), convention.testResultsDir)
         assertEquals([new File(convention.srcRoot, 'main/java')], convention.srcDirs)
         assertEquals([new File(convention.srcRoot, 'test/java')], convention.testSrcDirs)
         assertEquals([new File(convention.srcRoot, 'main/resources')], convention.resourceDirs)
@@ -52,7 +51,7 @@ class JavaConventionTest extends GroovyTestCase {
     void testMkdir() {
         String expectedDirName = 'somedir' 
         File dir = convention.mkdir(expectedDirName)
-        assertEquals(new File(convention.buildDir, expectedDirName), dir)
+        assertEquals(new File(project.buildDir, expectedDirName), dir)
     }
 
     void testMkdirWithSpecifiedBasedir() {

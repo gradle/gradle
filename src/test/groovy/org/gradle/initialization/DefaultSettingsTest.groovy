@@ -67,7 +67,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         assert settings.buildSourceBuilder.is(buildSourceBuilder)
         assertEquals(DefaultSettings.DEFAULT_BUILD_SRC_DIR, settings.buildSrcDir)
         assertEquals(Project.DEFAULT_PROJECT_FILE, settings.buildSrcScriptName)
-        assertEquals([JavaPlugin.CLEAN, JavaPlugin.INSTALL], settings.buildSrcTaskNames)
+        assertEquals([JavaPlugin.CLEAN, JavaPlugin.INSTALL_LIB], settings.buildSrcTaskNames)
         assertEquals([:], settings.buildSrcProjectProperties)
         assertEquals([:], settings.buildSrcSystemProperties)
         assertTrue(settings.buildSrcSearchUpwards)

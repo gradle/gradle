@@ -37,7 +37,6 @@ class JavaConvention {
     Project project
 
     File srcRoot
-    File buildDir
     List srcDirs = []
     List resourceDirs = []
     File classesDir
@@ -45,6 +44,7 @@ class JavaConvention {
     List testResourceDirs = []
     File testClassesDir
     File testResultsDir
+    File distDir
     String sourceCompatibility
     String targetCompatibility
 
@@ -57,20 +57,20 @@ class JavaConvention {
         manifest = new GradleManifest()
         metaInf = new FileSet()
         srcRoot = project.file('src')
-        buildDir = project.file('build')
-        classesDir = new File(buildDir, 'classes')
-        testClassesDir = new File(buildDir, 'test-classes')
+        classesDir = new File(project.buildDir, 'classes')
+        testClassesDir = new File(project.buildDir, 'test-classes')
+        distDir = new File(project.buildDir, 'distributions')
         srcDirs << new File(srcRoot, 'main/java')
         resourceDirs << new File(srcRoot, 'main/resources')
         testSrcDirs << new File(srcRoot, 'test/java')
         testResourceDirs << new File(srcRoot, 'test/resources')
-        testResultsDir = new File(buildDir, 'test-results')
+        testResultsDir = new File(project.buildDir, 'test-results')
         archiveTypes = DEFAULT_ARCHIVE_TYPES
     }
 
     File mkdir(File parent = null, String name) {
         if (!name) {throw new InvalidUserDataException('You must specify the name of the directory')}
-        File baseDir = parent ?: buildDir
+        File baseDir = parent ?: project.buildDir
         File result = new File(baseDir, name)
         result.mkdirs()
         result

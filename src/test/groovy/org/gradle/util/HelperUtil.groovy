@@ -19,6 +19,7 @@ package org.gradle.util
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
+import org.gradle.api.tasks.util.GradleUtil
 
 /**
 * @author Hans Dockter
@@ -43,15 +44,11 @@ class HelperUtil {
     }
 
     static void deleteTestDir() {
-        if (new File(TMP_DIR_FOR_TEST).exists()) {new AntBuilder().delete(dir: TMP_DIR_FOR_TEST)}
+        GradleUtil.deleteDir(new File(TMP_DIR_FOR_TEST))
     }
 
     static File makeNewTestDir() {
-        deleteTestDir()
-        File dir = new File(TMP_DIR_FOR_TEST)
-        dir.mkdir()
-        dir.deleteOnExit()
-        dir
+        GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST))
     }
 
     static File getTestDir() {
