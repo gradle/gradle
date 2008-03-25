@@ -20,6 +20,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.tigris.subversion.javahl.Revision
 import org.tigris.subversion.javahl.Status
+import org.tmatesoft.svn.core.SVNException
+import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import org.tmatesoft.svn.core.javahl.SVNClientImpl
 import org.tmatesoft.svn.core.wc.SVNClientManager
@@ -58,7 +60,7 @@ class Svn {
 
     def majorOrMinorRelease() {
         if (isTrunk()) {
-            createReleaseBranchDirectory()
+            exitIfReleaseBranchDirectoryExists()
         }
         project.version.storeCurrentVersion()
         commitProperties()
@@ -80,8 +82,14 @@ class Svn {
         javaHlClient.commit([props.absolutePath,] as String[], "Incremented version properties", false)
     }
 
-    def createReleaseBranchDirectory() {
-        javaHlClient.mkdir([releaseBranchUrl] as String[], "Create new release branch $releaseBranchName")
+    def exitIfReleaseBranchDirectoryExists() {
+        try {
+            clientManager.WCClient.doInfo(new SVNURL('https://svn.codehaus.org/gradle/gradle-core/branches/k', true),
+                    SVNRevision.UNDEFINED, SVNRevision.HEAD)
+            throw new GradleException("Release branch directpry already exists. You can't release from trunk therefore")
+        } catch (SVNException ignore) {
+            // SVNException means directory does not exists. Which is what we want.
+        }
     }
 
     def copyTrunkToReleaseBranch() {
