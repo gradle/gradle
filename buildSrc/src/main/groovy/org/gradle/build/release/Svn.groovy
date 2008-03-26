@@ -52,7 +52,7 @@ class Svn {
 
     def release() {
         checkWorkingCopy()
-        if (isTrunk() || project.version.toString() == branchVersion()) {
+        if (isTrunk() || project.version.toString() == branchVersion) {
             majorOrMinorRelease()
         } else {
             revisionRelease()
