@@ -110,7 +110,7 @@ class Svn {
     }
     
     def getReleaseBranchUrl() {
-        createUrl(svnUrl, "branches/$releaseBranchName")
+        createUrl(svnUrl, "${isTrunk() ? 'branches/' : ''}$releaseBranchName")
     }
 
     def getTrunkUrl() {
