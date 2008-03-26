@@ -1,7 +1,18 @@
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-
-// todo: create version.properties file
+import org.gradle.api.internal.dependencies.WebdavResolver
+import org.gradle.api.tasks.testing.ForkMode
+import org.gradle.build.integtests.GroovyProject
+import org.gradle.build.integtests.JavaProject
+import org.gradle.build.integtests.TutorialTest
+import org.gradle.build.integtests.WaterProject
+import org.gradle.build.release.Svn
+import org.gradle.build.release.Version
+import org.gradle.build.samples.TutorialCreator
+import org.gradle.build.samples.WaterProjectCreator
+import org.gradle.build.startscripts.StartScriptsGenerator
+import org.gradle.execution.Dag
+import org.gradle.util.GradleVersion
 
 distName = 'gradle'
 svn = new Svn(project)
@@ -152,7 +163,7 @@ createTask('install', dependsOn: 'dists') {
             arg(value: '-q')
             arg(value: '-d')
             arg(value: installDir)
-            arg(value: "${task('gradle-core_zip').archivePath}")
+            arg(value: "${task('gradle_zip').archivePath}")
         }
         exec(dir: installDir, executable: "mv") {
             arg(value: zipRootFolder)
