@@ -21,6 +21,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.Settings
+import org.gradle.api.internal.dependencies.ResolverContainer
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaPlugin
 import org.slf4j.Logger
@@ -60,10 +61,10 @@ class DefaultSettings implements Settings {
         configureDependencyManager(dependencyManager, gradleUserHomeDir)
         this.buildSourceBuilder = buildSourceBuilder
         dependencyManager.addConfiguration(BUILD_CONFIGURATION)
-        dependencyManager.resolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
+        dependencyManager.classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         buildSrcDir = DEFAULT_BUILD_SRC_DIR
         buildSrcScriptName = Project.DEFAULT_PROJECT_FILE
-        buildSrcTaskNames = [JavaPlugin.CLEAN, JavaPlugin.INSTALL_LIB]
+        buildSrcTaskNames = [JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS]
         buildSrcRecursive = true
         buildSrcSearchUpwards = true
         buildSrcProjectProperties = [:]
@@ -78,12 +79,8 @@ class DefaultSettings implements Settings {
         dependencyManager.addDependencies([BUILD_CONFIGURATION], dependencies)
     }
 
-    void setResolvers(List resolvers) {
-        dependencyManager.resolvers = resolvers
-    }
-
-    List getResolvers() {
-        dependencyManager.resolvers
+    ResolverContainer getResolvers() {
+        dependencyManager.classpathResolvers
     }
 
     URLClassLoader createClassLoader() {

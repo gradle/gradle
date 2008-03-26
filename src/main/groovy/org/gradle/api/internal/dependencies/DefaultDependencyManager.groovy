@@ -17,24 +17,33 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.Ivy
+import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.core.publish.PublishOptions
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.ResolveOptions
+import org.apache.ivy.plugins.lock.NoLockStrategy
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.tasks.util.GradleUtil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-* todo: map tasks to configurations not vice versa
-*/
+ * @author Hans Dockter
+ * todo: map tasks to configurations not vice versa
+ */
 class DefaultDependencyManager implements DependencyManager {
+    Logger logger = LoggerFactory.getLogger(DefaultDependencyManager)
+
     Project project
 
     Ivy ivy
@@ -48,8 +57,6 @@ class DefaultDependencyManager implements DependencyManager {
     ModuleDescriptorConverter moduleDescriptorConverter
 
     Report2Classpath report2Classpath
-
-    ResolverContainer uploadResolvers = new ResolverContainer()
 
     /**
      * A map where the key is the name of the configuration and the values are Ivy configuration objects.
@@ -66,7 +73,7 @@ class DefaultDependencyManager implements DependencyManager {
      */
     List dependencyDescriptors = []
 
-    ResolverContainer resolvers = new ResolverContainer()
+    ResolverContainer classpathResolvers = new ResolverContainer()
 
     /**
      * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
@@ -100,6 +107,8 @@ class DefaultDependencyManager implements DependencyManager {
     Map task2Conf = [:]
 
     File buildResolverDir
+
+    RepositoryResolver buildResolver = null
 
     DefaultDependencyManager() {
 
@@ -181,13 +190,36 @@ class DefaultDependencyManager implements DependencyManager {
         report2Classpath.getClasspath(conf, resolveReport)
     }
 
+    void publish(List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor) {
+        PublishOptions publishOptions = new PublishOptions()
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(this)
+        if (uploadModuleDescriptor) {
+            File ivyFile = new File(project.buildDir, 'ivy.xml')
+            moduleDescriptor.toIvyFile(ivyFile)
+            publishOptions.srcIvyPattern = ivyFile.absolutePath
+        }
+        publishOptions.setOverwrite(true)
+        publishOptions.confs = configurations
+        Ivy ivy = ivy(resolvers.resolverList)
+        resolvers.resolverList.each {resolver ->
+            logger.info("Publishing to Resolver $resolver")
+            ivy.publishEngine.publish(moduleDescriptor,
+                    artifactPatterns.collect {pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
+        }
+    }
+
     ModuleRevisionId createModuleRevisionId() {
         new ModuleRevisionId(new ModuleId(project.group as String, project.name as String), project.version as String)
     }
 
     Ivy getIvy() {
-        ivy = ivy.newInstance(settingsConverter.convert(resolvers.resolverList, uploadResolvers.resolverList, 
-                new File(project.gradleUserHome), buildResolverDir))
+        ivy([])
+    }
+
+    Ivy ivy(List resolvers) {
+        ivy = ivy.newInstance(settingsConverter.convert(classpathResolvers.resolverList,
+                resolvers,
+                new File(project.gradleUserHome), getBuildResolver()))
     }
 
     void addConf2Tasks(String conf, String[] tasks) {
@@ -207,5 +239,23 @@ class DefaultDependencyManager implements DependencyManager {
             }
             task2Remove.each {task2Conf.remove(it)}
         }
+    }
+
+    RepositoryResolver getBuildResolver() {
+        if (!buildResolver) {
+            assert buildResolverDir
+            DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager()
+            cacheManager.basedir = new File(buildResolverDir, 'cache')
+            cacheManager.name = 'build-resolver-cache'
+            cacheManager.useOrigin = true
+            cacheManager.lockStrategy = new NoLockStrategy()
+            buildResolver = new FileSystemResolver()
+            buildResolver.setRepositoryCacheManager(cacheManager)
+            buildResolver.name = DependencyManager.BUILD_RESOLVER_NAME
+            String pattern = "$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"
+            buildResolver.addIvyPattern(pattern)
+            buildResolver.addArtifactPattern(pattern)
+        }
+        buildResolver
     }
 }

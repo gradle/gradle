@@ -18,15 +18,12 @@ package org.gradle.api.plugins
 
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.publish.PublishOptions
-import org.gradle.api.DependencyManager
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.tasks.Clean
 import org.gradle.api.tasks.Resources
+import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.api.tasks.compile.AntJavac
 import org.gradle.api.tasks.compile.Compile
@@ -42,23 +39,22 @@ class JavaPlugin implements Plugin {
     static final String TEST_RESOURCES = 'testResources'
     static final String TEST_COMPILE = 'testCompile'
     static final String TEST = 'test'
-    static final String LIB = 'lib'
-    static final String DIST = 'dist'
-    static final String INSTALL_LIB = 'installLib'
+    static final String LIBS = 'libs'
+    static final String DISTS = 'dists'
+    static final String UPLOAD_LIBS = 'uploadLibs'
     static final String CLEAN = 'clean'
 
     static final String RUNTIME = 'runtime'
     static final String TEST_RUNTIME = 'testRuntime'
     static final String MASTER = 'master'
     static final String DEFAULT = 'default'
-    static final String DISTRIBUTE = 'distribute'
+    static final String UPLOAD_DISTS = 'uploadDists'
 
     void apply(Project project, PluginRegistry pluginRegistry, def convention = null) {
         def javaConvention = convention ?: new JavaConvention(project)
+        project.convention = javaConvention
 
         configureDependencyManager(project)
-
-        project.convention = javaConvention
 
         project.status = 'integration'
 
@@ -90,42 +86,26 @@ class JavaPlugin implements Plugin {
                 }
             }
         }
-        project.createTask(LIB, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
+        project.createTask(LIBS, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
             // Warning: We need to add the delegate here, because otherwise the method argument with the name
             // convention is addressed.
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.LIB)
         }
 
-        project.createTask(DIST, type: Bundle, dependsOn: LIB).configure {
+        project.createTask(DISTS, type: Bundle, dependsOn: LIBS).configure {
             // Warning: We need to add the delegate here, because otherwise the method argument with the name
             // convention is addressed.
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
         }
 
-        project.createTask(INSTALL_LIB, dependsOn: LIB) {Task task ->
-            DependencyManager deps = task.project.dependencies
-            File ivyFile = project.file("${task.project.buildDir}/ivy.xml")
-            DefaultModuleDescriptor moduleDescriptor = deps.moduleDescriptorConverter.convert(deps)
-            moduleDescriptor.toIvyFile(ivyFile)
-            PublishOptions publishOptions = new PublishOptions()
-            publishOptions.setOverwrite(true)
-            publishOptions.srcIvyPattern = ivyFile.absolutePath
-            deps.ivy.publishEngine.publish(deps.moduleDescriptorConverter.convert(deps),
-                    deps.artifactPatterns.collect {project.file(it).absolutePath}, deps.ivy.settings.getResolver(DependencyManager.BUILD_RESOLVER_NAME), publishOptions)
+        project.createTask(UPLOAD_LIBS, type: Upload, dependsOn: LIBS).configure {
+            bundles << project.task(LIBS)
+            uploadResolvers.add(project.dependencies.buildResolver)
+            uploadModuleDescriptor = true
         }
 
-        project.createTask(DISTRIBUTE, dependsOn: DIST) {Task task ->
-            DependencyManager deps = task.project.dependencies
-            File ivyFile = project.file("${task.project.buildDir}/ivy.xml")
-            DefaultModuleDescriptor moduleDescriptor = deps.moduleDescriptorConverter.convert(deps)
-            moduleDescriptor.toIvyFile(ivyFile)
-            PublishOptions publishOptions = new PublishOptions()
-            publishOptions.setOverwrite(true)
-            publishOptions.confs = [DISTRIBUTE]
-            deps.uploadResolvers.resolverList.each {resolver ->
-                deps.ivy.publishEngine.publish(deps.moduleDescriptorConverter.convert(deps),
-                        deps.artifactPatterns.collect {pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
-            }
+        project.createTask(UPLOAD_DISTS, type: Upload, dependsOn: DISTS).configure {
+            configurations << UPLOAD_DISTS
         }
     }
 
@@ -137,12 +117,12 @@ class JavaPlugin implements Plugin {
             addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, [RUNTIME, TEST_COMPILE] as String[], true, null))
             addConfiguration(new Configuration(MASTER, Visibility.PUBLIC, null, null, true, null))
             addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, MASTER] as String[], true, null))
-            addConfiguration(new Configuration(DISTRIBUTE, Visibility.PUBLIC, null, null, true, null))
-            artifactProductionTaskName = INSTALL_LIB
+            addConfiguration(new Configuration(UPLOAD_DISTS, Visibility.PUBLIC, null, null, true, null))
+            artifactProductionTaskName = UPLOAD_LIBS
             artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
-            artifactPatterns << ("${project.buildDir.absolutePath}/distribution/[artifact]-[revision].[ext]" as String)
+            artifactPatterns << ("${project.convention.distDir}/[artifact]-[revision].[ext]" as String)
             addConf2Tasks(RUNTIME, TEST)
-            resolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
+            classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         }
     }
 

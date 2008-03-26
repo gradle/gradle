@@ -24,8 +24,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class Bundle extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Resources)
 
@@ -37,7 +37,7 @@ class Bundle extends ConventionTask {
 
     Map defaultArchiveTypes
 
-    private List bundleNames = []
+    List bundleNames = []
 
     Bundle(Project project, String name) {
         super(project, name)
@@ -52,8 +52,8 @@ class Bundle extends ConventionTask {
         String taskName = (baseName ?: self.tasksBaseName) + "_$type.defaultExtension"
         AbstractArchiveTask archiveTask = project.createTask(taskName, type: type.taskClass)
         archiveTask.convention(convention, type.conventionMapping)
-        if (configureClosure) { archiveTask.configure(configureClosure) }
-        if (baseName) { archiveTask.baseName = baseName }
+        if (configureClosure) {archiveTask.configure(configureClosure)}
+        archiveTask.baseName = (baseName ?: self.tasksBaseName)
         archiveTask.dependsOn = self.childrenDependOn
         this.dependsOn(taskName)
         bundleNames << archiveTask.name
@@ -61,12 +61,12 @@ class Bundle extends ConventionTask {
     }
 
     Jar jar(String baseName = null, Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[Jar.DEFAULT_EXTENSION], baseName, configureClosure)    
+        createArchive(self.defaultArchiveTypes[Jar.DEFAULT_EXTENSION], baseName, configureClosure)
     }
 
     War war(String baseName = null, Closure configureClosure = null) {
-            createArchive(self.defaultArchiveTypes[War.WAR_EXTENSION], baseName, configureClosure)
-        }
+        createArchive(self.defaultArchiveTypes[War.WAR_EXTENSION], baseName, configureClosure)
+    }
 
     Zip zip(Closure configureClosure) {
         zip(null, configureClosure)

@@ -94,7 +94,7 @@ class BundleTest extends AbstractConventionTaskTest {
 
     void testCreateArchiveWithCustomName() {
         TestArchiveTask testTask = bundle.createArchive(testArchiveType, customTaskName)
-        checkCommonStuff(testTask, "${customTaskName}_${testArchiveType.defaultExtension}", testArchiveType.conventionMapping)
+        checkCommonStuff(testTask, "${customTaskName}_${testArchiveType.defaultExtension}", testArchiveType.conventionMapping, customTaskName)
     }
 
     void testCreateMultipleArchives() {
@@ -110,19 +110,22 @@ class BundleTest extends AbstractConventionTaskTest {
             executed = true
         }
         TestArchiveTask testTask = bundle.createArchive(testArchiveType, configureClosure)
-        checkCommonStuff(testTask, "${bundle.tasksBaseName}_${testArchiveType.defaultExtension}", testArchiveType.conventionMapping)
+        checkCommonStuff(testTask, "${bundle.tasksBaseName}_${testArchiveType.defaultExtension}", testArchiveType.conventionMapping, bundle.tasksBaseName)
         assertTrue(testTask.executed)
     }
 
     private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType) {
-        checkCommonStuff(archiveTask, "${bundle.tasksBaseName}_${archiveType.defaultExtension}", archiveType.conventionMapping)
+        checkCommonStuff(archiveTask, "${bundle.tasksBaseName}_${archiveType.defaultExtension}", archiveType.conventionMapping, bundle.tasksBaseName)
     }
 
-    private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveName, Map conventionMapping) {
+    private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
+                                                 Map conventionMapping, String expectedArchiveBaseName) {
         assert archiveTask.conventionMapping.is(conventionMapping)
-        assertEquals(expectedArchiveName, archiveTask.name)
-        assertEquals([expectedArchiveName] as Set, bundle.dependsOn)
+        assertEquals(expectedArchiveTaskName, archiveTask.name)
+        assertEquals(expectedArchiveBaseName, archiveTask.baseName)
+        assertEquals([expectedArchiveTaskName] as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
+        assert bundle.bundleNames.contains(archiveTask.name)
         archiveTask
     }
 

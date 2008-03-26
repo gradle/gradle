@@ -21,6 +21,7 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.internal.dependencies.ResolverContainer;
 
 import java.io.File;
@@ -54,8 +55,8 @@ public interface DependencyManager {
     */
     List getDependencyDescriptors();
 
-    ResolverContainer getResolvers();
-
+    ResolverContainer getClasspathResolvers();
+    
     /**
     * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
     */
@@ -103,4 +104,6 @@ public interface DependencyManager {
     DependencyManager configure(Closure configureClosure);
 
     File getBuildResolverDir();
+    
+    RepositoryResolver getBuildResolver();
 }

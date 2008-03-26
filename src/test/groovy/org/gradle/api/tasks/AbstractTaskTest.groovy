@@ -143,7 +143,8 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         }
     }
 
-    void testExecute() {
+    void testBasicExecute() {
+        task.actions = []
         assertFalse(task.executed)
         boolean action1Called = false
         Closure action1 = {Task task -> action1Called = true}

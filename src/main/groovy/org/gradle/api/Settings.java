@@ -16,6 +16,8 @@
 
 package org.gradle.api;
 
+import org.gradle.api.internal.dependencies.ResolverContainer;
+
 import java.util.List;
 
 /**
@@ -57,16 +59,9 @@ public interface Settings {
     void addDependencies(Object[] dependencies);
 
     /**
-     * Delegates to the dependencies manager setResolvers method.
-     *
-     * @param resolvers resolvers passed to the dependencies manager setResolvers method.
-     */
-    void setResolvers(List resolvers);
-
-    /**
      * Delegates to the dependencies manager getResolvers method.
      *
      * @return the result of the dependencies manager getResolvers method.
      */
-    List getResolvers();
+    ResolverContainer getResolvers();
 }

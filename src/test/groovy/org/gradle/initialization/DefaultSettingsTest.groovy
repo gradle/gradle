@@ -21,6 +21,7 @@ import groovy.mock.interceptor.StubFor
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
+import org.gradle.api.internal.dependencies.ResolverContainer
 import org.gradle.api.plugins.JavaPlugin
 
 /**
@@ -67,7 +68,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         assert settings.buildSourceBuilder.is(buildSourceBuilder)
         assertEquals(DefaultSettings.DEFAULT_BUILD_SRC_DIR, settings.buildSrcDir)
         assertEquals(Project.DEFAULT_PROJECT_FILE, settings.buildSrcScriptName)
-        assertEquals([JavaPlugin.CLEAN, JavaPlugin.INSTALL_LIB], settings.buildSrcTaskNames)
+        assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS], settings.buildSrcTaskNames)
         assertEquals([:], settings.buildSrcProjectProperties)
         assertEquals([:], settings.buildSrcSystemProperties)
         assertTrue(settings.buildSrcSearchUpwards)
@@ -95,14 +96,10 @@ class DefaultSettingsTest extends GroovyTestCase {
     }
 
     void testResolver() {
-        List expectedResolvers = ["r1", "r2"]
-        dependencyManagerMocker.demand.setResolvers(1..1) {List resolvers ->
-            assert resolvers.is(expectedResolvers)
-        }
-        dependencyManagerMocker.demand.getResolvers(1..1) {expectedResolvers}
+        ResolverContainer expectedResolverContainer = new ResolverContainer()
+        dependencyManagerMocker.demand.getClasspathResolvers(1..1) {expectedResolverContainer}
         dependencyManagerMocker.use(dependencyManager) {
-            settings.resolvers = expectedResolvers
-            assert settings.resolvers.is(expectedResolvers)
+            assert settings.resolvers.is(expectedResolverContainer)
         }
     }
 
@@ -122,12 +119,6 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
         checkCreateClassLoader(testDependency)
     }
-
-    //    void testDeletionOfOldVersion() {
-//        createArtifact()
-//        buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir, 'somescript', [], [:], [:], true, true)
-//        assert !new File(testBuildResolverDir, DependencyManager.BUILD_RESOLVER_NAME).exists()
-//    }
 
     private checkCreateClassLoader(def expectedDependency, boolean srcBuilderNull = false) {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]

@@ -18,6 +18,7 @@ import org.gradle.util.GradleVersion
 
 distName = 'gradle'
 svn = new Svn(project)
+distributionUploadUrl = null
 
 type = 'jar'
 version = new Version(svn, project, false)
@@ -30,6 +31,9 @@ usePlugin('groovy')
 configureByDag = {Dag dag ->
     if (dag.hasTask(':release')) {
         versionModifier = ''
+        distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
+    } else {
+        distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
     }
 }
 
@@ -53,14 +57,8 @@ dependencies {
     runtime "org.tmatesoft.svnkit:svnkit:1.1.6:jar",
             "org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar"
 
-    resolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
+    classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
 
-    uploadResolvers.add(new WebdavResolver()) {
-        name = 'gradleReleases'
-        user = codehausUserName
-        userPassword = codehausUserPassword
-        addArtifactPattern("https://dav.codehaus.org/dist/gradle/[module]-[revision].[ext]")
-    }
 }
 
 sourceCompatibility = 1.5
@@ -83,16 +81,15 @@ test {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere"])
 }
 
-def jarBaseName = distName
 // todo: Add DefaultArchiveTask
-lib.lateInitalizeClosures << {it.project.task('gradle-core_jar').baseName = jarBaseName}
+libs.tasksBaseName = distName
 
 explodedDistDir = new File(distDir, 'exploded')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
 explodedDistTutorialDir = new File(explodedDistDir, 'tutorial')
 
 
-createTask('explodedDist', dependsOn: 'lib') {
+createTask('explodedDist', dependsOn: 'libs') {
     [explodedDistDir, explodedDistSamplesDir, explodedDistTutorialDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
@@ -102,7 +99,7 @@ createTask('explodedDist', dependsOn: 'lib') {
         dependencies.resolveClasspath('runtime').each {File file ->
             copy(file: file, todir: explodedDistLibDir)
         }
-        copy(file: task('gradle-core_jar').archivePath, toDir: explodedDistLibDir)
+        copy(file: task('gradle_jar').archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate(explodedDistLibDir, explodedDistBinDir, distName)
         logger.info('Generate tutorial')
@@ -129,7 +126,8 @@ createTask('integTests', dependsOn: 'explodedDist') {
 
 zipRootFolder = "$distName-$version"
 
-dist {
+dists {
+    tasksBaseName = distName
     dependsOn 'integTests'
     childrenDependOn << 'integTests'
     zip() {
@@ -146,7 +144,7 @@ dist {
             include 'bin/*.*'
         }
     }
-    zip("$project.name-src") {
+    zip("$distName-src") {
         String prefix = "$distName-src-$version"
         destinationDir = distDir
         zipFileSet(dir: projectDir, prefix: prefix) {
@@ -156,7 +154,7 @@ dist {
     }
 }
 
-createTask('install', dependsOn: 'dist') {
+createTask('install', dependsOn: 'dists') {
     String installDirName = distName + '-SNAPSHOT'
     ant {
         delete(dir: "$installDir/$installDirName")
@@ -181,11 +179,22 @@ createTask('install', dependsOn: 'dist') {
     }
 }
 
-createTask('release', dependsOn: 'dist') {
+uploadDists {
+    dependsOn 'dists'
+}.doFirst {
+    it.uploadResolvers.add(new WebdavResolver()) {
+        name = 'gradleReleases'
+        user = codehausUserName
+        userPassword = codehausUserPassword
+        addArtifactPattern("$distributionUploadUrl/[artifact]-[revision].[ext]" as String)
+    }
+}
+
+createTask('release', dependsOn: 'uploadDists') {
     svn.release()
 }
 
-distribute.dependsOn 'release'
+
 
 //createTask('check') {
 //    ant.taskdef(resource: 'org/apache/ivy/ant/antlib.xml')

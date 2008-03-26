@@ -17,6 +17,7 @@
 package org.gradle.api.internal.dependencies
 
 import groovy.mock.interceptor.MockFor
+import groovy.mock.interceptor.StubFor
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
@@ -24,9 +25,15 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.core.publish.PublishEngine
+import org.apache.ivy.core.publish.PublishOptions
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.ResolveOptions
 import org.apache.ivy.core.settings.IvySettings
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.RepositoryResolver
+import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
@@ -35,8 +42,8 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class DefaultDependencyManagerTest extends GroovyTestCase {
     static final String TEST_CONFIG = 'testConfig'
     static final String TEST_DEPENDENCY_1 = 'junit:junit:3.8.2:jar'
@@ -53,10 +60,12 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
     Report2Classpath report2Classpath
     Ivy ivy
     DefaultProject project
+    File projectRootDir
     File buildResolverDir
-    
+
     void setUp() {
-        project = HelperUtil.createRootProject(new File('path', 'root'))
+        projectRootDir = new File('path', 'root')
+        project = HelperUtil.createRootProject(projectRootDir)
         project.gradleUserHome = 'gradleUserHome'
         ivy = new Ivy()
         report2Classpath = new Report2Classpath()
@@ -79,7 +88,7 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
         assert dependencyManager.report2Classpath.is(report2Classpath)
         assert dependencyManager.buildResolverDir.is(buildResolverDir)
-        assert dependencyManager.resolvers != null
+        assert dependencyManager.classpathResolvers
     }
 
     void testAddDepencencies() {
@@ -154,14 +163,16 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
     void testResolveClasspath() {
         String testConfiguration = 'compile'
         String testTaskName = 'myTask'
-        
+
         ResolveReport resolveReport = new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), '1.4'), 'status', null))
         IvySettings expectedSettings = [:] as IvySettings
         MockFor settingsConverterMocker = new MockFor(SettingsConverter)
-        settingsConverterMocker.demand.convert(1..1) {Collection resolvers, Collection uploadResolvers, File gradleUserHome, File buildResolverDir ->
+        settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
+                                                      File gradleUserHome, RepositoryResolver buildResolver ->
             assertEquals(gradleUserHome, new File(project.gradleUserHome))
-            assertEquals(buildResolverDir, dependencyManager.buildResolverDir)
-            assertEquals(dependencyManager.resolvers.resolverList, resolvers)
+            assertEquals(dependencyManager.buildResolver, buildResolver)
+            assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
+            assertEquals([], otherResolvers)
             expectedSettings
         }
 
@@ -202,11 +213,94 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
                         dependencyManager.project = project
                         assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))
                         dependencyManager.addConf2Tasks(testConfiguration, testTaskName + 'XXXXX')
-//                        assert expectedClasspath.is(dependencyManager.resolveClasspath(testConfiguration))
                     }
                 }
             }
         }
+    }
+
+    void testPublishWithoutModuleDescriptor() {
+        checkPublish(false)
+    }
+
+    void testPublishWithModuleDescriptor() {
+        checkPublish(true)
+    }
+
+    void checkPublish(boolean uploadModuleDescriptor) {
+        PublishEngine publishEngine
+        List expectedArtifactPatterns = ['a', 'b']
+        final String RESOLVER_NAME_1 = 'resolver1'
+        final String RESOLVER_NAME_2 = 'resolver2'
+        List expectedConfigurations = ['conf1']
+        ResolverContainer uploadResolvers = new ResolverContainer()
+        uploadResolvers.add([name: RESOLVER_NAME_1, url: 'http://www.url1.com'])
+        uploadResolvers.add([name: RESOLVER_NAME_2, url: 'http://www.url2.com'])
+        File expectedIvyFile = new File(project.buildDir, 'ivy.xml')
+
+        boolean toIvyFileCalled = false
+        ModuleDescriptor expectedModuleDescriptor = [toIvyFile: {File file ->
+            assertEquals(expectedIvyFile, file)
+            toIvyFileCalled = true
+        }] as ModuleDescriptor
+
+
+        MockFor moduleDescriptorConverterMocker = new MockFor(ModuleDescriptorConverter)
+        moduleDescriptorConverterMocker.demand.convert(1..1) {DefaultDependencyManager dependencyManager ->
+            assert dependencyManager.is(this.dependencyManager)
+            expectedModuleDescriptor
+        }
+
+        IvySettings expectedSettings = [:] as IvySettings
+        MockFor settingsConverterMocker = new MockFor(SettingsConverter)
+        settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
+                                                      File gradleUserHome, RepositoryResolver buildResolver ->
+            assertEquals(gradleUserHome, new File(project.gradleUserHome))
+            assertEquals(dependencyManager.buildResolver, buildResolver)
+            assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
+            assertEquals(uploadResolvers.resolverList, otherResolvers)
+            expectedSettings
+        }
+
+        StubFor ivyMocker = new StubFor(Ivy)
+
+        ivyMocker.demand.newInstance() {IvySettings ivySettings ->
+            assert expectedSettings.is(ivySettings)
+            new Ivy()
+        }
+        ivyMocker.demand.getPublishEngine(2..2) {publishEngine}
+
+        MockFor publishEngineMocker = new MockFor(PublishEngine)
+        Set calledResolvers = []
+        publishEngineMocker.demand.publish(2..2) {ModuleDescriptor moduleDescriptor, Collection srcArtifactPattern,
+                                                  DependencyResolver resolver, PublishOptions publishOptions ->
+            assert moduleDescriptor.is(expectedModuleDescriptor)
+            assertEquals(expectedArtifactPatterns.collect {new File(projectRootDir, it).absolutePath}, srcArtifactPattern)
+            calledResolvers << resolver
+            assert publishOptions.overwrite
+            if (uploadModuleDescriptor) {
+                assertEquals(expectedIvyFile.absolutePath, publishOptions.srcIvyPattern)
+            } else {
+                assert !publishOptions.srcIvyPattern
+            }
+        }
+
+        moduleDescriptorConverterMocker.use(moduleDescriptorConverter) {
+            ivyMocker.use() {
+                settingsConverterMocker.use(settingsConverter) {
+                    publishEngineMocker.use() {
+                        publishEngine = new PublishEngine(null, null)
+                        dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
+                                settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
+                        dependencyManager.artifactPatterns = expectedArtifactPatterns
+                        dependencyManager.project = project
+                        dependencyManager.publish(expectedConfigurations, uploadResolvers, uploadModuleDescriptor)
+                    }
+                }
+            }
+        }
+        assertEquals(uploadResolvers.resolverList as Set, calledResolvers)
+        if (uploadModuleDescriptor) {assert toIvyFileCalled}
     }
 
     void testAddDependency() {
@@ -265,5 +359,17 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
         shouldFail(InvalidUserDataException) {
             dependencyManager.addConf2Tasks('jsjs', [] as String[])
         }
+    }
+
+    void testGetBuildResolver() {
+        FileSystemResolver buildResolver = dependencyManager.buildResolver
+        // check lazy init
+        assert buildResolver
+        assert buildResolver.is(dependencyManager.buildResolver)
+        
+        assertEquals(["$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"],
+                buildResolver.ivyPatterns)
+        assertEquals(["$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"],
+                buildResolver.artifactPatterns)
     }
 }

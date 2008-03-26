@@ -63,11 +63,10 @@ class DefaultConventionsToPropertiesMapping {
     private final static Map ARCHIVE = [
             destinationDir: {_(it).project.buildDir},
             dependencyManager: {_(it).project.dependencies},
-            version: {"${_(it).project.version}"},
-            baseName: {"${_(it).project.name}"}
+            version: {"${_(it).project.version}"}
     ]
     final static Map ZIP = ARCHIVE + [
-            configurations: {[JavaPlugin.DISTRIBUTE] as String[]}
+            configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]}
     ]
     final static Map TAR = ZIP
     final static Map JAR = ARCHIVE + [
@@ -77,7 +76,7 @@ class DefaultConventionsToPropertiesMapping {
             metaInf: {_(it).metaInf}
     ]
     final static Map WAR = JAR.subMap(JAR.keySet() - 'configurations') + [
-            configurations: {[JavaPlugin.DISTRIBUTE] as String[]},
+            configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]},
             libConfiguration: {JavaPlugin.RUNTIME}
     ]
     final static Map LIB = [
@@ -87,7 +86,7 @@ class DefaultConventionsToPropertiesMapping {
     ]
     final static Map DIST = [
             tasksBaseName: {"${_(it).project.name}"},
-            childrenDependOn: {[JavaPlugin.LIB]},
+            childrenDependOn: {[JavaPlugin.LIBS]},
             defaultArchiveTypes: {_(it).archiveTypes}
     ]
 
