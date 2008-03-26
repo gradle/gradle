@@ -102,9 +102,13 @@ class Svn {
     }
 
     def getReleaseBranchName() {
-        'RB-' + project.version
+        'RB-' + majorMinorVersion
     }
 
+    def getMajorMinorVersion() {
+        project.version.toString().split('\\.')[0..1].join('.')
+    }
+    
     def getReleaseBranchUrl() {
         createUrl(svnUrl, "branches/$releaseBranchName")
     }
