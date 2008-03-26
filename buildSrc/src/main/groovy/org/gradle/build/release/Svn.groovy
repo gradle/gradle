@@ -85,7 +85,7 @@ class Svn {
 
     def exitIfReleaseBranchDirectoryExists() {
         try {
-            clientManager.WCClient.doInfo(new SVNURL('https://svn.codehaus.org/gradle/gradle-core/branches/k', true),
+            clientManager.WCClient.doInfo(new SVNURL('https://svn.codehaus.org/gradle/gradle-core/branches/', true),
                     SVNRevision.UNDEFINED, SVNRevision.HEAD)
             throw new GradleException("Release branch directpry already exists. You can't release from trunk therefore")
         } catch (SVNException ignore) {
