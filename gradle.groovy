@@ -1,18 +1,5 @@
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import org.gradle.api.internal.dependencies.WebdavResolver
-import org.gradle.api.tasks.testing.ForkMode
-import org.gradle.build.integtests.GroovyProject
-import org.gradle.build.integtests.JavaProject
-import org.gradle.build.integtests.TutorialTest
-import org.gradle.build.integtests.WaterProject
-import org.gradle.build.release.Svn
-import org.gradle.build.release.Version
-import org.gradle.build.samples.TutorialCreator
-import org.gradle.build.samples.WaterProjectCreator
-import org.gradle.build.startscripts.StartScriptsGenerator
-import org.gradle.execution.Dag
-import org.gradle.util.GradleVersion
 
 // todo: create version.properties file
 
@@ -124,8 +111,8 @@ createTask('integTests', dependsOn: 'explodedDist') {
     GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
 }.skipProperties << 'integtest.skip'
 
-zipRootFolder = "$distName-$version"
-
+zipRootFolder = "$distName-${->version}"
+                         
 dists {
     tasksBaseName = distName
     dependsOn 'integTests'
