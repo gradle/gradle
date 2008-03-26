@@ -25,6 +25,7 @@ import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import org.tmatesoft.svn.core.javahl.SVNClientImpl
 import org.tmatesoft.svn.core.wc.SVNClientManager
+import org.tmatesoft.svn.core.wc.SVNRevision
 import org.tmatesoft.svn.core.wc.SVNStatusClient
 import org.tmatesoft.svn.core.wc.SVNWCUtil
 
