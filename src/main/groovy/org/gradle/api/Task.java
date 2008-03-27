@@ -95,8 +95,10 @@ public interface Task extends Comparable {
      */
     Task deleteAllActions();
 
-    Task lateInitialize();
-    
+    Task lateInitialize(Closure configureClosure);
+
+    Task afterDag(Closure configureClosure);
+
     boolean isLateInitialized();
 
 }

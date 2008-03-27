@@ -14,8 +14,6 @@ import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.execution.Dag
 import org.gradle.util.GradleVersion
 
-// todo: create version.properties file
-
 distName = 'gradle'
 svn = new Svn(project)
 distributionUploadUrl = null
@@ -24,7 +22,7 @@ type = 'jar'
 version = new Version(svn, project, false)
 group = 'org.gradle'
 buildTime = new Date()
-versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
+versionModifier = null
 
 usePlugin('groovy')
 
@@ -33,6 +31,7 @@ configureByDag = {Dag dag ->
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
     } else {
+        versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
     }
 }
@@ -124,14 +123,13 @@ createTask('integTests', dependsOn: 'explodedDist') {
     GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
 }.skipProperties << 'integtest.skip'
 
-zipRootFolder = "$distName-$version"
+zipRootFolder = "$distName-${->version}"
 
 dists {
     tasksBaseName = distName
     dependsOn 'integTests'
     childrenDependOn << 'integTests'
-    zip() {
-
+    zip().afterDag {
         destinationDir = distDir
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
             exclude 'bin/*'
@@ -144,7 +142,7 @@ dists {
             include 'bin/*.*'
         }
     }
-    zip("$distName-src") {
+    zip("$distName-src").afterDag {
         String prefix = "$distName-src-$version"
         destinationDir = distDir
         zipFileSet(dir: projectDir, prefix: prefix) {

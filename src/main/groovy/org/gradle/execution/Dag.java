@@ -250,7 +250,7 @@ public final class Dag {
         return false;
     }
 
-    private SortedSet<DefaultTask> getAllTasks() {
+    public SortedSet<DefaultTask> getAllTasks() {
         return accumulateTasks(new TreeSet(getSources()));
     }
 

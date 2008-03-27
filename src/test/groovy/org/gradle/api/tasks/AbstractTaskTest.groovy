@@ -24,8 +24,8 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 abstract class AbstractTaskTest extends GroovyTestCase {
     static final String TEST_TASK_NAME = 'taskname'
 
@@ -95,17 +95,6 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertEquals(task.path, task.toString())
     }
 
-    void testLateInitialize() {
-        assertFalse(task.lateInitialized)
-        List calledLateInitClosures = []
-        Closure initializeClosure1 = {calledLateInitClosures << 'closure1'}
-        Closure initializeClosure2 = {calledLateInitClosures << 'closure2'}
-        task.lateInitalizeClosures << initializeClosure1 << initializeClosure2
-        assert task.is(task.lateInitialize())
-        assertEquals(['closure1', 'closure2'], calledLateInitClosures)
-        assertTrue(task.lateInitialized)
-    }
-
     void testDoFirst() {
         Closure action1 = {}
         Closure action2 = {}
@@ -167,7 +156,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testStopExecution() {
-        Closure action1 = { throw new StopExecutionException() }
+        Closure action1 = {throw new StopExecutionException()}
         boolean action2Called = false
         Closure action2 = {action2Called = true}
         task.doFirst(action2)
@@ -196,5 +185,30 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         task.execute()
         assertTrue(action1Called)
         assertTrue(task.executed)
+    }
+
+    void testAfterDag() {
+        checkConfigureEvent(task.&afterDag, task.&applyAfterDagClosures)
+    }
+
+    void testLateInitialize() {
+        assert !task.lateInitialized
+        checkConfigureEvent(task.&lateInitialize, task.&applyLateInitialize)
+        assert task.lateInitialized
+    }
+
+    void checkConfigureEvent(Closure addMethod, Closure applyMethod) {
+        Closure action1 = {}
+        Closure action2 = {}
+        assert addMethod {
+            doFirst(action2)
+        }.is(task)
+        addMethod {
+            doFirst(action1)
+        }
+        assert !task.actions[0].is(action1)
+        assert applyMethod().is(task)
+        assert task.actions[0].is(action1)
+        assert task.actions[1].is(action2)
     }
 }

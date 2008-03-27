@@ -100,8 +100,8 @@ class DefaultProjectTest extends GroovyTestCase {
     void testEvaluate() {
         final String expectedProp = 'testprop'
         Task nestedTask
-        Closure lateInitClosure = {TestTask testTask ->
-            nestedTask = testTask.project.createTask("$testTask.name:addon") {}
+        Closure lateInitClosure = {
+            nestedTask = project.createTask("$name:addon") {}
         }
         project.createTask(TEST_TASK_NAME, (DefaultProject.TASK_TYPE): TestTask, (DefaultProject.TASK_TYPE_LATE_INITIALIZER): [lateInitClosure])
         // We need a second task to check for cocurrent modification exception 
