@@ -50,6 +50,8 @@ class DefaultTask implements Task {
 
     List lateInitalizeClosures = []
 
+    List afterDagClosures = []
+
     DefaultTask() {
 
     }
@@ -59,14 +61,6 @@ class DefaultTask implements Task {
         assert name
         this.project = project
         this.name = name
-    }
-
-    Task lateInitialize() {
-        lateInitalizeClosures.each {
-            it.call(this)
-        }
-        lateInitialized = true
-        this
     }
 
     Task doFirst(Closure action) {
@@ -140,6 +134,31 @@ class DefaultTask implements Task {
 
     Task configure(Closure closure) {
         GradleUtil.configure(closure, this)
+    }
+
+    Task lateInitialize(Closure closure) {
+        lateInitalizeClosures << closure
+        this
+    }
+
+    Task afterDag(Closure closure) {
+        afterDagClosures << closure
+        this
+    }
+
+    Task applyLateInitialize() {
+        Task task = configureEvent(lateInitalizeClosures)
+        lateInitialized = true
+        task
+    }
+
+    Task applyAfterDagClosures() {
+        configureEvent(afterDagClosures)
+    }
+
+    private Task configureEvent(List closures) {
+        closures.each {configure(it)}
+        this
     }
 
 }
