@@ -25,8 +25,8 @@ import org.gradle.api.internal.project.*
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildExecuterTest extends GroovyTestCase {
     static File TEST_ROOT_DIR = new File("/path/root")
 
@@ -51,10 +51,14 @@ class BuildExecuterTest extends GroovyTestCase {
         rootTest.dependsOn = [rootCompile.path]
         childTest.dependsOn = [childCompile.name]
         boolean configureByDagCalled = false
+        boolean afterDagCalledRoot = false
+        boolean afterDagCalledChild = false
+        rootCompile.afterDag {afterDagCalledRoot = true}
+        childCompile.afterDag {afterDagCalledChild = true}
         root.configureByDag = {
-               configureByDagCalled = true
+            configureByDagCalled = true
         }
-        child.configureByDag  = null
+        child.configureByDag = null
 
         root.tasks = [(rootCompile.name): rootCompile, (rootTest.name): rootTest]
         child.tasks = [(childCompile.name): childCompile, (childTest.name): childTest]
@@ -66,6 +70,7 @@ class BuildExecuterTest extends GroovyTestCase {
             checkerFirstRun[task] = dependencies
         }
         dagMocker.demand.getProjects(1..1) {[root, child]}
+        dagMocker.demand.getAllTasks(1..1) {[rootCompile, rootTest, childCompile, childTest]}
         dagMocker.demand.execute(1..1) {[:] as Dag}
 
         dagMocker.use() {
@@ -77,6 +82,8 @@ class BuildExecuterTest extends GroovyTestCase {
         assertEquals([childCompile] as Set, checkerFirstRun[childTest])
         assertEquals([] as Set, checkerFirstRun[rootCompile])
         assertEquals([] as Set, checkerFirstRun[childCompile])
+        assert afterDagCalledChild
+        assert afterDagCalledRoot
     }
 
     void testUnknownTasks() {
@@ -106,6 +113,7 @@ class BuildExecuterTest extends GroovyTestCase {
             checker[task] = dependencies
         }
         dagMocker.demand.getProjects(1..1) {[root, child]}
+        dagMocker.demand.getAllTasks(1..1) {[task1, task2, task3]}
         dagMocker.demand.execute(1..1) {[:] as Dag}
 
         dagMocker.use() {

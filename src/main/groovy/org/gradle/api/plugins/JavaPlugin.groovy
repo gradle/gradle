@@ -79,9 +79,9 @@ class JavaPlugin implements Plugin {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST)
         }
 
-        Closure lateInitClosureForPackage = {Bundle bundle ->
+        Closure lateInitClosureForPackage = {
             if (project.hasProperty('type') && project.type) {
-                bundle.createArchive(javaConvention.archiveTypes[project.type]) {
+                createArchive(javaConvention.archiveTypes[project.type]) {
                     resourceCollections << [new FileSet(javaConvention.classesDir)]
                 }
             }

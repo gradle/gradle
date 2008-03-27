@@ -53,6 +53,9 @@ class BuildExecuter {
         dag.projects.each {Project project ->
             if (project.configureByDag) {project.configureByDag.call(dag)}
         }
+        dag.getAllTasks().each {
+            it.applyAfterDagClosures()
+        }
         dag.execute()
     }
 

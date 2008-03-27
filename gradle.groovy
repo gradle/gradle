@@ -22,7 +22,7 @@ type = 'jar'
 version = new Version(svn, project, false)
 group = 'org.gradle'
 buildTime = new Date()
-versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
+versionModifier = null
 
 usePlugin('groovy')
 
@@ -31,6 +31,7 @@ configureByDag = {Dag dag ->
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
     } else {
+        versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
     }
 }
@@ -123,13 +124,12 @@ createTask('integTests', dependsOn: 'explodedDist') {
 }.skipProperties << 'integtest.skip'
 
 zipRootFolder = "$distName-${->version}"
-                         
+
 dists {
     tasksBaseName = distName
     dependsOn 'integTests'
     childrenDependOn << 'integTests'
-    zip() {
-
+    zip().afterDag {
         destinationDir = distDir
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
             exclude 'bin/*'
@@ -142,7 +142,7 @@ dists {
             include 'bin/*.*'
         }
     }
-    zip("$distName-src") {
+    zip("$distName-src").afterDag {
         String prefix = "$distName-src-$version"
         destinationDir = distDir
         zipFileSet(dir: projectDir, prefix: prefix) {
@@ -163,7 +163,7 @@ createTask('install', dependsOn: 'dists') {
             arg(value: '-q')
             arg(value: '-d')
             arg(value: installDir)
-            arg(value: "${task('gradle_zip').archivePath}")
+            arg(value: "${task('gradle-core_zip').archivePath}")
         }
         exec(dir: installDir, executable: "mv") {
             arg(value: zipRootFolder)

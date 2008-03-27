@@ -153,7 +153,7 @@ class DefaultProject implements Comparable, Project {
             Set uninitializedTasks = tasks.values().findAll {Task task -> !task.lateInitialized}
             if (!uninitializedTasks) {break}
             uninitializedTasks.each {Task task ->
-                task.lateInitialize()
+                task.applyLateInitialize()
             }
         }
     }
