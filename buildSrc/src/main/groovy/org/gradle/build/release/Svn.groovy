@@ -28,6 +28,7 @@ import org.tmatesoft.svn.core.wc.SVNClientManager
 import org.tmatesoft.svn.core.wc.SVNRevision
 import org.tmatesoft.svn.core.wc.SVNStatusClient
 import org.tmatesoft.svn.core.wc.SVNWCUtil
+import org.tmatesoft.svn.core.internal.util.SVNPathUtil
 
 /**
  * @author Hans Dockter
@@ -98,32 +99,44 @@ class Svn {
     }
 
     def tagReleaseBranch() {
-        javaHlClient.copy(releaseBranchUrl, createUrl(svnUrl, "tags/REL-$project.version" as String), "Tag release $releaseBranchName" as String, Revision.HEAD)
+        javaHlClient.copy(releaseBranchUrl, tagsUrl, "Tag release $releaseTagName" as String, Revision.HEAD)
     }
 
     def getReleaseBranchName() {
         'RB-' + majorMinorVersion
     }
 
+    def getReleaseTagName() {
+        'REL-' + project.version
+    }
+
     def getMajorMinorVersion() {
         project.version.toString().split('\\.')[0..1].join('.')
     }
-    
+
     def getReleaseBranchUrl() {
-        createUrl(svnUrl, "${isTrunk() ? 'branches/' : ''}$releaseBranchName")
+        svnBaseUrl + "/branches/$releaseBranchName"
+    }
+
+    def getTagsUrl() {
+        svnBaseUrl + "/tags/$releaseTagName"
     }
 
     def getTrunkUrl() {
-        createUrl(svnUrl, 'trunk')
+        svnBaseUrl + "/trunk"
     }
 
     String getSvnUrl() {
-        statusClient.doStatus(project.projectDir, false).URL.toString()
+        statusClient.doStatus(project.projectDir, false).URL
     }
 
-    def createUrl(String url, String newSuffix) {
-        int pos = url.lastIndexOf('/')
-        url.substring(0, pos + 1) + newSuffix
+    String getSvnBaseUrl() {
+        String url = svnUrl
+        url = SVNPathUtil.removeTail(url)
+        if (!isTrunk()) {
+            url = SVNPathUtil.removeTail(url)
+        }
+        url
     }
 
     boolean isTrunk() {
