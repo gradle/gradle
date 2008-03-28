@@ -13,6 +13,9 @@ import org.gradle.build.samples.WaterProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.execution.Dag
 import org.gradle.util.GradleVersion
+import org.gradle.api.tasks.wrapper.Wrapper
+import org.gradle.build.samples.WrapperProjectCreator
+import org.gradle.build.integtests.WrapperProject
 
 distName = 'gradle'
 svn = new Svn(project)
@@ -98,12 +101,16 @@ createTask('explodedDist', dependsOn: 'libs') {
         dependencies.resolveClasspath('runtime').each {File file ->
             copy(file: file, todir: explodedDistLibDir)
         }
+        jar(destfile: new File(explodedDistLibDir, "$distName-wrapper-${version}.jar"),
+                basedir: classesDir, includes: 'org/gradle/wrapper/')
         copy(file: task('gradle_jar').archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate(explodedDistLibDir, explodedDistBinDir, distName)
         logger.info('Generate tutorial')
         TutorialCreator.writeScripts(explodedDistTutorialDir)
         WaterProjectCreator.createProjectTree(explodedDistSamplesDir)
+        WrapperProjectCreator.createProject(explodedDistSamplesDir, "file://${task('gradle_zip').archivePath.parent}",
+                version.toString())
         copy(toDir: explodedDistSamplesDir) {fileset(dir: new File(srcRoot, 'samples'))}
 
         copy(toDir: explodedDistSrcDir) {
@@ -114,21 +121,12 @@ createTask('explodedDist', dependsOn: 'libs') {
     }
 }
 
-createTask('integTests', dependsOn: 'explodedDist') {
-    String distDirPath = explodedDistDir.absolutePath
-    org.gradle.build.integtests.Version.execute(distDirPath)
-    TutorialTest.execute(distDirPath, explodedDistTutorialDir.absolutePath)
-    WaterProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
-    JavaProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
-    GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
-}.skipProperties << 'integtest.skip'
-
-zipRootFolder = "$distName-${->version}"
+zipRootFolder = "$distName-${-> version}"
 
 dists {
     tasksBaseName = distName
-    dependsOn 'integTests'
-    childrenDependOn << 'integTests'
+    dependsOn 'explodedDist'
+    childrenDependOn << 'explodedDist'
     zip().afterDag {
         destinationDir = distDir
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
@@ -152,7 +150,18 @@ dists {
     }
 }
 
-createTask('install', dependsOn: 'dists') {
+// The integtests depend on dists because of the wrapper test
+createTask('integTests', dependsOn: 'dists') {
+    String distDirPath = explodedDistDir.absolutePath
+    WrapperProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
+    org.gradle.build.integtests.Version.execute(distDirPath)
+    TutorialTest.execute(distDirPath, explodedDistTutorialDir.absolutePath)
+    WaterProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
+    JavaProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
+    GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
+}.skipProperties << 'integtest.skip'
+
+createTask('install', dependsOn: 'integTests') {
     String installDirName = distName + '-SNAPSHOT'
     ant {
         delete(dir: "$installDir/$installDirName")
@@ -178,7 +187,7 @@ createTask('install', dependsOn: 'dists') {
 }
 
 uploadDists {
-    dependsOn 'dists'
+    dependsOn 'integTests'
 }.doFirst {
     it.uploadResolvers.add(new WebdavResolver()) {
         name = 'gradleReleases'
@@ -192,7 +201,9 @@ createTask('release', dependsOn: 'uploadDists') {
     svn.release()
 }
 
-
+createTask('wrapper', type: Wrapper).configure {
+    gradleVersion = '0.1'
+}
 
 //createTask('check') {
 //    ant.taskdef(resource: 'org/apache/ivy/ant/antlib.xml')

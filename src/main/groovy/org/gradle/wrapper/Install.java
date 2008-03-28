@@ -36,10 +36,14 @@ public class Install {
             return;
         }
         if (rootDir.isDirectory()) {
+            System.out.println("Deleting directory " + rootDir.getAbsolutePath());
             deleteDir(rootDir);
         }
         File zipFile = new File(rootDir, distName + ".zip");
-        download.download(urlRoot + "/" + distName, zipFile);
+        String downloadUrl = urlRoot + "/" + distName + ".zip";
+        System.out.println("Downloading " + downloadUrl);
+        download.download(downloadUrl, zipFile);
+        System.out.println("Unzipping " + zipFile.getAbsolutePath() + " to " + rootDir.getAbsolutePath());
         unzip(zipFile, rootDir);
     }
 

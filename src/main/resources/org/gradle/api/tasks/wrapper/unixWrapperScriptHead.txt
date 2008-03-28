@@ -56,4 +56,3 @@ if $cygwin ; then
     [ -n "$JAVACMD" ] && JAVACMD=`cygpath --unix "$JAVACMD"`
     [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
 fi
-

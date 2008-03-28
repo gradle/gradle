@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.wrapper;
-
-import java.util.Properties;
-import java.io.File;
+ 
+package org.gradle.util
 
 /**
  * @author Hans Dockter
  */
-class InstallMain {
-    /*
-     * First argument: urlRoot (e.g. http://dist.codehaus.org/gradle)
-     * Second argument: distribution-name (e.g. gradle-1.0)
-     */
-    public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            throw new IllegalArgumentException("Wrong number of arguments supplied!");
-        }
-        new Install().createDist(args[0], args[1], new File(Install.WRAPPER_DIR, "gradle-dist"));
-    }
-
+class TestConsts {
+    static final String VERSION = '1.0-RC1'
+    static final String BUILD_TIME = 'sometime'
 }

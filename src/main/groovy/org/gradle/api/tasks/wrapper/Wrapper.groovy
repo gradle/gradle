@@ -22,18 +22,21 @@ import org.gradle.api.Task
 import org.gradle.api.InvalidUserDataException
 import org.gradle.wrapper.Install
 import org.gradle.util.GradleUtil
+import org.gradle.util.GradleVersion
 
 /**
  * @author Hans Dockter
  */
 class Wrapper extends ConventionTask {
+    static final DEFAULT_URL_ROOT = 'http://dist.codehaus.org/gradle'
+    
     File scriptDestinationDir
 
     File gradleWrapperHomeParent
 
     String gradleVersion
 
-    String wrapperJarVersion
+    String urlRoot
 
     WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator()
 
@@ -43,6 +46,9 @@ class Wrapper extends ConventionTask {
         super(project, name)
         actions << this.&generate
         self = this
+        scriptDestinationDir = project.projectDir
+        gradleWrapperHomeParent = project.projectDir
+        urlRoot = DEFAULT_URL_ROOT
     }
 
     private void generate(Task task) {
@@ -53,8 +59,8 @@ class Wrapper extends ConventionTask {
         GradleUtil.deleteDir(gradleWrapperHome)
         gradleWrapperHome.mkdirs()
         File gradleWrapperJar = new File(System.properties['gradle.home'] + '/lib',
-                "$Install.WRAPPER_DIR-${self.wrapperJarVersion}.jar")
+                "$Install.WRAPPER_DIR-${new GradleVersion().version}.jar")
         task.project.ant.copy(file: gradleWrapperJar, tofile: new File(gradleWrapperHome, Install.WRAPPER_JAR))
-        wrapperScriptGenerator.generate(self.gradleVersion, self.scriptDestinationDir)
+        wrapperScriptGenerator.generate(self.gradleVersion, self.urlRoot, self.scriptDestinationDir, project.ant)
     }
 }

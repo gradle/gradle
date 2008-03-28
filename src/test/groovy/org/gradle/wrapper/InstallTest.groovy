@@ -42,7 +42,7 @@ class InstallTest extends GroovyTestCase {
         destFile = new File(rootDir, "${distName}.zip")
         urlRoot = 'file://./tmpTest'
         downloadMock = [download: {String url, File destination ->
-            assertEquals("$urlRoot/$distName", url)
+            assertEquals("$urlRoot/${distName}.zip", url)
             assertEquals(destFile, destination)
             zip = createTestZip()
             downloadCalled = true

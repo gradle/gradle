@@ -52,16 +52,9 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testPath() {
-        DefaultProject rootProject = new DefaultProject()
-        rootProject.rootProject = rootProject
-        DefaultProject childProject = new DefaultProject()
-        childProject.rootProject = rootProject
-        childProject.parent = rootProject
-        childProject.name = 'child'
-        DefaultProject childchildProject = new DefaultProject()
-        childchildProject.rootProject = rootProject
-        childchildProject.parent = childProject
-        childchildProject.name = 'childchild'
+        DefaultProject rootProject = HelperUtil.createRootProject(new File('parent', 'root'))
+        DefaultProject childProject = HelperUtil.createChildProject(rootProject, 'child')
+        DefaultProject childchildProject = HelperUtil.createChildProject(childProject, 'childchild')
 
         DefaultTask task = createTask(rootProject, TEST_TASK_NAME)
         assertEquals Project.PATH_SEPARATOR + "$TEST_TASK_NAME", task.path

@@ -17,40 +17,62 @@
 package org.gradle.api.tasks.wrapper
 
 import org.gradle.wrapper.Install
+import org.gradle.wrapper.InstallMain
 
 /**
  * @author Hans Dockter
  */
 class WrapperScriptGenerator {
-//    GRADLE_HOME=`dirname "$0"`/gradle/gradle-0.1
-//
-//. `dirname "$0"`/gradle/gradle-0.1/bin/gradle
-//exec "`dirname "$0"`/gradle/gradle-0.1/bin/gradle" $QUOTED_ARGS
-    static void generate(String gradleVersion, String downloadUrlRoot, File scriptDestinationDir) {
+
+    static void generate(String gradleVersion, String downloadUrlRoot, File scriptDestinationDir, AntBuilder ant) {
         String windowsWrapperScriptHead = Wrapper.getResourceAsStream('windowsWrapperScriptHead.txt').text
         String windowsWrapperScriptTail = Wrapper.getResourceAsStream('windowsWrapperScriptTail.txt').text
         String unixWrapperScriptHead = Wrapper.getResourceAsStream('unixWrapperScriptHead.txt').text
         String unixWrapperScriptTail = Wrapper.getResourceAsStream('unixWrapperScriptTail.txt').text
 
+        String currentDirUnix = '`dirname "$0"`/'
+        String currentDirWindows = '"%~dp0\\'
+        String wrapperHomeUnix = currentDirUnix + Install.WRAPPER_DIR
+        String wrapperHomeWindows = currentDirWindows + Install.WRAPPER_DIR
+        String wrapperJarUnix = wrapperHomeUnix + '/' + Install.WRAPPER_JAR
+        String wrapperJarWindows = wrapperHomeWindows + '\\' + Install.WRAPPER_JAR + '"'
+        String gradleHomeUnix = wrapperHomeUnix + "/gradle-dist/gradle-$gradleVersion"
+        String gradleHomeWindows = wrapperHomeWindows + "\\gradle-dist\\gradle-$gradleVersion"
+        String gradleUnix = gradleHomeUnix + '/bin/gradle'
+        String gradleWindows = gradleHomeWindows + '\\bin\\gradle"'
+        String fillingUnix = """
 
-        String wrapperHomeUnix = '`dirname "$0"`/' + Install.WRAPPER_DIR
-        String wrapperJar = wrapperHomeUnix + Install.WRAPPER_JAR
-        String gradleHomeUnix = wrapperHomeUnix + 'gradle-dist/gradle-0.1/'
-//        String gradleHomeWindows = "%$gradleHome%"
-
-        String filling = """
-CLASSPATH=$wrapperJar
+STARTER_MAIN_CLASS=$InstallMain.name
+CLASSPATH=$wrapperJarUnix
 URL_ROOT=$downloadUrlRoot
-DIST_NAME=gradle-$gradleVersion
-"""
+DIST_NAME=gradle-${gradleVersion}
+GRADLE_HOME=$gradleHomeUnix
+GRADLE=$gradleUnix
 
-        def unixScript = "$unixWrapperScriptHead$filling$unixWrapperScriptTail"
-//        def windowsScript = "$windowsWrapperScriptHead\nset CLASSPATH=${windowsLibPath.join(';')}\n$windowsWrapperScriptTail"
-        new File(scriptDestinationDir, 'gradlew').withWriter {writer ->
+"""
+        String fillingWindows = """
+
+set STARTER_MAIN_CLASS=$InstallMain.name
+set CLASSPATH=$wrapperJarWindows
+set URL_ROOT=$downloadUrlRoot
+set DIST_NAME=gradle-${gradleVersion}
+set GRADLE_HOME=$gradleHomeWindows\"
+set GRADLE=$gradleWindows
+
+        """
+
+        def unixScript = "$unixWrapperScriptHead$fillingUnix$unixWrapperScriptTail"
+        def windowsScript = "$windowsWrapperScriptHead$fillingWindows$windowsWrapperScriptTail"
+
+        File unixScriptFile = new File(scriptDestinationDir, 'gradlew')
+        unixScriptFile.withWriter {writer ->
             writer.write(unixScript)
         }
-//        new File(binDir, projectName + ".bat").withWriter {writer ->
-//            writer.write(windowsScript)
-//        }
+        
+        ant.chmod(file: unixScriptFile, perm: "ugo+rx")
+
+        new File(scriptDestinationDir, 'gradlew' + ".bat").withWriter {writer ->
+            writer.write(windowsScript)
+        }
     }
 }
