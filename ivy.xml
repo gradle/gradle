@@ -15,7 +15,7 @@
         <artifact conf="master"/>
     </publications>
     <dependencies defaultconfmapping="*->default">
-        <dependency org="org.codehaus.groovy" name="groovy-all" rev="1.5.5-SNAPSHOT" conf="compile">
+        <dependency org="org.codehaus.groovy" name="groovy-all" rev="1.5.5-032808" conf="compile">
             <exclude module="jline" conf="compile"/>
             <exclude module="junit" conf="compile"/>
         </dependency>

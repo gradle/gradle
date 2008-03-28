@@ -40,7 +40,7 @@ configureByDag = {Dag dag ->
 }
 
 dependencies {
-    addDependency(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.5-SNAPSHOT") {
+    addDependency(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.5-032808") {
         exclude(module: 'jline')
         exclude(module: 'junit')
     }
