@@ -19,7 +19,7 @@ package org.gradle.util
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 
 /**
 * @author Hans Dockter

@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.build.integtests
+package org.gradle.wrapper;
 
-import org.gradle.build.samples.TutorialCreator
+import java.util.Properties;
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-class TutorialTest {
-    static void execute(String gradleHome, String tutorialDirName) {
-        Map scripts = TutorialCreator.scripts()
-        scripts.each {entry ->
-            String taskName = entry.value.size < 3 ? entry.key : entry.value[2]
-            String output = Executer.execute(gradleHome, tutorialDirName, [taskName], "${entry.key}file")
-            entry.value[1](output)
+class InstallMain {
+    /*
+     * First argument: urlRoot (e.g. http://dist.codehaus.org/gradle)
+     * Second argument: distribution-name (e.g. gradle-1.0)
+     */
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            throw new IllegalArgumentException("Wrong number of arguments supplied!");
         }
+        Properties properties = new Properties();
+        properties.load(InstallMain.class.getResourceAsStream("wrapper.properties"));
+        new Install().createDist(args[0], args[1], new File(Install.WRAPPER_DIR));
     }
+
 }

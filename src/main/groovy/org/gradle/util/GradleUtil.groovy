@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.build.integtests
-
-import org.gradle.build.samples.TutorialCreator
+package org.gradle.util
 
 /**
  * @author Hans Dockter
  */
-class TutorialTest {
-    static void execute(String gradleHome, String tutorialDirName) {
-        Map scripts = TutorialCreator.scripts()
-        scripts.each {entry ->
-            String taskName = entry.value.size < 3 ? entry.key : entry.value[2]
-            String output = Executer.execute(gradleHome, tutorialDirName, [taskName], "${entry.key}file")
-            entry.value[1](output)
-        }
+class GradleUtil {
+    static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
+        if (!configureClosure) { return delegate}
+        configureClosure.resolveStrategy = resolveStrategy
+        configureClosure.delegate = delegate
+        configureClosure.call()
+        delegate
+    }
+
+    static void deleteDir(File dir) {
+        assert !dir.isFile()
+        if (dir.isDirectory()) {new AntBuilder().delete(dir: dir)}
+    }
+
+    static File makeNewDir(File dir) {
+        deleteDir(dir)
+        dir.mkdir()
+        dir.deleteOnExit()
+        dir
     }
 }

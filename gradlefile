@@ -163,7 +163,7 @@ createTask('install', dependsOn: 'dists') {
             arg(value: '-q')
             arg(value: '-d')
             arg(value: installDir)
-            arg(value: "${task('gradle-core_zip').archivePath}")
+            arg(value: "${task('gradle_zip').archivePath}")
         }
         exec(dir: installDir, executable: "mv") {
             arg(value: zipRootFolder)

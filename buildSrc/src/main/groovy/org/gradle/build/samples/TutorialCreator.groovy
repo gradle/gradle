@@ -141,7 +141,7 @@ File[] fileList(String property) {
 
     static void writeScripts(File baseDir) {
         scripts().each {entry ->
-            new File(baseDir, "${entry.key}.groovy").withPrintWriter() {PrintWriter writer -> writer.write(entry.value[0])}
+            new File(baseDir, "${entry.key}file").withPrintWriter() {PrintWriter writer -> writer.write(entry.value[0])}
         }
     }
 

@@ -33,7 +33,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.dependencies.ModuleDependency
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

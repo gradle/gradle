@@ -19,7 +19,7 @@ package org.gradle.api.internal.dependencies
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
