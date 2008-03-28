@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.wrapper
 
-import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.wrapper.Install
 
 /**
