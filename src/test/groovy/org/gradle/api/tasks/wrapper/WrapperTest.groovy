@@ -16,14 +16,14 @@
 
 package org.gradle.api.tasks.wrapper
 
-import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.Task
 import groovy.mock.interceptor.MockFor
-import org.gradle.wrapper.Install
+import org.gradle.Main
+import org.gradle.api.Task
+import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.util.HelperUtil
-import org.gradle.Main
 import org.gradle.util.TestConsts
+import org.gradle.wrapper.Install
 
 /**
  * @author Hans Dockter
@@ -51,6 +51,7 @@ class WrapperTest extends AbstractConventionTaskTest {
     }
 
     void tearDown() {
+        System.properties[Main.GRADLE_HOME] = Main.GRADLE_HOME
         HelperUtil.deleteTestDir()
     }
 

@@ -35,7 +35,7 @@ class DownloadTest extends GroovyTestCase {
         rootDir = new File(testDir, 'root')
         downloadFile = new File(rootDir, 'file')
         (remoteFile = new File(testDir, 'remoteFile')).write('sometext')
-        sourceRoot = "file://$remoteFile.absolutePath"
+        sourceRoot = "file:///$remoteFile.canonicalPath"
     }
 
     void testDownload() {
