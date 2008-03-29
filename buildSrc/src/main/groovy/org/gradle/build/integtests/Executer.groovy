@@ -42,7 +42,8 @@ class Executer {
         } else {
             String command = "${gradleHome}/bin/gradle ${quite ? '-q' : '-d'} $buildFileSpecifier $taskNameText"
             println "Execute test in $currentDirName with: $command"
-            proc = command.execute(["GRADLE_HOME=$gradleHome", "PATH=${System.getenv('PATH')}"], new File(currentDirName))
+            proc = command.execute(["GRADLE_HOME=$gradleHome", "PATH=${System.getenv('PATH')}", "JAVA_HOME=${System.getenv('JAVA_HOME')}"],
+                    new File(currentDirName))
         }
         proc.consumeProcessOutput(outStream, errStream)
         proc.waitForOrKill(runBeforeKill)
