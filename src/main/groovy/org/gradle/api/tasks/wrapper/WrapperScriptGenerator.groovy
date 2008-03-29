@@ -33,13 +33,13 @@ class WrapperScriptGenerator {
         String currentDirUnix = '`dirname "$0"`/'
         String currentDirWindows = '"%~dp0\\'
         String wrapperHomeUnix = currentDirUnix + Install.WRAPPER_DIR
-        String wrapperHomeWindows = currentDirWindows + Install.WRAPPER_DIR
+        String wrapperHomeWindows = '%DIRNAME%\\' + Install.WRAPPER_DIR
         String wrapperJarUnix = wrapperHomeUnix + '/' + Install.WRAPPER_JAR
-        String wrapperJarWindows = wrapperHomeWindows + '\\' + Install.WRAPPER_JAR + '"'
+        String wrapperJarWindows = wrapperHomeWindows + '\\' + Install.WRAPPER_JAR
         String gradleHomeUnix = wrapperHomeUnix + "/gradle-dist/gradle-$gradleVersion"
         String gradleHomeWindows = wrapperHomeWindows + "\\gradle-dist\\gradle-$gradleVersion"
         String gradleUnix = gradleHomeUnix + '/bin/gradle'
-        String gradleWindows = gradleHomeWindows + '\\bin\\gradle"'
+        String gradleWindows = gradleHomeWindows + '\\bin\\gradle'
         String fillingUnix = """
 
 STARTER_MAIN_CLASS=$InstallMain.name
@@ -51,14 +51,12 @@ GRADLE=$gradleUnix
 
 """
         String fillingWindows = """
-
 set STARTER_MAIN_CLASS=$InstallMain.name
 set CLASSPATH=$wrapperJarWindows
 set URL_ROOT=$downloadUrlRoot
 set DIST_NAME=gradle-${gradleVersion}
-set GRADLE_HOME=$gradleHomeWindows\"
-set GRADLE=$gradleWindows
-
+set GRADLE_HOME=$gradleHomeWindows
+set Path=$gradleWindows;%Path%
         """
 
         def unixScript = "$unixWrapperScriptHead$fillingUnix$unixWrapperScriptTail"

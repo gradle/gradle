@@ -40,7 +40,7 @@ goto end
 :have_JAVA_HOME
 @rem Validate JAVA_HOME
 %COMMAND_COM% /C DIR "%JAVA_HOME%" 2>&1 | %FIND_EXE% /I /C "%JAVA_HOME%" >nul
-if not errorlevel 1 goto check_GRADLE_HOME
+if not errorlevel 1 goto init
 
 echo.
 echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%

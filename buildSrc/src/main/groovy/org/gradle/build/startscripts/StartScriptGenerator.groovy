@@ -19,26 +19,20 @@ package org.gradle.build.startscripts
  * @author Hans Dockter
  */
 class StartScriptsGenerator {
-    static void generate(File libDir, File binDir, String projectName) {
+    static void generate(String gradleJarName, File binDir, String projectName) {
         String windowsStartScriptHead = StartScriptsGenerator.getResourceAsStream('windowsStartScriptHead.txt').text
         String windowsStartScriptTail = StartScriptsGenerator.getResourceAsStream('windowsStartScriptTail.txt').text
         String unixStartScriptHead = StartScriptsGenerator.getResourceAsStream('unixStartScriptHead.txt').text
         String unixStartScriptTail = StartScriptsGenerator.getResourceAsStream('unixStartScriptTail.txt').text
 
-        List unixLibPath = []
-        List windowsLibPath = []
-        
         String gradleHome = 'GRADLE_HOME'
-        String gradleHomeUnix = "\${$gradleHome}"
-        String gradleHomeWindows = "%$gradleHome%"
 
-        List paths = []
-        libDir.eachFile {paths << it.name}
-        unixLibPath = paths.collect {gradleHomeUnix + '/' + libDir.name + '/' + it}
-        windowsLibPath = paths.collect {gradleHomeWindows + '\\' + libDir.name + '\\' + it}
+        String unixLibPath = "\$$gradleHome/lib/$gradleJarName"
+        String windowsLibPath = "%$gradleHome%\\lib\\$gradleJarName"
 
-        def unixScript = "$unixStartScriptHead\nCLASSPATH=${unixLibPath.join(':')}\n$unixStartScriptTail"
-        def windowsScript = "$windowsStartScriptHead\nset CLASSPATH=${windowsLibPath.join(';')}\n$windowsStartScriptTail"
+        def unixScript = "$unixStartScriptHead\nCLASSPATH=$unixLibPath\n$unixStartScriptTail"
+        def windowsScript = "$windowsStartScriptHead\nset CLASSPATH=$windowsLibPath\n$windowsStartScriptTail"
+
         new File(binDir, projectName).withWriter {writer ->
             writer.write(unixScript)
         }

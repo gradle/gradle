@@ -29,7 +29,7 @@ import org.gradle.util.GradleVersion
  */
 class Wrapper extends ConventionTask {
     static final DEFAULT_URL_ROOT = 'http://dist.codehaus.org/gradle'
-    
+
     File scriptDestinationDir
 
     File gradleWrapperHomeParent
@@ -56,11 +56,12 @@ class Wrapper extends ConventionTask {
             throw new InvalidUserDataException("The scriptDestinationDir property must be specified!")
         }
         File gradleWrapperHome = new File(self.gradleWrapperHomeParent, Install.WRAPPER_DIR)
-        GradleUtil.deleteDir(gradleWrapperHome)
         gradleWrapperHome.mkdirs()
         File gradleWrapperJar = new File(System.properties['gradle.home'] + '/lib',
                 "$Install.WRAPPER_DIR-${new GradleVersion().version}.jar")
-        task.project.ant.copy(file: gradleWrapperJar, tofile: new File(gradleWrapperHome, Install.WRAPPER_JAR))
+        task.project.ant.copy(file: gradleWrapperJar,
+                tofile: new File(gradleWrapperHome, Install.WRAPPER_JAR),
+                overwrite: true)
         wrapperScriptGenerator.generate(self.gradleVersion, self.urlRoot, self.scriptDestinationDir, project.ant)
     }
 }

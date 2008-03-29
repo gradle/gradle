@@ -40,7 +40,7 @@ goto end
 :have_JAVA_HOME
 @rem Validate JAVA_HOME
 %COMMAND_COM% /C DIR "%JAVA_HOME%" 2>&1 | %FIND_EXE% /I /C "%JAVA_HOME%" >nul
-if not errorlevel 1 goto check_GRADLE_HOME
+if not errorlevel 1 goto init
 
 echo.
 echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%
@@ -74,14 +74,12 @@ set CMD_LINE_ARGS=%$
 :execute
 @rem Setup the command line
 
-
 set STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
-set CLASSPATH="%~dp0\gradle-wrapper\gradle-wrapper.jar"
+set CLASSPATH=%DIRNAME%\gradle-wrapper\gradle-wrapper.jar
 set URL_ROOT=http://dist.codehaus.org/gradle
 set DIST_NAME=gradle-0.1
-set GRADLE_HOME="%~dp0\gradle-wrapper\gradle-dist\gradle-0.1"
-set GRADLE="%~dp0\gradle-wrapper\gradle-dist\gradle-0.1\bin\gradle"
-
+set GRADLE_HOME=%DIRNAME%\gradle-wrapper\gradle-dist\gradle-0.1
+set Path=%DIRNAME%\gradle-wrapper\gradle-dist\gradle-0.1\bin\gradle;%Path%
         
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
@@ -89,10 +87,10 @@ set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 if "%JAVA_OPTS%" == "" set JAVA_OPTS="-Xmx128m"
 set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
 
-"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
+"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %URL_ROOT% %DIST_NAME%
 
 @rem Execute Gradle
-"%GRADLE%" %*
+gradle %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
