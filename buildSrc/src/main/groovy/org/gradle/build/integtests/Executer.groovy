@@ -68,9 +68,12 @@ class Executer {
         }
         proc.consumeProcessOutput(outStream, errStream)
         proc.waitForOrKill(runBeforeKill)
-        if (proc.exitValue()) {
-            throw new RuntimeException("Integrationtests failed with: $outStream $errStream,")
+        int exitValue = proc.exitValue()
+        String output = outStream
+        String error = errStream
+        if (exitValue) {
+            throw new RuntimeException("Integrationtests failed with: $output $error")
         }
-        return outStream
+        return output
     }
 }
