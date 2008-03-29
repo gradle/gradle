@@ -32,7 +32,7 @@ class Executer {
     }
 
     static String windowsPath(String gradleHome) {
-        "$gradleHome\\bin;" + System.getenv('Path')
+        "Path=$gradleHome\\bin;" + System.getenv('Path')
     }
 
     static String unixPath() {
