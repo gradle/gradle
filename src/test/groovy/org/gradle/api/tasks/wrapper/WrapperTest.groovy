@@ -35,6 +35,7 @@ class WrapperTest extends AbstractConventionTaskTest {
     File gradleWrapperHome
     File sourceWrapperJar
     File targetWrapperJar
+    File antScript
 
     void setUp() {
         super.setUp()
@@ -50,6 +51,7 @@ class WrapperTest extends AbstractConventionTaskTest {
         System.properties[Main.GRADLE_HOME] = gradleHomeLib.parent
         gradleWrapperHome = new File(testDir, Install.WRAPPER_DIR)
         targetWrapperJar = new File(gradleWrapperHome, Install.WRAPPER_JAR)
+        antScript = new File(gradleWrapperHome, Wrapper.ANT_SCRIPT_NAME)
     }
 
     void tearDown() {
@@ -92,5 +94,6 @@ class WrapperTest extends AbstractConventionTaskTest {
             wrapper.execute()
         }
         assertEquals(sourceWrapperJar.text, targetWrapperJar.text)
+        assertEquals(antScript.text, Wrapper.ANT_SCRIPT)
     }
 }

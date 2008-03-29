@@ -30,6 +30,19 @@ import org.gradle.util.GradleVersion
 class Wrapper extends ConventionTask {
     static final DEFAULT_URL_ROOT = 'http://dist.codehaus.org/gradle'
 
+    static final ANT_SCRIPT_NAME = 'wrapper-build.xml'
+
+    static final String ANT_SCRIPT = '''
+<project name="gradle" default="execute" basedir="..">
+    <target name="execute">
+        <fail unless="gradle" message="You must set the gradle property via -D."/>
+        <exec dir="${basedir}" executable="gradlew" resolveexecutable="true">
+            <arg line="${gradle}"/>
+        </exec>
+    </target>
+</project>
+'''
+
     File scriptDestinationDir
 
     File gradleWrapperHomeParent
@@ -59,9 +72,12 @@ class Wrapper extends ConventionTask {
         gradleWrapperHome.mkdirs()
         File gradleWrapperJar = new File(System.properties['gradle.home'] + '/lib',
                 "$Install.WRAPPER_DIR-${new GradleVersion().version}.jar")
-        task.project.ant.copy(file: gradleWrapperJar,
+        task.project.ant {
+            copy(file: gradleWrapperJar,
                 tofile: new File(gradleWrapperHome, Install.WRAPPER_JAR),
                 overwrite: true)
+            new File(gradleWrapperHome, ANT_SCRIPT_NAME).write(ANT_SCRIPT)
+        }
         wrapperScriptGenerator.generate(self.gradleVersion, self.urlRoot, self.scriptDestinationDir, project.ant)
     }
 }
