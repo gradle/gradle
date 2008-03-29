@@ -162,4 +162,12 @@ class DefaultTask implements Task {
         this
     }
 
+    boolean getLateInitialized() {
+        lateInitialized
+    }
+
+    boolean getExecuted() {
+        executed
+    }
+
 }

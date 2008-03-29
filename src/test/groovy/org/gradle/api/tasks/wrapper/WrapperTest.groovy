@@ -34,6 +34,7 @@ class WrapperTest extends AbstractConventionTaskTest {
     File testDir
     File gradleWrapperHome
     File sourceWrapperJar
+    File targetWrapperJar
 
     void setUp() {
         super.setUp()
@@ -45,9 +46,10 @@ class WrapperTest extends AbstractConventionTaskTest {
         File gradleHomeLib = new File(testDir.absolutePath + '/gradleHome', 'lib')
         gradleHomeLib.mkdirs()
         sourceWrapperJar = new File(gradleHomeLib.absolutePath, "$Install.WRAPPER_DIR-${TestConsts.VERSION}.jar")
-        sourceWrapperJar.write('sometext')
+        sourceWrapperJar.write('sometext' + System.currentTimeMillis())
         System.properties[Main.GRADLE_HOME] = gradleHomeLib.parent
         gradleWrapperHome = new File(testDir, Install.WRAPPER_DIR)
+        targetWrapperJar = new File(gradleWrapperHome, Install.WRAPPER_JAR)
     }
 
     void tearDown() {
@@ -73,10 +75,8 @@ class WrapperTest extends AbstractConventionTaskTest {
 
     void testExecuteWithExistingWrapperHome() {
         gradleWrapperHome.mkdirs()
-        File oldFile = new File(gradleWrapperHome, 'oldfile')
-        oldFile.createNewFile()
+        targetWrapperJar.createNewFile()
         checkExecute()
-        assert !oldFile.exists()
     }
 
     private void checkExecute() {
@@ -91,6 +91,6 @@ class WrapperTest extends AbstractConventionTaskTest {
         wrapperScriptGeneratorMocker.use(wrapper.wrapperScriptGenerator) {
             wrapper.execute()
         }
-        assertEquals(sourceWrapperJar.text, new File(gradleWrapperHome, Install.WRAPPER_JAR).text)
+        assertEquals(sourceWrapperJar.text, targetWrapperJar.text)
     }
 }

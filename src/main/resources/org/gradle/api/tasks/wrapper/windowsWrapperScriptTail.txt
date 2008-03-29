@@ -5,10 +5,10 @@ set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 if "%JAVA_OPTS%" == "" set JAVA_OPTS="-Xmx128m"
 set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
 
-"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
+"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %URL_ROOT% %DIST_NAME%
 
 @rem Execute Gradle
-"%GRADLE%" %*
+gradle %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
