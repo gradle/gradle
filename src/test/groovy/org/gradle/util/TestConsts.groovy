@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.build.integtests
-
-import org.gradle.build.samples.TutorialCreator
+ 
+package org.gradle.util
 
 /**
  * @author Hans Dockter
  */
-class TutorialTest {
-    static void execute(String gradleHome, String tutorialDirName) {
-        Map scripts = TutorialCreator.scripts()
-        scripts.each {entry ->
-            String taskName = entry.value.size < 3 ? entry.key : entry.value[2]
-            String output = Executer.execute(gradleHome, tutorialDirName, [taskName], "${entry.key}file")
-            entry.value[1](output)
-        }
-    }
+class TestConsts {
+    static final String VERSION = '1.0-RC1'
+    static final String BUILD_TIME = 'sometime'
 }

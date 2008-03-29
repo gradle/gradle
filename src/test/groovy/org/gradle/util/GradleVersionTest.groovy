@@ -22,21 +22,20 @@ import org.codehaus.groovy.runtime.InvokerHelper
  * @author Hans Dockter
  */
 class GradleVersionTest extends GroovyTestCase {
-    static final String TEST_VERSION = '1.0.0-RC1'
-    static final String TEST_BUILDTIME = 'sometime'
     void testGradleVersion() {
         GradleVersion gradleVersion = new GradleVersion()
-        assertEquals(TEST_VERSION, gradleVersion.version)
-        assertEquals(TEST_BUILDTIME, gradleVersion.buildTime)
+        assertEquals(TestConsts.VERSION, gradleVersion.version)
+        assertEquals(TestConsts.BUILD_TIME, gradleVersion.buildTime)
     }
 
     void testPrettyPrint() {
-        String expectedText = """Gradle $TEST_VERSION
-Gradle buildtime: $TEST_BUILDTIME
+        String expectedText = """Gradle $TestConsts.VERSION
+Gradle buildtime: $TestConsts.BUILD_TIME
 Groovy $InvokerHelper.version
 JVM ${System.getProperty("java.vm.version")}
 JVM Vendor: ${System.getProperty("java.vm.vendor")}
 OS Name: ${System.getProperty("os.name")}
 """
+        assertEquals(expectedText, new GradleVersion().prettyPrint())
     }
 }

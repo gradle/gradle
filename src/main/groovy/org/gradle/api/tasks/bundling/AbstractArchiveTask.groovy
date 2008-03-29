@@ -22,9 +22,10 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter

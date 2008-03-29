@@ -28,7 +28,7 @@ import java.util.SortedMap;
  * @author Hans Dockter
  */
 public interface Project {
-    public static final String DEFAULT_PROJECT_FILE = "gradle.groovy";
+    public static final String DEFAULT_PROJECT_FILE = "gradlefile";
 
     public static final String PATH_SEPARATOR = ":";
 

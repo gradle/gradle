@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.util
+package org.gradle.wrapper
+
+import groovy.mock.interceptor.MockFor
 
 /**
  * @author Hans Dockter
  */
-class GradleUtil {
-    static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
-        if (!configureClosure) { return delegate}
-        configureClosure.resolveStrategy = resolveStrategy
-        configureClosure.delegate = delegate
-        configureClosure.call()
-        delegate
-    }
+class InstallMainTest extends GroovyTestCase {
 
-    static void deleteDir(File dir) {
-        assert !dir.isFile()
-        if (dir.isDirectory()) {new AntBuilder().delete(dir: dir)}
-    }
+    // todo: Mockers do not work for Java. We have to find something better.
 
-    static File makeNewDir(File dir) {
-        deleteDir(dir)
-        dir.mkdir()
-        dir.deleteOnExit()
-        dir
+    void testMain() {
+//        MockFor wrapperMocker = new MockFor(Install)
+//        wrapperMocker.demand.createDist() {String urlRoot, String distName, File rootDir ->
+//            assertEquals('file://path', urlRoot)
+//            assertEquals('gradle-1.0', distName)
+//            assertEquals(new File('gradle'), rootDir)
+//        }
+//        wrapperMocker.use() {
+//            InstallMain.main([] as String[])
+//        }
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.PathOrder
 import org.gradle.api.tasks.Directory
 import org.gradle.api.tasks.util.BaseDirConverter
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

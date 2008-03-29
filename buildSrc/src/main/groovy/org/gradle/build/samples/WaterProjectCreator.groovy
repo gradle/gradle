@@ -78,11 +78,11 @@ class WaterProjectCreator {
         println "$PHYTOPLANKTON_INFO"
     }
     """
-        String buildScriptName = 'gradle.groovy'
+        String buildScriptName = 'gradlefile'
         File water = new File(baseDir, WATER_NAME)
         water.mkdir()
         new File(water, buildScriptName).withPrintWriter {PrintWriter writer -> writer.write(waterScript)}
-        new File(water, 'gradlesettings.groovy').withPrintWriter {PrintWriter writer -> writer.write(gradleSettingsScript)}
+        new File(water, 'gradlesettings').withPrintWriter {PrintWriter writer -> writer.write(gradleSettingsScript)}
         File bluewhale = new File(water, BLUE_WHALE_NAME)
         bluewhale.mkdir()
         new File(bluewhale, buildScriptName).withPrintWriter {PrintWriter writer -> writer.write(bluewhaleScript)}

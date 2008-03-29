@@ -19,7 +19,7 @@ package org.gradle.util
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 
 /**
 * @author Hans Dockter
@@ -35,6 +35,12 @@ class HelperUtil {
 
     static DefaultProject createRootProject(File rootDir) {
         return new DefaultProject(rootDir.name, null, rootDir, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder(), new PluginRegistry())    
+    }
+
+    static DefaultProject createChildProject(DefaultProject parentProject, String name) {
+        return new DefaultProject(name, parentProject, parentProject.rootDir, parentProject.rootProject,
+                parentProject.projectFactory, parentProject.dependencies, parentProject.buildScriptProcessor,
+                parentProject.buildScriptFinder, parentProject.pluginRegistry)
     }
 
     static def pureStringTransform(def collection) {
