@@ -89,6 +89,8 @@ set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
 
 "%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %URL_ROOT% %DIST_NAME%
 
+echo %Path%
+
 @rem Execute Gradle
 gradle %CMD_LINE_ARGS%
 
