@@ -79,7 +79,7 @@ set CLASSPATH=%DIRNAME%\gradle-wrapper\gradle-wrapper.jar
 set URL_ROOT=http://dist.codehaus.org/gradle
 set DIST_NAME=gradle-0.1
 set GRADLE_HOME=%DIRNAME%\gradle-wrapper\gradle-dist\gradle-0.1
-set Path=%DIRNAME%\gradle-wrapper\gradle-dist\gradle-0.1\bin\gradle;%Path%
+set Path=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1\bin\;%Path%
         
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
