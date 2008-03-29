@@ -20,7 +20,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 import org.gradle.initialization.DefaultSettings
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory
 class SettingsProcessor {
     static Logger logger = LoggerFactory.getLogger(SettingsProcessor)
 
-    final static String DEFAULT_SETUP_FILE = "gradlesettings.groovy"
+    final static String DEFAULT_SETUP_FILE = "gradlesettings"
 
     SettingsFileHandler settingsFileHandler
 

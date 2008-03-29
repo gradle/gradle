@@ -42,7 +42,36 @@ class Executer {
         } else {
             String command = "${gradleHome}/bin/gradle ${quite ? '-q' : '-d'} $buildFileSpecifier $taskNameText"
             println "Execute test in $currentDirName with: $command"
-            proc = command.execute(["GRADLE_HOME=$gradleHome"], new File(currentDirName))
+            proc = command.execute(["GRADLE_HOME=$gradleHome", "PATH=${System.getenv('PATH')}"], new File(currentDirName))
+        }
+        proc.consumeProcessOutput(outStream, errStream)
+        proc.waitForOrKill(runBeforeKill)
+        if (proc.exitValue()) {
+            throw new RuntimeException("Integrationtests failed with: $outStream $errStream,")
+        }
+        return outStream
+    }
+    static String executeWrapper(String gradleHome, String currentDirName, List tasknames, String buildFileName = '', boolean quite = true) {
+        def proc
+
+        def initialSize = 4096
+
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream()
+        ByteArrayOutputStream errStream = new ByteArrayOutputStream()
+        String taskNameText = tasknames.join(' ')
+        String buildFileSpecifier = buildFileName ? "-b$buildFileName" : ''
+        long runBeforeKill = 30 * 60 * 1000
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            Execute execute = new Execute()
+            String command = "cmd /c gradlew ${quite ? '-q' : '-d'}" + " $buildFileSpecifier $taskNameText"
+            println "Execute test in $currentDirName with: $command"
+            String path = "$gradleHome\\bin;"
+            execute.setEnvironment(["GRADLE_HOME=$gradleHome", "Path=$path"] as String[])
+            proc = Runtime.getRuntime().exec(command, execute.getEnvironment(), new File(currentDirName))
+        } else {
+            String command = "${currentDirName}/gradlew ${quite ? '-q' : '-d'} $buildFileSpecifier $taskNameText"
+            println "Execute test in $currentDirName with: $command"
+            proc = command.execute(["GRADLE_HOME=$gradleHome", "PATH=${System.getenv('PATH')}"], new File(currentDirName))
         }
         proc.consumeProcessOutput(outStream, errStream)
         proc.waitForOrKill(runBeforeKill)
