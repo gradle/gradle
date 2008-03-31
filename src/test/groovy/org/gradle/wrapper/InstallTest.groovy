@@ -23,7 +23,7 @@ import org.gradle.util.HelperUtil
  */
 class InstallTest extends GroovyTestCase {
     File testDir
-    Install wrapper
+    Install install
     String distName
     String urlRoot
     IDownload downloadMock
@@ -37,17 +37,21 @@ class InstallTest extends GroovyTestCase {
         downloadCalled = false
         testDir = HelperUtil.makeNewTestDir()
         rootDir = new File(testDir, 'gradle')
-        wrapper = new Install()
+        install = new Install(false)
         distName = 'gradle-1.0'
         destFile = new File(rootDir, "${distName}.zip")
         urlRoot = 'file://./tmpTest'
+        initDownloadMock()
+    }
+
+    void initDownloadMock() {
         downloadMock = [download: {String url, File destination ->
             assertEquals("$urlRoot/${distName}.zip", url)
             assertEquals(destFile, destination)
             zip = createTestZip()
             downloadCalled = true
         }] as IDownload
-        wrapper.setDownload(downloadMock)
+        install.setDownload(downloadMock)
     }
 
      void tearDown() {
@@ -69,7 +73,7 @@ class InstallTest extends GroovyTestCase {
     }
 
     void testCreateDist() {
-        wrapper.createDist(urlRoot, distName, rootDir)
+        install.createDist(urlRoot, distName, rootDir)
         assert downloadCalled
         File distFile = new File(rootDir, distName)
         assert distFile.isDirectory()
@@ -80,7 +84,7 @@ class InstallTest extends GroovyTestCase {
         rootDir.mkdirs()
         File otherFile = new File(rootDir, 'other')
         otherFile.createNewFile()
-        wrapper.createDist(urlRoot, distName, rootDir)
+        install.createDist(urlRoot, distName, rootDir)
         assert downloadCalled
         File distFile = new File(rootDir, distName)
         assert distFile.isDirectory()
@@ -92,8 +96,18 @@ class InstallTest extends GroovyTestCase {
         File distFile = new File(rootDir, distName)
         distFile.mkdirs()
         long lastModified = distFile.lastModified()
-        wrapper.createDist(urlRoot, distName, rootDir)
+        install.createDist(urlRoot, distName, rootDir)
         assert !downloadCalled
         assert lastModified == distFile.lastModified()
+    }
+
+    void testCreateDistWithExistingDistAndAlwaysInstallTrue() {
+        install = new Install(true)
+        initDownloadMock()
+        File distFile = new File(rootDir, distName)
+        distFile.mkdirs()
+        long lastModified = distFile.lastModified()
+        install.createDist(urlRoot, distName, rootDir)
+        assert downloadCalled
     }
 }

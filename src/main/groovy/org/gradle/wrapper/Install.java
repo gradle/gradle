@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.wrapper;
 
 import java.net.URL;
@@ -31,8 +31,14 @@ public class Install {
 
     private IDownload download = new Download();
 
+    private boolean alwaysInstall;
+
+    public Install(boolean alwaysInstall) {
+        this.alwaysInstall = alwaysInstall;
+    } 
+
     void createDist(String urlRoot, String distName, File rootDir) throws Exception {
-        if (new File(rootDir, distName).isDirectory()) {
+        if (!alwaysInstall && new File(rootDir, distName).isDirectory()) {
             return;
         }
         if (rootDir.isDirectory()) {
@@ -71,36 +77,36 @@ public class Install {
     }
 
     public void unzip(File zip, File dest) throws IOException {
-            Enumeration entries;
-            ZipFile zipFile;
+        Enumeration entries;
+        ZipFile zipFile;
 
-            zipFile = new ZipFile(zip);
+        zipFile = new ZipFile(zip);
 
-            entries = zipFile.entries();
+        entries = zipFile.entries();
 
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = (ZipEntry) entries.nextElement();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = (ZipEntry) entries.nextElement();
 
-                if (entry.isDirectory()) {
-                    (new File(dest, entry.getName())).mkdirs();
-                    continue;
-                }
-
-                copyInputStream(zipFile.getInputStream(entry),
-                        new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName()))));
+            if (entry.isDirectory()) {
+                (new File(dest, entry.getName())).mkdirs();
+                continue;
             }
-            zipFile.close();
+
+            copyInputStream(zipFile.getInputStream(entry),
+                    new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName()))));
         }
+        zipFile.close();
+    }
 
-        public void copyInputStream(InputStream in, OutputStream out) throws IOException {
-            byte[] buffer = new byte[1024];
-            int len;
+    public void copyInputStream(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len;
 
-            while ((len = in.read(buffer)) >= 0)
-                out.write(buffer, 0, len);
+        while ((len = in.read(buffer)) >= 0)
+            out.write(buffer, 0, len);
 
-            in.close();
-            out.close();
-        }
-    
+        in.close();
+        out.close();
+    }
+
 }

@@ -54,7 +54,7 @@ class CompileTest extends AbstractConventionTaskTest {
     }
 
     void testCompile() {
-        assertNotNull(compile.compileOptions)
+        assertNotNull(compile.options)
         assertNotNull(compile.existentDirsFilter)
         assertNotNull(compile.classpathConverter)
         assertNull(compile.antCompile)
@@ -75,7 +75,7 @@ class CompileTest extends AbstractConventionTaskTest {
             assertEquals(sourceCompatibility, compile.sourceCompatibility)
             assertEquals(targetCompatibility, compile.targetCompatibility)
             assertEquals(TEST_CONVERTED_UNMANAGED_CLASSPATH + TEST_DEPENDENCY_MANAGER_CLASSPATH, classpath)
-            assertEquals(compile.compileOptions, compileOptions)
+            assertEquals(compile.options, compileOptions)
             assert ant.is(compile.project.ant)
         }
 
@@ -126,6 +126,16 @@ class CompileTest extends AbstractConventionTaskTest {
         antCompileMocker.use(compile.antCompile) {
             compile.execute()
         }
+    }
+
+    void testUnmanagedClasspath() {
+        List list1 = ['a', new Object()]
+        assert compile.unmanagedClasspath(list1 as Object[]).is(compile)
+        assertEquals(list1, compile.unmanagedClasspath)
+        List list2 = [['b', 'c']]
+        compile.unmanagedClasspath(list2)
+        assertEquals(list1 + list2.flatten(), compile.unmanagedClasspath)
+
     }
 
     private void setUpMocksAndAttributes(Compile compile) {

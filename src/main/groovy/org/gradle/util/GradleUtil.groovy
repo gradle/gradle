@@ -39,4 +39,12 @@ class GradleUtil {
         dir.deleteOnExit()
         dir
     }
+
+    static File[] getGradleClasspath() {
+        File gradleHomeLib = new File(System.properties["gradle.home"] + "/lib")
+        if (gradleHomeLib.isDirectory()) {
+            return gradleHomeLib.listFiles()
+        }
+        []
+    }
 }

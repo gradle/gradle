@@ -49,13 +49,13 @@ class GroovyCompile extends Compile {
             }
             classpath = createClasspath()
             antCompile.execute(existingSourceDirs, self.targetDir, classpath, self.sourceCompatibility,
-                    self.targetCompatibility, self.compileOptions, project.ant)
+                    self.targetCompatibility, self.options, project.ant)
         }
         List existingGroovySourceDirs = existentDirsFilter.findExistingDirsAndLogexitMessages(self.groovySourceDirs)
         if (existingGroovySourceDirs) {
             if (!classpath) {classpath = createClasspath()}
             antGroovyCompile.execute(existingGroovySourceDirs, self.targetDir, classpath, self.sourceCompatibility,
-                    self.targetCompatibility, self.compileOptions, project.ant)
+                    self.targetCompatibility, self.options, project.ant)
         }
     }
 
