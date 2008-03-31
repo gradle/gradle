@@ -28,6 +28,7 @@ class AntGroovyc extends AbstractAntCompile {
     public void executeCompileTask(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                                    String targetCompatibility, CompileOptions compileOptions) {
         antNode.groovyc(
+                includeAntRuntime: false,
                 srcdir: sourceDirs.join(':'),
                 destdir: targetDir,
                 classpathref: AbstractAntCompile.CLASSPATH_ID,

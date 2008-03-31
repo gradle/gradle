@@ -75,12 +75,12 @@ set CMD_LINE_ARGS=%$
 @rem Setup the command line
 
 set STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
-set CLASSPATH=%DIRNAME%\gradle-wrapper\gradle-wrapper.jar
+set CLASSPATH=%DIRNAME%gradle-wrapper\gradle-wrapper.jar
 set URL_ROOT=http://dist.codehaus.org/gradle
 set DIST_NAME=gradle-0.1
-set GRADLE_HOME=%DIRNAME%\gradle-wrapper\gradle-dist\gradle-0.1
-set Path=%DIRNAME%\gradle-wrapper\gradle-dist\gradle-0.1\bin\gradle;%Path%
-        
+set GRADLE_HOME=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1
+set Path=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1\bin;%Path%
+
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 

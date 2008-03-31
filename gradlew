@@ -64,7 +64,6 @@ URL_ROOT=http://dist.codehaus.org/gradle
 DIST_NAME=gradle-0.1
 GRADLE_HOME=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1
 GRADLE=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1/bin/gradle
-
 # Determine the Java command to use to start the JVM.
 if [ -z "$JAVACMD" ] ; then
     if [ -n "$JAVA_HOME" ] ; then
