@@ -47,7 +47,6 @@ class GradleUtil {
 
     static File[] getGradleClasspath() {
         File gradleHomeLib = new File(System.properties["gradle.home"] + "/lib")
-        logger.debug("Read libs from: $gradleHomeLib.absolutePath")
         if (gradleHomeLib.isDirectory()) {
             return gradleHomeLib.listFiles()
         }
