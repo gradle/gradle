@@ -38,7 +38,10 @@ class GroovyPlugin extends JavaPlugin {
             antGroovyCompile = new AntGroovyc()
             conventionMapping.groovySourceDirs = {groovyConvention.groovySrcDirs}
         }
-        configureTestCompile(project.createTask(JavaPlugin.TEST_COMPILE, dependsOn: JavaPlugin.TEST_RESOURCES, type: GroovyCompile, overwrite: true), groovyConvention, DefaultConventionsToPropertiesMapping.TEST_COMPILE).configure {
+        configureTestCompile(project.createTask(JavaPlugin.TEST_COMPILE, dependsOn: JavaPlugin.TEST_RESOURCES, type: GroovyCompile, overwrite: true),
+                project.task(JavaPlugin.COMPILE),
+                groovyConvention,
+                DefaultConventionsToPropertiesMapping.TEST_COMPILE).configure {
             antGroovyCompile = new AntGroovyc()
             conventionMapping.groovySourceDirs = {groovyConvention.groovyTestSrcDirs}
         }

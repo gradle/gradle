@@ -36,6 +36,7 @@ import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.dependencies.GradleArtifact
 
 /**
  * @author Hans Dockter
@@ -152,7 +153,9 @@ class DefaultDependencyManager implements DependencyManager {
             this.artifacts[configurationName] = []
         }
         (artifacts as List).flatten().each {
-            this.artifacts[configurationName] << artifactFactory.createGradleArtifact(it)
+            GradleArtifact gradleArtifact = artifactFactory.createGradleArtifact(it)
+            logger.debug("Adding $gradleArtifact to configuration=$configurationName")
+            this.artifacts[configurationName] << gradleArtifact
         }
     }
 
@@ -186,6 +189,7 @@ class DefaultDependencyManager implements DependencyManager {
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(this)
         ResolveOptions resolveOptions = new ResolveOptions()
         resolveOptions.setConfs([conf] as String[])
+        resolveOptions.outputReport = false
         ResolveReport resolveReport = ivy.resolve(moduleDescriptor, resolveOptions)
         report2Classpath.getClasspath(conf, resolveReport)
     }
