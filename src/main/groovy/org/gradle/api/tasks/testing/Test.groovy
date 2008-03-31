@@ -91,4 +91,9 @@ class Test extends ConventionTask {
         this
     }
 
+    Test unmanagedClasspath(Object[] elements) {
+        self.unmanagedClasspath.addAll((elements as List).flatten())
+        this
+    }
+
 }

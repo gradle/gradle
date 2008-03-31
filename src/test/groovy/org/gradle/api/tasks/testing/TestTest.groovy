@@ -193,4 +193,13 @@ class TestTest extends AbstractConventionTaskTest {
         assertEquals([TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3], test."${name}s")
     }
 
+    void testUnmanagedClasspath() {
+        List list1 = ['a', new Object()]
+        assert test.unmanagedClasspath(list1 as Object[]).is(test)
+        assertEquals(list1, test.unmanagedClasspath)
+        List list2 = [['b', 'c']]
+        test.unmanagedClasspath(list2)
+        assertEquals(list1 + list2.flatten(), test.unmanagedClasspath)
+    }
+
 }

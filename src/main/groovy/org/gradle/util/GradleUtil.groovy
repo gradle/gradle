@@ -16,10 +16,15 @@
 
 package org.gradle.util
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 /**
  * @author Hans Dockter
  */
 class GradleUtil {
+    static Logger logger = LoggerFactory.getLogger(GradleUtil)
+    
     static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
         if (!configureClosure) { return delegate}
         configureClosure.resolveStrategy = resolveStrategy
@@ -42,6 +47,7 @@ class GradleUtil {
 
     static File[] getGradleClasspath() {
         File gradleHomeLib = new File(System.properties["gradle.home"] + "/lib")
+        logger.debug("Read libs from: $gradleHomeLib.absolutePath")
         if (gradleHomeLib.isDirectory()) {
             return gradleHomeLib.listFiles()
         }

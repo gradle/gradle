@@ -36,5 +36,10 @@ class DefaultGradleArtifact implements GradleArtifact {
         String extension = FilenameUtils.getExtension(userDescription)
         new DefaultArtifact(moduleRevisionId, null, baseName, extension, extension)
     }
-    
+
+    String toString() {
+        "Artifact type=${userDescription.class} value=$userDescription"
+    }
+
+
 }

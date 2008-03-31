@@ -38,7 +38,6 @@ usePlugin('groovy')
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 compile.unmanagedClasspath(org.gradle.util.GradleUtil.gradleClasspath)
-testCompile.unmanagedClasspath(org.gradle.util.GradleUtil.gradleClasspath)
 test {
     include '**/*Test.class'
     exclude '**/Abstract*'

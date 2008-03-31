@@ -135,7 +135,6 @@ class CompileTest extends AbstractConventionTaskTest {
         List list2 = [['b', 'c']]
         compile.unmanagedClasspath(list2)
         assertEquals(list1 + list2.flatten(), compile.unmanagedClasspath)
-
     }
 
     private void setUpMocksAndAttributes(Compile compile) {

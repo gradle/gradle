@@ -72,11 +72,16 @@ class JavaPlugin implements Plugin {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
         }
 
-        configureCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile), javaConvention,
+        configureTestCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile),
+                project.task(COMPILE),
+                javaConvention,
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE)
 
         project.createTask(TEST, dependsOn: TEST_COMPILE, type: Test).configure {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST)
+            doFirst { Test test ->
+                test.unmanagedClasspath(test.project.task(TEST_COMPILE).unmanagedClasspath as Object[])
+            }
         }
 
         Closure lateInitClosureForPackage = {
@@ -92,16 +97,16 @@ class JavaPlugin implements Plugin {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.LIB)
         }
 
-        project.createTask(DISTS, type: Bundle, dependsOn: LIBS).configure {
-            // Warning: We need to add the delegate here, because otherwise the method argument with the name
-            // convention is addressed.
-            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
-        }
-
         project.createTask(UPLOAD_LIBS, type: Upload, dependsOn: LIBS).configure {
             bundles << project.task(LIBS)
             uploadResolvers.add(project.dependencies.buildResolver)
             uploadModuleDescriptor = true
+        }
+
+        project.createTask(DISTS, type: Bundle, dependsOn: UPLOAD_LIBS).configure {
+            // Warning: We need to add the delegate here, because otherwise the method argument with the name
+            // convention is addressed.
+            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
         }
 
         project.createTask(UPLOAD_DISTS, type: Upload, dependsOn: DISTS).configure {
@@ -121,14 +126,18 @@ class JavaPlugin implements Plugin {
             artifactProductionTaskName = UPLOAD_LIBS
             artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
             artifactPatterns << ("${project.convention.distDir}/[artifact]-[revision].[ext]" as String)
-            addConf2Tasks(RUNTIME, TEST)
+            addConf2Tasks(RUNTIME, DISTS)
+            addConf2Tasks(TEST_RUNTIME, TEST)
             classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         }
     }
 
-    protected Compile configureTestCompile(Compile compile, def javaConvention, Map propertyMapping) {
-        compile.skipProperties << Test.SKIP_TEST
-        configureCompile(compile, javaConvention, propertyMapping)
+    protected Compile configureTestCompile(Compile testCompile, Compile compile, def javaConvention, Map propertyMapping) {
+        testCompile.skipProperties << Test.SKIP_TEST
+        configureCompile(testCompile, javaConvention, propertyMapping)
+        testCompile.doFirst {
+            it.unmanagedClasspath(compile.unmanagedClasspath as Object[])
+        }
     }
 
     protected Compile configureCompile(Compile compile, def javaConvention, Map propertyMapping) {
