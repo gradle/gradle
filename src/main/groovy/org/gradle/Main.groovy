@@ -84,6 +84,8 @@ class Main {
 
         configureLogger(options)
 
+        ToolsMain.toolsMainInfo.each {logger.info(it)}
+
         if (options.h) {cli.usage()}
 
         if (options.v) {

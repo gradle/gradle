@@ -29,26 +29,37 @@ import org.tmatesoft.svn.core.wc.SVNRevision
 import org.tmatesoft.svn.core.wc.SVNStatusClient
 import org.tmatesoft.svn.core.wc.SVNWCUtil
 import org.tmatesoft.svn.core.internal.util.SVNPathUtil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
  */
 class Svn {
+    Logger logger = LoggerFactory.getLogger(Svn)
+
     Project project
     SVNClientManager clientManager
     SVNStatusClient statusClient
     SVNClientImpl javaHlClient
+    boolean alwaysTrunk = false
 
     Svn() {}
 
     Svn(Project project) {
         assert project
         this.project = project
-        DAVRepositoryFactory.setup();
-        clientManager = SVNClientManager.newInstance(
-                SVNWCUtil.createDefaultOptions(true), project.codehausUserName, project.codehausUserPassword)
-        statusClient = clientManager.getStatusClient()
-        javaHlClient = SVNClientImpl.newInstance()
+        try {
+            DAVRepositoryFactory.setup();
+            clientManager = SVNClientManager.newInstance(
+                    SVNWCUtil.createDefaultOptions(true), project.codehausUserName, project.codehausUserPassword)
+            statusClient = clientManager.getStatusClient()
+            javaHlClient = SVNClientImpl.newInstance()
+        } catch (Throwable e) {
+            logger.info("""Can't access svn working copy. Maybe this is not an svn project or the codehausUserName/password property is not set.
+                Releasing won't be possible. It is assumed that this isTrunk is true.""")
+            alwaysTrunk = true
+        }
     }
 
     def release() {
@@ -134,13 +145,13 @@ class Svn {
         String url = svnUrl
         url = SVNPathUtil.removeTail(url)
         if (!isTrunk()) {
-            url = SVNPathUtil.removeTail(url)    
+            url = SVNPathUtil.removeTail(url)
         }
         url
     }
 
     boolean isTrunk() {
-        svnDir == 'trunk'
+        alwaysTrunk || svnDir == 'trunk'
     }
 
     String getSvnDir() {

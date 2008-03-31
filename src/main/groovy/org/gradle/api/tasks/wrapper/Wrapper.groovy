@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.Task
 import org.gradle.api.InvalidUserDataException
 import org.gradle.wrapper.Install
-import org.gradle.util.GradleUtil
 import org.gradle.util.GradleVersion
 
 /**
@@ -59,9 +58,11 @@ class Wrapper extends ConventionTask {
         gradleWrapperHome.mkdirs()
         File gradleWrapperJar = new File(System.properties['gradle.home'] + '/lib',
                 "$Install.WRAPPER_DIR-${new GradleVersion().version}.jar")
-        task.project.ant.copy(file: gradleWrapperJar,
+        task.project.ant {
+            copy(file: gradleWrapperJar,
                 tofile: new File(gradleWrapperHome, Install.WRAPPER_JAR),
                 overwrite: true)
+        }
         wrapperScriptGenerator.generate(self.gradleVersion, self.urlRoot, self.scriptDestinationDir, project.ant)
     }
 }

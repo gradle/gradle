@@ -18,7 +18,6 @@ package org.gradle.build.release
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.GradleUtil
-import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter

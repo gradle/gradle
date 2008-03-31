@@ -23,12 +23,13 @@ import org.gradle.build.samples.WrapperProjectCreator
  */
 class WrapperProject {
     static void execute(String gradleHome, String samplesDirName) {
+        String nl = System.properties['line.separator']
         File waterDir = new File(samplesDirName, WrapperProjectCreator.WRAPPER_PROJECT_NAME)
 
         Executer.execute(gradleHome, waterDir.absolutePath, [WrapperProjectCreator.WRAPPER_TASK_NAME])
         String output = Executer.executeWrapper(gradleHome, waterDir.absolutePath,
                 [WrapperProjectCreator.TEST_TASK_NAME])
-        String compareValue =  output.substring(output.size() - WrapperProjectCreator.TEST_TASK_OUTPUT.size() - 1)
-        assert  compareValue == WrapperProjectCreator.TEST_TASK_OUTPUT + System.properties['line.separator']
+        String compareValue =  output.substring(output.size() - WrapperProjectCreator.TEST_TASK_OUTPUT.size() - nl.size())
+        assert  compareValue == WrapperProjectCreator.TEST_TASK_OUTPUT + nl
     }
 }

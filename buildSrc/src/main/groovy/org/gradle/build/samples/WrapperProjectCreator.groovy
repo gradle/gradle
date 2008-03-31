@@ -28,11 +28,11 @@ class WrapperProjectCreator {
     final static String TEST_TASK_NAME = 'hello'
     final static String TEST_TASK_OUTPUT = 'hello'
 
-    static void createProject(File baseDir, String downloadUrlRoot, String gradleVersion) {
+    static void createProject(File baseDir, File downloadUrlRoot, String gradleVersion) {
         String gradleScript = """
 createTask('$WRAPPER_TASK_NAME', type: $Wrapper.name).configure {
     gradleVersion = '$gradleVersion'
-    urlRoot = '$downloadUrlRoot'
+    urlRoot = '${downloadUrlRoot.toURL()}'
 }
 
 createTask('$TEST_TASK_NAME') {

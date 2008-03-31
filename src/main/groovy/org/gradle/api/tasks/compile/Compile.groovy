@@ -43,7 +43,7 @@ class Compile extends ConventionTask {
 
     ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
 
-    CompileOptions compileOptions = new CompileOptions()
+    CompileOptions options = new CompileOptions()
 
     AbstractAntCompile antCompile = null
 
@@ -73,11 +73,16 @@ class Compile extends ConventionTask {
         List classpath = classpathConverter.createFileClasspath(project.rootDir, self.unmanagedClasspath as Object[]) +
                 self.dependencyManager.resolveClasspath(name)
         antCompile.execute(existingSourceDirs, self.targetDir, classpath, self.sourceCompatibility,
-                self.targetCompatibility, self.compileOptions, project.ant)
+                self.targetCompatibility, self.options, project.ant)
     }
 
     Compile with(Object[] args) {
         self.dependencyManager."$configuration" args
+        this
+    }
+
+    Compile unmanagedClasspath(Object[] elements) {
+        self.unmanagedClasspath.addAll((elements as List).flatten())
         this
     }
 

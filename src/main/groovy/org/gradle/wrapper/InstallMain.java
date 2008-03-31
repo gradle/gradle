@@ -23,6 +23,8 @@ import java.io.File;
  * @author Hans Dockter
  */
 class InstallMain {
+    public static final String ALWAYS_INSTALL_ENV = "GRADLE_WRAPPER_ALWAYS_INSTALL";
+    
     /*
      * First argument: urlRoot (e.g. http://dist.codehaus.org/gradle)
      * Second argument: distribution-name (e.g. gradle-1.0)
@@ -31,7 +33,8 @@ class InstallMain {
         if (args.length != 2) {
             throw new IllegalArgumentException("Wrong number of arguments supplied!");
         }
-        new Install().createDist(args[0], args[1], new File(Install.WRAPPER_DIR, "gradle-dist"));
+        boolean alwaysInstall = Boolean.parseBoolean(System.getenv(ALWAYS_INSTALL_ENV));
+        new Install(alwaysInstall).createDist(args[0], args[1], new File(Install.WRAPPER_DIR, "gradle-dist"));
     }
 
 }

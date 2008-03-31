@@ -29,6 +29,7 @@ class AntJavac extends AbstractAntCompile {
     void executeCompileTask(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                             String targetCompatibility, CompileOptions compileOptions) {
         Map otherArgs = [
+                includeAntRuntime: false,
                 srcdir: sourceDirs.join(':'),
                 destdir: targetDir,
                 classpathref: AbstractAntCompile.CLASSPATH_ID,
