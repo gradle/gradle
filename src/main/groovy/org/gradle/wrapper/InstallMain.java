@@ -33,6 +33,7 @@ class InstallMain {
         if (args.length != 2) {
             throw new IllegalArgumentException("Wrong number of arguments supplied!");
         }
+        System.out.println("GRADLE_WRAPPER_ALWAYS_INSTALL env variable: " + System.getenv(ALWAYS_INSTALL_ENV));
         boolean alwaysInstall = Boolean.parseBoolean(System.getenv(ALWAYS_INSTALL_ENV));
         new Install(alwaysInstall).createDist(args[0], args[1], new File(Install.WRAPPER_DIR, "gradle-dist"));
     }

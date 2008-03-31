@@ -37,7 +37,7 @@ class AntJunit {
         ant.mkdir(dir: testResultsDir.absolutePath)
         createAntClassPath(ant, classPath)
         Map otherArgs = [
-                includeantruntime: 'true',
+                includeantruntime: 'false',
                 errorproperty: FAILURES_OR_ERRORS_PROPERTY,
                 failureproperty: FAILURES_OR_ERRORS_PROPERTY
         ]

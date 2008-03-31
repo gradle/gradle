@@ -72,11 +72,16 @@ class JavaPlugin implements Plugin {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
         }
 
-        configureCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile), javaConvention,
+        configureTestCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile),
+                project.task(COMPILE),
+                javaConvention,
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE)
 
         project.createTask(TEST, dependsOn: TEST_COMPILE, type: Test).configure {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST)
+            doFirst { Test test ->
+                test.unmanagedClasspath(test.project.task(TEST_COMPILE).unmanagedClasspath as Object[])
+            }
         }
 
         Closure lateInitClosureForPackage = {
@@ -126,9 +131,12 @@ class JavaPlugin implements Plugin {
         }
     }
 
-    protected Compile configureTestCompile(Compile compile, def javaConvention, Map propertyMapping) {
-        compile.skipProperties << Test.SKIP_TEST
-        configureCompile(compile, javaConvention, propertyMapping)
+    protected Compile configureTestCompile(Compile testCompile, Compile compile, def javaConvention, Map propertyMapping) {
+        testCompile.skipProperties << Test.SKIP_TEST
+        configureCompile(testCompile, javaConvention, propertyMapping)
+        testCompile.doFirst {
+            it.unmanagedClasspath(compile.unmanagedClasspath as Object[])
+        }
     }
 
     protected Compile configureCompile(Compile compile, def javaConvention, Map propertyMapping) {
