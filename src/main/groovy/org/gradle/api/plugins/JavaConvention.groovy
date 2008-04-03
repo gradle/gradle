@@ -45,6 +45,8 @@ class JavaConvention {
     File testClassesDir
     File testResultsDir
     File distDir
+    File docDir
+    File javadocDir
     String sourceCompatibility
     String targetCompatibility
 
@@ -60,6 +62,8 @@ class JavaConvention {
         classesDir = new File(project.buildDir, 'classes')
         testClassesDir = new File(project.buildDir, 'test-classes')
         distDir = new File(project.buildDir, 'distributions')
+        docDir = new File(project.buildDir, 'docs')
+        javadocDir = new File(docDir, 'javadocs')
         srcDirs << new File(srcRoot, 'main/java')
         resourceDirs << new File(srcRoot, 'main/resources')
         testSrcDirs << new File(srcRoot, 'test/java')

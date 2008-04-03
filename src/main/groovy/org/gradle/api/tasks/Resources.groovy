@@ -28,12 +28,13 @@ import org.slf4j.LoggerFactory
 /**
 * @author Hans Dockter
 */
+// todo: rename targetDir to destinationDir
 class Resources extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Resources)
 
     Resources self
 
-    Set sourceDirs = []
+    List sourceDirs = []
 
     File targetDir
 
@@ -59,8 +60,8 @@ class Resources extends ConventionTask {
     }
 
     private void copyResources(Task task) {
-        List existingSourceDirs = existentDirsFilter.findExistingDirsAndLogexitMessages(self.sourceDirs)
-        if (!existingSourceDirs) { return }
+        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
+                self.targetDir, self.sourceDirs)
         
         List copyInstructions = existingSourceDirs.collect { File sourceDir ->
             Set includes = getSetFromMap(sourceDirIncludes, sourceDir) + globalIncludes

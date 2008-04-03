@@ -29,6 +29,7 @@ import org.gradle.api.tasks.compile.AntJavac
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.api.tasks.javadoc.Javadoc
 
 /**
  * @author Hans Dockter
@@ -43,6 +44,7 @@ class JavaPlugin implements Plugin {
     static final String DISTS = 'dists'
     static final String UPLOAD_LIBS = 'uploadLibs'
     static final String CLEAN = 'clean'
+    static final String JAVADOC = 'javadoc'
 
     static final String RUNTIME = 'runtime'
     static final String TEST_RUNTIME = 'testRuntime'
@@ -59,6 +61,8 @@ class JavaPlugin implements Plugin {
         project.status = 'integration'
 
         project.createTask(CLEAN, type: Clean).convention(javaConvention, DefaultConventionsToPropertiesMapping.CLEAN)
+
+        project.createTask(JAVADOC, type: Javadoc).convention(javaConvention, DefaultConventionsToPropertiesMapping.JAVADOC)
 
         project.createTask(RESOURCES, type: Resources).convention(javaConvention, DefaultConventionsToPropertiesMapping.RESOURCES)
 

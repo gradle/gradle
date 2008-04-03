@@ -24,6 +24,7 @@ import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.util.HelperUtil
 import org.gradle.util.TestConsts
 import org.gradle.wrapper.Install
+import org.gradle.MainTest
 
 /**
  * @author Hans Dockter
@@ -53,7 +54,7 @@ class WrapperTest extends AbstractConventionTaskTest {
     }
 
     void tearDown() {
-        System.properties[Main.GRADLE_HOME] = Main.GRADLE_HOME
+        System.properties[Main.GRADLE_HOME] = MainTest.TEST_GRADLE_HOME
         HelperUtil.deleteTestDir()
     }
 

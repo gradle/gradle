@@ -70,7 +70,7 @@ class Test extends ConventionTask {
         if (!self.compiledTestsDir) throw new InvalidUserDataException("The compiledTestDir property is not set, testing can't be triggered!")
         if (!self.testResultsDir) throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!")
 
-        if (!existingDirsFilter.checkExistenceAndLogExitMessage(self.compiledTestsDir)) {return}
+        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(self.compiledTestsDir)
 
         List classpath = classpathConverter.createFileClasspath(
                 project.rootDir, self.unmanagedClasspath as Object[]) + self.dependencyManager.resolveClasspath(name)

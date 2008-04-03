@@ -25,6 +25,7 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.util.ExistingDirsFilter
+import org.gradle.api.tasks.StopActionException
 
 /**
  * @author Hans Dockter
@@ -74,9 +75,7 @@ class TestTest extends AbstractConventionTaskTest {
     void testExecute() {
         setUpMocks(test)
 
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {File dir ->
-            assertEquals(TEST_TEST_CLASSES_DIR, dir)
-            true}] as ExistingDirsFilter
+        setExistingDirsFilter()
 
         antJUnitMocker.demand.execute(1..1) {File compiledTestClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
@@ -97,9 +96,7 @@ class TestTest extends AbstractConventionTaskTest {
     void testExecuteWithTestFailuresAndStopAtFailures() {
         setUpMocks(test)
 
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {File dir ->
-            assertEquals(TEST_TEST_CLASSES_DIR, dir)
-            true}] as ExistingDirsFilter
+        setExistingDirsFilter()
 
         antJUnitMocker.demand.execute(1..1) {File compiledTestClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
@@ -116,9 +113,7 @@ class TestTest extends AbstractConventionTaskTest {
     void testExecuteWithTestFailuresAndContinueWithFailures() {
         setUpMocks(test)
         test.stopAtFailuresOrErrors = false
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {File dir ->
-            assertEquals(TEST_TEST_CLASSES_DIR, dir)
-            true}] as ExistingDirsFilter
+        setExistingDirsFilter()
 
         antJUnitMocker.demand.execute(1..1) {File compiledTestClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
@@ -150,7 +145,10 @@ class TestTest extends AbstractConventionTaskTest {
         setUpMocks(test)
         test.unmanagedClasspath = null
 
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {false}] as ExistingDirsFilter
+        test.existingDirsFilter = [checkExistenceAndThrowStopActionIfNot: {File dir ->
+            assertEquals(TEST_TEST_CLASSES_DIR, dir)
+            throw new StopActionException()
+        }] as ExistingDirsFilter
 
         antJUnitMocker.demand.execute(0..0) {File compiledTestClassesDir, List classpath, File testResultsDir,
                                              List includes, List excludes, JunitOptions junitOptions, List jvmArgs,
@@ -200,6 +198,12 @@ class TestTest extends AbstractConventionTaskTest {
         List list2 = [['b', 'c']]
         test.unmanagedClasspath(list2)
         assertEquals(list1 + list2.flatten(), test.unmanagedClasspath)
+    }
+
+    private setExistingDirsFilter() {
+        test.existingDirsFilter = [checkExistenceAndThrowStopActionIfNot: {File dir ->
+            assertEquals(TEST_TEST_CLASSES_DIR, dir)
+        }] as ExistingDirsFilter
     }
 
 }

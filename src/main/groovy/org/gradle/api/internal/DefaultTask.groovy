@@ -26,6 +26,7 @@ import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.util.GradleUtil
+import org.gradle.api.tasks.StopActionException
 
 /**
  * @author Hans Dockter
@@ -94,6 +95,9 @@ class DefaultTask implements Task {
                 } catch (StopExecutionException e) {
                     logger.info("Execution stopped by some action with message: $e.message")
                     break
+                } catch (StopActionException e) {
+                    logger.debug("Action stopped by some action with message: $e.message")
+                    continue
                 } catch (Throwable t) {
                     throw new GradleScriptException(t, project?.buildScriptFinder?.buildFileName ?: 'unknown')
                 }

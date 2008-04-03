@@ -159,6 +159,21 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertTrue(task.executed)
     }
 
+    void testStopAction() {
+        task.actions = []
+        Closure action1 = {
+            throw new StopActionException()
+            fail()
+        }
+        boolean action2Called = false
+        Closure action2 = {action2Called = true}
+        task.doFirst(action2)
+        task.doFirst(action1)
+        task.execute()
+        assertTrue(action2Called)
+        assertTrue(task.executed)
+    }
+
     void testSkipProperties() {
         task.skipProperties = ['prop1']
         boolean action1Called = false

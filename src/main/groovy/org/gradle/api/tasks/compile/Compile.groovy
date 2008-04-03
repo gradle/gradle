@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 /**
 * @author Hans Dockter
 */
+// todo: rename targetDir to destinationDir
 class Compile extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Compile)
 
@@ -61,10 +62,9 @@ class Compile extends ConventionTask {
 
     protected void compile(Task task) {
         if (!self.antCompile) throw new InvalidUserDataException("The ant compile command must be set!")
-        if (!self.targetDir) throw new InvalidUserDataException("The target dir is not set, compile can't be triggered!")
 
-        List existingSourceDirs = existentDirsFilter.findExistingDirsAndLogexitMessages(self.sourceDirs)
-        if (!existingSourceDirs) {return}
+        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
+                self.targetDir, self.sourceDirs)
 
         if (!self.sourceCompatibility || !self.targetCompatibility) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!")

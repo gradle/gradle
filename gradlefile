@@ -86,16 +86,21 @@ test {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere"])
 }
 
-manifest.mainAttributes([(Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
-    path, file -> path + file.name + ' '
-}])
+manifest.mainAttributes([
+        (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
+            path, file -> path + file.name + ' '
+        }
+        
+])
 
 // todo: Add DefaultArchiveTask
 libs.tasksBaseName = distName
 
 explodedDistDir = new File(distDir, 'exploded')
+explodedDistDocsDir = new File(explodedDistDir, 'docs')
+explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
-explodedDistTutorialDir = new File(explodedDistDir, 'tutorial')
+explodedDistTutorialDir = new File(explodedDistSamplesDir, 'tutorial')
 
 createTask('explodedDist', dependsOn: 'libs') {
     [explodedDistDir, explodedDistSamplesDir, explodedDistTutorialDir]*.mkdirs()
@@ -157,6 +162,10 @@ dists {
     }
 }
 
+javadoc.destDir = explodedDistJavadocsDir
+
+createTask('distsWithJavadoc').dependsOn 'dists', 'javadoc'
+
 // The integtests depend on dists because of the wrapper test
 createTask('integTests', dependsOn: 'dists') {
     String distDirPath = explodedDistDir.absolutePath
@@ -194,7 +203,7 @@ createTask('install', dependsOn: 'integTests') {
 }
 
 uploadDists {
-    dependsOn 'integTests'
+    dependsOn 'integTests', 'distsWithJavadoc'
 }.doFirst {
     it.uploadResolvers.add(new WebdavResolver()) {
         name = 'gradleReleases'
