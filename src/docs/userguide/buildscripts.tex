@@ -1,22 +1,94 @@
 \chapter{Gradle Build Scripts}
 
-\VerbatimInput[frame=topline, framesep=3mm]{datefile}
+% \begin{figur+e}
+% \caption{Listing}
+% \VerbatimInput[frame=topline, framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/datefile}
+% \VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/datefile.out}
+% \end{figure}
 
+If you execute a build, Gradle normally looks for a file called \texttt{gradlefile} in the current directory (There are command line switches to change this behavior. See Appendix \ref{cha:command_line}. We call the gradlefile a build script. Although strictly speaking it is a build configuration script, as we see later.
 
-\begin{figure}
-\caption{Listing}
-\begin{Verbatim}[frame=topline, framesep=3mm]
-createTask('count') {
-    4.times { print "$it" }
-}
-\end{Verbatim}
-\begin{Verbatim}[frame=single, framesep=1mm, framerule=1mm]
-output
-\end{Verbatim}
-\end{figure}
+In Gradle the location of the build script file defines a project. The project corresponds to the filesystem subtree, starting with the directory containing the build script. The name of this directory is the name of the project. This becomes very important when we turn to [multi-project builds].
 
-% \begin{lstlisting}
-% createTask('count') {
-%     4.times { print "$it" }
-% }
-% \end{lstlisting}
+\section{Tasks}
+In Gradle everything revolves around tasks. The tasks for your build are defined in the build script. To try this out, create the following build script named \texttt{gradlefile} and enter with your shell into the containing directory.
+
+\VerbatimInput{../../../build/distributions/exploded/samples/tutorial/hellofile}
+\noindent Now execute the build script:
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/hellofile.out}
+
+If you think this looks damn similar to Ant's targets, well, you are right. Gradle tasks are the equivalent to Ant targets. But as you will see, they are much more powerful. We have used a different terminology to Ant as we think the word 'task' is more expressive than the word 'target'. Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands like \texttt{javac} or \texttt{copy}, a task. So if we talk about tasks, we \textbf{always} mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we explicitly say \textbf{ant} task.
+
+\subsection{Build scripts are code}
+Gradles build scripts expose to you the full power of Groovy. As an appetizer, have a look at this:
+
+\VerbatimInput[framesep=1mm]{../../../build/distributions/exploded/samples/tutorial/datefile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/datefile.out}
+\noindent or
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/countfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/countfile.out}
+
+\subsection{Task dependencies}
+As you have guessed, you can declare dependencies for your tasks.
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/introfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/introfile.out}
+\noindent To add a dependency it does not need to exist. The dependency of targetX to targetY is declared before targetY is created. This is a very important for multi-project builds.
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/lazyDependsOnfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/lazyDependsOnfile.out}
+
+\subsection{Dynamic tasks}
+The power of Groovy can not only be used inside the tasks. You can use it for example to dynamically create tasks.
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/dynamicfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/dynamicfile.out}
+
+\subsection{Manipulating existing tasks}
+Once tasks are created they can be accessed to manipulate them. This is different to Ant. For example you can create additional dependencies.
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/dynamicDependsfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/dynamicDependsfile.out}
+
+\noindent Or you can add behavior to an existing task.
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/helloEnhancedfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/helloEnhancedfile.out}
+
+The calls \texttt{doFirst} and \texttt{doLast} can be executed multiple times. What they do is adding an action to the beginning or the end of the tasks actions list.
+
+\subsection{Shortcut notations}
+There is a convenient notation for accessing existing tasks.
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/helloWithShortCutfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/helloWithShortCutfile.out}
+
+\noindent This enables very readable code. Especially when using the out of the box tasks like compile.
+
+\subsection{Ant}
+Let's talk a little bit about Gradles Ant integration. Ant can be divided into two layers. The first layer is the Ant language. It contains the syntax for the build.xml, the handling of the targets, special constructs like macrodefs, etc. Basically everything except the Ant tasks. Gradle does not offer any special integration for this first layer. Of course you can in your build script execute an Ant build as an external process. Your build script may contain statements like: \texttt{"ant clean compile".execute()}
+To learn more about executing external processes with Groovy have a look in GINA 9.3.2 or at the groovy wiki.
+The second layer of Ant is its wealth of Ant tasks like javac, copy, jar, .... For this layer Gradle provides excellent integration simply by relying on Groovy. Groovy is shipped with the fantastic AntBuilder. Using Ant tasks from Gradle is as convenient and more powerful than using Ant tasks from a build.xml file. Let's look at an example:
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/antChecksumfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/antChecksumfile.out}
+
+In your build script, a property called ant is provided by Gradle. It is a reference to an instance of Groovys AntBuilder. The AntBuilder is used the following way:
+\begin{itemize}
+\item Ant task names corresponds to AntBuilder method names.
+\item Ant tasks attributes are arguments for this methods. The arguments are apssed in form of a map.
+\item Nested Ant tasks corresponds to method calls of the passed closure.
+\end{itemize}
+To learn more about the Ant Builder have a look in GINA 8.4 or at the Groovy Wiki
+
+\subsection{Using methods}
+We have said that Gradle scales in how you can organize your build logic. The first level of organizing your build logic for the example above, is extracting a method.
+
+\VerbatimInput[framesep=3mm]{../../../build/distributions/exploded/samples/tutorial/antChecksumWithMethodfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/antChecksumWithMethodfile.out}
+
+\noindent Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See Chapter \ref{cha:organizing_build_logic}. 
+
+\subsection{Summary}
+This is not the end of the story for tasks. So far we have worked with simple tasks. In the next sections you will learn about more powerful tasks when we look at how to use Gradles build in tasks and Gradles powerful and very flexible build-by-convention functionality.
+
