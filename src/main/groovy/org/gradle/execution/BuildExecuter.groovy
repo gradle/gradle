@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class BuildExecuter {
-    Logger logger = LoggerFactory.getLogger(BuildExecuter)
+    private static Logger logger = LoggerFactory.getLogger(BuildExecuter)
 
     Dag dag
 
