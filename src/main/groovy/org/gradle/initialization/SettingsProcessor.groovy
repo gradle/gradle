@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class SettingsProcessor {
-    static Logger logger = LoggerFactory.getLogger(SettingsProcessor)
+    private static  Logger logger = LoggerFactory.getLogger(SettingsProcessor)
 
     final static String DEFAULT_SETUP_FILE = "gradlesettings"
 

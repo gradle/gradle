@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class BuildSourceBuilder {
-    Logger logger = LoggerFactory.getLogger(BuildSourceBuilder)
+    private static Logger logger = LoggerFactory.getLogger(BuildSourceBuilder)
 
     static final BUILD_SRC_ORG = 'org.gradle'
     static final BUILD_SRC_MODULE = 'buildSrc'

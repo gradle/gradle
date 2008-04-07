@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class ProjectsLoader {
-    Logger logger = LoggerFactory.getLogger(ProjectsLoader)
+    private static Logger logger = LoggerFactory.getLogger(ProjectsLoader)
 
     static final String GRADLE_PROPERTIES = 'gradle.properties'
 

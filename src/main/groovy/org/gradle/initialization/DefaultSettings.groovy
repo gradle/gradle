@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class DefaultSettings implements Settings {
-    Logger logger = LoggerFactory.getLogger(DefaultSettings)
+    private static Logger logger = LoggerFactory.getLogger(DefaultSettings)
     static final String BUILD_CONFIGURATION = 'build'
     static final String DEFAULT_BUILD_SRC_DIR = 'buildSrc'
 
