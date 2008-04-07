@@ -32,7 +32,7 @@ import org.gradle.api.tasks.StopActionException
  * @author Hans Dockter
  */
 class DefaultTask implements Task {
-    Logger logger = LoggerFactory.getLogger(DefaultTask)
+    private static Logger logger = LoggerFactory.getLogger(DefaultTask)
 
     AntBuilder ant = new AntBuilder()
 

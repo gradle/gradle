@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class BuildScriptProcessor {
-    Logger logger = LoggerFactory.getLogger(BuildScriptProcessor)
+    private static Logger logger = LoggerFactory.getLogger(BuildScriptProcessor)
 
     ClassLoader classLoader
 

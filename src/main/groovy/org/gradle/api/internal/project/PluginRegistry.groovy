@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 */
 
 class PluginRegistry {
-    Logger logger = LoggerFactory.getLogger(PluginRegistry)
+    private static Logger logger = LoggerFactory.getLogger(PluginRegistry)
 
     private Properties properties = new Properties()
 

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class DefaultProject implements Comparable, Project {
-    static Logger logger = LoggerFactory.getLogger(DefaultProject)
+    private static  Logger logger = LoggerFactory.getLogger(DefaultProject)
 
     static final int STATE_CREATED = 0
 
