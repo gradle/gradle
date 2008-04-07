@@ -28,9 +28,9 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class ModuleDescriptorConverter {
-    static Logger logger = LoggerFactory.getLogger(ModuleDescriptorConverter)
-    
-    static final String DEFAULT_STATUS = 'integration' 
+    private static Logger logger = LoggerFactory.getLogger(ModuleDescriptorConverter)
+
+    static final String DEFAULT_STATUS = 'integration'
 
     ModuleDescriptorConverter() {
     }
@@ -68,5 +68,4 @@ class ModuleDescriptorConverter {
             }
         }
     }
-
 }

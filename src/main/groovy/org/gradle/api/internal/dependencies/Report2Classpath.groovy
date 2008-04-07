@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class Report2Classpath {
-    Logger logger = LoggerFactory.getLogger(Report2Classpath)
+    private static Logger logger = LoggerFactory.getLogger(Report2Classpath)
 
     public List getClasspath(String configuration, ResolveReport resolveReport) {
         getAllArtifactReports(resolveReport, configuration).collect {ArtifactDownloadReport artifactDownloadReport ->
