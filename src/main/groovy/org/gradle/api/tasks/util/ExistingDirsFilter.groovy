@@ -25,7 +25,7 @@ import org.gradle.api.InvalidUserDataException
  * @author Hans Dockter
  */
 class ExistingDirsFilter {
-    Logger logger = LoggerFactory.getLogger(ExistingDirsFilter)
+    private static Logger logger = LoggerFactory.getLogger(ExistingDirsFilter)
     
     Collection findExistingDirs(Collection dirFiles) {
         dirFiles.findAll {File file -> file.isDirectory()}

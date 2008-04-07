@@ -31,7 +31,7 @@ import org.gradle.util.GradleUtil
  * @author Hans Dockter
  */
 abstract class AbstractArchiveTask extends ConventionTask {
-    Logger logger = LoggerFactory.getLogger(AbstractArchiveTask)
+    private static Logger logger = LoggerFactory.getLogger(AbstractArchiveTask)
 
     File baseDir
     

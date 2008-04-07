@@ -28,7 +28,7 @@ import org.gradle.util.GradleUtil
 //todo: offer all the power of ant selectors
 //todo: Find a more stable way to find the ant junit jars
 class AntJunit {
-    Logger logger = LoggerFactory.getLogger(AntJunit)
+    private static Logger logger = LoggerFactory.getLogger(AntJunit)
 
     static final String CLASSPATH_ID = 'runtests.classpath'
 

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class Upload extends ConventionTask {
-    Logger logger = LoggerFactory.getLogger(Upload)
+    private static Logger logger = LoggerFactory.getLogger(Upload)
     
     boolean uploadModuleDescriptor = false
     List configurations = []
