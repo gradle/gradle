@@ -38,6 +38,7 @@ class JavaConvention {
 
     File srcRoot
     List srcDirs = []
+    File srcDocsDir
     List resourceDirs = []
     File classesDir
     List testSrcDirs = []
@@ -65,6 +66,7 @@ class JavaConvention {
         docDir = new File(project.buildDir, 'docs')
         javadocDir = new File(docDir, 'javadocs')
         srcDirs << new File(srcRoot, 'main/java')
+        srcDocsDir = new File(srcRoot, 'docs')
         resourceDirs << new File(srcRoot, 'main/resources')
         testSrcDirs << new File(srcRoot, 'test/java')
         testResourceDirs << new File(srcRoot, 'test/resources')
