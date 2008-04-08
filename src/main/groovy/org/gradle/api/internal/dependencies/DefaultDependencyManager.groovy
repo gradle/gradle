@@ -18,8 +18,6 @@ package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
@@ -32,32 +30,15 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.dependencies.ModuleDependency
-import org.gradle.util.GradleUtil
+import org.gradle.api.dependencies.GradleArtifact
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.dependencies.GradleArtifact
 
 /**
  * @author Hans Dockter
- * todo: map tasks to configurations not vice versa
  */
-class DefaultDependencyManager implements DependencyManager {
-    Logger logger = LoggerFactory.getLogger(DefaultDependencyManager)
-
-    Project project
-
-    Ivy ivy
-
-    DependencyFactory dependencyFactory
-
-    ArtifactFactory artifactFactory
-
-    SettingsConverter settingsConverter
-
-    ModuleDescriptorConverter moduleDescriptorConverter
-
-    Report2Classpath report2Classpath
+class DefaultDependencyManager extends DependencyContainer implements DependencyManager {
+    private static Logger logger = LoggerFactory.getLogger(DefaultDependencyManager)
 
     /**
      * A map where the key is the name of the configuration and the values are Ivy configuration objects.
@@ -65,24 +46,12 @@ class DefaultDependencyManager implements DependencyManager {
     Map configurations = [:]
 
     /**
-     * A list of Gradle Dependency objects.
-     */
-    List dependencies = []
-
-    /**
-     * A list for passing directly instances of Ivy DependencyDescriptor objects.
-     */
-    List dependencyDescriptors = []
-
-    ResolverContainer classpathResolvers = new ResolverContainer()
-
-    /**
      * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
      */
     Map artifacts = [:]
 
     /**
-     * A list for passing directly instances of Ivy Artifact objects.  
+     * A list for passing directly instances of Ivy Artifact objects.
      */
     Map artifactDescriptors = [:]
 
@@ -90,6 +59,20 @@ class DefaultDependencyManager implements DependencyManager {
      * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
      */
     List artifactPatterns = []
+
+    ArtifactFactory artifactFactory
+
+    Project project
+
+    Ivy ivy
+
+    SettingsConverter settingsConverter
+
+    ModuleDescriptorConverter moduleDescriptorConverter
+
+    Report2Classpath report2Classpath
+
+    ResolverContainer classpathResolvers = new ResolverContainer()
 
     /**
      * The name of the task which produces the artifacts of this project. This is needed by other projects,
@@ -118,70 +101,16 @@ class DefaultDependencyManager implements DependencyManager {
     DefaultDependencyManager(Ivy ivy, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
                              SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                              Report2Classpath report2Classpath, File buildResolverDir) {
+        super(dependencyFactory, [])
         assert buildResolverDir
         this.ivy = ivy
-        this.dependencyFactory = dependencyFactory
         this.artifactFactory = artifactFactory
         this.settingsConverter = settingsConverter
         this.moduleDescriptorConverter = moduleDescriptorConverter
         this.report2Classpath = report2Classpath
         this.buildResolverDir = buildResolverDir
     }
-
-    DependencyManager configure(Closure closure) {
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        closure.delegate = this
-        closure()
-        this
-    }
-
-    void addDependencies(List confs, Object[] dependencies) {
-        (dependencies as List).flatten().each {
-            this.dependencies << dependencyFactory.createDependency(confs as Set, it, project)
-        }
-    }
-
-    ModuleDependency addDependency(Map args, Closure configureClosure = null) {
-        def dependency = dependencyFactory.createDependency(args.confs as Set, args.id as String, project)
-        dependencies << dependency
-        GradleUtil.configure(configureClosure, dependency)
-        dependency
-    }
-
-    void addArtifacts(String configurationName, Object[] artifacts) {
-        if (!this.artifacts[configurationName]) {
-            this.artifacts[configurationName] = []
-        }
-        (artifacts as List).flatten().each {
-            GradleArtifact gradleArtifact = artifactFactory.createGradleArtifact(it)
-            logger.debug("Adding $gradleArtifact to configuration=$configurationName")
-            this.artifacts[configurationName] << gradleArtifact
-        }
-    }
-
-
-    void addConfiguration(Configuration configuration) {
-        configurations[configuration.name] = configuration
-    }
-
-    void addConfiguration(String configuration) {
-        configurations[configuration] = new Configuration(configuration)
-    }
-
-    def methodMissing(String name, args) {
-        if (!configurations[name]) {
-            if (!getMetaClass().respondsTo(this, name, args)) {
-                throw new MissingMethodException(name, this.getClass(), args)
-            }
-            return getMetaClass().invokeMethod(this, name, args)
-        }
-        addDependencies([name], args as Object[])
-    }
-
-    void addDependencyDescriptors(DependencyDescriptor[] dependencyDescriptors) {
-        this.dependencyDescriptors.addAll(dependencyDescriptors as List)
-    }
-
+    
     List resolveClasspath(String taskName) {
         String conf = task2Conf[taskName] ?: taskName
         ivy = getIvy()
@@ -202,13 +131,18 @@ class DefaultDependencyManager implements DependencyManager {
             moduleDescriptor.toIvyFile(ivyFile)
             publishOptions.srcIvyPattern = ivyFile.absolutePath
         }
+        publishToResolvers(configurations, resolvers, moduleDescriptor, publishOptions)
+    }
+
+    private void publishToResolvers(List configurations, ResolverContainer resolvers, ModuleDescriptor moduleDescriptor,
+                                    PublishOptions publishOptions) {
         publishOptions.setOverwrite(true)
         publishOptions.confs = configurations
         Ivy ivy = ivy(resolvers.resolverList)
         resolvers.resolverList.each {resolver ->
             logger.info("Publishing to Resolver $resolver")
             ivy.publishEngine.publish(moduleDescriptor,
-                    artifactPatterns.collect {pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
+                    artifactPatterns.collect{pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
         }
     }
 
@@ -223,7 +157,7 @@ class DefaultDependencyManager implements DependencyManager {
     Ivy ivy(List resolvers) {
         ivy = ivy.newInstance(settingsConverter.convert(classpathResolvers.resolverList,
                 resolvers,
-                new File(project.gradleUserHome), getBuildResolver()))
+                new File(project.gradleUserHome), getBuildResolver(), clientModuleRegistry))
     }
 
     void addConf2Tasks(String conf, String[] tasks) {
@@ -245,21 +179,51 @@ class DefaultDependencyManager implements DependencyManager {
         }
     }
 
+    void addArtifacts(String configurationName, Object[] artifacts) {
+        if (!this.artifacts[configurationName]) {
+            this.artifacts[configurationName] = []
+        }
+        (artifacts as List).flatten().each {
+            GradleArtifact gradleArtifact = artifactFactory.createGradleArtifact(it)
+            logger.debug("Adding $gradleArtifact to configuration=$configurationName")
+            this.artifacts[configurationName] << gradleArtifact
+        }
+    }
+
     RepositoryResolver getBuildResolver() {
         if (!buildResolver) {
             assert buildResolverDir
-            DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager()
-            cacheManager.basedir = new File(buildResolverDir, 'cache')
-            cacheManager.name = 'build-resolver-cache'
-            cacheManager.useOrigin = true
-            cacheManager.lockStrategy = new NoLockStrategy()
             buildResolver = new FileSystemResolver()
-            buildResolver.setRepositoryCacheManager(cacheManager)
-            buildResolver.name = DependencyManager.BUILD_RESOLVER_NAME
-            String pattern = "$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"
-            buildResolver.addIvyPattern(pattern)
-            buildResolver.addArtifactPattern(pattern)
+            configureBuildResolver(buildResolver, createCacheManager())
         }
         buildResolver
     }
+
+    private void configureBuildResolver(FileSystemResolver buildResolver, DefaultRepositoryCacheManager cacheManager) {
+        buildResolver.setRepositoryCacheManager(cacheManager)
+        buildResolver.name = DependencyManager.BUILD_RESOLVER_NAME
+        String pattern = "$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"
+        buildResolver.addIvyPattern(pattern)
+        buildResolver.addArtifactPattern(pattern)
+    }
+
+    private DefaultRepositoryCacheManager createCacheManager() {
+        DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager()
+        cacheManager.basedir = new File(buildResolverDir, 'cache')
+        cacheManager.name = 'build-resolver-cache'
+        cacheManager.useOrigin = true
+        cacheManager.lockStrategy = new NoLockStrategy()
+        cacheManager
+    }
+
+    def methodMissing(String name, args) {
+        if (!configurations[name]) {
+            if (!getMetaClass().respondsTo(this, name, args)) {
+                throw new MissingMethodException(name, this.getClass(), args)
+            }
+            return getMetaClass().invokeMethod(this, name, args)
+        }
+        addDependencies([name], args as Object[])
+    }
 }
+

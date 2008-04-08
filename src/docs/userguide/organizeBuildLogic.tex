@@ -1,5 +1,29 @@
-%!TEX root = /Users/hans/IdeaProjects/gradle/gradle-core/src/docs/userguide/master.tex
 \chapter{Organizing Build Logic} % (fold)
 \label{cha:organizing_build_logic}
+% The requirements for a build is often far more than what out-of-the box functionality of any build system has to offer. A build has many responsibilities with often very specific requirements for a particular project, in particular in the enterprise. So a good build system should make applying your custom logic as easy, as maintainable and as powerful as possible. This is the real acid test for any build system and what counts most at the end. Out-of-the box functionality is nice to have but when your specific requirements are hard or impossible to implement it is worth not much. 
+Gradle offers a variety of ways to organize your custom build logic. First of all you can put your build logic directly in the action closure of a task. If a couple of tasks share the same logic you can extract this logic into a method. If multiple projects of a multi-project build share some logic you can define this method in the parent project and thus can access this method from all the subprojects. If the build logic gets too complex for being properly modeled by a set of methods you want to model it with classes. Gradle makes this very easy. Just drop your classes in a particular folder and Gradle automatically compiles them and puts them in the classpath of your build script.
+
+\section{Build Sources} % (fold)
+\label{sec:build_sources}
+If you run Gradle, it checks for the existence of a top level project folder called \texttt{buildSrc}. If you create such a folder and follow the layout convention \ref{} for a Java/Groovy project Gradle automatically compiles and tests this code and puts it in the classpath of your build script. You don't need to provide any further instruction. This probably is good enough in most of the cases. If you need more flexibility, you can provide a \texttt{gradlefile} and a \texttt{gradlesettings} file in the \texttt{buildSrc} folder. If you like, you can even have a multi-project build in there.
+% section build_sources (end)
+
+\section{External dependencies} % (fold)
+\label{sec:external_dependencies}
+If your build script need external libraries you can declare them in the \texttt{gradlesettings} file. This is an optional file for single project builds, but if you want to put external libraries in your build script classpath you need to provide a \texttt{gradlesetting} file which looks for example like this:
+
+\begin{Verbatim}[label=gradlesettings]
+addDependencies("commons-math:commons-math:1.1:jar")	
+\end{Verbatim}
+
+You can pass any of the dependencies described in section \ref{sub:dependencies} (except project dependencies). There is no need to provide a \emph{configuration}.
+% section external_dependencies (end)
+
+\section{Philosophy} % (fold)
+\label{sec:philosophy}
+Gradle offers you a variety of ways of organizing your build logic. You can choose what is right for your domain and find the right balance between unnecessary indirections, and avoiding redundancy and a hard to maintain code base. 
+It is our experience that even very complex custom build logic is rarely shared between different builds. So instead of enforcing the unnecessary overhead and indirection of creating a separate project for such build logic you can use the Gradle build sources mechanism.
+% section philosophy (end)
+
 
 % chapter organizing_build_logic (end)

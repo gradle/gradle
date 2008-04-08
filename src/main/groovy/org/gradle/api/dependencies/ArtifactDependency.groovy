@@ -40,7 +40,7 @@ class ArtifactDependency extends AbstractDependency {
     DependencyDescriptor createDepencencyDescriptor() {
         List dependencyParts = (userDependencyDescription as String).split(':')
         DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null, createModuleRevisionId(dependencyParts[0], dependencyParts[1], dependencyParts[2]), false, false, false)
-        DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(dependencyParts[1] + '-' + dependencyParts[2], dependencyParts[3], dependencyParts[3], null, null)
+        DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(dependencyParts[1], dependencyParts[3], dependencyParts[3], null, null)
         dd.addDependencyArtifact(Dependency.DEFAULT_CONFIGURATION, artifactDescriptor)
         confs.each {
             dd.addDependencyConfiguration(it, Dependency.DEFAULT_CONFIGURATION)

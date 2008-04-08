@@ -1,12 +1,12 @@
 \chapter{The problem with Mavens dependency management} % (fold)
 \label{cha:the_problem_with_mavens_dependency_management}
 
-\subsection{Mavens fake first level dependencies} % (fold)
-\label{sub:mavens_fake_first_level_dependencies}
+\section{Mavens fake first level dependencies} % (fold)
+\label{sec:mavens_fake_first_level_dependencies}
 
 It is essential to have expressiveness regarding what are first level dependencies and what are dependencies of dependencies. See the discussion in \ref{sub:transitive_dependency_management}.
 
-Maven is not as expressive about this as you might think. Here is an example of a very common situation. Let's say you want to use dom4j. In Listing~\ref{fakeFirstLevelPom} you can see dom4j's pom.xml. Assume you want to use the optional xpath functionality of dom4j. Dom4j needs Jaxen to support this. As not everybody uses the xpath functionality, Jaxen is an optional dependency of dom4j. 
+Maven is not always expressive about this. Here is an example of a very common situation. Let's say you want to use dom4j. In Listing~\ref{fakeFirstLevelPom} you can see dom4j's pom.xml as it resides in the repository. Assume you want to use the optional xpath functionality of dom4j. Dom4j needs Jaxen to support this. As not everybody uses the xpath functionality, Jaxen is an optional dependency of dom4j. 
 
 \begin{figure}
 	\caption{fakeFirstLevelPom}
@@ -60,20 +60,20 @@ Maven is not as expressive about this as you might think. Here is an example of 
 	\end{Verbatim}	
 \end{figure}
 
-To use dom4j with XPath support, you have to declare Jaxen as a first level dependency (see \ref{useDom4jPom} and the build expresses no longer, that Jaxen is used in this project only as a dependency of dom4j. If Jaxen is additionally a first level dependency or an optional transitive dependency of another first level dependency you’re back in the jar hell, because you don’t know which dependencies to remove if some others are not needed any longer. If Maven would introduce an include tag for a dependency description of dom4j one could at least express this situation properly. I don’t know if this is work in progress. With Ivy you can define multiple configurations for dom4j to solve the situation. In this case you might define a default configuration and a xpath-configuration in the ivy.xml which resides in your repository. You can also use Gradle's \emph{Client Module Dependencies} (see \ref{ssub:client_module_dependencies}) to solve this problem. Both solutions do correctly express what are first level and what are transitive dependencies.
+To use dom4j with XPath support, you have to declare Jaxen as a first level dependency (see \ref{useDom4jPom} and the build expresses no longer, that Jaxen is used in this project only as a dependency of dom4j. If Jaxen is additionally a first level dependency or an optional transitive dependency of another first level dependency you’re back in the jar hell, because you don’t know which dependencies to remove if some others are not needed any longer. If Maven would introduce an include tag for a dependency description of dom4j one could express this situation properly, although you have to do it in every client pom. I don’t know if this is work in progress. With Ivy you can define multiple configurations for dom4j to solve the situation. In this case you might define a default configuration and a xpath-configuration in the ivy.xml which resides in your repository. You can also use Gradle's \emph{Client Module Dependencies} (see \ref{ssub:client_module_dependencies}) to solve this problem. Both solutions do correctly express what are first level and what are transitive dependencies. If you have your own repository you could define your custom pom for dom4j which includes xpath as required. But if another of your projects needs dom4j without xpath, it has to explicitly add an exclude for this. Basically Maven makes it very hard to work with such situations. Therefore many projects go for the simplest approach as described in Listing \ref{useDom4jPom} with the tradeoff that they have a wrong description of there first level dependencies.
 
 % subsection mavens_fake_first_level_dependencies (end)
 
-\subsection{Mavens inflexible transitive dependencies} % (fold)
-\label{sub:mavens_inflexible_transitive_dependencies}
+\section{Mavens inflexible transitive dependencies} % (fold)
+\label{sec:mavens_inflexible_transitive_dependencies}
 
 \subsubsection{Mavens inflexible transitive dependencies}
 In Maven’s dependency handling a jar has one and only one set of dependencies.\footnote{The Maven scope (e.g. compile, runtime, ...) represent different subset of dependencies. But this does not offer a solution for the mentioned problem here.} In Maven terms, one artifact in the ibiblio repository has one and only set of runtime dependencies. This probably does not reflects reality very well. Take the hibernate module. Depending on the usage scenario, its real set of dependencies differ. There might be a hibernate\_without\_cache, hibernate\_with\_tangosol, ... . Or have a look at \ref{sub:mavens_fake_first_level_dependencies}. It would be nice if there could be a dom4j and a dom4j-with-xpath. What Maven offers is the \texttt{optional} keyword. One declares in the repository pom all dependencies which are not necessarily required as optinal. The \texttt{only} purpose of declaring the optional dependencies is for taking the \texttt{version} of this optional dependency into account, if the same dependency is required somewhere else. The optional declarations are handy though for copy and paste. Which already indicates one of the problems. All the projects in the world which need Hibernate with Tangosol have to specify the set of dependencies needed for this. This is against DRY. 
 Maven's lack of multiple configurations for a module also causes another problem. Many pom's in the ibiblio repository are incorrect. For example commons-httpclient-3.0 has junit as a runtime dependency. There is the reasonable policy, that once a pom has made it to ibiblio, it must not be changed to provide reproducibility of the builds. This bug could only be fixed for the next version of commons-http-client (3.1.). If there were the possibility to provide multiple sets of runtime dependencies for a given jar, you could add a correct set of dependencies with a new label. This would not change existing builds but give other builds the possibility to use the correct set of dependencies. A solution to deal with wrong pom data is to use Maven's exclude tag in the dependency declaration. In the case of commons-httpclient-3.0 you would add an exclude tag for junit. Gradle offers something similar. See \ref{ssub:module_dependencies}
 % subsection mavens_inflexible_transitive_dependencies (end)
 
-\subsection{Duplicate Dependencies} % (fold)
-\label{sub:duplicate_dependencies}
+\section{Duplicate Dependencies} % (fold)
+\label{sec:duplicate_dependencies}
 Let's say you want to use dom4j and some other project. Let's say you want to use an XPP reader with dom4j. As this is an optional dependency, you have to do the same as described in \ref{firstleveldeps}. You have to misleadingly declare xpp3 as a first level dependency. Imagine you need also XStream in your project. XStream has a non optional dependency to xpp3\_min (a subset of xpp3). Either you end up with xpp3 and xpp3\_min in your classpath. Or you have to do say:
 
 The latter says on first sight. XStream does not need xpp3. Which is not the case. How to understand the dependencies in a larger build if you have those kind of mechanisms?

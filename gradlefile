@@ -42,24 +42,31 @@ dependencies {
     // todo: Improve dependency handling for xUnit jars
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
 
-    addDependency(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.5-032808") {
-        exclude(module: 'jline')
+    addClientModule(['compile'], "org.codehaus.groovy:groovy-all:1.5.5-032808") {
+        addDependency("commons-cli:commons-cli:1.0")
+        addClientModule("org.apache.ant:ant:1.7.0") {
+            addDependency("org.apache.ant:ant-launcher:1.7.0")
+            addDependencies("org.apache.ant:ant-junit:1.7.0:jar")
+        }
+    }
+
+    addClientModule(['runtime'], "org.tmatesoft.svnkit:svnkit:1.1.6") {
+        addDependencies("org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar")
+    }
+
+    addDependency(['runtime'], "org.apache.ant:ant-junit:1.7.0") {
         exclude(module: 'junit')
     }
-    addDependency(confs: ['runtime'], id: "org.apache.ant:ant-junit:1.7.0") {
-        exclude(module: 'junit')
-    }
-    compile "commons-cli:commons-cli:1.0",
-            "commons-io:commons-io:1.3.1",
-            "commons-lang:commons-lang:2.3",
-            "commons-httpclient:commons-httpclient:3.0",
+    compile "commons-cli:commons-cli:1.0:jar",
+            "commons-io:commons-io:1.3.1:jar",
+            "commons-lang:commons-lang:2.3:jar",
+            "commons-httpclient:commons-httpclient:3.0:jar",
             "slide:webdavlib:2.0",
             "ch.qos.logback:logback-classic:0.9.8",
-            "org.apache.ivy:ivy:2.0.0.beta2_20080305165542"
+            "org.apache.ivy:ivy:2.0.0.beta2_20080305165542:jar"
     runtime "org.apache.ant:ant-launcher:1.7.0",
-            "junit:junit:4.4",
-            "org.tmatesoft.svnkit:svnkit:1.1.6:jar",
-            "org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar"
+            "junit:junit:4.4"
+
     testCompile "junit:junit:4.4"
     distLib "junit:junit:4.4"
     classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
@@ -90,7 +97,6 @@ manifest.mainAttributes([
         (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
             path, file -> path + file.name + ' '
         }
-        
 ])
 
 // todo: Add DefaultArchiveTask
@@ -166,12 +172,58 @@ javadoc.destDir = explodedDistJavadocsDir
 
 createTask('distsWithJavadoc').dependsOn 'dists', 'javadoc'
 
+// This is already a kind of integration test. We have to run the tutorials separately, to get the output for the userguide.
+File tutorialOutputDir = new File(buildDir, 'tutorial-output')
+createTask('tutorialOutput', dependsOn: 'explodedDist') {
+    TutorialCreator.createOutput(explodedDistDir.absolutePath, explodedDistTutorialDir, tutorialOutputDir)
+}.skipProperties << 'integtest.skip'
+
+createTask('userGuide', dependsOn: 'tutorialOutput') {
+    File userguideSrc = new File(srcDocsDir, 'userguide')
+    File userguide = mkdir(docDir, 'userguide')
+    File userguideData = mkdir(userguide, 'data')
+    new File(userguideData, 'version.tex').write(version.toString())
+    ant {
+        cleanLatex(userguideSrc)
+        2.times {
+            exec(output: userguide.path + '/pdfOut', executable: 'pdflatex', dir: userguideSrc) {
+                arg(line: "master.tex")
+            }
+        }
+        copy(file: new File(userguideSrc, 'master.pdf'), tofile: new File(explodedDistDocsDir, 'pdf/userguide.pdf'))
+        cleanLatex(userguideSrc)
+        2.times {
+            exec(output: userguide.path + '/htmlOut', executable: 'htlatex', dir: userguideSrc) {
+                arg(line: "master.tex")
+            }
+        }
+        copy(file: new File(userguideSrc, 'master.html'), tofile: new File(explodedDistDocsDir, 'html_single/userguide.html'))
+        cleanLatex(userguideSrc)
+        2.times {
+            exec(output: userguide.path + '/htmlSingleOut', executable: 'htlatex', dir: userguideSrc) {
+                arg(line: "master.tex \"html,2\"")
+            }
+        }
+        copy(todir: new File(explodedDistDocsDir, 'html')) {
+            fileset(dir: userguideSrc, includes: '*.html')
+        }
+        cleanLatex(userguideSrc)
+    }
+
+}
+
+void cleanLatex(File dir) {
+    ant.delete() {
+        fileset(dir: dir, includes: "*.aux, *.lg, *.tmp, *.html, *.pdf, *.log, *.dvi, *.css, *.fdb_latexmk, *.idv, *.toc, *.xref, *.4ct, *.4tc, *.out")
+    }
+}
+
 // The integtests depend on dists because of the wrapper test
-createTask('integTests', dependsOn: 'dists') {
+createTask('integTests', dependsOn: ['dists', 'tutorialOutput']) {
     String distDirPath = explodedDistDir.absolutePath
     WrapperProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
     org.gradle.build.integtests.Version.execute(distDirPath)
-    TutorialTest.execute(distDirPath, explodedDistTutorialDir.absolutePath)
+    TutorialTest.execute(tutorialOutputDir)
     WaterProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
     JavaProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
     GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
@@ -227,18 +279,6 @@ createTask('wrapper', type: Wrapper).configure {
 //            inline: "true", conf: "default", pathid: "cobertura.classpath")
 //}
 
-//<target name="instrument" depends="compile" unless="test.skip">
-//        <ivy:cachepath organisation="net.sourceforge.cobertura" module="cobertura" revision="1.9"
-//                       inline="true" conf="default" pathid="cobertura.classpath"/>
-//        <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
-//        <delete file="cobertura.ser"/>
-//
-//        <cobertura-instrument todir="${buildInstrumentedCoverageClassesDirectory}">
-//            <fileset dir="${buildClassesDirectory}">
-//                <include name="**/*.class"/>
-//            </fileset>
-//        </cobertura-instrument>
-//    </target>
 
 
 

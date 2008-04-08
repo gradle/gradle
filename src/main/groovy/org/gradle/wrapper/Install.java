@@ -16,7 +16,6 @@
 
 package org.gradle.wrapper;
 
-import java.net.URL;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.zip.ZipFile;
@@ -31,24 +30,33 @@ public class Install {
 
     private IDownload download = new Download();
 
-    private boolean alwaysInstall;
+    private boolean alwaysDownload;
+    private boolean alwaysUnpack;
 
-    public Install(boolean alwaysInstall) {
-        this.alwaysInstall = alwaysInstall;
-    } 
+    public Install(boolean alwaysDownload, boolean alwaysUnpack) {
+        this.alwaysDownload = alwaysDownload;
+        this.alwaysUnpack = alwaysUnpack;
+    }
 
     void createDist(String urlRoot, String distName, File rootDir) throws Exception {
-        if (!alwaysInstall && new File(rootDir, distName).isDirectory()) {
+        File distDir = new File(rootDir, distName);
+        if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
             return;
         }
-        if (rootDir.isDirectory()) {
-            System.out.println("Deleting directory " + rootDir.getAbsolutePath());
-            deleteDir(rootDir);
-        }
         File zipFile = new File(rootDir, distName + ".zip");
-        String downloadUrl = urlRoot + "/" + distName + ".zip";
-        System.out.println("Downloading " + downloadUrl);
-        download.download(downloadUrl, zipFile);
+        if (alwaysDownload || !zipFile.exists()) {
+            if (rootDir.isDirectory()) {
+                System.out.println("Deleting directory " + rootDir.getAbsolutePath());
+                deleteDir(rootDir);
+            }
+            String downloadUrl = urlRoot + "/" + distName + ".zip";
+            System.out.println("Downloading " + downloadUrl);
+            download.download(downloadUrl, zipFile);
+        }
+        if (distDir.isDirectory()) {
+            System.out.println("Deleting directory " + distDir.getAbsolutePath());
+            deleteDir(distDir);
+        }
         System.out.println("Unzipping " + zipFile.getAbsolutePath() + " to " + rootDir.getAbsolutePath());
         unzip(zipFile, rootDir);
     }

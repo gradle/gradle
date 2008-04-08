@@ -34,9 +34,10 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class Main {
+    private static Logger logger = LoggerFactory.getLogger(Main)
+    
     static final String GRADLE_HOME = 'gradle.home'
     static final String DEFAULT_GRADLE_USER_HOME = System.properties['user.home'] + '/.gradle'
-    static Logger logger = LoggerFactory.getLogger(Main)
     final static String DEFAULT_CONF_FILE = "conf.buildg"
     final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties"
     final static String NL = System.properties['line.separator']

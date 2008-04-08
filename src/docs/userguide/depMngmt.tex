@@ -44,9 +44,9 @@ For people who know Ivy have come across many of the concepts we are introducing
 
 \subsection{Configurations} % (fold)
 \label{sub:configurations}
-Dependencies are grouped in configurations. Configurations have a name and they can extend each other. If you use the Java or Groovy plugin, Gradle adds a number of related configurations to your build. The plugin also associates configurations with tasks. See Table \ref{tab:configurations} for details. Of course you can add your own configurations. This is very handy when you create one or more distributions for your software which might contain dependencies not needed for building and running your software (e.g. additional JDBC drivers).
+Dependencies are grouped in configurations. Configurations have a name and they can extend each other. If you use the Java or Groovy plugin, Gradle adds a number of related configurations to your build. The plugin also associates configurations with tasks. See Table \ref{tab:configurations} for details. Of course you can add your own configurations. This is very handy when you create one or more distributions for your software which might contain dependencies not needed for building or running your software (e.g. additional JDBC drivers).
 
-You can add dependencies to configurations. A dependency can belong to more than one configuration although that might be rather the exception. What is a dependency after all? 
+A dependency can belong to more than one configuration although that might be rather the exception. What is a dependency after all and how do you add it to a configuration? 
 % subsection configurations (end)
 
 \subsection{Dependencies} % (fold)
@@ -62,7 +62,7 @@ dependencies {
 }
 \end{Verbatim}
 
-An artifact dependency is just a single jar or zip of whatever file you want to add. The notation for such a dependency follows the  pattern: \texttt{[group]:[artifact]:[version]:[type]}. There must be a repository somewhere where this artifact can be found. There is no xml descriptor required in the repository. If there is one, it is ignored. In the simplest case such a repository is a folder on your local machine. The different categories of the dependency description are mapped against a repository layout. For example in the case above the dependency might reside in a maven-like repository under the path \texttt{org/apache/ant/ant-junit/1.7.0/ant-junit-1.7.0.jar}. But you might also declare the dependency as \texttt{compile "ant-junit:1.7.0:jar"} and your repository is just a flat folder on your local machine where you store all your jars. The group attribute is not needed. For more about repositories see \ref{sub:repositories}
+An artifact dependency is just a single jar or zip of whatever file you want to add. The notation for such a dependency follows the  pattern: \texttt{[group]:[artifact]:[version]:[type]}. There must be a repository somewhere where this artifact can be found. There is no xml descriptor required in the repository. If there is one, it is ignored. In the simplest case such a repository is a folder on your local machine. The different categories of the dependency description are mapped against a repository layout. For example in the case above the dependency might reside in a maven-like repository under the path \texttt{org/apache/ant/ant-junit/1.7.0/ant-junit-1.7.0.jar}. But you might also declare the dependency as \texttt{compile "ant-junit:1.7.0:jar"} and your repository is just a flat folder on your local machine where you store all your jars. The group attribute is not needed then. For more about repositories see \ref{sub:repositories}
 % subsubsection artifact_dependencies (end)
 
 \subsubsection{Module Dependencies} % (fold)
@@ -75,18 +75,65 @@ dependencies {
 }
 \end{Verbatim}
 
-The notation here is the same as for \emph{artifact dependencies} except that you don't specify a file extension. To work with module dependency you need repositories where there is either a Maven pom file or an ivy.xml file describing the details of the module, in particular its (transitive) dependencies. 
+The notation here is the same as for \emph{artifact dependencies} except that you don't specify a file extension. To work with module dependency you need repositories where there is either a Maven pom file or an ivy.xml file describing its dependencies. If the module descriptor (e.g. pom.xml) declares dependencies you don't want you have the possibility to exclude them. You have to use the following notation:
 
-Many open source projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 IBiblio repository}. This is not without problems. See 
-
-\begin{itemize}
-	\item The IBibilio repository is often down or has a very long response time.
-	\item The pom.xml's of many projects have wrong informations. For example the pom of commons-httpclient-3.0 declares junit as a runtime dependency.
-	\item For many projects there is not one right set of dependencies. 
-\end{itemize} 
-The structure of the Maven pom makes the situation worse.
-
+\begin{Verbatim}
+dependencies {
+	addDependency(['compile'], "org.codehaus.groovy:groovy-all:1.5.4") {
+	        exclude(module: 'jline')
+	        exclude(module: 'junit')
+	}
+}
+\end{Verbatim}
 % subsubsection module_dependencies (end)
+
+
+\subsubsection{Client Module Dependencies} % (fold)
+\label{ssub:client_module_dependencies}
+
+Client module dependencies enable to declare transitive dependencies directly in your build script. There don't need to be a xml module descriptor in the repository. Client module dependencies can be nested.
+
+\begin{Verbatim}
+addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") {
+    addDependency("commons-cli:commons-cli:1.0:jar")
+    addClientModule("org.apache.ant:ant:1.7.0") {
+        addDependency("org.apache.ant:ant-launcher:1.7.0:jar")
+        addDependency("org.apache.ant:ant-junit:1.7.0")
+    }
+}
+\end{Verbatim}
+
+This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does not look for an xml descriptor to figure them out but gets the information from the build file. The dependencies of a client module can normal module dependencies or artifact dependencies or another client module. 
+% subsubsection client_module_dependencies (end)
+
+\subsubsection{Project dependencies} % (fold)
+\label{ssub:project_dependencies}
+
+Gradle distinguished between external dependencies and dependencies to other projects which are part of the same multi-project build. 
+
+dependencies {
+    compile project(':shared')
+}
+
+Multi-project builds are discussed in chapter \ref{cha:multiproject_builds}
+
+\subsubsection{Ivy dependencies} % (fold)
+\label{ssub:ivy_dependencies}
+
+Gradle offers its own notation to describe dependencies. Under the hood we transform into ivy dependency objects. Our notation provides only a subset of what is possible with Ivy. If you want or need to use options of Ivy not offered by our notation you can pass directly ivy dependencies to Gradle.
+
+\begin{Verbatim}
+DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
+	        new ModuleRevisionId(new ModuleId('junit', 'junit'), '4.2'), false)
+// do more configuration with the descriptor
+dependencies {
+	addDependencyDescriptors dependencyDescriptor 
+}
+\end{Verbatim}
+
+% subsubsection ivy_dependencies (end)
+
+% subsubsection project_dependencies (end)
 
 % subsection dependencies (end)
 
@@ -104,52 +151,132 @@ The structure of the Maven pom makes the situation worse.
 	\label{tab:configurations}
 \end{table}	
 
-\begin{figure}
-\caption{Declaring Dependencies}
-\label{fig:dependencies}
-\begin{Verbatim}[frame=single, framesep=1mm, numbers=left]
-dependencies {
-    addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, 
-		['default'] as String[], true, null))
-
-    addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.5-032808") {
-        addDependency("commons-cli:commons-cli:1.0")
-        addClientModule("org.apache.ant:ant:1.7.0") {
-            addDependency("org.apache.ant:ant-launcher:1.7.0")
-            addDependency("org.apache.ant:ant-junit:1.7.0")
-        }
-    }
-
-    addClientModule(confs: ['runtime'], id: "org.tmatesoft.svnkit:svnkit:1.1.6") {
-        addDependency("org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar")
-    }
-
-    compile "commons-cli:commons-cli:1.0:jar",
-            "commons-io:commons-io:1.3.1;jar",
-            "commons-lang:commons-lang:2.3:jar",
-            "commons-httpclient:commons-httpclient:3.0;jar",
-            "slide:webdavlib:2.0",
-            "ch.qos.logback:logback-classic:0.9.8",
-            "org.apache.ivy:ivy:2.0.0.beta2_20080305165542:jar"
-    runtime "org.apache.ant:ant-launcher:1.7.0",
-            "junit:junit:4.4",
-    testCompile "junit:junit:4.4"
-    distLib "junit:junit:4.4"
-    classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
-}	
-\end{Verbatim}
-\end{figure}
+% \begin{figure}
+% \caption{Declaring Dependencies}
+% \label{fig:dependencies}
+% \begin{Verbatim}[frame=single, framesep=1mm, numbers=left]
+% dependencies {
+%     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, 
+% 		['default'] as String[], true, null))
+% 
+%     addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.5-032808") {
+%         addDependency("commons-cli:commons-cli:1.0")
+%     }
+% 
+%     addClientModule(confs: ['runtime'], id: "org.tmatesoft.svnkit:svnkit:1.1.6") {
+%         addDependency("org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar")
+%     }
+% 
+%     compile "commons-cli:commons-cli:1.0:jar",
+%             "commons-io:commons-io:1.3.1;jar",
+%             "commons-lang:commons-lang:2.3:jar",
+%             "commons-httpclient:commons-httpclient:3.0;jar",
+%             "slide:webdavlib:2.0",
+%             "ch.qos.logback:logback-classic:0.9.8",
+%             "org.apache.ivy:ivy:2.0.0.beta2_20080305165542:jar"
+%     runtime "org.apache.ant:ant-launcher:1.7.0",
+%             "junit:junit:4.4",
+%     testCompile "junit:junit:4.4"
+%     distLib "junit:junit:4.4"
+%     classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
+% }	
+% \end{Verbatim}
+% \end{figure}
 
 % section how_to_declare_your_dependencies (end)
 
 \section{Strategies of transitive dependency management} % (fold)
 \label{sec:strategies_of_transitive_dependency_management}
 
+Many projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 IBiblio repository}. This is not without problems. See 
+
+\begin{itemize}
+	\item The IBibilio repository is often down or has a very long response time.
+	\item The pom.xml's of many projects have wrong informations. For example the pom of commons-httpclient-3.0 declares junit as a runtime dependency.
+	\item For many projects there is not one right set of dependencies. 
+\end{itemize} 
+
+See also the discussion in \ref{cha:the_problem_with_mavens_dependency_management}.
+
+If your project relies on the ibiblio repository you are likely to need an additional custom repository, because:
+\begin{itemize}
+	\item You might need dependencies that are not uploaded to ibiblio yet.
+	\item You want to deal properly with wrong metadata in a iBiblio pom.xml.
+	\item You don't want to expose people who want to build your project to relatively frequent downtimes or very long response times of ibiblio. 
+\end{itemize}
+
+It is not a big deal to set-up a custom repository \footnote{If you want to shield your project from the downtimes of ibiblio things get more complicated. You probably want to set-up a repository proxy for this. In an enterprise environment this is rather common. For an open source project it looks like overkill.}. But it is tedious to keep it up to date. For a new version, you have always to create the new pom and the directories. And your custom repository is another infrastructure element which might have downtimes. It is another layer of indirection which contains information relevant information for your build and you have to navigate to the lengthy path with your browser to get the information. All this is not really a big deal but why should you cope with this. You pay something, so you should also get something, right? So we end up with the question: Does it make sense to store the dependency information (and the dependencies) in remote repositories? Our answer is: Not necessarily.
+In a larger enterprise environment you are likely to have a number of independent builds, possibly many different, large multi-project builds. Here a repository infrastructure makes a lot of sense. You have already infrastructure that guarantees a high uptime. Multiple projects share there information about certain common dependencies they have and thus don't need to define them multiple times. Most importantly, the repositories are used to integrate the internal projects with each other. One project published itself to the company repository, with all its dependency information stored in an ivy.xml or pom.xml file. Together with a continous integration server this offers a strong integration for projects with separate builds. As you have seen, Gradle fully supports this approach.
+But what about other environments. What about a typical open source projects like Gradle or environments which consists of a single multi-project builds. They don't integrate with other projects in the same environment or need to share dependency information in this enviroment. In such a (very common) case we think dependency management based on remote repositories is an unnecessary indirection which makes things more complicated than necessary. Gradle itself (which is build by Gradle) stores its dependencies in svn. There is a lib folder which contains all jars needed to build Gradle. Yet we have a complete management of our dependencies. For Gradle the lib folder is a local repository containing all the jars (in a flat structure). There are no xml descriptors. We use either client module dependencies to express our dependency relations, or artifact dependencies in case a first level dependency has no transitive dependencies. People can check out Gradle from svn and have everything necessary to build it. The same applies to our source distribution. 
+
 \subsection{Implicit transitive dependencies} % (fold)
+There is another way to deal with transitive dependencies without xml descriptor files. You can do this with Gradle but we don't recommend it. We mention it for the sake of completeness and comparison with other build tools. 
+
+\begin{Verbatim}
+List groovy = ["org.codehaus.groovy:groovy-all:1.5.4:jar", "commons-cli:commons-cli:1.0:jar", "org.apache.ant:ant:1.7.0:jar"]
+List hibernate = [\emph{list of dependencies}]
+dependencies {
+	compile groovy
+	runtime hibernate
+}
+\end{Verbatim}
+
+The trick is to use only artifact dependencies and group them in lists. That way you have somehow express what are your first level dependencies and what are transitive dependencies. But for the Gradle dependency management all dependencies are considered first level dependencies. The dependency reports don't show your real dependency graph and the compile uses all dependencies not just the first level dependencies. All in all, your build is less maintainable and reliable than it could be when using client modules. And you don't gain anything.  
+
 \label{sub:implicit_transitive_dependencies}
 
 % subsection implicit_transitive_dependencies (end)
 
 % section strategies_of_transitive_dependency_management (end)
 
+\section{Repositories} % (fold)
+\label{sec:repositories}
+
+If you use the Java/Groovy plugin the ibiblio maven repository is already added. To add another Maven style repository you simply do: 
+
+\begin{Verbatim}
+dependencies {
+	classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
+}
+\end{Verbatim}
+
+This adds the repository \texttt{'http://gradle.sourceforge.net/repository'} before the Maven2Repo (ibiblio) repo. Before means Gradle tries to find a dependency first in the newly added repository. \texttt{classpathResolvers} is of type \texttt{RepositoryContainer}. Have a look at its \href{\api_root/org}{API} to learn more.
+
+Gradle, thanks to Ivy under its hood, is extremely flexible regarding repositories:
+\begin{itemize}
+	\item You can declare multiple repositories.
+	\item There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, ...)
+	\item Each repository can have its own layout.
+\end{itemize}
+
+If you declare a dependency like \texttt{junit:junit:3.8.2} how does Gradle finds it in the repositories. Somehow the dependency information has to be mapped to a path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern how this path should look like. Here are some examples:
+
+\begin{Verbatim}
+// Maven2 layout (if a repository is marked as Maven2 compatible, the organization (group) is split into subfolders according to the dots.)
+someroot/[organisation]/[module]/[revision]/[module]-[revision].[ext]
+
+// Typical layout for an ivy repository (the organization is not split into subfolder)
+someroot/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]
+
+// Simple layout (the organization is not used, no nested folders.)
+someroot/[artifact]-[revision].[ext]
+\end{Verbatim}
+
+\href{http://ant.apache.org/ivy/history/2.0.0-alpha2/concept.html}{Here} you can learn more about ivy patterns.
+
+To add any kind of repository (you can pretty easy write your own ones) you can do:
+
+\begin{Verbatim}
+dependencies {
+	classpathResolvers.add(new WebdavResolver()) {
+	        name = 'gradleReleases'
+	        user = codehausUserName
+	        userPassword = codehausUserPassword
+	        addArtifactPattern(root + "[artifact]-[revision].[ext]")
+}	
+\end{Verbatim}
+
+\texttt{WebdavResolver} is a class that implements an Ivy interface. An overview of which Resolvers are offered by Ivy and thus by Gradle can be found \href{http://ant.apache.org/ivy/history/latest-milestone/configuration/resolvers.html}{here}. With Gradle you just don't configure them via xml but directly via there API.
+ 
+% section repositories (end)
 

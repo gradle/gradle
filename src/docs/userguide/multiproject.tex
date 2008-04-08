@@ -1,0 +1,221 @@
+\chapter{Multi-project builds} % (fold)
+\label{cha:multi_project_builds}
+
+Lets' start with a very simple multi-project build. Gradle is a general purpose build tool. The projects don't have to be javaprojects. We have two projects, a water and a bluewhale project. We have the following project layout.
+
+\begin{minipage}[t]{7cm}
+\begin{Verbatim}[frame=single,label=Project Layout]
+water
+  - gradle.groovy
+  - gradlesettings.groovy
+  - bluewhale	
+\end{Verbatim}
+\end{minipage}	
+\begin{minipage}[t]{7cm}
+\begin{Verbatim}[frame=single,label=gradlesettings]
+include 'bluewhale'
+\end{Verbatim}
+\end{minipage}
+
+And where is the build script for the bluewhale project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the water project:
+
+\begin{Verbatim}[framesep=3mm]
+	
+\end{Verbatim}{../../../build/distributions/exploded/samples/tutorial/lazyDependsOnfile}
+\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/lazyDependsOnfile.out}
+Project /water - gradle.groovy
+
+Closure cl = { Project project -> println "I'm $project.name" }
+createTask('hello', cl)
+project('/water/bluewhale').createTask('hello', cl)
+
+water> gradle -q hello
+I'm water
+I'm bluewhale
+
+Gradle allows you to access any project of the multi-project build from any build script. The Project API provides a method called project, which takes a path as an argument and returns the project object for this path. The capability to configure a project build from any build script we call Configuration Injection.
+
+We are not that happy with the build script of the water project. It is inconvenient to add the task explicitly to every project. We can do better. Let's first add another project called krill to our multi-project build.
+Project layout
+
+water
+
+    * gradle.groovy
+    * gradlesettings.groovy
+    * bluewhale
+    * krill
+
+	
+gradlesettings.groovy
+
+include 'bluewhale', 'krill'
+
+Now we rewrite the water build script and boil it down to a single line.
+Project /water - gradle.groovy
+
+allprojects*.createTask('hello') { Project project -> println "I'm $project.name" }
+
+water> gradle -q hello
+I'm water
+I'm bluewhale
+I'm krill
+
+Is this cool or is this cool? How does this work? The Project API provides a property allprojects which returns a list with the current project and all its subprojects underneath it. Then we use Groovys spread dot operator to call a method for all projects of a list. It is basically the same as:
+
+allprojects.each { it.createTask('hello') { Project project -> println "I'm $project.name" }}
+
+Other build systems use inheritance as the primary means for defining common behavior. We also offer inheritance for projects as you will see later. But Gradle uses Configuration Injection as the preferred way of defining common behavior. We think it provides a very powerful and flexible way of configuring multiproject builds.
+
+The Project API also provides a property for only accessing the subprojects. Let's make use of it:
+Project /water - gradle.groovy
+
+allprojects*.createTask('hello') { Project project -> println "I'm $project.name" } 
+subprojects*.hello*.doLast { Project project -> println "I depend on water" }
+
+water> gradle -q hello
+I'm water
+I'm bluewhale
+I depend on water
+I'm krill
+I depend on water
+
+You can add specific behavior on top of the common behavior. Usually we put the project specific behavior in the build script of the project where we want to apply this specific behavior. But as we have already seen, we don't have to do it this way. We could add project specific behavior for the bluewhale project like this:
+Project /water - gradle.groovy
+
+allprojects*.createTask('hello') { Project project -> println "I'm $project.name" } 
+subprojects*.hello*.doLast { Project project -> println "I depend on water" }
+projects('/water/krill').hello.doLast { println "I'm the largest animal which has ever lived on this planet!" }
+
+water> gradle -q hello
+I'm water
+I'm bluewhale
+I depend on water
+I'm the largest animal which has ever lived on this planet!
+I'm krill
+I depend on water
+
+As we have said, we usually prefer to put project specific behavior into the build script of this project. Let's refactor and also add some project specific behavior to the krill project.
+Project layout
+
+water
+
+    * gradle.groovy
+    * gradlesettings.groovy
+    * bluewhale
+          o gradle.groovy
+    * krill
+          o gradle.groovy
+
+	
+Project /water - gradle.groovy
+
+allprojects*.createTask('hello') { Project project -> println "I'm $project.name" } 
+subprojects*.hello*.doLast { Project project -> println "I depend on water" }
+
+Project /water/bluewhale - gradle.groovy
+
+hello.doLast { println "I'm the largest animal which has ever lived on this planet!" }
+
+Project /water/krill - gradle.groovy
+
+hello.doLast { println "The weight of my species in summer is twice as heavy as all human beings!" }
+
+water> gradle -q hello
+I'm water
+I'm bluewhale
+I depend on water
+I'm the largest animal which has ever lived on this planet!
+I'm krill
+I depend on water
+The weight of my species in summer is twice as heavy as all human beings!
+
+To show some more of the power of Configuration Injection, lets' add another project called tropicalFish and add more behavior to the build via the build script of the water project.
+Project layout
+
+water
+
+    * gradle.groovy
+    * gradlesettings.groovy
+    * bluewhale
+          o gradle.groovy
+    * krill
+          o gradle.groovy
+    * tropicalFish
+
+	
+Project /water - gradle.groovy
+
+allprojects*.createTask('hello') { Project project -> println "I'm $project.name" } 
+subprojects*.hello*.doLast { Project project -> println "I depend on water" }
+subprojects.findAll { it.name != 'tropicalFish' }*.hello.doLast { 'I love to spend time in the arctic waters!' }
+
+Project /water/bluewhale - gradle.groovy
+
+hello.doLast { println "I'm the largest animal which has ever lived on this planet!" }
+
+Project /water/krill - gradle.groovy
+
+hello.doLast { println "The weight of my species in summer is twice as heavy as all human beings!" }
+
+water> gradle -q hello
+I'm water
+I'm bluewhale
+I depend on water
+I'm the largest animal which has ever lived on this planet!
+I love to spend time in the arctic waters!
+I'm krill
+I depend on water
+The weight of my species in summer is twice as heavy as all human beings!
+I love to spend time in the arctic waters!
+I'm tropicalFish
+I depend on water
+
+Using the projectname for filtering is one option. Using dynamic project properties is another.
+Project layout
+
+water
+
+    * gradle.groovy
+    * gradlesettings.groovy
+    * bluewhale
+          o gradle.groovy
+    * krill
+          o gradle.groovy
+    * tropicalFish
+
+	
+Project /water - gradle.groovy
+
+allprojects*.createTask('hello') { Project project -> println "I'm $project.name" } 
+subprojects*.hello*.doLast { Project project -> println "I depend on water" }
+subprojects.findAll { it.arctic }*.hello.doLast { 'I love to spend time in the arctic waters!' }
+
+Project /water/bluewhale - gradle.groovy
+
+arctic = true
+hello.doLast { println "I'm the largest animal which has ever lived on this planet!" }
+
+Project /water/krill - gradle.groovy
+
+arctic = true
+hello.doLast { println "The weight of my species in summer is twice as heavy as all human beings!" }
+
+Project /water/tropicalFish - gradle.groovy
+
+arctic = false
+
+water> gradle -q hello
+I'm water
+I'm bluewhale
+I depend on water
+I'm the largest animal which has ever lived on this planet!
+I love to spend time in the arctic waters!
+I'm krill
+I depend on water
+The weight of my species in summer is twice as heavy as all human beings!
+I love to spend time in the arctic waters!
+I'm tropicalFish
+I depend on water
+% chapter multi_project_builds (end)
+
+

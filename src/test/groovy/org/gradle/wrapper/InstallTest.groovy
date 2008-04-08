@@ -17,6 +17,7 @@
 package org.gradle.wrapper
 
 import org.gradle.util.HelperUtil
+import org.apache.commons.io.FileUtils
 
 /**
  * @author Hans Dockter
@@ -31,17 +32,19 @@ class InstallTest extends GroovyTestCase {
     File zip
     File rootDir
     File someScript
+    File distDir
     File destFile
 
     void setUp() {
         downloadCalled = false
         testDir = HelperUtil.makeNewTestDir()
         rootDir = new File(testDir, 'gradle')
-        install = new Install(false)
+        install = new Install(false, false)
         distName = 'gradle-1.0'
         destFile = new File(rootDir, "${distName}.zip")
         urlRoot = 'file://./tmpTest'
         initDownloadMock()
+        distDir = new File(rootDir, distName)
     }
 
     void initDownloadMock() {
@@ -56,6 +59,11 @@ class InstallTest extends GroovyTestCase {
 
      void tearDown() {
         HelperUtil.deleteTestDir()
+    }
+
+    void testInit() {
+        assert !install.alwaysDownload
+        assert !install.alwaysUnpack
     }
 
     File createTestZip() {
@@ -75,8 +83,7 @@ class InstallTest extends GroovyTestCase {
     void testCreateDist() {
         install.createDist(urlRoot, distName, rootDir)
         assert downloadCalled
-        File distFile = new File(rootDir, distName)
-        assert distFile.isDirectory()
+        assert distDir.isDirectory()
         assert someScript.exists()
     }
 
@@ -86,28 +93,42 @@ class InstallTest extends GroovyTestCase {
         otherFile.createNewFile()
         install.createDist(urlRoot, distName, rootDir)
         assert downloadCalled
-        File distFile = new File(rootDir, distName)
-        assert distFile.isDirectory()
+        assert distDir.isDirectory()
         assert someScript.exists()
         assert !otherFile.exists()
     }
 
     void testCreateDistWithExistingDist() {
-        File distFile = new File(rootDir, distName)
-        distFile.mkdirs()
-        long lastModified = distFile.lastModified()
+        distDir.mkdirs()
+        long lastModified = distDir.lastModified()
         install.createDist(urlRoot, distName, rootDir)
         assert !downloadCalled
-        assert lastModified == distFile.lastModified()
+        assert lastModified == distDir.lastModified()
     }
 
-    void testCreateDistWithExistingDistAndAlwaysInstallTrue() {
-        install = new Install(true)
+    void testCreateDistWithExistingDistAndZipAndAlwaysUnpackTrue() {
+        install = new Install(false, true)
         initDownloadMock()
-        File distFile = new File(rootDir, distName)
-        distFile.mkdirs()
-        long lastModified = distFile.lastModified()
+        createTestZip()
+        distDir.mkdirs()
+        File testFile = new File(distDir, 'testfile')
         install.createDist(urlRoot, distName, rootDir)
+        assert distDir.isDirectory()
+        assert someScript.exists()
+        assert !testFile.exists()
+        assert !downloadCalled
+    }
+
+    void testCreateDistWithExistingZipAndDistAndAlwaysDownloadTrue() {
+        install = new Install(true, false)
+        initDownloadMock()
+        createTestZip()
+        distDir.mkdirs()
+        File testFile = new File(distDir, 'testfile')
+        install.createDist(urlRoot, distName, rootDir)
+        assert distDir.isDirectory()
+        assert someScript.exists()
+        assert !testFile.exists()
         assert downloadCalled
     }
 }

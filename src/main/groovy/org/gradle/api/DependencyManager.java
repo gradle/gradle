@@ -101,7 +101,7 @@ public interface DependencyManager {
 
     ModuleRevisionId createModuleRevisionId();
 
-    DependencyManager configure(Closure configureClosure);
+    Object configure(Closure configureClosure);
 
     File getBuildResolverDir();
     
