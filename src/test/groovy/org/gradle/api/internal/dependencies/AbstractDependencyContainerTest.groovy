@@ -156,7 +156,7 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
             dependencyFactory = testDependencyFactory
         }
         assertEquals(expectedConfs as Set, clientModule.confs)
-        assertEquals(expectedId, clientModule.artifact)
+        assertEquals(expectedId, clientModule.id)
         assert clientModule.dependencyFactory.is(testDependencyFactory)
     }
 }

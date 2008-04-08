@@ -34,7 +34,7 @@ import org.gradle.api.dependencies.ClientModule
  * @author Hans Dockter
  */
 class ClientModuleResolver extends BasicResolver {
-    Map moduleDescriptorRegistry
+    Map moduleRegistry
     DependencyResolver mainResolver
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dde, ResolveData data) {
@@ -42,7 +42,7 @@ class ClientModuleResolver extends BasicResolver {
             IvyContext context = IvyContext.pushNewCopyContext();
             context.setDependencyDescriptor(dde);
             context.setResolveData(data);
-            DefaultModuleDescriptor moduleDescriptor = moduleDescriptorRegistry[dde.extraAttributes[ClientModule.CLIENT_MODULE_KEY]]
+            DefaultModuleDescriptor moduleDescriptor = moduleRegistry[dde.extraAttributes[ClientModule.CLIENT_MODULE_KEY]]
             MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.metadataArtifact)
             downloadReport.setDownloadStatus(DownloadStatus.NO);
             downloadReport.setSearched(false);

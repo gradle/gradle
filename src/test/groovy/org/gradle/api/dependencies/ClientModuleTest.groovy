@@ -31,7 +31,7 @@ import org.gradle.api.internal.project.DefaultProject
 class ClientModuleTest extends AbstractDependencyContainerTest {
     ClientModule clientModule
 
-    String testArtifact = 'org.gradle:test:1.3.4'
+    String testId = 'org.gradle:test:1.3.4'
 
     Map testModuleRegistry = [a: 'a']
 
@@ -45,7 +45,7 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
 
     void setUp() {
         super.setUp();
-        clientModule = new ClientModule(dependencyFactory, parentConfs as Set, testArtifact, testModuleRegistry)
+        clientModule = new ClientModule(dependencyFactory, parentConfs as Set, testId, testModuleRegistry)
         clientModule.project = project
         dependencyFactoryMocker = new MockFor(DependencyFactory)
         testDefaultConfs = clientModule.defaultConfs
@@ -55,7 +55,7 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
     void testInit() {
         assertEquals(clientModule.defaultConfs, [Dependency.DEFAULT_CONFIGURATION])
         assertEquals(clientModule.confs, parentConfs as Set)
-        assertEquals(clientModule.artifact, testArtifact)
+        assertEquals(clientModule.id, testId)
         assertEquals(clientModule.clientModuleRegistry, testModuleRegistry)
     }
 
@@ -72,7 +72,7 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         }
         assertEquals(IvyUtil.moduleRevisionId('org.gradle', 'test', '1.3.4').toString(),
                 dependencyDescriptor.getDependencyRevisionId().toString())
-        ModuleDescriptor moduleDescriptor = testModuleRegistry[testArtifact]
+        ModuleDescriptor moduleDescriptor = testModuleRegistry[testId]
         assert moduleDescriptor
         assert moduleDescriptor.dependencies[0].is(testDependencyDescriptor)
     }

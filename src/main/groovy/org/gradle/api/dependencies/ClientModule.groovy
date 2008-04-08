@@ -28,24 +28,25 @@ import org.gradle.api.internal.project.DefaultProject
  */
 class ClientModule extends DependencyContainer implements Dependency {
     static final String CLIENT_MODULE_KEY = 'org.gradle.clientModule'
-    String artifact
+
+    String id
 
     Set confs
 
     ClientModule() {}
 
     ClientModule(DependencyFactory dependencyFactory, Set confs,
-                 String artifact, Map moduleDescriptorRegistry) {
+                 String id, Map moduleRegistry) {
         super(dependencyFactory, [Dependency.DEFAULT_CONFIGURATION])
-        this.artifact = artifact
-        this.clientModuleRegistry = moduleDescriptorRegistry
+        this.id = id
+        this.clientModuleRegistry = moduleRegistry
         this.confs = confs
     }
 
     DependencyDescriptor createDepencencyDescriptor() {
         addModuleDescriptors()
         DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null,
-                createModuleRevisionId([(CLIENT_MODULE_KEY): artifact]), false, true, true)
+                createModuleRevisionId([(CLIENT_MODULE_KEY): id]), false, true, true)
         confs.each {String conf ->
             dd.addDependencyConfiguration(conf, Dependency.DEFAULT_CONFIGURATION)
         }
@@ -53,13 +54,13 @@ class ClientModule extends DependencyContainer implements Dependency {
     }
 
     void addModuleDescriptors() {
-        ModuleRevisionId moduleRevisionId = createModuleRevisionId([(CLIENT_MODULE_KEY): artifact])
+        ModuleRevisionId moduleRevisionId = createModuleRevisionId([(CLIENT_MODULE_KEY): id])
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
                 'release', null)
         moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION))
         addDependencyDescriptors(moduleDescriptor)
         moduleDescriptor.addArtifact(Dependency.DEFAULT_CONFIGURATION, new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.name, 'jar', 'jar'))
-        this.clientModuleRegistry[artifact] = moduleDescriptor
+        this.clientModuleRegistry[id] = moduleDescriptor
     }
 
     void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor) {
@@ -70,7 +71,7 @@ class ClientModule extends DependencyContainer implements Dependency {
     }
 
     ModuleRevisionId createModuleRevisionId(Map extraAttributes) {
-        List dependencyParts = artifact.split(':')
+        List dependencyParts = id.split(':')
         new ModuleRevisionId(new ModuleId(dependencyParts[0], dependencyParts[1]), dependencyParts[2], extraAttributes)
     }
 

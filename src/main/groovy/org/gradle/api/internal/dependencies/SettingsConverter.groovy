@@ -31,10 +31,10 @@ class SettingsConverter {
     IvySettings ivySettings
     
     IvySettings convert(def classpathResolvers, def otherResolvers, File gradleUserHome,
-                        RepositoryResolver buildResolver, Map clientModuleDescriptorRegistry) {
+                        RepositoryResolver buildResolver, Map clientModuleRegistry) {
         if (ivySettings) {return ivySettings}
         ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
-        clientModuleResolver.moduleDescriptorRegistry = clientModuleDescriptorRegistry
+        clientModuleResolver.moduleRegistry = clientModuleRegistry
         clientModuleResolver.name = CLIENT_MODULE_NAME
         ChainResolver chainResolver = new ChainResolver()
         chainResolver.name = CHAIN_RESOLVER_NAME

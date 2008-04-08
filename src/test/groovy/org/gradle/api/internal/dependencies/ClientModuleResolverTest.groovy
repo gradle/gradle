@@ -22,11 +22,11 @@ package org.gradle.api.internal.dependencies
 class ClientModuleResolverTest extends GroovyTestCase {
     void testGetDependency() {
 //        ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
-//        clientModuleResolver.moduleDescriptorRegistry = [:]
+//        clientModuleResolver.moduleRegistry = [:]
 //        clientModuleResolver.mainResolver = [:] as DependencyResolver
 //
 //        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null,
-//                createModuleRevisionId([(CLIENT_MODULE_KEY): artifact]), false, true, true)
+//                createModuleRevisionId([(CLIENT_MODULE_KEY): id]), false, true, true)
 //        ResolveData resolveData = new ResolveData(new ResolveEngine(), new ResolveOptions())
 //        ModuleDescriptor = clientModuleResolver.getDependency(dd, resolveData)
 //        
