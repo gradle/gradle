@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks.util
 
-import org.gradle.util.HelperUtil
-import org.gradle.api.tasks.StopActionException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.StopActionException
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter

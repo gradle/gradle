@@ -17,11 +17,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.tasks.compile.AntGroovyc
 import org.gradle.api.tasks.compile.GroovyCompile
-import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.javadoc.Groovydoc
 
 /**

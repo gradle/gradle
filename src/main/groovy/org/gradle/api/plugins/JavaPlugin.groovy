@@ -27,9 +27,9 @@ import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.api.tasks.compile.AntJavac
 import org.gradle.api.tasks.compile.Compile
+import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.javadoc.Javadoc
 
 /**
  * @author Hans Dockter

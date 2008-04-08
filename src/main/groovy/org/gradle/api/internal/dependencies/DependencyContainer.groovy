@@ -24,7 +24,6 @@ import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.dependencies.ClientModule
 
 /**
  * @author Hans Dockter

@@ -20,8 +20,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.Clean
-import org.gradle.util.HelperUtil
 import org.gradle.api.tasks.util.ExistingDirsFilter
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter

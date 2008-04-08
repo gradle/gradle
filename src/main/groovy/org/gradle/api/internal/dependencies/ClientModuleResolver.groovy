@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.dependencies
 
+import org.apache.ivy.core.IvyContext
 import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.report.DownloadStatus
+import org.apache.ivy.core.report.MetadataArtifactDownloadReport
 import org.apache.ivy.core.resolve.ResolveData
 import org.apache.ivy.core.resolve.ResolvedModuleRevision
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.resolver.BasicResolver
+import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.util.ResolvedResource
 import org.gradle.api.dependencies.ClientModule
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.apache.ivy.core.report.MetadataArtifactDownloadReport
-import org.apache.ivy.core.report.DownloadStatus
-import org.apache.ivy.core.IvyContext
 
 /**
  * @author Hans Dockter

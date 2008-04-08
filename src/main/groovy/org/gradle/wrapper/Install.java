@@ -18,8 +18,8 @@ package org.gradle.wrapper;
 
 import java.io.*;
 import java.util.Enumeration;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * @author Hans Dockter

@@ -16,7 +16,6 @@
 
 package org.gradle.wrapper;
 
-import java.util.Properties;
 import java.io.File;
 
 /**

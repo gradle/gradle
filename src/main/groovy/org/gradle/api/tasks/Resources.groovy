@@ -24,7 +24,6 @@ import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
 /**
 * @author Hans Dockter
 */

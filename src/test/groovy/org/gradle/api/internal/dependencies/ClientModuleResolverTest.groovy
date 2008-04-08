@@ -16,13 +16,6 @@
 
 package org.gradle.api.internal.dependencies
 
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.apache.ivy.core.resolve.ResolveData
-import org.apache.ivy.core.resolve.ResolveEngine
-import org.apache.ivy.core.resolve.ResolveOptions
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-
 /**
  * @author Hans Dockter
  */

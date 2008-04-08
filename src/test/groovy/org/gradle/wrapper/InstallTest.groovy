@@ -17,7 +17,6 @@
 package org.gradle.wrapper
 
 import org.gradle.util.HelperUtil
-import org.apache.commons.io.FileUtils
 
 /**
  * @author Hans Dockter

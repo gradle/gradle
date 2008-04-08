@@ -23,9 +23,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
+import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.util.ExistingDirsFilter
-import org.gradle.api.tasks.StopActionException
 
 /**
  * @author Hans Dockter

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.dependencies
 
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.module.id.ModuleId
+import org.apache.ivy.core.module.id.ModuleRevisionId
 
 /**
  * @author Hans Dockter

@@ -18,12 +18,12 @@ package org.gradle.api.dependencies
 
 import groovy.mock.interceptor.MockFor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.dependencies.AbstractDependencyContainerTest
 import org.gradle.api.internal.dependencies.DependencyContainer
 import org.gradle.api.internal.dependencies.DependencyFactory
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.dependencies.IvyUtil
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.gradle.api.internal.project.DefaultProject
 
 /**
  * @author Hans Dockter

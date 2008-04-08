@@ -16,16 +16,12 @@
 
 package org.gradle.api.dependencies
 
+import org.apache.ivy.core.module.descriptor.*
+import org.apache.ivy.core.module.id.ModuleId
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.dependencies.DependencyContainer
 import org.gradle.api.internal.dependencies.DependencyFactory
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.core.module.id.ModuleId
 import org.gradle.api.internal.project.DefaultProject
-import org.apache.ivy.core.module.descriptor.Configuration
 
 /**
  * @author Hans Dockter

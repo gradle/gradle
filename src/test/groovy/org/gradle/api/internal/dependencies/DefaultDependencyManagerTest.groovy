@@ -34,8 +34,8 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.dependencies.Dependency
+import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.internal.project.DefaultProject
 
 /**

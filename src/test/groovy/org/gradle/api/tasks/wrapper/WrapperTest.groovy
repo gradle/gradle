@@ -18,13 +18,13 @@ package org.gradle.api.tasks.wrapper
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.Main
+import org.gradle.MainTest
 import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.util.HelperUtil
 import org.gradle.util.TestConsts
 import org.gradle.wrapper.Install
-import org.gradle.MainTest
 
 /**
  * @author Hans Dockter

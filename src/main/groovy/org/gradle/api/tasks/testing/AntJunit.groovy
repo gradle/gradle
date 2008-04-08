@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks.testing
 
+import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.apache.tools.ant.BuildLogger
-import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
