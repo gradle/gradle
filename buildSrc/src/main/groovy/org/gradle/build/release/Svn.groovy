@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class Svn {
-    Logger logger = LoggerFactory.getLogger(Svn)
+    private static Logger logger = LoggerFactory.getLogger(Svn)
 
     Project project
     SVNClientManager clientManager

@@ -56,13 +56,13 @@ class Executer {
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             Execute execute = new Execute()
             String command = "cmd /c $windowsCommand ${quite ? '-q' : '-d'}" + " $buildFileSpecifier $taskNameText"
-            println "Execute test in $currentDirName with: $command"
+            println "Execute in $currentDirName with: $command"
             additionalEnvs << windowsPath(gradleHome)
             execute.setEnvironment(envs + additionalEnvs as String[])
             proc = Runtime.getRuntime().exec(command, execute.getEnvironment(), new File(currentDirName))
         } else {
             String command = "$unixCommand ${quite ? '-q' : '-d'} $buildFileSpecifier $taskNameText"
-            println "Execute test in $currentDirName with: $command"
+            println "Execute in $currentDirName with: $command"
             additionalEnvs << unixPath()
             proc = command.execute(envs + additionalEnvs, new File(currentDirName))
         }
