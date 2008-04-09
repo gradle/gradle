@@ -110,7 +110,8 @@ class DefaultDependencyManager extends DependencyContainer implements Dependency
         this.report2Classpath = report2Classpath
         this.buildResolverDir = buildResolverDir
     }
-    
+
+    // todo: Build should fail, if resolve fails (at least optional) 
     List resolveClasspath(String taskName) {
         String conf = task2Conf[taskName] ?: taskName
         ivy = getIvy()
