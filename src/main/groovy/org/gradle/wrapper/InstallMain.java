@@ -33,8 +33,8 @@ class InstallMain {
         if (args.length != 2) {
             throw new IllegalArgumentException("Wrong number of arguments supplied!");
         }
-        System.out.println("$ALWAYS_UNPACK_ENV env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
-        System.out.println("$ALWAYS_DOWNLOAD_ENV env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
+        System.out.println(ALWAYS_UNPACK_ENV + " env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
+        System.out.println(ALWAYS_DOWNLOAD_ENV + " env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
         boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
         boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
         new Install(alwaysDownload, alwaysUnpack).createDist(args[0], args[1], new File(Install.WRAPPER_DIR, "gradle-dist"));
