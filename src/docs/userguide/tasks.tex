@@ -7,7 +7,7 @@ As an example, let's look at the Resources task provided by Gradle. To create su
 createTask('resources', type: org.gradle.api.tasks.Resources)
 \end{Verbatim}
 
-The resources task provides an API to configure it. See \href{\api_root/}{Resources Task API}. The resources task has no default behavior (in the chapter \ref{cha:java_plugin} we see how the resources task can be used with build-by-convention configuration). We want now use the resources task to learn different how to configure it. The result is always the same.
+The resources task provides an API to configure it. See \href{}{Resources Task API}. The resources task has no default behavior (in the chapter \ref{cha:java_plugin} we see how the resources task can be used with build-by-convention configuration). We want now use the resources task to learn different how to configure it. The result is always the same.
 
 \begin{Verbatim}
 import org.gradle.api.tasks.Resources
@@ -33,7 +33,7 @@ You might know this approach from Hibernates Criteria Query API or JMock. Of cou
 
 But there is yet another way of configuring the resources task. It also preserves the context and it possibly offers the best readability. It is usually our favorite.
 
-\begin{Verbatim}[linenumbers=left]
+\begin{Verbatim}[numbers=left]
 import org.gradle.api.tasks.Resources
 
 Resources resources = createTask('resources', type: Resources)
@@ -46,7 +46,7 @@ resources {
 
 This works for \emph{any} task. It is important to note that if you pass a closure to the task() method, this closure is applied for configuring the task. Line 4 of the example is just a shortcut for \texttt{task("resources")}. There is a slightly different ways of doing this.
 
-\begin{Verbatim}[linenumbers=left]
+\begin{Verbatim}[numbers=left]
 import org.gradle.api.tasks.Resources
 
 Resources resources = createTask('resources', type: Resources).configure {
