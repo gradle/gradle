@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
+// todo: add addConfiguration method with map argument
+// todo: remove add prefix from methods
 class DependencyContainer {
     static Logger logger = LoggerFactory.getLogger(DependencyContainer)
 
@@ -53,11 +55,7 @@ class DependencyContainer {
     }
 
     DependencyContainer(DependencyFactory dependencyFactory, List defaultConfs) {
-        // todo: When groovy bug is fixed, uncomment it
-//        assert existingConfigurations
         this.dependencyFactory = dependencyFactory
-        // todo: When groovy bug is fixed, pass it via constructor
-//        this.existingConfigurations = existingConfigurations
         this.defaultConfs = defaultConfs
     }
 
