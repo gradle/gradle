@@ -29,7 +29,7 @@ import org.gradle.api.internal.project.DefaultProject
 * @author Hans Dockter
 */
 class ModuleDependency extends AbstractDependency {
-    boolean force
+    boolean force = false
 
     List excludeRules = []
 
@@ -55,7 +55,7 @@ class ModuleDependency extends AbstractDependency {
     DependencyDescriptor createDepencencyDescriptor() {
         String id = userDependencyDescription
         List dependencyParts = id.split(':')
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null, createModuleRevisionId(dependencyParts[0], dependencyParts[1], dependencyParts[2]), false, false, true)
+        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null, createModuleRevisionId(dependencyParts[0], dependencyParts[1], dependencyParts[2]), force, false, true)
         confs.each { String conf ->
             dd.addDependencyConfiguration(conf, Dependency.DEFAULT_CONFIGURATION)
             excludeRules.each {dd.addExcludeRule(conf, it)}
