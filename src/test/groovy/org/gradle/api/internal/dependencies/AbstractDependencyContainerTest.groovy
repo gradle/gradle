@@ -139,13 +139,13 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
 
     void testAddClientModuleWithConfigurations() {
         checkAddClientModule(testConfs, {List configurations, String dependency, Closure configureClosure ->
-            testObj.addClientModule(configurations, dependency, configureClosure)
+            testObj.clientModule(configurations, dependency, configureClosure)
         })
     }
 
     void testAddClientModule() {
         checkAddClientModule(testDefaultConfs, {List configurations, String dependency, Closure configureClosure ->
-            testObj.addClientModule(dependency, configureClosure)
+            testObj.clientModule(dependency, configureClosure)
         })
     }
 

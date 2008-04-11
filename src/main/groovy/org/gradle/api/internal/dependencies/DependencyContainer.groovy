@@ -84,7 +84,7 @@ class DependencyContainer {
         addDependency(defaultConfs, id, configureClosure)
     }
 
-    ClientModule addClientModule(List confs, String artifact, Closure configureClosure = null) {
+    ClientModule clientModule(List confs, String artifact, Closure configureClosure = null) {
         // todo: We might better have a client module factory here
         ClientModule clientModule = new ClientModule(dependencyFactory, confs as Set, artifact, clientModuleRegistry)
         dependencies << clientModule
@@ -92,8 +92,8 @@ class DependencyContainer {
         clientModule
     }
 
-    ClientModule addClientModule(String artifact, Closure configureClosure = null) {
-        addClientModule(defaultConfs, artifact, configureClosure)
+    ClientModule clientModule(String artifact, Closure configureClosure = null) {
+        clientModule(defaultConfs, artifact, configureClosure)
     }
 
 

@@ -79,7 +79,7 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
 
     public void testUnsupportedOperations() {
         shouldFail(UnsupportedOperationException) {
-            clientModule.addClientModule(['a'], 'a')
+            clientModule.clientModule(['a'], 'a')
         }
         shouldFail(UnsupportedOperationException) {
             clientModule.addDependencies(['a'], 'a')

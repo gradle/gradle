@@ -53,19 +53,19 @@ dependencies {
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
     addConfiguration('ftpAntTask')
 
-    addClientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
+    clientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
         addDependencies("commons-net:commons-net:1.4.1")
     }
 
-    addClientModule(['compile'], "org.codehaus.groovy:groovy-all:1.5.5-032808") {
+    clientModule(['compile'], "org.codehaus.groovy:groovy-all:1.5.5-032808") {
         addDependency("commons-cli:commons-cli:1.0")
-        addClientModule("org.apache.ant:ant:1.7.0") {
+        clientModule("org.apache.ant:ant:1.7.0") {
             addDependency("org.apache.ant:ant-launcher:1.7.0")
             addDependencies("org.apache.ant:ant-junit:1.7.0:jar")
         }
     }
 
-    addClientModule(['runtime'], "org.tmatesoft.svnkit:svnkit:1.1.6") {
+    clientModule(['runtime'], "org.tmatesoft.svnkit:svnkit:1.1.6") {
         addDependencies("org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar")
     }
 
