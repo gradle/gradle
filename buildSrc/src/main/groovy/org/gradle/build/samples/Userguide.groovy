@@ -32,6 +32,15 @@ class Userguide {
         outputFile.write(result.output)
     }
 
+    static void createNonTutorialOutput(File tutorialOutputDir, File explodedDistDir, File explodedDistSamplesDir) {
+        createOutput(new File(tutorialOutputDir, 'buildlifecycle.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/buildlifecycle"),
+            ['test'], '', Executer.INFO)
+        createOutput(new File(tutorialOutputDir, 'multiprojectFirstExample.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/firstExample/water"),
+            ['hello'], '', Executer.QUIET)
+    }
+
     static void checkGroovyScripts(File tutorialDir, File tutorialOutputDir) {
         String localScope1 = 'localScope1'
         String localScope2 = 'localScope2'

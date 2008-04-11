@@ -209,7 +209,32 @@ createTask('otherResources', dependsOn: classes) {
 }
 """, {assert "${directoryFoundStatement}$NL" == it}, "otherResources"]
 // *****************
+        scripts["pluginIntro"] = ["""usePlugin('java')
+
+createTask('check') {
+    println(task('compile').destinationDir) // We can also write println(compile)
+}""", {assert "build/classes$NL" == it}, "check"]
+// *****************
+        scripts["pluginConfig"] = ["""usePlugin('java')
+
+createTask('check') {
+    resources.destinationDir = new File(buildDir, 'output')
+    println(resources.destinationDir)
+    println(compile.destinationDir)
+}""", {assert "build/output{NL}build/classes$NL" == it}, "check"]
+// *****************
+        scripts["pluginConvention"] = ["""usePlugin('java')
+
+createTask('check') {
+    classesDir = new File(buildDir, 'output')
+    println(resources.destinationDir)
+    println(compile.destinationDir)
+    println(convention.classesDir)  
+}""", {assert "build/output${NL}build/output${NL}build/output$NL" == it}, "check"]
+// *****************
+
         scripts
+
     }
 
     static void writeScripts(File baseDir) {
