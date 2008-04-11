@@ -245,6 +245,7 @@ class BuildTest extends GroovyTestCase {
                 new File('buildResolverDir'))
         assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)
         assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
+        assertEquals(expectedDefaultImports, build.settingsProcessor.importsReader.defaultImportsFile)
         build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps, expectedDefaultImports).call(new BuildScriptFinder(),
                 null)
         assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)

@@ -40,22 +40,24 @@ class BuildScriptProcessor {
         this.importsReader = importsReader
     }
 
-    void evaluate(DefaultProject project, Map bindingVariables = [:]) {
+    int evaluate(DefaultProject project, Map bindingVariables = [:]) {
         Binding binding = new Binding(bindingVariables)
         CompilerConfiguration conf = new CompilerConfiguration()
         conf.scriptBaseClass = 'org.gradle.api.internal.project.ProjectScript'
-        Script script
+        Map buildScript
         try {
+            buildScript = buildScriptWithImports(project)
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
-            script = groovyShell.parse(buildScriptWithImports(project), project.buildScriptFinder.buildFileName)
+            Script script = groovyShell.parse(buildScript.text, project.buildScriptFinder.buildFileName)
             replaceMetaclass(script, project)
             project.projectScript = script
             script.run()
         } catch (Throwable t) {
-            throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)
+            throw new GradleScriptException(t, project.buildScriptFinder.buildFileName,
+                    buildScript.importsLineCount)
         }
         project.additionalProperties.putAll(binding.variables)
-        script
+        buildScript.importsLineCount
     }
 
     private void replaceMetaclass(Script script, DefaultProject project) {
@@ -79,7 +81,11 @@ class BuildScriptProcessor {
         script.metaClass = projectScriptExpandoMetaclass
     }
 
-    private buildScriptWithImports(DefaultProject project) {
-        importsReader.getImports(project.rootDir) + project.buildScriptFinder.getBuildScript(project)
+    private Map buildScriptWithImports(DefaultProject project) {
+        Map importsResult = importsReader.getImports(project.rootDir) 
+        [
+                text: importsResult.text + project.buildScriptFinder.getBuildScript(project),
+                importsLineCount: importsResult.importsLineCount
+        ]
     }
 }

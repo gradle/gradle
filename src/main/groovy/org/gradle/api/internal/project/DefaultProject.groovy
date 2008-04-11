@@ -92,6 +92,8 @@ class DefaultProject implements Comparable, Project {
 
     Closure configureByDag = {}
 
+    int importsLineCount = 0
+
     DefaultProject() {
 
     }
@@ -143,7 +145,7 @@ class DefaultProject implements Comparable, Project {
             return this
         }
         state = STATE_INITIALIZING
-        buildScriptProcessor.evaluate(this)
+        importsLineCount = buildScriptProcessor.evaluate(this)
         state = STATE_INITIALIZED
         lateInitializeTasks(tasks)
         logger.info("Project=$path evaluated.")

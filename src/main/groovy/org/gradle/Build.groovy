@@ -110,7 +110,10 @@ class Build {
     static Closure newInstanceFactory(File gradleUserHomeDir, File pluginProperties, File defaultImportsFile) {
         {BuildScriptFinder buildScriptFinder, File buildResolverDir ->
             DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory()
-            new Build(gradleUserHomeDir, new SettingsProcessor(new SettingsFileHandler(), new SettingsFactory(),
+            new Build(gradleUserHomeDir, new SettingsProcessor(
+                    new SettingsFileHandler(),
+                    new ImportsReader(defaultImportsFile),
+                    new SettingsFactory(),
                     dependencyManagerFactory,
                     null, gradleUserHomeDir, buildResolverDir),
                     new ProjectsLoader(new ProjectFactory(dependencyManagerFactory),

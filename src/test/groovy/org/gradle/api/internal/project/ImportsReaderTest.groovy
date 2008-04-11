@@ -45,22 +45,30 @@ class ImportsReaderTest extends GroovyTestCase {
     }
 
     void testReadImports() {
-        assertEquals(TEST_DEFAULT_IMPORTS + TEST_PROJECT_IMPORTS, testObj.getImports(testDir))
+        Map result = testObj.getImports(testDir)
+        assertEquals(TEST_DEFAULT_IMPORTS + TEST_PROJECT_IMPORTS, result.text)
+        assertEquals(2, result.importsLineCount)
     }
 
     void testReadImportsWithNullDefaultImportsFile() {
         testObj.defaultImportsFile = null
-        assertEquals(TEST_PROJECT_IMPORTS, testObj.getImports(testDir))
+        Map result = testObj.getImports(testDir)
+        assertEquals(TEST_PROJECT_IMPORTS, result.text)
+        assertEquals(1, result.importsLineCount)
     }
 
     void testReadImportsWithNonExistingProjectImportsFile() {
         testProjectImportsFile.delete()
-        assertEquals(TEST_DEFAULT_IMPORTS, testObj.getImports(testDir))
+        Map result = testObj.getImports(testDir)
+        assertEquals(TEST_DEFAULT_IMPORTS, result.text)
+        assertEquals(1, result.importsLineCount)
     }
 
     void testReadImportsWithNonExistingProjectImportsAndNullDefaultsImportsFile() {
         testObj.defaultImportsFile = null
         testProjectImportsFile.delete()
-        assertEquals('', testObj.getImports(testDir))
+        Map result = testObj.getImports(testDir)
+        assertEquals('', result.text)
+        assertEquals(0, result.importsLineCount)
     }
 }

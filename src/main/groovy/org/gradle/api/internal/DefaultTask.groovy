@@ -98,7 +98,8 @@ class DefaultTask implements Task {
                     logger.debug("Action stopped by some action with message: $e.message")
                     continue
                 } catch (Throwable t) {
-                    throw new GradleScriptException(t, project?.buildScriptFinder?.buildFileName ?: 'unknown')
+                    throw new GradleScriptException(t, project?.buildScriptFinder?.buildFileName ?: 'unknown',
+                        project.importsLineCount)
                 }
             }
         }

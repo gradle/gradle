@@ -22,8 +22,7 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
-class BuildScriptExceptionTest extends GroovyTestCase {
-    static Logger logger = LoggerFactory.getLogger(BuildScriptExceptionTest)
+class GradleScriptExceptionTest extends GroovyTestCase {
     void testMessage() {
         String scriptName = 'scriptfile'
         GradleScriptException buildScriptException
@@ -34,8 +33,10 @@ def b = 2
 unknownProp''', scriptName)
             fail()
         } catch (MissingPropertyException e) {
-            buildScriptException = new GradleScriptException(e, 'name')
+            buildScriptException = new GradleScriptException(e, 'name', 5)
         }
+        assertEquals(buildScriptException.lineNumberOffset, 5)
+        assertEquals(0, new GradleScriptException(new NullPointerException(), 'name').lineNumberOffset)
         assert buildScriptException.cause instanceof MissingPropertyException
         assert buildScriptException.message.contains(MissingPropertyException.name)
     }
