@@ -205,13 +205,11 @@ createTask('uploadJavadoc', dependsOn: 'javadoc') {
 createTask('distsWithJavadoc').dependsOn 'dists', 'javadoc'
 
 // This is already a kind of integration test. We have to run the tutorials separately, to get the output for the userguide.
-File tutorialOutputDir = new File(buildDir, 'tutorial-output')
-createTask('tutorialOutput', dependsOn: 'explodedDist') {
-    TutorialCreator.createOutput(explodedDistDir.absolutePath, explodedDistTutorialDir, tutorialOutputDir)
-    Userguide.createOutput(new File(tutorialOutputDir, 'buildlifecycle.out'), explodedDistDir.absolutePath,
-            new File("$explodedDistSamplesDir/userguide/buildlifecycle"),
-            ['test'], '', Executer.INFO)
-    Userguide.checkGroovyScripts(explodedDistTutorialDir, tutorialOutputDir)
+tutorialOutputDir = dir("$buildDir.name/tutorial-output")
+createTask('tutorialOutput', dependsOn: ['explodedDist',tutorialOutputDir]) {
+    Userguide.createNonTutorialOutput(tutorialOutputDir.dir,  explodedDistDir, explodedDistSamplesDir)
+    TutorialCreator.createOutput(explodedDistDir.absolutePath, explodedDistTutorialDir, tutorialOutputDir.dir)
+    Userguide.checkGroovyScripts(explodedDistTutorialDir, tutorialOutputDir.dir)
 }.skipProperties << 'integtest.skip'
 
 userguideDir = dir("$buildDir.name/$docDir.name/userguide")
@@ -274,7 +272,7 @@ createTask('integTests', dependsOn: ['dists', 'tutorialOutput']) {
     String distDirPath = explodedDistDir.absolutePath
     WrapperProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
     org.gradle.build.integtests.Version.execute(distDirPath)
-    TutorialTest.execute(tutorialOutputDir)
+    TutorialTest.execute(tutorialOutputDir.dir)
     WaterProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
     JavaProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
     GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
