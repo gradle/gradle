@@ -1,0 +1,21 @@
+\chapter{Existing IDE Support and how to cope without it} % (fold)
+\label{cha:ide_support}
+\section{IntelliJ} % (fold)
+\label{sec:intellij}
+Gradle has been mainly developed with Idea IntelliJ and their very good Groovy plugin. Also Gradles build script has been developed with the support of this IDE. With IntelliJ you can say that define any filepattern to be interpreted as a Groovy script. In the case of Gradle you can define such a pattern for \emph{gradlefile} and \emph{gradlesettings}. This will already help very much. What is missing is the classpath to the Gradle binaries to offer content assistance for the particular Gradle classes. You might add the gradle jar (which you can find in your distribution) to your projects classpath. It does not really belong there, but if you do this you have a fantastic IDE support for developing Gradle scripts. Of course if you use additional libraries for your build scripts they further pollute your project classpath.  
+We hope that in the future gradlefiles get special treatment by IntelliJ and you will be able to define a specific classpath for them. 
+% section intellij (end)
+
+\section{Eclipse} % (fold)
+\label{sec:eclipse}
+There is a Groovy plugin for eclipse. We don't know in what state it is and how it would support gradefile. In the next edition of this userguide we can hopefully write more about this.
+% section eclipse (end)
+
+\section{Using Gradle without IDE support} % (fold)
+\label{sec:using_gradle_without_ide_support}
+What we can do for you is to spare you typing things like \texttt{throw new org.gradle.api.tasks.StopExecutionException()} and just type \texttt{throw new StopExecutionException()} instead. We do this by automatically adding a set of import statements to the gradle scripts before Gradle executes them. The set is defined by a properties file \texttt{gradle-imports} in the gradle distribution. It has the following content.
+\codeInput{../../../build/distributions/exploded/gradle-imports}
+You can define a project specific set of imports to be added to your build scripts. Just place a file called \texttt{gradle-imports} in your root project directory. If you start Gradle with the {-I} option, the imports defined in the Gradle distribution are disabled. The imports defined in your project directory are always used.
+% section using_gradle_without_ide_support (end)
+
+% chapter ide_support (end)

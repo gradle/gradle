@@ -23,15 +23,21 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildScriptProcessor {
     private static Logger logger = LoggerFactory.getLogger(BuildScriptProcessor)
 
     ClassLoader classLoader
 
+    ImportsReader importsReader
+
     BuildScriptProcessor() {
 
+    }
+
+    BuildScriptProcessor(ImportsReader importsReader) {
+        this.importsReader = importsReader
     }
 
     void evaluate(DefaultProject project, Map bindingVariables = [:]) {
@@ -41,7 +47,7 @@ class BuildScriptProcessor {
         Script script
         try {
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
-            script = groovyShell.parse(project.buildScriptFinder.getBuildScript(project), project.buildScriptFinder.buildFileName)
+            script = groovyShell.parse(buildScriptWithImports(project), project.buildScriptFinder.buildFileName)
             replaceMetaclass(script, project)
             project.projectScript = script
             script.run()
@@ -71,5 +77,9 @@ class BuildScriptProcessor {
         }
         projectScriptExpandoMetaclass.initialize()
         script.metaClass = projectScriptExpandoMetaclass
+    }
+
+    private buildScriptWithImports(DefaultProject project) {
+        importsReader.getImports(project.rootDir) + project.buildScriptFinder.getBuildScript(project)
     }
 }

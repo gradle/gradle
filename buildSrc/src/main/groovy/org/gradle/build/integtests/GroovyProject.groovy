@@ -30,7 +30,7 @@ class GroovyProject {
         List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
         File groovyProjectDir = new File(samplesDirName, GROOVY_PROJECT_NAME)
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'test'], '', false)
+        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'test'], '', Executer.DEBUG)
         mainFiles.each { JavaProject.checkExistence(groovyProjectDir, packagePrefix, it + ".class")}
 
         testFiles.each { JavaProject.checkExistence(groovyProjectDir, testPackagePrefix, it + ".class") }
@@ -38,7 +38,7 @@ class GroovyProject {
         testFiles.each { JavaProject.checkExistence(groovyProjectDir, 'build', it) }
 
         // This test is also important for test cleanup
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], '', false)
+        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], '', Executer.DEBUG)
         assert !(new File(groovyProjectDir, "build").exists())
     }
 

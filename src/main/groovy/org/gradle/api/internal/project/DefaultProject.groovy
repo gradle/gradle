@@ -325,8 +325,6 @@ class DefaultProject implements Comparable, Project {
     }
 
     Task dir(String path) {
-        if (new File(path).isAbsolute()) { throw new InvalidUserDataException('Path must be releative!') }
-        File dir = new File(path)
         String resultTaskName = path
         path.split('/').inject('') { name, pathElement ->
             name += (name ? "/$pathElement" : pathElement)

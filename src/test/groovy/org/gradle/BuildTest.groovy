@@ -239,12 +239,16 @@ class BuildTest extends GroovyTestCase {
     // todo: This test is rather weak. Make it stronger.
     void testNewInstanceFactory() {
         File expectedPluginProps = new File('pluginProps')
-        Build build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps).call(new BuildScriptFinder(),
+        File expectedDefaultImports = new File('defaultImports')
+        Build build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps, expectedDefaultImports).call(
+                new BuildScriptFinder(),
                 new File('buildResolverDir'))
         assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)
-        build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps).call(new BuildScriptFinder(),
+        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
+        build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps, expectedDefaultImports).call(new BuildScriptFinder(),
                 null)
         assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)
+        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
     }
 
 }

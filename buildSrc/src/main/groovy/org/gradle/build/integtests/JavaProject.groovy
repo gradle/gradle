@@ -32,7 +32,7 @@ class JavaProject {
         String testPackagePrefix = 'build/test-classes/org/gradle'
 
         File javaprojectDir = new File(samplesDirName, 'javaproject')
-        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'test'], '', false)
+        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'test'], '', Executer.DEBUG)
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
         checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
@@ -41,7 +41,7 @@ class JavaProject {
         checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME" as String, packagePrefix, WEBAPP_1_NAME, 'TestTest.class')
 
         Executer.execute(gradleHome, new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME").absolutePath,
-                ['clean', 'test'], '', false)
+                ['clean', 'test'], '', Executer.DEBUG)
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
         checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
@@ -49,7 +49,7 @@ class JavaProject {
         checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME" as String, packagePrefix, WEBAPP_1_NAME, 'TestTest.class')
 
         // This test is also important for test cleanup
-        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], '', false)
+        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], '', Executer.DEBUG)
         projects.each {assert !(new File(samplesDirName, "$it/build").exists())}
 
     }

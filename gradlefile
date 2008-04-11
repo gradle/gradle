@@ -15,10 +15,16 @@ import org.gradle.execution.Dag
 import org.gradle.util.GradleVersion
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility
+import groovy.text.SimpleTemplateEngine
+import org.gradle.build.samples.Userguide
+
+usePlugin('groovy')
 
 distName = 'gradle'
 svn = new Svn(project)
 distributionUploadUrl = null
+userguideRemoteDir = 'userguide/'
+javadocRemoteDir = 'api/'
 
 type = 'jar'
 version = new Version(svn, project, false)
@@ -26,21 +32,30 @@ group = 'org.gradle'
 buildTime = new Date()
 versionModifier = null
 
-usePlugin('groovy')
+webSrcDir = new File("$srcRoot", 'website')
 
 configureByDag = {Dag dag ->
     if (dag.hasTask(':release')) {
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
+        userguideRemoteDir += 'release'
+        javadocRemoteDir += 'release'
     } else {
         versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
+        userguideRemoteDir += 'latest'
+        javadocRemoteDir += 'latest'
     }
 }
 
 dependencies {
     // todo: Improve dependency handling for xUnit jars
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
+    addConfiguration('ftpAntTask')
+
+    addClientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
+        addDependencies("commons-net:commons-net:1.4.1")
+    }
 
     addClientModule(['compile'], "org.codehaus.groovy:groovy-all:1.5.5-032808") {
         addDependency("commons-cli:commons-cli:1.0")
@@ -124,17 +139,22 @@ createTask('explodedDist', dependsOn: 'libs') {
         copy(file: task('gradle_jar').archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate("$distName-${version}.jar", explodedDistBinDir, distName)
-        logger.info('Generate tutorial')
+        logger.info('Generate and copy samples.')
         TutorialCreator.writeScripts(explodedDistTutorialDir)
         WaterProjectCreator.createProjectTree(explodedDistSamplesDir)
         WrapperProjectCreator.createProject(explodedDistSamplesDir, task('gradle_zip').archivePath.parentFile,
                 version.toString())
         copy(toDir: explodedDistSamplesDir) {fileset(dir: new File(srcRoot, 'samples'))}
-
+        logger.info('Copy binary sources.')
         copy(toDir: explodedDistSrcDir) {
             (srcDirs + resourceDirs + groovySrcDirs).findAll {it.isDirectory()}.each {dir -> fileset(dir: dir)}
         }
+        logger.info('Copy and generate top level files.')
         copy(toDir: explodedDistDir) {fileset(dir: new File(srcRoot, 'toplevel'))}
+        String gettingStartedContent = new File("$webSrcDir/content", 'getting-started.html').text
+        new File(explodedDistDir, 'getting-started.html').text =
+            new SimpleTemplateEngine().createTemplate(new File(srcDocsDir, 'distGettingStartedSkeleton.html')).make(content: gettingStartedContent).toString()
+        // Set permissions (important for running integration tests against the exploded dist) 
         chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
     }
 }
@@ -170,37 +190,54 @@ dists {
 
 javadoc.destDir = explodedDistJavadocsDir
 
+createTask('uploadJavadoc', dependsOn: 'javadoc') {
+    ftp(action: 'mkdir', remotedir: javadocRemoteDir)
+    ftp(action: 'delete', remotedir: javadocRemoteDir) {
+        fileset() {include(name: '**/*.html')}
+    }
+    // todo: Ant ftp hangs sometimes. We might switch to platform ftp. 
+    // The passive = true is an attempt to improve this. Yet it sometimes takes
+    ftp(action: 'send', remotedir: javadocRemoteDir, passive: true) {
+        fileset(dir: javadoc.destDir)
+    }
+}
+
 createTask('distsWithJavadoc').dependsOn 'dists', 'javadoc'
 
 // This is already a kind of integration test. We have to run the tutorials separately, to get the output for the userguide.
 File tutorialOutputDir = new File(buildDir, 'tutorial-output')
 createTask('tutorialOutput', dependsOn: 'explodedDist') {
     TutorialCreator.createOutput(explodedDistDir.absolutePath, explodedDistTutorialDir, tutorialOutputDir)
+    Userguide.createOutput(new File(tutorialOutputDir, 'buildlifecycle.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/buildlifecycle"),
+            ['test'], '', Executer.INFO)
+    Userguide.checkGroovyScripts(explodedDistTutorialDir, tutorialOutputDir)
 }.skipProperties << 'integtest.skip'
 
-createTask('userGuide', dependsOn: 'tutorialOutput') {
+userguideDir = dir("$buildDir.name/$docDir.name/userguide")
+
+createTask('userguide', dependsOn: ['tutorialOutput', userguideDir]) {
     File userguideSrc = new File(srcDocsDir, 'userguide')
-    File userguide = mkdir(docDir, 'userguide')
-    File userguideData = mkdir(userguide, 'data')
+    File userguideData = mkdir(userguideDir.dir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
     ant {
         cleanLatex(userguideSrc)
         2.times {
-            exec(output: userguide.path + '/pdfOut', executable: 'pdflatex', dir: userguideSrc) {
+            exec(output: userguideDir.toString() + '/pdfOut', executable: 'pdflatex', dir: userguideSrc) {
                 arg(line: "master.tex")
             }
         }
         copy(file: new File(userguideSrc, 'master.pdf'), tofile: new File(explodedDistDocsDir, 'pdf/userguide.pdf'))
         cleanLatex(userguideSrc)
         2.times {
-            exec(output: userguide.path + '/htmlOut', executable: 'htlatex', dir: userguideSrc) {
+            exec(output: userguideDir.toString() + '/htmlOut', executable: 'htlatex', dir: userguideSrc) {
                 arg(line: "master.tex")
             }
         }
         copy(file: new File(userguideSrc, 'master.html'), tofile: new File(explodedDistDocsDir, 'html_single/userguide.html'))
         cleanLatex(userguideSrc)
         2.times {
-            exec(output: userguide.path + '/htmlSingleOut', executable: 'htlatex', dir: userguideSrc) {
+            exec(output: userguideDir.toString() + '/htmlSingleOut', executable: 'htlatex', dir: userguideSrc) {
                 arg(line: "master.tex \"html,2\"")
             }
         }
@@ -209,12 +246,26 @@ createTask('userGuide', dependsOn: 'tutorialOutput') {
         }
         cleanLatex(userguideSrc)
     }
-
 }
 
 void cleanLatex(File dir) {
     ant.delete() {
         fileset(dir: dir, includes: "*.aux, *.lg, *.tmp, *.html, *.pdf, *.log, *.dvi, *.css, *.fdb_latexmk, *.idv, *.toc, *.xref, *.4ct, *.4tc, *.out")
+    }
+}
+
+createTask('uploadUserguide', dependsOn: 'userguide') {
+    ftp(action: 'mkdir', remotedir: userguideRemoteDir)
+    ftp(action: 'delete', remotedir: userguideRemoteDir) {
+        fileset() {
+            include(name: '*.html')
+        }
+    }
+    ftp(action: 'send', remotedir: userguideRemoteDir) {
+        fileset(dir: new File(explodedDistDocsDir, 'html'))
+        fileset(dir: new File(explodedDistDocsDir, 'pdf')) {
+            include(name: 'userguide.pdf')
+        }
     }
 }
 
@@ -271,6 +322,62 @@ createTask('release', dependsOn: 'uploadDists') {
 
 createTask('wrapper', type: Wrapper).configure {
     gradleVersion = '0.1'
+}
+
+buildWebsiteDir = new File(buildDir, 'website')
+createTask('buildWebsite') {
+    buildWebsiteDir.mkdirs()
+    File webContentSrcDir = new File(webSrcDir, 'content')
+    def engine = new SimpleTemplateEngine()
+    def binding = [
+            currentRelease: version.lastRelease,
+            sidebar: engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(currentRelease: version.lastRelease).toString()
+    ]
+    def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
+    webContentSrcDir.eachFileMatch(~/.*html/) {File contentFile ->
+        def contentTemplate = engine.createTemplate(contentFile)
+        String content = contentTemplate.make(binding).toString()
+        new File(buildWebsiteDir, contentFile.name).text =
+            skeletonTemplate.make(binding + [content: content, title: contentFile.name]).toString()
+    }
+    ant {
+        copy(todir: new File(buildWebsiteDir, 'css')) {
+            fileset(dir: new File(webSrcDir, 'css'))
+        }
+        copy(todir: new File(buildWebsiteDir, 'img')) {
+            fileset(dir: new File(webSrcDir, 'img'))
+        }
+    }
+}
+
+createTask('uploadWebsite', dependsOn: 'buildWebsite') {
+    ant {
+        ftp(action: 'delete') {
+            fileset() {
+                include(name: '*.html')
+            }
+        }
+        ftp(action: 'send') {
+            fileset(dir: buildWebsiteDir)
+        }
+    }
+}
+
+void ftp(Map args, Closure antFileset = {}) {
+    ant {
+        taskdef(name: 'ftp',
+                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
+                classpath: dependencies.resolveClasspath('ftpAntTask').join(':'))
+        Map ftpArgs = args + [
+                server: 'www.gradle.org',
+                userid: websiteFtpUserName,
+                password: websiteFtpUserPassword
+        ]
+        delegate.ftp(ftpArgs) {
+            antFileset.delegate = delegate
+            antFileset()
+        }
+    }
 }
 
 //createTask('check') {

@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory
 /**
 * @author Hans Dockter
 */
+// todo the main method is too long. Extract methods.
 class Main {
     private static Logger logger = LoggerFactory.getLogger(Main)
     
@@ -40,6 +41,7 @@ class Main {
     static final String DEFAULT_GRADLE_USER_HOME = System.properties['user.home'] + '/.gradle'
     final static String DEFAULT_CONF_FILE = "conf.buildg"
     final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties"
+    final static String IMPORTS_FILE_NAME = "gradle-imports"
     final static String NL = System.properties['line.separator']
 
     static void main(String[] args) {
@@ -70,6 +72,7 @@ class Main {
         cli.f(longOpt: 'fullStacktrace', 'Print out the full (very verbose) stacktrace.')
         cli.s(longOpt: 'stacktrace', 'Print out the stacktrace.')
         cli.D(longOpt: 'prop', 'Set system property of the JVM.', args: 1)
+        cli.I(longOpt: 'noImports', 'Disable usage of default imports for build script files.')
         cli.P(longOpt: 'projectProperty', 'Set project property of the root project.', args: 1)
         cli.g(longOpt: 'gradleUserHome', 'The user specific gradle dir.', args: 1)
         cli.e(longOpt: 'embedded', 'Use an embedded build script.', args: 1)
@@ -99,6 +102,14 @@ class Main {
             return
         }
 
+        File pluginProperties = gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES as File
+        File gradleImportsFile = gradleHome + '/' + IMPORTS_FILE_NAME as File
+
+        if (options.I) {
+           logger.info("Disabling default imports.")
+           gradleImportsFile = null
+        }
+
         if (options.D) {
             logger.info("Running with System props: $options.Ds")
             options.Ds.each {String keyValueExpression ->
@@ -114,8 +125,6 @@ class Main {
                 startProperties[elements[0]] = elements.size() == 1 ? '' : elements[1]
             }
         }
-
-        File pluginProperties = gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES as File
 
         if (options.n) recursive = false
         if (options.u) {searchUpwards = false}
@@ -154,6 +163,7 @@ class Main {
         logger.info("Recursive: $recursive")
         logger.info("Buildfilename: $buildFileName")
         logger.info("Plugin properties: $pluginProperties")
+        logger.info("Default imports file: $gradleImportsFile")
 
         try {
             def tasks = options.arguments()
@@ -164,7 +174,7 @@ class Main {
             
             def buildScriptFinder = (embeddedBuildScript != null ? new EmbeddedBuildScriptFinder(embeddedBuildScript) :
                 new BuildScriptFinder(buildFileName))
-            Closure buildFactory = Build.newInstanceFactory(gradleUserHomeDir, pluginProperties)
+            Closure buildFactory = Build.newInstanceFactory(gradleUserHomeDir, pluginProperties, gradleImportsFile)
             Build build = buildFactory(buildScriptFinder, null)
             build.settingsProcessor.buildSourceBuilder = new BuildSourceBuilder(
                     new EmbeddedBuildExecuter(buildFactory, gradleUserHomeDir))

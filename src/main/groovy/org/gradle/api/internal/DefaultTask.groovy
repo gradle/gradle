@@ -83,7 +83,7 @@ class DefaultTask implements Task {
 
     void execute() {
         logger.debug("Executing ProjectTarget: $path")
-        List trueSkips = skipProperties.findAll {System.properties[it] && Boolean.valueOf(System.properties[it])}
+        List trueSkips = (skipProperties + ["skip.$name"]).findAll {String prop -> Boolean.getBoolean(prop)}
         if (trueSkips) {
             logger.info("Skipping execution as following skip properties are true: ${trueSkips.join(' ')}")
         } else {
@@ -126,8 +126,8 @@ class DefaultTask implements Task {
         getPath()
     }
 
-    Task dependsOn(String[] paths) {
-        paths.each {String path ->
+    Task dependsOn(Object[] paths) {
+        paths.each {path ->
             if (!path) {
                 throw new InvalidUserDataException('A pathelement must not be empty')
             }

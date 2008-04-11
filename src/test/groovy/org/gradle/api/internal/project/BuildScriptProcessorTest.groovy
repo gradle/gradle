@@ -22,11 +22,11 @@ import org.gradle.api.internal.project.BuildScriptProcessor
 import org.gradle.api.internal.project.DefaultProject
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildScriptProcessorTest extends GroovyTestCase {
     static final String TEST_BUILD_FILE_NAME = 'somename'
-    
+
     BuildScriptProcessor buildScriptProcessor
 
     DefaultProject dummyProject
@@ -37,22 +37,40 @@ class BuildScriptProcessorTest extends GroovyTestCase {
 
     Script projectScript
 
+    File testRootDir
+
+    ImportsReader mockImportsReader
+
+    String testImports = '''import org.gradle.api.*
+'''
+
     void setUp() {
+        testRootDir = new File("/psth/root")
+        mockImportsReader = [getImports: {File rootDir ->
+           println 'called'
+           assertEquals(testRootDir, rootDir)
+           testImports
+        }] as ImportsReader
         classLoader = new InputStreamClassLoader()
         InputStream inputStream = this.getClass().getResourceAsStream('/org/gradle/api/ClasspathTester.dat')
         classLoader.loadClass("org.gradle.api.ClasspathTester", inputStream)
-        buildScriptProcessor = new BuildScriptProcessor()
+        buildScriptProcessor = new BuildScriptProcessor(mockImportsReader)
         buildScriptProcessor.classLoader = classLoader
-        dummyProject = [someProjectMethod: {projectMethodCalled = true}, getRootDir: {new File("/psth/root")},
+        dummyProject = [someProjectMethod: {projectMethodCalled = true}, getRootDir: {testRootDir},
                 getServices: {HelperUtil.createTestProjectService()}, getName: {'projectname'},
-                setProjectScript: { Script script -> projectScript = script}] as DefaultProject
-        projectMethodCalled = false
+                setProjectScript: {Script script -> projectScript = script}] as DefaultProject
 
+        projectMethodCalled = false
+    }
+
+    void testInit() {
+        assert buildScriptProcessor.importsReader.is(mockImportsReader)
     }
 
     void testEvaluate() {
         String scriptCode = '''
-new org.gradle.api.ClasspathTester().testMethod()
+// We leave out the path to check import adding   
+new ClasspathTester().testMethod()
 
 def scriptMethod() { 'scriptMethod' }
     someProjectMethod()

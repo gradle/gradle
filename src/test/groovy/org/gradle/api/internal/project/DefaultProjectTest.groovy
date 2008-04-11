@@ -683,14 +683,6 @@ def scriptMethod(Closure closure) {
         project.dir('dir1/dir4')
         assert project.task('dir1').is(dir1Task)
         assert project.task('dir1/dir4') instanceof Directory
-
-        shouldFailWithCause(InvalidUserDataException) {
-            project.dir(new File('dirNonRelative').absolutePath)    
-        }
-        project.createTask('/sometask')
-        shouldFailWithCause(InvalidUserDataException) {
-            project.dir('/sometask')
-        }
     }
 
     void testLazyInitOfAnt() {

@@ -90,7 +90,6 @@ dependencies {
 
 \subsubsection{Client Module Dependencies} % (fold)
 \label{ssub:client_module_dependencies}
-
 Client module dependencies enable to declare transitive dependencies directly in your build script. There don't need to be a xml module descriptor in the repository. Client module dependencies can be nested.
 
 \begin{Verbatim}
@@ -104,6 +103,8 @@ addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") 
 \end{Verbatim}
 
 This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does not look for an xml descriptor to figure them out but gets the information from the build file. The dependencies of a client module can normal module dependencies or artifact dependencies or another client module. 
+
+LIMITATIONS
 % subsubsection client_module_dependencies (end)
 
 \subsubsection{Project dependencies} % (fold)

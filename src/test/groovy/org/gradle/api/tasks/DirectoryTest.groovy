@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks
 
 import org.gradle.api.InvalidUserDataException
@@ -24,49 +24,64 @@ import org.gradle.util.HelperUtil
  * @author Hans Dockter
  */
 class DirectoryTest extends AbstractTaskTest {
-    static final String TASK_DIR_NAME = '/parent/child'
+    static final String TASK_DIR_NAME = 'parent/child'
+    Directory directoryForAbstractTest
     Directory directory
 
-    File testDir
-
     public Task getTask() {
-        return directory
+        return directoryForAbstractTest
     }
 
     void setUp() {
         super.setUp()
-        directory = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
-        testDir = HelperUtil.makeNewTestDir()
+        directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
+        directory = new Directory(project, TASK_DIR_NAME)
+        HelperUtil.makeNewTestDir()
     }
 
     void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testCreateDir() {
-        directory = new Directory(project, TASK_DIR_NAME)
+    void testInit() {
+        assertEquals(new File(project.projectDir, TASK_DIR_NAME), directory.dir)
+    }
+
+    void testInitWithAbsolutePathName() {
+        shouldFailWithCause(InvalidUserDataException) {
+            directory = new Directory(project, new File('nonRelative').absolutePath)
+        }
+        shouldFailWithCause(InvalidUserDataException) {
+            directory = new Directory(project, '/nonRelative')
+        }
+    }
+
+    void testExecute() {
         directory.execute()
-        assert new File(testDir, TASK_DIR_NAME).isDirectory()
+        assert new File(project.projectDir, TASK_DIR_NAME).isDirectory()
     }
 
     void testWithExistingDir() {
-        File dir = new File(testDir, TASK_DIR_NAME)
+        File dir = new File(project.projectDir, TASK_DIR_NAME)
         dir.mkdirs()
         // create new file to check later that dir has not been recreated 
         File file = new File(dir, 'somefile')
         file.createNewFile()
-        directory = new Directory(project, TASK_DIR_NAME)
         directory.execute()
         assert dir.isDirectory()
         assert file.isFile()
     }
 
     void testWithExistingFile() {
-        File file = new File(testDir, 'testname')
+        File file = new File(project.projectDir, 'testname')
         file.createNewFile()
         directory = new Directory(project, 'testname')
         shouldFailWithCause(InvalidUserDataException) {
             directory.execute()
         }
+    }
+
+    void testToString() {
+        assertEquals(directory.name, directory.toString())
     }
 }
