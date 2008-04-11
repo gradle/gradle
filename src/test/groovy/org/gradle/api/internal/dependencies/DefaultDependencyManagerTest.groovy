@@ -310,7 +310,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
             }
         }
         dependencyFactoryMocker.use(dependencyFactory) {
-            testObj.addDependencies([AbstractDependencyContainerTest.TEST_CONFIGURATION],
+            testObj.dependencies([AbstractDependencyContainerTest.TEST_CONFIGURATION],
                     AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
                     AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
         }

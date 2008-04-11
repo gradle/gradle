@@ -224,7 +224,7 @@ class DefaultDependencyManager extends DependencyContainer implements Dependency
             }
             return getMetaClass().invokeMethod(this, name, args)
         }
-        addDependencies([name], args as Object[])
+        dependencies([name], args as Object[])
     }
 }
 

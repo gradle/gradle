@@ -87,7 +87,7 @@ public interface DependencyManager {
     */
     Map getConf2Tasks();
 
-    void addDependencies(List confs, Object[] dependencies);
+    void dependencies(List confs, Object[] dependencies);
 
     void addArtifacts(String configurationName, Object[] artifacts);
 
@@ -95,7 +95,7 @@ public interface DependencyManager {
 
     void addConfiguration(String configuration);
 
-    void addDependencyDescriptors(DependencyDescriptor[] dependencyDescriptors);
+    void dependencyDescriptors(DependencyDescriptor[] dependencyDescriptors);
 
     List resolveClasspath(String configurationName);
 

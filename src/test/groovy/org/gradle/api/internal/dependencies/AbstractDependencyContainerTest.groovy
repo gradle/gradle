@@ -64,13 +64,13 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
 
     void testAddDepencenciesWithConfiguration() {
         checkAddDependencies(testConfs, {List configurations, Object[] dependencies ->
-            testObj.addDependencies(configurations, dependencies)
+            testObj.dependencies(configurations, dependencies)
         })
     }
 
     void testAddDepencencies() {
         checkAddDependencies(testDefaultConfs, {List configurations, Object[] dependencies ->
-            testObj.addDependencies(dependencies)
+            testObj.dependencies(dependencies)
         })
     }
 
@@ -86,7 +86,7 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
             }
         }
         dependencyFactoryMocker.use(dependencyFactory) {
-            testObj.addDependencies(expectedConfigurations,
+            testObj.dependencies(expectedConfigurations,
                     AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
                     AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
             assertEquals(dependencies[0..1], testObj.dependencies)
@@ -98,22 +98,22 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
 
     void testAddDependencyDescriptor() {
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
-        testObj.addDependencyDescriptors(dependencyDescriptor)
+        testObj.dependencyDescriptors(dependencyDescriptor)
         assertEquals([dependencyDescriptor], testObj.dependencyDescriptors)
         DependencyDescriptor dependencyDescriptor2 = [:] as DependencyDescriptor
-        testObj.addDependencyDescriptors(dependencyDescriptor2)
+        testObj.dependencyDescriptors(dependencyDescriptor2)
         assertEquals([dependencyDescriptor, dependencyDescriptor2], testObj.dependencyDescriptors)
     }
 
     void testAddDepencencyWithConfiguration() {
         checkAddDependency(testConfs, {List configurations, String dependency, Closure cl ->
-            testObj.addDependency(configurations, dependency, cl)
+            testObj.dependency(configurations, dependency, cl)
         })
     }
 
     void testAddDependency() {
         checkAddDependency(testDefaultConfs, {List configurations, String dependency, Closure cl  ->
-            testObj.addDependency(dependency, cl)
+            testObj.dependency(dependency, cl)
         })
     }
 

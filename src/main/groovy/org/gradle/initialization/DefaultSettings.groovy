@@ -76,7 +76,7 @@ class DefaultSettings implements Settings {
     }
 
     void addDependencies(Object[] dependencies) {
-        dependencyManager.addDependencies([BUILD_CONFIGURATION], dependencies)
+        dependencyManager.dependencies([BUILD_CONFIGURATION], dependencies)
     }
 
     ResolverContainer getResolvers() {
@@ -91,7 +91,7 @@ class DefaultSettings implements Settings {
         }
         logger.debug("Build src dependency: $dependency")
         if (dependency) {
-            dependencyManager.addDependencies([BUILD_CONFIGURATION], dependency)
+            dependencyManager.dependencies([BUILD_CONFIGURATION], dependency)
         } else {
             logger.info('No build sources found.')
         }

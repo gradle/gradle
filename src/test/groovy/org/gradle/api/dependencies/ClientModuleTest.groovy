@@ -67,7 +67,7 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         }
         DependencyDescriptor dependencyDescriptor
         dependencyFactoryMocker.use(clientModule.dependencyFactory) {
-            clientModule.addDependencies("org.apache:test:5.0.4")
+            clientModule.dependencies("org.apache:test:5.0.4")
             dependencyDescriptor = clientModule.createDepencencyDescriptor()
         }
         assertEquals(IvyUtil.moduleRevisionId('org.gradle', 'test', '1.3.4').toString(),
@@ -82,10 +82,10 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
             clientModule.clientModule(['a'], 'a')
         }
         shouldFail(UnsupportedOperationException) {
-            clientModule.addDependencies(['a'], 'a')
+            clientModule.dependencies(['a'], 'a')
         }
         shouldFail(UnsupportedOperationException) {
-            clientModule.addDependency(['a'], 'a')
+            clientModule.dependency(['a'], 'a')
         }
     }
 

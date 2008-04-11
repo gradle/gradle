@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 // todo: add addConfiguration method with map argument
-// todo: remove add prefix from methods
 class DependencyContainer {
     static Logger logger = LoggerFactory.getLogger(DependencyContainer)
 
@@ -59,29 +58,29 @@ class DependencyContainer {
         this.defaultConfs = defaultConfs
     }
 
-    void addDependencies(List confs, Object[] dependencies) {
+    void dependencies(List confs, Object[] dependencies) {
         (dependencies as List).flatten().each {
             this.dependencies << dependencyFactory.createDependency(confs as Set, it, project)
         }
     }
 
-    void addDependencies(Object[] dependencies) {
-        addDependencies(defaultConfs, dependencies)
+    void dependencies(Object[] dependencies) {
+        dependencies(defaultConfs, dependencies)
     }
 
-    void addDependencyDescriptors(DependencyDescriptor[] dependencyDescriptors) {
+    void dependencyDescriptors(DependencyDescriptor[] dependencyDescriptors) {
         this.dependencyDescriptors.addAll(dependencyDescriptors as List)
     }
 
-    ModuleDependency addDependency(List confs, String id, Closure configureClosure = null) {
+    ModuleDependency dependency(List confs, String id, Closure configureClosure = null) {
         def dependency = dependencyFactory.createDependency(confs as Set, id, project)
         dependencies << dependency
         GradleUtil.configure(configureClosure, dependency)
         dependency
     }
 
-    ModuleDependency addDependency(String id, Closure configureClosure = null) {
-        addDependency(defaultConfs, id, configureClosure)
+    ModuleDependency dependency(String id, Closure configureClosure = null) {
+        dependency(defaultConfs, id, configureClosure)
     }
 
     ClientModule clientModule(List confs, String artifact, Closure configureClosure = null) {

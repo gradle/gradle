@@ -83,18 +83,18 @@ class ClientModule extends DependencyContainer implements Dependency {
         // do nothing
     }
 
-    void addDependencies(List confs, Object[] dependencies) {
+    void dependencies(List confs, Object[] dependencies) {
         if (confs != defaultConfs) {
             throw new UnsupportedOperationException("You can assign confs $confs to dependencies in a client module.")
         }
-        super.addDependencies(confs, dependencies)
+        super.dependencies(confs, dependencies)
     }
 
-    ModuleDependency addDependency(List confs, String id, Closure configureClosure = null) {
+    ModuleDependency dependency(List confs, String id, Closure configureClosure = null) {
         if (confs != defaultConfs) {
             throw new UnsupportedOperationException("You can assign confs $confs to dependencies in a client module.")
         }
-        super.addDependency(confs, id, configureClosure)
+        super.dependency(confs, id, configureClosure)
     }
 
     ClientModule clientModule(List confs, String artifact, Closure configureClosure = null) {

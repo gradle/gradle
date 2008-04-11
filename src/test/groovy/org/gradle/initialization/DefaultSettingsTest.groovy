@@ -86,7 +86,7 @@ class DefaultSettingsTest extends GroovyTestCase {
 
     void testAddDependencies() {
         String[] expectedDependencies = ["dep1", "dep2"]
-        dependencyManagerMocker.demand.addDependencies(1..1) {List confs, Object[] dependencies ->
+        dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
             assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
             assertArrayEquals expectedDependencies, dependencies
         }
@@ -113,7 +113,7 @@ class DefaultSettingsTest extends GroovyTestCase {
 
     void testCreateClassLoaderWithExistingBuildSource() {
         String testDependency = 'org.gradle:somedep:1.0'
-        dependencyManagerMocker.demand.addDependencies(1..1) {List confs, Object[] dependencies ->
+        dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
             assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
             assertEquals([testDependency], dependencies as List)
         }
