@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory
 /**
 * @author Hans Dockter
 */
-// todo: rename targetDir to destinationDir
 class Compile extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Compile)
 
