@@ -23,10 +23,6 @@ package org.gradle.api.plugins
  * @author Hans Dockter
  */
 class DefaultConventionsToPropertiesMapping {
-    final static Map DEPENDENCY_MAANGER = [
-            targetDir: {_(it).classesDir},
-            sourceDirs: {_(it).resourceDirs}
-    ]
     final static Map CLEAN = [
             dir: {_(it).project.buildDir}
     ]
@@ -35,22 +31,22 @@ class DefaultConventionsToPropertiesMapping {
             destDir: {_(it).javadocDir}
     ]
     final static Map RESOURCES = [
-            targetDir: {_(it).classesDir},
+            destinationDir: {_(it).classesDir},
             sourceDirs: {_(it).resourceDirs}
     ]
     final static Map COMPILE = [
-            targetDir: {_(it).classesDir},
+            destinationDir: {_(it).classesDir},
             sourceDirs: {_(it).srcDirs},
             sourceCompatibility: {_(it).sourceCompatibility},
             targetCompatibility: {_(it).targetCompatibility},
             dependencyManager: {_(it).project.dependencies}
     ]
     final static Map TEST_RESOURCES = [
-            targetDir: {_(it).testClassesDir},
+            destinationDir: {_(it).testClassesDir},
             sourceDirs: {_(it).testResourceDirs}
     ]
     final static Map TEST_COMPILE = [
-            targetDir: {_(it).testClassesDir},
+            destinationDir: {_(it).testClassesDir},
             sourceDirs: {_(it).testSrcDirs},
             sourceCompatibility: {_(it).sourceCompatibility},
             targetCompatibility: {_(it).targetCompatibility},

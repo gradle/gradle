@@ -42,14 +42,14 @@ class ResourcesTest extends AbstractTaskTest {
         convention = new Expando()
         convention.classesDir = new File('/classes')
         resources.convention = convention
-        resources.conventionMapping = [targetDir: { it.classesDir }]
+        resources.conventionMapping = [destinationDir: { it.classesDir }]
         copyInstructionFactoryMocker = new MockFor(CopyInstructionFactory)
     }
 
     Task getTask() {resources}
 
     void testExecute() {
-        assertEquals(convention.classesDir, resources.targetDir)
+        assertEquals(convention.classesDir, resources.destinationDir)
         
         File sourceDir1 = new File('/source1')
         File sourceDir2 = new File('/source2')
@@ -92,7 +92,7 @@ class ResourcesTest extends AbstractTaskTest {
         assert resources.is(resources.filter(sourceDir2, sourceDir2Filter2))
 
         assertEquals([sourceDir1, sourceDir2, sourceDir3], resources.sourceDirs)
-        assertEquals(targetDir, resources.targetDir)
+        assertEquals(targetDir, resources.destinationDir)
 
         Map instructionExecuted = [:]
 
@@ -104,7 +104,7 @@ class ResourcesTest extends AbstractTaskTest {
         }
 
         resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
-                    assert destDir.is(resources.targetDir)
+                    assert destDir.is(resources.destinationDir)
                     assert srcDirs.is(resources.sourceDirs)
                     resources.sourceDirs
                 }] as ExistingDirsFilter

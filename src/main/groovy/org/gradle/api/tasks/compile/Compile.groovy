@@ -34,7 +34,7 @@ class Compile extends ConventionTask {
 
     List sourceDirs = []
 
-    File targetDir
+    File destinationDir
 
     String sourceCompatibility
 
@@ -64,7 +64,7 @@ class Compile extends ConventionTask {
         if (!self.antCompile) throw new InvalidUserDataException("The ant compile command must be set!")
 
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                self.targetDir, self.sourceDirs)
+                self.destinationDir, self.sourceDirs)
 
         if (!self.sourceCompatibility || !self.targetCompatibility) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!")
@@ -72,7 +72,7 @@ class Compile extends ConventionTask {
         
         List classpath = classpathConverter.createFileClasspath(project.rootDir, self.unmanagedClasspath as Object[]) +
                 self.dependencyManager.resolveClasspath(name)
-        antCompile.execute(existingSourceDirs, self.targetDir, classpath, self.sourceCompatibility,
+        antCompile.execute(existingSourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
                 self.targetCompatibility, self.options, project.ant)
     }
 

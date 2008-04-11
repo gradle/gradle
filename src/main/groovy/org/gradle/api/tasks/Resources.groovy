@@ -35,7 +35,7 @@ class Resources extends ConventionTask {
 
     List sourceDirs = []
 
-    File targetDir
+    File destinationDir
 
     Set globalIncludes = []
     Set globalExcludes = []
@@ -60,13 +60,13 @@ class Resources extends ConventionTask {
 
     private void copyResources(Task task) {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                self.targetDir, self.sourceDirs)
+                self.destinationDir, self.sourceDirs)
         
         List copyInstructions = existingSourceDirs.collect { File sourceDir ->
             Set includes = getSetFromMap(sourceDirIncludes, sourceDir) + globalIncludes
             Set excludes = getSetFromMap(sourceDirExcludes, sourceDir) + globalExcludes
             Map filters = getMapFromMap(sourceDirFilters, sourceDir) + globalFilters
-            copyInstructionFactory.createCopyInstruction(sourceDir, self.targetDir, includes, excludes, filters)
+            copyInstructionFactory.createCopyInstruction(sourceDir, self.destinationDir, includes, excludes, filters)
         }
         copyInstructions*.execute()
     }
@@ -78,7 +78,7 @@ class Resources extends ConventionTask {
     }
 
     Resources into(File targetDir) {
-        this.targetDir = targetDir
+        this.destinationDir = targetDir
         this
     }
 

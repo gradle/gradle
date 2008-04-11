@@ -58,7 +58,7 @@ class CompileTest extends AbstractConventionTaskTest {
         assertNotNull(compile.existentDirsFilter)
         assertNotNull(compile.classpathConverter)
         assertNull(compile.antCompile)
-        assertNull(compile.targetDir)
+        assertNull(compile.destinationDir)
         assertNull(compile.sourceCompatibility)
         assertNull(compile.targetCompatibility)
         assertNull(compile.dependencyManager)
@@ -120,14 +120,14 @@ class CompileTest extends AbstractConventionTaskTest {
     private void setUpMocksAndAttributes(Compile compile) {
         compile.sourceDirs = ['sourceDir1' as File, 'sourceDir2' as File]
         compile.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
-            assert destDir.is(compile.targetDir)
+            assert destDir.is(compile.destinationDir)
             assert srcDirs.is(compile.sourceDirs)
             compile.sourceDirs
         }] as ExistingDirsFilter
         compile.unmanagedClasspath = TEST_UNMANAGED_CLASSPATH
         compile.sourceCompatibility = "1.5"
         compile.targetCompatibility = '1.5'
-        compile.targetDir = TEST_TARGET_DIR
+        compile.destinationDir = TEST_TARGET_DIR
         compile.antCompile = [:] as AntJavac
         compile.dependencyManager = [resolveClasspath: {String taskName ->
             assertEquals(compile.name, taskName)
