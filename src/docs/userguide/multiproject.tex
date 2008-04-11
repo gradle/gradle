@@ -1,34 +1,23 @@
 \chapter{Multi-project builds} % (fold)
 \label{cha:multi_project_builds}
+Lets' start with a very simple multi-project build. After all Gradle is a general purpose build tool at its core. So the projects don't have to be javaprojects. 
 
-Lets' start with a very simple multi-project build. Gradle is a general purpose build tool. The projects don't have to be javaprojects. We have two projects, a water and a bluewhale project. We have the following project layout.
+We have two projects, a water and a bluewhale project. We have the following project layout\footnote{F means File and D means Directory}. 
 
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Layout]
 water
-  - gradle.groovy
-  - gradlesettings.groovy
-  - bluewhale	
+  F- gradlefile
+  F- gradlesettings
+  D- bluewhale	
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{7cm}
-\begin{Verbatim}[frame=single,label=gradlesettings]
-include 'bluewhale'
-\end{Verbatim}
+\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/gradlesettings}
 \end{minipage}
-
-And where is the build script for the bluewhale project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the water project:
-
-\VerbatimInput[frame=single, framesep=1mm, framerule=1mm]{../../../build/tutorial-output/lazyDependsOnfile.out}
-Project /water - gradle.groovy
-
-Closure cl = { Project project -> println "I'm $project.name" }
-createTask('hello', cl)
-project('/water/bluewhale').createTask('hello', cl)
-
-water> gradle -q hello
-I'm water
-I'm bluewhale
+And where is the build script for the bluewhale project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the water project and execute it:
+\codeInput{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/gradlefile}
+\outputInput{../../../build/tutorial-output/multiprojectFirstExample.out}
 
 Gradle allows you to access any project of the multi-project build from any build script. The Project API provides a method called project, which takes a path as an argument and returns the project object for this path. The capability to configure a project build from any build script we call Configuration Injection.
 

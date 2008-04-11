@@ -1,0 +1,44 @@
+\chapter{Plugins} % (fold)
+\label{cha:plugins}
+Now we look at how Gradle provides build-by-convention and out of the box functionality. These features are decoupled from the core of Gradle. Gradle provides them via plugins. To make this clear at the very beginning. The plugins provided by Gradle belong to the core distribution of Gradle and they are NEVER updated or changed in any way for a particular Gradle distribution. If there is a bug in the compile functionality of Gradle, we gonna release a new version of Gradle. There is no change of behavior for the lifetime of a given distribution of Gradle. We mention this as there is another build tools with a plugin system which behaves differently. 
+
+\section{Declaring Plugins} % (fold)
+\label{sec:using_plugins}
+So what do you have to do, to use plugins for building a Java project? Simply type
+\begin{Verbatim}
+usePlugin('java')	
+\end{Verbatim}
+at the beginning of your script. That's all. From a technological point of view plugins use just the same operations as you can use from your build scripts. That is they use the Project and Task API. The Gradle plugins use this API for:
+\begin{itemize}
+	\item Adding tasks to your build (e.g. compile, test)
+    \item Creating dependencies between those tasks to let them execute in the appropriate order.
+    \item Adding a so called convention object to your project configuration.
+\end{itemize}
+\codeInput{../../../build/distributions/exploded/samples/tutorial/pluginIntrofile}
+\outputInput{../../../build/tutorial-output/pluginIntrofile.out}
+The usePlugin method either takes a String or a class as an argument. You can also write \texttt{usePlugin(org.gradle.api.plugins.JavaPlugin)}. Thanks to Gradles default imports (see \ref{ideSupport}) you can also write \texttt{usePlugin(JavaPlugin)}
+Any class, which implements the Plugin interface, can be used as a plugin. Just pass class as an argument. You don't need to configure anything else for this. If you want to access a plugin via a string identifier, you must inform Gradle about the mapping. You can do this in the file \texttt{plugin.properties} in the top level directory of Gradle. It looks like this for the current release:
+\codeInput{../../../build/distributions/exploded/plugin.properties}
+If you want to use your own plugins, you must make sure that they are accessbile via the build script classpath. See chapter \ref{cha:organizing_build_logic} for more information.
+% section using_plugins (end)
+
+\section{Configuration} % (fold)
+\label{sec:configuration}
+If you use the \emph{JavaPlugin} there is for example a compile and resources task for your production code (the same is true for your test code). The default location for the output of those task is the directory \texttt{build/classes}. What if you want to change this? Let's try:
+\codeInput{../../../build/distributions/exploded/samples/tutorial/pluginConfigfile}
+\outputInput{../../../build/tutorial-output/pluginConfigfile.out}
+Setting the \texttt{destinationDir} of the resources task changed had only an effect on the resources task. Maybe this is what you want. But what if you want to change the output directory for all operations applied on your production code? It would be unfortunate if you had to do this for each task separately. 
+
+Gradles tasks are usually convention aware. A plugin can add a convention object to your build. It can also map the values of this convention object to its tasks.
+\codeInput{../../../build/distributions/exploded/samples/tutorial/pluginConventionfile}
+\outputInput{../../../build/tutorial-output/pluginConventionfile.out}
+The \emph{JavaPlugin} has added a convention object with a \texttt{classesDir} property. The properties of a convention object can be accessed like project properties. As shown in the example, you can also access the convention object explicitly
+By setting a task attribute explicitly (as we have done in the example above) you overwrite the convention value for this particular task.
+
+Not all of the tasks attributes are mapped to convention object values. It is the decision of the plugin to decide what are the shared properties and then bundle them in a plugin and map the to the tasks.
+% section configuration (end)
+\section{Summary} % (fold)
+\label{sec:summary}
+Plugins provide tasks which are glued together via dependsOn relations and a convention object. 
+% section summary (end)
+% chapter plugins (end)
