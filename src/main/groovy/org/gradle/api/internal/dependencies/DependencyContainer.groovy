@@ -83,9 +83,9 @@ class DependencyContainer {
         dependency(defaultConfs, id, configureClosure)
     }
 
-    ClientModule clientModule(List confs, String artifact, Closure configureClosure = null) {
+    ClientModule clientModule(List confs, String id, Closure configureClosure = null) {
         // todo: We might better have a client module factory here
-        ClientModule clientModule = new ClientModule(dependencyFactory, confs as Set, artifact, clientModuleRegistry)
+        ClientModule clientModule = new ClientModule(dependencyFactory, confs as Set, id, clientModuleRegistry)
         dependencies << clientModule
         GradleUtil.configure(configureClosure, clientModule)
         clientModule

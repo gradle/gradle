@@ -75,8 +75,16 @@ class DefaultSettings implements Settings {
         this.projectPaths.addAll(projectPaths as List)
     }
 
-    void addDependencies(Object[] dependencies) {
+    void dependencies(Object[] dependencies) {
         dependencyManager.dependencies([BUILD_CONFIGURATION], dependencies)
+    }
+
+    void dependency(String id, Closure configureClosure = null) {
+        dependencyManager.dependency([BUILD_CONFIGURATION], id, configureClosure)
+    }
+
+    void clientModule(String id, Closure configureClosure = null) {
+        dependencyManager.clientModule([BUILD_CONFIGURATION], id, configureClosure)
     }
 
     ResolverContainer getResolvers() {

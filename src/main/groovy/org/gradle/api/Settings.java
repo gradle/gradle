@@ -20,6 +20,8 @@ import org.gradle.api.internal.dependencies.ResolverContainer;
 
 import java.util.List;
 
+import groovy.lang.Closure;
+
 /**
  * @author Hans Dockter
  */
@@ -56,7 +58,9 @@ public interface Settings {
      *
      * @param dependencies dependencies passed to the dependencies manager addDependencies method.
      */
-    void addDependencies(Object[] dependencies);
+    void dependencies(Object[] dependencies);
+
+    void dependency(String id, Closure configureClosure);
 
     /**
      * Delegates to the dependencies manager getResolvers method.

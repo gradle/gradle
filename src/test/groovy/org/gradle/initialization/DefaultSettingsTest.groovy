@@ -84,14 +84,40 @@ class DefaultSettingsTest extends GroovyTestCase {
         assertEquals((paths1 as List) + (paths2 as List), settings.projectPaths)
     }
 
-    void testAddDependencies() {
+    void testDependencies() {
         String[] expectedDependencies = ["dep1", "dep2"]
         dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
             assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
             assertArrayEquals expectedDependencies, dependencies
         }
         dependencyManagerMocker.use(dependencyManager) {
-            settings.addDependencies(expectedDependencies)
+            settings.dependencies(expectedDependencies)
+        }
+    }
+
+    void testDependency() {
+        String expectedId = "dep1"
+        Closure expectedConfigureClosure
+        dependencyManagerMocker.demand.dependency(1..1) {List confs, String id, Closure configureClosure ->
+            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
+            assertEquals(expectedId, id)
+            assertEquals(expectedConfigureClosure, configureClosure)
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            settings.dependency(expectedId, expectedConfigureClosure)
+        }
+    }
+
+    void testClientModule() {
+        String expectedId = "dep1"
+        Closure expectedConfigureClosure
+        dependencyManagerMocker.demand.clientModule(1..1) {List confs, String id, Closure configureClosure ->
+            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
+            assertEquals(expectedId, id)
+            assertEquals(expectedConfigureClosure, configureClosure)
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            settings.clientModule(expectedId, expectedConfigureClosure)
         }
     }
 
