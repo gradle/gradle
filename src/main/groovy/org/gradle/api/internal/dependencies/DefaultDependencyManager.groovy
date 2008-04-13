@@ -206,6 +206,7 @@ class DefaultDependencyManager extends DependencyContainer implements Dependency
         String pattern = "$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"
         buildResolver.addIvyPattern(pattern)
         buildResolver.addArtifactPattern(pattern)
+        buildResolver.validate = false
     }
 
     private DefaultRepositoryCacheManager createCacheManager() {
