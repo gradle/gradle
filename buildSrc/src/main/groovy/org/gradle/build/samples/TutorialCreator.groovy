@@ -212,25 +212,25 @@ createTask('otherResources', dependsOn: classes) {
         scripts["pluginIntro"] = ["""usePlugin('java')
 
 createTask('check') {
-    println(task('compile').destinationDir) // We can also write println(compile)
-}""", {assert "build/classes$NL" == it}, "check"]
+    println(task('compile').destinationDir.name) // We can also write println(compile)
+}""", {assert "classes$NL" == it}, "check"]
 // *****************
         scripts["pluginConfig"] = ["""usePlugin('java')
 
 createTask('check') {
     resources.destinationDir = new File(buildDir, 'output')
-    println(resources.destinationDir)
-    println(compile.destinationDir)
-}""", {assert "build/output{NL}build/classes$NL" == it}, "check"]
+    println(resources.destinationDir.name)
+    println(compile.destinationDir.name)
+}""", {assert "output${NL}classes$NL" == it}, "check"]
 // *****************
         scripts["pluginConvention"] = ["""usePlugin('java')
 
 createTask('check') {
     classesDir = new File(buildDir, 'output')
-    println(resources.destinationDir)
-    println(compile.destinationDir)
-    println(convention.classesDir)  
-}""", {assert "build/output${NL}build/output${NL}build/output$NL" == it}, "check"]
+    println(resources.destinationDir.name)
+    println(compile.destinationDir.name)
+    println(convention.classesDir.name)
+}""", {assert "output${NL}output${NL}output$NL" == it}, "check"]
 // *****************
 
         scripts
