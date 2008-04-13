@@ -83,7 +83,7 @@ class DefaultTask implements Task {
 
     void execute() {
         logger.debug("Executing ProjectTarget: $path")
-        List trueSkips = (skipProperties + ["skip.$name"]).findAll {String prop -> Boolean.getBoolean(prop)}
+        List trueSkips = (skipProperties + ["$Task.AUTOSKIP_PROPERTY_PREFIX$name"]).findAll {String prop -> Boolean.getBoolean(prop)}
         if (trueSkips) {
             logger.info("Skipping execution as following skip properties are true: ${trueSkips.join(' ')}")
         } else {

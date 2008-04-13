@@ -30,6 +30,7 @@ import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
@@ -70,7 +71,7 @@ class JavaPlugin implements Plugin {
                 DefaultConventionsToPropertiesMapping.COMPILE)
 
         project.createTask(TEST_RESOURCES, dependsOn: COMPILE, type: Resources).configure {
-            skipProperties << Test.SKIP_TEST
+            skipProperties << "$Task.AUTOSKIP_PROPERTY_PREFIX$TEST"
             // Warning: We need to add the delegate here, because otherwise the method argument with the name
             // convention is addressed.
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
@@ -137,7 +138,7 @@ class JavaPlugin implements Plugin {
     }
 
     protected Compile configureTestCompile(Compile testCompile, Compile compile, def javaConvention, Map propertyMapping) {
-        testCompile.skipProperties << Test.SKIP_TEST
+        testCompile.skipProperties << "$Task.AUTOSKIP_PROPERTY_PREFIX$TEST"
         configureCompile(testCompile, javaConvention, propertyMapping)
         testCompile.doFirst {
             it.unmanagedClasspath(compile.unmanagedClasspath as Object[])

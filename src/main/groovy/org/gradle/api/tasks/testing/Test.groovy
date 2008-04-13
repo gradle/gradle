@@ -33,8 +33,6 @@ import org.slf4j.LoggerFactory
 class Test extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Test)
 
-    static final String SKIP_TEST = 'gradle.test.skip'
-    
     Test self
 
     AntJunit antJunit = new AntJunit()
@@ -62,7 +60,6 @@ class Test extends ConventionTask {
     Test(DefaultProject project, String name) {
         super(project, name)
         actions << this.&executeTests
-        skipProperties << SKIP_TEST
         self = this
     }
 

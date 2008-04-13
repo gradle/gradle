@@ -24,6 +24,8 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface Task extends Comparable {
+    final static String AUTOSKIP_PROPERTY_PREFIX = "skip.";
+            
     /**
      *
      * @return the name of the task
