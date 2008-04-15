@@ -39,6 +39,63 @@ class Userguide {
         createOutput(new File(tutorialOutputDir, 'multiprojectFirstExample.out'), explodedDistDir.absolutePath,
             new File("$explodedDistSamplesDir/userguide/multiproject/firstExample/water"),
             ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectAddKrill.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/addKrill/water"),
+            ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectUseSubprojects.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/useSubprojects/water"),
+            ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectSubprojectsAddFromTop.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/subprojectsAddFromTop/water"),
+            ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectSpreadSpecifics.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/spreadSpecifics/water"),
+            ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectAddTropical.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/addTropical/water"),
+            ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectTropicalWithProperties.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/tropicalWithProperties/water"),
+            ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectSubBuild.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/tropicalWithProperties/water/bluewhale"),
+            ['hello'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectPartialTasks.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/partialTasks/water"),
+            ['distanceToIceberg'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectPartialTasksNotQuiet.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/partialTasks/water"),
+            ['distanceToIceberg'], '', Executer.INFO)
+        createOutput(new File(tutorialOutputDir, 'multiprojectFirstMessages.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/firstMessages/messages"),
+            ['action'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesHack.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesHack/messages"),
+            ['action'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesHackBroken.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesHack/messages/consumer"),
+            ['action'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesDependencies.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesWithDependencies/messages"),
+            ['action'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesDependenciesSubBuild.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer"),
+            ['action'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesDifferentTaskNames.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer"),
+            ['consume'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesTaskDependencies.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer"),
+            ['consume'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesConfigDependenciesBroken.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/consumer"),
+            ['consume'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesConfigDependencies.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer"),
+            ['consume'], '', Executer.QUIET)
+        createOutput(new File(tutorialOutputDir, 'multiprojectMessagesConfigDependenciesAltSolution.out'), explodedDistDir.absolutePath,
+            new File("$explodedDistSamplesDir/userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages/consumer"),
+            ['consume'], '', Executer.QUIET)
     }
 
     static void checkGroovyScripts(File tutorialDir, File tutorialOutputDir) {

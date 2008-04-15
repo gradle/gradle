@@ -1,0 +1,17 @@
+\chapter{Potential Traps} % (fold)
+\label{cha:potential_traps}
+\section{Groovy Script Variables} % (fold)
+\label{sec:groovy_script_variables}
+For Gradle users it is important to understand how Groovy deals with script variables. Groovy has to type of script variables. One with a local scope and one with a script wide scope.
+\codeInput{../../../build/distributions/exploded/samples/tutorial/scope.groovy}
+\outputInput{../../../build/tutorial-output/scope.out}
+Variables which are declared with a type modifier are visible within closures but not visible within methods. This is a heavily discussed behavior in the Groovy community.\footnote{One of those discussions can be found here: \url{http://www.nabble.com/script-scoping-question-td16034724.html}}
+% subsection groovy_script_variables (end)
+
+\section{Configuration and Execution Phase} % (fold)
+\label{sec:configuration_and_execution_phase}
+Another thing that has to be kept in mind is that Gradle has a distinct configuration and execution phase (see chapter \ref{cha:the_build_lifecycle}). 
+\codeInput{../../../build/distributions/exploded/samples/tutorial/mkdirTrapfile}
+\outputInput{../../../build/tutorial-output/mkdirTrapfile.out}
+As the creation of the directory happens during the configuration phase, the clean task removes the directory again during the execution phase.
+% chapter potential_traps (end)

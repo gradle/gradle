@@ -132,23 +132,6 @@ neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in
 \texttt{f} & The full stacktraces are printed out. \\ \hline
 \end{tabular}
 
-\section{Potential Traps}
-\subsection{Groovy Script Variables} % (fold)
-\label{sub:groovy_script_variables}
-For Gradle users it is important to understand how Groovy deals with script variables. Groovy has to type of script variables. One with a local scope and one with a script wide scope.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/scope.groovy}
-\outputInput{../../../build/tutorial-output/scope.out}
-Variables which are declared with a type modifier are visible within closures but not visible within methods. This is a heavily discussed behavior in the Groovy community.\footnote{One of those discussions can be found here: \url{http://www.nabble.com/script-scoping-question-td16034724.html}}
-% subsection groovy_script_variables (end)
-
-\subsection{Configuration and Execution Phase} % (fold)
-\label{sub:configuration_and_execution_phase}
-Another thing that has to be kept in mind is that Gradle has a distinct configuration and execution phase (see chapter \ref{cha:the_build_lifecycle}). 
-\codeInput{../../../build/distributions/exploded/samples/tutorial/mkdirTrapfile}
-\outputInput{../../../build/tutorial-output/mkdirTrapfile.out}
-As the creation of the directory happens during the configuration phase, the clean task removes the directory again during the execution phase. 
-% subsection configuration_and_execution_phase (end)
-
 \section{Directory Creation} % (fold)
 There is the common situation, that multiple tasks depend on the existence of a directory. Of course each task to write a statement to create this directory if it not already there, but this is kind of bloated. If the tasks that need the directory have a \emph{dependsOn} relationship, you could do it like this.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/makeDirectoryfile}
