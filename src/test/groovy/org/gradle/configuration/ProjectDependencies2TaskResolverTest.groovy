@@ -30,7 +30,7 @@ class ProjectDependencies2TaskResolverTest extends GroovyTestCase {
     DefaultProject child
     DefaultTask rootTask
     DefaultTask childTask
-    ProjectDependencies2TasksResolver resolverL
+    ProjectDependencies2TasksResolver resolver
 
     void setUp() {
         resolver = new ProjectDependencies2TasksResolver()
