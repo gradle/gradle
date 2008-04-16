@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException
  * @author Hans Dockter
  *
  * todo: Refactor to use FileSet
+ * todo: Refactor to accept an existing ant instance
  */
 class CopyInstruction {
     File sourceDir
