@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 // todo: add addConfiguration method with map argument
+// todo: extract to interface
 class DependencyContainer {
     static Logger logger = LoggerFactory.getLogger(DependencyContainer)
 
