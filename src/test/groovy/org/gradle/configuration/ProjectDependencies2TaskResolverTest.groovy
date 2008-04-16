@@ -23,21 +23,28 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectFactory
 
 /**
-* @author Hans Dockter
-*/
-class ProjectDependencies2TargetResolverTest extends GroovyTestCase {
+ * @author Hans Dockter
+ */
+class ProjectDependencies2TaskResolverTest extends GroovyTestCase {
+    DefaultProject root
+    DefaultProject child
+    DefaultTask rootTask
+    DefaultTask childTask
+    ProjectDependencies2TasksResolver resolverL
 
-    void testExecuteWithSubBuildAndProjectDependencies() {
-        DefaultProject root = new DefaultProject("root", null, new File(""), null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManager(), null, null, null)
-        DefaultProject child = root.addChildProject("child")
-        DefaultTask rootTarget = new DefaultTask(root, 'compile')
-        DefaultTask childTarget = new DefaultTask(child, 'compile')
-        root.tasks = [(rootTarget.name): rootTarget]
-        child.tasks = [(childTarget.name): childTarget]
+    void setUp() {
+        resolver = new ProjectDependencies2TasksResolver()
+        root = new DefaultProject("root", null, new File(""), null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManager(), null, null, null)
+        child = root.addChildProject("child")
+        rootTask = new DefaultTask(root, 'compile')
+        childTask = new DefaultTask(child, 'compile')
+        root.tasks = [(rootTask.name): rootTask]
+        child.tasks = [(childTask.name): childTask]
+    }
+
+    void testResolve() {
         child.dependsOn(root.path, false)
-
-        new ProjectDependencies2TasksResolver().resolve(root)
-
-        assertEquals([rootTarget.path] as Set, childTarget.dependsOn)
+        resolver.resolve(root)
+        assertEquals([rootTask.path] as Set, childTask.dependsOn)
     }
 }
