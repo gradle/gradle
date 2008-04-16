@@ -28,30 +28,53 @@ import org.slf4j.LoggerFactory
 /**
 * @author Hans Dockter
 */
+// todo Rename sourceDirs to srcDirs
 class Compile extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Compile)
 
+    /**
+     * The directories with the sources to compile
+     */
     List sourceDirs = []
 
+    /**
+     * The directory where to put the compiled classes (.class files)
+     */
     File destinationDir
 
+    /**
+     * The sourceCompatibility used by the Java compiler for your code. (e.g. 1.5)
+     */
     String sourceCompatibility
 
+    /**
+     * The targetCompatibility used by the Java compiler for your code. (e.g. 1.5)
+     */
     String targetCompatibility
 
+    /**
+     * This property is used internally by Gradle. It is usually not used by build scripts.
+     * A list of files added to the compile classpath. The files should point to jars or directories containing
+     * class files. The files added here are not shared in a multi-project build and are not mentioned in
+     * a dependency descriptor if you upload your library to a repository.
+     */
     List unmanagedClasspath = []
 
-    ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
-
+    /**
+     * Options for the compiler. The compile is delegated to the ant javac task. This property contains almost
+     * all of the properties available for the ant javac task.
+     */
     CompileOptions options = new CompileOptions()
 
-    AbstractAntCompile antCompile = null
+    protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
 
-    DependencyManager dependencyManager
+    protected AbstractAntCompile antCompile = null
 
-    ClasspathConverter classpathConverter = new ClasspathConverter()
+    protected DependencyManager dependencyManager
 
-    Compile self
+    protected ClasspathConverter classpathConverter = new ClasspathConverter()
+
+    protected Compile self
 
     Compile(DefaultProject project, String name) {
         super(project, name)
@@ -75,11 +98,9 @@ class Compile extends ConventionTask {
                 self.targetCompatibility, self.options, project.ant)
     }
 
-    Compile with(Object[] args) {
-        self.dependencyManager."$configuration" args
-        this
-    }
-
+    /**
+     * Add the elements to the unmanaged classpath.
+     */
     Compile unmanagedClasspath(Object[] elements) {
         self.unmanagedClasspath.addAll((elements as List).flatten())
         this
