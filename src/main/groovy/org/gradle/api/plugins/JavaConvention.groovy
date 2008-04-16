@@ -25,6 +25,8 @@ import org.gradle.api.tasks.util.FileSet
  */
 
 class JavaConvention {
+    // todo Write dynamic getter for nested dirs
+    // todo rename docDir to docsDir and distDir to distsDir
     static final Map DEFAULT_ARCHIVE_TYPES = [
             jar: new ArchiveType("jar", DefaultConventionsToPropertiesMapping.JAR, Jar),
             zip: new ArchiveType("zip", DefaultConventionsToPropertiesMapping.ZIP, Zip),
@@ -50,7 +52,6 @@ class JavaConvention {
     File javadocDir
     String sourceCompatibility
     String targetCompatibility
-
     Map archiveTypes
     GradleManifest manifest
     FileSet metaInf
@@ -64,7 +65,7 @@ class JavaConvention {
         testClassesDir = new File(project.buildDir, 'test-classes')
         distDir = new File(project.buildDir, 'distributions')
         docDir = new File(project.buildDir, 'docs')
-        javadocDir = new File(docDir, 'javadocs')
+        javadocDir = new File(docDir, 'javadoc')
         srcDirs << new File(srcRoot, 'main/java')
         srcDocsDir = new File(srcRoot, 'docs')
         resourceDirs << new File(srcRoot, 'main/resources')
