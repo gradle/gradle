@@ -33,6 +33,7 @@ import org.gradle.api.Project
 import org.gradle.api.dependencies.GradleArtifact
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.apache.ivy.core.module.descriptor.Configuration
 
 /**
  * @author Hans Dockter
@@ -216,6 +217,14 @@ class DefaultDependencyManager extends DependencyContainer implements Dependency
         cacheManager.useOrigin = true
         cacheManager.lockStrategy = new NoLockStrategy()
         cacheManager
+    }
+
+    void addConfiguration(Configuration configuration) {
+        configurations[configuration.name] = configuration
+    }
+
+    void addConfiguration(String configuration) {
+        configurations[configuration] = new Configuration(configuration)
     }
 
     def methodMissing(String name, args) {

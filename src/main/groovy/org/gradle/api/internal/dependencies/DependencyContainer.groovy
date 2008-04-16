@@ -96,15 +96,6 @@ class DependencyContainer {
         clientModule(defaultConfs, artifact, configureClosure)
     }
 
-
-    void addConfiguration(Configuration configuration) {
-        configurations[configuration.name] = configuration
-    }
-
-    void addConfiguration(String configuration) {
-        configurations[configuration] = new Configuration(configuration)
-    }
-
     def configure(Closure closure) {
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure.delegate = this
