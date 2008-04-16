@@ -1,6 +1,7 @@
+%!TEX root = master.tex
 \chapter{The Java Plugin} % (fold)
 \label{cha:the_java_plugin}
-Table \ref{javalayout} shows the default project layout assumed by the Java Plugin. This is configurable via the convention object. Table \ref{javatasks} shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds. Table \ref{javaconvention} shows the most important properties of the convention object of the Java plugin.
+Table \ref{javalayout} shows the default project layout assumed by the Java Plugin. This is configurable via the convention object. Table \ref{javatasks} shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds. Table \ref{javaconvention} shows the most important properties of the convention object of the Java plugin.\footnote{The \emph{buildDir} property is a property of the project object. It defaults to \texttt{build}.}
 
 \begin{table}[h]
 	\begin{center}
@@ -22,7 +23,7 @@ Table \ref{javalayout} shows the default project layout assumed by the Java Plug
 		\begin{tabular}{|l|l|l|} \hline
 			\textbf{Taskname} & \textbf{dependsOn} & \textbf{Type} \\ \hline
 			clean & - & org.gradle.api.tasks.Clean \\ \hline
-			initialize & - & org.gradle.api.tasks.DefaultTask \\ \hline
+			init & - & org.gradle.api.tasks.DefaultTask \\ \hline
 			resources & initialize & org.gradle.api.tasks.Resources \\ \hline
 			compile & resources & org.gradle.api.tasks.compile.Compile \\ \hline
 			testResources & compile & org.gradle.api.tasks.Resources \\ \hline
@@ -64,5 +65,123 @@ Table \ref{javalayout} shows the default project layout assumed by the Java Plug
 	\label{javaconvention}
 \end{table}
 
+\section{Init} % (fold)
+\label{sec:initialization}
+The \texttt{init} task has no default action attached to it. It is meant to be a hook. You can add actions to it or associates your custom tasks with. The Java Plugin executes this task before any other of its tasks get executed (except \texttt{clean} which does not depends on \texttt{init}).
+% section initialization (end)
+
+\section{Clean} % (fold)
+\label{sec:clean}
+The \texttt{clean} task simply removes the directory denoted by its \texttt{dir} property. This property is mapped to the \texttt{buildDir} property of the project. In future releases there will be more control of what gets deleted. If you need more control now, you can use the \emph{Ant delete task}.  
+% section clean (end)
+
+\section{Resources} % (fold)
+\label{sec:resources}
+The \emph{Resources} task has two instances, \texttt{resources} and \texttt{testResources}. 
+\begin{center}
+	\begin{tabular}{|l|l|l|} \hline
+		\multicolumn{3}{|c|}{Convention to Property Mapping} \\ \hline
+		\textbf{Task Instance} & \textbf{Task Property} & \textbf{Convention Property} \\ \hline
+		resources & sourceDirs & resourceDirs \\ \hline
+		resources & destinationDir & classesDir \\ \hline
+		testResources & sourceDirs & testResourceDirs \\ \hline
+		testResources & destinationDir & testClassesDir \\ \hline
+	\end{tabular} 
+\end{center}
+\noindent The \texttt{resources} task offers includes and excludes directives as well as filters. Have a look at \href{}{org.gradle.api.tasks.Resources} to learn about the details.
+% section resources (end)
+
+\section{Compile} % (fold)
+\label{sec:compile}
+The \emph{Compile} task has two instances, \texttt{compile} and \texttt{testCompile}. 
+\begin{center}
+	\begin{tabular}{|l|l|l|} \hline
+		\multicolumn{3}{|c|}{Convention to Property Mapping} \\ \hline
+		\textbf{Task Instance} & \textbf{Task Property} & \textbf{Convention Property} \\ \hline
+		compile & srcDirs & srcDirs \\ \hline
+		compile & destinationDir & classesDir \\ \hline
+		compile & sourceCompatibility & sourceCompatibility \\ \hline
+		compile & targetCompatibility & targetCompatibility \\ \hline
+		testCompile & srcDirs & testSrcDirs \\ \hline
+		testCompile & destinationDir & testClassesDir \\ \hline
+		testCompile & sourceCompatibility & sourceCompatibility \\ \hline
+		testCompile & targetCompatibility & targetCompatibility \\ \hline
+	\end{tabular} 
+\end{center}
+\noindent The classpath of the compile task is derived from two sources. One is the \emph{configuration} assigned to the task by the dependency manager. The other classpath source is the \texttt{unmanagedClasspath} property: a list of files denoting a jar or a directory. Usually you create your classpath with the dependency manager. The \texttt{unmanagedClasspath} is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is it part of a dependency descriptor if you choose to upload your library to a repository. 
+See section \ref{} how the JavaPlugin glues the tasks with the dependency manager and see the whole chapter \ref{cha:dependency_management} how to use the dependency manager.
+
+Have a look at \href{}{org.gradle.api.tasks.compile.Compile} to learn about the details. The compile task delegates to Ants javac task to do the compile. Via the compile task you can set most of the properties of Ants javac task. 
+% section compile (end)
+
+\section{Test} % (fold)
+\label{sec:test}
+The \texttt{test} task executes the unit tests which have been compiled by the \texttt{testCompile} task. 
+\begin{center}
+	\begin{tabular}{|l|l|} \hline
+		\multicolumn{2}{|c|}{Convention to Property Mapping} \\ \hline
+	    \textbf{Task Property} & \textbf{Convention Property} \\ \hline
+		testClassesDir & testClassesDir \\ \hline
+		testResultsDir & testResultsDir \\ \hline
+		unmanagedClasspath & [classesDir] \\ \hline
+	\end{tabular} 
+\end{center}
+\noindent Have a look at \href{}{org.gradle.api.tasks.compile.Test} to learn more. Right now the test results are always in XML-format. The task has a \texttt{stopAtFailuresOrErrors} property to control the behavior when tests are failing. The task always executes all the tests and afterwards stops he build if this property is true and there are failing tests or tests that have thrown an uncaught exception. The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support with our next release. 
+% section test (end)
+
+\section{Bundles} % (fold)
+\label{sec:bundles}
+The \emph{Bundle} task has two instances, \texttt{libs} and \texttt{dists}. The Bundle task is a special animal. It is a container for archive tasks (jar, zip, ...).  
+\begin{center}
+	\begin{tabular}{|l|l|l|} \hline
+		\multicolumn{3}{|c|}{Convention to Property Mapping} \\ \hline
+		\textbf{Task Instance} & \textbf{Task Property} & \textbf{Convention Property} \\ \hline
+		libs & tasksBaseName & \texttt{project.name} \\ \hline
+		libs & childrenDependOn & ['test'] \\ \hline
+		dists & tasksBaseName & \texttt{project.name} \\ \hline
+		dists & childrenDependOn & ['libs'] \\ \hline
+	\end{tabular} 
+\end{center}
+\subsection{The libs Task} % (fold)
+\label{sub:the_libs_task}
+The \texttt{libs} task contains all the archive tasks which constitute the libraries needed to use your project as a library. For example in a multi-project build the archives which are produced by the \texttt{libs} task are available in the classpath of a dependent project. If your upload your project into a repository, those archives are part of the dependency descriptor. If you come from Maven you can have only one library jar per project. With Ivy you can have as many as you want. The Java plugin adds by default one jar archive to the \texttt{libs} task. This jar contains the content of the \texttt{classesDir}. This is the behavior your are used from Maven. If you are happy with that you usually don't have to touch this task. Except if you want to change the names of the produced archives. 
+
+The \texttt{libs} task depends on the \texttt{test} task and the archive tasks assigned to it. The archive tasks assigned to the \texttt{libs} task depend by default on the \texttt{test} task as well. You can change this via the \texttt{childrenDependsOn} property of the \texttt{libs} task. 
+% subsection the_libs_task (end)
+\subsection{The dists Task} % (fold)
+\label{sub:the_dists_task}
+The \texttt{dists} task contains all the archive task that make up your distributions. For example a binary and a source distribution. The \texttt{dists} task has two purposes. One is providing a hook for archives in the lifecycle. The other is for collection distribution archives for uploading (the same is also true for the \texttt{libs} task.) The \texttt{dists} task depends on its archive tasks and the \texttt{libs} task. The archive tasks depend by default on the \texttt{libs} task as well.
+% subsection the_dis (end)
+\subsection{Examples} % (fold)
+\label{sub:examples}
+\begin{Verbatim}
+dists {
+	dists {
+	    tasksBaseName = 'notTheProjectName'
+	    dependsOn 'explodedDist'
+	    childrenDependOn << 'explodedDist'
+	    zip() {
+	        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+	            exclude '**/*.tmp'
+	        }
+	    }
+	    zip("notTheProjectName-src") {
+	        String prefix = "$distName-src-$version"
+	        destinationDir = distDir
+	        zipFileSet(dir: projectDir, prefix: prefix) {
+	            include 'src/', 'gradle.groovy'
+	        }
+	    }
+	}
+}	
+\end{Verbatim}
+
+% subsection examples (end)      
+% section bundles (end)
+
+\section{Upload} % (fold)
+\label{sec:upload}
+The \emph{Resources} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}.
+% section upload (end)
 
 % chapter the_java_plugin (end)
