@@ -35,6 +35,7 @@ import org.gradle.api.Task
 /**
  * @author Hans Dockter
  */
+// todo add initialize task
 class JavaPlugin implements Plugin {
     static final String RESOURCES = 'resources'
     static final String COMPILE = 'compile'
