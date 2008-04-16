@@ -210,7 +210,7 @@ class Main {
     }
 
     static void handleGradleException(Throwable t, boolean stacktrace, boolean debug, boolean fullStacktrace, long buildStartTime) {
-        String introMessage = "Build aborted anormally because of invalid user data. Please check your scripts!"
+        String introMessage = "Build aborted anormally. "
         introMessage += (stacktrace || debug) ? '' : " Run with -s option to get stacktrace."
         introMessage += debug ? '' : " Run with -d option to get all debug info including stacktrace."
         introMessage += fullStacktrace ? '' : " Run (additionally) with -f option to get the full (very verbose) stacktrace"
