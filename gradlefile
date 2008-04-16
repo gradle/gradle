@@ -117,7 +117,7 @@ manifest.mainAttributes([
 // todo: Add DefaultArchiveTask
 libs.tasksBaseName = distName
 
-explodedDistDir = new File(distDir, 'exploded')
+explodedDistDir = new File(distsDir, 'exploded')
 explodedDistDocsDir = new File(explodedDistDir, 'docs')
 explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
@@ -166,7 +166,6 @@ dists {
     dependsOn 'explodedDist'
     childrenDependOn << 'explodedDist'
     zip().afterDag {
-        destinationDir = distDir
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
             exclude 'bin/*'
         }
@@ -180,7 +179,7 @@ dists {
     }
     zip("$distName-src").afterDag {
         String prefix = "$distName-src-$version"
-        destinationDir = distDir
+        destinationDir = distsDir
         zipFileSet(dir: projectDir, prefix: prefix) {
             include 'src/', 'build.xml', 'build.properties', 'ivy.xml', 'ivysettings.xml', 'build.properties',
                     'ivy.xml', 'ivysettings.xml', 'gradle.groovy'
@@ -212,7 +211,7 @@ createTask('tutorialOutput', dependsOn: ['explodedDist',tutorialOutputDir]) {
     Userguide.checkGroovyScripts(explodedDistTutorialDir, tutorialOutputDir.dir)
 }.skipProperties << 'skip.integTest'
 
-userguideDir = dir("$buildDir.name/$docDir.name/userguide")
+userguideDir = dir("$buildDir.name/$docsDir.name/userguide")
 
 createTask('userguide', dependsOn: ['tutorialOutput', userguideDir]) {
     File userguideSrc = new File(srcDocsDir, 'userguide')

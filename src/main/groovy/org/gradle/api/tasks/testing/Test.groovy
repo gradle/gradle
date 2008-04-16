@@ -30,15 +30,13 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
-// todo rename compiledTestsDir to testClassesDir
-// todo the testClassesDir does not need to be mapped from the convention object
 class Test extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Test)
 
     /**
      * The directory with the compiled test classes
      */
-    File compiledTestsDir = null
+    File testClassesDir = null
 
     /**
      * The directory where the test results are put. Right now only the xml format of the test results is supported.
@@ -92,15 +90,15 @@ class Test extends ConventionTask {
     }
 
     protected void executeTests(Task task) {
-        if (!self.compiledTestsDir) throw new InvalidUserDataException("The compiledTestDir property is not set, testing can't be triggered!")
+        if (!self.testClassesDir) throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!")
         if (!self.testResultsDir) throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!")
 
-        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(self.compiledTestsDir)
+        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(self.testClassesDir)
 
         List classpath = classpathConverter.createFileClasspath(
-                project.rootDir, self.unmanagedClasspath as Object[]) + self.dependencyManager.resolveClasspath(name)
+                project.rootDir, [self.testClassesDir] + self.unmanagedClasspath as Object[]) + self.dependencyManager.resolveClasspath(name)
 
-        antJunit.execute(self.compiledTestsDir, classpath, self.testResultsDir, includes, excludes, options, project.ant)
+        antJunit.execute(self.testClassesDir, classpath, self.testResultsDir, includes, excludes, options, project.ant)
         if (stopAtFailuresOrErrors && project.ant.project.getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY)) {
             throw new GradleException("There were failing tests!")
         }

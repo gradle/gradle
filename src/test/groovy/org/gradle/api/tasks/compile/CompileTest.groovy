@@ -62,7 +62,7 @@ class CompileTest extends AbstractConventionTaskTest {
         assertNull(compile.sourceCompatibility)
         assertNull(compile.targetCompatibility)
         assertNull(compile.dependencyManager)
-        assertEquals([], compile.sourceDirs)
+        assertEquals([], compile.srcDirs)
         assertEquals([], compile.unmanagedClasspath)
     }
 
@@ -70,7 +70,7 @@ class CompileTest extends AbstractConventionTaskTest {
         setUpMocksAndAttributes(compile)
         antCompileMocker.demand.execute(1..1) {List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                  String targetCompatibility, CompileOptions compileOptions, AntBuilder ant ->
-            assertEquals(compile.sourceDirs, sourceDirs)
+            assertEquals(compile.srcDirs, sourceDirs)
             assertEquals(TEST_TARGET_DIR, targetDir)
             assertEquals(sourceCompatibility, compile.sourceCompatibility)
             assertEquals(targetCompatibility, compile.targetCompatibility)
@@ -118,11 +118,11 @@ class CompileTest extends AbstractConventionTaskTest {
     }
 
     private void setUpMocksAndAttributes(Compile compile) {
-        compile.sourceDirs = ['sourceDir1' as File, 'sourceDir2' as File]
+        compile.srcDirs = ['sourceDir1' as File, 'sourceDir2' as File]
         compile.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
             assert destDir.is(compile.destinationDir)
-            assert srcDirs.is(compile.sourceDirs)
-            compile.sourceDirs
+            assert srcDirs.is(compile.srcDirs)
+            compile.srcDirs
         }] as ExistingDirsFilter
         compile.unmanagedClasspath = TEST_UNMANAGED_CLASSPATH
         compile.sourceCompatibility = "1.5"

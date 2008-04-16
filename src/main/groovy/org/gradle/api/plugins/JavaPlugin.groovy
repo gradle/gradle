@@ -35,7 +35,6 @@ import org.gradle.api.Task
 /**
  * @author Hans Dockter
  */
-// todo add initialize task
 class JavaPlugin implements Plugin {
     static final String RESOURCES = 'resources'
     static final String COMPILE = 'compile'
@@ -46,6 +45,7 @@ class JavaPlugin implements Plugin {
     static final String DISTS = 'dists'
     static final String UPLOAD_LIBS = 'uploadLibs'
     static final String CLEAN = 'clean'
+    static final String INIT = 'init'
     static final String JAVADOC = 'javadoc'
 
     static final String RUNTIME = 'runtime'
@@ -62,11 +62,13 @@ class JavaPlugin implements Plugin {
 
         project.status = 'integration'
 
+        project.createTask(INIT)
+        
         project.createTask(CLEAN, type: Clean).convention(javaConvention, DefaultConventionsToPropertiesMapping.CLEAN)
 
         project.createTask(JAVADOC, type: Javadoc).convention(javaConvention, DefaultConventionsToPropertiesMapping.JAVADOC)
 
-        project.createTask(RESOURCES, type: Resources).convention(javaConvention, DefaultConventionsToPropertiesMapping.RESOURCES)
+        project.createTask(RESOURCES, type: Resources, dependsOn: INIT).convention(javaConvention, DefaultConventionsToPropertiesMapping.RESOURCES)
 
         configureCompile(project.createTask(COMPILE, dependsOn: RESOURCES, type: Compile), javaConvention,
                 DefaultConventionsToPropertiesMapping.COMPILE)
@@ -131,7 +133,7 @@ class JavaPlugin implements Plugin {
             addConfiguration(new Configuration(UPLOAD_DISTS, Visibility.PUBLIC, null, null, true, null))
             artifactProductionTaskName = UPLOAD_LIBS
             artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
-            artifactPatterns << ("${project.convention.distDir}/[artifact]-[revision].[ext]" as String)
+            artifactPatterns << ("${project.convention.distsDir}/[artifact]-[revision].[ext]" as String)
             addConf2Tasks(RUNTIME, DISTS)
             addConf2Tasks(TEST_RUNTIME, TEST)
             classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])

@@ -36,7 +36,7 @@ class DefaultConventionsToPropertiesMapping {
     ]
     final static Map COMPILE = [
             destinationDir: {_(it).classesDir},
-            sourceDirs: {_(it).srcDirs},
+            srcDirs: {_(it).srcDirs},
             sourceCompatibility: {_(it).sourceCompatibility},
             targetCompatibility: {_(it).targetCompatibility},
             dependencyManager: {_(it).project.dependencies}
@@ -47,17 +47,17 @@ class DefaultConventionsToPropertiesMapping {
     ]
     final static Map TEST_COMPILE = [
             destinationDir: {_(it).testClassesDir},
-            sourceDirs: {_(it).testSrcDirs},
+            srcDirs: {_(it).testSrcDirs},
             sourceCompatibility: {_(it).sourceCompatibility},
             targetCompatibility: {_(it).targetCompatibility},
             unmanagedClasspath: {[_(it).classesDir]},
             dependencyManager: {_(it).project.dependencies}
     ]
     final static Map TEST = [
-            compiledTestsDir: {_(it).testClassesDir},
+            testClassesDir: {_(it).testClassesDir},
             testResultsDir: {_(it).testResultsDir},
             // Order of dirs is important because of classpath!
-            unmanagedClasspath: {[_(it).testClassesDir, _(it).classesDir]},
+            unmanagedClasspath: {[_(it).classesDir]},
             dependencyManager: {_(it).project.dependencies}
     ]
     private final static Map ARCHIVE = [
@@ -66,7 +66,7 @@ class DefaultConventionsToPropertiesMapping {
             version: {"${_(it).project.version}"}
     ]
     final static Map ZIP = ARCHIVE + [
-            destinationDir: {_(it).distDir},
+            destinationDir: {_(it).distsDir},
             configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]}
     ]
     final static Map TAR = ZIP

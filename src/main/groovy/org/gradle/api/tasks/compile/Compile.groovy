@@ -28,14 +28,13 @@ import org.slf4j.LoggerFactory
 /**
 * @author Hans Dockter
 */
-// todo Rename sourceDirs to srcDirs
 class Compile extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Compile)
 
     /**
      * The directories with the sources to compile
      */
-    List sourceDirs = []
+    List srcDirs = []
 
     /**
      * The directory where to put the compiled classes (.class files)
@@ -86,7 +85,7 @@ class Compile extends ConventionTask {
         if (!self.antCompile) throw new InvalidUserDataException("The ant compile command must be set!")
 
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                self.destinationDir, self.sourceDirs)
+                self.destinationDir, self.srcDirs)
 
         if (!self.sourceCompatibility || !self.targetCompatibility) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!")
