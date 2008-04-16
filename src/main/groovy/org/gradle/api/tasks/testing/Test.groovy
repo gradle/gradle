@@ -30,32 +30,60 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
+// todo rename compiledTestsDir to testClassesDir
+// todo the testClassesDir does not need to be mapped from the convention object
 class Test extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Test)
 
-    Test self
+    /**
+     * The directory with the compiled test classes
+     */
+    File compiledTestsDir = null
+
+    /**
+     * The directory where the test results are put. Right now only the xml format of the test results is supported.
+     */
+    File testResultsDir = null
+
+    /**
+     * This task delegates to Ants Junit task for the execution of the tests. This options contain most of the options
+     * of Ants Junit task.
+     */
+    JunitOptions options = new JunitOptions()
+
+    /**
+     * Include pattern for the filess in the test classes directory (e.g. '**&#2F;*Test.class')).
+     */
+    List includes = []
+
+    /**
+     * Exclude pattern for the filess in the test classes directory (e.g. '**&#2F;Abstract*.class').
+     */
+    List excludes = []
+
+    /**
+     * If true the build stops with an excepton in case a test fails or throws an uncatched exception. The build
+     * stops in this case after ALL tests have been executed.
+     */
+    boolean stopAtFailuresOrErrors = true
+
+    /**
+     * This property is used internally by Gradle. It is usually not used by build scripts.
+     * A list of files added to the compile classpath. The files should point to jars or directories containing
+     * class files. The files added here are not shared in a multi-project build and are not mentioned in
+     * a dependency descriptor if you upload your library to a repository.
+     */
+    List unmanagedClasspath = []
 
     AntJunit antJunit = new AntJunit()
 
-    DependencyManager dependencyManager = null
+    protected Test self
 
-    File compiledTestsDir = null
+    protected DependencyManager dependencyManager = null
 
-    File testResultsDir = null
+    protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter()
 
-    JunitOptions options = new JunitOptions()
-
-    List includes = []
-
-    List excludes = []
-
-    ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter()
-
-    ClasspathConverter classpathConverter = new ClasspathConverter()
-
-    List unmanagedClasspath = []
-
-    boolean stopAtFailuresOrErrors = true
+    protected ClasspathConverter classpathConverter = new ClasspathConverter()
 
     Test(DefaultProject project, String name) {
         super(project, name)
