@@ -16,12 +16,9 @@
 
 package org.gradle.api;
 
-import groovy.lang.Closure;
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.gradle.api.dependencies.DependencyContainer;
 import org.gradle.api.internal.dependencies.ResolverContainer;
 
 import java.io.File;
@@ -31,36 +28,16 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public interface DependencyManager {
+public interface DependencyManager extends DependencyContainer {
     public static final String BUILD_RESOLVER_NAME = "build-resolver";
 
     public static final String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
-
-    /**
-     * The project associated with this DependencyManager
-     * @return an instance of a project
-     */
-    Project getProject();
-
-    Ivy getIvy();
 
     /**
     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
     */
     Map getConfigurations();
 
-    /**
-    * A list of Gradle Dependency objects.
-    */
-    List getDependencies();
-
-    /**
-    * A list for passing directly instances of Ivy DependencyDescriptor objects.
-    */
-    List getDependencyDescriptors();
-
-    ResolverContainer getClasspathResolvers();
-    
     /**
     * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
     */
@@ -110,23 +87,6 @@ public interface DependencyManager {
     void addConf2Tasks(String conf, String[] tasks);
 
     /**
-     * Adds dependency descriptors to confs.
-     *
-     * @param confs
-     * @param dependencies
-     */
-    void dependencies(List confs, Object[] dependencies);
-
-    /**
-     * Add instances of type <code>org.apache.ivy.core.module.descriptor.DependencyDescriptor</code>. Those
-     * instances have an attribute to what confs they belong. There the confs don't need to be passed as an
-     * argument.
-     * 
-     * @param dependencyDescriptors
-     */
-    void dependencyDescriptors(DependencyDescriptor[] dependencyDescriptors);
-
-    /**
      * Adds artifacts for the given confs. An artifact is normally a library produced by the project. Usually this
      * method is not directly used by the build master. The archive tasks of the libs bundle call this method to
      * add the archive to the artifacts. 
@@ -160,11 +120,25 @@ public interface DependencyManager {
      */
     List resolveClasspath(String taskName);
 
-    ModuleRevisionId createModuleRevisionId();
+    /**
+     * Returns a ResolverContainer with the resolvers responsible for resolving the classpath dependencies.
+     * There are different resolver containers for uploading the libraries and the distributions of a project.
+     * The same resolvers can be part of multiple resolver container.
+     * 
+     * @return a ResolverContainer containing the classpathResolvers
+     */
+    ResolverContainer getClasspathResolvers();
 
-    Object configure(Closure configureClosure);
-
+    /**
+     * @return The root directory used by the build resolver.
+     */
     File getBuildResolverDir();
-    
+
+    /**
+     * The build resolver is the resolver responsible for uploading and resolving the build source libraries as well
+     * as project libraries between multi-project builds.
+     *  
+     * @return the build resolver
+     */
     RepositoryResolver getBuildResolver();
 }

@@ -45,7 +45,7 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
     List testDefaultConfs
     List testConfs
 
-    abstract DependencyContainer getTestObj()
+    abstract DefaultDependencyContainer getTestObj()
 
     void setUp() {
         projectRootDir = new File('path', 'root')
@@ -59,7 +59,7 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
     void testDependencyContainerInit() {
         assert testObj.project.is(project)
         assert testObj.dependencyFactory.is(dependencyFactory)
-        assertEquals([DEFAULT_CONFIGURATION], new DependencyContainer(dependencyFactory, [DEFAULT_CONFIGURATION]).defaultConfs)
+        assertEquals([DEFAULT_CONFIGURATION], new DefaultDependencyContainer(dependencyFactory, [DEFAULT_CONFIGURATION]).defaultConfs)
     }
 
     void testAddDepencenciesWithConfiguration() {

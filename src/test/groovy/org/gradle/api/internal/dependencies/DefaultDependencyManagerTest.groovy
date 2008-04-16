@@ -52,7 +52,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     File buildResolverDir
     ArtifactFactory artifactFactory
 
-    public DependencyContainer getTestObj() {
+    public DefaultDependencyContainer getTestObj() {
         return dependencyManager
     }
 

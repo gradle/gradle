@@ -38,7 +38,7 @@ import org.apache.ivy.core.module.descriptor.Configuration
 /**
  * @author Hans Dockter
  */
-class DefaultDependencyManager extends DependencyContainer implements DependencyManager {
+class DefaultDependencyManager extends DefaultDependencyContainer implements DependencyManager {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyManager)
 
     /**
@@ -62,8 +62,6 @@ class DefaultDependencyManager extends DependencyContainer implements Dependency
     List artifactPatterns = []
 
     ArtifactFactory artifactFactory
-
-    Project project
 
     Ivy ivy
 

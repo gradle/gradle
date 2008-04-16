@@ -19,14 +19,16 @@ package org.gradle.api.dependencies
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.dependencies.DependencyContainer
+import org.gradle.api.internal.dependencies.DefaultDependencyContainer
 import org.gradle.api.internal.dependencies.DependencyFactory
 import org.gradle.api.internal.project.DefaultProject
+
 
 /**
  * @author Hans Dockter
  */
-class ClientModule extends DependencyContainer implements Dependency {
+// todo the setProject method of Dependency is only needed by the ProjectDependency. We need to refactor.
+class ClientModule extends DefaultDependencyContainer implements Dependency {
     static final String CLIENT_MODULE_KEY = 'org.gradle.clientModule'
 
     String id
