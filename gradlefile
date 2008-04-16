@@ -57,7 +57,7 @@ dependencies {
         dependencies("commons-net:commons-net:1.4.1")
     }
 
-    clientModule(['compile'], "org.codehaus.groovy:groovy-all:1.5.5-032808") {
+    clientModule(['compile'], "org.codehaus.groovy:groovy-all:1.5.5") {
         dependency("commons-cli:commons-cli:1.0")
         clientModule("org.apache.ant:ant:1.7.0") {
             dependency("org.apache.ant:ant-launcher:1.7.0")
