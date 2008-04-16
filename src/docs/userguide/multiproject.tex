@@ -266,17 +266,37 @@ The example is a bit contrived for the sake of showing the mechanism. In \emph{t
 
 \subsection{Real Life examples} % (fold)
 \label{sub:real_life_examples}
-All this multi-project features are driven by real life use cases. Let's have a look at two of them. 
+Gradles multi-project features are driven by real life use cases. The first example consists of two webapplication projects and a parent project that creates a distribution out of them.\footnote{The real use case we had, was using \url{http://lucene.apache.org/solr}, where you need a separate war for each index your are accessing. That was one reason why we have created a distribution of webapps. The Resin servlet container allows us, to let such a distribution point to a base installation of the servlet container.} For the example we use only one build script and do \emph{cross project configuration}.
 
-
-
+\begin{minipage}[t]{7cm}
+\begin{Verbatim}[frame=single,label=Project Tree]
+D- webDist
+  F- gradlesettings
+  F- gradlefile
+  D- date
+    F- src/main/java/org/gradle/sample/DateServlet.java
+  D- hello
+    F- src/main/java/org/gradle/sample/HelloServlet.java
+\end{Verbatim}
+\end{minipage}	
+\begin{minipage}[t]{9cm}
+\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webDist/gradlesettings}
+\end{minipage}
+\codeGradleFile[webDist - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webdist/gradlefile}
+We have an interesting set of dependencies. Obviously the \texttt{date} and \texttt{hello} have a \emph{configuration} dependency on \texttt{webDist} as all the build logic for the webapps is by \texttt{webDist}. The \texttt{execution} dependency is in the other direction, as \texttt{webDist} depends on the build artifacts of \texttt{date} and \texttt{hello}. There is even a third dependency. \texttt{webDist} has a \emph{configuration} dependency on \texttt{date} and \texttt{hello} because it needs to know the \texttt{archivePath}. But it asks for this information at \emph{execution time}. Therefore we have no circular dependency.
+Such and other dependency patterns are daily bread in the problem space of multi-project builds. If a build system does not support such patterns, you either can't solve your problem or you need to do ugly hacks which are hard to maintain and massively afflict your productivity as a build master.
+There is one more thing to note from the current example. We have used the command \texttt{dependOnChildren()}. It is a convenient method and calls \texttt{dependsOn} in the parent project for every child project (not every sub project). It declares a \texttt{execution} dependency of \texttt{webDist} on \texttt{date} and \texttt{hello}. 
 % subsection real_life_examples (end)
-
-
-
-
-
 % section dependencies_what_dependencies_ (end)
+\section{Project Jar Dependencies} % (fold)
+\label{sec:project_jar_dependencies}
+What if one projects needs the jar produced by another project in its compile path. And not just the jar but also the transitive dependencies of this jar. Obviously this is a very common use case for Java multi-project builds. 
+
+If you come from Maven land you might be perfectly happy with this. If you come from Ivy land your are used to have more fine grained control if needed. 
+
+
+
+% section project_jar_dependencies (end) 
 % chapter multi_project_builds (end)
 
 

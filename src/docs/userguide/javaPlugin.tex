@@ -1,0 +1,68 @@
+\chapter{The Java Plugin} % (fold)
+\label{cha:the_java_plugin}
+Table \ref{javalayout} shows the default project layout assumed by the Java Plugin. This is configurable via the convention object. Table \ref{javatasks} shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds. Table \ref{javaconvention} shows the most important properties of the convention object of the Java plugin.
+
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|l|l|} \hline
+	\textbf{Folder} & \textbf{Meaning} \\ \hline
+	\texttt{src/main/java} & Application/Library sources \\ \hline
+	\texttt{src/main/resources} & Application/Library resources \\ \hline
+	\texttt{src/main/webapp} & Web application sources \\ \hline
+	\texttt{src/test/java} & Test sources \\ \hline
+	\texttt{src/test/resources} & Test resources \\ \hline
+	\end{tabular}
+	\end{center}
+	\caption{Default Directory Layout}	
+	\label{javalayout}
+\end{table}
+
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|l|l|l|} \hline
+			\textbf{Taskname} & \textbf{dependsOn} & \textbf{Type} \\ \hline
+			clean & - & org.gradle.api.tasks.Clean \\ \hline
+			initialize & - & org.gradle.api.tasks.DefaultTask \\ \hline
+			resources & initialize & org.gradle.api.tasks.Resources \\ \hline
+			compile & resources & org.gradle.api.tasks.compile.Compile \\ \hline
+			testResources & compile & org.gradle.api.tasks.Resources \\ \hline
+			testCompile & testResources & org.gradle.api.tasks.compile.Compile \\ \hline
+			test & testCompile & org.gradle.api.tasks.testing.Test \\ \hline
+			libs & test & org.gradle.api.tasks.bundling.Bundle \\ \hline
+			uploadLibs & libs & org.gradle.api.tasks.Upload \\ \hline
+			dists & uploadLibs & org.gradle.api.tasks.bundling.Bundle \\ \hline
+			uploadDists & dists & org.gradle.api.tasks.Upload \\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Java Plugin Tasks}	
+	\label{javatasks}
+\end{table}
+
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|l|l|l|} \hline
+			\textbf{Property} & \textbf{Type} & \textbf{Default Value} \\ \hline
+			srcRoot & File & \texttt{src} \\ \hline
+			srcDirs & List & [\emph{srcRoot}\texttt{/main/java}] \\ \hline
+			resourceDirs & List & [\emph{srcRoot}\texttt{/main/resources}]\\ \hline
+			testSrcDirs & List & [\emph{srcRoot}\texttt{/main/test}] \\ \hline
+			testResourceDirs & List & [\emph{srcRoot}\texttt{/main/resources}] \\ \hline
+			srcDocsDir & File & \emph{srcRoot}\texttt{/docs} \\ \hline
+			classesDir & File & \emph{buildDir}\texttt{/classes} \\ \hline
+			testClassesDir & File & \emph{buildDir}\texttt{/test-classes} \\ \hline
+			testResultsDir & File & \emph{buildDir}\texttt{/test-results} \\ \hline
+			distsDir & File & \emph{buildDir}\texttt{/dists} \\ \hline
+			docsDir & File & \emph{buildDir}\texttt{/docs} \\ \hline
+			javadocDir & File & \emph{buildDir}\texttt{/javadoc} \\ \hline
+			sourceCompatibility & String & \texttt{null} \\ \hline
+			targetCompatibility & String & \texttt{null} \\ \hline
+			manifest & GradleManifest & empty \\ \hline
+			metaInf & FileSet & empty \\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Java Convention Object}
+	\label{javaconvention}
+\end{table}
+
+
+% chapter the_java_plugin (end)
