@@ -499,6 +499,14 @@ class DefaultProjectTest extends GroovyTestCase {
         }
     }
 
+     void testGetProjectWithClosure() {
+        String newPropValue = 'someValue'
+        assert child1.is(project.project("child1") {
+            newProp = newPropValue
+        })
+        assertEquals(child1.newProp, newPropValue)
+    }
+
     void testGetAllTasks() {
         List tasksClean = project.allprojects*.createTask('clean')
         List tasksCompile = project.allprojects*.createTask('compile')
@@ -707,6 +715,37 @@ def scriptMethod(Closure closure) {
         project.ant(configureClosure)
         assertEquals(Closure.OWNER_FIRST, configureClosure.@resolveStrategy)
         assertTrue(project.ant.collectorTarget.children[0].realThing instanceof FileSet)
+    }
+
+    void testSubprojects() {
+        checkConfigureProject('subprojects', listWithAllChildProjects)
+    }
+
+    void testAllprojects() {
+        checkConfigureProject('allprojects', listWithAllProjects)
+    }
+
+    void testConfigureProjects() {
+        checkConfigureProject('configureProjects', [project, child1])
+    }
+
+    private void checkConfigureProject(String configureMethod, List projectsToCheck) {
+        String propValue = 'someValue'
+        if (configureMethod == 'configureProjects') {
+            project."$configureMethod" projectsToCheck,
+                    {
+                        testSubProp = propValue
+                    }
+        } else {
+            project."$configureMethod"
+                    {
+                        testSubProp = propValue
+                    }
+        }
+
+        projectsToCheck.each {
+            assertEquals(propValue, it.testSubProp)
+        }
     }
 }
 
