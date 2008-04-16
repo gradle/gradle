@@ -36,6 +36,10 @@ public interface DependencyManager {
 
     public static final String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
 
+    /**
+     * The project associated with this DependencyManager
+     * @return an instance of a project
+     */
     Project getProject();
 
     Ivy getIvy();
@@ -87,17 +91,74 @@ public interface DependencyManager {
     */
     Map getConf2Tasks();
 
+    /**
+     * A configuration can be assigned to one or more tasks. One usage of this mapping is that for example the
+     * <pre>compile</pre> task can ask for its classpath by simple passing its name as an argument. Of course the JavaPlugin
+     * had to create the mapping during the initialization phase.
+     *
+     * Another important use case are multi-project builds. Let's say you add a project dependency to the testCompile conf.
+     * You don't want the other project to be build, if you do just a compile. The testCompile task is mapped to the
+     * testCompile conf. With this knowledge we create a dependsOn relation ship between the testCompile task and the
+     * task of the other project that produces the jar. This way a compile does not trigger the build of the other project,
+     * but a testCompile does.
+     * If a mapping between a task and a conf is not specified an implicit mapping is assumed which looks for a task
+     * with the same name as the conf. But for example for the test task you have to specify an explicit mapping.
+     *
+     * @param conf the name of the conf
+     * @param tasks the name of the tasks
+     */
+    void addConf2Tasks(String conf, String[] tasks);
+
+    /**
+     * Adds dependency descriptors to confs.
+     *
+     * @param confs
+     * @param dependencies
+     */
     void dependencies(List confs, Object[] dependencies);
 
-    void addArtifacts(String configurationName, Object[] artifacts);
-
-    void addConfiguration(Configuration configuration);
-
-    void addConfiguration(String configuration);
-
+    /**
+     * Add instances of type <code>org.apache.ivy.core.module.descriptor.DependencyDescriptor</code>. Those
+     * instances have an attribute to what confs they belong. There the confs don't need to be passed as an
+     * argument.
+     * 
+     * @param dependencyDescriptors
+     */
     void dependencyDescriptors(DependencyDescriptor[] dependencyDescriptors);
 
-    List resolveClasspath(String configurationName);
+    /**
+     * Adds artifacts for the given confs. An artifact is normally a library produced by the project. Usually this
+     * method is not directly used by the build master. The archive tasks of the libs bundle call this method to
+     * add the archive to the artifacts. 
+     *
+     * @param configurationName
+     * @param artifacts
+     */
+    void addArtifacts(String configurationName, Object[] artifacts);
+
+    /**
+     * Adds an <code>org.apache.ivy.core.module.descriptor.Configuration</code> You would use this method if
+     * you need to add a configuration with special attributes. For example a configuration that extends another
+     * configuration.
+     *  
+     * @param configuration
+     */
+    void addConfiguration(Configuration configuration);
+
+    /**
+     * Adds a configuration with the given name. Under the hood an ivy configuration is created with default
+     * attributes. 
+     * @param configuration
+     */
+    void addConfiguration(String configuration);
+
+    /**
+     * Returns a list of file objects, denoting the path to the classpath elements belonging to this classname.
+     *  
+     * @param taskName
+     * @return
+     */
+    List resolveClasspath(String taskName);
 
     ModuleRevisionId createModuleRevisionId();
 

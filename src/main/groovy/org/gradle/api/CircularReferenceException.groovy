@@ -17,6 +17,9 @@
 package org.gradle.api
 
 /**
+ * This exception is thrown if circular references exists between tasks, the project evaluation order or the
+ * project dependsOn order.
+ * 
  * @author Hans Dockter
  */
 class CircularReferenceException extends GradleException {
