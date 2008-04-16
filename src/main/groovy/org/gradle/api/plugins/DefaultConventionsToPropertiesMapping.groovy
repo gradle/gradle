@@ -66,6 +66,7 @@ class DefaultConventionsToPropertiesMapping {
             version: {"${_(it).project.version}"}
     ]
     final static Map ZIP = ARCHIVE + [
+            destinationDir: {_(it).distDir},
             configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]}
     ]
     final static Map TAR = ZIP
