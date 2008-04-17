@@ -76,7 +76,7 @@ class JavaConventionTest extends GroovyTestCase {
         assertEquals([new File(convention.srcRoot, convention.srcDirNames[0])], convention.srcDirs)
         assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])], convention.testSrcDirs)
         assertEquals([new File(convention.srcRoot, convention.resourceDirNames[0])], convention.resourceDirs)
-        assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])], convention.testResourcesDirs)
+        assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])], convention.testResourceDirs)
         assertEquals(new File(convention.srcRoot, convention.srcDocsDirName), convention.srcDocsDir)
         assertEquals(new File(project.buildDir, convention.classesDirName), convention.classesDir)
         assertEquals(new File(project.buildDir, convention.testClassesDirName), convention.testClassesDir)

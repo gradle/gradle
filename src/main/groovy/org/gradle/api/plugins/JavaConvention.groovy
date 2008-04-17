@@ -99,7 +99,7 @@ class JavaConvention {
         testSrcDirNames.collect {new File(srcRoot, it)}
     }
 
-    List getTestResourcesDirs() {
+    List getTestResourceDirs() {
         testResourceDirNames.collect {new File(srcRoot, it)}
     }
 
