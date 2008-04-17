@@ -23,9 +23,8 @@ import org.gradle.api.tasks.util.FileSet
 /**
  * @author Hans Dockter
  */
-
+// todo Think about moving the mkdir method to the project.
 class JavaConvention {
-    // todo Write dynamic getter for nested dirs
     static final Map DEFAULT_ARCHIVE_TYPES = [
             jar: new ArchiveType("jar", DefaultConventionsToPropertiesMapping.JAR, Jar),
             zip: new ArchiveType("zip", DefaultConventionsToPropertiesMapping.ZIP, Zip),
@@ -37,18 +36,19 @@ class JavaConvention {
 
     Project project
 
-    File srcRoot
-    List srcDirs = []
-    File srcDocsDir
-    List resourceDirs = []
-    File classesDir
-    List testSrcDirs = []
-    List testResourceDirs = []
-    File testClassesDir
-    File testResultsDir
-    File distsDir
-    File docsDir
-    File javadocDir
+    String srcRootName
+    String srcDocsDirName
+    String classesDirName
+    String testClassesDirName
+    String distsDirName
+    String docsDirName
+    String javadocDirName
+    String testResultsDirName
+    String reportsDirName
+    List srcDirNames = []
+    List resourceDirNames = []
+    List testSrcDirNames = []
+    List testResourceDirNames = []
     String sourceCompatibility
     String targetCompatibility
     Map archiveTypes
@@ -59,18 +59,19 @@ class JavaConvention {
         this.project = project
         manifest = new GradleManifest()
         metaInf = new FileSet()
-        srcRoot = project.file('src')
-        classesDir = new File(project.buildDir, 'classes')
-        testClassesDir = new File(project.buildDir, 'test-classes')
-        distsDir = new File(project.buildDir, 'distributions')
-        docsDir = new File(project.buildDir, 'docs')
-        javadocDir = new File(docsDir, 'javadoc')
-        srcDirs << new File(srcRoot, 'main/java')
-        srcDocsDir = new File(srcRoot, 'docs')
-        resourceDirs << new File(srcRoot, 'main/resources')
-        testSrcDirs << new File(srcRoot, 'test/java')
-        testResourceDirs << new File(srcRoot, 'test/resources')
-        testResultsDir = new File(project.buildDir, 'test-results')
+        srcRootName = 'src'
+        srcDocsDirName = 'docs'
+        classesDirName = 'classes'
+        testClassesDirName = 'test-classes'
+        distsDirName = 'distributions'
+        docsDirName = 'docs'
+        javadocDirName = 'javadoc'
+        reportsDirName = 'reports'
+        testResultsDirName = 'test-results'
+        srcDirNames << 'main/java'
+        resourceDirNames << 'main/resources'
+        testSrcDirNames << 'test/java'
+        testResourceDirNames << 'test/resources'
         archiveTypes = DEFAULT_ARCHIVE_TYPES
     }
 
@@ -81,4 +82,58 @@ class JavaConvention {
         result.mkdirs()
         result
     }
+
+    File getSrcRoot() {
+        project.file(srcRootName)
+    }
+
+    List getSrcDirs() {
+        srcDirNames.collect {new File(srcRoot, it)}
+    }
+
+    List getResourceDirs() {
+        resourceDirNames.collect {new File(srcRoot, it)}
+    }
+
+    List getTestSrcDirs() {
+        testSrcDirNames.collect {new File(srcRoot, it)}
+    }
+
+    List getTestResourcesDirs() {
+        testResourceDirNames.collect {new File(srcRoot, it)}
+    }
+
+    File getSrcDocsDir() {
+        new File(srcRoot, srcDocsDirName)
+    }
+
+    File getClassesDir() {
+        new File(project.buildDir, classesDirName)
+    }
+
+    File getTestClassesDir() {
+        new File(project.buildDir, testClassesDirName)
+    }
+
+    File getDistsDir() {
+        new File(project.buildDir, distsDirName)
+    }
+
+    File getDocsDir() {
+        new File(project.buildDir, docsDirName)
+    }
+
+    File getJavadocDir() {
+        new File(project.buildDir, javadocDirName)
+    }
+
+    File getTestResultsDir() {
+        new File(project.buildDir, testResultsDirName)
+    }
+
+    File getReportsDir() {
+        new File(project.buildDir, reportsDirName)
+    }
+
+
 }

@@ -22,12 +22,20 @@ import org.gradle.api.Project
  * @author Hans Dockter
  */
 class GroovyConvention extends JavaConvention {
-    List groovySrcDirs = []
-    List groovyTestSrcDirs = []
+    List groovySrcDirNames = []
+    List groovyTestSrcDirNames = []
 
     GroovyConvention(Project project) {
         super(project)
-        groovySrcDirs << new File(srcRoot, 'main/groovy')
-        groovyTestSrcDirs << new File(srcRoot, 'test/groovy')
+        groovySrcDirNames << 'main/groovy'
+        groovyTestSrcDirNames << 'test/groovy'
+    }
+
+    List getGroovySrcDirs() {
+        groovySrcDirNames.collect {new File(srcRoot, it)}
+    }
+
+    List getGroovyTestSrcDirs() {
+        groovyTestSrcDirNames.collect {new File(srcRoot, it)}
     }
 }
