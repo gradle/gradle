@@ -51,9 +51,6 @@ class DirectoryTest extends AbstractTaskTest {
         shouldFailWithCause(InvalidUserDataException) {
             directory = new Directory(project, new File('nonRelative').absolutePath)
         }
-        shouldFailWithCause(InvalidUserDataException) {
-            directory = new Directory(project, '/nonRelative')
-        }
     }
 
     void testExecute() {
