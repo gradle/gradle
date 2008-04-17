@@ -229,7 +229,7 @@ class DefaultProject implements Comparable, Project {
         }
         logger.debug("Adding dependencies: ${args[TASK_DEPENDS_ON]}")
 
-        task.dependsOn(args[TASK_DEPENDS_ON] as String[])
+        task.dependsOn(args[TASK_DEPENDS_ON] as Object[])
 
         if (action) task.actions << action
         task

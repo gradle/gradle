@@ -99,13 +99,20 @@ class SettingsProcessor {
     }
 
     private void replaceMetaclass(Script script, DefaultSettings settings) {
-        ExpandoMetaClass projectScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
-        projectScriptExpandoMetaclass.methodMissing = {String name, args ->
+        ExpandoMetaClass settingsScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
+        settingsScriptExpandoMetaclass.methodMissing = {String name, args ->
             logger.debug("Method $name not found in script! Delegating to settings.")
             settings.invokeMethod(name, args)
         }
-        projectScriptExpandoMetaclass.initialize()
-        script.metaClass = projectScriptExpandoMetaclass
+        settingsScriptExpandoMetaclass.propertyMissing = {String name ->
+            if (name == 'out') {
+                return System.out
+            }
+            logger.debug("Property $name not found in script! Delegating to settings.")
+            settings."$name"
+        }
+        settingsScriptExpandoMetaclass.initialize()
+        script.metaClass = settingsScriptExpandoMetaclass
     }
 
     private boolean isCurrentDirIncluded(DefaultSettings settings) {

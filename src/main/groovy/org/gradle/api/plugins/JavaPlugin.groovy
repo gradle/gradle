@@ -136,7 +136,6 @@ class JavaPlugin implements Plugin {
             artifactPatterns << ("${project.convention.distsDir}/[artifact]-[revision].[ext]" as String)
             addConf2Tasks(RUNTIME, DISTS)
             addConf2Tasks(TEST_RUNTIME, TEST)
-            classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         }
     }
 

@@ -18,6 +18,8 @@ package org.gradle.api;
 
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.gradle.api.dependencies.DependencyContainer;
 import org.gradle.api.internal.dependencies.ResolverContainer;
 
@@ -29,9 +31,15 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface DependencyManager extends DependencyContainer {
+    public static final String DEFAULT_IBIBLIO_NAME = "iBiblio";
+
+    public static final String IBIBLIO_URL = "http://repo1.maven.org/maven2/";
+
     public static final String BUILD_RESOLVER_NAME = "build-resolver";
 
     public static final String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
+
+    public static final String FLAT_DIR_RESOLVER_PATTERN = "[artifact]-[revision].[ext]";
 
     /**
     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
@@ -141,4 +149,10 @@ public interface DependencyManager extends DependencyContainer {
      * @return the build resolver
      */
     RepositoryResolver getBuildResolver();
+
+    FileSystemResolver createFlatDirResolver(String name, File[] dirs);
+
+    FileSystemResolver addFlatDirResolver(String name, File[] dirs);
+
+    IBiblioResolver addIBiblio();
 }

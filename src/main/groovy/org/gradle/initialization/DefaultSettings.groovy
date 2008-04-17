@@ -26,6 +26,8 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaPlugin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
 
 /**
  * @author Hans Dockter
@@ -61,7 +63,6 @@ class DefaultSettings implements Settings {
         configureDependencyManager(dependencyManager, gradleUserHomeDir)
         this.buildSourceBuilder = buildSourceBuilder
         dependencyManager.addConfiguration(BUILD_CONFIGURATION)
-        dependencyManager.classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         buildSrcDir = DEFAULT_BUILD_SRC_DIR
         buildSrcScriptName = Project.DEFAULT_PROJECT_FILE
         buildSrcTaskNames = [JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS]
@@ -89,6 +90,19 @@ class DefaultSettings implements Settings {
 
     ResolverContainer getResolvers() {
         dependencyManager.classpathResolvers
+    }
+
+
+    FileSystemResolver createFlatDirResolver(String name, File[] dirs) {
+        dependencyManager.createFlatDirResolver(name, dirs)
+    }
+
+    FileSystemResolver addFlatDirResolver(String name, File[] dirs) {
+        dependencyManager.addFlatDirResolver(name, dirs)
+    }
+
+    IBiblioResolver addIBiblio() {
+        dependencyManager.addIBiblio()
     }
 
     URLClassLoader createClassLoader() {

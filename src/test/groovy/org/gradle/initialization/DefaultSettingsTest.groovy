@@ -23,6 +23,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.ResolverContainer
 import org.gradle.api.plugins.JavaPlugin
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
 
 /**
  * @author Hans Dockter
@@ -118,6 +120,42 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
         dependencyManagerMocker.use(dependencyManager) {
             settings.clientModule(expectedId, expectedConfigureClosure)
+        }
+    }
+
+    void testAddIBiblio() {
+        IBiblioResolver expectedResolver = new IBiblioResolver()
+        dependencyManagerMocker.demand.addIBiblio(1..1) {-> expectedResolver}
+        dependencyManagerMocker.use(dependencyManager) {
+            assert settings.addIBiblio().is(expectedResolver)
+        }
+    }
+
+    void testAddFlatFileResolver() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String expectedName = 'name'
+        File[] expectedDirs = ['a' as File]
+        dependencyManagerMocker.demand.addFlatDirResolver(1..1) {String name, File[] dirs ->
+            assertEquals(expectedName, name)
+            assertArrayEquals(expectedDirs, dirs)
+            expectedResolver
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            assert settings.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+        }
+    }
+
+    void testCreateFlatFileResolver() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String expectedName = 'name'
+        File[] expectedDirs = ['a' as File]
+        dependencyManagerMocker.demand.createFlatDirResolver(1..1) {String name, File[] dirs ->
+            assertEquals(expectedName, name)
+            assertArrayEquals(expectedDirs, dirs)
+            expectedResolver
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            assert settings.createFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
         }
     }
 

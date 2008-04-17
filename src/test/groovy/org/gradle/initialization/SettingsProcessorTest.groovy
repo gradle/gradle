@@ -151,7 +151,8 @@ class SettingsProcessorTest extends GroovyTestCase {
             ]
         }] as ImportsReader
         settingsProcessor.importsReader = mockImportsReader
-        String expectedSettingsText = """CircularReferenceException exception // check autoimport
+        String expectedSettingsText = """File myDir = rootDir
+CircularReferenceException exception // check autoimport
 include \"${includePaths[0]}\", \"${includePaths[1]}\"
 """
         boolean expectedSearchUpwards = false

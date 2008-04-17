@@ -51,6 +51,8 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     Ivy ivy
     File buildResolverDir
     ArtifactFactory artifactFactory
+    SpecialResolverHandler mockSpecialResolverHandler
+    RepositoryResolver expectedBuildResolver
 
     public DefaultDependencyContainer getTestObj() {
         return dependencyManager
@@ -69,6 +71,10 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
+        expectedBuildResolver = new FileSystemResolver()
+        mockSpecialResolverHandler = [getBuildResolver: {expectedBuildResolver},
+            getBuildResolverDir: {buildResolverDir}] as SpecialResolverHandler
+        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
     }
 
     void testDependencyManager() {
@@ -151,6 +157,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
                     report2classpathMocker.use(report2Classpath) {
                         dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
                                 settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
+                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
                         dependencyManager.addConf2Tasks(testConfiguration, testTaskName)
                         dependencyManager.project = project
                         assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))
@@ -236,6 +243,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
                         publishEngine = new PublishEngine(null, null)
                         dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
                                 settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
+                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
                         dependencyManager.artifactPatterns = expectedArtifactPatterns
                         dependencyManager.project = project
                         dependencyManager.publish(expectedConfigurations, uploadResolvers, uploadModuleDescriptor)
@@ -277,15 +285,36 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     }
 
     void testGetBuildResolver() {
-        FileSystemResolver buildResolver = dependencyManager.buildResolver
-        // check lazy init
-        assert buildResolver
-        assert buildResolver.is(dependencyManager.buildResolver)
+        assert dependencyManager.buildResolver.is(expectedBuildResolver)
+    }
 
-        assertEquals(["$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"],
-                buildResolver.ivyPatterns)
-        assertEquals(["$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"],
-                buildResolver.artifactPatterns)
+    void testAddAndCreateFlatDirRepository() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String expectedName = 'name'
+        File[] expectedDirs = ['a' as File]
+        MockFor specialResolverHandlerMocker = new MockFor(SpecialResolverHandler)
+        specialResolverHandlerMocker.demand.createFlatDirResolver(2..2) { String name, File[] dirs ->
+            assertEquals(expectedName, name)
+            assertArrayEquals(expectedDirs, dirs)
+            expectedResolver
+        }
+        specialResolverHandlerMocker.use(dependencyManager.specialResolverHandler) {
+            assert dependencyManager.createFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+            assert !dependencyManager.classpathResolvers.resolverList.contains(expectedResolver)
+            assert dependencyManager.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+            assert dependencyManager.classpathResolvers.resolverList.contains(expectedResolver)
+        }
+    }
+
+    void testAddIBiblio() {
+        Map expectedDescription = [name: DependencyManager.DEFAULT_IBIBLIO_NAME, url: DependencyManager.IBIBLIO_URL]
+        MockFor resolverContainerMocker = new MockFor(ResolverContainer)
+        resolverContainerMocker.demand.add(1..1) { description ->
+            assertEquals(expectedDescription, description)    
+        }
+        resolverContainerMocker.use(dependencyManager.classpathResolvers) {
+            dependencyManager.addIBiblio()
+        }
     }
 
     void testAddConfiguration() {

@@ -53,39 +53,37 @@ dependencies {
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
     addConfiguration('ftpAntTask')
 
-    clientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
-        dependencies("commons-net:commons-net:1.4.1")
+    clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
+        dependencies(":commons-net:1.4.1")
     }
 
-    clientModule(['compile'], "org.codehaus.groovy:groovy-all:1.5.5") {
-        dependency("commons-cli:commons-cli:1.0")
-        clientModule("org.apache.ant:ant:1.7.0") {
-            dependency("org.apache.ant:ant-launcher:1.7.0")
-            dependencies("org.apache.ant:ant-junit:1.7.0:jar")
+    clientModule(['compile'], ":groovy-all:1.5.5") {
+        dependency(":commons-cli:1.0")
+        clientModule(":ant:1.7.0") {
+            dependencies(":ant-junit:1.7.0:jar", ":ant-launcher:1.7.0")
         }
     }
 
-    clientModule(['runtime'], "org.tmatesoft.svnkit:svnkit:1.1.6") {
-        dependencies("org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar")
+    clientModule(['compile'], ":logback-classic:0.9.8") {
+        dependencies(":logback-core:0.9.8", ":slf4j-api:1.4.3")
     }
 
-    dependency(['runtime'], "org.apache.ant:ant-junit:1.7.0") {
+    dependency(['runtime'], ":ant-junit:1.7.0") {
         exclude(module: 'junit')
     }
-    compile "commons-cli:commons-cli:1.0:jar",
-            "commons-io:commons-io:1.3.1:jar",
-            "commons-lang:commons-lang:2.3:jar",
-            "commons-httpclient:commons-httpclient:3.0:jar",
-            "slide:webdavlib:2.0",
-            "ch.qos.logback:logback-classic:0.9.8",
-            "org.apache.ivy:ivy:2.0.0.beta2_20080305165542:jar"
-    runtime "org.apache.ant:ant-launcher:1.7.0",
-            "junit:junit:4.4"
+    compile ":commons-cli:1.0:jar",
+            ":commons-io:1.3.1:jar",
+            ":commons-lang:2.3:jar",
+            ":commons-httpclient:3.0:jar",
+            ":webdavlib:2.0",
+            ":logback-classic:0.9.8",
+            ":ivy:2.0.0.beta2_20080305165542:jar"
+    runtime ":ant-launcher:1.7.0",
+            ":junit:4.4"
 
-    testCompile "junit:junit:4.4"
-    distLib "junit:junit:4.4"
-    classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
-
+    testCompile ":junit:4.4"
+    distLib ":junit:4.4"
+    addFlatDirResolver('lib', new File(rootDir, 'lib'))
 }
 
 sourceCompatibility = 1.5
@@ -205,7 +203,8 @@ createTask('distsWithJavadoc').dependsOn 'dists', 'javadoc'
 
 // This is already a kind of integration test. We have to run the tutorials separately, to get the output for the userguide.
 tutorialOutputDir = dir("$buildDir.name/tutorial-output")
-createTask('tutorialOutput', dependsOn: ['explodedDist',tutorialOutputDir]) {
+
+createTask('tutorialOutput', dependsOn: ['explodedDist', tutorialOutputDir]) {
     Userguide.createNonTutorialOutput(tutorialOutputDir.dir,  explodedDistDir, explodedDistSamplesDir)
     TutorialCreator.createOutput(explodedDistDir.absolutePath, explodedDistTutorialDir, tutorialOutputDir.dir)
     Userguide.checkGroovyScripts(explodedDistTutorialDir, tutorialOutputDir.dir)

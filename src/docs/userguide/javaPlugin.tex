@@ -23,6 +23,7 @@ Table \ref{javalayout} shows the default project layout assumed by the Java Plug
 		\begin{tabular}{|l|l|l|} \hline
 			\textbf{Taskname} & \textbf{dependsOn} & \textbf{Type} \\ \hline
 			clean & - & org.gradle.api.tasks.Clean \\ \hline
+			javadoc & - & org.gradle.api.tasks.Javadoc \\ \hline
 			init & - & org.gradle.api.tasks.DefaultTask \\ \hline
 			resources & initialize & org.gradle.api.tasks.Resources \\ \hline
 			compile & resources & org.gradle.api.tasks.compile.Compile \\ \hline
@@ -69,6 +70,11 @@ Table \ref{javalayout} shows the default project layout assumed by the Java Plug
 \label{sec:initialization}
 The \texttt{init} task has no default action attached to it. It is meant to be a hook. You can add actions to it or associates your custom tasks with. The Java Plugin executes this task before any other of its tasks get executed (except \texttt{clean} which does not depends on \texttt{init}).
 % section initialization (end)
+
+\section{Javadoc} % (fold)
+\label{sec:javadoc}
+
+% section javadoc (end)
 
 \section{Clean} % (fold)
 \label{sec:clean}
@@ -167,7 +173,6 @@ dists {
 	    }
 	    zip("notTheProjectName-src") {
 	        String prefix = "$distName-src-$version"
-	        destinationDir = distDir
 	        zipFileSet(dir: projectDir, prefix: prefix) {
 	            include 'src/', 'gradle.groovy'
 	        }
@@ -184,4 +189,8 @@ dists {
 The \emph{Resources} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}.
 % section upload (end)
 
+\section{MetaInf and Manifest} % (fold)
+\label{sec:metainf_and_manifest}
+
+% section metainf_and_manifest (end)
 % chapter the_java_plugin (end)

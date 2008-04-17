@@ -75,7 +75,7 @@ class ResolverContainer {
     }
 
 
-    RepositoryResolver getAt(String name) {
+    RepositoryResolver get(String name) {
         resolvers[name]
     }
 

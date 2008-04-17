@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultTask
 /**
  * @author Hans Dockter
  */
+// todo the toString method should return the absolute path, otherwise it is of no use in multi-project builds.
 class Directory extends DefaultTask {
     File dir
     
@@ -45,6 +46,6 @@ class Directory extends DefaultTask {
     }
 
     String toString() {
-        name
+        dir.absolutePath
     }
 }

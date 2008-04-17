@@ -17,23 +17,21 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.Ivy
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
+import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.publish.PublishOptions
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.ResolveOptions
-import org.apache.ivy.plugins.lock.NoLockStrategy
-import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
 import org.gradle.api.dependencies.GradleArtifact
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
 
 /**
  * @author Hans Dockter
@@ -73,6 +71,8 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
 
     ResolverContainer classpathResolvers = new ResolverContainer()
 
+    SpecialResolverHandler specialResolverHandler = new SpecialResolverHandler()
+
     /**
      * The name of the task which produces the artifacts of this project. This is needed by other projects,
      * which have a dependency on a project.
@@ -89,10 +89,6 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     Map conf2Tasks = [:]
     Map task2Conf = [:]
 
-    File buildResolverDir
-
-    RepositoryResolver buildResolver = null
-
     DefaultDependencyManager() {
 
     }
@@ -107,7 +103,7 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         this.settingsConverter = settingsConverter
         this.moduleDescriptorConverter = moduleDescriptorConverter
         this.report2Classpath = report2Classpath
-        this.buildResolverDir = buildResolverDir
+        this.specialResolverHandler.buildResolverDir = buildResolverDir
     }
 
     // todo: Build should fail, if resolve fails (at least optional) 
@@ -142,7 +138,7 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         resolvers.resolverList.each {resolver ->
             logger.info("Publishing to Resolver $resolver")
             ivy.publishEngine.publish(moduleDescriptor,
-                    artifactPatterns.collect{pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
+                    artifactPatterns.collect {pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
         }
     }
 
@@ -157,7 +153,7 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     Ivy ivy(List resolvers) {
         ivy = ivy.newInstance(settingsConverter.convert(classpathResolvers.resolverList,
                 resolvers,
-                new File(project.gradleUserHome), getBuildResolver(), clientModuleRegistry))
+                new File(project.gradleUserHome), buildResolver, clientModuleRegistry))
     }
 
     void addConf2Tasks(String conf, String[] tasks) {
@@ -190,33 +186,6 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         }
     }
 
-    RepositoryResolver getBuildResolver() {
-        if (!buildResolver) {
-            assert buildResolverDir
-            buildResolver = new FileSystemResolver()
-            configureBuildResolver(buildResolver, createCacheManager())
-        }
-        buildResolver
-    }
-
-    private void configureBuildResolver(FileSystemResolver buildResolver, DefaultRepositoryCacheManager cacheManager) {
-        buildResolver.setRepositoryCacheManager(cacheManager)
-        buildResolver.name = DependencyManager.BUILD_RESOLVER_NAME
-        String pattern = "$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"
-        buildResolver.addIvyPattern(pattern)
-        buildResolver.addArtifactPattern(pattern)
-        buildResolver.validate = false
-    }
-
-    private DefaultRepositoryCacheManager createCacheManager() {
-        DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager()
-        cacheManager.basedir = new File(buildResolverDir, 'cache')
-        cacheManager.name = 'build-resolver-cache'
-        cacheManager.useOrigin = true
-        cacheManager.lockStrategy = new NoLockStrategy()
-        cacheManager
-    }
-
     void addConfiguration(Configuration configuration) {
         configurations[configuration.name] = configuration
     }
@@ -234,5 +203,29 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         }
         dependencies([name], args as Object[])
     }
+
+    RepositoryResolver getBuildResolver() {
+        specialResolverHandler.buildResolver
+    }
+
+    File getBuildResolverDir() {
+        specialResolverHandler.buildResolverDir
+    }
+
+    FileSystemResolver createFlatDirResolver(String name, File[] dirs) {
+        specialResolverHandler.createFlatDirResolver(name, dirs)
+    }
+
+    FileSystemResolver addFlatDirResolver(String name, File[] dirs) {
+        FileSystemResolver resolver = createFlatDirResolver(name, dirs)
+        classpathResolvers.add(resolver)
+        resolver
+    }
+
+    IBiblioResolver addIBiblio() {
+        classpathResolvers.add([name: DependencyManager.DEFAULT_IBIBLIO_NAME, url: DependencyManager.IBIBLIO_URL])
+    }
+
+
 }
 

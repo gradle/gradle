@@ -29,9 +29,9 @@ class SettingsConverter {
     static final String CLIENT_MODULE_NAME = 'clientModule'
 
     IvySettings ivySettings
-    
-    IvySettings convert(def classpathResolvers, def otherResolvers, File gradleUserHome,
-                        RepositoryResolver buildResolver, Map clientModuleRegistry) {
+
+    IvySettings convert(def classpathResolvers, def otherResolvers, File gradleUserHome, RepositoryResolver buildResolver,
+                        Map clientModuleRegistry) {
         if (ivySettings) {return ivySettings}
         ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
         clientModuleResolver.moduleRegistry = clientModuleRegistry
@@ -49,11 +49,13 @@ class SettingsConverter {
         clientModuleChain.add(clientModuleResolver)
         clientModuleChain.add(chainResolver)
         IvySettings ivySettings = new IvySettings()
-        otherResolvers.each {ivySettings.addResolver(it)}
-        ivySettings.addResolver(clientModuleChain)
+        (otherResolvers + classpathResolvers + [buildResolver, clientModuleChain, clientModuleResolver, chainResolver]).each {
+            ivySettings.addResolver(it)
+            it.repositoryCacheManager.settings = ivySettings
+        }
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME)
         ivySettings.setVariable('ivy.cache.dir', gradleUserHome.canonicalPath + '/cache')
-        buildResolver.repositoryCacheManager.settings = ivySettings
         ivySettings
     }
+
 }
