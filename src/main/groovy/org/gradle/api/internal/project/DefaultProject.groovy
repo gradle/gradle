@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
+// todo add new public methods to interface
 class DefaultProject implements Comparable, Project {
     private static Logger logger = LoggerFactory.getLogger(DefaultProject)
 
@@ -300,6 +301,10 @@ class DefaultProject implements Comparable, Project {
 
     String toString() {
         path
+    }
+
+    Project project(String path) {
+        project(path, null)
     }
 
     Project project(String path, Closure configureClosure = null) {
