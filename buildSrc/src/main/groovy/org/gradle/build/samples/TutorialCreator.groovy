@@ -226,10 +226,10 @@ createTask('check') {
         scripts["pluginConvention"] = ["""usePlugin('java')
 
 createTask('check') {
-    classesDir = new File(buildDir, 'output')
+    classesDirName = 'output'
     println(resources.destinationDir.name)
     println(compile.destinationDir.name)
-    println(convention.classesDir.name)
+    println(convention.classesDirName)
 }""", {assert "output${NL}output${NL}output$NL" == it}, "check"]
 // *****************
 
