@@ -45,7 +45,7 @@ class JavaConventionTest extends GroovyTestCase {
     void testJavaConvention() {
         assert convention.archiveTypes.is(JavaConvention.DEFAULT_ARCHIVE_TYPES)
         assert convention.manifest != null
-        assert convention.metaInf != null
+        assertEquals([], convention.metaInf)
         assertEquals('src', convention.srcRootName)
         assertEquals('docs', convention.srcDocsDirName)
         assertEquals('classes', convention.classesDirName)
