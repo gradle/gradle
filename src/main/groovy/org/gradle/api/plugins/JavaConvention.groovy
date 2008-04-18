@@ -53,12 +53,12 @@ class JavaConvention {
     String targetCompatibility
     Map archiveTypes
     GradleManifest manifest
-    FileSet metaInf
+    List metaInf
 
     JavaConvention(Project project) {
         this.project = project
         manifest = new GradleManifest()
-        metaInf = new FileSet()
+        metaInf = []
         srcRootName = 'src'
         srcDocsDirName = 'docs'
         classesDirName = 'classes'

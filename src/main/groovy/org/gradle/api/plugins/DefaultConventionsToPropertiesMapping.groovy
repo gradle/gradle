@@ -43,7 +43,7 @@ class DefaultConventionsToPropertiesMapping {
     ]
     final static Map TEST_RESOURCES = [
             destinationDir: {_(it).testClassesDir},
-            sourceDirs: {_(it).testResourceDirs}
+            srcDirs: {_(it).testResourceDirs}
     ]
     final static Map TEST_COMPILE = [
             destinationDir: {_(it).testClassesDir},
@@ -74,7 +74,7 @@ class DefaultConventionsToPropertiesMapping {
             baseDir: {_(it).classesDir},
             configurations: {[JavaPlugin.MASTER] as String[]},
             manifest: {_(it).manifest},
-            metaInf: {_(it).metaInf}
+            metaInfResourceCollections: {_(it).metaInf}
     ]
     final static Map WAR = JAR.subMap(JAR.keySet() - 'configurations') + [
             configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]},
