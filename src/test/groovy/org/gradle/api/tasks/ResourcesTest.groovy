@@ -91,7 +91,7 @@ class ResourcesTest extends AbstractTaskTest {
         assert resources.is(resources.filter(sourceDir2, sourceDir2Filter1))
         assert resources.is(resources.filter(sourceDir2, sourceDir2Filter2))
 
-        assertEquals([sourceDir1, sourceDir2, sourceDir3], resources.sourceDirs)
+        assertEquals([sourceDir1, sourceDir2, sourceDir3], resources.srcDirs)
         assertEquals(targetDir, resources.destinationDir)
 
         Map instructionExecuted = [:]
@@ -105,8 +105,8 @@ class ResourcesTest extends AbstractTaskTest {
 
         resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
                     assert destDir.is(resources.destinationDir)
-                    assert srcDirs.is(resources.sourceDirs)
-                    resources.sourceDirs
+                    assert srcDirs.is(resources.srcDirs)
+                    resources.srcDirs
                 }] as ExistingDirsFilter
 
 

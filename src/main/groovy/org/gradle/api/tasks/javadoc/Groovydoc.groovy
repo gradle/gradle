@@ -43,8 +43,8 @@ class Groovydoc extends ConventionTask {
 
     private void generate(Task task) {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                self.destDir, self.srcDirs)
-        antGroovydoc.execute(existingSourceDirs, self.destDir, project.ant)
+                self.destinationDir, self.srcDirs)
+        antGroovydoc.execute(existingSourceDirs, self.destinationDir, project.ant)
     }
 
 }

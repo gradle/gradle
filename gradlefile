@@ -194,7 +194,7 @@ createTask('uploadJavadoc', dependsOn: 'javadoc') {
     // todo: Ant ftp hangs sometimes. We might switch to platform ftp. 
     // The passive = true is an attempt to improve this. Yet it sometimes takes
     ftp(action: 'send', remotedir: javadocRemoteDir, passive: true) {
-        fileset(dir: javadoc.destDir)
+        fileset(dir: javadoc.destinationDir)
     }
 }
 

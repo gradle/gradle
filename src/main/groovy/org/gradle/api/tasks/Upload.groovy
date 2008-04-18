@@ -30,8 +30,12 @@ import org.slf4j.LoggerFactory
  */
 class Upload extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Upload)
-    
+
+    /**
+     * Whether to publish the xml module descriptor to the upload destination.
+     */
     boolean uploadModuleDescriptor = false
+
     List configurations = []
     ResolverContainer uploadResolvers = new ResolverContainer()
     Set bundles = []

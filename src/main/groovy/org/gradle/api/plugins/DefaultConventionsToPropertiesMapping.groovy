@@ -27,12 +27,12 @@ class DefaultConventionsToPropertiesMapping {
             dir: {_(it).project.buildDir}
     ]
     final static Map JAVADOC = [
-            sourceDirs: {_(it).srcDirs},
+            srcDirs: {_(it).srcDirs},
             destDir: {_(it).javadocDir}
     ]
     final static Map RESOURCES = [
             destinationDir: {_(it).classesDir},
-            sourceDirs: {_(it).resourceDirs}
+            srcDirs: {_(it).resourceDirs}
     ]
     final static Map COMPILE = [
             destinationDir: {_(it).classesDir},

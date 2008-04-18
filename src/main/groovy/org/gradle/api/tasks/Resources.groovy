@@ -39,7 +39,7 @@ class Resources extends ConventionTask {
     /**
      * A list of file objects denoting the directories to extract the content from.
      */
-    List sourceDirs = []
+    List srcDirs = []
 
     /**
      * The directory where to copy then content from the source dirs.
@@ -105,7 +105,7 @@ class Resources extends ConventionTask {
 
     private void copyResources(Task task) {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                self.destinationDir, self.sourceDirs)
+                self.destinationDir, self.srcDirs)
 
         List copyInstructions = existingSourceDirs.collect {File sourceDir ->
             Set includes = getSetFromMap(sourceDirIncludes, sourceDir) + globalIncludes
@@ -120,7 +120,7 @@ class Resources extends ConventionTask {
      * adds the given sourceDirs to the sourceDirs property.
      */
     Resources from(File[] sourceDirs) {
-        this.sourceDirs.addAll(sourceDirs as List)
+        this.srcDirs.addAll(sourceDirs as List)
         this
     }
 

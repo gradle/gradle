@@ -31,7 +31,7 @@ class Javadoc extends ConventionTask {
 
     List srcDirs
 
-    File destDir
+    File destinationDir
 
     String maxMemory
 
@@ -48,8 +48,8 @@ class Javadoc extends ConventionTask {
     }
 
     private void generate(Task task) {
-        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(self.destDir, self.setSrcDirs)
-        antJavadoc.execute(existingSourceDirs, self.destDir, self.maxMemory, project.ant)   
+        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(self.setDestinationDir, self.setSrcDirs)
+        antJavadoc.execute(existingSourceDirs, self.setDestinationDir, self.maxMemory, project.ant)
     }
 
 }
