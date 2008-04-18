@@ -68,7 +68,7 @@ Table \ref{javalayout} shows the default project layout assumed by the Java Plug
 			sourceCompatibility & String & \texttt{null} \\ \hline
 			targetCompatibility & String & \texttt{null} \\ \hline
 			manifest & GradleManifest & empty \\ \hline
-			metaInf & FileSet & empty \\ \hline
+			metaInf & List & empty \\ \hline
 		\end{tabular}
 	\end{center}
 	\caption{Java Convention Object - Non Dir Properties}
@@ -232,11 +232,23 @@ The following file containers are available:
 
 \section{Upload} % (fold)
 \label{sec:upload}
-The \emph{Upload} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}.
+The \emph{Upload} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}. An easy way of describing there behavior, is that all archives added to the \texttt{libs} and \texttt{dists} bundle are uploaded by the corresponding upload task. An upload task uploads to the repositories assigned to it. If needed you have more control on what files get uploaded. Have a look at \href{\API tasks/Upload.html}{org.gradle.api.tasks.Upload} to learn more.
 % section upload (end)
 
-\section{MetaInf and Manifest} % (fold)
-\label{sec:metainf_and_manifest}
+\section{Manifest} % (fold)
+\label{sec:manifest}
+The convention object of the JavaPlugin has a \texttt{manifest} property pointing to an instance of \href{\API tasks/bundling/GradleManifest.html}{org.gradle.api.bundling.GradleManifest}. With this \texttt{GradleManifest} object you can define the content of the \texttt{MANIFEST.MF} file of a jar or a war archive. 
+\begin{Verbatim}
+manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
+\end{Verbatim}
+You can also define sections of a manifest file.
+% section manifest (end)
 
+\section{MetaInf} % (fold)
+\label{sec:metainf}
+The convention object of the JavaPlugin has a \texttt{metaInf} property pointing to a list file containers as described in section \ref{sec:archive_tasks}. With this file containers you can define which files should be in the META-INF directory of a jar or a war archive. 
+\begin{Verbatim}
+metaInf << new FileSet(someDir)
+\end{Verbatim}
 % section metainf_and_manifest (end)
 % chapter the_java_plugin (end)
