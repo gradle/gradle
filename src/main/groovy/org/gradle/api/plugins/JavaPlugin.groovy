@@ -63,7 +63,7 @@ class JavaPlugin implements Plugin {
         project.status = 'integration'
 
         project.createTask(INIT)
-        
+
         project.createTask(CLEAN, type: Clean).convention(javaConvention, DefaultConventionsToPropertiesMapping.CLEAN)
 
         project.createTask(JAVADOC, type: Javadoc).convention(javaConvention, DefaultConventionsToPropertiesMapping.JAVADOC)
@@ -87,16 +87,18 @@ class JavaPlugin implements Plugin {
 
         project.createTask(TEST, dependsOn: TEST_COMPILE, type: Test).configure {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST)
-            doFirst { Test test ->
+            doFirst {Test test ->
                 test.unmanagedClasspath(test.project.task(TEST_COMPILE).unmanagedClasspath as Object[])
             }
         }
 
         Closure lateInitClosureForPackage = {
+            def type = 'jar'
             if (project.hasProperty('type') && project.type) {
-                createArchive(javaConvention.archiveTypes[project.type]) {
-                    resourceCollections << [new FileSet(javaConvention.classesDir)]
-                }
+                type = project.type
+            }
+            createArchive(javaConvention.archiveTypes[type]) {
+                resourceCollections << [new FileSet(javaConvention.classesDir)]
             }
         }
         project.createTask(LIBS, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
