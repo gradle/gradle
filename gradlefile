@@ -49,6 +49,13 @@ configureByDag = {Dag dag ->
         userguideRemoteDir += 'latest'
         javadocRemoteDir += 'latest'
     }
+    manifest.mainAttributes([
+            (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
+                path, file -> path + file.name + ' '
+            },
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString()
+    ])
 }
 
 dependencies {
@@ -105,12 +112,6 @@ test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere"])
 }
-
-manifest.mainAttributes([
-        (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
-            path, file -> path + file.name + ' '
-        }
-])
 
 // todo: Add DefaultArchiveTask
 libs.tasksBaseName = distName
@@ -204,7 +205,7 @@ createTask('distsWithJavadoc').dependsOn 'dists', 'javadoc'
 tutorialOutputDir = dir("$buildDir.name/tutorial-output")
 
 createTask('tutorialOutput', dependsOn: ['explodedDist', tutorialOutputDir]) {
-    Userguide.createNonTutorialOutput(tutorialOutputDir.dir,  explodedDistDir, explodedDistSamplesDir)
+    Userguide.createNonTutorialOutput(tutorialOutputDir.dir, explodedDistDir, explodedDistSamplesDir)
     TutorialCreator.createOutput(explodedDistDir.absolutePath, explodedDistTutorialDir, tutorialOutputDir.dir)
     Userguide.checkGroovyScripts(explodedDistTutorialDir, tutorialOutputDir.dir)
 }.skipProperties << 'skip.integTest'
