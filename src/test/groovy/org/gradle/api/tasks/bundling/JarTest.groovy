@@ -33,7 +33,7 @@ class JarTest extends AbstractArchiveTaskTest {
         jar = new Jar(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(jar)
         jar.manifest = new GradleManifest()
-        jar.metaInfFileSets = [new FileSet()]
+        jar.metaInfResourceCollections = [new FileSet()]
         antJarMocker = new MockFor(AntJar)
     }
 

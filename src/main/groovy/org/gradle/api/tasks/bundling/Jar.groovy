@@ -32,7 +32,7 @@ class Jar extends Zip {
 
     GradleManifest manifest
 
-    List metaInfFileSets
+    List metaInfResourceCollections
 
     Jar self
 
@@ -44,6 +44,6 @@ class Jar extends Zip {
 
     Closure createAntArchiveTask() {
         {-> antJar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.createIfEmpty,
-                self.destinationDir, archiveName, self.manifest, self.metaInfFileSets, project.ant))}
+                self.destinationDir, archiveName, self.manifest, self.metaInfResourceCollections, project.ant))}
     }
 }

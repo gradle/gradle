@@ -81,7 +81,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     void checkMetaArchiveParameterEqualsArchive(AntMetaArchiveParameter metaArchiveParameter, AbstractArchiveTask task) {
         checkArchiveParameterEqualsArchive(metaArchiveParameter, task)
         metaArchiveParameter.gradleManifest.is(task.manifest)
-        metaArchiveParameter.metaInfFileSets.is(task.metaInfFileSets)
+        metaArchiveParameter.metaInfFileSets.is(task.metaInfResourceCollections)
     }
 
     void testFileSetWithTaskBaseDir() {

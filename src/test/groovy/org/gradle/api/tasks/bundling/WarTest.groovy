@@ -37,7 +37,7 @@ class WarTest extends AbstractArchiveTaskTest {
         war = new War(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(war)
         war.manifest = new GradleManifest()
-        war.metaInfFileSets = [new FileSet()]
+        war.metaInfResourceCollections = [new FileSet()]
         war.webInfFileSets = [new FileSet()]
         war.webXml = 'myweb.xml' as File
         war.classesFileSets = [new FileSet()]
