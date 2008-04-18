@@ -16,24 +16,23 @@
  
 package org.gradle.api.tasks.util
 
-import org.gradle.api.tasks.AntBuilderAware
-
 /**
  * @author Hans Dockter
  */
-class FileCollection implements AntBuilderAware {
-    Set files
+class FileCollectionTest extends GroovyTestCase {
+    FileCollection fileCollection
+    Set testFiles
 
-    FileCollection(Set files) {
-        this.files = files
+    void setUp() {
+        testFiles = [new File('/file1'), new File('/file2')]
+        fileCollection = new FileCollection(testFiles)
     }
 
-    def addToAntBuilder(node, String childNodeName = null) {
-        files.each { File file ->
-            node.resources() {
-                delegate.file(file: file.absolutePath)   
-            }
-        }
+    void testInit() {
+        assertEquals(testFiles, fileCollection.files)
     }
     
+    void testAddToAntBuilder() {
+        fileCollection.addToAntBuilder(new AntBuilder())
+    }
 }

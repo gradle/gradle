@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
-import org.gradle.api.tasks.util.Files
+import org.gradle.api.tasks.util.FileCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -51,7 +51,7 @@ class War extends Jar {
 
     Closure createAntArchiveTask() {
         { ->
-            Files files = new Files() 
+            FileCollection files = new FileCollection() 
             files.files = dependencyManager.resolveClasspath(libConfiguration)
             antWar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.createIfEmpty,
                 self.destinationDir, archiveName, self.manifest, self.metaInfFileSets, project.ant),

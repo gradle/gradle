@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.HelperUtil
+import org.gradle.api.tasks.util.FileCollection
 
 /**
  * @author Hans Dockter
@@ -110,6 +111,13 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
             assert archiveTask.resourceCollections.contains(fileSet)
             assertEquals([includePattern] as Set, fileSet.includes)
         }
+    }
+
+    void testFiles() {
+        Set files = ['a' as File, 'b' as File]
+        FileCollection fileCollection = archiveTask.files(files as File[])
+        assertTrue(archiveTask.resourceCollections.contains(fileCollection))
+        assertEquals(files, fileCollection.files)
     }
 
     private void applyToFileSetMethods(Closure cl) {

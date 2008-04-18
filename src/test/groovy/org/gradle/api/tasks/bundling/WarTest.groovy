@@ -20,7 +20,7 @@ import groovy.mock.interceptor.MockFor
 import org.gradle.api.DependencyManager
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.Files
+import org.gradle.api.tasks.util.FileCollection
 
 /**
  * @author Hans Dockter
@@ -53,13 +53,13 @@ class WarTest extends AbstractArchiveTaskTest {
 
     MockFor getAntMocker(boolean toBeCalled) {
         antWarMocker.demand.execute(toBeCalled ? 1..1 : 0..0) {AntMetaArchiveParameter metaArchiveParameter,
-                                                                     List classesFileSets, Files libFiles, List additionalLibFileSets,
+                                                                     List classesFileSets, FileCollection libFiles, List additionalLibFileSets,
                                                                      List webInfFileSets, File webXml ->
             if (toBeCalled) {
                 checkMetaArchiveParameterEqualsArchive(metaArchiveParameter, war)
                 assert classesFileSets.is(war.classesFileSets)
                 assert additionalLibFileSets.is(war.additionalLibFileSets)
-                assertEquals(filesFromDepencencyManager, libFiles.files)
+                assertEquals(filesFromDepencencyManager as Set, libFiles.files)
                 assertEquals(webXml, war.webXml)
                 assert webInfFileSets.is(war.webInfFileSets)
             }

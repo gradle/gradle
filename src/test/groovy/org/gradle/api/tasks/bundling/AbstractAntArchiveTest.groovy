@@ -18,7 +18,7 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.Files
+import org.gradle.api.tasks.util.FileCollection
 import org.gradle.util.HelperUtil
 
 /**
@@ -36,7 +36,7 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
     File unzipDir
     String archiveName
     FileSet fileSet
-    Files files
+    FileCollection fileCollection
     List resourceCollections
 
     GradleManifest manifest
@@ -60,15 +60,15 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
         fileSet.exclude('**/*.jpg')
         createTestFiles()
         createMetaData()
-        files = new Files()
-        files.files = [gradleFile]
+        fileCollection = new FileCollection()
+        fileCollection.files = [gradleFile]
         AntDirective antDirective = new AntDirective()
         antDirective.directive = {
             files(includes: groovyFile.absolutePath) {
 
             }
         }
-        resourceCollections = [fileSet, files, antDirective]
+        resourceCollections = [fileSet, fileCollection, antDirective]
     }
     private void createMetaData() {
         mainAttributes = [attr1: 'value1', attr2: 'value2']
