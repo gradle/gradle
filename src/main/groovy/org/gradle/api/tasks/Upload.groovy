@@ -26,6 +26,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
+ * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
+ * of your project, if they belong to the configuration associated with the upload task.
+ * 
  * @author Hans Dockter
  */
 class Upload extends ConventionTask {
@@ -36,8 +39,20 @@ class Upload extends ConventionTask {
      */
     boolean uploadModuleDescriptor = false
 
+    /**
+     * Configurations that should be uploaded (beside the configurations of the bundles) 
+     */
     List configurations = []
+
+    /**
+     * The resolvers to delegate the uploads to. Usuallte a resolver corresponds to a repository.
+     */
     ResolverContainer uploadResolvers = new ResolverContainer()
+
+    /**
+     * Assigning a bundle to an Upload task has one and only one effect. All the different configurations of the archive
+     * tasks belonging to this bundle are delegated to the publish action.
+     */
     Set bundles = []
 
     Upload(DefaultProject project, String name) {
