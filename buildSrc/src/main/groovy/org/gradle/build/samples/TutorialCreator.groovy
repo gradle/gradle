@@ -237,12 +237,12 @@ createTask('check') {
 
 createTask('resources', overwrite: true) {
     println('$newTaskMessage')
-}""", {assert "newTaskMessage${NL}" == it}, "resources"]
+}""", {assert "$newTaskMessage${NL}" == it}, "resources"]
 // *****************
         scripts["projectApi"] = ["""createTask('check') {
     println project.name
     println name
-}""", {assert "tutorials${NL}tutorials${NL}" == it}, "check"]
+}""", {assert "tutorial${NL}tutorial${NL}" == it}, "check"]
 // *****************
 
 
