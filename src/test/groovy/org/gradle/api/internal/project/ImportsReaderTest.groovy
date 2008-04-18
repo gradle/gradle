@@ -16,17 +16,18 @@
  
 package org.gradle.api.internal.project
 
-import org.gradle.util.HelperUtil
 import org.gradle.Main
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
  */
 class ImportsReaderTest extends GroovyTestCase {
-    static final String TEST_DEFAULT_IMPORTS = '''import a.b.*
-'''
-    static final String TEST_PROJECT_IMPORTS = '''import c.d.*
-'''
+    static final String NL = System.properties['line.separator']
+    
+    static final String TEST_DEFAULT_IMPORTS = "import a.b.*$NL"
+    static final String TEST_PROJECT_IMPORTS = "import c.d.*$NL"
+
     ImportsReader testObj
     File testDir
     File testDefaultImportsFile
