@@ -1,42 +1,33 @@
 %!TEX root = master.tex
 \chapter{More about Tasks} % (fold)
 \label{cha:more_about_tasks}
-In the introductory chapter you have learned how to create simple task. You have also learned how to add additional behavior to those tasks later on. And you have learned how to create dependencies between tasks. This was all about simple tasks. But Gradle takes the concept of tasks much further. Gradle supports enhanced tasks. Tasks which have there own properties and methods. This is really different to what you are used from Ant targets. Such enhanced tasks are either provided by you or are provided by Gradle.
-As an example, let's look at the Resources task provided by Gradle. To create such a Resources task for your build, you may declare in your build script:
+In the introductory tutorial (chapter \ref{cha:gradle_core_tutorial}) you have learned how to create simple task. You have also learned how to add additional behavior to those tasks later on. And you have learned how to create dependencies between tasks. This was all about simple tasks. But Gradle takes the concept of tasks further. Gradle supports enhanced tasks. Tasks which have there own properties and methods. This is really different to what you are used from Ant targets. Such enhanced tasks are either provided by you or are provided by Gradle.
 
+\section{Configuring Tasks} % (fold)
+\label{sec:configuring_tasks}
+As an example, let's look at the Resources task provided by Gradle. To create such a Resources task for your build, you may declare in your build script\footnote{If you use the JavaPlugin, this task is automatically created and added to your project}:
 \begin{Verbatim}
 createTask('resources', type: org.gradle.api.tasks.Resources)
 \end{Verbatim}
-
-The resources task provides an API to configure it. See \href{}{Resources Task API}. The resources task has no default behavior (in the chapter \ref{cha:java_plugin} we see how the resources task can be used with build-by-convention configuration). We want now use the resources task to learn different how to configure it. The result is always the same.
-
+The resources task provides an API to configure it. See \href{\API tasks/Resources.html}{Resources Task API}. If you create the resources task like this, it has no default behavior.\footnote{This is different when added by the JavaPlugin}. We want now use the resources task to learn about different ways to configure it (the result is always the same for our examples).
 \begin{Verbatim}
-import org.gradle.api.tasks.Resources
-
 Resources resources = createTask('resources', type: Resources)
 resources.from(file('resources'))
 resources.to(file('target'))
 resources.includes('**/*.txt', '**/*.xml', '**/*.properties')	
 \end{Verbatim}
-
-This is the way we would normally do this in Java. It is not really nice. You have to repeat the context (resources) for the configuration statement every time. This is a redundancy and not very nice to read.
+This is similar to the way we would normally configure objects in Java. You have to repeat the context (resources) in the configuration statement every time. This is a redundancy and not very nice to read.
 
 There is a more convenient way of doing this.
-
 \begin{Verbatim}
-import org.gradle.api.tasks.Resources
-
 Resources resources = createTask('resources', type: Resources)
-resources.from(file('resources')).to(file('target')).includes('**/*.txt', '**/*.xml', '**/*.properties')	
+resources.from(file('resources')).to(file('target')).
+	includes('**/*.txt', '**/*.xml', '**/*.properties')	
 \end{Verbatim}
-
-You might know this approach from Hibernates Criteria Query API or JMock. Of course the API of a task has to support this. The from, to and includes method all return an instance of the resources object. All of Gradles build-in tasks usually support this configuration style.
+You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task has to support this. The from, to and includes methods all return an instance of the resources object. All of Gradles build-in tasks usually support this configuration style.
 
 But there is yet another way of configuring the resources task. It also preserves the context and it possibly offers the best readability. It is usually our favorite.
-
 \begin{Verbatim}[numbers=left]
-import org.gradle.api.tasks.Resources
-
 Resources resources = createTask('resources', type: Resources)
 resources {
    from(file('resources'))
@@ -44,28 +35,28 @@ resources {
    includes('**/*.txt', '**/*.xml', '**/*.properties')
 }
 \end{Verbatim}
-
-This works for \emph{any} task. It is important to note that if you pass a closure to the task() method, this closure is applied for configuring the task. Line 4 of the example is just a shortcut for \texttt{task("resources")}. There is a slightly different ways of doing this.
-
-\begin{Verbatim}[numbers=left]
-import org.gradle.api.tasks.Resources
-
+This works for \emph{any} task. Line 2 of the example is just a shortcut for \texttt{task("resources")}. It is important to note that if you pass a closure to the \texttt{task} method, this closure is applied for \emph{configuring} the task. There is a slightly different ways of doing this.
+\begin{Verbatim}
 Resources resources = createTask('resources', type: Resources).configure {
    from(file('source'))
    to(file('target'))
    includes('**/*.txt', '**/*.xml', '**/*.properties')
 }	
 \end{Verbatim}
+If you pass a closure to the \texttt{createTask()} method, this closure gets added as an \emph{action} to the task. Every task has a configure method, which you can pass a closure for configuring the task. The above example works, because the \texttt{createTask} method returns the task object. Gradle uses this style for configuring objects in many places, not just for tasks.
+% section configuring_tasks (end)
 
-If you pass a closure to the \texttt{createTask()} method, this closure gets added as an action to the task. Every task has a configure method, which you can pass a closure for configuring the task. The above example works, because the \texttt{createTask()} method returns the task object.
+\section{Replacing Tasks}
+Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin with a custom task of a different type. You can achieve this with:
+\codeInput{../../../build/distributions/exploded/samples/tutorial/replaceTaskfile}
+\outputInputTutorial{../../../build/tutorial-output/replaceTaskfile.out}
+Here we replace a task of type \texttt{Resources} with a simple task. When creating the simple task, you have to set the \texttt{overwrite} property to true. Otherwise Gradle throws an exception, saying that a task with such a name already exists.
 
-REPLACING TASKS
-\section{The idea behind Gradle tasks} % (fold)
+\section{Summary} % (fold)
 \label{sec:the_idea_behind_gradle_tasks}
+If you are coming from Ant, such an enhanced Gradle task as \emph{Resources} looks like a mixture between an Ant target and an Ant task. And this is actually the case. The separation that Ant does between tasks and targets is not done by Gradle. The simple Gradle tasks are like Ant's targets and the enhanced Gradle tasks also include the Ant task aspects. All of Gradles tasks share a common API and you can create dependencies between them. Such a task might be nicer to configure than an Ant task. It makes full use of the type system, is more expressive and easier to maintain.
 
-If you are coming from Ant, such an enhanced Gradle task as Resources looks like a mixture between an Ant target and an Ant task. And this is actually the case. The separation that Ant does between tasks and targets is not done by Gradle. The simple Gradle tasks are like Ant's targets and the enhanced Gradle tasks also include the Ant task aspects. But all share a common API and you can create dependencies between them. Such a Gradle task is much nicer to configure than an Ant task. It makes full use of the type system, is more expressive and easier to maintain.
-//
-You might be wondering why the Resources task you have created above is not initialized with any default values. After all Gradle claims to offer build-by-convention. But which default values? The one we use for Java Projects? Or the one we use for other project types? What we have done above is to use a Gradle task in a stand alone fashion. It is open for anything. How Gradles tasks are integrated into a build-by-convention mechanism is what we are going to show in the next chapter.
+% You might be wondering why the Resources task you have created above is not initialized with any default values. After all Gradle claims to offer build-by-convention. But which default values? The one we use for Java Projects? Or the one we use for other project types? What we have done above is to use a Gradle task in a stand alone fashion. It is open for anything. How Gradles tasks are integrated into a build-by-convention mechanism is what we are going to show in the next chapter.
 
 % section the_idea_behind_gradle_tasks (end)
 

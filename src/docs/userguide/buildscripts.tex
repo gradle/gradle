@@ -1,71 +1,59 @@
 %!TEX root = master.tex
 \chapter{The Gradle Core Tutorial}
-
-If you execute a build, Gradle normally looks for a file called \texttt{gradlefile} in the current directory (There are command line switches to change this behavior. See Appendix \ref{cha:command_line}. We call the gradlefile a build script. Although strictly speaking it is a build configuration script, as we see later.
-
-In Gradle the location of the build script file defines a project. The project corresponds to the filesystem subtree, starting with the directory containing the build script. The name of this directory is the name of the project. This becomes very important when we turn to [multi-project builds].
+\label{cha:gradle_core_tutorial}
+If you execute a build, Gradle normally looks for a file called \texttt{gradlefile} in the current directory (There are command line switches to change this behavior. See Appendix \ref{cha:command_line}). We call the gradlefile a build script. Although strictly speaking it is a build configuration script, as we see later. In Gradle the location of the build script file defines a project. The name of the directory containing the build script is the name of the project.  
 
 \section{Hello World}
 In Gradle everything revolves around tasks. The tasks for your build are defined in the build script. To try this out, create the following build script named \texttt{gradlefile} and enter with your shell into the containing directory.
-
 \codeInput{../../../build/distributions/exploded/samples/tutorial/hellofile} 
-Now execute the build script\footnote{Every code sample in this chapter can be found in the tutorial dir of your Gradle distribution.}:
-
-\outputInput{../../../build/tutorial-output/hellofile.out} 
-If you think this looks damn similar to Ant's targets, well, you are right. Gradle tasks are the equivalent to Ant targets. But as you will see, they are much more powerful. We have used a different terminology to Ant as we think the word 'task' is more expressive than the word 'target'. Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands like \texttt{javac} or \texttt{copy}, a task. So if we talk about tasks, we \textbf{always} mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we explicitly say \textbf{ant} task.
+Now execute the build script\footnote{Every code sample in this chapter can be found in the \texttt{samples} dir of your Gradle distribution. The output box always denotes the directory name relative to the \texttt{samples} dir.}:
+\outputInputTutorial{../../../build/tutorial-output/hellofile.out} 
+If you think this looks damn similar to Ant's targets, well, you are right. Gradle tasks are the equivalent to Ant targets. But as you will see, they are much more powerful. We have used a different terminology to Ant as we think the word 'task' is more expressive than the word 'target'. Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, like \texttt{javac} or \texttt{copy}, task. So if we talk about tasks, we \textbf{always} mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we explicitly say \textbf{ant} task.
 
 \section{Build scripts are code}
 Gradles build scripts expose to you the full power of Groovy. As an appetizer, have a look at this:
-
 \codeInput{../../../build/distributions/exploded/samples/tutorial/datefile}
-\outputInput{../../../build/tutorial-output/datefile.out}
+\outputInputTutorial{../../../build/tutorial-output/datefile.out}
 or
 \codeInput{../../../build/distributions/exploded/samples/tutorial/countfile}
-\outputInput{../../../build/tutorial-output/countfile.out}
+\outputInputTutorial{../../../build/tutorial-output/countfile.out}
 
 \section{Task dependencies}
-As you have guessed, you can declare dependencies for your tasks.
-
+As you probably have guessed, you can declare dependencies between your tasks.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/introfile}
-\outputInput{../../../build/tutorial-output/introfile.out}
-\noindent To add a dependency it does not need to exist. The dependency of targetX to targetY is declared before targetY is created. This is a very important for multi-project builds.
-
+\outputInputTutorial{../../../build/tutorial-output/introfile.out}
+To add a dependency, the corresponding task does not need to exist. 
 \codeInput{../../../build/distributions/exploded/samples/tutorial/lazyDependsOnfile}
-\outputInput{../../../build/tutorial-output/lazyDependsOnfile.out}
+\outputInputTutorial{../../../build/tutorial-output/lazyDependsOnfile.out}
+The dependency of targetX to targetY is declared before targetY is created. This is very important for multi-project builds.
 
 \section{Dynamic tasks}
 The power of Groovy can not only be used inside the tasks. You can use it for example to dynamically create tasks.
-
 \codeInput{../../../build/distributions/exploded/samples/tutorial/dynamicfile}
-\outputInput{../../../build/tutorial-output/dynamicfile.out}
+\outputInputTutorial{../../../build/tutorial-output/dynamicfile.out}
 
 \section{Manipulating existing tasks}
-Once tasks are created they can be accessed to manipulate them. This is different to Ant. For example you can create additional dependencies.
-
+Once tasks are created they can be accessed via an \emph{API}. This is different to Ant. For example you can create additional dependencies.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/dynamicDependsfile}
-\outputInput{../../../build/tutorial-output/dynamicDependsfile.out}
+\outputInputTutorial{../../../build/tutorial-output/dynamicDependsfile.out}
 Or you can add behavior to an existing task.
-
 \codeInput{../../../build/distributions/exploded/samples/tutorial/helloEnhancedfile}
-\outputInput{../../../build/tutorial-output/helloEnhancedfile.out}
-
-The calls \texttt{doFirst} and \texttt{doLast} can be executed multiple times. What they do is adding an action to the beginning or the end of the tasks actions list.
+\outputInputTutorial{../../../build/tutorial-output/helloEnhancedfile.out}
+The calls \texttt{doFirst} and \texttt{doLast} can be executed multiple times. What they do is to add an action to the beginning or the end of the tasks actions list.
 
 \section{Shortcut notations}
-There is a convenient notation for accessing existing tasks.
-
+There is a convenient notation for accessing \emph{existing} tasks.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/helloWithShortCutfile}
-\outputInput{../../../build/tutorial-output/helloWithShortCutfile.out}
-This enables very readable code. Especially when using the out of the box tasks like compile.
+\outputInputTutorial{../../../build/tutorial-output/helloWithShortCutfile.out}
+This enables very readable code. Especially when using the out of the box tasks provided by the plugins (e.g. \texttt{compile}).
 
 \section{Ant}
-Let's talk a little bit about Gradles Ant integration. Ant can be divided into two layers. The first layer is the Ant language. It contains the syntax for the build.xml, the handling of the targets, special constructs like macrodefs, etc. Basically everything except the Ant tasks. Gradle does not offer any special integration for this first layer. Of course you can in your build script execute an Ant build as an external process. Your build script may contain statements like: \texttt{"ant clean compile".execute()}
-To learn more about executing external processes with Groovy have a look in GINA 9.3.2 or at the groovy wiki.
-The second layer of Ant is its wealth of Ant tasks like javac, copy, jar, .... For this layer Gradle provides excellent integration simply by relying on Groovy. Groovy is shipped with the fantastic AntBuilder. Using Ant tasks from Gradle is as convenient and more powerful than using Ant tasks from a build.xml file. Let's look at an example:
+Let's talk a little bit about Gradles Ant integration. Ant can be divided into two layers. The first layer is the Ant language. It contains the syntax for the build.xml, the handling of the targets, special constructs like macrodefs, etc. Basically everything except the Ant tasks and types. Gradle does not offer any special integration for this first layer. Of course you can in your build script execute an Ant build as an external process. Your build script may contain statements like: \texttt{"ant clean compile".execute()}\footnote{In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a look in GINA 9.3.2 or at the Groovy wiki}.
 
+The second layer of Ant is its wealth of Ant tasks and types, like \texttt{javac}, \texttt{copy} or \texttt{jar}. For this layer Gradle provides excellent integration simply by relying on Groovy. Groovy is shipped with the fantastic \texttt{AntBuilder}. Using Ant tasks from Gradle is as convenient and more powerful than using Ant tasks from a \texttt{build.xml} file. Let's look at an example:
 \codeInput{../../../build/distributions/exploded/samples/tutorial/antChecksumfile}
-\outputInput{../../../build/tutorial-output/antChecksumfile.out}
-In your build script, a property called ant is provided by Gradle. It is a reference to an instance of Groovys AntBuilder. The AntBuilder is used the following way:
+\outputInputTutorial{../../../build/tutorial-output/antChecksumfile.out}
+In your build script, a property called \texttt{ant} is provided by Gradle. It is a reference to an instance of Groovys AntBuilder. The AntBuilder is used the following way:
 \begin{itemize}
 \item Ant task names corresponds to AntBuilder method names.
 \item Ant tasks attributes are arguments for this methods. The arguments are apssed in form of a map.
@@ -74,82 +62,20 @@ In your build script, a property called ant is provided by Gradle. It is a refer
 To learn more about the Ant Builder have a look in GINA 8.4 or at the Groovy Wiki
 
 \section{Using methods}
-We have said that Gradle scales in how you can organize your build logic. The first level of organizing your build logic for the example above, is extracting a method.
+Gradle scales in how you can organize your build logic. The first level of organizing your build logic for the example above, is extracting a method.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/antChecksumWithMethodfile}
-\outputInput{../../../build/tutorial-output/antChecksumWithMethodfile.out}
+\outputInputTutorial{../../../build/tutorial-output/antChecksumWithMethodfile.out}
 Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See Chapter \ref{cha:organizing_build_logic}. 
-
-\section{Skipping Tasks}
-Gradle offers multiple ways to skip the execution of a task actions.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/skipPropertiesfile}
-\outputInput{../../../build/tutorial-output/skipPropertiesfile.out}
-The \texttt{-D} option of the \texttt{gradle} command has the same effect as the \texttt{-D} option of the \texttt{java} command. This way you can set system properties of the JVM that runs Gradle. You can add an one ore more skip properties to any task. If the corresponding system property is set to true (case does not matter), the actions of the task don't get executed.
-
-But often you don't even need to set the skip properties. If you set a system property according to the pattern \emph{skip.[taskname]} the actions of this task don't get executed.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/autoskipfile}
-\outputInput{../../../build/tutorial-output/autoskipfile.out}
-If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via the skip properties
-%
-\codeInput{../../../build/distributions/exploded/samples/tutorial/autoskipDependsfile}
-\outputInput{../../../build/tutorial-output/autoskipDependsfile.out}
-If the rules for skipping a task can't be expressed with a simple property, you can use the \texttt{org.gradle.api.tasks.StopExecutionException}. If this exception is thrown by an action, the further execution of this action as well as the execution of any following action of this task is skipped. The build continues with executing the next task.
-%
-\codeInput{../../../build/distributions/exploded/samples/tutorial/stopExecutionExceptionfile}
-\outputInput{../../../build/tutorial-output/stopExecutionExceptionfile.out}
-This feature is helpful if you work with tasks provided by Gradle. It allows you to add conditional execution of the build-in actions of such a task. 
-You might be wondering why there is neither an import for the \texttt{StopExecutionException} nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script. These imports are customizable (see Appendix \ref{ide_support}).
 
 \section{Configure By DAG}
 As we describe in full detail later (See chapter \ref{cha:the_build_lifecycle}) Gradle has a configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should be executed. Gradle offers you a hook to make use of this information. A usecase for this would be to check if the release task is part of the tasks to be executed. Depending on this you can assign different values to some variables.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/configureByDagfile}
-\outputInput{../../../build/tutorial-output/configureByDagfile.out}
-The important thing is, that the fact that the release task has been choosen, has an effect \emph{before} the release task gets executed. Nor has the release task to be the primary task (i.e. the task passed to the gradle command). 
+\outputInputTutorial{../../../build/tutorial-output/configureByDagfile.out}
+The important thing is, that the fact that the release task has been choosen, has an effect \emph{before} the release task gets executed. Nor has the release task to be the \emph{primary} task (i.e. the task passed to the \texttt{gradle} command). 
 
 % \section{Executing Multiple Tasks}
 % You probably from Maven or Ant the possibility to pass multiple tasks names to the build command. For example \texttt{ant clean compile} and something similar for Maven. What both of this tools do, is basically to run two separate builds. One for clean and one for compile. For those particular tasks this is fine. But there are many situations where things are different. For example the Gradle build has the tasks \emph{dists} and \emph{userguide}. The javadoc task is rather lengthy
   
-\section{Console Output}
-All available command line options are listed in Appendix \ref{cha:command_line}. You can also print them to your console with \texttt{gradle -h}. We want to look at the console output options in more detail. 
-\\
-
-\centerline{\textbf{Loglevel}}
-\medskip
-
-\begin{tabular}{|l|l|} \hline
-Option & Meaning  \\ \hline
-neither \texttt{q} nor \texttt{d} & Gradle and Ant print out there info log messages.  \\ \hline
-\texttt{q} & Only errors are printed to the console.  \\ \hline
-\texttt{d} & Gradle and Ant print out there info and debug log messages. \\ \hline
-\end{tabular}
-\medskip
-
-\centerline{\textbf{Stacktraces}}
-\medskip
-
-\begin{tabular}{|l|p{15cm}|} \hline
-Option & Meaning  \\ \hline
-neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in case of an build error (e.g. a compile error). Only in case of internal exceptions stacktraces are printed. If the loglevel option \texttt{d} is choosen, truncated stacktraces are always printed. \\ \hline
-\texttt{s} & Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information for what has gone wrong in \emph{your} code.)  \\ \hline
-\texttt{f} & The full stacktraces are printed out. \\ \hline
-\end{tabular}
-
-\section{Directory Creation} % (fold)
-There is the common situation, that multiple tasks depend on the existence of a directory. Of course each task to write a statement to create this directory if it not already there, but this is kind of bloated. If the tasks that need the directory have a \emph{dependsOn} relationship, you could do it like this.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/makeDirectoryfile}
-\outputInput{../../../build/tutorial-output/makeDirectoryfile.out}
-But Gradle offers you also \emph{Directory Tasks}\footnote{This feature is inspired by \href{http://rake.rubyforge.org/}{Rake}.} to deal with this.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/directoryTaskfile}
-\outputInput{../../../build/tutorial-output/directoryTaskfile.out}
-A \emph{Directory Task} is a simple task which name is a relative path to the project dir
-\footnote{The notation \texttt{dir('/somepath')}is a convenience method for \texttt{createTask('somepath', type: Directory)}}. During the execution phase the directory corresponding to this path gets created if it does not exists yet. Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn declaration of a task.
-\label{sec:directory_creation}
-
-% section directory_creation (end)
-% \subsubsection{Configuration and Execution Phase} % (fold)
-% \label{ssub:configuration_and_execution_phase}
-% This topic is discussed 
-% % subsubsection configuration_and_execution_phase (end)
-
 \section{Summary}
-This is not the end of the story for tasks. So far we have worked with simple tasks. In the next sections you will learn about more powerful tasks when we look at how to use Gradles build-in tasks and Gradles powerful and very flexible build-by-convention functionality.
+This is not the end of the story for tasks. So far we have worked with simple tasks. Tasks will be revisited in chapter \ref{cha:more_about_tasks} and when we look at the Java Plugin in chapter \ref{cha:the_java_plugin}.
 

@@ -1,5 +1,29 @@
 %!TEX root = master.tex
 \chapter{The Groovy Plugin} % (fold)
 \label{cha:the_groovy_plugin}
+The Groovy Plugin extends the JavaPlugin. It can deal with pure Java projects\footnote{We don't recommend this, as the Groovy plugin uses the \emph{Groovyc} Ant task to compile the sources. For pure Java projects you might rather stick with pure \texttt{javac}.}, with mixed Java and Groovy projects and with pure Groovy projects. The Groovy plugin does not add any tasks. It modifies some of the tasks of the JavaPlugin and adds to the \emph{Convention} object.
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|l|l|} \hline
+	\textbf{Folder} & \textbf{Meaning} \\ \hline
+	\texttt{src/main/groovy} & Application/Library sources in Groovy\\ \hline
+	\texttt{src/test/groovy} & Test sources in Groovy \\ \hline
+	\end{tabular}
+	\end{center}
+	\caption{Default Directory Layout (additional to the Java layout)}	
+	\label{groovylayout}
+\end{table}
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|l|l|l|} \hline
+			\textbf{Property} & \textbf{Type} & \textbf{Default Value} \\ \hline
+			groovySrcDirNames & List & [\texttt{/main/groovy}] \\ \hline
+			groovyTestSrcDirNames & List & [\texttt{/test/groovy}] \\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Groovy Convention Object (extends JavaConvention). For every \emph{name} property, there is a read-only property without \emph{name} which denotes the actual directory (e.g. \texttt{groovySrcDirs}).}
+	\label{groovyconvention}
+\end{table}
 
+All the Groovy source directories can contain Groovy \emph{and} Java code. The Java source directories may only contain Java source code (and can of course be empty)\footnote{We are using the same conventions as introduced by Russel Winders Gant tool (\url{http://gant.codehaus.org}).}
 % chapter the_groovy_plugin (end)

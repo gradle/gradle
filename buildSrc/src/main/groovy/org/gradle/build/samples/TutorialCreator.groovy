@@ -212,7 +212,7 @@ createTask('otherResources', dependsOn: classes) {
         scripts["pluginIntro"] = ["""usePlugin('java')
 
 createTask('check') {
-    println(task('compile').destinationDir.name) // We can also write println(compile)
+    println(task('compile').destinationDir.name) // We could also write println(compile)
 }""", {assert "classes$NL" == it}, "check"]
 // *****************
         scripts["pluginConfig"] = ["""usePlugin('java')
@@ -232,6 +232,19 @@ createTask('check') {
     println(convention.classesDirName)
 }""", {assert "output${NL}output${NL}output$NL" == it}, "check"]
 // *****************
+        String newTaskMessage = "I am the new one." 
+        scripts["replaceTask"] = ["""createTask('resources', type: Resources)
+
+createTask('resources', overwrite: true) {
+    println('$newTaskMessage')
+}""", {assert "newTaskMessage${NL}" == it}, "resources"]
+// *****************
+        scripts["projectApi"] = ["""createTask('check') {
+    println project.name
+    println name
+}""", {assert "tutorials${NL}tutorials${NL}" == it}, "check"]
+// *****************
+
 
         scripts
 

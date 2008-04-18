@@ -1,0 +1,60 @@
+%!TEX root = master.tex
+\chapter{The 'This And That' Tutorial} % (fold)
+\label{cha:the_this_and_that_tutorial}
+\section{Skipping Tasks}
+Gradle offers multiple ways to skip the execution of a task.
+\codeInput{../../../build/distributions/exploded/samples/tutorial/skipPropertiesfile}
+\outputInputTutorial{../../../build/tutorial-output/skipPropertiesfile.out}
+The \texttt{-D} option of the \texttt{gradle} command has the same effect as the \texttt{-D} option of the \texttt{java} command. This way you can set system properties of the JVM that runs Gradle. You can add one ore more \emph{skip properties} to any existing task. If the corresponding system property is set to true (case does not matter), the actions of the task don't get executed.
+But often you don't even need to set the skip properties. If you set a system property according to the pattern \texttt{skip.\emph{taskname}}, the actions of this task don't get executed.
+\codeInput{../../../build/distributions/exploded/samples/tutorial/autoskipfile}
+\outputInputTutorial{../../../build/tutorial-output/autoskipfile.out}
+If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via the skip properties
+%
+\codeInput{../../../build/distributions/exploded/samples/tutorial/autoskipDependsfile}
+\outputInputTutorial{../../../build/tutorial-output/autoskipDependsfile.out}
+If the rules for skipping a task can't be expressed with a simple property, you can use the \texttt{StopExecutionException}\footnote{The fully qualified name is \texttt{org.gradle.api.tasks.StopExecutionException}}. If this exception is thrown by an action, the further execution of this action as well as the execution of any following action of this task is skipped. The build continues with executing the next task.
+%
+\codeInput{../../../build/distributions/exploded/samples/tutorial/stopExecutionExceptionfile}
+\outputInputTutorial{../../../build/tutorial-output/stopExecutionExceptionfile.out}
+This feature is helpful if you work with tasks provided by Gradle. It allows you to add \emph{conditional} execution of the build-in actions of such a task. 
+
+You might be wondering why there is neither an import for the \texttt{StopExecutionException} nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script. These imports are customizable (see Appendix \ref{ide_support}).
+
+\section{Console Output}
+All available command line options are listed in Appendix \ref{cha:command_line}. You can also print them to your console with \texttt{gradle -h}. We want to look at the \emph{console output} options in more detail. 
+\\
+
+\centerline{\textbf{Loglevel}}
+\medskip
+
+\begin{tabular}{|l|l|} \hline
+Option & Meaning  \\ \hline
+neither \texttt{q} nor \texttt{d} & Gradle and Ant print out there info log messages.  \\ \hline
+\texttt{q} & Only errors are printed to the console.  \\ \hline
+\texttt{d} & Gradle and Ant print out there info and debug log messages. \\ \hline
+\end{tabular}
+\medskip
+
+\centerline{\textbf{Stacktraces}}
+\medskip
+
+\begin{tabular}{|l|p{15cm}|} \hline
+Option & Meaning  \\ \hline
+neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in case of an build error (e.g. a compile error). Only in case of internal exceptions stacktraces are printed. If the loglevel option \texttt{d} is choosen, truncated stacktraces are always printed. \\ \hline
+\texttt{s} & Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information for what has gone wrong in \emph{your} code.)  \\ \hline
+\texttt{f} & The full stacktraces are printed out. \\ \hline
+\end{tabular}
+
+\section{Directory Creation} % (fold)
+\label{sec:directory_creation}
+There is the common situation, that multiple tasks depend on the existence of a directory. Of course you can deal with this by adding a \texttt{mkdir} to the beginning of those tasks. But this is kind of bloated. 
+There is a better solution (works only if the tasks that need the directory have a \emph{dependsOn} relationship):
+\codeInput{../../../build/distributions/exploded/samples/tutorial/makeDirectoryfile}
+\outputInputTutorial{../../../build/tutorial-output/makeDirectoryfile.out}
+But Gradle offers you also \emph{Directory Tasks} to deal with this.
+\codeInput{../../../build/distributions/exploded/samples/tutorial/directoryTaskfile}
+\outputInputTutorial{../../../build/tutorial-output/directoryTaskfile.out}
+A \emph{Directory Task} is a simple task which name is a relative path to the project dir\footnote{The notation \texttt{dir('/somepath')} is a convenience method for \texttt{createTask('somepath', type: Directory)}}. During the execution phase the directory corresponding to this path gets created if it does not exists yet. Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn declaration of a task.
+% section directory_creation (end)
+% chapter the_this_and_that_tutorial (end)

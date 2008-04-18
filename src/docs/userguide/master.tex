@@ -6,9 +6,9 @@
 \evensidemargin}{-0.7cm} \setlength{
 \oddsidemargin}{-0.7cm}
 
-\def \API {http://www.gradle.org/api/latest/} 
+\def \API {http://www.gradle.org/api/latest/org/gradle/api/} 
 
-\includeonly{introduction,buildScripts,javaTutorial,tasks,plugins,javaPlugin,groovyPlugin,depMngmt,buildLifecycle,multiproject,organizeBuildLogic,gradleWrapper,potentialTraps,commandLine,ideSupport,mavenPoms} 
+\includeonly{introduction,buildScripts,javaTutorial,thisAndThat,overview,projectTaskApi,tasks,plugins,javaPlugin,groovyPlugin,depMngmt,buildLifecycle,multiproject,organizeBuildLogic,gradleWrapper,potentialTraps,commandLine,ideSupport,mavenPoms} 
 \usepackage{upquote} 
 \usepackage{tabularx} 
 \usepackage{fancyvrb} 
@@ -43,7 +43,7 @@
 \newcommand{\codeGradleFile}[2][]{\VerbatimInput[frame=single,label=#1gradlefile,framesep=1mm]{#2}}
 \newcommand{\outputInput}[1]{\VerbatimInput[frame=single,framesep=1mm,framerule=1mm]{#1}}
 \newcommand{\outputInputGradle}[2][]{\VerbatimInput[frame=single,label=current dir: #1,framesep=1mm,framerule=1mm]{#2}}
-
+\newcommand{\outputInputTutorial}[1]{\outputInputGradle[tutorial]{#1}}
 \begin{titlepage}
 	\vspace*{\stretch{1}} \HRule 
 	\begin{flushleft}
@@ -70,6 +70,9 @@
 \include{introduction} 
 \include{buildScripts} 
 \include{javaTutorial} 
+\include{thisAndThat} 
+\include{overview} 
+\include{projectTaskApi} 
 \include{tasks} 
 \include{plugins} 
 \include{javaPlugin} 

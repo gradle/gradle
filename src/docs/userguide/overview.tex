@@ -1,0 +1,33 @@
+%!TEX root = master.tex
+\chapter{Overview} % (fold)
+\label{cha:overview}
+
+\section{Special feature of Gradle} % (fold)
+\label{sec:special_feature_of_gradle}
+Here is a list of Gradles features which we think are special. Special means they are either unique or not shared by any of the two major build tools in the Java World, that is \texttt{Ant} and \texttt{Maven}.
+\begin{description}
+	\item[Client Modules] We think jar dependency management is important for most of the projects. \texttt{Client Modules} provide this, without the need of remote repositories and \texttt{ivy.xml} or \texttt{pom.xml} files. Just put your jars into svn and yet enjoy transitive dependency management. Of course Gradle also support fully Ivy or Maven repository infrastructures based on \texttt{ivy.xml} or \texttt{pom.xml} files and remote repositories.
+	\item[Cross Project Configuration] \emph{Configuration Injection}
+	\item[Internal Groovy DSL] 
+	\item[Easy Ivy] Our dependency management is based on Ivy, the most advanced and powerful dependency management system we know of in the Java world. We have Ivy integrated in our build-by-convention framework thus making it ready to go without configuring it.
+	\item[Configure By DAG] 
+	\item[Distinct Dependency Hierarchies]
+    \item[The Gradle Wrapper]  
+\end{description}
+
+% section special_feature_of_gradle (end)
+Gradle is driven by the following principles:
+
+\begin{description}
+\item[Maximum Freedom] We think the build-by-convention approach is very suitable for builds. This approach is supported by Gradle. Amongst other things, it makes a build faster to create and easier to maintain. Yet builds are often complex beasts and not every aspect of a build fits into a framework. We think  a build system that is good for 80\% of your build requirements but is an obstacle you have to fight with for the remaining 20\% is not worth using. Solving the remaining 20 percent is very expensive, and as it usually involves tweaking, makes the build very hard to maintain and to comprehend. Even worse, you don't implement desired functionality because it is too hard or impossible to do. A build is too important for your project to accept such constraints.
+Gradle solves this problem. Gradle is not a build framework, it provides build frameworks on top of its other layers. You can even develop custom build frameworks with Gradle. If those frameworks do not provide what you want, there are many ways to configure them. You can easily switch of existing functionality or replace single bits of the framework with custom functionality. If your requirements don't fit into the framework at all, you just don't use the build-by-convention framework. You might use Gradle build-in tasks and assemble them in your own way. Or you just use the core of Gradle, where you have utmost flexibility. For example you have a multi-project build with ten projects and for nine Gradles build-by-convention framework is suitable but one project does not fit in. No problem. You enable the framework only for the projects where you need them. We never lock you in! We promise!
+\item[Powerful] Gradle's build scripts are written in Groovy not XML. You have the full power of a mighty OO-language at your fingertips. Gradle requires no unnecessary indirections for integrating your functionality. The build language offers very flexible configuration options. Our dependency management is based on Ivy, the by far most advanced and powerful dependency management system in the Java world. Gradle offers utmost flexiblity when it comes to multi project builds, by providing configuration injection and separate configuration and execution dependency graphs. Gradle is as simple as possible but when it comes to heavy lifting you have a very strong partner.
+\item[Scalable] There are many ways a build system can and should scale. Easy things should be straight forward to implement. For complex things you need a different, appropriate support. For example:
+
+	\begin{itemize}
+		\item many projects might be happy with a simple dependency management relying on jars. More complex projects need a dependecy management based on descriptor files like pom or ivy files.
+	    \item for simple projects the best approach is to organize the build logic within the build scripts. For more complex build logic you want to organize it into an OO domain model, without the need to separate this domain model in a project on its own.
+	    \item There are single project build, simple and complex multiproject builds. Gradle scales in regard to simplicity and power for those different use cases.
+	\end{itemize}
+\end{description}
+% chapter cha:overview (end)
