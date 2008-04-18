@@ -73,7 +73,7 @@ The \texttt{init} task has no default action attached to it. It is meant to be a
 
 \section{Javadoc} % (fold)
 \label{sec:javadoc}
-
+The \texttt{javadoc} task is not associated with any other tasks out-of-the-box. It has no prerequisites on the actions of other tasks, as it operates on the source. If you are in need of very fine-grained configuration you might have to use the corresponding Ant task explicitly. 
 % section javadoc (end)
 
 \section{Clean} % (fold)
@@ -132,7 +132,7 @@ The \texttt{test} task executes the unit tests which have been compiled by the \
 		unmanagedClasspath & [classesDir] \\ \hline
 	\end{tabular} 
 \end{center}
-\noindent Have a look at \href{}{org.gradle.api.tasks.compile.Test} to learn more. Right now the test results are always in XML-format. The task has a \texttt{stopAtFailuresOrErrors} property to control the behavior when tests are failing. The task always executes all the tests and afterwards stops he build if this property is true and there are failing tests or tests that have thrown an uncaught exception. The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support with our next release. 
+\noindent Have a look at \href{\API org/gradle/api/tasks/testing/Test.html}{org.gradle.api.tasks.testing.Test} to learn more. Right now the test results are always in XML-format. The task has a \texttt{stopAtFailuresOrErrors} property to control the behavior when tests are failing. The task always executes all the tests and afterwards stops he build if this property is true and there are failing tests or tests that have thrown an uncaught exception. The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support with our next release. 
 % section test (end)
 
 \section{Bundles} % (fold)
@@ -150,29 +150,30 @@ The \emph{Bundle} task has two instances, \texttt{libs} and \texttt{dists}. The 
 \end{center}
 \subsection{The libs Task} % (fold)
 \label{sub:the_libs_task}
-The \texttt{libs} task contains all the archive tasks which constitute the libraries needed to use your project as a library. For example in a multi-project build the archives which are produced by the \texttt{libs} task are available in the classpath of a dependent project. If your upload your project into a repository, those archives are part of the dependency descriptor. If you come from Maven you can have only one library jar per project. With Ivy you can have as many as you want. The Java plugin adds by default one jar archive to the \texttt{libs} task. This jar contains the content of the \texttt{classesDir}. This is the behavior your are used from Maven. If you are happy with that you usually don't have to touch this task. Except if you want to change the names of the produced archives. 
+The \texttt{libs} task contains all the archive tasks which constitute the libraries needed to use your project as a library. For example in a multi-project build the archives which are produced by the \texttt{libs} task are available in the classpath of a dependent project. If your upload your project into a repository, those archives are part of the dependency descriptor. If you come from Maven you can have only one library jar per project. With Ivy you can have as many as you want. 
+The Java plugin adds by default one jar archive to the \texttt{libs} task. This jar contains the content of the \texttt{classesDir}. This is the behavior your are used from Maven. If you are happy with that you usually don't have to touch this task. Except if you want to change the names of the produced archives. 
 
-The \texttt{libs} task depends on the \texttt{test} task and the archive tasks assigned to it. The archive tasks assigned to the \texttt{libs} task depend by default on the \texttt{test} task as well. You can change this via the \texttt{childrenDependsOn} property of the \texttt{libs} task. 
+The \texttt{libs} task depends on the \texttt{test} task and its archive tasks. The archive tasks assigned to the \texttt{libs} task depend by default on the \texttt{test} task as well. You can change this via the \texttt{childrenDependsOn} property of the \texttt{libs} task. 
 % subsection the_libs_task (end)
 \subsection{The dists Task} % (fold)
 \label{sub:the_dists_task}
-The \texttt{dists} task contains all the archive task that make up your distributions. For example a binary and a source distribution. The \texttt{dists} task has two purposes. One is providing a hook for archives in the lifecycle. The other is for collection distribution archives for uploading (the same is also true for the \texttt{libs} task.) The \texttt{dists} task depends on its archive tasks and the \texttt{libs} task. The archive tasks depend by default on the \texttt{libs} task as well.
+The \texttt{dists} task contains all the archive task that make up your distributions. For example a binary and a source distribution. The \texttt{dists} task has two purposes. One is providing a hook for distributions in the lifecycle. The other is for collection distribution archives for uploading (the same is also true for the \texttt{libs} task.) The \texttt{dists} task depends on its archive tasks and the \texttt{libs} task. The contained archive tasks depend by default on the \texttt{libs} task as well.
 % subsection the_dis (end)
-\subsection{Examples} % (fold)
-\label{sub:examples}
+\subsection{Example} % (fold)
+\label{sub:example}
 \begin{Verbatim}
 dists {
 	dists {
-	    tasksBaseName = 'notTheProjectName'
+	    tasksBaseName = 'gradle'
 	    dependsOn 'explodedDist'
 	    childrenDependOn << 'explodedDist'
 	    zip() {
-	        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+	        zipFileSet(dir: explodedDistDir, prefix: "gradle-$version") {
 	            exclude '**/*.tmp'
 	        }
 	    }
-	    zip("notTheProjectName-src") {
-	        String prefix = "$distName-src-$version"
+	    zip("gradle-src") {
+	        String prefix = "$gradle-src-$version"
 	        zipFileSet(dir: projectDir, prefix: prefix) {
 	            include 'src/', 'gradle.groovy'
 	        }
@@ -180,13 +181,41 @@ dists {
 	}
 }	
 \end{Verbatim}
+The Bundle task has a couple of convenience methods for adding new archive tasks to it. Right now there are the methods (\texttt{jar}, \texttt{war}, \texttt{zip}, \texttt{tar}, \texttt{tarGz}, \texttt{tarBzip2}). Calling such a method with no arguments (e.g. \texttt{zip()}) creates a zip archive task with:
+\begin{itemize}
+	\item a name: \texttt{tasksBaseName} plus the \_TYPE suffix (e.g. gradle\_zip).
+	\item a resulting archive name: \texttt{tasksBaseName} plus version plus the \_TYPE suffix (e.g. gradle-1.0.zip).
+\end{itemize}
+You can pass two (optional) arguments to those methods. One is a name which replaces the \texttt{tasksBaseName} value for this archive task. The other is a closure for configuring the archive task (e.g. defining the content).
+The default value for \texttt{tasksBaseName} is the project name. So usually you don't need to set it explicitly. 
+% subsection examples (end)  
 
-% subsection examples (end)      
-% section bundles (end)
+\section{Archive Tasks} % (fold)
+\label{sec:archive_tasks}
+An archive task is a task which produces an archive at execution time. The following archives tasks are available:
+\begin{center}
+	\begin{tabular}{|l|l|} \hline
+		Type & Accepted file container \\ \hline
+		org.gradle.api.tasks.bundling.Zip & fileSet, fileCollection, zipFileSet \\ \hline
+		org.gradle.api.tasks.bundling.Tar & fileSet, fileCollection, zipFileSet \\ \hline
+		org.gradle.api.tasks.bundling.Jar & fileSet, fileCollection \\ \hline
+		org.gradle.api.tasks.bundling.War & fileSet, fileCollection \\ \hline		
+	\end{tabular}
+\end{center}
+The following file container are available:
+\begin{center}
+	\begin{tabular}{|l|l|} \hline
+		Type & Meaning \\ \hline
+		org.gradle.api.tasks.util.FileSet & A set of files defined by a common baseDir and include/exclude patterns. \\ \hline
+		org.gradle.api.tasks.util.ZipFileSet & Extends file with additional properties known from Ants zipFileSet task.\\ \hline
+		org.gradle.api.tasks.util.FileCollection & An arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a commo basedir.\\ \hline		
+	\end{tabular}
+\end{center}
+% section archive_tasks (end)
 
 \section{Upload} % (fold)
 \label{sec:upload}
-The \emph{Resources} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}.
+The \emph{Upload} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}.
 % section upload (end)
 
 \section{MetaInf and Manifest} % (fold)

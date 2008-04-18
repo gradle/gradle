@@ -20,6 +20,9 @@ import org.gradle.build.samples.Userguide
 
 usePlugin('groovy')
 
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
+
 distName = 'gradle'
 svn = new Svn(project)
 distributionUploadUrl = null
@@ -85,9 +88,6 @@ dependencies {
     distLib ":junit:4.4"
     addFlatDirResolver('lib', new File(rootDir, 'lib'))
 }
-
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
 
 resources.doLast {
     logger.info('Write version properties')
@@ -186,7 +186,6 @@ dists {
 }
 
 javadoc.destDir = explodedDistJavadocsDir
-
 createTask('uploadJavadoc', dependsOn: 'javadoc') {
     ftp(action: 'mkdir', remotedir: javadocRemoteDir)
     ftp(action: 'delete', remotedir: javadocRemoteDir) {
