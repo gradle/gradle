@@ -27,7 +27,7 @@ import org.gradle.api.tasks.util.ExistingDirsFilter
 class Groovydoc extends ConventionTask {
     List srcDirs
 
-    File destDir
+    File destinationDir
 
     ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
 
