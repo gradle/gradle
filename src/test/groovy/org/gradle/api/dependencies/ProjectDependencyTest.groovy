@@ -90,6 +90,7 @@ class ProjectDependencyTest extends GroovyTestCase {
     }
 
     void testInitialize() {
+       project.dependencies.addConf2Tasks(TEST_CONF, TEST_CONF)
        project.createTask(TEST_CONF)
        projectDependency.initialize()
        assert project.task(TEST_CONF).dependsOn.contains(Project.PATH_SEPARATOR + "$dependencyProjectArtifactProductionTaskName" as String)

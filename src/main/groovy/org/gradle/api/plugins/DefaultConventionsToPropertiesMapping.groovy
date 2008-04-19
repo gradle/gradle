@@ -67,17 +67,17 @@ class DefaultConventionsToPropertiesMapping {
     ]
     final static Map ZIP = ARCHIVE + [
             destinationDir: {_(it).distsDir},
-            configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]}
+            configurations: {[JavaPlugin.DISTS] as String[]}
     ]
     final static Map TAR = ZIP
     final static Map JAR = ARCHIVE + [
             baseDir: {_(it).classesDir},
-            configurations: {[JavaPlugin.MASTER] as String[]},
+            configurations: {[JavaPlugin.LIBS] as String[]},
             manifest: {_(it).manifest},
             metaInfResourceCollections: {_(it).metaInf}
     ]
     final static Map WAR = JAR.subMap(JAR.keySet() - 'configurations') + [
-            configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]},
+            configurations: {[JavaPlugin.DISTS] as String[]},
             libConfiguration: {JavaPlugin.RUNTIME}
     ]
     final static Map LIB = [

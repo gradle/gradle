@@ -50,7 +50,6 @@ class JavaPlugin implements Plugin {
 
     static final String RUNTIME = 'runtime'
     static final String TEST_RUNTIME = 'testRuntime'
-    static final String MASTER = 'master'
     static final String DEFAULT = 'default'
     static final String UPLOAD_DISTS = 'uploadDists'
 
@@ -120,7 +119,7 @@ class JavaPlugin implements Plugin {
         }
 
         project.createTask(UPLOAD_DISTS, type: Upload, dependsOn: DISTS).configure {
-            configurations << UPLOAD_DISTS
+            configurations << DISTS
         }
     }
 
@@ -130,13 +129,15 @@ class JavaPlugin implements Plugin {
             addConfiguration(new Configuration(RUNTIME, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
             addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
             addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, [RUNTIME, TEST_COMPILE] as String[], true, null))
-            addConfiguration(new Configuration(MASTER, Visibility.PUBLIC, null, null, true, null))
-            addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, MASTER] as String[], true, null))
-            addConfiguration(new Configuration(UPLOAD_DISTS, Visibility.PUBLIC, null, null, true, null))
+            addConfiguration(new Configuration(LIBS, Visibility.PUBLIC, null, null, true, null))
+            addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, LIBS] as String[], true, null))
+            addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null))
             artifactProductionTaskName = UPLOAD_LIBS
             artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
             artifactPatterns << ("${project.convention.distsDir}/[artifact]-[revision].[ext]" as String)
-            addConf2Tasks(RUNTIME, DISTS)
+            addConf2Tasks(COMPILE, COMPILE)
+            addConf2Tasks(RUNTIME, TEST)
+            addConf2Tasks(TEST_COMPILE, TEST_COMPILE)
             addConf2Tasks(TEST_RUNTIME, TEST)
         }
     }
