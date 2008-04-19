@@ -219,21 +219,21 @@ createTask('userguide', dependsOn: ['tutorialOutput', userguideDir]) {
     new File(userguideData, 'version.tex').write(version.toString())
     ant {
         cleanLatex(userguideSrc)
-        2.times {
+        3.times {
             exec(output: userguideDir.toString() + '/pdfOut', executable: 'pdflatex', dir: userguideSrc) {
                 arg(line: "master.tex")
             }
         }
         copy(file: new File(userguideSrc, 'master.pdf'), tofile: new File(explodedDistDocsDir, 'pdf/userguide.pdf'))
         cleanLatex(userguideSrc)
-        2.times {
+        3.times {
             exec(output: userguideDir.toString() + '/htmlOut', executable: 'htlatex', dir: userguideSrc) {
                 arg(line: "master.tex")
             }
         }
         copy(file: new File(userguideSrc, 'master.html'), tofile: new File(explodedDistDocsDir, 'html_single/userguide.html'))
         cleanLatex(userguideSrc)
-        2.times {
+        3.times {
             exec(output: userguideDir.toString() + '/htmlSingleOut', executable: 'htlatex', dir: userguideSrc) {
                 arg(line: "master.tex \"html,2\"")
             }
