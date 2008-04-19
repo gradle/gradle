@@ -275,6 +275,8 @@ createTask('integTest', dependsOn: ['dists', 'tutorialOutput']) {
     GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
 }.skipProperties
 
+createTask('nightlyBuild', dependsOn: ['integTest', 'uploadUserguide', 'uploadJavadoc'])
+
 createTask('install', dependsOn: 'integTest') {
     String installDirName = distName + '-SNAPSHOT'
     ant {
