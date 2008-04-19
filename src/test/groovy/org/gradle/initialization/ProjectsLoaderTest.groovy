@@ -63,6 +63,7 @@ class ProjectsLoaderTest extends GroovyTestCase {
         HelperUtil.deleteTestDir()
     }
 
+    // todo think about test for environment variables
     void testCreateProjects() {
         DefaultSettings settings = new DefaultSettings(new File(testRootProjectDir, 'parent'), 
                 testRootProjectDir, new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(), new File('gradleUserHome'))

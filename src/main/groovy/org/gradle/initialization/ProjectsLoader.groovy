@@ -69,7 +69,7 @@ class ProjectsLoader {
         assert projectProperties != null
 
         logger.debug("Creating the projects and evaluating the project files!")
-        Map systemProjectProperties = getSystemProjectProperties(systemProperties)
+        Map systemProjectProperties = getSystemProjectProperties(systemProperties + System.getenv())
         if (systemProjectProperties) {
             logger.debug("Added system project properties: " + systemProjectProperties)
         }
