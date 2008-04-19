@@ -245,7 +245,7 @@ dependencies {
 	dependencies(':junit:4.4', ':commons-io:1.3.1:jar')
 }
 \end{Verbatim}
-In the example we assign multiple directories to a flat-dir resolver and the group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. The repositories could look like this:
+In the example we assign multiple directories to a flat-dir resolver and the group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver simply ignores it. The repositories could look like this:
 \begin{Verbatim}
 project-root
   - lib1
@@ -254,6 +254,8 @@ project-root
     - commons-io-1.3.1.jar	
 \end{Verbatim}
 The \texttt{addFlatDirResolver} methods adds a resolver to the \texttt{classpathResolvers} (see  \ref{sub:resolver_container})
+
+You can add easily file system repositories with a different layout (see \ref{sub:more_about_ivy_resolvers})
 % subsection flat_folder_resolver (end)
 
 \subsection{Resolver Container} % (fold)

@@ -2,15 +2,14 @@
 \chapter{Multi-project builds} % (fold)
 \label{cha:multi_project_builds}
 
-The powerful support for multi-project builds is one of Gradles unique selling points. This topic is also the intellectually most challenging. After all, the problem space of multi-project builds is a complex beast. Gradle has taken up this challenge. 
+The powerful support for multi-project builds is one of Gradles unique selling points. This topic is also the intellectually most challenging.
 \section{Cross Project Configuration} % (fold)
 \label{sec:cross_project_configuration}
-Lets' start with a very simple multi-project build. After all Gradle is a general purpose build tool at its core. So the projects don't have to be java projects. Our first examples are about marine life. 
+Let's start with a very simple multi-project build. After all Gradle is a general purpose build tool at its core. So the projects don't have to be java projects. Our first examples are about marine life. 
 
 \subsection{Defining Common Behavior} % (fold)
 \label{sub:defining_common_behavior}
-
-We have the following project tree\footnote{F means File and D means Directory}. 
+We have the following project tree\footnote{F means File and D means Directory}. This is a multi-project build with a root project \texttt{water} and a subproject \texttt{bluewhale}.
 
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
@@ -23,14 +22,14 @@ D- water
 \begin{minipage}[t]{9cm}
 \VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/gradlesettings}
 \end{minipage}
+\\
 
 \noindent And where is the build script for the bluewhale project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the water project and execute it.:
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/gradlefile}
-\outputInput{../../../build/tutorial-output/multiprojectFirstExample.out}
-Gradle allows you to access any project of the multi-project build from any build script. The Project API provides a method called project, which takes a path as an argument and returns the project object for this path. The capability to configure a project build from any build script we call \emph{Configuration Injection}.
+\outputInputGradle[userguide/multiproject/firstExample/water]{../../../build/tutorial-output/multiprojectFirstExample.out}
+Gradle allows you to access any project of the multi-project build from any build script. The Project API provides a method called project, which takes a path as an argument and returns the project object for this path. The capability to configure a project build from any build script we call \emph{Cross Project Configuration}. Gradle implements this via \emph{Configuration Injection}.
 
-We are not that happy with the build script of the water project. It is inconvenient to add the task explicitly to every project. We can do better. Let's first add another project called \emph{krill} to our multi-project build.
-Project layout
+We are not that happy with the build script of the water project. It is inconvenient to add the task explicitly for every project. We can do better. Let's first add another project called \emph{krill} to our multi-project build.
 
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
@@ -44,11 +43,13 @@ D- water
 \begin{minipage}[t]{9cm}
 \VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/addKrill/water/gradlesettings}
 \end{minipage}
+\\
 
 \noindent Now we rewrite the water build script and boil it down to a single line.
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/addKrill/water/gradlefile}
-\outputInput{../../../build/tutorial-output/multiprojectAddKrill.out}
-Is this cool or is this cool? And how does this work? The Project API provides a property \texttt{allprojects} which returns a list with the current project and all its subprojects underneath it. Then we use Groovys spread dot operator, which calls a method for all members of a list. You could also do iteration via \texttt{allprojects.each}, but that would be more verbose.
+\outputInputGradle[userguide/multiproject/addKrill/water]{../../../build/tutorial-output/multiprojectAddKrill.out}
+Is this cool or is this cool? And how does this work? The Project API provides a property \texttt{allprojects} which returns a list with the current project and all its subprojects underneath it. If you call \texttt{allprojects} with a closure, the statements of the closure are delegated to the projects associated with \texttt{allprojects}. You could also do an iteration via \texttt{allprojects.each}, but that would be more verbose.
+\\
 
 \begin{graybox}
 Other build systems use inheritance as the primary means for defining common behavior. We also offer inheritance for projects as you will see later. But Gradle uses \texttt{Configuration Injection} as the usual way of defining common behavior. We think it provides a very powerful and flexible way of configuring multiproject builds.	
@@ -63,15 +64,17 @@ Other build systems use inheritance as the primary means for defining common beh
 \subsection{Defining Common Behavior} % (fold)
 \label{sub:defining_common_behavior}
 \codeGradleFile{../../../build/distributions/exploded/samples/userguide/multiproject/useSubprojects/water/gradlefile}
-\outputInput{../../../build/tutorial-output/multiprojectUseSubprojects.out}
+\outputInputGradle[userguide/multiproject/useSubprojects/water]{../../../build/tutorial-output/multiprojectUseSubprojects.out}
 % subsection defining_common_behavior (end)
 
 \subsection{Adding Specific Behavior} % (fold)
 \label{sub:adding_specific_behavior}
 You can add specific behavior on top of the common behavior. Usually we put the project specific behavior in the build script of the project where we want to apply this specific behavior. But as we have already seen, we don't have to do it this way. We could add project specific behavior for the bluewhale project like this:
+
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/subProjectsAddFromTop/water/gradlefile}
-\outputInput{../../../build/tutorial-output/multiprojectSubProjectsAddFromTop.out}
+\outputInputGradle[userguide/multiproject/subProjectsAddFromTop/water]{../../../build/tutorial-output/multiprojectSubProjectsAddFromTop.out}
 As we have said, we usually prefer to put project specific behavior into the build script of this project. Let's refactor and also add some project specific behavior to the krill project.
+\\
 
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
@@ -91,15 +94,14 @@ D- water
 \codeGradleFile[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/bluewhale/gradlefile}
 \codeGradleFile[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/krill/gradlefile}
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/gradlefile}
-\outputInput{../../../build/tutorial-output/multiprojectSpreadSpecifics.out}
+\outputInputGradle[userguide/multiproject/spreadSpecifics/water]{../../../build/tutorial-output/multiprojectSpreadSpecifics.out}
 % subsection adding_specific_behavior (end)
 \subsection{Project Filtering} % (fold)
 \label{sub:project_filtering}
-To show some more of the power of \emph{Configuration Injection}, lets' add another project called tropicalFish and add more behavior to the build via the build script of the water project.
+To show more of the power of \emph{Configuration Injection}, lets' add another project called tropicalFish and add more behavior to the build via the build script of the water project.
 
 \subsubsection{Filtering By Name} % (fold)
 \label{ssub:filtering_by_name}
-
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- water
@@ -117,13 +119,13 @@ D- water
 \end{minipage}
 
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/addTropical/water/gradlefile}
-\outputInput{../../../build/tutorial-output/multiprojectAddTropical.out}
+\outputInputGradle[userguide/multiproject/addTropical/water]{../../../build/tutorial-output/multiprojectAddTropical.out}
 % subsubsection filtering_by_name (end)
 \subsubsection{Filtering By Properties} % (fold)
 \label{ssub:filtering_by_properties}
 
 Using the projectname for filtering is one option. Using dynamic project properties is another.
-Project layout
+\\
 
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
@@ -146,7 +148,9 @@ D- water
 \codeGradleFile[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/krill/gradlefile}
 \codeGradleFile[tropicalFish - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/tropicalFish/gradlefile}
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/gradlefile}
-\outputInput{../../../build/tutorial-output/multiprojectTropicalWithProperties.out}
+\outputInputGradle[userguide/multiproject/tropicalWithProperties/water]{../../../build/tutorial-output/multiprojectTropicalWithProperties.out}
+
+
 % subsubsection filtering_by_properties (end)
 % subsection project_filtering (end)
 % section subproject_configuration (end)
@@ -158,9 +162,9 @@ We have typed in the root project dir \texttt{gradle hello} and things behaved i
 The basic rule behind Gradles behavior is simple. Gradle looks down the hierarchy starting with the \emph{current dir} for tasks with the name \texttt{hello} an executes them. One thing is very important to note. Gradle \emph{always} evaluates every project of the multi-project build and creates all existing task objects. Then, according to the task names you have passed as an argument and the current dir, Gradle filters the tasks which should be executed. Because of Gradles \emph{Cross Project Configuration} \emph{every} project has to be evaluated before \emph{any} task gets executed. We will have a closer look at this in the next section. Before we will have our last marine example. Let's add a task to \texttt{bluewhale} and \texttt{krill}.
 \codeGradleFile[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/bluewhale/gradlefile}
 \codeGradleFile[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/krill/gradlefile}
-\outputInputGradle[current dir: water]{../../../build/tutorial-output/multiprojectPartialTasks.out}
+\outputInputGradle[userguide/multiproject/partialTasks/water]{../../../build/tutorial-output/multiprojectPartialTasks.out}
 Here the output without the \texttt{-q} option
-\outputInputGradle[current dir: water]{../../../build/tutorial-output/multiprojectPartialTasksNotQuiet.out}
+\outputInputGradle[userguide/multiproject/partialTasks/water]{../../../build/tutorial-output/multiprojectPartialTasksNotQuiet.out}
 The build is executed from the \texttt{water} project. Neither \texttt{water} nor \texttt{tropicalFish} have a task with the name \texttt{distanceToIceberg}. Gradle does not care. The simple rule mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if there is no such task!
 % section execution_rules_for_multi_project_builds (end)
 
