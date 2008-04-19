@@ -21,7 +21,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.Settings
-import org.gradle.api.internal.dependencies.ResolverContainer
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaPlugin
 import org.slf4j.Logger

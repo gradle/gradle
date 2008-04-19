@@ -18,12 +18,13 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.dependencies.ResolverContainer
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Bundle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
  * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts

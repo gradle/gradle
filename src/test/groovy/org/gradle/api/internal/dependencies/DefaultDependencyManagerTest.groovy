@@ -37,6 +37,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
  * @author Hans Dockter

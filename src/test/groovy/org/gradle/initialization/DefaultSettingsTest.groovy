@@ -21,10 +21,11 @@ import groovy.mock.interceptor.StubFor
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
-import org.gradle.api.internal.dependencies.ResolverContainer
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.plugins.JavaPlugin
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
  * @author Hans Dockter

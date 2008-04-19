@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.gradle.api.dependencies.DependencyContainer;
-import org.gradle.api.internal.dependencies.ResolverContainer;
+import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
 import java.util.List;

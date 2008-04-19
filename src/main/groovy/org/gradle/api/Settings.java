@@ -16,7 +16,7 @@
 
 package org.gradle.api;
 
-import org.gradle.api.internal.dependencies.ResolverContainer;
+import org.gradle.api.dependencies.ResolverContainer;
 
 import java.util.List;
 
