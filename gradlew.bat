@@ -56,6 +56,9 @@ goto end
 if not "%OS%" == "Windows_NT" goto win9xME_args
 if "%eval[2+2]" == "4" goto 4NT_args
 
+call :fixpath "%JAVA_HOME%"
+set JAVA_HOME=%_FIXPATH:~1%
+
 :win9xME_args
 @rem Slurp the command line arguments.
 set CMD_LINE_ARGS=
@@ -92,6 +95,17 @@ set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
 @rem Execute Gradle
 gradle %CMD_LINE_ARGS%
 
+goto end
+
+:fixpath
+if not %1.==. (
+for /f "tokens=1* delims=;" %%a in (%1) do (
+call :shortfilename "%%a" & call :fixpath "%%b"
+)
+)
+goto end
+:shortfilename
+for %%i in (%1) do set _FIXPATH=%_FIXPATH%;%%~fsi
 :end
 @rem End local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" endlocal
