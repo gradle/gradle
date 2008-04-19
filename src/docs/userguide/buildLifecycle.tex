@@ -1,7 +1,6 @@
 %!TEX root = master.tex
 \chapter{The Build Lifecycle} % (fold)
 \label{cha:the_build_lifecycle}
-
 We said in the introduction that the core of Gradle is a language for dependency based programming. In Gradle terms this means that you can define tasks and dependencies between tasks. Gradle guarantees that those tasks are executed in the order of their dependencies and are executed only once. Those tasks form an \href{http://en.wikipedia.org/wiki/Directed_acyclic_graph}{Directed Acyclic Graph}. There are build tools that build up such a DAG as they execute there tasks. Gradle builds the complete DAG before any task is executed. This lies at the heart of Gradle and makes many things possible which would not be possible otherwise. Your build scripts configure this DAG. Therefore they are strictly speaking \emph{build configuration scripts}.    
 
 \section{Build Phases} % (fold)

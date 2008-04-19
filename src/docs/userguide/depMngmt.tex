@@ -1,84 +1,78 @@
 %!TEX root = master.tex
 \chapter{Dependency Management}
 \label{cha:dependency_management}
-Java Plugin and FlatFileFolder and IBiblio to be done !!!!!
+Java Plugin and FlatFileFolder and IBiblio to be done !!!!! Partial Builds
 \section{Introduction} % (fold)
 \label{sec:Introduction}
-Gradle's dependency management is one of its unique selling points. The current dependency management solutions all require to work with XML descriptor files and repositories. Gradle fully supports this approach. Gradle works \emph{perfectly} with your existent dependency management infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom pom or ivy files can be used as they are. No changes necessary. But Gradle offers also a much simpler approach which might be better suited for many types of projects. 
+The current dependency management solutions all require to work with XML descriptor files and are usually based on remote repositories for downloading the dependencies. Gradle fully supports this approach. Gradle works \emph{perfectly} with your existent dependency management infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom pom or ivy files can be used as they are. No changes necessary. But Gradle offers also a simpler approach which might be better suited for many projects. 
 
 We think dependency management is very important for almost any project. Yet the kind of dependency management you need depends on the complexity and the environment of your project. Is your project a distribution or a library? Is it part of an enterprise environment, where it is integrated into other projects builds or not? But all types of projects share the following requirements:
 \begin{itemize}
 \item The version of the jar must be easy to recognize. Sometimes the version is in the Manifest file of the jar, often not. And even if, it is rather painful to always look into the Manifest file to learn about the version. Therefore we think that you should only use jars which have there version as part of there file name.
-\item It has to be clear which are the first level dependencies and which are transitive ones. There are different ways to achieve this. We will look at this later.
-\item Conflicting versions of the same jar have to be detected and resolved or an exception has to be thrown.
+\item It has to be clear what are the first level dependencies and what are the transitive ones. There are different ways to achieve this. We will look at this later.
+\item Conflicting versions of the same jar should be detected and either resolved or cause an exception.
 \end{itemize}
 
 \subsection{Versioning the jar name} % (fold)
 \label{sub:versioning_the_jar_name}
-Why do we think this is necessary? Without a dependency management as described above, your are likely to burn your fingers sooner or later. If it is unclear which version of a jar your are using, this can introduce subtle bugs which are very hard to find. For example there might be a project which uses Hibernate 3.0.4. There are some problems with Hibernate so a developer installs version  3.0.5 of Hibernate on her machine. This did not solve the problem but she forgot to roll back Hibernate to 3.0.4. Weeks later there is an exception on the integration machine which can't be reproduced on the developer machine. Without a version in the jar name this problem might take a long time to debug. Version in the jar names increases the expressiveness of your project, making it easier to maintain. 
+Why do we think this is necessary? Without a dependency management as described above, your are likely to burn your fingers sooner or later. If it is unclear which version of a jar your are using, this can introduce subtle bugs which are very hard to find. For example there might be a project which uses Hibernate 3.0.4. There are some problems with Hibernate so a developer installs version 3.0.5 of Hibernate on her machine. This did not solve the problem but she forgot to roll back Hibernate to 3.0.4. Weeks later there is an exception on the integration machine which can't be reproduced on the developer machine. Without a version in the jar name this problem might take a long time to debug. Version in the jar names increases the expressiveness of your project and making it easier to maintain. 
 % subsection versioning_the_jar_name (end)
 
 \subsection{Transitive dependency management} % (fold)
 \label{sub:transitive_dependency_management}
-\emph{Transitive} dependency management is also very important. And as you will see later, it does not necessarily involve remote repositories and xml descriptor files. Gradle allows you to store your jars in CVS or SVN and still use transitive dependency management. Why is transitive dependency management so important? If you don't know which dependencies are first level dependencies and which ones are transitive you are loosing very soon control over your build. Even Gradle has already 20+ jars. An enterprise project using Spring, Hibernate, etc. easily ends up with 100+ jars. There is no way to memorize where all this jars belong to. If you want to get rid of a first level dependency you can't be sure which other jars you should remove. Because a dependency of your first level dependency might also be a first level dependency itself. Or it might be a transitive dependency of another of your first level dependency. Many first level dependencies are runtime dependencies and the transitive dependencies are of course all runtime dependencies. So the compiler won't help you much here. The end of the story is, as we have seen very often, nobody dares to remove any jar any longer. The project classpath is a complete mess and if a classpath problems arises, hell on earth invites you for a ride. In one of my former projects, I've found some ldap related jar in the classpath, which sheer presence, as I've found out after much research, accelerated LDAP access. So removing this jar would not have led to any errors at compile or runtime. 
+Why is transitive dependency management so important? If you don't know which dependencies are first level dependencies and which ones are transitive you are loosing very soon control over your build. Even Gradle has already 20+ jars. An enterprise project using Spring, Hibernate, etc. easily ends up with 100+ jars. There is no way to memorize where all this jars belong to. If you want to get rid of a first level dependency you can't be sure which other jars you should remove. Because a dependency of your first level dependency might also be a first level dependency itself. Or it might be a transitive dependency of another of your first level dependency. Many first level dependencies are runtime dependencies and the transitive dependencies are of course all runtime dependencies. So the compiler won't help you much here. The end of the story is, as we have seen very often, nobody dares to remove any jar any longer. The project classpath is a complete mess and if a classpath problems arises, hell on earth invites you for a ride. In one of my former projects, I've found some ldap related jar in the classpath, which sheer presence, as I've found out after much research, accelerated LDAP access. So removing this jar would not have led to any errors at compile or runtime. 
 
-Gradle offers you different ways to express what are first level and what are transitive dependencies. And it validates this information against the reality of your code by using only the first level dependencies for compiling.
+Gradle offers you different ways to express what are first level and what are transitive dependencies. Gradle allows you for example to store your jars in CVS or SVN without XML descriptor files and still use transitive dependency management. Gradle also validates your dependency hierarchy against the reality of your code by using only the first level dependencies for compiling.
 % subsection transitive_dependency_management (end)
 
 \subsection{Version conflicts} % (fold)
 \label{sub:version_conflicts}
-In your dependency description you tell Gradle which version of a dependency is needed by another dependency. This leads frequently to conflicts. Different dependencies rely on different versions of another dependency. The JVM unfortunately does not offer yet any easy way, to have different versions of the same jar in the classpath (See \ref{sub:dependency_management_and_java}). What Gradle offers you is a resolution strategy, by default the newest version is used. To deal with problems due to version conflicts, it is also very important to have a dependency management which creates reports with dependency graphs of your dependencies.
+In your dependency description you tell Gradle which version of a dependency is needed by another dependency. This leads frequently to conflicts. Different dependencies rely on different versions of another dependency. The JVM unfortunately does not offer yet any easy way, to have different versions of the same jar in the classpath (See \ref{sub:dependency_management_and_java}). What Gradle offers you is a resolution strategy, by default the newest version is used. To deal with problems due to version conflicts, reports with dependency graphs are also very helpful. Such reports are another feature of dependency management.
 % subsection version_conflicts (end)
 
 \subsection{Dependency management and Java} % (fold)
 \label{sub:dependency_management_and_java}
-Traditionally, Java has offered no support at all for dealing with libraries and versions. There are no standard ways to say that \texttt{foo-1.0.jar} depends on a \texttt{bar-2.0.jar}. This has led to proprietary solutions. The most popular one are Maven and Ivy. Both approaches rely on descriptor xml files, which contains information about the dependencies of a particular jar. Both also use repositories where the actual jars are placed together with there descriptor files. And both offer resolution for conflicting jar versions in one form or the other. Yet we think the differences of both approaches are significant in terms of flexibility and maintainability. Beside this, Ivy fully supports the Maven dependency handling. So with Ivy you have access to both worlds. \emph{We love Ivy}. Gradle uses it under the hood for its dependency management. Ivy is most often used via Ant and XML descriptors. But it also has a very good API. We integrate deeply with Ivy via its API. This enables us to build new concepts on top of Ivy which Ivy does not offer itself. 
+Traditionally, Java has offered no support at all for dealing with libraries and versions. There are no standard ways to say that \texttt{foo-1.0.jar} depends on a \texttt{bar-2.0.jar}. This has led to proprietary solutions. The most popular ones are Maven and Ivy. Maven is a complete build system whereas Ivy focuses solely on dependency management.
 
-Right now there is a lot of movement in the field of dependency handling. There is OSGi and there is JSR-277. OSGi is available already, JSR-277 is supposed to be shipped with Java 7. These technologies although deal with a painful problem which is neither solved by Maven nor by Ivy. This is enabling different versions of the same jar to be used at runtime.
+Both approaches rely on descriptor xml files, which contains information about the dependencies of a particular jar. Both also use repositories where the actual jars are placed together with there descriptor files. And both offer resolution for conflicting jar versions in one form or the other. Yet we think the differences of both approaches are \emph{gigantic} in terms of flexibility and maintainability. Beside this, Ivy fully supports the Maven dependency handling. So with Ivy you have access to both worlds. We like Ivy very much. Gradle uses it under the hood for its dependency management. Ivy is most often used via Ant and XML descriptors. But it also has a very good API. We integrate deeply with Ivy via its API. This enables us to build new concepts on top of Ivy which Ivy does not offer itself. 
+
+Right now there is a lot of movement in the field of dependency handling. There is OSGi and there is JSR-277. OSGi is available already, JSR-277 is supposed to be shipped with Java 7. These technologies deal also with a painful problem which is neither solved by Maven nor by Ivy. This is enabling different versions of the same jar to be used at runtime.
 % subsection dependency_management_and_java (end)
-
 % section introduction (end)
 
 \section{How to declare your dependencies} % (fold)
 \label{sec:how_to_declare_your_dependencies}
-
-For people who know Ivy have come across many of the concepts we are introducing now. But Gradle does not use any xml for declaring the dependencies (e.g. no \texttt{ivy.xml} file) but has its own notations which are part of the Gradle build file. Listing \ref{fig:dependencies} shows an example.
+People who know Ivy have come across most the concepts we are going to introduce now. But Gradle does not use any XML for declaring the dependencies (e.g. no \texttt{ivy.xml} file). It has its own notations which is part of the Gradle build file.
 
 \subsection{Configurations} % (fold)
 \label{sub:configurations}
-Dependencies are grouped in configurations. Configurations have a name and they can extend each other. If you use the Java or Groovy plugin, Gradle adds a number of related configurations to your build. The plugin also associates configurations with tasks. See Table \ref{tab:configurations} for details. Of course you can add your own configurations. This is very handy when you create one or more distributions for your software which might contain dependencies not needed for building or running your software (e.g. additional JDBC drivers).
+Dependencies are grouped in configurations. Configurations have a name and they can extend each other. If you use the Java or Groovy plugin, Gradle adds a number of related configurations to your build. The plugin also associates configurations with tasks. See section \ref{sec:java_plugin_and_dependency_management} for details. Of course you can add your own configurations on top of that. This is very handy for example for adding dependencies not needed for building or running your software (e.g. additional JDBC drivers). You might want to add such dependencies to a distribution of your software.
 
 A dependency can belong to more than one configuration although that might be rather the exception. What is a dependency after all and how do you add it to a configuration? 
 % subsection configurations (end)
 
-\subsection{Dependencies} % (fold)
-\label{sub:dependencies}
-Gradle has different kind of dependencies. The simplest one is an \emph{artifact dependency}.
-\subsubsection{Artifact Dependencies} % (fold)
-\label{ssub:artifact_dependencies}
-To add an artifact dependency to let's say the compile configuration you simply type:
-
+\subsection{Artifact Dependencies} % (fold)
+\label{sub:artifact_dependencies}
+To add an artifact dependency to let's say the \texttt{compile} configuration you simply type:
 \begin{Verbatim}
 dependencies {
 	compile "org.apache.ant:ant-junit:1.7.0:jar"
 }
 \end{Verbatim}
+An artifact dependency is just a file, usually a jar file. The notation for such a dependency follows the  pattern: \texttt{[group]:[artifact]:[version]:[type]}. Gradle needs a repository somewhere where this artifact can be found, but there is \texttt{no} xml descriptor required in the repository. If there is one, it is ignored. In the simplest case such a repository is a folder on your local machine.
+% subsection artifact_dependencies (end)
 
-An artifact dependency is just a single jar or zip of whatever file you want to add. The notation for such a dependency follows the  pattern: \texttt{[group]:[artifact]:[version]:[type]}. There must be a repository somewhere where this artifact can be found. There is no xml descriptor required in the repository. If there is one, it is ignored. In the simplest case such a repository is a folder on your local machine. The different categories of the dependency description are mapped against a repository layout. For example in the case above the dependency might reside in a maven-like repository under the path \texttt{org/apache/ant/ant-junit/1.7.0/ant-junit-1.7.0.jar}. But you might also declare the dependency as \texttt{compile "ant-junit:1.7.0:jar"} and your repository is just a flat folder on your local machine where you store all your jars. The group attribute is not needed then. For more about repositories see \ref{sub:repositories}
-% subsubsection artifact_dependencies (end)
-
-\subsubsection{Module Dependencies} % (fold)
-\label{ssub:module_dependencies}
+\subsection{Module Dependencies} % (fold)
+\label{sub:module_dependencies}
 Here is an example for a module dependency:
-
 \begin{Verbatim}
 dependencies {
 	compile "org.hibernate:hibernate:3.0.5"
 }
 \end{Verbatim}
+The notation here is the same as for \emph{artifact dependencies} except that you don't specify a file extension. If you declare a module dependency, Gradle looks in the repositories if there is either a Maven pom file or an ivy.xml file for this module. If there is no such XML file, Gradle either tries to download a jar with the same signature as the module dependency or throws an exception (or both, if this jar can't be found). It is configurable whether a XML descriptor for a module dependency is required. This is a per-repository configuration.
 
-The notation here is the same as for \emph{artifact dependencies} except that you don't specify a file extension. To work with module dependency you need repositories where there is either a Maven pom file or an ivy.xml file describing its dependencies. If the module descriptor (e.g. pom.xml) declares dependencies you don't want you have the possibility to exclude them. You have to use the following notation:
-
+If the module descriptor (e.g. pom.xml) declares dependencies you don't want you have, you can exclude them. Gradle offers the following notation:
 \begin{Verbatim}
 dependencies {
 	addDependency(['compile'], "org.codehaus.groovy:groovy-all:1.5.4") {
@@ -87,13 +81,11 @@ dependencies {
 	}
 }
 \end{Verbatim}
-% subsubsection module_dependencies (end)
+% subsection module_dependencies (end)
 
-
-\subsubsection{Client Module Dependencies} % (fold)
-\label{ssub:client_module_dependencies}
-Client module dependencies enable to declare transitive dependencies directly in your build script. There don't need to be a xml module descriptor in the repository. Client module dependencies can be nested.
-
+\subsection{Client Module Dependencies} % (fold)
+\label{sub:client_module_dependencies}
+Client module dependencies enable you to declare \emph{transitive} dependencies directly in your build script. Client module dependencies can be nested.
 \begin{Verbatim}
 addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") {
     addDependency("commons-cli:commons-cli:1.0:jar")
@@ -103,28 +95,25 @@ addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") 
     }
 }
 \end{Verbatim}
+This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does not look for an xml descriptor to figure them out but gets the information from the build file. The dependencies of a client module can be normal module dependencies or artifact dependencies or another client module. 
 
-This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does not look for an xml descriptor to figure them out but gets the information from the build file. The dependencies of a client module can normal module dependencies or artifact dependencies or another client module. 
+In the current release \emph{Client Modules} have one limitation. For example if your project is a library and you want this library to be uploaded to your company's Maven or Ivy repository. Gradle uploads the jars of your project to the company repository together with the XML descriptor file of the dependencies. If you use \texttt{Client Modules} the dependency declaration in the XML descriptor file is not correct. We try to fix this for the next release of Gradle.
+% subsection client_module_dependencies (end)
 
-LIMITATIONS
-% subsubsection client_module_dependencies (end)
-
-\subsubsection{Project dependencies} % (fold)
-\label{ssub:project_dependencies}
-
-Gradle distinguished between external dependencies and dependencies to other projects which are part of the same multi-project build. 
-
+\subsection{Project dependencies} % (fold)
+\label{sub:project_dependencies}
+Gradle distinguishes between external dependencies and dependencies on projects which are part of the same multi-project build. For the latter you can declare \emph{Project Dependencies}.
+\begin{Verbatim}
 dependencies {
     compile project(':shared')
-}
+}	
+\end{Verbatim}
+Multi-project builds are discussed in chapter \ref{cha:multi_project_builds}.
+% subsection project_dependencies (end)
 
-Multi-project builds are discussed in chapter \ref{cha:multiproject_builds}
-
-\subsubsection{Ivy dependencies} % (fold)
-\label{ssub:ivy_dependencies}
-
-Gradle offers its own notation to describe dependencies. Under the hood we transform into ivy dependency objects. Our notation provides only a subset of what is possible with Ivy. If you want or need to use options of Ivy not offered by our notation you can pass directly ivy dependencies to Gradle.
-
+\subsection{Ivy dependencies} % (fold)
+\label{sub:ivy_dependencies}
+Gradle offers its own notation to describe dependencies. Under the hood we transform them into ivy dependency objects. Our notation provides only a subset of what is possible with Ivy. If you want or need to use options of Ivy not offered by our notation you can pass ivy dependency objects directly to Gradle.
 \begin{Verbatim}
 DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
 	        new ModuleRevisionId(new ModuleId('junit', 'junit'), '4.2'), false)
@@ -133,13 +122,18 @@ dependencies {
 	addDependencyDescriptors dependencyDescriptor 
 }
 \end{Verbatim}
+% subsection ivy_dependencies (end)
 
-% subsubsection ivy_dependencies (end)
+\subsection{Configuring the Dependency Manager} % (fold)
+\label{sub:configuring_the_dependency_manager}
+In the examples above we have already configured the dependency manager. How does this work? The \texttt{project} object offers a property called \texttt{dependencies} which points to an instance of \href{\API DepencencyManager.html}{\PKG DependencyManager}. If you call \texttt{dependencies} with a closure, all statements within the closure are delegated first to the dependency manager. This is the same mechanism which is used for configuring tasks.
+% subsection configuring_the_dependency_manager (end)
+% section how_to_declare_your_dependencies (end)
 
-% subsubsection project_dependencies (end)
-
-% subsection dependencies (end)
-
+\section{Java Plugin and Dependency Management} % (fold)
+\label{sec:java_plugin_and_dependency_management}
+The Java Plugin preconfigures the dependency management. It adds a set of configurations and links the tasks like \texttt{compile} and \texttt{test} to this configuration. Table \ref{tab:configurations} shows the details. The Java plugin defines also where to find the jars and zips to be uploaded. Finally it does a couple of settings for multi-project builds. If you have for example declared a project dependency for the \texttt{compile} configuration you don't want this project to be build if you execute a \texttt{clean}. 
+ 
 \begin{table}	
 	\begin{tabularx}{\textwidth}{|l|l|l|X|} \hline
 	\textbf{Name} & \textbf{Extends} & \textbf{Task} & \textbf{Meaning} \\ \hline
@@ -147,113 +141,136 @@ dependencies {
 	runtime & compile & - & Runtime dependencies \\ \hline
 	testCompile & compile & testCompile & Additional dependencies for compiling tests. \\ \hline
 	testRuntime & runtime, testCompile & test & Additional dependencies for running tests only. \\ \hline
-	master & - & - & Dependencies (e.g. jars) produced by this project. Needed for multi-project builds. \\ \hline
-	default & runtime, master & - & Dependencies produced and needed by this project. Needed for multi-project builds. \\  \hline
+	libs & - & uploadLibs & Dependencies (e.g. jars) produced by this project.\\ \hline
+	default & runtime, master & - & Dependencies produced \texttt{and} required by this project.\\  \hline
+	dists & - & uploadDists & Archives added to the \texttt{dists} bundle belong to this configuration.\\ \hline
 	\end{tabularx}
 	\caption{Java/Groovy Configurations}
 	\label{tab:configurations}
 \end{table}	
-
-% \begin{figure}
-% \caption{Declaring Dependencies}
-% \label{fig:dependencies}
-% \begin{Verbatim}[frame=single, framesep=1mm, numbers=left]
-% dependencies {
-%     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, 
-% 		['default'] as String[], true, null))
-% 
-%     addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.5-032808") {
-%         addDependency("commons-cli:commons-cli:1.0")
-%     }
-% 
-%     addClientModule(confs: ['runtime'], id: "org.tmatesoft.svnkit:svnkit:1.1.6") {
-%         addDependency("org.tmatesoft.svnkit:svnkit-javahl:1.1.6:jar")
-%     }
-% 
-%     compile "commons-cli:commons-cli:1.0:jar",
-%             "commons-io:commons-io:1.3.1;jar",
-%             "commons-lang:commons-lang:2.3:jar",
-%             "commons-httpclient:commons-httpclient:3.0;jar",
-%             "slide:webdavlib:2.0",
-%             "ch.qos.logback:logback-classic:0.9.8",
-%             "org.apache.ivy:ivy:2.0.0.beta2_20080305165542:jar"
-%     runtime "org.apache.ant:ant-launcher:1.7.0",
-%             "junit:junit:4.4",
-%     testCompile "junit:junit:4.4"
-%     distLib "junit:junit:4.4"
-%     classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
-% }	
-% \end{Verbatim}
-% \end{figure}
-
-% section how_to_declare_your_dependencies (end)
+% section java_plugin_and_dependency_management (end)
 
 \section{Strategies of transitive dependency management} % (fold)
 \label{sec:strategies_of_transitive_dependency_management}
-
-Many projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 IBiblio repository}. This is not without problems. See 
-
+Many projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 IBiblio repository}. This is not without problems. \footnote{See also the discussion in Appendix \ref{cha:the_problem_with_mavens_dependency_management}}
 \begin{itemize}
 	\item The IBibilio repository is often down or has a very long response time.
-	\item The pom.xml's of many projects have wrong informations. For example the pom of commons-httpclient-3.0 declares junit as a runtime dependency.
+	\item The pom.xml's of many projects have wrong informations. (as one example, the pom of commons-httpclient-3.0 declares junit as a runtime dependency).
 	\item For many projects there is not one right set of dependencies. 
 \end{itemize} 
-
-See also the discussion in \ref{cha:the_problem_with_mavens_dependency_management}.
-
-If your project relies on the ibiblio repository you are likely to need an additional custom repository, because:
+If your project relies on the IBibilio repository you are likely to need an additional custom repository, because:
 \begin{itemize}
-	\item You might need dependencies that are not uploaded to ibiblio yet.
-	\item You want to deal properly with wrong metadata in a iBiblio pom.xml.
-	\item You don't want to expose people who want to build your project to relatively frequent downtimes or very long response times of ibiblio. 
+	\item You might need dependencies that are not uploaded to IBibilio yet.
+	\item You want to deal properly with wrong metadata in a IBibilio pom.xml.
+	\item You don't want to expose people who want to build your project, to the relatively frequent downtimes or very long response times of IBibilio. 
 \end{itemize}
+It is not a big deal to set-up a custom repository.\footnote{If you want to shield your project from the downtimes of IBibilio things get more complicated. You probably want to set-up a repository proxy for this. In an enterprise environment this is rather common. For an open source project it looks like overkill.} But it is tedious, to keep it up to date. For a new version, you have always to create the new XML descriptor and the directories. And your custom repository is another infrastructure element which might have downtimes and needs to be updated. To enable historical builds, you need to keep all the past libraries. It is another layer of indirection, which contains information relevant for your build and you have to navigate to the lengthy path with your browser to get the information. All this is not really a big deal but in its sum it has a relevant impact on your agility. Why should you cope with this? You pay something, so you should also get something, right? So we end up with the question: Does it make sense to store the dependency information (and the dependencies) in remote repositories? Our answer is: It depends.
 
-It is not a big deal to set-up a custom repository \footnote{If you want to shield your project from the downtimes of ibiblio things get more complicated. You probably want to set-up a repository proxy for this. In an enterprise environment this is rather common. For an open source project it looks like overkill.}. But it is tedious to keep it up to date. For a new version, you have always to create the new pom and the directories. And your custom repository is another infrastructure element which might have downtimes. It is another layer of indirection which contains information relevant information for your build and you have to navigate to the lengthy path with your browser to get the information. All this is not really a big deal but why should you cope with this. You pay something, so you should also get something, right? So we end up with the question: Does it make sense to store the dependency information (and the dependencies) in remote repositories? Our answer is: Not necessarily.
-In a larger enterprise environment you are likely to have a number of independent builds, possibly many different, large multi-project builds. Here a repository infrastructure makes a lot of sense. You have already infrastructure that guarantees a high uptime. Multiple projects share there information about certain common dependencies they have and thus don't need to define them multiple times. Most importantly, the repositories are used to integrate the internal projects with each other. One project published itself to the company repository, with all its dependency information stored in an ivy.xml or pom.xml file. Together with a continous integration server this offers a strong integration for projects with separate builds. As you have seen, Gradle fully supports this approach.
-But what about other environments. What about a typical open source projects like Gradle or environments which consists of a single multi-project builds. They don't integrate with other projects in the same environment or need to share dependency information in this enviroment. In such a (very common) case we think dependency management based on remote repositories is an unnecessary indirection which makes things more complicated than necessary. Gradle itself (which is build by Gradle) stores its dependencies in svn. There is a lib folder which contains all jars needed to build Gradle. Yet we have a complete management of our dependencies. For Gradle the lib folder is a local repository containing all the jars (in a flat structure). There are no xml descriptors. We use either client module dependencies to express our dependency relations, or artifact dependencies in case a first level dependency has no transitive dependencies. People can check out Gradle from svn and have everything necessary to build it. The same applies to our source distribution. 
+\subsection{Enterprise Environments} % (fold)
+\label{sub:enterprise_environments}
+In a larger enterprise environment you are likely to have a number of independent builds, possibly many different, large multi-project builds. Here a repository infrastructure makes a lot of sense. You have already infrastructure that guarantees a high uptime. Multiple projects can share there information about certain common dependencies they have. There is a central place to look for dependency information. And the repositories are used to integrate the internal projects with each other. One project publishes itself to the company repository, with all its dependency information stored in an ivy.xml or pom.xml file.\footnote{As discusses in \ref{sub:other_environments} this will be also possible with client modules in a future release.} Together with a continous integration server this offers a strong integration for projects with separate builds. As you have seen, Gradle fully supports this approach.
+% subsection enterprise_environments (end)
+
+\subsection{Other environments} % (fold)
+\label{sub:other_environments}
+But what about other environments. What about a typical open source projects like Gradle or environments which consists of a single multi-project build	. They don't integrate with other projects in the same environment or need to share dependency information in this environment. In such a (very common) case we think dependency management based on remote repositories is an unnecessary indirection which makes things more complicated than necessary. Gradle itself (which is build by Gradle) stores its dependencies in svn. There is a lib folder which contains all jars needed to build Gradle. Yet we have a complete management of our dependencies. For Gradle the lib folder is a local repository containing all the jars (in a flat structure). There are no xml descriptors. We use either client module dependencies to express our dependency relations, or artifact dependencies in case a first level dependency has no transitive dependencies. People can check out Gradle from svn and have everything necessary to build it. The same applies to our source distribution. 
+
+You might argue that such an approach works only for projects like Gradle, which is not used as a library but is simply a distribution. What about open source library projects (e.g. commons-httpclient) that need to upload themselves to IBiblio together with a \texttt{pom.xml} file. As soon as the limitation mentioned in subsection \ref{sub:client_module_dependencies} has been overcome, your project can upload to such a repository without relying on XML descriptor files themselves.
+
+You could also have a mixed strategy. If your main concern is bad metadata in IBiblio and maintaining custom XML descriptors, \emph{Client Modules} offer an alternative. But you can of course still use IBiblio and your custom repository as a repository for \emph{jars only} and still enjoy \emph{transitive} dependency management.
+% subsection other_environments (end)
 
 \subsection{Implicit transitive dependencies} % (fold)
-There is another way to deal with transitive dependencies without xml descriptor files. You can do this with Gradle but we don't recommend it. We mention it for the sake of completeness and comparison with other build tools. 
-
+\label{sub:implicit_transitive_dependencies}
+There is another way to deal with transitive dependencies \emph{without} xml descriptor files. You can do this with Gradle, but we don't recommend it. We mention it for the sake of completeness and comparison with other build tools. 
 \begin{Verbatim}
-List groovy = ["org.codehaus.groovy:groovy-all:1.5.4:jar", "commons-cli:commons-cli:1.0:jar", "org.apache.ant:ant:1.7.0:jar"]
-List hibernate = [\emph{list of dependencies}]
+List groovy = ["org.codehaus.groovy:groovy-all:1.5.4:jar", 
+               "commons-cli:commons-cli:1.0:jar", 
+               "org.apache.ant:ant:1.7.0:jar"]
+List hibernate = [...] // enter the dependencies here
 dependencies {
 	compile groovy
 	runtime hibernate
 }
 \end{Verbatim}
+The trick is to use only artifact dependencies and group them in lists. That way you have somehow expressed, what are your first level dependencies and what are transitive dependencies. 
 
-The trick is to use only artifact dependencies and group them in lists. That way you have somehow express what are your first level dependencies and what are transitive dependencies. But for the Gradle dependency management all dependencies are considered first level dependencies. The dependency reports don't show your real dependency graph and the compile uses all dependencies not just the first level dependencies. All in all, your build is less maintainable and reliable than it could be when using client modules. And you don't gain anything.  
-
-\label{sub:implicit_transitive_dependencies}
-
+But for the Gradle dependency management all dependencies are considered first level dependencies. The dependency reports don't show your real dependency graph and the \texttt{compile} task uses all dependencies, not just the first level dependencies. All in all, your build is less maintainable and reliable than it could be when using client modules. And you don't gain anything.  
 % subsection implicit_transitive_dependencies (end)
-
 % section strategies_of_transitive_dependency_management (end)
 
-\section{Repositories} % (fold)
+\section{Repositories and Resolvers} % (fold)
 \label{sec:repositories}
 
-If you use the Java/Groovy plugin the ibiblio maven repository is already added. To add another Maven style repository you simply do: 
+\subsection{Introduction} % (fold)
+\label{sub:introduction}
+Gradle (Ivy) distinguishes between \emph{resolvers} and \emph{repositories}. A repository is the physical source for your dependencies. A resolver is responsible for retrieving a dependency (usually from a repository but not necessarily). As a Gradle or Ivy user, \emph{resolvers} are the objects your are working with. You can also aggregate multiple resolvers in a certain order (not just linked lists). It is one of the very strengths of Ivy, how versatile you can aggregate resolvers and that you can write easily your \emph{own}. Gradle for example makes use of this to implement client modules. 
 
+The Java plugin does not add any default resolver to your projects dependency manager. Gradle offers a couple of convenience methods to add resolvers. You can also always add an instance of an Ivy resolver object directly.
+% subsection introduction (end)
+
+\subsection{IBiblio} % (fold)
+\label{sub:ibiblio}
+To add a resolver for the IBiblio repository simply type:
 \begin{Verbatim}
 dependencies {
-	classpathResolvers.addBefore('http://gradle.sourceforge.net/repository', 'Maven2Repo')
+	addIBiblio()
 }
 \end{Verbatim}
+The added resolver has the name \texttt{IBiblio} and is added to the \texttt{classpathResolvers} (see  \ref{sub:resolver_container})
+% subsection ibiblio (end)
 
-This adds the repository \texttt{'http://gradle.sourceforge.net/repository'} before the Maven2Repo (ibiblio) repo. Before means Gradle tries to find a dependency first in the newly added repository. \texttt{classpathResolvers} is of type \texttt{RepositoryContainer}. Have a look at its \href{}{API} to learn more.
+\subsection{Maven style Repositories} % (fold)
+\label{sub:maven_style_repositories}
+To add another Maven style repository you simply do: 
+\begin{Verbatim}
+dependencies {
+	classpathResolvers.add('http://gradle.sourceforge.net/repository')
+}
+\end{Verbatim}
+In your build log the resolver will appear with a name equals to its URL. To give an explicit name to the resolver you can do:
+\begin{Verbatim}
+dependencies {
+	classpathResolvers.add(name: 'sourceforge', url:'http://gradle.sourceforge.net/repository')
+}
+\end{Verbatim}  
+% subsection maven_style_repositories (end)
 
+\subsection{Flat Folder Resolver} % (fold)
+\label{sub:flat_folder_resolver}
+If you want to use a (flat) filesytem folder as a repository, simply type:
+\begin{Verbatim}
+dependencies {
+	addFlatDirResolver('lib', new File(rootDir, 'lib1'), new File(rootDir, 'lib2'))
+	dependencies(':junit:4.4', ':commons-io:1.3.1:jar')
+}
+\end{Verbatim}
+In the example we assign multiple directories to a flat-dir resolver and the group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. The repositories could look like this:
+\begin{Verbatim}
+project-root
+  - lib1
+    - junit-4.4.jar
+  - lib2
+    - commons-io-1.3.1.jar	
+\end{Verbatim}
+The \texttt{addFlatDirResolver} methods adds a resolver to the \texttt{classpathResolvers} (see  \ref{sub:resolver_container})
+% subsection flat_folder_resolver (end)
+
+\subsection{Resolver Container} % (fold)
+\label{sub:resolver_container}
+There are three hooks for adding resolvers. Via the resolvers assigned to the \texttt{classpathResolvers} property of the dependency manager, the \texttt{compile}, \texttt{testCompile} and \texttt{test} tasks retrieve there dependencies. The \texttt{uploadLibs} and \texttt{uploadDists} tasks have both an \texttt{uploadResolvers} property. You can assign one resolver to multiple hooks.
+
+All of those hooks are instances of \href{\API dependencies/ResolverContainer.html}{\PKG dependencies.ResolverContainer}. This class provided methods for adding new resolvers at a particular position in the resolve chain. Ivy offers more complex structures for resolvers than simple chains. The resolver container does not offer particular support for this. But by manipulating its properties directly you could set up such other structures.
+% subsection resolver_container (end)
+
+\subsection{More about Ivy resolvers} % (fold)
+\label{sub:more_about_ivy_resolvers}
 Gradle, thanks to Ivy under its hood, is extremely flexible regarding repositories:
 \begin{itemize}
-	\item You can declare multiple repositories.
 	\item There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, ...)
 	\item Each repository can have its own layout.
 \end{itemize}
-
-If you declare a dependency like \texttt{junit:junit:3.8.2} how does Gradle finds it in the repositories. Somehow the dependency information has to be mapped to a path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern how this path should look like. Here are some examples:
-
+If you declare a dependency like \texttt{junit:junit:3.8.2} how does Gradle finds it in the repositories. Somehow the dependency information has to be mapped to a path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern how this path should look like. Here are some examples:\footnote{At \url{http://ant.apache.org/ivy/history/latest-milestone/concept.html} you can learn more about ivy patterns.}
 \begin{Verbatim}
 // Maven2 layout (if a repository is marked as Maven2 compatible, the organization (group) is split into subfolders according to the dots.)
 someroot/[organisation]/[module]/[revision]/[module]-[revision].[ext]
@@ -264,11 +281,7 @@ someroot/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]
 // Simple layout (the organization is not used, no nested folders.)
 someroot/[artifact]-[revision].[ext]
 \end{Verbatim}
-
-\href{http://ant.apache.org/ivy/history/2.0.0-alpha2/concept.html}{Here} you can learn more about ivy patterns.
-
 To add any kind of repository (you can pretty easy write your own ones) you can do:
-
 \begin{Verbatim}
 dependencies {
 	classpathResolvers.add(new WebdavResolver()) {
@@ -278,8 +291,6 @@ dependencies {
 	        addArtifactPattern(root + "[artifact]-[revision].[ext]")
 }	
 \end{Verbatim}
-
-\texttt{WebdavResolver} is a class that implements an Ivy interface. An overview of which Resolvers are offered by Ivy and thus by Gradle can be found \href{http://ant.apache.org/ivy/history/latest-milestone/configuration/resolvers.html}{here}. With Gradle you just don't configure them via xml but directly via there API.
- 
+\texttt{WebdavResolver} is a class that implements an Ivy interface and is part of the \emph{Gradle} distribution. An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found \href{http://ant.apache.org/ivy/latest-milestone/configuration/resolvers.html}{here}. With Gradle you just don't configure them via xml but directly via there API.
+% subsection more_about_ivy_resolvers (end)
 % section repositories (end)
-
