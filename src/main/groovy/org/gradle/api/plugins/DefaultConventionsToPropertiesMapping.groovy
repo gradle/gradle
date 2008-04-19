@@ -28,7 +28,7 @@ class DefaultConventionsToPropertiesMapping {
     ]
     final static Map JAVADOC = [
             srcDirs: {_(it).srcDirs},
-            destDir: {_(it).javadocDir}
+            destinationDir: {_(it).javadocDir}
     ]
     final static Map RESOURCES = [
             destinationDir: {_(it).classesDir},

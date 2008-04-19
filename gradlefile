@@ -64,7 +64,9 @@ dependencies {
     addConfiguration('ftpAntTask')
 
     clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
-        dependencies(":commons-net:1.4.1")
+        clientModule(":commons-net:1.4.1") {
+            dependencies(":oro:2.0.8:jar")    
+        }
     }
 
     clientModule(['compile'], ":groovy-all:1.5.5") {
@@ -185,7 +187,7 @@ dists {
     }
 }
 
-javadoc.destDir = explodedDistJavadocsDir
+javadoc.destinationDir = explodedDistJavadocsDir
 createTask('uploadJavadoc', dependsOn: 'javadoc') {
     ftp(action: 'mkdir', remotedir: javadocRemoteDir)
     ftp(action: 'delete', remotedir: javadocRemoteDir) {
