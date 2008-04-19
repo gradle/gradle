@@ -22,22 +22,7 @@ Beside the build script files, Gradle defines a settings file. The settings file
 The settings file gets executed during the initialization phase. A multiproject build must have a gradlesettings file in the root project of the multiproject hierarchy. It is required because in the gradlesettings file it is defined, which projects are taking part in the multi-project build (see chapter \ref{cha:multi_project_builds}). For a single-project build, a gradlesettings file is optional. You might need it for example, to add libraries to your build script classpath (see chapter \ref{cha:organizing_build_logic}). Let's first do some introspection with a single project build:
 \VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/buildlifecycle/gradlesettings}
 \VerbatimInput[frame=single,label=gradlefile]{../../../build/distributions/exploded/samples/userguide/buildlifecycle/gradlefile}
-\begin{Verbatim}[frame=single,label=current dir: userguide/buildlifecycle,framesep=1mm,framerule=1mm]
->gradle test 
-...
-This is executed during the initialization phase. 
-No build sources found. 
-++++ Starting build for primary task: test 
-++ Loading Project objects 
-++ Configuring Project objects 
-This is executed during the configuration phase. 
-Project=: evaluated. 
-++ Executing: test Recursive:true Startproject: : 
-Executing: :test 
-This is executed during the execution phase. 
-BUILD SUCCESSFUL 
-Total time: 1 seconds 
-\end{Verbatim}
+\outputInputGradle[userguide/buildlifecycle]{../../../build/tutorial-output/buildlifecycle.out}
 For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Have a look at \href{\API Settings.html}{\PKG Settings}.
 % section settings_file (end)
 

@@ -149,30 +149,38 @@ D- water
 \codeGradleFile[tropicalFish - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/tropicalFish/gradlefile}
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/gradlefile}
 \outputInputGradle[userguide/multiproject/tropicalWithProperties/water]{../../../build/tutorial-output/multiprojectTropicalWithProperties.out}
-
-
+In the \texttt{gradefile} of the \texttt{water} project we use \texttt{lateInitialize}. This means that the closure we are passing get evaluated \texttt{after} the build scripts of the subproject are evaluated. As the property \texttt{arctic} is set in those build scripts, we have to do it this way. You will find more on this topic in section \ref{sec:dependencies_which_dependencies}
 % subsubsection filtering_by_properties (end)
 % subsection project_filtering (end)
 % section subproject_configuration (end)
 
 \section{Execution rules for multi-project builds} % (fold)
 \label{sec:execution_rules_for_multi_project_builds}
-We have typed in the root project dir \texttt{gradle hello} and things behaved in an intuitive way. All the \texttt{hello} of the different projects were executed. Let's switch to the \texttt{bluewhale} dir and see what happens if we execute Gradle from there. 
-\outputInputGradle[current dir: water/bluewhale]{../../../build/tutorial-output/multiprojectSubBuild.out}
-The basic rule behind Gradles behavior is simple. Gradle looks down the hierarchy starting with the \emph{current dir} for tasks with the name \texttt{hello} an executes them. One thing is very important to note. Gradle \emph{always} evaluates every project of the multi-project build and creates all existing task objects. Then, according to the task names you have passed as an argument and the current dir, Gradle filters the tasks which should be executed. Because of Gradles \emph{Cross Project Configuration} \emph{every} project has to be evaluated before \emph{any} task gets executed. We will have a closer look at this in the next section. Before we will have our last marine example. Let's add a task to \texttt{bluewhale} and \texttt{krill}.
+When we have executed the \texttt{hello} task from the root project dir things behaved in an intuitive way. All the \texttt{hello} tasks of the different projects were executed. Let's switch to the \texttt{bluewhale} dir and see what happens if we execute Gradle from there. 
+\outputInputGradle[current dir: userguide/multiproject/partialTasks/water/bluewhale]{../../../build/tutorial-output/multiprojectSubBuild.out}
+The basic rule behind Gradles behavior is simple. Gradle looks down the hierarchy, starting with the \emph{current dir}, for tasks with the name \texttt{hello} an executes them. One thing is very important to note. Gradle \emph{always} evaluates \emph{every} project of the multi-project build and creates all existing task objects. Then, according to the task name arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradles \emph{Cross Project Configuration} \emph{every} project has to be evaluated before \emph{any} task gets executed. We will have a closer look at this in the next section. Let's now have our last marine example. Let's add a task to \texttt{bluewhale} and \texttt{krill}.
 \codeGradleFile[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/bluewhale/gradlefile}
 \codeGradleFile[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/krill/gradlefile}
 \outputInputGradle[userguide/multiproject/partialTasks/water]{../../../build/tutorial-output/multiprojectPartialTasks.out}
 Here the output without the \texttt{-q} option
 \outputInputGradle[userguide/multiproject/partialTasks/water]{../../../build/tutorial-output/multiprojectPartialTasksNotQuiet.out}
-The build is executed from the \texttt{water} project. Neither \texttt{water} nor \texttt{tropicalFish} have a task with the name \texttt{distanceToIceberg}. Gradle does not care. The simple rule mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if there is no such task!
+The build is executed from the \texttt{water} project. Neither \texttt{water} nor \texttt{tropicalFish} have a task with the name \texttt{distanceToIceberg}. Gradle does not care. The simple rule mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if there is \emph{no} such task!
 % section execution_rules_for_multi_project_builds (end)
 
-\section{Dependencies - Which dependencies?} % (fold)
-\label{sec:dependencies_which_dependencies_}
-The example from the last section was special, as the projects had no \emph{Execution Time Dependencies}. They had only \emph{Configuration Time Dependencies}. Here is an example where this is different:
+\section{Project and Task Paths} % (fold)
+\label{sec:project_and_task_paths}
+A project path has the following pattern: It starts always with a colon, which denotes the root project. The root project is the only project in a path that is not specified by its name. The path \texttt{:bluewhale} corresponds to the file system path \texttt{water/project} in the case of the example above.
 
-\subsection{Execution Time Dependencies} % (fold)
+The path of a task is simply its project path plus the task name. For example \texttt{:bluewhale:hello}. Within a project you can address a task of the same project just by its name. This is interpreted as a relative path.
+
+Originally Gradle has used the \texttt{'/'} character as a natural path separator. With the introduction of directory tasks (see \ref{sec:directory_creation}) this was no longer possible, as the name of the directory task contains the \texttt{'/'} character.
+% section project_and_task_paths (end)
+
+\section{Dependencies - Which dependencies?} % (fold)
+\label{sec:dependencies_which_dependencies}
+The examples from the last section were special, as the projects had no \emph{Execution Dependencies}. They had only \emph{Configuration Dependencies}. Here is an example where this is different:
+
+\subsection{Execution Dependencies} % (fold)
 \label{sub:execution_time_dependencies}
 
 \subsubsection{Dependencies and Execution Order} % (fold)
@@ -194,7 +202,7 @@ D- messages
 
 \codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/consumer/gradlefile}
 \codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/producer/gradlefile}
-\outputInputGradle[messages]{../../../build/tutorial-output/multiprojectFirstMessages.out}
+\outputInputGradle[userguide/multiproject/dependencies/firstMessages/messages]{../../../build/tutorial-output/multiprojectFirstMessages.out}
 This did not work out. If nothing else is defined, Gradle executes the task in alphanumeric order. Therefore \texttt{:consumer:action} is executed before \texttt{:producer:action}. Let's try to solve this with a hack and rename the producer project to \texttt{aProducer}.
 
 \begin{minipage}[t]{7cm}
@@ -213,9 +221,9 @@ D- messages
 
 \codeGradleFile[aProducer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/aProducer/gradlefile}
 \codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/consumer/gradlefile}
-\outputInputGradle[messages]{../../../build/tutorial-output/multiprojectMessagesHack.out}
+\outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages]{../../../build/tutorial-output/multiprojectMessagesHack.out}
 Now we take the air out of this hack. We simply switch to the \texttt{consumer} dir and execute the build.
-\outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesHackBroken.out}
+\outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesHackBroken.out}
 For Gradle the two \texttt{action} tasks are just not related. If you execute the build from the \texttt{messages} project Gradle executes them both because they have the same name and they are down the hierarchy. In the last example only one \texttt{action} was down the hierarchy and therefore it was the only task that got executed. We need something better than this hack.
 % subsubsection dependencies_and_execution_order (end)
 \subsubsection{Declaring Dependencies} % (fold)
@@ -237,20 +245,21 @@ D- messages
 
 \codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer/gradlefile}
 \codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/producer/gradlefile}
-\outputInputGradle[messages]{../../../build/tutorial-output/multiprojectMessagesDependencies.out}
-\outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesDependenciesSubBuild.out}
-We have now declared that the \texttt{consumer} project has an \emph{execution time dependency} on the \texttt{producer} project. For Gradle declaring \emph{execution time dependencies} between \emph{projects} is syntactic sugar. Under the hood Gradle creates task dependencies out of them. You can also create cross project tasks dependencies manually by using the absolute path. 
+\outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages]{../../../build/tutorial-output/multiprojectMessagesDependencies.out}
+\outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesDependenciesSubBuild.out}
+We have now declared that the \texttt{consumer} project has an \emph{execution dependency} on the \texttt{producer} project. For Gradle declaring \emph{execution dependencies} between \emph{projects} is syntactic sugar. Under the hood Gradle creates task dependencies out of them. You can also create cross project tasks dependencies manually by using the absolute path of the tasks. 
 % subsubsection declaring_dependencies (end)
+
 \subsubsection{The Nature of Project Dependencies} % (fold)
 \label{ssub:the_nature_of_project_dependencies}
 Let's change the naming of our tasks and execute the build.
 \codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer/gradlefile}
 \codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/producer/gradlefile}
-\outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesDifferentTaskNames.out}
+\outputInputGradle[userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesDifferentTaskNames.out}
 Uhps. Why does this not work? The \texttt{dependsOn} command is created for projects with a common lifecycle. Provided you have two Java projects were one depends on the other. If you trigger a compile for for the dependent project you don't want that \emph{all} tasks of the other project get executed. Therefore a \texttt{dependsOn} creates dependencies between tasks with equal names. To deal with the scenario above you would do the following:
 \codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer/gradlefile}
 \codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesTaskDependencies/messages/producer/gradlefile}
-\outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesTaskDependencies.out}
+\outputInputGradle[userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesTaskDependencies.out}
 % subsubsection the_nature_of_project_dependencies (end)
 % subsection execution_time_dependencies (end)
 
@@ -262,18 +271,19 @@ Let's have one more example with our producer-consumer build before we enter \em
 \outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependenciesBroken.out}
 The default \emph{evaluation} order of the projects is alphanumeric (for the same nesting level). Therefore the \texttt{consumer} project is evaluated before the \texttt{producer} project and the \texttt{key} value of the \texttt{producer} is set \emph{after} it is read by the \texttt{consumer} project. Gradle offers a solution for this. 
 \codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer/gradlefile}
-\outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependencies.out}
+\outputInputGradle[userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependencies.out}
 The command \texttt{evaluationDependsOn} triggers the evaluation of \texttt{producer} \emph{before} \texttt{consumer} is evaluated.
 The example is a bit contrived for the sake of showing the mechanism. In \emph{this} case there would be an easier solution by reading the key property at execution time.
 \codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages/consumer/gradlefile}
-\outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependenciesAltSolution.out}
+\outputInputGradle[userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependenciesAltSolution.out}
+Configuration dependencies are very different to execution dependencies. Configuration dependencies are between projects whereas execution dependencies are always resolved to task dependencies. Another difference is that always all projects are configured, even when you start the build from a subproject. The default configuration order is top down, which is usually what is needed. 
+
+On the same nesting level the configuration order depends on the alphanumeric position. The most common use case is to have multi-project builds that share a common lifecycle (e.g. all projects use the Java plugin). If you declare with \texttt{dependsOn} a \emph{execution dependency} between different projects, the default behavior of this method is to create also a \emph{configuration} dependency between the two projects. Therefore it is likely that you don't have to define configuration dependencies explicitly. 
 % subsection configuration_time_dependencies (end)
 
 \subsection{Real Life examples} % (fold)
 \label{sub:real_life_examples}
-Gradles multi-project features are driven by real life use cases. The first example consists of two webapplication projects and a parent project that creates a distribution out of them.\footnote{The real use case we had, was using \url{http://lucene.apache.org/solr}, where you need a separate war for each index your are accessing. That was one reason why we have created a distribution of webapps. The Resin servlet container allows us, to let such a distribution point to a base installation of the servlet container.} For the example we use only one build script and do \emph{cross project configuration}.
-
-\begin{minipage}[t]{7cm}
+Gradles multi-project features are driven by real life use cases. The first example for describing such a use case, consists of two webapplication projects and a parent project that creates a distribution out of them.\footnote{The real use case we had, was using \url{http://lucene.apache.org/solr}, where you need a separate war for each index your are accessing. That was one reason why we have created a distribution of webapps. The Resin servlet container allows us, to let such a distribution point to a base installation of the servlet container.} For the example we use only one build script and do \emph{cross project configuration}.
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- webDist
   F- gradlesettings
@@ -283,14 +293,15 @@ D- webDist
   D- hello
     F- src/main/java/org/gradle/sample/HelloServlet.java
 \end{Verbatim}
-\end{minipage}	
-\begin{minipage}[t]{9cm}
 \VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webDist/gradlesettings}
-\end{minipage}
 \codeGradleFile[webDist - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webdist/gradlefile}
-We have an interesting set of dependencies. Obviously the \texttt{date} and \texttt{hello} have a \emph{configuration} dependency on \texttt{webDist} as all the build logic for the webapps is by \texttt{webDist}. The \texttt{execution} dependency is in the other direction, as \texttt{webDist} depends on the build artifacts of \texttt{date} and \texttt{hello}. There is even a third dependency. \texttt{webDist} has a \emph{configuration} dependency on \texttt{date} and \texttt{hello} because it needs to know the \texttt{archivePath}. But it asks for this information at \emph{execution time}. Therefore we have no circular dependency.
+We have an interesting set of dependencies. Obviously the \texttt{date} and \texttt{hello} task have a \emph{configuration} dependency on \texttt{webDist}, as all the build logic for the webapp projects is injected by \texttt{webDist}. The \emph{execution} dependency is in the other direction, as \texttt{webDist} depends on the build artifacts of \texttt{date} and \texttt{hello}. There is even a third dependency. \texttt{webDist} has a \emph{configuration} dependency on \texttt{date} and \texttt{hello} because it needs to know the \texttt{archivePath}. But it asks for this information at \emph{execution time}. Therefore we have no circular dependency.
+
 Such and other dependency patterns are daily bread in the problem space of multi-project builds. If a build system does not support such patterns, you either can't solve your problem or you need to do ugly hacks which are hard to maintain and massively afflict your productivity as a build master.
-There is one more thing to note from the current example. We have used the command \texttt{dependOnChildren()}. It is a convenient method and calls \texttt{dependsOn} in the parent project for every child project (not every sub project). It declares a \texttt{execution} dependency of \texttt{webDist} on \texttt{date} and \texttt{hello}. 
+
+There is one more thing to note from the current example. We have used the command \texttt{dependOnChildren()}. It is a convenience method and calls the \texttt{dependsOn} method of the parent project for every child project (not every sub project). It declares a \texttt{execution} dependency of \texttt{webDist} on \texttt{date} and \texttt{hello}.
+
+Another use case would be a situation where the subprojects have a configuration \emph{and} execution dependency on the parent project. This is the case when the parent project does configuration injection into its subprojects, and additionally produces something at execution time that is needed by its child projects (e.g. code generation). In this case the parent project would call the \texttt{childrenDependOnMe} method to create an execution dependency for the child projects. We might add an example for this in a future version of the userguide.
 % subsection real_life_examples (end)
 % section dependencies_what_dependencies_ (end)
 \section{Project Jar Dependencies} % (fold)
