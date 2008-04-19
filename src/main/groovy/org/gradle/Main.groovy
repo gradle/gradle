@@ -157,13 +157,13 @@ class Main {
             embeddedBuildScript = options.e
         }
 
-        logger.info("gradle.home=$gradleHome")
-        logger.info("Current dir: $currentDir")
-        logger.info("Gradle user home: $gradleUserHomeDir")
+        logger.debug("gradle.home=$gradleHome")
+        logger.debug("Current dir: $currentDir")
+        logger.debug("Gradle user home: $gradleUserHomeDir")
         logger.info("Recursive: $recursive")
         logger.info("Buildfilename: $buildFileName")
-        logger.info("Plugin properties: $pluginProperties")
-        logger.info("Default imports file: $gradleImportsFile")
+        logger.debug("Plugin properties: $pluginProperties")
+        logger.debug("Default imports file: $gradleImportsFile")
 
         try {
             def tasks = options.arguments()

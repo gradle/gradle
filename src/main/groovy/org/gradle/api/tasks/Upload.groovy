@@ -64,7 +64,7 @@ class Upload extends ConventionTask {
     private void upload(Task task) {
         Set bundleConfigurations = []
         bundles.each { Bundle bundle ->
-            bundle.bundleNames.each {
+            bundle.archiveNames.each {
                 AbstractArchiveTask archiveTask = project.task(it)
                 if (archiveTask.publish) {
                     bundleConfigurations.addAll(archiveTask.configurations as List)
