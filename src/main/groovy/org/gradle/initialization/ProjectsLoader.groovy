@@ -24,12 +24,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class ProjectsLoader {
     private static Logger logger = LoggerFactory.getLogger(ProjectsLoader)
 
     static final String GRADLE_PROPERTIES = 'gradle.properties'
+
+    static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = 'org.gradle.project.'
 
     ProjectFactory projectFactory
 
@@ -55,17 +57,22 @@ class ProjectsLoader {
         this.pluginRegistry = pluginRegistry
     }
 
-    ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map startProperties) {
+    ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties, Map systemProperties) {
         logger.info('++ Loading Project objects')
-        rootProject = createProjects(settings, gradleUserHomeDir, startProperties)
+        rootProject = createProjects(settings, gradleUserHomeDir, projectProperties, systemProperties)
         currentProject = DefaultProject.findProject(rootProject, PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.currentDir))
         this
     }
 
-    private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir, Map startProperties) {
-        assert startProperties != null
-                
+    // todo Why are the projectProperties passed only to the root project and the userHomeProperties passed to every Project
+    private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties, Map systemProperties) {
+        assert projectProperties != null
+
         logger.debug("Creating the projects and evaluating the project files!")
+        Map systemProjectProperties = getSystemProjectProperties(systemProperties)
+        if (systemProjectProperties) {
+            logger.debug("Added system project properties: " + systemProjectProperties)
+        }
         File propertyFile = new File(gradleUserHomeDir, GRADLE_PROPERTIES)
         Properties userHomeProperties = new Properties()
         logger.debug("Looking for user properties from: $propertyFile")
@@ -73,17 +80,19 @@ class ProjectsLoader {
             logger.debug('user property file does not exists. We continue!')
         } else {
             userHomeProperties.load(new FileInputStream(propertyFile))
-            logger.debug("Adding user properties: $userHomeProperties")
+            logger.debug("Adding user properties (if not overwritten by system project properties: $userHomeProperties")
         }
-        DefaultProject rootProject = projectFactory.createProject(settings.rootDir.name, null, settings.rootDir, null, projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
-        addPropertiesToProject(gradleUserHomeDir, userHomeProperties + startProperties, rootProject)
+        logger.debug("Looking for system project properties")
+        DefaultProject rootProject = projectFactory.createProject(settings.rootDir.name, null, settings.rootDir, null,
+                projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
+        addPropertiesToProject(gradleUserHomeDir, userHomeProperties + projectProperties, systemProjectProperties, rootProject)
         settings.projectPaths.each {
             List folders = it.split(Project.PATH_SEPARATOR)
             DefaultProject parent = rootProject
             folders.each {name ->
                 if (!parent.childProjects[name]) {
                     parent.childProjects[name] = parent.addChildProject(name)
-                    addPropertiesToProject(gradleUserHomeDir, userHomeProperties, parent.childProjects[name])
+                    addPropertiesToProject(gradleUserHomeDir, userHomeProperties, systemProjectProperties, parent.childProjects[name])
                 }
                 parent = parent.childProjects[name]
             }
@@ -91,7 +100,7 @@ class ProjectsLoader {
         rootProject
     }
 
-    private addPropertiesToProject(File gradleUserHomeDir, Map userProperties, Project project) {
+    private addPropertiesToProject(File gradleUserHomeDir, Map userProperties, Map systemProjectProperties, Project project) {
         Properties projectProperties = new Properties()
         File projectPropertiesFile = new File(project.projectDir, GRADLE_PROPERTIES)
         logger.debug("Looking for project properties from: $projectPropertiesFile")
@@ -102,10 +111,21 @@ class ProjectsLoader {
             logger.debug('project property file does not exists. We continue!')
         }
         projectProperties.putAll(userProperties)
+        projectProperties.putAll(systemProjectProperties)
         project.gradleUserHome = gradleUserHomeDir.canonicalPath
         projectProperties.each {key, value ->
             project."$key" = value
         }
     }
 
+    private Map getSystemProjectProperties(Map systemProperties) {
+        Map systemProjectProperties = [:]
+        systemProperties.each {String key, String value ->
+            if (key.startsWith(SYSTEM_PROJECT_PROPERTIES_PREFIX) &&
+                    key.size() > SYSTEM_PROJECT_PROPERTIES_PREFIX.size()) {
+                systemProjectProperties.put(key.substring(SYSTEM_PROJECT_PROPERTIES_PREFIX.size()), value)
+            }
+        }
+        systemProjectProperties
+    }
 }

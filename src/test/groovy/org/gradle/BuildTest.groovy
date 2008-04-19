@@ -42,7 +42,7 @@ class BuildTest extends GroovyTestCase {
     boolean expectedRecursive
     DefaultSettings expectedSettings
     boolean expectedSearchUpwards
-    Map expectedStartProperties
+    Map expectedProjectProperties
     Map expectedSystemProperties
     List expectedTaskNames
 
@@ -58,7 +58,7 @@ class BuildTest extends GroovyTestCase {
         expectedRecursive = false
         expectedSearchUpwards = false
         expectedClassLoader = new URLClassLoader([] as URL[])
-        expectedStartProperties = [prop: 'value']
+        expectedProjectProperties = [prop: 'value']
         expectedSystemProperties = [systemProp: 'systemPropValue']
 
         expectedCurrentDir = new File('currentDir')
@@ -71,8 +71,9 @@ class BuildTest extends GroovyTestCase {
         }
         expectedRootProject = [:] as DefaultProject
         expectedCurrentProject = [:] as DefaultProject
-        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map startProperties ->
-            assertEquals(expectedStartProperties, startProperties)
+        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map projectProperties, Map systemProperties ->
+            assertEquals(expectedProjectProperties, projectProperties)
+            assertEquals(expectedSystemProperties, systemProperties)
             assertSame(expectedSettings, settings)
             assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
         }
@@ -86,7 +87,7 @@ class BuildTest extends GroovyTestCase {
         checkRun {
             testBuildFactory().run(
                     expectedTaskNames, expectedCurrentDir,
-                    expectedRecursive, expectedSearchUpwards, expectedStartProperties, expectedSystemProperties)
+                    expectedRecursive, expectedSearchUpwards, expectedProjectProperties, expectedSystemProperties)
         }
     }
 
@@ -98,7 +99,7 @@ class BuildTest extends GroovyTestCase {
         }
         checkRun {
             testBuildFactory().run(
-                    expectedTaskNames, expectedCurrentDir, expectedStartProperties, expectedSystemProperties)
+                    expectedTaskNames, expectedCurrentDir, expectedProjectProperties, expectedSystemProperties)
         }
     }
 
@@ -120,8 +121,9 @@ class BuildTest extends GroovyTestCase {
             assertSame(expectedCurrentProject, projectLoaderCurrent)
             assertSame(expectedRootProject, projectLoaderRoot)
         }
-        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map startProperties ->
-            assertEquals(expectedStartProperties, startProperties)
+        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map projectProperties, Map systemProperties ->
+            assertEquals(expectedProjectProperties, projectProperties)
+            assertEquals(expectedSystemProperties, systemProperties)
             assertSame(expectedSettings, settings)
             assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
         }
@@ -179,7 +181,7 @@ class BuildTest extends GroovyTestCase {
                             shouldFail(UnknownTaskException) {
                                 testBuildFactory().run(
                                         expectedTaskNames, expectedCurrentDir, expectedRecursive,
-                                        expectedSearchUpwards, expectedStartProperties, expectedSystemProperties)
+                                        expectedSearchUpwards, expectedProjectProperties, expectedSystemProperties)
                             }
                         }
                     }
@@ -192,7 +194,7 @@ class BuildTest extends GroovyTestCase {
         checkTask {
             testBuildFactory().taskList(
                     expectedCurrentDir, expectedRecursive, expectedSearchUpwards,
-                    expectedStartProperties, expectedSystemProperties)
+                    expectedProjectProperties, expectedSystemProperties)
         }
     }
 
@@ -204,7 +206,7 @@ class BuildTest extends GroovyTestCase {
         }
         checkTask {
             testBuildFactory().taskList(
-                    expectedCurrentDir, expectedStartProperties, expectedSystemProperties)
+                    expectedCurrentDir, expectedProjectProperties, expectedSystemProperties)
         }
     }
 
