@@ -31,7 +31,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface DependencyManager extends DependencyContainer {
-    public static final String DEFAULT_IBIBLIO_NAME = "iBiblio";
+    public static final String DEFAULT_IBIBLIO_NAME = "IBiblio";
 
     public static final String IBIBLIO_URL = "http://repo1.maven.org/maven2/";
 
