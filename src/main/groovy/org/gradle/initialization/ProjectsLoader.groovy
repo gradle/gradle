@@ -33,6 +33,8 @@ class ProjectsLoader {
 
     static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = 'org.gradle.project.'
 
+    static final String ENV_PROJECT_PROPERTIES_PREFIX = 'ORG_GRADLE_PROJECT_'
+
     ProjectFactory projectFactory
 
     DefaultProject rootProject
@@ -65,11 +67,13 @@ class ProjectsLoader {
     }
 
     // todo Why are the projectProperties passed only to the root project and the userHomeProperties passed to every Project
-    private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties, Map systemProperties) {
+    private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
+                                          Map systemProperties) {
         assert projectProperties != null
 
         logger.debug("Creating the projects and evaluating the project files!")
-        Map systemProjectProperties = getSystemProjectProperties(systemProperties + System.getenv())
+        Map systemProjectProperties = getSystemProjectProperties(systemProperties) +
+                getEnvProjectProperties(System.getenv())
         if (systemProjectProperties) {
             logger.debug("Added system project properties: " + systemProjectProperties)
         }
@@ -127,5 +131,16 @@ class ProjectsLoader {
             }
         }
         systemProjectProperties
+    }
+
+    private Map getEnvProjectProperties(Map env) {
+        Map envProjectProperties = [:]
+        env.each {String key, String value ->
+            if (key.startsWith(ENV_PROJECT_PROPERTIES_PREFIX) &&
+                    key.size() > ENV_PROJECT_PROPERTIES_PREFIX.size()) {
+                envProjectProperties.put(key.substring(ENV_PROJECT_PROPERTIES_PREFIX.size()), value)
+            }
+        }
+        envProjectProperties
     }
 }
