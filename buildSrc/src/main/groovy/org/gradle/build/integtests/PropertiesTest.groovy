@@ -21,7 +21,7 @@ package org.gradle.build.integtests
  */
 class PropertiesTest {
     static void execute(String gradleHome, String samplesDirName) {
-        String output = Executer.execute(gradleHome, "$samplesDirName/properties", ['-Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps'], ['ORG_GRADLE_PROJECT_envProjectProp=envPropertyValue'], '', Executer.QUIET).output
+        String output = Executer.execute(gradleHome, "$samplesDirName/properties", ['-PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps'], ['ORG_GRADLE_PROJECT_envProjectProp=envPropertyValue'], '', Executer.QUIET).output
         String expectedOutput = expectedOutput(new File(samplesDirName, 'expectedOutput/properties.out'))
         assert expectedOutput == output
     }
@@ -32,6 +32,7 @@ class PropertiesTest {
 
     static String expectedOutput(File file) {
         String nl = System.properties['line.separator']
-        file.readLines().join(nl) + nl
+        List lines = file.readLines()
+        lines[1..lines.size()-1].join(nl) + nl
     }
 }
