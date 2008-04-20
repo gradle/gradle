@@ -1,3 +1,6 @@
+<h2>Prerequisites</h2>
+Gradle requires a Java JDK and a JAVA_HOME environment variable pointing to the JDK. Gradle ships with its own Groovy
+library. Therefore no Groovy needs to be installed. Any existing Groovy installation is ignored by Gradle. 
 <h2>Unpacking</h2>
 The Gradle distribution comes only as zip. Additional to the binaries it is shipped with:
 <ul>
@@ -8,10 +11,10 @@ The Gradle distribution comes only as zip. Additional to the binaries it is ship
 
 <h3>For Un*x users</h3>
 You need a GNU compatible tool to unzip Gradle, if you want the file permissions to be properly set. We mention this as
-some Zip front ends for Mac OS X don't restore the file permissions properly.
+some zip front ends for Mac OS X don't restore the file permissions properly.
 
 <h2>Environment variables</h2> 
-For running Gradle the GRADLE_HOME environment variable needs to point to the root directory of your Gradle installation.
+For running Gradle, the GRADLE_HOME environment variable needs to point to the root directory of your Gradle installation.
 
 <h2>Testing your installation</h2>
 To check if Gradle is properly installed just type <pre>gradle -v</pre> and you should get an output like:

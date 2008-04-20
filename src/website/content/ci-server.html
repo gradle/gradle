@@ -6,16 +6,16 @@ Gradle is continously build at the following locations:
 <ul>
     <li><a href="http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt41">Windows Build</a></li>
     <li><a href="http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt107">Linux Build</a></li>
-    <li><a href="http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt108">Nightly Build</a></li>
 </ul>
 <h3>Codehaus Bamboo</h3>
 <ul>
-    <li><a href="http://bamboo.ci.codehaus.org">Linux Build</a></li>
+    <li><a href="http://bamboo.ci.codehaus.org/browse/GRADLE-CORETRUNK">Linux Build</a></li>
+    <li><a href="http://bamboo.ci.codehaus.org/browse/GRADLE-NTL">Nightly Build</a> (uploads Javadoc)</li>
 </ul>
 
 <p>As we had many platform specific issues it is very important for us to have a continous build for multiple
 platforms.</p>
-<p>None of those CI servers has Gradle or Groovy installed. Yet Gradle is build by them with Gradle with the help of the
-    Gradle Wrapper.</p>
+<p>Gradle is build with Gradle. Yet none of those CI servers has Gradle or Groovy installed. The Gradle Wrapper makes
+    this possible.</p>
 
 
