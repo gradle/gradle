@@ -1,21 +1,15 @@
 %!TEX root = master.tex
 \chapter{The Gradle Wrapper} % (fold)
 \label{cha:the_gradle_wrapper}
-If you want to use Gradle for building your software you might come across to problems. 
-\begin{itemize}
-	\item How to use Gradle with a continuos integration server where Gradle is not installed.
-	\item How can I spare my users to install Gradle for building my project.
-\end{itemize}
-These might be no issues if you have control over your environment. But if you have no admin right for the continuos integration server or if you provide an open source project the problems described above arise. The simple and good news is, that Gradle provides a solution for this via its \emph{Gradle Wrapper}.
+Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An example are continuous integration server where Gradle is not installed and you have no admin rights for the machine. Or what if you provide an open source project and you want to make it as easy as possible for your users to build it.
 
-Gradle provides a Wrapper task. You can create such a task in your build script.
-
+There is a simple and good news. Gradle provides a solution for this. It ships with a \emph{Wrapper} task. You can create such a task in your build script.
 \begin{Verbatim}
 createTask('wrapper', type: Wrapper).configure {
     gradleVersion = '0.1'
 }	
 \end{Verbatim}
-This task is meant to be explicitly executed. After such an execution you find the following new files in your project folder.
+This task is usually explicitly executed (for example after a switch to a new version of Gradle). After such an execution you find the following new or updated files in your project folder.
 \begin{Verbatim}
 project-root
   - gradle-wrapper
@@ -31,13 +25,13 @@ If you don't want any download to happen when your project is build via \texttt{
 
 \section{Unix file permissions} % (fold)
 \label{sec:unix_file_permissions}
-The Wrapper task adds file permissions to allow execution for the gradlew UNIX command it creates. Subversion preserves this file permission. We are not sure how other version control systems deal with this. What should always work is to execute \texttt{sh gradlew}. 
+The Wrapper task adds appropriate file permissions to allow the execution for the gradlew *NIX command. Subversion preserves this file permission. We are not sure how other version control systems deal with this. What should always work is to execute \texttt{sh gradlew}. 
 
 % section unix_file_permissions (end)
 
 \section{Environment variable} % (fold)
 \label{sec:environment_variable}
-There are rather exotic use cases like the continuos integration server went down during unzipping the Gradle distribution. As the distribution directory exists \texttt{gradlew} delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When you have no admin right for the continuous integration server to remove the corrupt files, Gradle offers an solution via environment variables.
+Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuos integration server goes down during unzipping the Gradle distribution. As the distribution directory exists \texttt{gradlew} delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When you have no admin right for the continuous integration server to remove the corrupt files, Gradle offers a solution via environment variables.
 
 \begin{tabularx}{\textwidth}{cX} 
 	\textbf{Variable Name} & \centerline{\textbf{Meaning}}\\

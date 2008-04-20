@@ -57,4 +57,15 @@ But Gradle offers you also \emph{Directory Tasks} to deal with this.
 \outputInputTutorial{../../../build/tutorial-output/directoryTaskfile.out}
 A \emph{Directory Task} is a simple task which name is a relative path to the project dir\footnote{The notation \texttt{dir('/somepath')} is a convenience method for \texttt{createTask('somepath', type: Directory)}}. During the execution phase the directory corresponding to this path gets created if it does not exists yet. Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn declaration of a task.
 % section directory_creation (end)
+
+\section{Gradle Properties and System Properties} % (fold)
+\label{sec:gradle_properties_and_system_properties}
+Gradle offers a variety of ways to add properties to your build. With the \texttt{-D} command line option you can pass a system property to the JVM which runs Gradle. 
+
+There is also the possibility to add directly properties to your project objects. You can place a \texttt{gradle.properties} file either in the Gradle user home dir (defaults to \texttt{\emph{USER\_HOME}/.gradle}) or in your project dir. For multiproject builds you can place \texttt{gradle.properties} files in any subproject. The properties of the \texttt{gradle.properties} can be accessed via the project object.
+
+You can also add properties directly to your project object via the \texttt{-P} command line option. For more exotic use cases you can even pass properties \emph{directly} to the project object via system and environment properties. For example if you run a build on a continuous integration server where you have no admin rights for the \emph{machine}. Your build script needs properties which values should not be seen by others. Therefore you can't use the \texttt{-P} option. In this case you can add an environment property in the project adminstration section (invisible to normal users).\footnote{\emph{Teamcity} or \emph{Bamboo} are for example CI servers which offer this functionality} If the environment property follows the pattern \texttt{ORG\_GRADLE\_PROJECT\_yourProperty=somevalue}, \texttt{yourProperty} is added to your project object. If in the future CI servers support Gradle directly, they might start Gradle via its main method. Therefore we already support the same mechanism for system properties. The only difference is the prefix, which is \texttt{org.gradle.project.}.
+\codeInput{../../../build/distributions/exploded/samples/properties/gradlefile}
+\outputInputGradle[properties]{../../../build/distributions/exploded/samples/expectedOutput/properties.out}
+% section gradle_properties_and_system_properties (end)
 % chapter the_this_and_that_tutorial (end)

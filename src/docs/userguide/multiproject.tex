@@ -120,7 +120,9 @@ D- water
 
 \codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/addTropical/water/gradlefile}
 \outputInputGradle[userguide/multiproject/addTropical/water]{../../../build/tutorial-output/multiprojectAddTropical.out}
+The \texttt{configureProjects} takes a list as an argument and applies the configuration to the projects in this list.
 % subsubsection filtering_by_name (end)
+
 \subsubsection{Filtering By Properties} % (fold)
 \label{ssub:filtering_by_properties}
 
@@ -304,15 +306,51 @@ There is one more thing to note from the current example. We have used the comma
 Another use case would be a situation where the subprojects have a configuration \emph{and} execution dependency on the parent project. This is the case when the parent project does configuration injection into its subprojects, and additionally produces something at execution time that is needed by its child projects (e.g. code generation). In this case the parent project would call the \texttt{childrenDependOnMe} method to create an execution dependency for the child projects. We might add an example for this in a future version of the userguide.
 % subsection real_life_examples (end)
 % section dependencies_what_dependencies_ (end)
-\section{Project Jar Dependencies} % (fold)
+
+\section{Project Lib Dependencies} % (fold)
 \label{sec:project_jar_dependencies}
-What if one projects needs the jar produced by another project in its compile path. And not just the jar but also the transitive dependencies of this jar. Obviously this is a very common use case for Java multi-project builds. 
+What if one projects needs the jar produced by another project in its compile path. And not just the jar but also the transitive dependencies of this jar. Obviously this is a very common use case for Java multi-project builds. As already mentioned in section \ref{sub:project_dependencies}, Gradle offers project dependencies for this.
+\begin{Verbatim}[frame=single,label=Project Tree]
+D- java
+  D- api
+    F- src/main/java/org/gradle/sample/api/Person.java
+    F- src/main/java/org/gradle/sample/api/PersonImpl.java
+  D- services
+    D- personService
+      F- src/main/java/org/gradle/sample/services/PersonService.java
+      F- src/main/test/org/gradle/sample/services/PersonServiceTest.java
+  D- shared 
+    F- src/main/java/org/gradle/sample/shared/Helper.java 
+  F- gradlesettings
+  F- gradlefile
+\end{Verbatim}
+We have the projects \texttt{shared}, \texttt{api} and \texttt{personService}. \texttt{personService} has a lib dependency on the other two projects. \texttt{api} has a lib dependency on \texttt{shared}.\footnote{\texttt{services} is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script.}
+\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/java/gradlesettings}
+\codeGradleFile[userguide/multiproject/dependencies/java - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/java/gradlefile}
+All the build logic is in the \texttt{gradlefile} of the root project.
+\footnote{We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the buildscript of the respective projects.} 
+A \emph{lib} dependency is a special form of an execution dependency. It causes the other project to be build first and adds the jar with the classes of the other project to the classpath. It also add the dependencies of the other project to the classpath. So you can enter the \texttt{api} folder and trigger a \texttt{gradle compile}. First \texttt{shared} is build and then \texttt{api} is build. Project dependencies enable partial multi-project builds.
 
-If you come from Maven land you might be perfectly happy with this. If you come from Ivy land your are used to have more fine grained control if needed. 
-
-
-
+If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might expect some more fine grained control. Gradle offers this to you:
+\codeGradleFile[userguide/multiproject/dependencies/javaWithCustomConf - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/javaWithCustomConf/gradlefile}
+The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an \emph{additional} library containing only the interfaces of the \texttt{api} project. We assign this library to a new \emph{dependency configuration}. For the person service we declare that the project should be compiled only against the \texttt{api} interfaces but tested with all classes from \texttt{api}.
 % section project_jar_dependencies (end) 
+
+\section{Property and Method Inheritance} % (fold)
+\label{sec:property_and_method_inheritance}
+Properties and methods declared in a project are inherited to all its subprojects. This is an alternative to configuration injection. But we think that the model of inheritance does not reflect the problem space of multi-project builds very well. In a future edition of this userguide we might write more about this. 
+
+Method inheritance might be interesting to use as Gradles \emph{Configuration Injection} does not support methods yet (but will in a future release.).
+
+You might be wondering why we have implemented a feature we obviously don't like that much. One reason is that it is offered by other tools and we want to have the check mark in a feature comparison :). And we like to offer our users a choice.
+% section property_and_method_inheritance (end)
+
+\section{Summary} % (fold)
+\label{sec:summary}
+Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message for this chapter is that multi-project builds with Gradle are usually \emph{not} difficult. There are six elements you need to remember: \texttt{allproject}, \texttt{subprojects}, \texttt{dependsOn}, \texttt{childrenDependOnMe}, \texttt{dependOnChildren} and project lib dependencies. 
+\footnote{So we are well in the range of the \href{http://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two}{7 plus 2 Rule} :)}
+With those elements, and keeping in mind that Gradle has a distinct configuration and execution phase, you have already a lot of flexibility. But when you enter steep territory Gradle does not become an obstacle and usually accompanies and carries you to the top of the mountain.
+% section summary (end)
 % chapter multi_project_builds (end)
 
 
