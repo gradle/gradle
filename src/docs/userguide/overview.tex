@@ -6,7 +6,7 @@
 \label{sec:special_feature_of_gradle}
 Here is a list of Gradles features which we think are special. Special means they are either unique or not shared by any of the two major build tools in the Java World, that is \texttt{Ant} and \texttt{Maven}.
 \begin{description}
-	\item[Client Modules] We think jar dependency management is important for most of the projects. \texttt{Client Modules} provide this, without the need of remote repositories and \texttt{ivy.xml} or \texttt{pom.xml} files. Just put your jars into svn and yet enjoy transitive dependency management. Of course Gradle also support fully Ivy or Maven repository infrastructures based on \texttt{ivy.xml} or \texttt{pom.xml} files and remote repositories.
+	\item[Client Modules] We think dependency management is important any project. \emph{Client Modules} provide this, without the need of remote repositories and \texttt{ivy.xml} or \texttt{pom.xml} files. Just put your jars into svn and yet enjoy transitive dependency management. Of course Gradle also support fully Ivy or Maven repository infrastructures based on \texttt{ivy.xml} or \texttt{pom.xml} files and remote repositories.
 	\item[Cross Project Configuration] \emph{Configuration Injection}
 	\item[Internal Groovy DSL] 
 	\item[Easy Ivy] Our dependency management is based on Ivy, the most advanced and powerful dependency management system we know of in the Java world. We have Ivy integrated in our build-by-convention framework thus making it ready to go without configuring it.

@@ -11,8 +11,8 @@ Variables which are declared with a type modifier are visible within closures bu
 
 \section{Configuration and Execution Phase} % (fold)
 \label{sec:configuration_and_execution_phase}
-Another thing that has to be kept in mind is that Gradle has a distinct configuration and execution phase (see chapter \ref{cha:the_build_lifecycle}). 
+It is important to keep in mind that Gradle has a distinct configuration and execution phase (see chapter \ref{cha:the_build_lifecycle}). 
 \codeInput{../../../build/distributions/exploded/samples/tutorial/mkdirTrapfile}
 \outputInput{../../../build/tutorial-output/mkdirTrapfile.out}
-As the creation of the directory happens during the configuration phase, the clean task removes the directory again during the execution phase.
+As the creation of the directory happens during the configuration phase, the \texttt{clean} task removes the directory during the execution phase.
 % chapter potential_traps (end)
