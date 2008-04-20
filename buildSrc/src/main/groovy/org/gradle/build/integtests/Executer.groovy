@@ -25,13 +25,13 @@ class Executer {
     static final int QUIET = 0
     static final int INFO = 1
     static final int DEBUG = 2
-    static Map execute(String gradleHome, String currentDirName, List tasknames, String buildFileName = '', int outputType = QUIET) {
-        executeInternal('gradle', "${gradleHome}/bin/gradle", gradleHome, ["GRADLE_HOME=$gradleHome"],
+    static Map execute(String gradleHome, String currentDirName, List tasknames, List envs = [], String buildFileName = '', int outputType = QUIET) {
+        executeInternal('gradle', "${gradleHome}/bin/gradle", gradleHome, envs + ["GRADLE_HOME=$gradleHome"],
                 currentDirName, tasknames, buildFileName, outputType)
     }
 
-    static Map executeWrapper(String gradleHome, String currentDirName, List tasknames, String buildFileName = '', int outputType = QUIET) {
-        executeInternal('gradlew', "${currentDirName}/gradlew", gradleHome, [], currentDirName, tasknames, buildFileName, outputType)
+    static Map executeWrapper(String gradleHome, String currentDirName, List tasknames, List envs = [], String buildFileName = '', int outputType = QUIET) {
+        executeInternal('gradlew', "${currentDirName}/gradlew", gradleHome, envs, currentDirName, tasknames, buildFileName, outputType)
     }
 
     static String windowsPath(String gradleHome) {

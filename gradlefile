@@ -268,13 +268,7 @@ createTask('uploadUserguide', dependsOn: 'userguide') {
 
 // The integtests depend on dists because of the wrapper test
 createTask('integTest', dependsOn: ['dists', 'tutorialOutput']) {
-    String distDirPath = explodedDistDir.absolutePath
-    WrapperProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
-    org.gradle.build.integtests.Version.execute(distDirPath)
-    TutorialTest.execute(tutorialOutputDir.dir)
-    WaterProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
-    JavaProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
-    GroovyProject.execute(distDirPath, explodedDistSamplesDir.absolutePath)
+    IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, tutorialOutputDir.dir)
 }.skipProperties
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadUserguide', 'uploadJavadoc'])

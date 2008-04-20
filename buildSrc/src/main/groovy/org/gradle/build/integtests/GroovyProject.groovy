@@ -30,7 +30,7 @@ class GroovyProject {
         List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
         File groovyProjectDir = new File(samplesDirName, GROOVY_PROJECT_NAME)
-        println(Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'], '', Executer.DEBUG).output)
+        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
         mainFiles.each { JavaProject.checkExistence(groovyProjectDir, packagePrefix, it + ".class")}
 
         testFiles.each { JavaProject.checkExistence(groovyProjectDir, testPackagePrefix, it + ".class") }
@@ -45,7 +45,7 @@ class GroovyProject {
         assert new File("$unjarPath/META-INF/myfile").isFile()
 
         // This test is also important for test cleanup
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], '', Executer.DEBUG)
+        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
         assert !(new File(groovyProjectDir, "build").exists())
     }
 

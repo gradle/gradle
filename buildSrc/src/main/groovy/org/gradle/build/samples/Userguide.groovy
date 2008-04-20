@@ -26,12 +26,13 @@ class Userguide {
     static void createOutput(File outputFile, String gradleHome, File projectDir, List tasks, String gradlefile, int outputType) {
         AntBuilder ant = new AntBuilder()
         ant.delete(dir: new File(projectDir, 'build'))
-        Map result = Executer.execute(gradleHome, projectDir.absolutePath, tasks, gradlefile, outputType)
+        Map result = Executer.execute(gradleHome, projectDir.absolutePath, tasks, [], gradlefile, outputType)
         ant.delete(dir: new File(projectDir, 'build'))
         result.output = ">$result.command$NL" + result.output
         outputFile.write(result.output)
     }
 
+    // todo They are just run, the output is not checked. We should change this ASAP.
     static void createNonTutorialOutput(File tutorialOutputDir, File explodedDistDir, File explodedDistSamplesDir) {
         createOutput(new File(tutorialOutputDir, 'buildlifecycle.out'), explodedDistDir.absolutePath,
             new File("$explodedDistSamplesDir/userguide/buildlifecycle"),
