@@ -22,10 +22,16 @@ package org.gradle.build.integtests
 class PropertiesTest {
     static void execute(String gradleHome, String samplesDirName) {
         String output = Executer.execute(gradleHome, "$samplesDirName/properties", ['-Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps'], ['ORG_GRADLE_PROJECT_envProjectProp=envPropertyValue'], '', Executer.QUIET).output
-        assert new File(samplesDirName, 'expectedOutput/properties.out').text == output
+        String expectedOutput = expectedOutput(new File(samplesDirName, 'expectedOutput/properties.out'))
+        assert expectedOutput == output
     }
 
     static void main(String[] args) {
         execute(args[0], args[1])
+    }
+
+    static String expectedOutput(File file) {
+        String nl = System.properties['line.separator']
+        file.readLines().join(nl) + nl
     }
 }
