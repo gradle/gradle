@@ -52,23 +52,23 @@ class Build {
         this.buildExecuter = buildExecuter
     }
 
-    void run(List taskNames, File currentDir, Map projectProperties, Map systemProperties) {
-        runInternal(init(currentDir, projectProperties, systemProperties), taskNames, currentDir, false,
-                projectProperties, systemProperties)
+    void run(List taskNames, File currentDir, Map projectProperties, Map systemPropertiesArgs) {
+        runInternal(init(currentDir, projectProperties, systemPropertiesArgs), taskNames, currentDir, false,
+                projectProperties)
     }
 
-    void run(List taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemProperties) {
-        DefaultSettings settings = init(currentDir, searchUpwards, projectProperties, systemProperties)
-        runInternal(settings, taskNames, currentDir, recursive, projectProperties, systemProperties)
+    void run(List taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs) {
+        DefaultSettings settings = init(currentDir, searchUpwards, projectProperties, systemPropertiesArgs)
+        runInternal(settings, taskNames, currentDir, recursive, projectProperties)
     }
 
     private void runInternal(DefaultSettings settings, List taskNames, File currentDir, boolean recursive,
-                             Map projectProperties, Map systemProperties) {
+                             Map projectProperties) {
         ClassLoader classLoader = settings.createClassLoader()
         boolean unknownTaskCheck = false
         taskNames.each {String taskName ->
             logger.info("++++ Starting build for primary task: $taskName")
-            projectLoader.load(settings, gradleUserHomeDir, projectProperties, systemProperties)
+            projectLoader.load(settings, gradleUserHomeDir, projectProperties, allSystemProperties, allEnvProperties)
             buildConfigurer.process(projectLoader.rootProject, classLoader)
             if (!unknownTaskCheck) {
                 List unknownTasks = buildExecuter.unknownTasks(taskNames, recursive, projectLoader.currentProject)
@@ -79,17 +79,17 @@ class Build {
         }
     }
 
-    String taskList(File currentDir, Map projectProperties, Map systemProperties) {
-        taskListInternal(init(currentDir, projectProperties, systemProperties), currentDir, false, projectProperties, systemProperties)
+    String taskList(File currentDir, Map projectProperties, Map systemPropertiesArgs) {
+        taskListInternal(init(currentDir, projectProperties, systemPropertiesArgs), currentDir, false, projectProperties)
     }
 
-    String taskList(File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemProperties) {
-        taskListInternal(init(currentDir, searchUpwards, projectProperties, systemProperties), currentDir,
-                recursive, projectProperties, systemProperties)
+    String taskList(File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs) {
+        taskListInternal(init(currentDir, searchUpwards, projectProperties, systemPropertiesArgs), currentDir,
+                recursive, projectProperties)
     }
 
-    private String taskListInternal(DefaultSettings settings, File currentDir, boolean recursive, Map projectProperties, Map systemProperties) {
-        projectLoader.load(settings, gradleUserHomeDir, projectProperties, systemProperties)
+    private String taskListInternal(DefaultSettings settings, File currentDir, boolean recursive, Map projectProperties) {
+        projectLoader.load(settings, gradleUserHomeDir, projectProperties, allSystemProperties, allEnvProperties)
         buildConfigurer.taskList(projectLoader.rootProject, recursive, projectLoader.currentProject, settings.createClassLoader())
     }
 
@@ -107,6 +107,14 @@ class Build {
 
     private void setSystemProperties(Map properties) {
         System.properties.putAll(properties)
+    }
+
+    private Map getAllSystemProperties() {
+        System.properties
+    }
+
+    private Map getAllEnvProperties() {
+        System.getenv()
     }
 
     static Closure newInstanceFactory(File gradleUserHomeDir, File pluginProperties, File defaultImportsFile) {

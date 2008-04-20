@@ -59,23 +59,25 @@ class ProjectsLoader {
         this.pluginRegistry = pluginRegistry
     }
 
-    ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties, Map systemProperties) {
+    ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
+                        Map systemProperties, Map envProperties) {
         logger.info('++ Loading Project objects')
-        rootProject = createProjects(settings, gradleUserHomeDir, projectProperties, systemProperties)
-        currentProject = DefaultProject.findProject(rootProject, PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.currentDir))
+        rootProject = createProjects(settings, gradleUserHomeDir, projectProperties, systemProperties, envProperties)
+        currentProject = DefaultProject.findProject(rootProject,
+                PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.currentDir))
         this
     }
 
     // todo Why are the projectProperties passed only to the root project and the userHomeProperties passed to every Project
     private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
-                                          Map systemProperties) {
+                                          Map systemProperties, Map envProperties) {
         assert projectProperties != null
 
         logger.debug("Creating the projects and evaluating the project files!")
-        Map systemProjectProperties = getSystemProjectProperties(systemProperties) +
-                getEnvProjectProperties(System.getenv())
-        if (systemProjectProperties) {
-            logger.debug("Added system project properties: " + systemProjectProperties)
+        Map systemAndEnvProjectProperties = getSystemProjectProperties(systemProperties) +
+                getEnvProjectProperties(envProperties)
+        if (systemAndEnvProjectProperties) {
+            logger.debug("Added system and env project properties: " + systemAndEnvProjectProperties)
         }
         File propertyFile = new File(gradleUserHomeDir, GRADLE_PROPERTIES)
         Properties userHomeProperties = new Properties()
@@ -89,14 +91,14 @@ class ProjectsLoader {
         logger.debug("Looking for system project properties")
         DefaultProject rootProject = projectFactory.createProject(settings.rootDir.name, null, settings.rootDir, null,
                 projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
-        addPropertiesToProject(gradleUserHomeDir, userHomeProperties + projectProperties, systemProjectProperties, rootProject)
+        addPropertiesToProject(gradleUserHomeDir, userHomeProperties + projectProperties, systemAndEnvProjectProperties, rootProject)
         settings.projectPaths.each {
             List folders = it.split(Project.PATH_SEPARATOR)
             DefaultProject parent = rootProject
             folders.each {name ->
                 if (!parent.childProjects[name]) {
                     parent.childProjects[name] = parent.addChildProject(name)
-                    addPropertiesToProject(gradleUserHomeDir, userHomeProperties, systemProjectProperties, parent.childProjects[name])
+                    addPropertiesToProject(gradleUserHomeDir, userHomeProperties, systemAndEnvProjectProperties, parent.childProjects[name])
                 }
                 parent = parent.childProjects[name]
             }
