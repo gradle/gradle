@@ -271,7 +271,7 @@ createTask('integTest', dependsOn: ['dists', 'tutorialOutput']) {
     IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, tutorialOutputDir.dir)
 }.skipProperties
 
-createTask('nightlyBuild', dependsOn: ['integTest', 'uploadUserguide', 'uploadJavadoc'])
+createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc'])
 
 createTask('install', dependsOn: 'integTest') {
     String installDirName = distName + '-SNAPSHOT'
