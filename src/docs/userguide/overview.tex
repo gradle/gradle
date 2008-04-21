@@ -31,13 +31,14 @@ You might argue why not using Java then as the language for build scripts. We th
 For Java teams which share also Python or Ruby knowledge or are happy to learn it the above arguments don't apply. In the near future Gradle wants to give you a choice between different languages for your build scripts. For Jython or JRuby this should be easy to implement. If members of those communities are interested in joining this effort, this is very much appreciated. 
 % section why_groovy (end)
 
-\section{Still Missing} % (fold)
+\section{Missing Features} % (fold)
 \label{sec:still_missing}
-The current release has no functionality for:
+Here a list of features you might expect but are not available yet:
 \begin{itemize}
 	\item Creating IDE project and classpath files. This is one of the top priorities for the next release. We want to provide this for IntelliJ, Eclipse and NetBeans.
 	\item Integration for Emma, Cobertura and JDepends in our build-by-convention framework. Right now you have to integrate them yourself (for example with the Ant tasks for those tools).
-	\item Integration of Jetty in our build-by-convention framework to allow easy startup of a web application. 
+	\item Integration of Jetty in our build-by-convention framework to allow easy startup of a web application.
+	\item Integration of TestNG in our build-by-convention framework.
 \end{itemize}
 
 % section still_missing (end)
