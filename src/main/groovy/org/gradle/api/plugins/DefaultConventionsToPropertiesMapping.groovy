@@ -76,7 +76,8 @@ class DefaultConventionsToPropertiesMapping {
             baseDir: {_(it).classesDir},
             configurations: {[JavaPlugin.LIBS] as String[]},
             manifest: {_(it).manifest},
-            metaInfResourceCollections: {_(it).metaInf}
+            metaInfResourceCollections: {_(it).metaInf},
+            resourceCollections: {[new FileSet(_(it).classesDir)]}
     ]
     // todo Does it really makes sense to add a war to the dists configuration ?
     final static Map WAR = JAR.subMap(JAR.keySet() - 'baseDir') + [
