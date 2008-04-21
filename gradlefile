@@ -17,6 +17,7 @@ import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 import groovy.text.SimpleTemplateEngine
 import org.gradle.build.samples.Userguide
+import org.gradle.api.tasks.StopExecutionException
 
 usePlugin('groovy')
 
@@ -65,7 +66,7 @@ dependencies {
 
     clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
         clientModule(":commons-net:1.4.1") {
-            dependencies(":oro:2.0.8:jar")    
+            dependencies(":oro:2.0.8:jar")
         }
     }
     clientModule(['compile'], ":groovy-all:1.5.5") {
@@ -162,8 +163,8 @@ createTask('explodedDist', dependsOn: 'libs') {
 zipRootFolder = "$distName-${-> version}"
 
 dists {
+    dependsOn 'explodedDist', 'userguide', 'javadoc'
     tasksBaseName = distName
-    dependsOn 'explodedDist'
     childrenDependOn << 'explodedDist'
     zip().afterDag {
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
@@ -184,7 +185,7 @@ dists {
             include 'gradlew'
         }
         zipFileSet(dir: projectDir, prefix: prefix) {
-            include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'gradlefile', 'gradlew.bat'  
+            include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'gradlefile', 'gradlew.bat'
         }
     }
 }
@@ -202,8 +203,6 @@ createTask('uploadJavadoc', dependsOn: 'javadoc') {
     }
 }
 
-createTask('distsWithJavadoc').dependsOn 'dists', 'javadoc'
-
 // This is already a kind of integration test. We have to run the tutorials separately, to get the output for the userguide.
 tutorialOutputDir = dir("$buildDir.name/tutorial-output")
 
@@ -220,6 +219,9 @@ createTask('userguide', dependsOn: ['tutorialOutput', userguideDir]) {
     File userguideData = mkdir(userguideDir.dir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
     ant {
+        if (!isLatexInstalled()) {
+            throw new StopExecutionException('Latex is not installed. We skip the userguide!')
+        }
         cleanLatex(userguideSrc)
         3.times {
             exec(output: userguideDir.toString() + '/pdfOut', executable: 'pdflatex', dir: userguideSrc) {
@@ -245,6 +247,17 @@ createTask('userguide', dependsOn: ['tutorialOutput', userguideDir]) {
         }
         cleanLatex(userguideSrc)
     }
+}
+
+boolean isLatexInstalled() {
+    try {
+        ant.exec(output: userguideDir.toString() + '/findLatexOut', executable: 'pdflatex', dir: projectDir) {
+            arg(line: "-help")
+        }
+    } catch (Throwable e) {
+        return false
+    }
+    true
 }
 
 void cleanLatex(File dir) {
@@ -301,7 +314,7 @@ createTask('install', dependsOn: 'integTest') {
 }
 
 uploadDists {
-    dependsOn 'integTest', 'distsWithJavadoc'
+    dependsOn 'integTest'
 }.doFirst {
     it.uploadResolvers.add(new WebdavResolver()) {
         name = 'gradleReleases'
