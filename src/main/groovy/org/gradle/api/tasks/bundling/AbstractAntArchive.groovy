@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.api.tasks.util.FileSet
 
 /**
  * @author Hans Dockter
@@ -27,7 +28,7 @@ class AbstractAntArchive {
     static final String EMPTY_POLICY_CREATE = 'create'
 
     void addResourceCollections(List resourceCollections, delegate, String nodeName = null) {
-        resourceCollections.each {AntBuilderAware antBuilderAware ->
+        filterCollections(resourceCollections).each {AntBuilderAware antBuilderAware ->
             antBuilderAware.addToAntBuilder(delegate, nodeName)
         }
     }
@@ -36,5 +37,16 @@ class AbstractAntArchive {
         addResourceCollections(parameter.resourceCollections, delegate)
         parameter.gradleManifest?.addToAntBuilder(delegate)
         addResourceCollections(parameter.metaInfFileSets, delegate, 'metainf')
+    }
+
+    private List filterCollections(List resourceCollections) {
+        resourceCollections.findAll { def collection ->
+            if (collection instanceof FileSet) {
+                if (!collection.dir.exists()) {
+                    return false
+                }
+            }
+            true
+        }
     }
 }

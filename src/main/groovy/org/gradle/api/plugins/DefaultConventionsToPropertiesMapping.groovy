@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.tasks.util.FileSet
+
 /**
  * We always cast the closure argument to the JavaConvention object. We try to do this with as less noise as possible.
  * We do this, because we want to use the content assist, reliable refactoring and fail fast.
@@ -76,9 +78,12 @@ class DefaultConventionsToPropertiesMapping {
             manifest: {_(it).manifest},
             metaInfResourceCollections: {_(it).metaInf}
     ]
-    final static Map WAR = JAR.subMap(JAR.keySet() - 'configurations') + [
+    // todo Does it really makes sense to add a war to the dists configuration ?
+    final static Map WAR = JAR.subMap(JAR.keySet() - 'baseDir') + [
             configurations: {[JavaPlugin.DISTS] as String[]},
-            libConfiguration: {JavaPlugin.RUNTIME}
+            libConfiguration: {JavaPlugin.RUNTIME},
+            webInfFileSets: {[new FileSet(_(it).webAppDir)]},
+            classesFileSets: {[new FileSet(_(it).classesDir)]} 
     ]
     final static Map LIB = [
             tasksBaseName: {"${_(it).project.name}"},

@@ -96,9 +96,7 @@ class JavaPlugin implements Plugin {
             if (project.hasProperty('type') && project.type) {
                 type = project.type
             }
-            createArchive(javaConvention.archiveTypes[type]) {
-                resourceCollections << [new FileSet(javaConvention.classesDir)]
-            }
+            createArchive(javaConvention.archiveTypes[type])
         }
         project.createTask(LIBS, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
             // Warning: We need to add the delegate here, because otherwise the method argument with the name

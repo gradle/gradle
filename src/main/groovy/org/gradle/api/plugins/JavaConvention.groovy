@@ -45,6 +45,7 @@ class JavaConvention {
     String javadocDirName
     String testResultsDirName
     String reportsDirName
+    String webAppDirName
     List srcDirNames = []
     List resourceDirNames = []
     List testSrcDirNames = []
@@ -61,6 +62,7 @@ class JavaConvention {
         metaInf = []
         srcRootName = 'src'
         srcDocsDirName = 'docs'
+        webAppDirName = 'main/webapp'
         classesDirName = 'classes'
         testClassesDirName = 'test-classes'
         distsDirName = 'distributions'
@@ -105,6 +107,10 @@ class JavaConvention {
 
     File getSrcDocsDir() {
         new File(srcRoot, srcDocsDirName)
+    }
+
+    File getWebAppDir() {
+        new File(srcRoot, webAppDirName)
     }
 
     File getClassesDir() {
