@@ -32,6 +32,10 @@ subprojects {
 	}
 	sourceCompatibility = 1.5
 	targetCompatibility = 1.5
+	test {
+	    include '**/*Test.class'
+	    exclude '**/Abstract*'
+	}
 }
 \end{Verbatim}
 The commons stuff for all Java projects we do define in the root project. Not by inheritance but via \emph{Configuration Injection}. The root project is like a container and \texttt{subprojects} iterates over the elements of this container and injects the specified configuration. This way we can easily define the manifest content for all archives.

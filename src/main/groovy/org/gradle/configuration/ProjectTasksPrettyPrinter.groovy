@@ -30,7 +30,7 @@ class ProjectTasksPrettyPrinter {
                 writer.writeLine('*' * 50)
                 writer.writeLine("Project: $project")
                 tasks[project].each {Task task ->
-                    writer.writeLine("++Task: $task: $task.dependsOn")
+                    writer.writeLine("++Task: $task.path: $task.dependsOn")
                 }
             }
         }
