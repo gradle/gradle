@@ -78,7 +78,7 @@ dependencies {
         dependencies(":logback-core:0.9.8", ":slf4j-api:1.4.3")
     }
     clientModule(['compile'], ":commons-httpclient:3.0:jar") {
-        dependencies(":commons-codec:1.2")
+        dependencies(":commons-codec:1.2", ":commons-logging:1.0.3")
     }
 
     dependency(['runtime'], ":ant-junit:1.7.0") {
