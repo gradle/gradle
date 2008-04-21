@@ -152,11 +152,11 @@ The Java Plugin preconfigures the dependency management. It adds a set of config
 
 \section{Strategies of transitive dependency management} % (fold)
 \label{sec:strategies_of_transitive_dependency_management}
-Many projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 IBiblio repository}. This is not without problems. \footnote{See also the discussion in Appendix \ref{cha:the_problem_with_mavens_dependency_management}}
+Many projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 IBiblio repository}. This is not without problems.
 \begin{itemize}
 	\item The IBibilio repository is often down or has a very long response time.
 	\item The pom.xml's of many projects have wrong informations. (as one example, the pom of commons-httpclient-3.0 declares junit as a runtime dependency).
-	\item For many projects there is not one right set of dependencies. 
+	\item For many projects there is not one right set of dependencies (as more or less impose by he \texttt{pom} format). 
 \end{itemize} 
 If your project relies on the IBibilio repository you are likely to need an additional custom repository, because:
 \begin{itemize}
@@ -168,7 +168,7 @@ It is not a big deal to set-up a custom repository.\footnote{If you want to shie
 
 \subsection{Enterprise Environments} % (fold)
 \label{sub:enterprise_environments}
-In a larger enterprise environment you are likely to have a number of independent builds, possibly many different, large multi-project builds. Here a repository infrastructure makes a lot of sense. You have already infrastructure that guarantees a high uptime. Multiple projects can share there information about certain common dependencies they have. There is a central place to look for dependency information. And the repositories are used to integrate the internal projects with each other. One project publishes itself to the company repository, with all its dependency information stored in an ivy.xml or pom.xml file.\footnote{As discusses in \ref{sub:other_environments} this will be also possible with client modules in a future release.} Together with a continous integration server this offers a strong integration for projects with separate builds. As you have seen, Gradle fully supports this approach.
+In a larger enterprise environment you are likely to have a number of independent builds, possibly many different, large multi-project builds. Here a repository infrastructure makes a lot of sense. You have already infrastructure that guarantees a high uptime. Multiple projects can share there information about certain common dependencies they have. There is a central place to look for dependency information. And the repositories are used to integrate the internal projects with each other. One project publishes itself to the company repository, with all its dependency information stored in an ivy.xml or pom.xml file.\footnote{As discussed in \ref{sub:other_environments} this will be also possible with client modules in a future release.} Together with a continous integration server this offers a strong integration for projects with separate builds. As you have seen, Gradle fully supports this approach.
 % subsection enterprise_environments (end)
 
 \subsection{Other environments} % (fold)
