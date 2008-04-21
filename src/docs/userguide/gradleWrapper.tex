@@ -1,7 +1,7 @@
 %!TEX root = master.tex
 \chapter{The Gradle Wrapper} % (fold)
 \label{cha:the_gradle_wrapper}
-Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An example are continuous integration server where Gradle is not installed and you have no admin rights for the machine. Or what if you provide an open source project and you want to make it as easy as possible for your users to build it.
+Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An example are continuous integration server where Gradle is not installed and you have no admin rights for the machine. Or what if you provide an open source project and you want to make it as easy as possible for your users to build it.\footnote{If you download the gradle source distribution or check out Gradle from SVN, you can build Gradle via the gradle wrapper..}
 
 There is a simple and good news. Gradle provides a solution for this. It ships with a \emph{Wrapper} task.\footnote{Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See \url{http://gradle.org/ci-server.html}} You can create such a task in your build script.
 \begin{Verbatim}
@@ -21,7 +21,7 @@ project-root
 All these files should be submitted to your version control system. The \texttt{gradlew} commands can be used \emph{exactly} the same way as the \texttt{gradle} commands. If you run Gradle with \texttt{gradlew}, Gradle looks if the directory \texttt{\emph{project-root}/gradle-wrapper/gradle-dist/gradle-0.1} exists. If it exists, the \texttt{gradle} command of this distribution is called with all the arguments passed to the \texttt{gradlew} command.
 If the distribution directory does not exists, Gradle looks if the file \texttt{\emph{project-root}/gradle-wrapper/gradle-dist/gradle-0.1.zip} does exists. If so, the zip is unpacked and \texttt{gradle} is called. If the distribution zip does not exists, Gradle tries to download it. You can specify the download url root via the \texttt{urlRoot} property of the Wrapper task. If you don't specify it, Gradle uses \texttt{http://dist.codehaus.org/gradle} as its value. 
 
-If you don't want any download to happen when your project is build via \texttt{gradlew}, simply add the Gradle distribution zip to your version control at the location described above. 
+If you don't want any download to happen when your project is build via \texttt{gradlew}, simply add the Gradle distribution zip to your version control at the location described above. If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
 
 \section{Unix file permissions} % (fold)
 \label{sec:unix_file_permissions}
