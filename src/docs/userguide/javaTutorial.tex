@@ -22,6 +22,10 @@ We have three projects. \texttt{api} is shipped to the client to provide them a 
 
 \begin{Verbatim}[frame=single,label=ultimateApp]
 subprojects {
+    manifest.mainAttributes([	       
+	    'Implementation-Title': 'Gradle',
+		'Implementation-Version': '0.1'
+	])
 	dependencies {
 		compile "commons-lang:commons-lang:3.1"
 		test "junit:junit:4.4"
@@ -30,7 +34,7 @@ subprojects {
 	targetCompatibility = 1.5
 }
 \end{Verbatim}
-The commons stuff for all Java projects we do define in the root project. Not by inheritance but via \emph{Configuration Injection}. The root project is a container and \texttt{subprojects} iterates over the elements of this container and injects the specified configuration.
+The commons stuff for all Java projects we do define in the root project. Not by inheritance but via \emph{Configuration Injection}. The root project is like a container and \texttt{subprojects} iterates over the elements of this container and injects the specified configuration. This way we can easily define the manifest content for all projects.
 
 \begin{Verbatim}[frame=single,label=api]
 dependencies {
