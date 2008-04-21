@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.TestTask
 
-
 /**
  * @author Hans Dockter
  */

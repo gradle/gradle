@@ -126,6 +126,8 @@ public interface Project {
 
     Project project(String path);
 
+    Project project(String path, Closure configureClosure);
+
     SortedMap getAllTasks(boolean recursive);
 
     SortedMap getTasksByName(String name, boolean recursive);

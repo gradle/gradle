@@ -53,8 +53,31 @@ goto end
 :init
 @rem get name of script to launch with full path
 @rem Get command-line arguments, handling Windowz variants
+SET _marker=%JAVA_HOME: =%
+IF NOT "%_marker%" == "%JAVA_HOME%" ECHO JAVA_HOME "%JAVA_HOME%" contains spaces. Please change to a location without spaces if this causes problems.
+
 if not "%OS%" == "Windows_NT" goto win9xME_args
 if "%eval[2+2]" == "4" goto 4NT_args
+
+IF "%_marker%" == "%JAVA_HOME%" goto :win9xME_args
+
+set _FIXPATH=
+call :fixpath "%JAVA_HOME%"
+set JAVA_HOME=%_FIXPATH:~1%
+
+goto win9xME_args
+
+:fixpath
+if not %1.==. (
+for /f "tokens=1* delims=;" %%a in (%1) do (
+call :shortfilename "%%a" & call :fixpath "%%b"
+)
+)
+goto :EOF
+:shortfilename
+for %%i in (%1) do set _FIXPATH=%_FIXPATH%;%%~fsi
+goto :EOF
+
 
 :win9xME_args
 @rem Slurp the command line arguments.

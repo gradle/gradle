@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class BuildConfigurer {
-    Logger logger = LoggerFactory.getLogger(BuildConfigurer)
+    private static Logger logger = LoggerFactory.getLogger(BuildConfigurer)
 
     BuildClasspathLoader buildClasspathLoader
 

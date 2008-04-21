@@ -25,23 +25,37 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver
  */
 class SettingsConverter {
     static final String CHAIN_RESOLVER_NAME = 'chain'
+    static final String CLIENT_MODULE_CHAIN_NAME = 'clientModuleChain'
+    static final String CLIENT_MODULE_NAME = 'clientModule'
 
     IvySettings ivySettings
-    
-    IvySettings convert(def classpathResolvers, def otherResolvers, File gradleUserHome, RepositoryResolver buildResolver) {
+
+    IvySettings convert(def classpathResolvers, def otherResolvers, File gradleUserHome, RepositoryResolver buildResolver,
+                        Map clientModuleRegistry) {
         if (ivySettings) {return ivySettings}
+        ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
+        clientModuleResolver.moduleRegistry = clientModuleRegistry
+        clientModuleResolver.name = CLIENT_MODULE_NAME
         ChainResolver chainResolver = new ChainResolver()
         chainResolver.name = CHAIN_RESOLVER_NAME
         chainResolver.add(buildResolver)
         classpathResolvers.each {
             chainResolver.add(it)
         }
+        clientModuleResolver.mainResolver = chainResolver
+        ChainResolver clientModuleChain = new ChainResolver()
+        clientModuleChain.name = CLIENT_MODULE_CHAIN_NAME
+        clientModuleChain.returnFirst = true
+        clientModuleChain.add(clientModuleResolver)
+        clientModuleChain.add(chainResolver)
         IvySettings ivySettings = new IvySettings()
-        otherResolvers.each {ivySettings.addResolver(it)}
-        ivySettings.addResolver(chainResolver)
-        ivySettings.setDefaultResolver(CHAIN_RESOLVER_NAME)
+        (otherResolvers + classpathResolvers + [buildResolver, clientModuleChain, clientModuleResolver, chainResolver]).each {
+            ivySettings.addResolver(it)
+            it.repositoryCacheManager.settings = ivySettings
+        }
+        ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME)
         ivySettings.setVariable('ivy.cache.dir', gradleUserHome.canonicalPath + '/cache')
-        buildResolver.repositoryCacheManager.settings = ivySettings
         ivySettings
     }
+
 }

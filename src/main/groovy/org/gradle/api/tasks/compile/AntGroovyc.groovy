@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class AntGroovyc extends AbstractAntCompile {
-    Logger logger = LoggerFactory.getLogger(AbstractAntCompile)
+    private static Logger logger = LoggerFactory.getLogger(AbstractAntCompile)
 
     public void executeCompileTask(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                                    String targetCompatibility, CompileOptions compileOptions) {

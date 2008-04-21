@@ -27,9 +27,9 @@ class WrapperProject {
         File waterDir = new File(samplesDirName, WrapperProjectCreator.WRAPPER_PROJECT_NAME)
 
         Executer.execute(gradleHome, waterDir.absolutePath, [WrapperProjectCreator.WRAPPER_TASK_NAME])
-        String output = Executer.executeWrapper(gradleHome, waterDir.absolutePath,
+        Map result = Executer.executeWrapper(gradleHome, waterDir.absolutePath,
                 [WrapperProjectCreator.TEST_TASK_NAME])
-        String compareValue =  output.substring(output.size() - WrapperProjectCreator.TEST_TASK_OUTPUT.size() - nl.size())
+        String compareValue =  result.output.substring(result.output.size() - WrapperProjectCreator.TEST_TASK_OUTPUT.size() - nl.size())
         assert  compareValue == WrapperProjectCreator.TEST_TASK_OUTPUT + nl
     }
 }

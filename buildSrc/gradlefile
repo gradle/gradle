@@ -1,0 +1,32 @@
+import org.gradle.api.DependencyManager
+import org.apache.ivy.core.install.InstallOptions
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+
+usePlugin('groovy')
+
+dependencies {
+    addFlatDirResolver('lib', new File(rootDir, 'lib'))
+    dependencies(['compile'], ":svnkit:1.1.6", ":svnkit-javahl:1.1.6")
+}
+
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
+compile.unmanagedClasspath(org.gradle.util.GradleUtil.gradleClasspath)
+test {
+    include '**/*Test.class'
+    exclude '**/Abstract*'
+    // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
+    options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)
+}
+
+uploadLibs.doLast {
+    InstallOptions installOptions = new InstallOptions()
+    installOptions.overwrite = true
+    installOptions.validate = false
+    def ivy = dependencies.ivy
+    DefaultModuleDescriptor moduleDescriptor = dependencies.moduleDescriptorConverter.convert(dependencies)
+    moduleDescriptor.dependencies.each { DependencyDescriptor dependencyDescriptor ->
+        ivy.install(dependencyDescriptor.dependencyRevisionId, 'lib', DependencyManager.BUILD_RESOLVER_NAME, installOptions)
+    }
+}

@@ -37,7 +37,7 @@ class Bundle extends ConventionTask {
 
     Map defaultArchiveTypes
 
-    List bundleNames = []
+    List archiveNames = []
 
     Bundle(Project project, String name) {
         super(project, name)
@@ -56,7 +56,7 @@ class Bundle extends ConventionTask {
         archiveTask.baseName = (baseName ?: self.tasksBaseName)
         archiveTask.dependsOn = self.childrenDependOn
         this.dependsOn(taskName)
-        bundleNames << archiveTask.name
+        archiveNames << archiveTask.name
         archiveTask
     }
 

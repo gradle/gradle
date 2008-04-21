@@ -58,11 +58,11 @@ class CompileTest extends AbstractConventionTaskTest {
         assertNotNull(compile.existentDirsFilter)
         assertNotNull(compile.classpathConverter)
         assertNull(compile.antCompile)
-        assertNull(compile.targetDir)
+        assertNull(compile.destinationDir)
         assertNull(compile.sourceCompatibility)
         assertNull(compile.targetCompatibility)
         assertNull(compile.dependencyManager)
-        assertEquals([], compile.sourceDirs)
+        assertEquals([], compile.srcDirs)
         assertEquals([], compile.unmanagedClasspath)
     }
 
@@ -70,7 +70,7 @@ class CompileTest extends AbstractConventionTaskTest {
         setUpMocksAndAttributes(compile)
         antCompileMocker.demand.execute(1..1) {List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                  String targetCompatibility, CompileOptions compileOptions, AntBuilder ant ->
-            assertEquals(compile.sourceDirs, sourceDirs)
+            assertEquals(compile.srcDirs, sourceDirs)
             assertEquals(TEST_TARGET_DIR, targetDir)
             assertEquals(sourceCompatibility, compile.sourceCompatibility)
             assertEquals(targetCompatibility, compile.targetCompatibility)
@@ -80,14 +80,6 @@ class CompileTest extends AbstractConventionTaskTest {
         }
 
         antCompileMocker.use(compile.antCompile) {
-            compile.execute()
-        }
-    }
-
-    void testExecuteWithUnspecifiedTargetDir() {
-        setUpMocksAndAttributes(compile)
-        compile.targetDir = null
-        shouldFailWithCause(InvalidUserDataException) {
             compile.execute()
         }
     }
@@ -116,18 +108,6 @@ class CompileTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testExecuteWithNoExisitingSourceDirs() {
-        setUpMocksAndAttributes(compile)
-        compile.existentDirsFilter = [findExistingDirsAndLogexitMessages: {[]}] as ExistingDirsFilter
-        
-        antCompileMocker.demand.execute(0..0) {List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
-                 String targetCompatibility, CompileOptions compileOptions -> }
-
-        antCompileMocker.use(compile.antCompile) {
-            compile.execute()
-        }
-    }
-
     void testUnmanagedClasspath() {
         List list1 = ['a', new Object()]
         assert compile.unmanagedClasspath(list1 as Object[]).is(compile)
@@ -138,12 +118,16 @@ class CompileTest extends AbstractConventionTaskTest {
     }
 
     private void setUpMocksAndAttributes(Compile compile) {
-        compile.sourceDirs = ['sourceDir1' as File, 'sourceDir2' as File]
-        compile.existentDirsFilter = [findExistingDirsAndLogexitMessages: {compile.sourceDirs}] as ExistingDirsFilter
+        compile.srcDirs = ['sourceDir1' as File, 'sourceDir2' as File]
+        compile.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
+            assert destDir.is(compile.destinationDir)
+            assert srcDirs.is(compile.srcDirs)
+            compile.srcDirs
+        }] as ExistingDirsFilter
         compile.unmanagedClasspath = TEST_UNMANAGED_CLASSPATH
         compile.sourceCompatibility = "1.5"
         compile.targetCompatibility = '1.5'
-        compile.targetDir = TEST_TARGET_DIR
+        compile.destinationDir = TEST_TARGET_DIR
         compile.antCompile = [:] as AntJavac
         compile.dependencyManager = [resolveClasspath: {String taskName ->
             assertEquals(compile.name, taskName)

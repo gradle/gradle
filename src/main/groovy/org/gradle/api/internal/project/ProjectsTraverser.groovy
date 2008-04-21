@@ -21,7 +21,7 @@ package org.gradle.api.internal.project
  */
 class ProjectsTraverser {
     void traverse(Collection projects, Closure action) {
-        projects = new HashSet(projects)
+        projects = new TreeSet(projects)
         if (!projects) return
         projects.each {
             action(it)

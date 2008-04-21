@@ -42,8 +42,8 @@ class BuildTest extends GroovyTestCase {
     boolean expectedRecursive
     DefaultSettings expectedSettings
     boolean expectedSearchUpwards
-    Map expectedStartProperties
-    Map expectedSystemProperties
+    Map expectedProjectProperties
+    Map expectedSystemPropertiesArgs
     List expectedTaskNames
 
     Closure testBuildFactory
@@ -58,8 +58,8 @@ class BuildTest extends GroovyTestCase {
         expectedRecursive = false
         expectedSearchUpwards = false
         expectedClassLoader = new URLClassLoader([] as URL[])
-        expectedStartProperties = [prop: 'value']
-        expectedSystemProperties = [systemProp: 'systemPropValue']
+        expectedProjectProperties = [prop: 'value']
+        expectedSystemPropertiesArgs = [systemProp: 'systemPropValue']
 
         expectedCurrentDir = new File('currentDir')
         expectedGradleUserHomeDir = new File('gradleUserHomeDir')
@@ -71,8 +71,11 @@ class BuildTest extends GroovyTestCase {
         }
         expectedRootProject = [:] as DefaultProject
         expectedCurrentProject = [:] as DefaultProject
-        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map startProperties ->
-            assertEquals(expectedStartProperties, startProperties)
+        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
+                                               Map systemProperties, Map envProperties ->
+            assertEquals(expectedProjectProperties, projectProperties)
+            assertEquals(System.properties, systemProperties)
+            assertEquals(System.getenv(), envProperties)
             assertSame(expectedSettings, settings)
             assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
         }
@@ -86,7 +89,7 @@ class BuildTest extends GroovyTestCase {
         checkRun {
             testBuildFactory().run(
                     expectedTaskNames, expectedCurrentDir,
-                    expectedRecursive, expectedSearchUpwards, expectedStartProperties, expectedSystemProperties)
+                    expectedRecursive, expectedSearchUpwards, expectedProjectProperties, expectedSystemPropertiesArgs)
         }
     }
 
@@ -98,7 +101,7 @@ class BuildTest extends GroovyTestCase {
         }
         checkRun {
             testBuildFactory().run(
-                    expectedTaskNames, expectedCurrentDir, expectedStartProperties, expectedSystemProperties)
+                    expectedTaskNames, expectedCurrentDir, expectedProjectProperties, expectedSystemPropertiesArgs)
         }
     }
 
@@ -120,8 +123,11 @@ class BuildTest extends GroovyTestCase {
             assertSame(expectedCurrentProject, projectLoaderCurrent)
             assertSame(expectedRootProject, projectLoaderRoot)
         }
-        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map startProperties ->
-            assertEquals(expectedStartProperties, startProperties)
+        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
+                                               Map systemProperties, Map envProperties ->
+            assertEquals(expectedProjectProperties, projectProperties)
+            assertEquals(System.properties, systemProperties)
+            assertEquals(System.getenv(), envProperties)
             assertSame(expectedSettings, settings)
             assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
         }
@@ -150,7 +156,7 @@ class BuildTest extends GroovyTestCase {
                 }
             }
         }
-        checkSystemProps(expectedSystemProperties)
+        checkSystemProps(expectedSystemPropertiesArgs)
         projectLoaderMocker.expect.verify()
     }
 
@@ -179,7 +185,7 @@ class BuildTest extends GroovyTestCase {
                             shouldFail(UnknownTaskException) {
                                 testBuildFactory().run(
                                         expectedTaskNames, expectedCurrentDir, expectedRecursive,
-                                        expectedSearchUpwards, expectedStartProperties, expectedSystemProperties)
+                                        expectedSearchUpwards, expectedProjectProperties, expectedSystemPropertiesArgs)
                             }
                         }
                     }
@@ -192,7 +198,7 @@ class BuildTest extends GroovyTestCase {
         checkTask {
             testBuildFactory().taskList(
                     expectedCurrentDir, expectedRecursive, expectedSearchUpwards,
-                    expectedStartProperties, expectedSystemProperties)
+                    expectedProjectProperties, expectedSystemPropertiesArgs)
         }
     }
 
@@ -204,7 +210,7 @@ class BuildTest extends GroovyTestCase {
         }
         checkTask {
             testBuildFactory().taskList(
-                    expectedCurrentDir, expectedStartProperties, expectedSystemProperties)
+                    expectedCurrentDir, expectedProjectProperties, expectedSystemPropertiesArgs)
         }
     }
 
@@ -227,7 +233,7 @@ class BuildTest extends GroovyTestCase {
                 }
             }
         }
-        checkSystemProps(expectedSystemProperties)
+        checkSystemProps(expectedSystemPropertiesArgs)
     }
 
     private checkSystemProps(Map props) {
@@ -239,12 +245,17 @@ class BuildTest extends GroovyTestCase {
     // todo: This test is rather weak. Make it stronger.
     void testNewInstanceFactory() {
         File expectedPluginProps = new File('pluginProps')
-        Build build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps).call(new BuildScriptFinder(),
+        File expectedDefaultImports = new File('defaultImports')
+        Build build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps, expectedDefaultImports).call(
+                new BuildScriptFinder(),
                 new File('buildResolverDir'))
         assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)
-        build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps).call(new BuildScriptFinder(),
+        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
+        assertEquals(expectedDefaultImports, build.settingsProcessor.importsReader.defaultImportsFile)
+        build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps, expectedDefaultImports).call(new BuildScriptFinder(),
                 null)
         assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)
+        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
     }
 
 }

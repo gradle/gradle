@@ -24,6 +24,8 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface Task extends Comparable {
+    final static String AUTOSKIP_PROPERTY_PREFIX = "skip.";
+            
     /**
      *
      * @return the name of the task
@@ -70,7 +72,7 @@ public interface Task extends Comparable {
      * @param paths
      * @return the task object this method is applied to
      */
-    Task dependsOn(String[] paths);
+    Task dependsOn(Object[] paths);
 
     /**
      * Adds the given action closure to the beginning of the tasks action list.

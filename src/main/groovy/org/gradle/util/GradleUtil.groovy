@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class GradleUtil {
-    static Logger logger = LoggerFactory.getLogger(GradleUtil)
+    private static Logger logger = LoggerFactory.getLogger(GradleUtil)
     
     static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
         if (!configureClosure) { return delegate}
@@ -47,7 +47,6 @@ class GradleUtil {
 
     static File[] getGradleClasspath() {
         File gradleHomeLib = new File(System.properties["gradle.home"] + "/lib")
-        logger.debug("Read libs from: $gradleHomeLib.absolutePath")
         if (gradleHomeLib.isDirectory()) {
             return gradleHomeLib.listFiles()
         }

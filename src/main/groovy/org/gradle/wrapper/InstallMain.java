@@ -16,15 +16,15 @@
 
 package org.gradle.wrapper;
 
-import java.util.Properties;
 import java.io.File;
 
 /**
  * @author Hans Dockter
  */
 class InstallMain {
-    public static final String ALWAYS_INSTALL_ENV = "GRADLE_WRAPPER_ALWAYS_INSTALL";
-    
+    public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
+    public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
+
     /*
      * First argument: urlRoot (e.g. http://dist.codehaus.org/gradle)
      * Second argument: distribution-name (e.g. gradle-1.0)
@@ -33,9 +33,11 @@ class InstallMain {
         if (args.length != 2) {
             throw new IllegalArgumentException("Wrong number of arguments supplied!");
         }
-        System.out.println("GRADLE_WRAPPER_ALWAYS_INSTALL env variable: " + System.getenv(ALWAYS_INSTALL_ENV));
-        boolean alwaysInstall = Boolean.parseBoolean(System.getenv(ALWAYS_INSTALL_ENV));
-        new Install(alwaysInstall).createDist(args[0], args[1], new File(Install.WRAPPER_DIR, "gradle-dist"));
+        System.out.println(ALWAYS_UNPACK_ENV + " env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
+        System.out.println(ALWAYS_DOWNLOAD_ENV + " env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
+        boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
+        boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
+        new Install(alwaysDownload, alwaysUnpack).createDist(args[0], args[1], new File(Install.WRAPPER_DIR, "gradle-dist"));
     }
 
 }

@@ -1,0 +1,29 @@
+%!TEX root = master.tex
+\chapter{The Groovy Plugin} % (fold)
+\label{cha:the_groovy_plugin}
+The Groovy Plugin extends the JavaPlugin. It can deal with pure Java projects\footnote{We don't recommend this, as the Groovy plugin uses the \emph{Groovyc} Ant task to compile the sources. For pure Java projects you might rather stick with pure \texttt{javac}.}, with mixed Java and Groovy projects and with pure Groovy projects. The Groovy plugin does not add any tasks. It modifies some of the tasks of the JavaPlugin and adds to the \emph{Convention} object.
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|l|l|} \hline
+	\textbf{Folder} & \textbf{Meaning} \\ \hline
+	\texttt{src/main/groovy} & Application/Library sources in Groovy\\ \hline
+	\texttt{src/test/groovy} & Test sources in Groovy \\ \hline
+	\end{tabular}
+	\end{center}
+	\caption{Default Directory Layout (additional to the Java layout)}	
+	\label{groovylayout}
+\end{table}
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|l|l|l|l|} \hline
+			\textbf{Dir Name} & \textbf{Dir File} & \textbf{Default Value Name} & \textbf{Default Value File}\\ \hline
+			groovySrcDirNames & groovySrcDirs & \texttt{main/groovy} & [\emph{srcRoot}\texttt{/main/groovy}] \\ \hline
+			groovyTestSrcDirNames & groovyTestSrcDirs & \texttt{test/groovy} & [\emph{srcRoot}\texttt{/test/groovy}] \\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Groovy Convention Object (extends JavaConvention).}
+	\label{groovyconvention}
+\end{table}
+
+\noindent All the Groovy source directories can contain Groovy \emph{and} Java code. The Java source directories may only contain Java source code (and can of course be empty)\footnote{We are using the same conventions as introduced by Russel Winders Gant tool (\url{http://gant.codehaus.org}).}
+% chapter the_groovy_plugin (end)

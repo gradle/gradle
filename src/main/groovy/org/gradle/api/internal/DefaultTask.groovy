@@ -21,17 +21,17 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.PathOrder
+import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
  */
 class DefaultTask implements Task {
-    Logger logger = LoggerFactory.getLogger(DefaultTask)
+    private static Logger logger = LoggerFactory.getLogger(DefaultTask)
 
     AntBuilder ant = new AntBuilder()
 
@@ -83,7 +83,7 @@ class DefaultTask implements Task {
 
     void execute() {
         logger.debug("Executing ProjectTarget: $path")
-        List trueSkips = skipProperties.findAll {System.properties[it] && Boolean.valueOf(System.properties[it])}
+        List trueSkips = (skipProperties + ["$Task.AUTOSKIP_PROPERTY_PREFIX$name"]).findAll {String prop -> Boolean.getBoolean(prop)}
         if (trueSkips) {
             logger.info("Skipping execution as following skip properties are true: ${trueSkips.join(' ')}")
         } else {
@@ -94,8 +94,12 @@ class DefaultTask implements Task {
                 } catch (StopExecutionException e) {
                     logger.info("Execution stopped by some action with message: $e.message")
                     break
+                } catch (StopActionException e) {
+                    logger.debug("Action stopped by some action with message: $e.message")
+                    continue
                 } catch (Throwable t) {
-                    throw new GradleScriptException(t, project?.buildScriptFinder?.buildFileName ?: 'unknown')
+                    throw new GradleScriptException(t, project?.buildScriptFinder?.buildFileName ?: 'unknown',
+                        project.importsLineCount)
                 }
             }
         }
@@ -123,8 +127,8 @@ class DefaultTask implements Task {
         getPath()
     }
 
-    Task dependsOn(String[] paths) {
-        paths.each {String path ->
+    Task dependsOn(Object[] paths) {
+        paths.each {path ->
             if (!path) {
                 throw new InvalidUserDataException('A pathelement must not be empty')
             }

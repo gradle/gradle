@@ -16,9 +16,9 @@
 
 package org.gradle.wrapper;
 
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.io.*;
 
 /**
  * @author Hans Dockter

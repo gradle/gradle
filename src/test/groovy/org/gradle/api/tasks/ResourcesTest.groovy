@@ -42,20 +42,19 @@ class ResourcesTest extends AbstractTaskTest {
         convention = new Expando()
         convention.classesDir = new File('/classes')
         resources.convention = convention
-        resources.conventionMapping = [targetDir: { it.classesDir }]
+        resources.conventionMapping = [destinationDir: { it.classesDir }]
         copyInstructionFactoryMocker = new MockFor(CopyInstructionFactory)
     }
 
     Task getTask() {resources}
 
     void testExecute() {
-        assertEquals(convention.classesDir, resources.targetDir)
+        assertEquals(convention.classesDir, resources.destinationDir)
         
         File sourceDir1 = new File('/source1')
         File sourceDir2 = new File('/source2')
         File sourceDir3 = new File('/source3')
-        resources.existentDirsFilter = [findExistingDirsAndLogexitMessages: {[sourceDir1, sourceDir2, sourceDir3]}] as ExistingDirsFilter
-
+        
         File targetDir = convention.classesDir
 
         // We test also that the respective methods returns the resource object
@@ -92,8 +91,8 @@ class ResourcesTest extends AbstractTaskTest {
         assert resources.is(resources.filter(sourceDir2, sourceDir2Filter1))
         assert resources.is(resources.filter(sourceDir2, sourceDir2Filter2))
 
-        assertEquals([sourceDir1, sourceDir2, sourceDir3] as HashSet, resources.sourceDirs)
-        assertEquals(targetDir, resources.targetDir)
+        assertEquals([sourceDir1, sourceDir2, sourceDir3], resources.srcDirs)
+        assertEquals(targetDir, resources.destinationDir)
 
         Map instructionExecuted = [:]
 
@@ -103,6 +102,13 @@ class ResourcesTest extends AbstractTaskTest {
             record[sourceDir] = [target, includes, excludes, filter]
             [execute: {instructionExecuted[sourceDir] = new Boolean(true)}] as CopyInstructionTest
         }
+
+        resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
+                    assert destDir.is(resources.destinationDir)
+                    assert srcDirs.is(resources.srcDirs)
+                    resources.srcDirs
+                }] as ExistingDirsFilter
+
 
         copyInstructionFactoryMocker.use(copyInstructionFactory) {
             resources.execute()
@@ -139,16 +145,5 @@ class ResourcesTest extends AbstractTaskTest {
         assertEquals(excludes as HashSet, calledValues[2] as HashSet)
         assertEquals(filter, calledValues[3])
     }
-
-    void testExecuteWithoutSourceFolder() {
-        resources.existentDirsFilter = [findExistingDirsAndLogexitMessages: {[]}] as ExistingDirsFilter
-        copyInstructionFactoryMocker.demand.createCopyInstruction(0..0) {File sourceDir, File target, Set includes, Set excludes, Map filter ->
-            
-        }
-        copyInstructionFactoryMocker.use(copyInstructionFactory) {
-            resources.execute()
-        }
-    }
-
 
 }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.util.GradleUtil
+import org.apache.tools.ant.taskdefs.condition.Os
 
 /**
 * @author Hans Dockter
@@ -60,5 +61,4 @@ class HelperUtil {
     static File getTestDir() {
         new File(TMP_DIR_FOR_TEST)
     }
-    
 }

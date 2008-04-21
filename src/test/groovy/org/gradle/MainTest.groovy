@@ -40,6 +40,7 @@ class MainTest extends GroovyTestCase {
 
     String expectedBuildFileName
     File expectedGradleUserHome
+    File expectedGradleImportsFile
     File expectedProjectDir
     List expectedTaskNames = ["clean", "compile"]
     Map expectedSystemProperties
@@ -52,6 +53,7 @@ class MainTest extends GroovyTestCase {
         fileStub = new StubFor(File)
         buildMockFor = new MockFor(Build)
         expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME)
+        expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME)
         expectedTaskNames = ["clean", "compile"]
         expectedProjectDir = new File("").canonicalFile
         expectedProjectProperties = [:]
@@ -92,8 +94,9 @@ class MainTest extends GroovyTestCase {
             }
             new Build()
         }
-        buildMockFor.demand.newInstanceFactory(1..1) {File gradleUserHomeDir, File pluginProperties ->
+        buildMockFor.demand.newInstanceFactory(1..1) {File gradleUserHomeDir, File pluginProperties, File importsFile ->
             assertEquals(expectedGradleUserHome.canonicalFile, gradleUserHomeDir.canonicalFile)
+            assertEquals(expectedGradleImportsFile, importsFile)
             assertEquals(new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES), pluginProperties)
             buildFactory
         }
@@ -172,6 +175,11 @@ class MainTest extends GroovyTestCase {
     void testMainWithSpecifiedExistingProjectDirectory() {
         expectedProjectDir = HelperUtil.makeNewTestDir()
         checkMain {Main.main(["-Sp", expectedProjectDir.canonicalFile] + expectedTaskNames as String[])}
+    }
+
+    void testMainWithDisabledDefaultImports() {
+        expectedGradleImportsFile = null
+        checkMain {Main.main(["-SI"] + expectedTaskNames as String[])}
     }
 
     void testMainWithSpecifiedBuildFileName() {

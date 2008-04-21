@@ -26,10 +26,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
+// todo add new public methods to interface
 class DefaultProject implements Comparable, Project {
-    static Logger logger = LoggerFactory.getLogger(DefaultProject)
+    private static Logger logger = LoggerFactory.getLogger(DefaultProject)
 
     static final int STATE_CREATED = 0
 
@@ -86,11 +87,13 @@ class DefaultProject implements Comparable, Project {
 
     DependencyManager dependencies
 
-    String buildDirName = Project.DEFAULT_BUILD_DIR_NAME 
+    String buildDirName = Project.DEFAULT_BUILD_DIR_NAME
 
     def convention
 
     Closure configureByDag = {}
+
+    int importsLineCount = 0
 
     DefaultProject() {
 
@@ -131,6 +134,20 @@ class DefaultProject implements Comparable, Project {
         gatherProjects(childProjects.values())
     }
 
+    void subprojects(Closure configureClosure) {
+        configureProjects(subprojects, configureClosure)
+    }
+
+    void allprojects(Closure configureClosure) {
+        configureProjects(allprojects, configureClosure)
+    }
+
+    void configureProjects(List projects, Closure configureClosure) {
+        projects.each {DefaultProject project ->
+            GradleUtil.configure(configureClosure, project)
+        }
+    }
+
     private List gatherProjects(Collection rootCollection) {
         List projects = []
         projectsTraverser.traverse(rootCollection) {DefaultProject project -> projects << project}
@@ -143,7 +160,7 @@ class DefaultProject implements Comparable, Project {
             return this
         }
         state = STATE_INITIALIZING
-        buildScriptProcessor.evaluate(this)
+        importsLineCount = buildScriptProcessor.evaluate(this)
         state = STATE_INITIALIZED
         lateInitializeTasks(tasks)
         logger.info("Project=$path evaluated.")
@@ -212,7 +229,7 @@ class DefaultProject implements Comparable, Project {
         }
         logger.debug("Adding dependencies: ${args[TASK_DEPENDS_ON]}")
 
-        task.dependsOn(args[TASK_DEPENDS_ON] as String[])
+        task.dependsOn(args[TASK_DEPENDS_ON] as Object[])
 
         if (action) task.actions << action
         task
@@ -287,10 +304,16 @@ class DefaultProject implements Comparable, Project {
     }
 
     Project project(String path) {
+        project(path, null)
+    }
+
+    Project project(String path, Closure configureClosure = null) {
         if (!path) {
             throw new InvalidUserDataException("A path must be specified!")
         }
-        findProject(rootProject, (isAbsolutePath(path)) ? path : absolutePath(path))
+        Project project = findProject(rootProject,
+                (isAbsolutePath(path)) ? path : absolutePath(path))
+        GradleUtil.configure(configureClosure, project)
     }
 
     SortedMap getAllTasks(boolean recursive) {
@@ -325,14 +348,14 @@ class DefaultProject implements Comparable, Project {
     }
 
     Task dir(String path) {
-        if (new File(path).isAbsolute()) { throw new InvalidUserDataException('Path must be releative!') }
-        File dir = new File(path)
         String resultTaskName = path
-        path.split('/').inject('') { name, pathElement ->
+        path.split('/').inject('') {name, pathElement ->
             name += (name ? "/$pathElement" : pathElement)
             if (tasks[name]) {
-                if (!(task(name) instanceof Directory)) { throw new InvalidUserDataException(
-                        'A non directory task with this name already exsists.') }
+                if (!(task(name) instanceof Directory)) {
+                    throw new InvalidUserDataException(
+                            'A non directory task with this name already exsists.')
+                }
             } else {
                 createTask(name, type: Directory)
             }

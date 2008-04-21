@@ -100,12 +100,7 @@ class BaseDirConverterTest extends GroovyTestCase {
     }
 
     void testWithAbsolutePath() {
-        File absoluteFile
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            absoluteFile = new File("c:/absolute")
-        } else {
-            absoluteFile = new File("/absolute")
-        }
+        File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile,
                 baseDirConverter.baseDir(absoluteFile.path, baseDir))
     }
