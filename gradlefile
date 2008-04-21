@@ -311,7 +311,7 @@ uploadDists {
     }
 }
 
-createTask('release', dependsOn: 'uploadDists') {
+createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavadoc']) {
     svn.release()
 }
 
