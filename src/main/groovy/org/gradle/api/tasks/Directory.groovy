@@ -24,14 +24,18 @@ import org.gradle.api.internal.DefaultTask
 /**
  * @author Hans Dockter
  */
+// todo the toString method should return the absolute path, otherwise it is of no use in multi-project builds.
 class Directory extends DefaultTask {
+    File dir
+    
     Directory(Project project, String name) {
         super(project, name)
+        if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
         actions << this.&mkdir
+        dir = project.file(name)
     }
 
     private void mkdir(Task task) {
-        File dir = task.project.file(name)
         if (dir.exists()) {
             if (dir.isFile()) {
                 throw new InvalidUserDataException("The directory $name can't be created. There exists a file already with this path.")
@@ -39,5 +43,9 @@ class Directory extends DefaultTask {
         } else {
             dir.mkdirs()
         }
+    }
+
+    String toString() {
+        dir.absolutePath
     }
 }

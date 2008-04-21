@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class Svn {
-    Logger logger = LoggerFactory.getLogger(Svn)
+    private static Logger logger = LoggerFactory.getLogger(Svn)
 
     Project project
     SVNClientManager clientManager
@@ -55,11 +55,16 @@ class Svn {
                     SVNWCUtil.createDefaultOptions(true), project.codehausUserName, project.codehausUserPassword)
             statusClient = clientManager.getStatusClient()
             javaHlClient = SVNClientImpl.newInstance()
+            throwExceptionIfNoSvnProject()
         } catch (Throwable e) {
             logger.info("""Can't access svn working copy. Maybe this is not an svn project or the codehausUserName/password property is not set.
                 Releasing won't be possible. It is assumed that this isTrunk is true.""")
             alwaysTrunk = true
         }
+    }
+
+    void throwExceptionIfNoSvnProject() {
+        svnDir
     }
 
     def release() {

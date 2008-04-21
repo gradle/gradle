@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
+import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.util.ExistingDirsFilter
 
@@ -34,7 +35,7 @@ class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_2 = 'pattern2'
     static final String TEST_PATTERN_3 = 'pattern3'
 
-    static final File TEST_TEST_CLASSES_DIR = '/testClsssesDir' as File
+    static final File TEST_TEST_CLASSES_DIR = '/testClassesDir' as File
     static final File TEST_TEST_RESULTS_DIR = '/resultDir' as File
     static final File TEST_ROOT_DIR = '/ROOTDir' as File
 
@@ -63,7 +64,7 @@ class TestTest extends AbstractConventionTaskTest {
         assertNotNull(test.options)
         assertNotNull(test.existingDirsFilter)
         assertNotNull(test.classpathConverter)
-        assertNull(test.compiledTestsDir)
+        assertNull(test.testClassesDir)
         assertNull(test.dependencyManager)
         assertNull(test.testResultsDir)
         assertEquals([], test.includes)
@@ -74,14 +75,12 @@ class TestTest extends AbstractConventionTaskTest {
     void testExecute() {
         setUpMocks(test)
 
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {File dir ->
-            assertEquals(TEST_TEST_CLASSES_DIR, dir)
-            true}] as ExistingDirsFilter
+        setExistingDirsFilter()
 
-        antJUnitMocker.demand.execute(1..1) {File compiledTestClassesDir, List classpath, File testResultsDir, List includes,
+        antJUnitMocker.demand.execute(1..1) {File testClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
-            assertEquals(TEST_TEST_CLASSES_DIR, compiledTestClassesDir)
-            assertEquals(TEST_CONVERTED_UNMANAGED_CLASSPATH + TEST_DEPENDENCY_MANAGER_CLASSPATH, classpath)
+            assertEquals(TEST_TEST_CLASSES_DIR, testClassesDir)
+            assertEquals([TEST_TEST_CLASSES_DIR] + TEST_CONVERTED_UNMANAGED_CLASSPATH + TEST_DEPENDENCY_MANAGER_CLASSPATH, classpath)
             assertEquals(TEST_TEST_RESULTS_DIR, testResultsDir)
             assertEquals(test.options, junitOptions)
             assert includes.is(test.includes)
@@ -97,11 +96,9 @@ class TestTest extends AbstractConventionTaskTest {
     void testExecuteWithTestFailuresAndStopAtFailures() {
         setUpMocks(test)
 
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {File dir ->
-            assertEquals(TEST_TEST_CLASSES_DIR, dir)
-            true}] as ExistingDirsFilter
+        setExistingDirsFilter()
 
-        antJUnitMocker.demand.execute(1..1) {File compiledTestClassesDir, List classpath, File testResultsDir, List includes,
+        antJUnitMocker.demand.execute(1..1) {File testClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
             ant.project.setProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY, 'somevalue')
         }
@@ -116,11 +113,9 @@ class TestTest extends AbstractConventionTaskTest {
     void testExecuteWithTestFailuresAndContinueWithFailures() {
         setUpMocks(test)
         test.stopAtFailuresOrErrors = false
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {File dir ->
-            assertEquals(TEST_TEST_CLASSES_DIR, dir)
-            true}] as ExistingDirsFilter
+        setExistingDirsFilter()
 
-        antJUnitMocker.demand.execute(1..1) {File compiledTestClassesDir, List classpath, File testResultsDir, List includes,
+        antJUnitMocker.demand.execute(1..1) {File testClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
             ant.project.setProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY, 'somevalue')
         }
@@ -132,7 +127,7 @@ class TestTest extends AbstractConventionTaskTest {
 
     void testExecuteWithUnspecifiedCompiledTestsDir() {
         setUpMocks(test)
-        test.compiledTestsDir = null
+        test.testClassesDir = null
         shouldFailWithCause(InvalidUserDataException) {
             test.execute()
         }
@@ -150,7 +145,10 @@ class TestTest extends AbstractConventionTaskTest {
         setUpMocks(test)
         test.unmanagedClasspath = null
 
-        test.existingDirsFilter = [checkExistenceAndLogExitMessage: {false}] as ExistingDirsFilter
+        test.existingDirsFilter = [checkExistenceAndThrowStopActionIfNot: {File dir ->
+            assertEquals(TEST_TEST_CLASSES_DIR, dir)
+            throw new StopActionException()
+        }] as ExistingDirsFilter
 
         antJUnitMocker.demand.execute(0..0) {File compiledTestClassesDir, List classpath, File testResultsDir,
                                              List includes, List excludes, JunitOptions junitOptions, List jvmArgs,
@@ -162,7 +160,7 @@ class TestTest extends AbstractConventionTaskTest {
     }
 
     private void setUpMocks(Test test) {
-        test.compiledTestsDir = TEST_TEST_CLASSES_DIR
+        test.testClassesDir = TEST_TEST_CLASSES_DIR
         test.testResultsDir = TEST_TEST_RESULTS_DIR
         test.unmanagedClasspath = TEST_UNMANAGED_CLASSPATH
 
@@ -173,8 +171,8 @@ class TestTest extends AbstractConventionTaskTest {
 
         test.classpathConverter = [createFileClasspath: {File baseDir, Object[] pathElements ->
             assertEquals(TEST_ROOT_DIR, baseDir)
-            assertEquals(TEST_UNMANAGED_CLASSPATH, pathElements as List)
-            TEST_CONVERTED_UNMANAGED_CLASSPATH
+            assertEquals([TEST_TEST_CLASSES_DIR] + TEST_UNMANAGED_CLASSPATH, pathElements as List)
+            [TEST_TEST_CLASSES_DIR] + TEST_CONVERTED_UNMANAGED_CLASSPATH
         }] as ClasspathConverter
     }
 
@@ -200,6 +198,12 @@ class TestTest extends AbstractConventionTaskTest {
         List list2 = [['b', 'c']]
         test.unmanagedClasspath(list2)
         assertEquals(list1 + list2.flatten(), test.unmanagedClasspath)
+    }
+
+    private setExistingDirsFilter() {
+        test.existingDirsFilter = [checkExistenceAndThrowStopActionIfNot: {File dir ->
+            assertEquals(TEST_TEST_CLASSES_DIR, dir)
+        }] as ExistingDirsFilter
     }
 
 }

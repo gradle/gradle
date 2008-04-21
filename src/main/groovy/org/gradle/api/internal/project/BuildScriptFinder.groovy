@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class BuildScriptFinder {
-    Logger logger = LoggerFactory.getLogger(BuildScriptFinder)
+    private static Logger logger = LoggerFactory.getLogger(BuildScriptFinder)
 
     String buildFileName
 

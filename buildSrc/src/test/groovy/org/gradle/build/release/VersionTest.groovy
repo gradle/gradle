@@ -78,6 +78,13 @@ class VersionTest extends GroovyTestCase {
         assertEquals(4, version.revision)
     }
 
+    void testGetLastRelease() {
+        assertEquals('1.2.3', version.lastRelease)
+        project.previousRevision = 0
+        version = new Version(svn, project, false)
+        assertEquals('1.2', version.lastRelease)
+    }
+
     void testToString() {
         trunk = false
         project.versionModifier = ''

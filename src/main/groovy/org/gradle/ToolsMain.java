@@ -17,8 +17,6 @@
 package org.gradle;
 
 import org.apache.tools.ant.launch.Locator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.gradle.util.GradleUtil;
 
 import java.io.File;

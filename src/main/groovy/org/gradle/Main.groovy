@@ -33,12 +33,15 @@ import org.slf4j.LoggerFactory
 /**
 * @author Hans Dockter
 */
+// todo the main method is too long. Extract methods.
 class Main {
+    private static Logger logger = LoggerFactory.getLogger(Main)
+    
     static final String GRADLE_HOME = 'gradle.home'
     static final String DEFAULT_GRADLE_USER_HOME = System.properties['user.home'] + '/.gradle'
-    static Logger logger = LoggerFactory.getLogger(Main)
     final static String DEFAULT_CONF_FILE = "conf.buildg"
     final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties"
+    final static String IMPORTS_FILE_NAME = "gradle-imports"
     final static String NL = System.properties['line.separator']
 
     static void main(String[] args) {
@@ -55,24 +58,25 @@ class Main {
 
         def cli = new CliBuilder(usage: 'buildg -hnp "task1, ..., taskN')
         cli.h(longOpt: 'help', 'usage information')
-        cli.n(longOpt: 'nonRecursive', 'Don\'t execute the tasks for the childprojects of the current project')
-        cli.S(longOpt: 'noJvmTermination', 'Don\'t trigger a System.exit(0) for normal termination. Useful for testing.')
-        cli.u(longOpt: 'noSearchUpwards', 'Don\'t search in parent folders for gradlesettings file.')
+        cli.n(longOpt: 'nonRecursive', 'Do not execute primary tasks of childprojects.')
+        cli.S(longOpt: 'noJvmTermination', 'Don\'t trigger a System.exit(0) for normal termination. Use for Gradle\'s internal testing.')
+        cli.u(longOpt: 'noSearchUpwards', 'Don\'t search in parent folders for a gradlesettings file.')
         cli.p(longOpt: 'projectDir', 'Use this dir instead of the current dir as the project dir.', args: 1)
-        cli.l(longOpt: 'pluginProperties', 'Name of the file with the plugin properties.', args: 1)
+        cli.l(longOpt: 'pluginProperties', 'Use this file as the plugin properties file.', args: 1)
         cli.b(longOpt: 'buildfile', 'Use this build file name (also for subprojects)', args: 1)
         cli.t(longOpt: 'tasks', 'Show list of tasks.')
         cli.d(longOpt: 'debug', 'Log in debug mode (includes normal stacktrace)')
-        cli.i(longOpt: 'depInfo', 'info output from dependency management')
-        cli.j(longOpt: 'depDebug', 'debug output from dependency management')
-        cli.q(longOpt: 'quiet', 'Log in quiet mode.')
+        cli.i(longOpt: 'depInfo', 'Log dependency management output in info mode (Default mode is error).')
+        cli.j(longOpt: 'depDebug', 'Log dependency management output in debug mode (Default mode is error).')
+        cli.q(longOpt: 'quiet', 'Log erros only.')
         cli.f(longOpt: 'fullStacktrace', 'Print out the full (very verbose) stacktrace.')
         cli.s(longOpt: 'stacktrace', 'Print out the stacktrace.')
-        cli.D(longOpt: 'prop', 'Set system property of the JVM.', args: 1)
-        cli.P(longOpt: 'projectProperty', 'Set project property of the root project.', args: 1)
-        cli.g(longOpt: 'gradleUserHome', 'The user specific gradle dir.', args: 1)
+        cli.D(longOpt: 'prop', 'Set system property of the JVM (e.g. -Dmyprop=myvalue).', args: 1)
+        cli.I(longOpt: 'noImports', 'Disable usage of default imports for build script files.')
+        cli.P(longOpt: 'projectProperty', 'Set project property of the root project (e.g. -Pmyprop=myvalue).', args: 1)
+        cli.g(longOpt: 'gradleUserHome', 'The user gradle home dir.', args: 1)
         cli.e(longOpt: 'embedded', 'Use an embedded build script.', args: 1)
-        cli.v(longOpt: 'version', 'Prints put version info.')
+        cli.v(longOpt: 'version', 'Prints version info.')
 
         def options = cli.parse(args)
 
@@ -98,6 +102,14 @@ class Main {
             return
         }
 
+        File pluginProperties = gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES as File
+        File gradleImportsFile = gradleHome + '/' + IMPORTS_FILE_NAME as File
+
+        if (options.I) {
+           logger.info("Disabling default imports.")
+           gradleImportsFile = null
+        }
+
         if (options.D) {
             logger.info("Running with System props: $options.Ds")
             options.Ds.each {String keyValueExpression ->
@@ -113,8 +125,6 @@ class Main {
                 startProperties[elements[0]] = elements.size() == 1 ? '' : elements[1]
             }
         }
-
-        File pluginProperties = gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES as File
 
         if (options.n) recursive = false
         if (options.u) {searchUpwards = false}
@@ -147,12 +157,13 @@ class Main {
             embeddedBuildScript = options.e
         }
 
-        logger.info("gradle.home=$gradleHome")
-        logger.info("Current dir: $currentDir")
-        logger.info("Gradle user home: $gradleUserHomeDir")
+        logger.debug("gradle.home=$gradleHome")
+        logger.debug("Current dir: $currentDir")
+        logger.debug("Gradle user home: $gradleUserHomeDir")
         logger.info("Recursive: $recursive")
         logger.info("Buildfilename: $buildFileName")
-        logger.info("Plugin properties: $pluginProperties")
+        logger.debug("Plugin properties: $pluginProperties")
+        logger.debug("Default imports file: $gradleImportsFile")
 
         try {
             def tasks = options.arguments()
@@ -163,7 +174,7 @@ class Main {
             
             def buildScriptFinder = (embeddedBuildScript != null ? new EmbeddedBuildScriptFinder(embeddedBuildScript) :
                 new BuildScriptFinder(buildFileName))
-            Closure buildFactory = Build.newInstanceFactory(gradleUserHomeDir, pluginProperties)
+            Closure buildFactory = Build.newInstanceFactory(gradleUserHomeDir, pluginProperties, gradleImportsFile)
             Build build = buildFactory(buildScriptFinder, null)
             build.settingsProcessor.buildSourceBuilder = new BuildSourceBuilder(
                     new EmbeddedBuildExecuter(buildFactory, gradleUserHomeDir))
@@ -199,7 +210,7 @@ class Main {
     }
 
     static void handleGradleException(Throwable t, boolean stacktrace, boolean debug, boolean fullStacktrace, long buildStartTime) {
-        String introMessage = "Build aborted anormally because of invalid user data. Please check your scripts!"
+        String introMessage = "Build aborted anormally. "
         introMessage += (stacktrace || debug) ? '' : " Run with -s option to get stacktrace."
         introMessage += debug ? '' : " Run with -d option to get all debug info including stacktrace."
         introMessage += fullStacktrace ? '' : " Run (additionally) with -f option to get the full (very verbose) stacktrace"

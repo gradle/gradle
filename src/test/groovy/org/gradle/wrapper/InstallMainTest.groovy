@@ -16,8 +16,6 @@
 
 package org.gradle.wrapper
 
-import groovy.mock.interceptor.MockFor
-
 /**
  * @author Hans Dockter
  */

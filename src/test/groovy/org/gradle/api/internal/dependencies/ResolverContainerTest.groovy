@@ -19,6 +19,7 @@ package org.gradle.api.internal.dependencies
 import groovy.mock.interceptor.MockFor
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
  * @author Hans Dockter

@@ -13,26 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.util
 
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.StopActionException
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class ExistingDirsFilterTest extends GroovyTestCase {
-    void testFindExistingDirs() {
+    ExistingDirsFilter testObj
+    File existingDir, destDir, nonExistingDir
+    List allDirs
+
+
+    void setUp() {
+        super.setUp();
+        testObj = new ExistingDirsFilter()
         File root = HelperUtil.makeNewTestDir()
-        File dir1 = new File(root, 'dir1')
-        dir1.mkdirs()
-        File dir2 = new File(root, 'dir2')
-        List allDirs = [dir1, dir2]
-        ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter()
-        assertEquals([dir1], existingDirsFilter.findExistingDirs(allDirs))
-        assertEquals([dir1], existingDirsFilter.findExistingDirsAndLogexitMessages(allDirs))
-        assertEquals(true, existingDirsFilter.checkExistenceAndLogExitMessage(dir1))
-        assertEquals(false, existingDirsFilter.checkExistenceAndLogExitMessage(dir2))
+        existingDir = new File(root, 'dir1')
+        destDir = new File(root, 'dir11')
+        existingDir.mkdirs()
+        nonExistingDir = new File(root, 'dir2')
+        allDirs = [existingDir, nonExistingDir]
     }
-    
+
+
+    void testFindExistingDirs() {
+        assertEquals([existingDir], testObj.findExistingDirs(allDirs))
+        assertEquals([existingDir], testObj.findExistingDirs(allDirs))
+    }
+
+    void testFindExistingDirsAndThrowStopActionIfNone() {
+        assertEquals([existingDir], testObj.findExistingDirsAndThrowStopActionIfNone(allDirs))
+        shouldFail(StopActionException) {
+            testObj.findExistingDirsAndThrowStopActionIfNone([nonExistingDir])
+        }
+        assertEquals([existingDir], testObj.findExistingDirsAndThrowStopActionIfNone(allDirs))
+    }   
+
+    void testCheckExistenceAndThrowStopActionIfNot() {
+        testObj.checkExistenceAndThrowStopActionIfNot(existingDir)
+        shouldFail(StopActionException) {
+            testObj.checkExistenceAndThrowStopActionIfNot(nonExistingDir)
+        }
+    }
+
+    void testCheckDestDirAndFindExistingDirsAndThrowStopActionIfNone() {
+        assertEquals([existingDir], testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, allDirs))
+        shouldFail(StopActionException) {
+            testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, [nonExistingDir])
+        }
+        shouldFail(InvalidUserDataException) {
+            testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(null, allDirs)
+        }
+    }
+
 }

@@ -1,0 +1,64 @@
+%!TEX root = master.tex
+\chapter{Overview} % (fold)
+\label{cha:overview}
+
+\section{Features} % (fold)
+\label{sec:special_feature_of_gradle}
+Here is a list of some of Gradle's features.
+\begin{description}	
+	\item[Language for Dependency Based Programming] This is the core of Gradle. Most build tools do offer such a thing. You can create tasks, create dependencies between them and those tasks get executed only once and in the right order. Yet compared to Ant\footnote{We mean Ant's targets here.} Gradle's task offer a rich API and can be any kind of object. Gradle's tasks support multi-project builds. There is much more to say about tasks later on.
+	\item[Flexible Build By Convention] Gradle offers you build-by-convention \emph{on top} of its core layer. It is the same idea as implemented by Maven. But Gradle's build-by-convention approach is highly configurable and flexible. And you don't have to use it, if you need utmost flexibility. You can enable/disable it on a per project basis in a multi-project build. 
+	\item[Ant Tasks] Ant tasks are first class citizens. Using Ant tasks from Gradle is as convenient and more powerful than using Ant tasks from a \texttt{build.xml} file.
+	\item[Configure By DAG] Gradle has a distinct configuration and execution phase. Thus we can offer you special hooks. You can add configuration to your build, based on the complete execution graph of tasks, before any task is executed.
+	\item[Easy Ivy] Our dependency management is based on Apache Ivy, the most advanced and powerful dependency management in the Java world. We have Ivy integrated in our build-by-convention framework. It is ready to go out-of-the-box. Ivy is mostly used via its Ant tasks but it also provides an API. Gradle integrates deeply with Ivy via this API. Gradle has its own dependency DSL on top of Ivy. This DSL introduces a couple of features not provided by Ivy itself.
+	\item[Client Modules] We think dependency management is important to any project. \emph{Client Modules} provide this, without the need of remote repositories and \texttt{ivy.xml} or \texttt{pom.xml} files. For example you can just put your jars into svn and yet enjoy complete transitive dependency management. Gradle also support fully Ivy or Maven repository infrastructures based on \texttt{ivy.xml} or \texttt{pom.xml} files and remote repositories.
+	\item[Cross Project Configuration] Enjoy how easy and yet how extremely powerful the handling of multi-project builds can be. Ivy introduces \emph{Configuration Injection} to make this possible. 
+	\item[Distinct Dependency Hierarchies] We allow you to model the project relationships in a multi-project build as they really are for your problem domain. Gradle follows your layout not vice versa.
+	\item[Partial Builds] With Maven multi-project builds only work if executed from the root project and thus requiring a complete build. If you build from a subproject, only the subproject is build, not the projects the subproject depends on. Gradle offers partial builds. The subproject is build plus the projects it depends on. This is very convenient for larger builds.    	
+	\item[Internal Groovy DSL] Gradle's build scripts are written in Groovy, not XML. This offers many  advantages to XML: Rich interaction with existing libraries, ease of use, more power and a slower learning curve are some of them.
+    \item[The Gradle Wrapper] The Gradle Wrapper allows you to execute Gradle builds on machines where Gradle is not installed. For example continuous integration servers or machines of users which want to build your open source project.          
+\end{description}
+Gradle scales very well. It significantly increases your productivity, from rather simple single project builds up to huge enterprise multi-project builds. 
+
+Gradle is build by Gradle. From a build perspective Gradle is a simple project. But achieving the high degree of automation we have, would have been very hard (and expensive) to achieve with Ant or Maven.
+
+\section{Why Groovy?} % (fold)
+\label{sec:why_groovy}
+We think the advantages of an internal DSL (based on a dynamic language) over XML are tremendous in case of \emph{build scripts}. There are a couple of dynamic languages out there. Why Groovy? The answer lies in the context Gradle is operating in. Although Gradle is a general purpose build tool at its core, its main focus are Java projects.\footnote{Gradle also supports Groovy projects. Gradle will support Scala projects in a future release.} In such projects obviously the team members know Java. One problem we see with Ant\footnote{If the advanced features are used (e.g. mixins, macrodefs, ...)} and Maven is, that it involves a lot of knowledge only available to the build master. Such builds are very hard to comprehend, let alone to modify by a person not deeply involved with those tools. We think a build should be as transparent as possible to \emph{all} team members. 
+
+You might argue why not using Java then as the language for build scripts. We think this is a valid question. It would have the highest transparency for your team and the lowest learning curve. But due to limitations of Java such a build language would not be as nice, expressive and powerful as it could be.\footnote{At \url{http://www.defmacro.org/ramblings/lisp.html} you find an interesting article comparing Ant, XML, Java and Lisp. It's funny that the 'if Java had that syntax' syntax in this article is actually the Groovy syntax.} Languages like Python, Groovy or Ruby do a much better Job here. We have chosen Groovy as it offers by far the highest transparency for Java people. Its base syntax is the same as Java's as well as its type system, its package structure other things. Groovy builds a lot on top of that. But on a common ground with Java.
+
+For Java teams which share also Python or Ruby knowledge or are happy to learn it the above arguments don't apply. In the near future Gradle wants to give you a choice between different languages for your build scripts. For Jython or JRuby this should be easy to implement. If members of those communities are interested in joining this effort, this is very much appreciated. 
+% section why_groovy (end)
+
+\section{Still Missing} % (fold)
+\label{sec:still_missing}
+The current release has no functionality for:
+\begin{itemize}
+	\item Creating IDE project and classpath files. This is one of the top priorities for the next release. We want to provide this for IntelliJ, Eclipse and NetBeans.
+	\item Integration for Emma, Cobertura and JDepends in our build-by-convention framework. Right now you have to integrate them yourself (for example with the Ant tasks for those tools).
+	\item Integration of Jetty in our build-by-convention framework to allow easy startup of a web application. 
+\end{itemize}
+
+% section still_missing (end)
+% % section special_feature_of_gradle (end)
+% Gradle is driven by the following principles:
+% 
+% \begin{description}
+% \item[Maximum Freedom] We think the build-by-convention approach is very suitable for builds. This approach is supported by Gradle. Amongst other things, it makes a build faster to create and easier to maintain. Yet builds are often complex beasts and not every aspect of a build fits into a framework. We think  a build system that is good for 80\% of your build requirements but is an obstacle you have to fight with for the remaining 20\% is not worth using. Solving the remaining 20 percent is very expensive, and as it usually involves tweaking, makes the build very hard to maintain and to comprehend. Even worse, you don't implement desired functionality because it is too hard or impossible to do. A build is too important for your project to accept such constraints.
+% Gradle solves this problem. Gradle is not a build framework, it provides build frameworks on top of its other layers. You can even develop custom build frameworks with Gradle. If those frameworks do not provide what you want, there are many ways to configure them. You can easily switch of existing functionality or replace single bits of the framework with custom functionality. If your requirements don't fit into the framework at all, you just don't use the build-by-convention framework. You might use Gradle build-in tasks and assemble them in your own way. Or you just use the core of Gradle, where you have utmost flexibility. For example you have a multi-project build with ten projects and for nine Gradles build-by-convention framework is suitable but one project does not fit in. No problem. You enable the framework only for the projects where you need them. We never lock you in! We promise!
+% \item[Powerful] Gradle's build scripts are written in Groovy not XML. You have the full power of a mighty OO-language at your fingertips. Gradle requires no unnecessary indirections for integrating your functionality. The build language offers very flexible configuration options. Our dependency management is based on Ivy, the by far most advanced and powerful dependency management system in the Java world. Gradle offers utmost flexiblity when it comes to multi project builds, by providing configuration injection and separate configuration and execution dependency graphs. Gradle is as simple as possible but when it comes to heavy lifting you have a very strong partner.
+% \item[Scalable] There are many ways a build system can and should scale. Easy things should be straight forward to implement. For complex things you need a different, appropriate support. For example:
+% 
+% 	\begin{itemize}
+% 		\item many projects might be happy with a simple dependency management relying on jars. More complex projects need a dependecy management based on descriptor files like pom or ivy files.
+% 	    \item for simple projects the best approach is to organize the build logic within the build scripts. For more complex build logic you want to organize it into an OO domain model, without the need to separate this domain model in a project on its own.
+% 	    \item There are single project build, simple and complex multiproject builds. Gradle scales in regard to simplicity and power for those different use cases.
+% 	\end{itemize}
+% \end{description}
+% 
+% \section{Things you might miss} % (fold)
+% \label{sec:things_you_might_miss}
+
+% section things_you_might_miss (end)
+% chapter cha:overview (end)

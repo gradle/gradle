@@ -24,33 +24,78 @@ import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
 /**
-* @author Hans Dockter
-*/
+ * Copies the content of the <code>sourceDirs</code> to the <code>destinationDir</code>.
+ * You can define global or local includes, excludes or filters. Global ones apply to all
+ * source dirs local ones only to a single source dir.
+ *
+ * @author Hans Dockter
+ */
 class Resources extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Resources)
 
-    Resources self
+    protected Resources self
 
-    Set sourceDirs = []
+    /**
+     * A list of file objects denoting the directories to extract the content from.
+     */
+    List srcDirs = []
 
-    File targetDir
+    /**
+     * The directory where to copy then content from the source dirs.
+     */
+    File destinationDir
 
+    /**
+     * A set of include pattern (e.g. <code>'**//*.txt'</code>) which is applied to all source dirs.
+     * The syntax of the include patterns is the same as the ant syntax for include patterns.
+     */
     Set globalIncludes = []
+
+    /**
+     * A set of exclude pattern (e.g. <code>'**//*.txt'</code>) which is applied to all source dirs.
+     * The syntax of the exclude patterns is the same as the ant syntax for exclude patterns.
+     */
     Set globalExcludes = []
+
+    /**
+     * A map of filters which is applied to all source dirs. An example is: <code>[TODAY: new Date()]</code>,
+     * which would replace the text content <code>@TODAY@</code> with the current date.
+     * We use an Ant filterset to implement this. Right now you can't specify the token specifier, it's always @.
+     */
     Map globalFilters = [:]
 
+    /**
+     * A set of include pattern (e.g. <code>'**//*.txt'</code>) which is applied to all source dirs.
+     * The key of the map is the file object denoting the source dir. The value of the entry is a set of include
+     * patterns.
+     * The syntax of the include patterns is the same as the ant syntax for include patterns.
+     */
     Map sourceDirIncludes = [:]
+
+    /**
+     * A map of exclude pattern (e.g. <code>'**//*.txt'</code>) which is applied to a single source dirs.
+     * The key of the map is the file object denoting the source dir. The value of the entry is a set of exclude
+     * patterns.
+     * The syntax of the exclude patterns is the same as the ant syntax for exclude patterns.
+     */
     Map sourceDirExcludes = [:]
+
+    /**
+     * A map of filters which is applied to a single source dirs. An example is: <code>[TODAY: new Date()]</code>,
+     * which would replace the text content <code>@TODAY@</code> with the current date.
+     * The key of the map is the file object denoting the source dir. The value of the entry is a map of filters.
+     * We use an Ant filterset to implement this. Right now you can't specify the token specifier, it's always @.
+     */
     Map sourceDirFilters = [:]
 
     // It is too cumbersone, if every user of this class has to set this property.
     // So we break IoC a little bit, but anyone can inject a new instance. And this is Groovy,
     // so we don't need an interface.
-    ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
-    
-    CopyInstructionFactory copyInstructionFactory = new CopyInstructionFactory()
+
+    protected CopyInstructionFactory copyInstructionFactory = new CopyInstructionFactory()
+
+    protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
 
     Resources(Project project, String name) {
         super(project, name)
@@ -59,37 +104,54 @@ class Resources extends ConventionTask {
     }
 
     private void copyResources(Task task) {
-        List existingSourceDirs = existentDirsFilter.findExistingDirsAndLogexitMessages(self.sourceDirs)
-        if (!existingSourceDirs) { return }
-        
-        List copyInstructions = existingSourceDirs.collect { File sourceDir ->
+        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
+                self.destinationDir, self.srcDirs)
+
+        List copyInstructions = existingSourceDirs.collect {File sourceDir ->
             Set includes = getSetFromMap(sourceDirIncludes, sourceDir) + globalIncludes
             Set excludes = getSetFromMap(sourceDirExcludes, sourceDir) + globalExcludes
             Map filters = getMapFromMap(sourceDirFilters, sourceDir) + globalFilters
-            copyInstructionFactory.createCopyInstruction(sourceDir, self.targetDir, includes, excludes, filters)
+            copyInstructionFactory.createCopyInstruction(sourceDir, self.destinationDir, includes, excludes, filters)
         }
         copyInstructions*.execute()
     }
 
-
+    /**
+     * adds the given sourceDirs to the sourceDirs property.
+     */
     Resources from(File[] sourceDirs) {
-        this.sourceDirs.addAll(sourceDirs as List)
+        this.srcDirs.addAll(sourceDirs as List)
         this
     }
 
-    Resources into(File targetDir) {
-        this.targetDir = targetDir
+    /**
+     * sets the destination dir (equivalent to <code>resources.destinationDir = </code>
+     */
+    Resources into(File destinationDir) {
+        this.destinationDir = destinationDir
         this
     }
 
+    /**
+     * Add includes patterns. If the sourceDir is specified the pattern is limited to the specified source dir.
+     * Otherwise it is a global pattern applied to all source dirs.
+     */
     Resources includes(File sourceDir = null, String[] includes) {
         addIncludesExcludes(this.sourceDirIncludes, globalIncludes, sourceDir, includes)
     }
 
+    /**
+     * Add excludes patterns. If the sourceDir is specified the pattern is limited to the specified source dir.
+     * Otherwise it is a global pattern applied to all source dirs.
+     */
     Resources excludes(File sourceDir = null, String[] excludes) {
         addIncludesExcludes(this.sourceDirExcludes, globalExcludes, sourceDir, excludes)
     }
 
+    /**
+     * Add filters. If the sourceDir is specified the filters are limited to the specified source dir.
+     * Otherwise they are global filters applied to all source dirs.
+     */
     Resources filter(File sourceDir = null, Map filters) {
         Map mapToAddTo = sourceDir ? getMapFromMap(sourceDirFilters, sourceDir) : globalFilters
         mapToAddTo.putAll(filters)
@@ -101,7 +163,7 @@ class Resources extends ConventionTask {
             map[key] = [:]
         }
         map[key]
-    } 
+    }
 
     private Resources addIncludesExcludes(Map map, Set globals, File sourceDir, String[] args) {
         Set listToAddTo = sourceDir ? getSetFromMap(map, sourceDir) : globals
@@ -110,7 +172,7 @@ class Resources extends ConventionTask {
     }
 
     private Set getSetFromMap(Map map, def key) {
-        if (!map[key]) { 
+        if (!map[key]) {
             map[key] = [] as HashSet
         }
         map[key]

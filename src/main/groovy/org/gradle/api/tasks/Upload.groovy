@@ -18,22 +18,42 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.dependencies.ResolverContainer
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Bundle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
+ * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
+ * of your project, if they belong to the configuration associated with the upload task.
+ * 
  * @author Hans Dockter
  */
 class Upload extends ConventionTask {
-    Logger logger = LoggerFactory.getLogger(Upload)
-    
+    private static Logger logger = LoggerFactory.getLogger(Upload)
+
+    /**
+     * Whether to publish the xml module descriptor to the upload destination.
+     */
     boolean uploadModuleDescriptor = false
+
+    /**
+     * Configurations that should be uploaded (beside the configurations of the bundles) 
+     */
     List configurations = []
+
+    /**
+     * The resolvers to delegate the uploads to. Usuallte a resolver corresponds to a repository.
+     */
     ResolverContainer uploadResolvers = new ResolverContainer()
+
+    /**
+     * Assigning a bundle to an Upload task has one and only one effect. All the different configurations of the archive
+     * tasks belonging to this bundle are delegated to the publish action.
+     */
     Set bundles = []
 
     Upload(DefaultProject project, String name) {
@@ -44,7 +64,7 @@ class Upload extends ConventionTask {
     private void upload(Task task) {
         Set bundleConfigurations = []
         bundles.each { Bundle bundle ->
-            bundle.bundleNames.each {
+            bundle.archiveNames.each {
                 AbstractArchiveTask archiveTask = project.task(it)
                 if (archiveTask.publish) {
                     bundleConfigurations.addAll(archiveTask.configurations as List)

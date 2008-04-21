@@ -1,0 +1,31 @@
+%!TEX root = master.tex
+\chapter{Command line} % (fold)
+\label{cha:command_line}
+
+\begin{tabular}{l|l|l}
+\textbf{Option}(-) & \textbf{Long Option}(--) & \textbf{Meaning}\\ \hline
+D & prop             & Sets system property of the JVM (e.g. -Dmyprop=myvalue).\\ 
+I & noImports        & Disable usage of default imports for build script files.\\
+P & projectProperty  & Set project property of the root project (e.g. -Pmyprop=myvalue).\\
+S & noJvmTermination & Don't trigger a System.exit(0) for normal termination. Use by Gradle's unit tests.\\
+b & buildfile        & Use this build file name (also for subprojects).\\
+d & debug            & Log in debug mode (includes normal stacktrace).\\
+e & embedded         & Use an embedded build script.\\
+f & fullStacktrace   & Print out the full (very verbose) stacktrace.\\
+g & gradleUserHome   & The user gradle home dir.\\
+h & help             & Prints usage information.\\
+i & depInfo          & Log dependency management output in info mode (Default mode is error).\\
+j & depDebug         & Log dependency management output in debug mode (Default mode is error).\\
+l & pluginProperties & Use this file as the plugin properties file.\\
+n & nonRecursive     & Do not execute primary tasks of childprojects.\\
+p & projectDir       & Use this dir instead of the current dir as the project dir.\\
+q & quiet            & Log erros only.\\
+s & stacktrace       & Print out the stacktrace.\\
+t & tasks            & Show list of tasks.\\
+u & noSearchUpwards  & Don't search in parent folders for a gradlesettings file.\\
+v & version          & Prints version info.\\
+\end{tabular}
+\\
+ 
+\noindent The same information is printed to the console when you execute \texttt{gradle -h}.\\
+% chapter command_line (end)

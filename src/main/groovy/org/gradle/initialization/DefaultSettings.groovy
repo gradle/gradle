@@ -21,17 +21,19 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.Settings
-import org.gradle.api.internal.dependencies.ResolverContainer
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaPlugin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
 
 /**
  * @author Hans Dockter
  */
 class DefaultSettings implements Settings {
-    Logger logger = LoggerFactory.getLogger(DefaultSettings)
+    private static Logger logger = LoggerFactory.getLogger(DefaultSettings)
     static final String BUILD_CONFIGURATION = 'build'
     static final String DEFAULT_BUILD_SRC_DIR = 'buildSrc'
 
@@ -61,7 +63,6 @@ class DefaultSettings implements Settings {
         configureDependencyManager(dependencyManager, gradleUserHomeDir)
         this.buildSourceBuilder = buildSourceBuilder
         dependencyManager.addConfiguration(BUILD_CONFIGURATION)
-        dependencyManager.classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
         buildSrcDir = DEFAULT_BUILD_SRC_DIR
         buildSrcScriptName = Project.DEFAULT_PROJECT_FILE
         buildSrcTaskNames = [JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS]
@@ -75,12 +76,33 @@ class DefaultSettings implements Settings {
         this.projectPaths.addAll(projectPaths as List)
     }
 
-    void addDependencies(Object[] dependencies) {
-        dependencyManager.addDependencies([BUILD_CONFIGURATION], dependencies)
+    void dependencies(Object[] dependencies) {
+        dependencyManager.dependencies([BUILD_CONFIGURATION], dependencies)
+    }
+
+    void dependency(String id, Closure configureClosure = null) {
+        dependencyManager.dependency([BUILD_CONFIGURATION], id, configureClosure)
+    }
+
+    void clientModule(String id, Closure configureClosure = null) {
+        dependencyManager.clientModule([BUILD_CONFIGURATION], id, configureClosure)
     }
 
     ResolverContainer getResolvers() {
         dependencyManager.classpathResolvers
+    }
+
+
+    FileSystemResolver createFlatDirResolver(String name, File[] dirs) {
+        dependencyManager.createFlatDirResolver(name, dirs)
+    }
+
+    FileSystemResolver addFlatDirResolver(String name, File[] dirs) {
+        dependencyManager.addFlatDirResolver(name, dirs)
+    }
+
+    IBiblioResolver addIBiblio() {
+        dependencyManager.addIBiblio()
     }
 
     URLClassLoader createClassLoader() {
@@ -91,7 +113,7 @@ class DefaultSettings implements Settings {
         }
         logger.debug("Build src dependency: $dependency")
         if (dependency) {
-            dependencyManager.addDependencies([BUILD_CONFIGURATION], dependency)
+            dependencyManager.dependencies([BUILD_CONFIGURATION], dependency)
         } else {
             logger.info('No build sources found.')
         }

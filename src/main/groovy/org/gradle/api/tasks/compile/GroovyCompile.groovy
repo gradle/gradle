@@ -39,22 +39,22 @@ class GroovyCompile extends Compile {
     protected void compile(Task task) {
         if (!self.antCompile) throw new InvalidUserDataException("The ant compile command must be set!")
         if (!self.antGroovyCompile) throw new InvalidUserDataException("The ant groovy compile command must be set!")
-        if (!self.targetDir) throw new InvalidUserDataException("The target dir is not set, compile can't be triggered!")
+        if (!self.destinationDir) throw new InvalidUserDataException("The target dir is not set, compile can't be triggered!")
 
-        List existingSourceDirs = existentDirsFilter.findExistingDirsAndLogexitMessages(self.sourceDirs)
+        List existingSourceDirs = existentDirsFilter.findExistingDirs(self.srcDirs)
         List classpath = null
         if (existingSourceDirs) {
             if (!self.sourceCompatibility || !self.targetCompatibility) {
                 throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!")
             }
             classpath = createClasspath()
-            antCompile.execute(existingSourceDirs, self.targetDir, classpath, self.sourceCompatibility,
+            antCompile.execute(existingSourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
                     self.targetCompatibility, self.options, project.ant)
         }
-        List existingGroovySourceDirs = existentDirsFilter.findExistingDirsAndLogexitMessages(self.groovySourceDirs)
+        List existingGroovySourceDirs = existentDirsFilter.findExistingDirs(self.groovySourceDirs)
         if (existingGroovySourceDirs) {
             if (!classpath) {classpath = createClasspath()}
-            antGroovyCompile.execute(existingGroovySourceDirs, self.targetDir, classpath, self.sourceCompatibility,
+            antGroovyCompile.execute(existingGroovySourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
                     self.targetCompatibility, self.options, project.ant)
         }
     }

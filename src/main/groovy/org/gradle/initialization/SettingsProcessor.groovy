@@ -20,21 +20,24 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
-import org.gradle.util.GradleUtil
 import org.gradle.initialization.DefaultSettings
+import org.gradle.util.GradleUtil
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.internal.project.ImportsReader
 
 /**
 * @author Hans Dockter
 */
 class SettingsProcessor {
-    static Logger logger = LoggerFactory.getLogger(SettingsProcessor)
+    private static  Logger logger = LoggerFactory.getLogger(SettingsProcessor)
 
     final static String DEFAULT_SETUP_FILE = "gradlesettings"
 
     SettingsFileHandler settingsFileHandler
+
+    ImportsReader importsReader
 
     SettingsFactory settingsFactory
 
@@ -50,10 +53,11 @@ class SettingsProcessor {
 
     }
 
-    SettingsProcessor(SettingsFileHandler settingsFileHandler, SettingsFactory settingsFactory,
+    SettingsProcessor(SettingsFileHandler settingsFileHandler, ImportsReader importsReader, SettingsFactory settingsFactory,
                       DependencyManagerFactory dependencyManagerFactory,
                       BuildSourceBuilder buildSourceBuilder, File gradleUserHomeDir, File buildResolverDir) {
         this.settingsFileHandler = settingsFileHandler
+        this.importsReader = importsReader
         this.settingsFactory = settingsFactory
         this.dependencyManagerFactory = dependencyManagerFactory
         this.buildSourceBuilder = buildSourceBuilder
@@ -66,12 +70,14 @@ class SettingsProcessor {
         initDependencyManagerFactory()
         DefaultSettings settings = settingsFactory.createSettings(currentDir, settingsFileHandler.rootDir,
                 dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
+        Map importsResult = importsReader.getImports(settingsFileHandler.rootDir)
         try {
-            Script settingsScript = new GroovyShell().parse(settingsFileHandler.settingsText, DEFAULT_SETUP_FILE)
+            Script settingsScript = new GroovyShell().parse(importsResult.text + settingsFileHandler.settingsText,
+                    DEFAULT_SETUP_FILE)
             replaceMetaclass(settingsScript, settings)
             settingsScript.run()
         } catch (Throwable t) {
-            throw new GradleScriptException(t, DEFAULT_SETUP_FILE)
+            throw new GradleScriptException(t, DEFAULT_SETUP_FILE, importsResult.importsLineCount)
         }
         if (currentDir != settingsFileHandler.rootDir && !isCurrentDirIncluded(settings)) {
             return createBasicSettings(currentDir)
@@ -93,13 +99,20 @@ class SettingsProcessor {
     }
 
     private void replaceMetaclass(Script script, DefaultSettings settings) {
-        ExpandoMetaClass projectScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
-        projectScriptExpandoMetaclass.methodMissing = {String name, args ->
+        ExpandoMetaClass settingsScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
+        settingsScriptExpandoMetaclass.methodMissing = {String name, args ->
             logger.debug("Method $name not found in script! Delegating to settings.")
             settings.invokeMethod(name, args)
         }
-        projectScriptExpandoMetaclass.initialize()
-        script.metaClass = projectScriptExpandoMetaclass
+        settingsScriptExpandoMetaclass.propertyMissing = {String name ->
+            if (name == 'out') {
+                return System.out
+            }
+            logger.debug("Property $name not found in script! Delegating to settings.")
+            settings."$name"
+        }
+        settingsScriptExpandoMetaclass.initialize()
+        script.metaClass = settingsScriptExpandoMetaclass
     }
 
     private boolean isCurrentDirIncluded(DefaultSettings settings) {

@@ -23,33 +23,41 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildScriptProcessor {
-    Logger logger = LoggerFactory.getLogger(BuildScriptProcessor)
+    private static Logger logger = LoggerFactory.getLogger(BuildScriptProcessor)
 
     ClassLoader classLoader
+
+    ImportsReader importsReader
 
     BuildScriptProcessor() {
 
     }
 
-    void evaluate(DefaultProject project, Map bindingVariables = [:]) {
+    BuildScriptProcessor(ImportsReader importsReader) {
+        this.importsReader = importsReader
+    }
+
+    int evaluate(DefaultProject project, Map bindingVariables = [:]) {
         Binding binding = new Binding(bindingVariables)
         CompilerConfiguration conf = new CompilerConfiguration()
         conf.scriptBaseClass = 'org.gradle.api.internal.project.ProjectScript'
-        Script script
+        Map buildScript
         try {
+            buildScript = buildScriptWithImports(project)
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
-            script = groovyShell.parse(project.buildScriptFinder.getBuildScript(project), project.buildScriptFinder.buildFileName)
+            Script script = groovyShell.parse(buildScript.text, project.buildScriptFinder.buildFileName)
             replaceMetaclass(script, project)
             project.projectScript = script
             script.run()
         } catch (Throwable t) {
-            throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)
+            throw new GradleScriptException(t, project.buildScriptFinder.buildFileName,
+                    buildScript.importsLineCount)
         }
         project.additionalProperties.putAll(binding.variables)
-        script
+        buildScript.importsLineCount
     }
 
     private void replaceMetaclass(Script script, DefaultProject project) {
@@ -71,5 +79,13 @@ class BuildScriptProcessor {
         }
         projectScriptExpandoMetaclass.initialize()
         script.metaClass = projectScriptExpandoMetaclass
+    }
+
+    private Map buildScriptWithImports(DefaultProject project) {
+        Map importsResult = importsReader.getImports(project.rootDir) 
+        [
+                text: importsResult.text + project.buildScriptFinder.getBuildScript(project),
+                importsLineCount: importsResult.importsLineCount
+        ]
     }
 }

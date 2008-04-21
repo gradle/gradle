@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.wrapper
 
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.Task
-import org.gradle.api.InvalidUserDataException
-import org.gradle.wrapper.Install
 import org.gradle.util.GradleVersion
+import org.gradle.wrapper.Install
 
 /**
  * @author Hans Dockter

@@ -43,6 +43,7 @@ class DefaultProjectTest extends GroovyTestCase {
     static final File TEST_ROOT = new File("root")
 
     static final String TEST_SCRIPT_TEXT = '// somescriptcode'
+    static final int TEST_IMPORTS_LINE_COUNT = 10
 
     DefaultProject project, child1, child2, childchild
 
@@ -114,6 +115,7 @@ class DefaultProjectTest extends GroovyTestCase {
         assertEquals(DefaultProject.STATE_INITIALIZED, project.state)
         assertTrue(project.tasks[TEST_TASK_NAME].lateInitialized)
         assertTrue(nestedTask.lateInitialized)
+        assertEquals(TEST_IMPORTS_LINE_COUNT, project.importsLineCount)
     }
 
     private MockFor createBuildScriptFinderMocker() {
@@ -129,6 +131,7 @@ class DefaultProjectTest extends GroovyTestCase {
         if (!evaluateClosure) {
             evaluateClosure = {DefaultProject project ->
                 assert this.project.is(project)
+                TEST_IMPORTS_LINE_COUNT
             }
         }
         MockFor buildScriptProcessorMocker = new MockFor(BuildScriptProcessor)
@@ -188,8 +191,13 @@ class DefaultProjectTest extends GroovyTestCase {
             project.evaluationDependsOn(child1.path)
             assertTrue(mockReader2Finished)
             mockReader1Called = true
+            TEST_IMPORTS_LINE_COUNT
         }] as BuildScriptProcessor
-        final BuildScriptProcessor mockReader2 = [evaluate: {DefaultProject project -> mockReader2Finished = true}] as BuildScriptProcessor
+        final BuildScriptProcessor mockReader2 = [
+                evaluate: {DefaultProject project ->
+                    mockReader2Finished = true
+                    TEST_IMPORTS_LINE_COUNT
+                }] as BuildScriptProcessor
         project.buildScriptProcessor = mockReader1
         child1.buildScriptProcessor = mockReader2
         project.evaluate()
@@ -223,6 +231,7 @@ class DefaultProjectTest extends GroovyTestCase {
         boolean mockReaderCalled = false
         final BuildScriptProcessor mockReader = [evaluate: {DefaultProject project ->
             mockReaderCalled = true
+            TEST_IMPORTS_LINE_COUNT
         }] as BuildScriptProcessor
         child1.buildScriptProcessor = mockReader
         project.dependsOn(child1.name, false)
@@ -236,6 +245,7 @@ class DefaultProjectTest extends GroovyTestCase {
         boolean mockReaderCalled = false
         final BuildScriptProcessor mockReader = [evaluate: {DefaultProject project ->
             mockReaderCalled = true
+            TEST_IMPORTS_LINE_COUNT
         }] as BuildScriptProcessor
         child1.buildScriptProcessor = mockReader
         project.dependsOn(child1.name)
@@ -268,9 +278,11 @@ class DefaultProjectTest extends GroovyTestCase {
         Set evaluatedProjects = []
         buildScriptProcessorMocker.demand.evaluate(2..2) {DefaultProject project ->
             evaluatedProjects << project
+            TEST_IMPORTS_LINE_COUNT
         }
         buildScriptProcessorMocker.use(child1.buildScriptProcessor) {
             project.dependsOnChildren(true)
+            TEST_IMPORTS_LINE_COUNT
         }
         assertTrue(project.dependsOnProjects.contains(child1))
         assertTrue(project.dependsOnProjects.contains(child2))
@@ -487,6 +499,14 @@ class DefaultProjectTest extends GroovyTestCase {
         }
     }
 
+     void testGetProjectWithClosure() {
+        String newPropValue = 'someValue'
+        assert child1.is(project.project("child1") {
+            newProp = newPropValue
+        })
+        assertEquals(child1.newProp, newPropValue)
+    }
+
     void testGetAllTasks() {
         List tasksClean = project.allprojects*.createTask('clean')
         List tasksCompile = project.allprojects*.createTask('compile')
@@ -683,14 +703,6 @@ def scriptMethod(Closure closure) {
         project.dir('dir1/dir4')
         assert project.task('dir1').is(dir1Task)
         assert project.task('dir1/dir4') instanceof Directory
-
-        shouldFailWithCause(InvalidUserDataException) {
-            project.dir(new File('dirNonRelative').absolutePath)    
-        }
-        project.createTask('/sometask')
-        shouldFailWithCause(InvalidUserDataException) {
-            project.dir('/sometask')
-        }
     }
 
     void testLazyInitOfAnt() {
@@ -703,6 +715,37 @@ def scriptMethod(Closure closure) {
         project.ant(configureClosure)
         assertEquals(Closure.OWNER_FIRST, configureClosure.@resolveStrategy)
         assertTrue(project.ant.collectorTarget.children[0].realThing instanceof FileSet)
+    }
+
+    void testSubprojects() {
+        checkConfigureProject('subprojects', listWithAllChildProjects)
+    }
+
+    void testAllprojects() {
+        checkConfigureProject('allprojects', listWithAllProjects)
+    }
+
+    void testConfigureProjects() {
+        checkConfigureProject('configureProjects', [project, child1])
+    }
+
+    private void checkConfigureProject(String configureMethod, List projectsToCheck) {
+        String propValue = 'someValue'
+        if (configureMethod == 'configureProjects') {
+            project."$configureMethod" projectsToCheck,
+                    {
+                        testSubProp = propValue
+                    }
+        } else {
+            project."$configureMethod"
+                    {
+                        testSubProp = propValue
+                    }
+        }
+
+        projectsToCheck.each {
+            assertEquals(propValue, it.testSubProp)
+        }
     }
 }
 

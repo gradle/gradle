@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.util
 
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.StopActionException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -23,13 +25,13 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class ExistingDirsFilter {
-    Logger logger = LoggerFactory.getLogger(ExistingDirsFilter)
+    private static Logger logger = LoggerFactory.getLogger(ExistingDirsFilter)
     
     Collection findExistingDirs(Collection dirFiles) {
         dirFiles.findAll {File file -> file.isDirectory()}
     }
 
-    Collection findExistingDirsAndLogexitMessages(Collection dirFiles) {
+    Collection findExistingDirsAndLogExitMessage(Collection dirFiles) {
         logger.debug("Looking for existing folders: $dirFiles")
         Collection result = findExistingDirs(dirFiles)
         if (!result) {
@@ -38,7 +40,18 @@ class ExistingDirsFilter {
         result
     }
 
-    boolean checkExistenceAndLogExitMessage(File dir) {
-        findExistingDirsAndLogexitMessages([dir])    
+    Collection findExistingDirsAndThrowStopActionIfNone(Collection dirFiles) {
+        Collection result = findExistingDirsAndLogExitMessage(dirFiles)
+        if (!result) {throw new StopActionException()}
+        result
+    }
+
+    Collection checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir, Collection dirFiles) {
+       if (!destDir) throw new InvalidUserDataException ("The destination dir is not set!")
+       findExistingDirsAndThrowStopActionIfNone(dirFiles) 
+    }
+
+    void checkExistenceAndThrowStopActionIfNot(File dir) {
+        findExistingDirsAndThrowStopActionIfNone([dir])
     }
 }

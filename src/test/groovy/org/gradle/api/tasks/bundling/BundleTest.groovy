@@ -125,7 +125,7 @@ class BundleTest extends AbstractConventionTaskTest {
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
         assertEquals([expectedArchiveTaskName] as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
-        assert bundle.bundleNames.contains(archiveTask.name)
+        assert bundle.archiveNames.contains(archiveTask.name)
         archiveTask
     }
 

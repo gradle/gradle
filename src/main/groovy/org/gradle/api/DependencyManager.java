@@ -16,13 +16,12 @@
 
 package org.gradle.api;
 
-import groovy.lang.Closure;
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.internal.dependencies.ResolverContainer;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.IBiblioResolver;
+import org.gradle.api.dependencies.DependencyContainer;
+import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
 import java.util.List;
@@ -31,32 +30,22 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public interface DependencyManager {
+public interface DependencyManager extends DependencyContainer {
+    public static final String DEFAULT_IBIBLIO_NAME = "IBiblio";
+
+    public static final String IBIBLIO_URL = "http://repo1.maven.org/maven2/";
+
     public static final String BUILD_RESOLVER_NAME = "build-resolver";
 
     public static final String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
 
-    Project getProject();
-
-    Ivy getIvy();
+    public static final String FLAT_DIR_RESOLVER_PATTERN = "[artifact]-[revision].[ext]";
 
     /**
     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
     */
     Map getConfigurations();
 
-    /**
-    * A list of Gradle Dependency objects.
-    */
-    List getDependencies();
-
-    /**
-    * A list for passing directly instances of Ivy DependencyDescriptor objects.
-    */
-    List getDependencyDescriptors();
-
-    ResolverContainer getClasspathResolvers();
-    
     /**
     * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
     */
@@ -87,23 +76,83 @@ public interface DependencyManager {
     */
     Map getConf2Tasks();
 
-    void addDependencies(List confs, Object[] dependencies);
+    /**
+     * A configuration can be assigned to one or more tasks. One usage of this mapping is that for example the
+     * <pre>compile</pre> task can ask for its classpath by simple passing its name as an argument. Of course the JavaPlugin
+     * had to create the mapping during the initialization phase.
+     *
+     * Another important use case are multi-project builds. Let's say you add a project dependency to the testCompile conf.
+     * You don't want the other project to be build, if you do just a compile. The testCompile task is mapped to the
+     * testCompile conf. With this knowledge we create a dependsOn relation ship between the testCompile task and the
+     * task of the other project that produces the jar. This way a compile does not trigger the build of the other project,
+     * but a testCompile does.
+     * If a mapping between a task and a conf is not specified an implicit mapping is assumed which looks for a task
+     * with the same name as the conf. But for example for the test task you have to specify an explicit mapping.
+     *
+     * @param conf the name of the conf
+     * @param tasks the name of the tasks
+     */
+    void addConf2Tasks(String conf, String[] tasks);
 
+    /**
+     * Adds artifacts for the given confs. An artifact is normally a library produced by the project. Usually this
+     * method is not directly used by the build master. The archive tasks of the libs bundle call this method to
+     * add the archive to the artifacts. 
+     *
+     * @param configurationName
+     * @param artifacts
+     */
     void addArtifacts(String configurationName, Object[] artifacts);
 
+    /**
+     * Adds an <code>org.apache.ivy.core.module.descriptor.Configuration</code> You would use this method if
+     * you need to add a configuration with special attributes. For example a configuration that extends another
+     * configuration.
+     *  
+     * @param configuration
+     */
     void addConfiguration(Configuration configuration);
 
+    /**
+     * Adds a configuration with the given name. Under the hood an ivy configuration is created with default
+     * attributes. 
+     * @param configuration
+     */
     void addConfiguration(String configuration);
 
-    void addDependencyDescriptors(DependencyDescriptor[] dependencyDescriptors);
+    /**
+     * Returns a list of file objects, denoting the path to the classpath elements belonging to this classname.
+     *  
+     * @param taskName
+     * @return
+     */
+    List resolveClasspath(String taskName);
 
-    List resolveClasspath(String configurationName);
+    /**
+     * Returns a ResolverContainer with the resolvers responsible for resolving the classpath dependencies.
+     * There are different resolver containers for uploading the libraries and the distributions of a project.
+     * The same resolvers can be part of multiple resolver container.
+     * 
+     * @return a ResolverContainer containing the classpathResolvers
+     */
+    ResolverContainer getClasspathResolvers();
 
-    ModuleRevisionId createModuleRevisionId();
-
-    DependencyManager configure(Closure configureClosure);
-
+    /**
+     * @return The root directory used by the build resolver.
+     */
     File getBuildResolverDir();
-    
+
+    /**
+     * The build resolver is the resolver responsible for uploading and resolving the build source libraries as well
+     * as project libraries between multi-project builds.
+     *  
+     * @return the build resolver
+     */
     RepositoryResolver getBuildResolver();
+
+    FileSystemResolver createFlatDirResolver(String name, File[] dirs);
+
+    FileSystemResolver addFlatDirResolver(String name, File[] dirs);
+
+    IBiblioResolver addIBiblio();
 }

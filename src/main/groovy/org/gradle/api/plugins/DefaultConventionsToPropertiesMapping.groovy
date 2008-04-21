@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.tasks.util.FileSet
+
 /**
  * We always cast the closure argument to the JavaConvention object. We try to do this with as less noise as possible.
  * We do this, because we want to use the content assist, reliable refactoring and fail fast.
@@ -23,41 +25,41 @@ package org.gradle.api.plugins
  * @author Hans Dockter
  */
 class DefaultConventionsToPropertiesMapping {
-    final static Map DEPENDENCY_MAANGER = [
-            targetDir: {_(it).classesDir},
-            sourceDirs: {_(it).resourceDirs}
-    ]
     final static Map CLEAN = [
             dir: {_(it).project.buildDir}
     ]
+    final static Map JAVADOC = [
+            srcDirs: {_(it).srcDirs},
+            destinationDir: {_(it).javadocDir}
+    ]
     final static Map RESOURCES = [
-            targetDir: {_(it).classesDir},
-            sourceDirs: {_(it).resourceDirs}
+            destinationDir: {_(it).classesDir},
+            srcDirs: {_(it).resourceDirs}
     ]
     final static Map COMPILE = [
-            targetDir: {_(it).classesDir},
-            sourceDirs: {_(it).srcDirs},
+            destinationDir: {_(it).classesDir},
+            srcDirs: {_(it).srcDirs},
             sourceCompatibility: {_(it).sourceCompatibility},
             targetCompatibility: {_(it).targetCompatibility},
             dependencyManager: {_(it).project.dependencies}
     ]
     final static Map TEST_RESOURCES = [
-            targetDir: {_(it).testClassesDir},
-            sourceDirs: {_(it).testResourceDirs}
+            destinationDir: {_(it).testClassesDir},
+            srcDirs: {_(it).testResourceDirs}
     ]
     final static Map TEST_COMPILE = [
-            targetDir: {_(it).testClassesDir},
-            sourceDirs: {_(it).testSrcDirs},
+            destinationDir: {_(it).testClassesDir},
+            srcDirs: {_(it).testSrcDirs},
             sourceCompatibility: {_(it).sourceCompatibility},
             targetCompatibility: {_(it).targetCompatibility},
             unmanagedClasspath: {[_(it).classesDir]},
             dependencyManager: {_(it).project.dependencies}
     ]
     final static Map TEST = [
-            compiledTestsDir: {_(it).testClassesDir},
+            testClassesDir: {_(it).testClassesDir},
             testResultsDir: {_(it).testResultsDir},
             // Order of dirs is important because of classpath!
-            unmanagedClasspath: {[_(it).testClassesDir, _(it).classesDir]},
+            unmanagedClasspath: {[_(it).classesDir]},
             dependencyManager: {_(it).project.dependencies}
     ]
     private final static Map ARCHIVE = [
@@ -66,18 +68,23 @@ class DefaultConventionsToPropertiesMapping {
             version: {"${_(it).project.version}"}
     ]
     final static Map ZIP = ARCHIVE + [
-            configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]}
+            destinationDir: {_(it).distsDir},
+            configurations: {[JavaPlugin.DISTS] as String[]}
     ]
     final static Map TAR = ZIP
     final static Map JAR = ARCHIVE + [
             baseDir: {_(it).classesDir},
-            configurations: {[JavaPlugin.MASTER] as String[]},
+            configurations: {[JavaPlugin.LIBS] as String[]},
             manifest: {_(it).manifest},
-            metaInf: {_(it).metaInf}
+            metaInfResourceCollections: {_(it).metaInf},
+            resourceCollections: {[new FileSet(_(it).classesDir)]}
     ]
-    final static Map WAR = JAR.subMap(JAR.keySet() - 'configurations') + [
-            configurations: {[JavaPlugin.UPLOAD_DISTS] as String[]},
-            libConfiguration: {JavaPlugin.RUNTIME}
+    // todo Does it really makes sense to add a war to the dists configuration ?
+    final static Map WAR = JAR.subMap(JAR.keySet() - 'baseDir') + [
+            configurations: {[JavaPlugin.DISTS] as String[]},
+            libConfiguration: {JavaPlugin.RUNTIME},
+            webInfFileSets: {[new FileSet(_(it).webAppDir)]},
+            classesFileSets: {[new FileSet(_(it).classesDir)]} 
     ]
     final static Map LIB = [
             tasksBaseName: {"${_(it).project.name}"},

@@ -19,7 +19,6 @@ package org.gradle.api.internal.dependencies
 import org.gradle.api.dependencies.DefaultGradleArtifact
 import org.gradle.api.internal.dependencies.ArtifactFactory
 
-
 /**
  * @author Hans Dockter
  */

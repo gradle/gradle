@@ -65,11 +65,12 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testDependsOn() {
+        Task dependsOnTask = createTask(project, 'somename')
         Task task = createTask(project, TEST_TASK_NAME)
         task.dependsOn(Project.PATH_SEPARATOR + 'path1')
-        assertEquals(new TreeSet([Project.PATH_SEPARATOR + 'path1']), task.dependsOn)
-        task.dependsOn Project.PATH_SEPARATOR + 'path2', 'path3'
-        assertEquals(new TreeSet([Project.PATH_SEPARATOR + 'path1', Project.PATH_SEPARATOR + 'path2', "path3" as String]), task.dependsOn)
+        assertEquals([Project.PATH_SEPARATOR + 'path1'] as Set, task.dependsOn)
+        task.dependsOn('path2', dependsOnTask)
+        assertEquals([Project.PATH_SEPARATOR + 'path1', 'path2', dependsOnTask] as Set, task.dependsOn)
     }
 
     void testDependsOnWithIllegalArguments() {
@@ -159,6 +160,21 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertTrue(task.executed)
     }
 
+    void testStopAction() {
+        task.actions = []
+        Closure action1 = {
+            throw new StopActionException()
+            fail()
+        }
+        boolean action2Called = false
+        Closure action2 = {action2Called = true}
+        task.doFirst(action2)
+        task.doFirst(action1)
+        task.execute()
+        assertTrue(action2Called)
+        assertTrue(task.executed)
+    }
+
     void testSkipProperties() {
         task.skipProperties = ['prop1']
         boolean action1Called = false
@@ -178,6 +194,28 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         task.execute()
         assertTrue(action1Called)
         assertTrue(task.executed)
+        System.properties.remove(task.skipProperties[0])
+    }
+
+    void testAutoSkipProperties() {
+        boolean action1Called = false
+        Closure action1 = {
+            action1Called = true
+            throw new StopExecutionException()
+        }
+        task.doFirst(action1)
+
+        System.setProperty("skip.$task.name", 'true')
+        task.execute()
+        assertFalse(action1Called)
+        assertTrue(task.executed)
+
+        System.setProperty("skip.$task.name", 'false')
+        task.executed = false
+        task.execute()
+        assertTrue(action1Called)
+        assertTrue(task.executed)
+        System.properties.remove("skip.$task.name")
     }
 
     void testAfterDag() {

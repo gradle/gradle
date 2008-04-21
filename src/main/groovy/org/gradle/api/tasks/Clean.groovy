@@ -46,7 +46,7 @@ class Clean extends ConventionTask {
         if (self.dir == null) {
             throw new InvalidUserDataException("The dir property must be specified!")
         }
-        if (!existingDirsFilter.checkExistenceAndLogExitMessage(self.dir)) {return}
+        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(self.dir)
         logger.debug("Deleting dir: $self.dir")
         project.ant.delete(dir: self.dir)
     }

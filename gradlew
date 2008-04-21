@@ -136,5 +136,4 @@ fi
 
 chmod 775 $GRADLE
 
-. $GRADLE
-exec "$GRADLE" $QUOTED_ARGS
+. $GRADLE $QUOTED_ARGS

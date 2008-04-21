@@ -1,0 +1,92 @@
+\documentclass[10pt,oneside,a4paper,titlepage]{book} \setlength{
+\topmargin}{-2cm} \setlength{
+\headsep}{1cm} \setlength{
+\textheight}{26.5cm} \setlength{
+\textwidth}{17.3cm} \setlength{
+\evensidemargin}{-0.7cm} \setlength{
+\oddsidemargin}{-0.7cm}
+
+\def \API {http://www.gradle.org/api/latest/org/gradle/api/} 
+\def \PKG {org.gradle.api.} 
+
+\includeonly{introduction,buildScripts,javaTutorial,thisAndThat,overview,projectTaskApi,tasks,plugins,javaPlugin,groovyPlugin,depMngmt,buildLifecycle,multiproject,organizeBuildLogic,gradleWrapper,potentialTraps,commandLine,ideSupport,mavenPoms} 
+\usepackage{upquote} 
+\usepackage{tabularx} 
+\usepackage{fancyvrb} 
+\usepackage{ccaption} 
+\usepackage{color}
+\usepackage{array}
+
+\definecolor{MyGray}{rgb}{0.96,0.97,0.98} 
+\makeatletter
+\newenvironment{graybox}{
+
+%
+\begin{lrbox}
+	{\@tempboxa}
+	\begin{minipage}
+		{\columnwidth}}{
+	\end{minipage}
+\end{lrbox}
+
+%
+\colorbox{MyGray}{
+\usebox{\@tempboxa}} }
+\makeatother
+
+\renewcommand{\figurename}{Listing} 
+\usepackage[colorlinks=true]{hyperref}
+
+\begin{document} 
+\newcommand\HRule{
+\noindent\rule{\linewidth}{1.5pt}} 
+\newcommand{\codeInput}[1]{\VerbatimInput[framesep=1mm]{#1}}
+\newcommand{\codeGradleFile}[2][]{\VerbatimInput[frame=single,label=#1gradlefile,framesep=1mm]{#2}}
+\newcommand{\outputInput}[1]{\VerbatimInput[frame=single,framesep=1mm,framerule=1mm]{#1}}
+\newcommand{\outputInputGradle}[2][]{\VerbatimInput[frame=single,label=current dir: #1,framesep=1mm,framerule=1mm]{#2}}
+\newcommand{\outputInputTutorial}[1]{\outputInputGradle[tutorial]{#1}}
+\begin{titlepage}
+	\vspace*{\stretch{1}} \HRule 
+	\begin{flushleft}
+		\Huge {\bf Gradle} \\
+		\LARGE A build system \\
+	\end{flushleft}
+	\HRule \vspace*{\stretch{0.2}} 
+	\begin{center}
+		\large Version \input{../../../build/docs/userguide/data/version} 
+	\end{center}
+	\vspace*{\stretch{0.5}} 
+	\begin{center}
+		\large Copyright \copyright 2007-2008 Hans Dockter 
+	\end{center}
+	\vspace*{\stretch{0.2}} 
+	\begin{center}
+		Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically. 
+	\end{center}
+\end{titlepage}
+\pagenumbering{roman} 
+\tableofcontents 
+\newpage 
+\pagenumbering{arabic} 
+\include{introduction} 
+\include{buildScripts} 
+\include{javaTutorial} 
+\include{thisAndThat} 
+\include{overview} 
+\include{projectTaskApi} 
+\include{tasks} 
+\include{plugins} 
+\include{javaPlugin} 
+\include{groovyPlugin} 
+\include{depMngmt} 
+\include{buildLifecycle}
+\include{multiproject}
+\include{organizeBuildLogic} 
+\include{gradleWrapper} 
+\appendix 
+\include{potentialTraps} 
+\include{ideSupport} 
+\include{commandLine} 
+% \include{mavenPoms} 
+
+\end{document}

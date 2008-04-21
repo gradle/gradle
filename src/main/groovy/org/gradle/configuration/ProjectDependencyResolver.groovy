@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
 * @author Hans Dockter
 */
 class ProjectDependencies2TasksResolver {
-    Logger logger = LoggerFactory.getLogger(ProjectDependencies2TasksResolver)
+    private static Logger logger = LoggerFactory.getLogger(ProjectDependencies2TasksResolver)
 
     // This is an implementation detail of ProjectDependencies2TasksResolver. Therefore we don't use IoC here.
     ProjectsTraverser projectsTraverser = new ProjectsTraverser()
