@@ -1,9 +1,9 @@
 %!TEX root = master.tex
 \chapter{The Gradle Wrapper} % (fold)
 \label{cha:the_gradle_wrapper}
-Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An example are continuous integration server where Gradle is not installed and you have no admin rights for the machine. Or what if you provide an open source project and you want to make it as easy as possible for your users to build it.\footnote{If you download the gradle source distribution or check out Gradle from SVN, you can build Gradle via the gradle wrapper..}
+Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An example are continuous integration server where Gradle is not installed and you have no admin rights for the machine. Or what if you provide an open source project and you want to make it as easy as possible for your users to build it.
 
-There is a simple and good news. Gradle provides a solution for this. It ships with a \emph{Wrapper} task.\footnote{Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See \url{http://gradle.org/ci-server.html}} You can create such a task in your build script.
+There is a simple and good news. Gradle provides a solution for this. It ships with a \emph{Wrapper} task.\footnote{If you download the gradle source distribution or check out Gradle from SVN, you can build Gradle via the gradle wrapper.}\footnote{Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See \url{http://gradle.org/ci-server.html}} You can create such a task in your build script.
 \begin{Verbatim}
 createTask('wrapper', type: Wrapper).configure {
     gradleVersion = '0.1'

@@ -34,9 +34,9 @@ class ProjectTasksPrettyPrinterTest extends GroovyTestCase {
 
         Project project1 = [toString: {expectedProject1String}] as Project
         Project project2 = [toString: {expectedProject2String}] as Project
-        Task task11 = [toString: {expectedTask11String}, getDependsOn: {task11DependsOn}] as Task
-        Task task12 = [toString: {expectedTask12String}, getDependsOn: {[] as SortedSet}] as Task
-        Task task21 = [toString: {expectedTask21String}, getDependsOn: {[] as SortedSet}] as Task
+        Task task11 = [getPath: {expectedTask11String}, getDependsOn: {task11DependsOn}] as Task
+        Task task12 = [getPath: {expectedTask12String}, getDependsOn: {[] as SortedSet}] as Task
+        Task task21 = [getPath: {expectedTask21String}, getDependsOn: {[] as SortedSet}] as Task
 
         Map tasks = [(project1): [task11, task12], (project2): [task21]]
         // We can't use triple quoted strings for cresting the expected value, as they use always /n as
@@ -46,11 +46,11 @@ class ProjectTasksPrettyPrinterTest extends GroovyTestCase {
         String separator = '*' * 50
         new PlatformLineWriter(stringWriter).withWriter { it.write("""$separator
 Project: $project1
-++Task: $task11: $task11.dependsOn
-++Task: $task12: $task12.dependsOn
+++Task: $task11.path: $task11.dependsOn
+++Task: $task12.path: $task12.dependsOn
 $separator
 Project: $project2
-++Task: $task21: $task21.dependsOn
+++Task: $task21.path: $task21.dependsOn
 """)
         }
         assertEquals(stringWriter.toString(), new ProjectTasksPrettyPrinter().getPrettyText(tasks))
