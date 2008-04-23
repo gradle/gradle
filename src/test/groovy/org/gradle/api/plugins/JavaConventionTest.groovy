@@ -26,30 +26,72 @@ import org.gradle.util.HelperUtil
 class JavaConventionTest extends GroovyTestCase {
     DefaultProject project
     File testDir
-    JavaConvention convention
+
+    private JavaConvention javaConvention
+
+    // We need this getter as this test is extended
+    JavaConvention getConvention() {
+        if (!javaConvention) {
+            javaConvention = new JavaConvention(project)
+        }
+        javaConvention
+    }
 
     void setUp() {
         testDir = HelperUtil.makeNewTestDir()
         project = [getProjectDir: {testDir}] as DefaultProject
-        convention = new JavaConvention(project)
     }
 
     void testJavaConvention() {
         assert convention.archiveTypes.is(JavaConvention.DEFAULT_ARCHIVE_TYPES)
         assert convention.manifest != null
-        assert convention.metaInf != null
-        assertEquals(new File(testDir, 'src'), convention.srcRoot)
-        assertEquals(new File(project.buildDir, 'classes'), convention.classesDir)
-        assertEquals(new File(project.buildDir, 'test-classes'), convention.testClassesDir)
-        assertEquals(new File(project.buildDir, 'test-results'), convention.testResultsDir)
-        assertEquals([new File(convention.srcRoot, 'main/java')], convention.srcDirs)
-        assertEquals([new File(convention.srcRoot, 'test/java')], convention.testSrcDirs)
-        assertEquals([new File(convention.srcRoot, 'main/resources')], convention.resourceDirs)
-        assertEquals([new File(convention.srcRoot, 'test/resources')], convention.testResourceDirs)
+        assertEquals([], convention.metaInf)
+        assertEquals('src', convention.srcRootName)
+        assertEquals('docs', convention.srcDocsDirName)
+        assertEquals('main/webapp', convention.webAppDirName)
+        assertEquals('classes', convention.classesDirName)
+        assertEquals('test-classes', convention.testClassesDirName)
+        assertEquals('distributions', convention.distsDirName)
+        assertEquals('docs', convention.docsDirName)
+        assertEquals('javadoc', convention.javadocDirName)
+        assertEquals('test-results', convention.testResultsDirName)
+        assertEquals('reports', convention.reportsDirName)
+        assertEquals(['main/java'], convention.srcDirNames)
+        assertEquals(['test/java'], convention.testSrcDirNames)
+        assertEquals(['main/resources'], convention.resourceDirNames)
+        assertEquals(['test/resources'], convention.testResourceDirNames)
     }
 
+    void testDefaultDirs() {
+        checkDirs(convention.srcRootName)
+    }
+
+    void testDynamicDirs() {
+        convention.srcRootName = 'mysrc'
+        project.buildDirName = 'mybuild'
+        checkDirs(convention.srcRootName)
+    }
+
+    private void checkDirs(String srcRootName) {
+        assertEquals(new File(testDir, srcRootName), convention.srcRoot)
+        assertEquals([new File(convention.srcRoot, convention.srcDirNames[0])], convention.srcDirs)
+        assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])], convention.testSrcDirs)
+        assertEquals([new File(convention.srcRoot, convention.resourceDirNames[0])], convention.resourceDirs)
+        assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])], convention.testResourceDirs)
+        assertEquals(new File(convention.srcRoot, convention.srcDocsDirName), convention.srcDocsDir)
+        assertEquals(new File(convention.srcRoot, convention.webAppDirName), convention.webAppDir)
+        assertEquals(new File(project.buildDir, convention.classesDirName), convention.classesDir)
+        assertEquals(new File(project.buildDir, convention.testClassesDirName), convention.testClassesDir)
+        assertEquals(new File(project.buildDir, convention.distsDirName), convention.distsDir)
+        assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
+        assertEquals(new File(project.buildDir, convention.javadocDirName), convention.javadocDir)
+        assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
+        assertEquals(new File(project.buildDir, convention.reportsDirName), convention.reportsDir)
+    }
+
+
     void testMkdir() {
-        String expectedDirName = 'somedir' 
+        String expectedDirName = 'somedir'
         File dir = convention.mkdir(expectedDirName)
         assertEquals(new File(project.buildDir, expectedDirName), dir)
     }
@@ -61,11 +103,11 @@ class JavaConventionTest extends GroovyTestCase {
     }
 
     void testMkdirWithInvalidArguments() {
-       shouldFail(InvalidUserDataException) {
+        shouldFail(InvalidUserDataException) {
             convention.mkdir(null)
-       }
-       shouldFail(InvalidUserDataException) {
+        }
+        shouldFail(InvalidUserDataException) {
             convention.mkdir('')
-       }
+        }
     }
 }

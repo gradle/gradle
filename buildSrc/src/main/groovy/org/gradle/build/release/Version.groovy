@@ -69,7 +69,15 @@ class Version {
         svn.isTrunk() ? 0 : revisionInternal + 1
     }
 
+    String getLastRelease() {
+        versionString(majorInternal, minorInternal, revisionInternal)
+    }
+
     String toString() {
-        "${major}.${minor}${revision ? '.' + revision : ''}${project.versionModifier ? '-' + project.versionModifier : ''}"
+        "${versionString(major, minor, revision)}${project.versionModifier ? '-' + project.versionModifier : ''}"
+    }
+
+    private String versionString(int major, int minor, int revision) {
+        "${major}.${minor}${revision ? '.' + revision : ''}"
     }
 }

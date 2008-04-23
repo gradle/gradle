@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class ClasspathConverter {
-    Logger logger = LoggerFactory.getLogger(ClasspathConverter)
+    private static Logger logger = LoggerFactory.getLogger(ClasspathConverter)
 
     BaseDirConverter baseDirConverter = new BaseDirConverter()
     

@@ -17,7 +17,7 @@
 package org.gradle.build.release
 
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -76,6 +76,13 @@ class VersionTest extends GroovyTestCase {
         assertEquals(1, version.major)
         assertEquals(2, version.minor)
         assertEquals(4, version.revision)
+    }
+
+    void testGetLastRelease() {
+        assertEquals('1.2.3', version.lastRelease)
+        project.previousRevision = 0
+        version = new Version(svn, project, false)
+        assertEquals('1.2', version.lastRelease)
     }
 
     void testToString() {

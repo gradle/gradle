@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.Files
+import org.gradle.api.tasks.util.FileCollection
 
 /**
  * @author Hans Dockter
@@ -29,7 +29,7 @@ class AntWarTest extends AbstractAntArchiveTest {
     static final String EXPLICIT_WEB_XML_TEXT = 'exlicitwebxmltext'
     static final String IMPLICIT_WEB_XML_TEXT = 'imlicitwebxmltext'
 
-    Files libFiles
+    FileCollection libFiles
 
     File explicitWebXml
     File implicitWebXml
@@ -39,7 +39,7 @@ class AntWarTest extends AbstractAntArchiveTest {
     void setUp() {
         super.setUp()
         antWar = new AntWar()
-        libFiles = new Files()
+        libFiles = new FileCollection()
         libFiles.files = [new File(testDir, 'libFile1'), new File(testDir, 'libFile2')]
         libFiles.files*.createNewFile()
         (explicitWebXml = new File(testDir, 'myweb.xml')).write(EXPLICIT_WEB_XML_TEXT)

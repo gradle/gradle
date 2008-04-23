@@ -26,21 +26,21 @@ class WaterProject {
    static void execute(String gradleHome, String samplesDirName) {
         File waterDir = new File(samplesDirName, WaterProjectCreator.WATER_NAME)
         String taskName = 'hello'
-        String output = Executer.execute(gradleHome, waterDir.absolutePath, [taskName])
-        assert output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO, 
+        Map result = Executer.execute(gradleHome, waterDir.absolutePath, [taskName])
+        assert result.output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
                 intro(WaterProjectCreator.PHYTOPLANKTON_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.PHYTOPLANKTON_INFO,
                 intro(WaterProjectCreator.KRILL_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.KRILL_INFO,
                 intro(WaterProjectCreator.BLUE_WHALE_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.BLUE_WHALE_INFO])
 
-        output = Executer.execute(gradleHome, new File(waterDir, WaterProjectCreator.BLUE_WHALE_NAME).absolutePath, [taskName])
-        assert output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
+        result = Executer.execute(gradleHome, new File(waterDir, WaterProjectCreator.BLUE_WHALE_NAME).absolutePath, [taskName])
+        assert result.output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
                 intro(WaterProjectCreator.PHYTOPLANKTON_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.PHYTOPLANKTON_INFO,
                 intro(WaterProjectCreator.KRILL_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.KRILL_INFO,
                 intro(WaterProjectCreator.BLUE_WHALE_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.BLUE_WHALE_INFO])
 
-        output = Executer.execute(gradleHome, new File(waterDir, WaterProjectCreator.PHYTOPLANKTON_NAME).absolutePath,
+        result = Executer.execute(gradleHome, new File(waterDir, WaterProjectCreator.PHYTOPLANKTON_NAME).absolutePath,
                 [taskName])
-        assert output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
+        assert result.output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
                 intro(WaterProjectCreator.PHYTOPLANKTON_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.PHYTOPLANKTON_INFO])
     }
 

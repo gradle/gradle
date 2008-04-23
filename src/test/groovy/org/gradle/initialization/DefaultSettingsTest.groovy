@@ -21,8 +21,11 @@ import groovy.mock.interceptor.StubFor
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
-import org.gradle.api.internal.dependencies.ResolverContainer
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.plugins.JavaPlugin
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
  * @author Hans Dockter
@@ -84,14 +87,76 @@ class DefaultSettingsTest extends GroovyTestCase {
         assertEquals((paths1 as List) + (paths2 as List), settings.projectPaths)
     }
 
-    void testAddDependencies() {
+    void testDependencies() {
         String[] expectedDependencies = ["dep1", "dep2"]
-        dependencyManagerMocker.demand.addDependencies(1..1) {List confs, Object[] dependencies ->
+        dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
             assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
             assertArrayEquals expectedDependencies, dependencies
         }
         dependencyManagerMocker.use(dependencyManager) {
-            settings.addDependencies(expectedDependencies)
+            settings.dependencies(expectedDependencies)
+        }
+    }
+
+    void testDependency() {
+        String expectedId = "dep1"
+        Closure expectedConfigureClosure
+        dependencyManagerMocker.demand.dependency(1..1) {List confs, String id, Closure configureClosure ->
+            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
+            assertEquals(expectedId, id)
+            assertEquals(expectedConfigureClosure, configureClosure)
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            settings.dependency(expectedId, expectedConfigureClosure)
+        }
+    }
+
+    void testClientModule() {
+        String expectedId = "dep1"
+        Closure expectedConfigureClosure
+        dependencyManagerMocker.demand.clientModule(1..1) {List confs, String id, Closure configureClosure ->
+            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
+            assertEquals(expectedId, id)
+            assertEquals(expectedConfigureClosure, configureClosure)
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            settings.clientModule(expectedId, expectedConfigureClosure)
+        }
+    }
+
+    void testAddIBiblio() {
+        IBiblioResolver expectedResolver = new IBiblioResolver()
+        dependencyManagerMocker.demand.addIBiblio(1..1) {-> expectedResolver}
+        dependencyManagerMocker.use(dependencyManager) {
+            assert settings.addIBiblio().is(expectedResolver)
+        }
+    }
+
+    void testAddFlatFileResolver() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String expectedName = 'name'
+        File[] expectedDirs = ['a' as File]
+        dependencyManagerMocker.demand.addFlatDirResolver(1..1) {String name, File[] dirs ->
+            assertEquals(expectedName, name)
+            assertArrayEquals(expectedDirs, dirs)
+            expectedResolver
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            assert settings.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+        }
+    }
+
+    void testCreateFlatFileResolver() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String expectedName = 'name'
+        File[] expectedDirs = ['a' as File]
+        dependencyManagerMocker.demand.createFlatDirResolver(1..1) {String name, File[] dirs ->
+            assertEquals(expectedName, name)
+            assertArrayEquals(expectedDirs, dirs)
+            expectedResolver
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            assert settings.createFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
         }
     }
 
@@ -113,7 +178,7 @@ class DefaultSettingsTest extends GroovyTestCase {
 
     void testCreateClassLoaderWithExistingBuildSource() {
         String testDependency = 'org.gradle:somedep:1.0'
-        dependencyManagerMocker.demand.addDependencies(1..1) {List confs, Object[] dependencies ->
+        dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
             assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
             assertEquals([testDependency], dependencies as List)
         }

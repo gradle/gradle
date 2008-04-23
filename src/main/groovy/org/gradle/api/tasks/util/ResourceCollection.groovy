@@ -21,8 +21,12 @@ import org.gradle.api.tasks.AntBuilderAware
 /**
  * @author Hans Dockter
  */
-class Files implements AntBuilderAware {
-    List files
+class FileCollection implements AntBuilderAware {
+    Set files
+
+    FileCollection(Set files) {
+        this.files = files
+    }
 
     def addToAntBuilder(node, String childNodeName = null) {
         files.each { File file ->

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  */
 class BuildSourceBuilder {
-    Logger logger = LoggerFactory.getLogger(BuildSourceBuilder)
+    private static Logger logger = LoggerFactory.getLogger(BuildSourceBuilder)
 
     static final BUILD_SRC_ORG = 'org.gradle'
     static final BUILD_SRC_MODULE = 'buildSrc'
@@ -37,6 +37,7 @@ class BuildSourceBuilder {
 usePlugin('groovy')
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
+compile.unmanagedClasspath(org.gradle.util.GradleUtil.gradleClasspath)
 test {
     include '**/*Test.class'
     exclude '**/Abstract*'

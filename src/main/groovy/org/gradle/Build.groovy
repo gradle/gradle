@@ -52,12 +52,13 @@ class Build {
         this.buildExecuter = buildExecuter
     }
 
-    void run(List taskNames, File currentDir, Map projectProperties, Map systemProperties) {
-        runInternal(init(currentDir, projectProperties, systemProperties), taskNames, currentDir, false, projectProperties)
+    void run(List taskNames, File currentDir, Map projectProperties, Map systemPropertiesArgs) {
+        runInternal(init(currentDir, projectProperties, systemPropertiesArgs), taskNames, currentDir, false,
+                projectProperties)
     }
 
-    void run(List taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemProperties) {
-        DefaultSettings settings = init(currentDir, searchUpwards, projectProperties, systemProperties)
+    void run(List taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs) {
+        DefaultSettings settings = init(currentDir, searchUpwards, projectProperties, systemPropertiesArgs)
         runInternal(settings, taskNames, currentDir, recursive, projectProperties)
     }
 
@@ -67,7 +68,7 @@ class Build {
         boolean unknownTaskCheck = false
         taskNames.each {String taskName ->
             logger.info("++++ Starting build for primary task: $taskName")
-            projectLoader.load(settings, gradleUserHomeDir, projectProperties)
+            projectLoader.load(settings, gradleUserHomeDir, projectProperties, allSystemProperties, allEnvProperties)
             buildConfigurer.process(projectLoader.rootProject, classLoader)
             if (!unknownTaskCheck) {
                 List unknownTasks = buildExecuter.unknownTasks(taskNames, recursive, projectLoader.currentProject)
@@ -78,16 +79,17 @@ class Build {
         }
     }
 
-    String taskList(File currentDir, Map projectProperties, Map systemProperties) {
-        taskListInternal(init(currentDir, projectProperties, systemProperties), currentDir, false, projectProperties)
+    String taskList(File currentDir, Map projectProperties, Map systemPropertiesArgs) {
+        taskListInternal(init(currentDir, projectProperties, systemPropertiesArgs), currentDir, false, projectProperties)
     }
 
-    String taskList(File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemProperties) {
-        taskListInternal(init(currentDir, searchUpwards, projectProperties, systemProperties), currentDir, recursive, projectProperties)
+    String taskList(File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs) {
+        taskListInternal(init(currentDir, searchUpwards, projectProperties, systemPropertiesArgs), currentDir,
+                recursive, projectProperties)
     }
 
     private String taskListInternal(DefaultSettings settings, File currentDir, boolean recursive, Map projectProperties) {
-        projectLoader.load(settings, gradleUserHomeDir, projectProperties)
+        projectLoader.load(settings, gradleUserHomeDir, projectProperties, allSystemProperties, allEnvProperties)
         buildConfigurer.taskList(projectLoader.rootProject, recursive, projectLoader.currentProject, settings.createClassLoader())
     }
 
@@ -107,19 +109,30 @@ class Build {
         System.properties.putAll(properties)
     }
 
-    static Closure newInstanceFactory(File gradleUserHomeDir, File pluginProperties) {
+    private Map getAllSystemProperties() {
+        System.properties
+    }
+
+    private Map getAllEnvProperties() {
+        System.getenv()
+    }
+
+    static Closure newInstanceFactory(File gradleUserHomeDir, File pluginProperties, File defaultImportsFile) {
         {BuildScriptFinder buildScriptFinder, File buildResolverDir ->
             DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory()
-            new Build(gradleUserHomeDir, new SettingsProcessor(new SettingsFileHandler(), new SettingsFactory(),
+            new Build(gradleUserHomeDir, new SettingsProcessor(
+                    new SettingsFileHandler(),
+                    new ImportsReader(defaultImportsFile),
+                    new SettingsFactory(),
                     dependencyManagerFactory,
                     null, gradleUserHomeDir, buildResolverDir),
-                    new ProjectsLoader(new ProjectFactory(dependencyManagerFactory), new BuildScriptProcessor(),
+                    new ProjectsLoader(new ProjectFactory(dependencyManagerFactory),
+                            new BuildScriptProcessor(new ImportsReader(defaultImportsFile)),
                             buildScriptFinder, new PluginRegistry(pluginProperties)),
                     new BuildConfigurer(new ProjectDependencies2TasksResolver(), new BuildClasspathLoader(), new ProjectsTraverser(),
                             new ProjectTasksPrettyPrinter()),
                     new BuildExecuter(new Dag()))
         }
     }
-
 
 }

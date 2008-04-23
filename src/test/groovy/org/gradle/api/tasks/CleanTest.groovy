@@ -20,11 +20,12 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.Clean
+import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class CleanTest extends AbstractConventionTaskTest {
     Clean clean
 
@@ -47,6 +48,9 @@ class CleanTest extends AbstractConventionTaskTest {
 
     void testExecute() {
         clean.dir = HelperUtil.makeNewTestDir()
+        clean.existingDirsFilter = [checkExistenceAndThrowStopActionIfNot: {File dir ->
+            assertEquals(clean.dir, dir)
+        }] as ExistingDirsFilter
         (new File(clean.dir, 'somefile')).createNewFile()
         clean.execute()
         assertFalse(clean.dir.exists())
@@ -56,18 +60,6 @@ class CleanTest extends AbstractConventionTaskTest {
         shouldFailWithCause(InvalidUserDataException) {
             clean.execute()
         }
-    }
-
-    void testExecuteWithNonExistingDir() {
-        clean.dir = new File('nonexistingdir')
-        clean.execute()
-
-        clean.dir = HelperUtil.makeNewTestDir()
-        File someFile = new File(clean.dir, 'somefile')
-        someFile.createNewFile()
-        clean.dir = someFile
-        clean.execute()
-        assertTrue(someFile.exists())
     }
 
 }

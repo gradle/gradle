@@ -24,11 +24,12 @@ import org.slf4j.LoggerFactory
  * todo: integration test
  */
 class AntJavac extends AbstractAntCompile {
-    Logger logger = LoggerFactory.getLogger(AntJavac)
+    private static Logger logger = LoggerFactory.getLogger(AntJavac)
 
     void executeCompileTask(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                             String targetCompatibility, CompileOptions compileOptions) {
         Map otherArgs = [
+                includeAntRuntime: false,
                 srcdir: sourceDirs.join(':'),
                 destdir: targetDir,
                 classpathref: AbstractAntCompile.CLASSPATH_ID,

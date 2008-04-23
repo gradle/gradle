@@ -30,19 +30,28 @@ class GroovyProject {
         List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
         File groovyProjectDir = new File(samplesDirName, GROOVY_PROJECT_NAME)
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'test'])
+        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
         mainFiles.each { JavaProject.checkExistence(groovyProjectDir, packagePrefix, it + ".class")}
 
         testFiles.each { JavaProject.checkExistence(groovyProjectDir, testPackagePrefix, it + ".class") }
 
+        // The test produce marker files with the name of the test class
         testFiles.each { JavaProject.checkExistence(groovyProjectDir, 'build', it) }
 
+        String unjarPath = "$groovyProjectDir/build/unjar"
+        AntBuilder ant = new AntBuilder()
+        ant.unjar(src: "$groovyProjectDir/build/$GROOVY_PROJECT_NAME-1.0.jar", dest: unjarPath)
+        assert new File("$unjarPath/META-INF/MANIFEST.MF").text.contains('myprop: myvalue')
+        assert new File("$unjarPath/META-INF/myfile").isFile()
+
         // This test is also important for test cleanup
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'])
+        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
         assert !(new File(groovyProjectDir, "build").exists())
     }
 
-     
+    static void main(String[] args) {
+        execute(args[0], args[1])
+    }
 
-    
+
 }

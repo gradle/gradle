@@ -21,12 +21,16 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
  */
 class ModuleDescriptorConverter {
-    static final String DEFAULT_STATUS = 'integration' 
+    private static Logger logger = LoggerFactory.getLogger(ModuleDescriptorConverter)
+
+    static final String DEFAULT_STATUS = 'integration'
 
     ModuleDescriptorConverter() {
     }
@@ -54,6 +58,7 @@ class ModuleDescriptorConverter {
     void addArtifacts(DefaultModuleDescriptor moduleDescriptor, DefaultDependencyManager dependencyManager) {
         dependencyManager.artifacts.each {String configuration, List artifacts ->
             artifacts.each {GradleArtifact gradleArtifact ->
+                logger.debug("Add gradleArtifact: $gradleArtifact to configuration=$configuration")
                 moduleDescriptor.addArtifact(configuration, gradleArtifact.createIvyArtifact(dependencyManager.createModuleRevisionId()))
             }
         }
@@ -63,5 +68,4 @@ class ModuleDescriptorConverter {
             }
         }
     }
-
 }

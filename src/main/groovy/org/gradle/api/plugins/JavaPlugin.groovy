@@ -27,8 +27,10 @@ import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.api.tasks.compile.AntJavac
 import org.gradle.api.tasks.compile.Compile
+import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
@@ -43,10 +45,11 @@ class JavaPlugin implements Plugin {
     static final String DISTS = 'dists'
     static final String UPLOAD_LIBS = 'uploadLibs'
     static final String CLEAN = 'clean'
+    static final String INIT = 'init'
+    static final String JAVADOC = 'javadoc'
 
     static final String RUNTIME = 'runtime'
     static final String TEST_RUNTIME = 'testRuntime'
-    static final String MASTER = 'master'
     static final String DEFAULT = 'default'
     static final String UPLOAD_DISTS = 'uploadDists'
 
@@ -58,44 +61,47 @@ class JavaPlugin implements Plugin {
 
         project.status = 'integration'
 
+        project.createTask(INIT)
+
         project.createTask(CLEAN, type: Clean).convention(javaConvention, DefaultConventionsToPropertiesMapping.CLEAN)
 
-        project.createTask(RESOURCES, type: Resources).convention(javaConvention, DefaultConventionsToPropertiesMapping.RESOURCES)
+        project.createTask(JAVADOC, type: Javadoc).convention(javaConvention, DefaultConventionsToPropertiesMapping.JAVADOC)
+
+        project.createTask(RESOURCES, type: Resources, dependsOn: INIT).convention(javaConvention, DefaultConventionsToPropertiesMapping.RESOURCES)
 
         configureCompile(project.createTask(COMPILE, dependsOn: RESOURCES, type: Compile), javaConvention,
                 DefaultConventionsToPropertiesMapping.COMPILE)
 
         project.createTask(TEST_RESOURCES, dependsOn: COMPILE, type: Resources).configure {
-            skipProperties << Test.SKIP_TEST
+            skipProperties << "$Task.AUTOSKIP_PROPERTY_PREFIX$TEST"
             // Warning: We need to add the delegate here, because otherwise the method argument with the name
             // convention is addressed.
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
         }
 
-        configureCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile), javaConvention,
+        configureTestCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile),
+                project.task(COMPILE),
+                javaConvention,
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE)
 
         project.createTask(TEST, dependsOn: TEST_COMPILE, type: Test).configure {
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST)
+            doFirst {Test test ->
+                test.unmanagedClasspath(test.project.task(TEST_COMPILE).unmanagedClasspath as Object[])
+            }
         }
 
-        Closure lateInitClosureForPackage = {Bundle bundle ->
+        Closure lateInitClosureForPackage = {
+            def type = 'jar'
             if (project.hasProperty('type') && project.type) {
-                bundle.createArchive(javaConvention.archiveTypes[project.type]) {
-                    resourceCollections << [new FileSet(javaConvention.classesDir)]
-                }
+                type = project.type
             }
+            createArchive(javaConvention.archiveTypes[type])
         }
         project.createTask(LIBS, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
             // Warning: We need to add the delegate here, because otherwise the method argument with the name
             // convention is addressed.
             delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.LIB)
-        }
-
-        project.createTask(DISTS, type: Bundle, dependsOn: LIBS).configure {
-            // Warning: We need to add the delegate here, because otherwise the method argument with the name
-            // convention is addressed.
-            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
         }
 
         project.createTask(UPLOAD_LIBS, type: Upload, dependsOn: LIBS).configure {
@@ -104,8 +110,14 @@ class JavaPlugin implements Plugin {
             uploadModuleDescriptor = true
         }
 
+        project.createTask(DISTS, type: Bundle, dependsOn: UPLOAD_LIBS).configure {
+            // Warning: We need to add the delegate here, because otherwise the method argument with the name
+            // convention is addressed.
+            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
+        }
+
         project.createTask(UPLOAD_DISTS, type: Upload, dependsOn: DISTS).configure {
-            configurations << UPLOAD_DISTS
+            configurations << DISTS
         }
     }
 
@@ -115,20 +127,25 @@ class JavaPlugin implements Plugin {
             addConfiguration(new Configuration(RUNTIME, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
             addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
             addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, [RUNTIME, TEST_COMPILE] as String[], true, null))
-            addConfiguration(new Configuration(MASTER, Visibility.PUBLIC, null, null, true, null))
-            addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, MASTER] as String[], true, null))
-            addConfiguration(new Configuration(UPLOAD_DISTS, Visibility.PUBLIC, null, null, true, null))
+            addConfiguration(new Configuration(LIBS, Visibility.PUBLIC, null, null, true, null))
+            addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, LIBS] as String[], true, null))
+            addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null))
             artifactProductionTaskName = UPLOAD_LIBS
             artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
-            artifactPatterns << ("${project.convention.distDir}/[artifact]-[revision].[ext]" as String)
+            artifactPatterns << ("${project.convention.distsDir}/[artifact]-[revision].[ext]" as String)
+            addConf2Tasks(COMPILE, COMPILE)
             addConf2Tasks(RUNTIME, TEST)
-            classpathResolvers.add([name: 'Maven2Repo', url: 'http://repo1.maven.org/maven2/'])
+            addConf2Tasks(TEST_COMPILE, TEST_COMPILE)
+            addConf2Tasks(TEST_RUNTIME, TEST)
         }
     }
 
-    protected Compile configureTestCompile(Compile compile, def javaConvention, Map propertyMapping) {
-        compile.skipProperties << Test.SKIP_TEST
-        configureCompile(compile, javaConvention, propertyMapping)
+    protected Compile configureTestCompile(Compile testCompile, Compile compile, def javaConvention, Map propertyMapping) {
+        testCompile.skipProperties << "$Task.AUTOSKIP_PROPERTY_PREFIX$TEST"
+        configureCompile(testCompile, javaConvention, propertyMapping)
+        testCompile.doFirst {
+            it.unmanagedClasspath(compile.unmanagedClasspath as Object[])
+        }
     }
 
     protected Compile configureCompile(Compile compile, def javaConvention, Map propertyMapping) {

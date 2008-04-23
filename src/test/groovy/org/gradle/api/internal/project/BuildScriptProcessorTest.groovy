@@ -22,11 +22,14 @@ import org.gradle.api.internal.project.BuildScriptProcessor
 import org.gradle.api.internal.project.DefaultProject
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildScriptProcessorTest extends GroovyTestCase {
     static final String TEST_BUILD_FILE_NAME = 'somename'
-    
+    static final int TEST_IMPORTS_LINE_COUNT = 5
+
+    static final String TEST_IMPORTS = '''import org.gradle.api.*
+'''
     BuildScriptProcessor buildScriptProcessor
 
     DefaultProject dummyProject
@@ -37,22 +40,40 @@ class BuildScriptProcessorTest extends GroovyTestCase {
 
     Script projectScript
 
+    File testRootDir
+
+    ImportsReader mockImportsReader
+
+
     void setUp() {
+        testRootDir = new File("/psth/root")
+        mockImportsReader = [getImports: {File rootDir ->
+            assertEquals(testRootDir, rootDir)
+            [
+                    text: TEST_IMPORTS,
+                    importsLineCount: TEST_IMPORTS_LINE_COUNT
+            ]
+        }] as ImportsReader
         classLoader = new InputStreamClassLoader()
         InputStream inputStream = this.getClass().getResourceAsStream('/org/gradle/api/ClasspathTester.dat')
         classLoader.loadClass("org.gradle.api.ClasspathTester", inputStream)
-        buildScriptProcessor = new BuildScriptProcessor()
+        buildScriptProcessor = new BuildScriptProcessor(mockImportsReader)
         buildScriptProcessor.classLoader = classLoader
-        dummyProject = [someProjectMethod: {projectMethodCalled = true}, getRootDir: {new File("/psth/root")},
+        dummyProject = [someProjectMethod: {projectMethodCalled = true}, getRootDir: {testRootDir},
                 getServices: {HelperUtil.createTestProjectService()}, getName: {'projectname'},
-                setProjectScript: { Script script -> projectScript = script}] as DefaultProject
-        projectMethodCalled = false
+                setProjectScript: {Script script -> projectScript = script}] as DefaultProject
 
+        projectMethodCalled = false
+    }
+
+    void testInit() {
+        assert buildScriptProcessor.importsReader.is(mockImportsReader)
     }
 
     void testEvaluate() {
         String scriptCode = '''
-new org.gradle.api.ClasspathTester().testMethod()
+// We leave out the path to check import adding   
+new ClasspathTester().testMethod()
 
 def scriptMethod() { 'scriptMethod' }
     someProjectMethod()
@@ -65,7 +86,7 @@ def scriptMethod() { 'scriptMethod' }
     def x = bindingProperty // leads to an exception if bindingProperty is not available 
 '''
         dummyProject.buildScriptFinder = mockBuildScriptFinder(scriptCode)
-        buildScriptProcessor.evaluate(dummyProject, [bindingProperty: 'somevalue'])
+        assertEquals(TEST_IMPORTS_LINE_COUNT, buildScriptProcessor.evaluate(dummyProject, [bindingProperty: 'somevalue']))
         assertTrue(projectMethodCalled)
         assertEquals("scriptMethod", projectScript.scriptMethod())
         assertEquals(dummyProject.path + 'mySuffix', projectScript.scriptProperty)

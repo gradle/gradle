@@ -23,16 +23,18 @@ import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.project.DefaultProject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Task
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildExecuter {
-    Logger logger = LoggerFactory.getLogger(BuildExecuter)
+    private static Logger logger = LoggerFactory.getLogger(BuildExecuter)
 
     Dag dag
 
     BuildExecuter() {}
+
     BuildExecuter(Dag dag) {
         this.dag = dag
     }
@@ -52,6 +54,9 @@ class BuildExecuter {
         Dag dag = fillDag(dag, calledTasks.values(), rootProject)
         dag.projects.each {Project project ->
             if (project.configureByDag) {project.configureByDag.call(dag)}
+        }
+        dag.getAllTasks().each {
+            it.applyAfterDagClosures()
         }
         dag.execute()
     }
@@ -79,15 +84,20 @@ class BuildExecuter {
 
     private List findDependsOnTasks(DefaultTask task, DefaultProject rootProject) {
         logger.debug("Find dependsOn tasks for $task")
-        task.dependsOn.collect {String taskPath ->
-            String absolutePath = task.project.absolutePath(taskPath)
+        task.dependsOn.collect {taskDescriptor ->
+            String absolutePath = absolutePath(task.project, taskDescriptor)
             DefaultProject project = getProjectFromTaskPath(absolutePath, rootProject)
             String dependsOnTaskName = absolutePath - project.path
             if (!project.is(project.rootProject)) {dependsOnTaskName = dependsOnTaskName.substring(1)}
             DefaultTask dependsOnTask = project.tasks[dependsOnTaskName]
-            if (!dependsOnTask) throw new UnknownTaskException("Task with path $taskPath could not be found.")
+            if (!dependsOnTask) throw new UnknownTaskException("Task with path $taskDescriptor could not be found.")
             dependsOnTask
         }
+    }
+
+    private String absolutePath(Project project, def taskDescriptor) {
+        if (taskDescriptor instanceof Task) { return taskDescriptor.path }
+        project.absolutePath(taskDescriptor)
     }
 
     private DefaultProject getProjectFromTaskPath(String taskPath, DefaultProject rootProject) {

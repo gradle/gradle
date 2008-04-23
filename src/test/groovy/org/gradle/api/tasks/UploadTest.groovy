@@ -22,11 +22,12 @@ import org.apache.ivy.core.publish.PublishEngine
 import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
-import org.gradle.api.internal.dependencies.ResolverContainer
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.plugins.JavaConvention
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.util.HelperUtil
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
  * @author Hans Dockter

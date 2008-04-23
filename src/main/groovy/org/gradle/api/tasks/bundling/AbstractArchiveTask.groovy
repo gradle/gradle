@@ -22,39 +22,73 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.GradleUtil
+import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.tasks.util.FileCollection
 
 /**
  * @author Hans Dockter
  */
 abstract class AbstractArchiveTask extends ConventionTask {
-    Logger logger = LoggerFactory.getLogger(AbstractArchiveTask)
+    private static Logger logger = LoggerFactory.getLogger(AbstractArchiveTask)
 
+    /**
+     * If you create a fileset and don't assign a directory to this fileset, the baseDir value is assigned to the dir
+     * property of the fileset.
+     */
     File baseDir
-    
+
+    /**
+     * A list with all entities (e.g. filesets) which describe the files of this archive.
+     */
     List resourceCollections = []
 
+    /**
+     * Controls if an archive gets created if no files would go into it.  
+     */
     boolean createIfEmpty = false
-    
+
+    /**
+     * The dir where the created archive is placed.
+     */
     File destinationDir
 
+    /**
+     * Usually the archive name is composed out of the baseName, the version and the extension. If the custom name is set,
+     * solely the customName is used as the archiveName.
+     */
     String customName
 
+    /**
+     * The baseName of the archive.
+     */
     String baseName
 
+    /**
+     * The version part of the archive name
+     */
     String version
 
+    /**
+     * The extension part of the archive name
+     */
     String extension
 
+    /**
+     * Controlls whether the archive adds itself to the dependency configurations. Defaults to true.
+     */
     boolean publish = true
 
+    /**
+     * The dependency configurations the archive gets added to if publish is true.
+     */
     String[] configurations
 
+    /**
+     * The dependency manager to use for adding the archive to the configurations.
+     */
     DependencyManager dependencyManager
-
-    def customSelector
 
     private AbstractArchiveTask self
 
@@ -64,11 +98,23 @@ abstract class AbstractArchiveTask extends ConventionTask {
         self = this
     }
 
+    /**
+     * Sets the publish property
+     *
+     * @param publish the value assigned to the publish property
+     * @return this
+     */
     AbstractArchiveTask publish(boolean publish) {
         this.publish = publish
         this
     }
 
+    /**
+     * Sets (not add) the configurations the archive gets published to.
+     *
+     * @param publish the value assigned to the publish property
+     * @return this
+     */
     AbstractArchiveTask configurations(String[] configurations) {
         this.configurations = configurations
         this                       
@@ -87,15 +133,38 @@ abstract class AbstractArchiveTask extends ConventionTask {
 
     abstract Closure createAntArchiveTask()
 
+    /**
+     * Returns the archive name. If the customName is not set, the pattern for the name is:
+     * [baseName]-[version].[extension]
+     */
     String getArchiveName() {
         if (customName) { return customName }
         self.baseName + (self.version ? "-$self.version" : "")  + ".$self.extension"
     }
 
+    /**
+     * The path where the archive is constructed. The path is simply the destinationDir plus the archiveName.
+     * @return a File object with the path to the archive
+     */
+    File getArchivePath() {
+        new File(self.destinationDir, self.archiveName)
+    }
+
+    /**
+     * Adds a fileset.
+     * @param configureClosure configuration instructions
+     * @return the added fileset
+     */
     FileSet fileSet(Closure configureClosure) {
         fileSet([:], configureClosure)
     }
 
+    /**
+     * Add a fileset
+     * @param args constructor arguments for the FileSet to construct
+     * @param configureClosure configuration instructions
+     * @return the added fileset
+     */
     FileSet fileSet(Map args = [:], Closure configureClosure = null) {
         createFileSetInternal(args, FileSet, configureClosure)
     }
@@ -107,8 +176,15 @@ abstract class AbstractArchiveTask extends ConventionTask {
         fileSet
     }
 
-    File getArchivePath() {
-        new File(self.destinationDir, self.archiveName)
+    /**
+     * An arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
+     * basedir.
+     */
+    FileCollection files(File[] files) {
+        FileCollection fileCollection = new FileCollection(files as Set)
+        resourceCollections << fileCollection
+        fileCollection
     }
+
 
 }

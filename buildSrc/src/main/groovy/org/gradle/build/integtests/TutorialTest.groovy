@@ -17,17 +17,31 @@
 package org.gradle.build.integtests
 
 import org.gradle.build.samples.TutorialCreator
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
  */
 class TutorialTest {
-    static void execute(String gradleHome, String tutorialDirName) {
+    private static Logger logger = LoggerFactory.getLogger(TutorialTest)
+
+    static void execute(File tutorialOutputDir) {
         Map scripts = TutorialCreator.scripts()
         scripts.each {entry ->
-            String taskName = entry.value.size < 3 ? entry.key : entry.value[2]
-            String output = Executer.execute(gradleHome, tutorialDirName, [taskName], "${entry.key}.groovy")
-            entry.value[1](output)
+            logger.info("Test tutorial script: ${entry.key}file")
+            entry.value[1](outputAfterFirstLine(new File(tutorialOutputDir, "${entry.key}file.out")))
         }
+    }
+
+    static String outputAfterFirstLine(File output) {
+        String nl = System.properties['line.separator']
+        String text = output.text
+        int index = text.indexOf(nl)
+        if (index >= 0) {
+            text = text.substring(text.indexOf(nl) + nl.size())
+        }
+
+        text
     }
 }

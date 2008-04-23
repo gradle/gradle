@@ -25,8 +25,8 @@ import org.gradle.api.internal.project.*
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildExecuterTest extends GroovyTestCase {
     static File TEST_ROOT_DIR = new File("/path/root")
 
@@ -48,16 +48,21 @@ class BuildExecuterTest extends GroovyTestCase {
         DefaultTask rootTest = new DefaultTask(root, 'test')
         DefaultTask childCompile = new DefaultTask(child, 'compile')
         DefaultTask childTest = new DefaultTask(child, 'test')
+        DefaultTask childOther = new DefaultTask(child, 'other')
         rootTest.dependsOn = [rootCompile.path]
-        childTest.dependsOn = [childCompile.name]
+        childTest.dependsOn = [childCompile.name, childOther]
         boolean configureByDagCalled = false
+        boolean afterDagCalledRoot = false
+        boolean afterDagCalledChild = false
+        rootCompile.afterDag {afterDagCalledRoot = true}
+        childCompile.afterDag {afterDagCalledChild = true}
         root.configureByDag = {
-               configureByDagCalled = true
+            configureByDagCalled = true
         }
-        child.configureByDag  = null
+        child.configureByDag = null
 
         root.tasks = [(rootCompile.name): rootCompile, (rootTest.name): rootTest]
-        child.tasks = [(childCompile.name): childCompile, (childTest.name): childTest]
+        child.tasks = [(childCompile.name): childCompile, (childTest.name): childTest, (childOther.name): childOther]
 
         MockFor dagMocker = new MockFor(Dag)
         Map checkerFirstRun = [:]
@@ -66,17 +71,20 @@ class BuildExecuterTest extends GroovyTestCase {
             checkerFirstRun[task] = dependencies
         }
         dagMocker.demand.getProjects(1..1) {[root, child]}
+        dagMocker.demand.getAllTasks(1..1) {[rootCompile, rootTest, childCompile, childTest, childOther]}
         dagMocker.demand.execute(1..1) {[:] as Dag}
 
         dagMocker.use() {
             buildExecuter.execute(expectedTaskName, expectedRecursive, root, root)
         }
 
-        assertEquals(checkerFirstRun.size(), 4)
+        assertEquals(checkerFirstRun.size(), 5)
         assertEquals([rootCompile] as Set, checkerFirstRun[rootTest])
-        assertEquals([childCompile] as Set, checkerFirstRun[childTest])
+        assertEquals([childCompile, childOther] as Set, checkerFirstRun[childTest])
         assertEquals([] as Set, checkerFirstRun[rootCompile])
         assertEquals([] as Set, checkerFirstRun[childCompile])
+        assert afterDagCalledChild
+        assert afterDagCalledRoot
     }
 
     void testUnknownTasks() {
@@ -106,6 +114,7 @@ class BuildExecuterTest extends GroovyTestCase {
             checker[task] = dependencies
         }
         dagMocker.demand.getProjects(1..1) {[root, child]}
+        dagMocker.demand.getAllTasks(1..1) {[task1, task2, task3]}
         dagMocker.demand.execute(1..1) {[:] as Dag}
 
         dagMocker.use() {

@@ -1,0 +1,8 @@
+Release Notes - Gradle - Version 0.1.1
+
+
+** Bug
+    * [GRADLE-56] - The gradle.bat quits with an error, if the JAVA_HOME path has a space in it.
+    * [GRADLE-57] - The gradle.bat has *nix line separators when build on *nix.
+
+                    

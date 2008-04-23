@@ -16,13 +16,13 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.tasks.util.Files
+import org.gradle.api.tasks.util.FileCollection
 
 /**
  * @author Hans Dockter
  */
 class AntWar extends AbstractAntArchive {
-    void execute(AntMetaArchiveParameter parameter, List classesFileSets, Files libFiles, List additionalLibFileSets,
+    void execute(AntMetaArchiveParameter parameter, List classesFileSets, FileCollection libFiles, List additionalLibFileSets,
                  List webInfFileSets, File webXml) {
         assert parameter
         Map args = [:]

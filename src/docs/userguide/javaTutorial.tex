@@ -1,0 +1,60 @@
+%!TEX root = master.tex
+\chapter{The Java Projects Appetizer} % (fold)
+\label{cha:the_java_projects_tutorial}
+We have in-depth coverage with many examples about the Java plugin, the dependency management and multi-project builds in the later chapters. In this chapter we want to give you just a first idea.
+
+\section{Examples} % (fold)
+\label{sec:examples}
+Provided your build script contains the single line
+\begin{Verbatim}
+usePlugin('java')
+\end{Verbatim}
+Executing \texttt{gradle libs} will compile, test and jar your code. If you specify a remote repository, executing \texttt{gradle uploadLibs} will do additionally an upload of your jar to a remote repository. 
+Builds have usually more requirements. Let's look at a typical multi-project build.
+
+\begin{Verbatim}[frame=single,label=Project Tree]
+D- ultimateApp
+  D- api
+  D- webservice
+  D- shared 
+\end{Verbatim}
+We have three projects. \texttt{api} is shipped to the client to provide them a Java client for your XML webservice. \texttt{webservice} is a webapp which returns XML. \texttt{shared} is code used both by \texttt{api} and \texttt{webservice}. Let's look at the Gradle build scripts of those projects.
+
+\begin{Verbatim}[frame=single,label=ultimateApp]
+subprojects {
+    manifest.mainAttributes([	       
+	    'Implementation-Title': 'Gradle',
+		'Implementation-Version': '0.1'
+	])
+	dependencies {
+		compile "commons-lang:commons-lang:3.1"
+		test "junit:junit:4.4"
+	}
+	sourceCompatibility = 1.5
+	targetCompatibility = 1.5
+	test {
+	    include '**/*Test.class'
+	    exclude '**/Abstract*'
+	}
+}
+\end{Verbatim}
+The commons stuff for all Java projects we do define in the root project. Not by inheritance but via \emph{Configuration Injection}. The root project is like a container and \texttt{subprojects} iterates over the elements of this container and injects the specified configuration. This way we can easily define the manifest content for all archives.
+
+\begin{Verbatim}[frame=single,label=api]
+dependencies {
+	compile "commons-httpclient:commons-httpclient:3.1", project(":shared")
+}
+
+dists {
+	zip() {
+		files(dependencies.resolveClasspath("runtime")) // add dependencies to zip
+		fileset(dir: "path/distributionFiles")
+	}
+}
+\end{Verbatim}
+In the \texttt{api} build script we add further dependencies. One dependency are the jars of the \texttt{shared} project. Due to this dependency \texttt{shared} gets now always build before \texttt{api}. We also add a distribution, that gets shipped to the client.
+% section examples (end)
+
+
+
+% chapter the_java_projects_tutorial (end)

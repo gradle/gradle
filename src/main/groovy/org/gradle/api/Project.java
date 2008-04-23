@@ -28,7 +28,7 @@ import java.util.SortedMap;
  * @author Hans Dockter
  */
 public interface Project {
-    public static final String DEFAULT_PROJECT_FILE = "gradle.groovy";
+    public static final String DEFAULT_PROJECT_FILE = "gradlefile";
 
     public static final String PATH_SEPARATOR = ":";
 
@@ -125,6 +125,8 @@ public interface Project {
     Project dependsOnChildren(boolean evaluateDependsOnProject);
 
     Project project(String path);
+
+    Project project(String path, Closure configureClosure);
 
     SortedMap getAllTasks(boolean recursive);
 

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.tasks.compile.AntGroovyc
 import org.gradle.api.tasks.compile.GroovyCompile
+import org.gradle.api.tasks.javadoc.Groovydoc
 
 /**
  * @author Hans Dockter
@@ -33,16 +35,23 @@ class GroovyPlugin extends JavaPlugin {
         pluginRegistry.getPlugin(JavaPlugin).apply(project, pluginRegistry, groovyConvention)
 
         project.ant.taskdef(name: "groovyc", classname: "org.codehaus.groovy.ant.Groovyc")
+        project.ant.taskdef(name: "groovydoc", classname: "org.codehaus.groovy.ant.Groovydoc")
 
         configureCompile(project.createTask(JavaPlugin.COMPILE, dependsOn: JavaPlugin.RESOURCES, type: GroovyCompile, overwrite: true), groovyConvention, DefaultConventionsToPropertiesMapping.COMPILE).configure {
             antGroovyCompile = new AntGroovyc()
             conventionMapping.groovySourceDirs = {groovyConvention.groovySrcDirs}
         }
-        configureTestCompile(project.createTask(JavaPlugin.TEST_COMPILE, dependsOn: JavaPlugin.TEST_RESOURCES, type: GroovyCompile, overwrite: true), groovyConvention, DefaultConventionsToPropertiesMapping.TEST_COMPILE).configure {
+        configureTestCompile(project.createTask(JavaPlugin.TEST_COMPILE, dependsOn: JavaPlugin.TEST_RESOURCES, type: GroovyCompile, overwrite: true),
+                project.task(JavaPlugin.COMPILE),
+                groovyConvention,
+                DefaultConventionsToPropertiesMapping.TEST_COMPILE).configure {
             antGroovyCompile = new AntGroovyc()
             conventionMapping.groovySourceDirs = {groovyConvention.groovyTestSrcDirs}
         }
 
-
+        project.createTask(JavaPlugin.JAVADOC, (DefaultProject.TASK_OVERWRITE): true, type: Groovydoc).configure {
+            conventionMapping.srcDirs = {groovyConvention.srcDirs + groovyConvention.groovySrcDirs}
+            conventionMapping.destDir = {groovyConvention.javadocDir}
+        }
     }
 }

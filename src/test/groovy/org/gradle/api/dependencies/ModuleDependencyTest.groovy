@@ -42,6 +42,7 @@ class ModuleDependencyTest extends GroovyTestCase {
         assertEquals(TEST_CONF_SET, moduleDependency.confs)
         assertEquals(TEST_DESCRIPTOR, moduleDependency.userDependencyDescription)
         assertEquals(TEST_PROJECT, moduleDependency.project)
+        assert !moduleDependency.force
     }
 
     void testValidation() {
@@ -60,7 +61,7 @@ class ModuleDependencyTest extends GroovyTestCase {
     }
 
     void testCreateDependencyDescriptorWithString() {
-        checkDescriptor(new ModuleDependency(TEST_CONF_SET, TEST_DESCRIPTOR, TEST_PROJECT).createDepencencyDescriptor())
+        checkDescriptor(new ModuleDependency(TEST_CONF_SET, TEST_DESCRIPTOR, TEST_PROJECT).createDepencencyDescriptor(), false)
     }
 
     void testCreateDependencyDescriptorWithExclude() {
@@ -71,7 +72,8 @@ class ModuleDependencyTest extends GroovyTestCase {
         ModuleDependency moduleDependency = new ModuleDependency(TEST_CONF_SET, TEST_DESCRIPTOR, TEST_PROJECT)
         moduleDependency.exclude(org: expectedOrg, module: expectedModule)
         moduleDependency.exclude(org: expectedOrg2, module: expectedModule2)
-        DependencyDescriptor dependencyDescriptor = checkDescriptor(moduleDependency.createDepencencyDescriptor())
+        moduleDependency.force = true
+        DependencyDescriptor dependencyDescriptor = checkDescriptor(moduleDependency.createDepencencyDescriptor(), true)
         assertEquals(2, dependencyDescriptor.getExcludeRules(TEST_CONF).size())
         assertEquals(dependencyDescriptor.getExcludeRules(TEST_CONF)[0].getAttribute(IvyPatternHelper.ORGANISATION_KEY),
                 expectedOrg)
@@ -83,12 +85,13 @@ class ModuleDependencyTest extends GroovyTestCase {
                 expectedModule2)
     }
 
-    private DependencyDescriptor checkDescriptor(DependencyDescriptor dependencyDescriptor) {
+    private DependencyDescriptor checkDescriptor(DependencyDescriptor dependencyDescriptor, boolean force) {
         assertEquals(TEST_MODULE_REVISION_ID, dependencyDescriptor.dependencyRevisionId)
         assertTrue(dependencyDescriptor.isTransitive())
         assertEquals(1, dependencyDescriptor.getDependencyConfigurations(TEST_CONF).size())
         assertEquals('default', dependencyDescriptor.getDependencyConfigurations(TEST_CONF)[0])
         assert !dependencyDescriptor.getAllDependencyArtifacts()
+        assertEquals(force, dependencyDescriptor.force)
         dependencyDescriptor
     }
 }

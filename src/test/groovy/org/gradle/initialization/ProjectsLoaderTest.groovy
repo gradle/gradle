@@ -24,8 +24,8 @@ import org.gradle.initialization.ProjectsLoader
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class ProjectsLoaderTest extends GroovyTestCase {
     ProjectsLoader projectLoader
     ProjectFactory projectFactory
@@ -36,10 +36,10 @@ class ProjectsLoaderTest extends GroovyTestCase {
     File testUserDir
     File testRootProjectDir
     File testParentProjectDir
-    Map testStartProperties
+    Map testProjectProperties
 
     void setUp() {
-        testStartProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
+        testProjectProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
         projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')))
         buildScriptProcessor = new BuildScriptProcessor()
         buildScriptFinder = new BuildScriptFinder()
@@ -64,18 +64,30 @@ class ProjectsLoaderTest extends GroovyTestCase {
     }
 
     void testCreateProjects() {
-        DefaultSettings settings = new DefaultSettings(new File(testRootProjectDir, 'parent'), 
+        DefaultSettings settings = new DefaultSettings(new File(testRootProjectDir, 'parent'),
                 testRootProjectDir, new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(), new File('gradleUserHome'))
         settings.include('parent' + Project.PATH_SEPARATOR + 'child1', 'parent' + Project.PATH_SEPARATOR + 'child2',
                 'parent' + Project.PATH_SEPARATOR + 'folder' + Project.PATH_SEPARATOR + 'child3')
-        Map testUserProps = [prop1: 'value1', prop2: 'value2']
+        Map testUserProps = [prop1: 'value1', prop2: 'value2', prop3: 'value3']
         Map testRootProjectProps = [rootProp1: 'rootValue1', rootProp2: 'rootValue2', prop1: 'rootValue']
         Map testParentProjectProps = [parentProp1: 'parentValue1', parentProp2: 'parentValue2', prop1: 'parentValue']
+        Map testSystemProps = [
+                "${ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX}mySystemProp": 'mySystemPropValue',
+                "${ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX}prop2": 'systemPropValue2',
+                prop1: 'someSystemPropValue1',
+                (ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX): 'someValue'
+        ]
+        Map testEnvProps = [
+                "${ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX}myEnvProp": 'myEnvPropValue',
+                "${ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX}prop3": 'envPropValue2',
+                prop3: 'someEnvPropValue1',
+                (ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX): 'someValue'
+        ]
         new Properties(testUserProps).store(new FileOutputStream(new File(testUserDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
         new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
         new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
 
-        projectLoader.load(settings, testUserDir, testStartProperties)
+        projectLoader.load(settings, testUserDir, testProjectProperties, testSystemProps, testEnvProps)
 
         DefaultProject rootProject = projectLoader.rootProject
         assertSame(testRootProjectDir, rootProject.rootDir)
@@ -90,40 +102,53 @@ class ProjectsLoaderTest extends GroovyTestCase {
         assertEquals 1, rootProject.childProjects.parent.childProjects.folder.childProjects.size()
         assertNotNull rootProject.childProjects.parent.childProjects.folder.childProjects.child3
 
-        checkUserProperties(testUserDir, testUserProps, rootProject, rootProject.childProjects.parent,
+        checkUserProperties(testUserDir, [
+                mySystemProp: 'mySystemPropValue',
+                prop2: 'systemPropValue2',
+                myEnvProp: 'myEnvPropValue',
+                prop3: 'envPropValue2'
+        ],
+                [],
+                rootProject, rootProject.childProjects.parent,
+                rootProject.childProjects.parent.childProjects.child1,
+                rootProject.childProjects.parent.childProjects.child2,
+                rootProject.childProjects.parent.childProjects.folder,
+                rootProject.childProjects.parent.childProjects.folder.childProjects.child3)
+        checkUserProperties(testUserDir, testUserProps, ['prop2', 'prop3'], rootProject, rootProject.childProjects.parent,
                 rootProject.childProjects.parent.childProjects.child1,
                 rootProject.childProjects.parent.childProjects.child2,
                 rootProject.childProjects.parent.childProjects.folder,
                 rootProject.childProjects.parent.childProjects.folder.childProjects.child3)
         checkProjectProperties(testRootProjectProps, rootProject, ['prop1'])
         checkProjectProperties(testParentProjectProps, rootProject.childProjects.parent, ['prop1'])
-        checkProjectProperties(testStartProperties, rootProject)
-        assertNull(rootProject.childProjects.parent.additionalProperties[new ArrayList(testStartProperties.keySet())[0]])
+        checkProjectProperties(testProjectProperties, rootProject)
+        assertNull(rootProject.childProjects.parent.additionalProperties[new ArrayList(testProjectProperties.keySet())[0]])
     }
 
-    void testCreateProjectsWithNonExistingUserAndProjectGradleAndStartProperties() {
-        DefaultSettings settings = new DefaultSettings(testRootProjectDir, testRootProjectDir, 
+    void testCreateProjectsWithNonExistingUserAndProjectGradleAndProjectProperties() {
+        DefaultSettings settings = new DefaultSettings(testRootProjectDir, testRootProjectDir,
                 new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(), new File('gradleUserHome'))
 
         File nonExistingGradleUserHomeDir = new File('nonexistingGradleHome')
-        projectLoader.load(settings, nonExistingGradleUserHomeDir, [:])
+        projectLoader.load(settings, nonExistingGradleUserHomeDir, [:], [:], [:])
 
         DefaultProject rootProject = projectLoader.rootProject
 
-        checkUserProperties(nonExistingGradleUserHomeDir, [:], rootProject)
+        checkUserProperties(nonExistingGradleUserHomeDir, [:], [], rootProject)
     }
 
-    private void checkUserProperties(File gradleUserHomeDir, Map properties, Project[] projects) {
+    private void checkUserProperties(File gradleUserHomeDir, Map properties, List excludeKeys, Project[] projects) {
         projects.each {Project project ->
             assertEquals(gradleUserHomeDir.canonicalPath, project.gradleUserHome)
-            checkProjectProperties(properties, project)
+            checkProjectProperties(properties, project, excludeKeys)
         }
     }
 
     private checkProjectProperties(Map properties, Project project, List excludeKeys = []) {
         properties.each {key, value ->
             if (excludeKeys.contains(key)) {return}
-            assertEquals(project."$key", value)}
+            assertEquals(project."$key", value)
+        }
     }
 
 }

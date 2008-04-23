@@ -24,8 +24,8 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 abstract class AbstractTaskTest extends GroovyTestCase {
     static final String TEST_TASK_NAME = 'taskname'
 
@@ -52,16 +52,9 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testPath() {
-        DefaultProject rootProject = new DefaultProject()
-        rootProject.rootProject = rootProject
-        DefaultProject childProject = new DefaultProject()
-        childProject.rootProject = rootProject
-        childProject.parent = rootProject
-        childProject.name = 'child'
-        DefaultProject childchildProject = new DefaultProject()
-        childchildProject.rootProject = rootProject
-        childchildProject.parent = childProject
-        childchildProject.name = 'childchild'
+        DefaultProject rootProject = HelperUtil.createRootProject(new File('parent', 'root'))
+        DefaultProject childProject = HelperUtil.createChildProject(rootProject, 'child')
+        DefaultProject childchildProject = HelperUtil.createChildProject(childProject, 'childchild')
 
         DefaultTask task = createTask(rootProject, TEST_TASK_NAME)
         assertEquals Project.PATH_SEPARATOR + "$TEST_TASK_NAME", task.path
@@ -72,11 +65,12 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testDependsOn() {
+        Task dependsOnTask = createTask(project, 'somename')
         Task task = createTask(project, TEST_TASK_NAME)
         task.dependsOn(Project.PATH_SEPARATOR + 'path1')
-        assertEquals(new TreeSet([Project.PATH_SEPARATOR + 'path1']), task.dependsOn)
-        task.dependsOn Project.PATH_SEPARATOR + 'path2', 'path3'
-        assertEquals(new TreeSet([Project.PATH_SEPARATOR + 'path1', Project.PATH_SEPARATOR + 'path2', "path3" as String]), task.dependsOn)
+        assertEquals([Project.PATH_SEPARATOR + 'path1'] as Set, task.dependsOn)
+        task.dependsOn('path2', dependsOnTask)
+        assertEquals([Project.PATH_SEPARATOR + 'path1', 'path2', dependsOnTask] as Set, task.dependsOn)
     }
 
     void testDependsOnWithIllegalArguments() {
@@ -93,17 +87,6 @@ abstract class AbstractTaskTest extends GroovyTestCase {
 
     void testToString() {
         assertEquals(task.path, task.toString())
-    }
-
-    void testLateInitialize() {
-        assertFalse(task.lateInitialized)
-        List calledLateInitClosures = []
-        Closure initializeClosure1 = {calledLateInitClosures << 'closure1'}
-        Closure initializeClosure2 = {calledLateInitClosures << 'closure2'}
-        task.lateInitalizeClosures << initializeClosure1 << initializeClosure2
-        assert task.is(task.lateInitialize())
-        assertEquals(['closure1', 'closure2'], calledLateInitClosures)
-        assertTrue(task.lateInitialized)
     }
 
     void testDoFirst() {
@@ -167,13 +150,28 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testStopExecution() {
-        Closure action1 = { throw new StopExecutionException() }
+        Closure action1 = {throw new StopExecutionException()}
         boolean action2Called = false
         Closure action2 = {action2Called = true}
         task.doFirst(action2)
         task.doFirst(action1)
         task.execute()
         assertFalse(action2Called)
+        assertTrue(task.executed)
+    }
+
+    void testStopAction() {
+        task.actions = []
+        Closure action1 = {
+            throw new StopActionException()
+            fail()
+        }
+        boolean action2Called = false
+        Closure action2 = {action2Called = true}
+        task.doFirst(action2)
+        task.doFirst(action1)
+        task.execute()
+        assertTrue(action2Called)
         assertTrue(task.executed)
     }
 
@@ -196,5 +194,52 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         task.execute()
         assertTrue(action1Called)
         assertTrue(task.executed)
+        System.properties.remove(task.skipProperties[0])
+    }
+
+    void testAutoSkipProperties() {
+        boolean action1Called = false
+        Closure action1 = {
+            action1Called = true
+            throw new StopExecutionException()
+        }
+        task.doFirst(action1)
+
+        System.setProperty("skip.$task.name", 'true')
+        task.execute()
+        assertFalse(action1Called)
+        assertTrue(task.executed)
+
+        System.setProperty("skip.$task.name", 'false')
+        task.executed = false
+        task.execute()
+        assertTrue(action1Called)
+        assertTrue(task.executed)
+        System.properties.remove("skip.$task.name")
+    }
+
+    void testAfterDag() {
+        checkConfigureEvent(task.&afterDag, task.&applyAfterDagClosures)
+    }
+
+    void testLateInitialize() {
+        assert !task.lateInitialized
+        checkConfigureEvent(task.&lateInitialize, task.&applyLateInitialize)
+        assert task.lateInitialized
+    }
+
+    void checkConfigureEvent(Closure addMethod, Closure applyMethod) {
+        Closure action1 = {}
+        Closure action2 = {}
+        assert addMethod {
+            doFirst(action2)
+        }.is(task)
+        addMethod {
+            doFirst(action1)
+        }
+        assert !task.actions[0].is(action1)
+        assert applyMethod().is(task)
+        assert task.actions[0].is(action1)
+        assert task.actions[1].is(action2)
     }
 }

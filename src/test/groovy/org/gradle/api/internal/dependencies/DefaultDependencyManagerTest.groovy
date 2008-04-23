@@ -21,7 +21,6 @@ import groovy.mock.interceptor.StubFor
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
@@ -37,77 +36,56 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
-import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
+import org.gradle.api.dependencies.ResolverContainer
 
 /**
  * @author Hans Dockter
  */
-class DefaultDependencyManagerTest extends GroovyTestCase {
+class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     static final String TEST_CONFIG = 'testConfig'
-    static final String TEST_DEPENDENCY_1 = 'junit:junit:3.8.2:jar'
-    static final String TEST_DEPENDENCY_2 = 'log4j:log4j:1.2.9'
-    static final String TEST_DEPENDENCY_3 = 'spring:spring:2.0.0'
-    static final String TEST_DEPENDENCY_4 = 'spring:spring-mock:2.1'
-    static final List TEST_DEPENDENCIES = [TEST_DEPENDENCY_1, TEST_DEPENDENCY_2, TEST_DEPENDENCY_3, TEST_DEPENDENCY_4]
 
     DefaultDependencyManager dependencyManager
-    DependencyFactory dependencyFactory
-    ArtifactFactory artifactFactory
     SettingsConverter settingsConverter
     ModuleDescriptorConverter moduleDescriptorConverter
     Report2Classpath report2Classpath
     Ivy ivy
-    DefaultProject project
-    File projectRootDir
     File buildResolverDir
+    ArtifactFactory artifactFactory
+    SpecialResolverHandler mockSpecialResolverHandler
+    RepositoryResolver expectedBuildResolver
+
+    public DefaultDependencyContainer getTestObj() {
+        return dependencyManager
+    }
 
     void setUp() {
-        projectRootDir = new File('path', 'root')
-        project = HelperUtil.createRootProject(projectRootDir)
-        project.gradleUserHome = 'gradleUserHome'
+        super.setUp()
         ivy = new Ivy()
+        artifactFactory = new ArtifactFactory()
         report2Classpath = new Report2Classpath()
         settingsConverter = [:] as SettingsConverter
-        dependencyFactory = new DependencyFactory()
-        artifactFactory = new ArtifactFactory()
         buildResolverDir = new File('buildResolverDir')
         moduleDescriptorConverter = new ModuleDescriptorConverter()
         dependencyManager = new DefaultDependencyManager(ivy, dependencyFactory, artifactFactory, settingsConverter,
                 moduleDescriptorConverter, report2Classpath, buildResolverDir)
         dependencyManager.project = project
+        dependencyManager.clientModuleRegistry = [a: 'b']
+        dependencyManager.defaultConfs = testDefaultConfs
+        expectedBuildResolver = new FileSystemResolver()
+        mockSpecialResolverHandler = [getBuildResolver: {expectedBuildResolver},
+            getBuildResolverDir: {buildResolverDir}] as SpecialResolverHandler
+        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
     }
 
     void testDependencyManager() {
-        assert dependencyManager.project.is(project)
         //        assert dependencyManager.ivy.is(ivy)
-        assert dependencyManager.dependencyFactory.is(dependencyFactory)
         assert dependencyManager.artifactFactory.is(artifactFactory)
         assert dependencyManager.settingsConverter.is(settingsConverter)
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
         assert dependencyManager.report2Classpath.is(report2Classpath)
         assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.classpathResolvers
-    }
-
-    void testAddDepencencies() {
-        MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
-        List dependencies = [[:] as Dependency, [:] as Dependency, [:] as Dependency, [:] as Dependency]
-        4.times {int i ->
-            dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependency, DefaultProject project ->
-                assertEquals([TEST_CONFIG] as Set, confs)
-                assert userDependency.is(TEST_DEPENDENCIES[i])
-                assert project.is(this.project)
-                dependencies[i]
-            }
-        }
-        dependencyFactoryMocker.use(dependencyFactory) {
-            dependencyManager.addDependencies([TEST_CONFIG], TEST_DEPENDENCY_1, TEST_DEPENDENCY_2)
-            assertEquals(dependencies[0..1], dependencyManager.dependencies)
-            dependencyManager.addDependencies([TEST_CONFIG], [TEST_DEPENDENCY_3, TEST_DEPENDENCY_4])
-            assertEquals(dependencies[0..3], dependencyManager.dependencies)
-        }
     }
 
     void testAddArtifacts() {
@@ -121,58 +99,29 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
             }
         }
         artifactFactoryMocker.use(artifactFactory) {
-            dependencyManager.addArtifacts(TEST_CONFIG, userArtifactDescriptions[0], userArtifactDescriptions[1])
-            assertEquals([(TEST_CONFIG): [gradleArtifacts[0], gradleArtifacts[1]]], dependencyManager.artifacts)
-            dependencyManager.addArtifacts(TEST_CONFIG, [userArtifactDescriptions[2], userArtifactDescriptions[3]])
-            assertEquals([(TEST_CONFIG): [gradleArtifacts[0], gradleArtifacts[1], gradleArtifacts[2], gradleArtifacts[3]]], dependencyManager.artifacts)
+            testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, userArtifactDescriptions[0], userArtifactDescriptions[1])
+            assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1]]], testObj.artifacts)
+            testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, [userArtifactDescriptions[2], userArtifactDescriptions[3]])
+            assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1], gradleArtifacts[2], gradleArtifacts[3]]], testObj.artifacts)
         }
-    }
-
-    void testMethodMissingWithExistingConfiguration() {
-        MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
-        List dependencies = [[:] as Dependency, [:] as Dependency, [:] as Dependency]
-        2.times {int i ->
-            dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependency, DefaultProject project ->
-                assertEquals([TEST_CONFIG] as Set, confs)
-                assert userDependency.is(TEST_DEPENDENCIES[i])
-                assert project.is(this.project)
-                dependencies[i]
-            }
-        }
-        dependencyFactoryMocker.use(dependencyFactory) {
-            dependencyManager.addDependencies([TEST_CONFIG], TEST_DEPENDENCY_1, TEST_DEPENDENCY_2)
-        }
-        assertEquals(dependencyManager.dependencies, dependencies[0..1])
-    }
-
-    void testMethodMissingWithNonExistingConfiguration() {
-        shouldFail(MissingMethodException) {
-            dependencyManager.'nonExistingConfigurationName'(TEST_DEPENDENCY_1, TEST_DEPENDENCY_2)
-        }
-    }
-
-    void testAddDependencyDescriptor() {
-        DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
-        dependencyManager.addDependencyDescriptors(dependencyDescriptor)
-        assertEquals([dependencyDescriptor], dependencyManager.dependencyDescriptors)
-        DependencyDescriptor dependencyDescriptor2 = [:] as DependencyDescriptor
-        dependencyManager.addDependencyDescriptors(dependencyDescriptor2)
-        assertEquals([dependencyDescriptor, dependencyDescriptor2], dependencyManager.dependencyDescriptors)
     }
 
     void testResolveClasspath() {
         String testConfiguration = 'compile'
         String testTaskName = 'myTask'
 
-        ResolveReport resolveReport = new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), '1.4'), 'status', null))
+        ResolveReport resolveReport = new ResolveReport(new DefaultModuleDescriptor(
+                new ModuleRevisionId(new ModuleId('org', 'name'), '1.4'), 'status', null))
         IvySettings expectedSettings = [:] as IvySettings
         MockFor settingsConverterMocker = new MockFor(SettingsConverter)
         settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
-                                                      File gradleUserHome, RepositoryResolver buildResolver ->
+                                                      File gradleUserHome, RepositoryResolver buildResolver,
+                                                      Map clientModuleDescriptorRegistry ->
             assertEquals(gradleUserHome, new File(project.gradleUserHome))
             assertEquals(dependencyManager.buildResolver, buildResolver)
             assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
             assertEquals([], otherResolvers)
+            assertEquals(dependencyManager.clientModuleRegistry, clientModuleDescriptorRegistry)
             expectedSettings
         }
 
@@ -209,6 +158,7 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
                     report2classpathMocker.use(report2Classpath) {
                         dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
                                 settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
+                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
                         dependencyManager.addConf2Tasks(testConfiguration, testTaskName)
                         dependencyManager.project = project
                         assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))
@@ -254,11 +204,13 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
         IvySettings expectedSettings = [:] as IvySettings
         MockFor settingsConverterMocker = new MockFor(SettingsConverter)
         settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
-                                                      File gradleUserHome, RepositoryResolver buildResolver ->
+                                                      File gradleUserHome, RepositoryResolver buildResolver,
+                                                      Map clientModuleDescriptorRegistry ->
             assertEquals(gradleUserHome, new File(project.gradleUserHome))
             assertEquals(dependencyManager.buildResolver, buildResolver)
             assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
             assertEquals(uploadResolvers.resolverList, otherResolvers)
+            assertEquals(dependencyManager.clientModuleRegistry, clientModuleDescriptorRegistry)
             expectedSettings
         }
 
@@ -292,6 +244,7 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
                         publishEngine = new PublishEngine(null, null)
                         dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
                                 settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
+                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
                         dependencyManager.artifactPatterns = expectedArtifactPatterns
                         dependencyManager.project = project
                         dependencyManager.publish(expectedConfigurations, uploadResolvers, uploadModuleDescriptor)
@@ -303,36 +256,7 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
         if (uploadModuleDescriptor) {assert toIvyFileCalled}
     }
 
-    void testAddDependency() {
-        MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
-        String expectedId = 'someid'
-        List expectedConfs = ['conf1', 'conf2']
 
-        ModuleDependency testModuleDependency = new ModuleDependency('org:name:1.0')
-
-        dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependencyDescriptor, DefaultProject project ->
-            assertEquals(expectedConfs as Set, confs)
-            assert userDependencyDescriptor.is(expectedId)
-            assert project.is(this.project)
-            testModuleDependency
-        }
-        dependencyFactoryMocker.use(dependencyFactory) {
-            ModuleDependency moduleDependency = dependencyManager.addDependency(id: expectedId, confs: expectedConfs) {
-                exclude([:])
-            }
-            assert moduleDependency.is(testModuleDependency)
-            assert moduleDependency.is(dependencyManager.dependencies[0])
-            assert moduleDependency.excludeRules
-        }
-    }
-
-    void testConfigure() {
-        Configuration testConfiguration = new Configuration('someconf')
-        assert dependencyManager.configure {
-            addConfiguration(testConfiguration)
-        }.is(dependencyManager)
-        assert dependencyManager.configurations.someconf.is(testConfiguration)
-    }
 
     void testAddConf2Tasks() {
         String testTaskName1 = 'task1'
@@ -362,14 +286,71 @@ class DefaultDependencyManagerTest extends GroovyTestCase {
     }
 
     void testGetBuildResolver() {
-        FileSystemResolver buildResolver = dependencyManager.buildResolver
-        // check lazy init
-        assert buildResolver
-        assert buildResolver.is(dependencyManager.buildResolver)
-        
-        assertEquals(["$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"],
-                buildResolver.ivyPatterns)
-        assertEquals(["$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"],
-                buildResolver.artifactPatterns)
+        assert dependencyManager.buildResolver.is(expectedBuildResolver)
+    }
+
+    void testAddAndCreateFlatDirRepository() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String expectedName = 'name'
+        File[] expectedDirs = ['a' as File]
+        MockFor specialResolverHandlerMocker = new MockFor(SpecialResolverHandler)
+        specialResolverHandlerMocker.demand.createFlatDirResolver(2..2) { String name, File[] dirs ->
+            assertEquals(expectedName, name)
+            assertArrayEquals(expectedDirs, dirs)
+            expectedResolver
+        }
+        specialResolverHandlerMocker.use(dependencyManager.specialResolverHandler) {
+            assert dependencyManager.createFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+            assert !dependencyManager.classpathResolvers.resolverList.contains(expectedResolver)
+            assert dependencyManager.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+            assert dependencyManager.classpathResolvers.resolverList.contains(expectedResolver)
+        }
+    }
+
+    void testAddIBiblio() {
+        Map expectedDescription = [name: DependencyManager.DEFAULT_IBIBLIO_NAME, url: DependencyManager.IBIBLIO_URL]
+        MockFor resolverContainerMocker = new MockFor(ResolverContainer)
+        resolverContainerMocker.demand.add(1..1) { description ->
+            assertEquals(expectedDescription, description)    
+        }
+        resolverContainerMocker.use(dependencyManager.classpathResolvers) {
+            dependencyManager.addIBiblio()
+        }
+    }
+
+    void testAddConfiguration() {
+        // todo: add test for String argument
+        Configuration testConfiguration = new Configuration('someconf')
+        assert testObj.configure {
+            addConfiguration(testConfiguration)
+        }.is(testObj)
+        assert testObj.configurations.someconf.is(testConfiguration)
+    }
+
+
+    void testMethodMissingWithExistingConfiguration() {
+        MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
+        List dependencies = [[:] as Dependency, [:] as Dependency, [:] as Dependency]
+        2.times {int i ->
+            dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependency, DefaultProject project ->
+                assertEquals([AbstractDependencyContainerTest.TEST_CONFIGURATION] as Set, confs)
+                assert userDependency.is(AbstractDependencyContainerTest.TEST_DEPENDENCIES[i])
+                assert project.is(this.project)
+                dependencies[i]
+            }
+        }
+        dependencyFactoryMocker.use(dependencyFactory) {
+            testObj.dependencies([AbstractDependencyContainerTest.TEST_CONFIGURATION],
+                    AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
+                    AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
+        }
+        assertEquals(testObj.dependencies, dependencies[0..1])
+    }
+
+    void testMethodMissingWithNonExistingConfiguration() {
+        shouldFail(MissingMethodException) {
+            testObj.'nonExistingConfigurationName'(AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
+                    AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
+        }
     }
 }
