@@ -37,7 +37,7 @@ class StartScriptsGenerator {
             writer.write(unixScript)
         }
         new File(binDir, projectName + ".bat").withWriter {writer ->
-            writer.write(windowsScript)
+            writer.write(transformIntoWindowsNewLines(windowsScript))
         }
     }
 
@@ -48,6 +48,19 @@ class StartScriptsGenerator {
             path = "$currentDir.name/" + path
         }
         path
+    }
+
+    static String transformIntoWindowsNewLines(String s) {
+        StringWriter writer = new StringWriter()
+        s.toCharArray().each { c ->
+            if (c == '\n') {
+                writer.write('\r')
+                writer.write('\n')
+            } else if (c != '\r') {
+                writer.write(c);
+            }
+        }
+        writer.toString()
     }
 }
 
