@@ -66,8 +66,8 @@ class Main {
         cli.b(longOpt: 'buildfile', 'Use this build file name (also for subprojects)', args: 1)
         cli.t(longOpt: 'tasks', 'Show list of tasks.')
         cli.d(longOpt: 'debug', 'Log in debug mode (includes normal stacktrace)')
-        cli.i(longOpt: 'depInfo', 'Log dependency management output in info mode (Default mode is error).')
-        cli.j(longOpt: 'depDebug', 'Log dependency management output in debug mode (Default mode is error).')
+        cli.i(longOpt: 'depInfo', 'Log dependency management output in quiet mode (Default mode is info).')
+        cli.j(longOpt: 'depDebug', 'Log dependency management output in debug mode (Default mode is info).')
         cli.q(longOpt: 'quiet', 'Log erros only.')
         cli.f(longOpt: 'fullStacktrace', 'Print out the full (very verbose) stacktrace.')
         cli.s(longOpt: 'stacktrace', 'Print out the stacktrace.')
@@ -244,11 +244,11 @@ class Main {
             println("Error: For the dependency output you must either set 'i' or 'j'. Not Both!")
             stopExecutionWithError()
         } else if (options.i) {
-            ivyLogLevel = Message.MSG_INFO
+            ivyLogLevel = Message.MSG_ERR
         } else if (options.j) {
             ivyLogLevel = Message.MSG_DEBUG
         } else {
-            ivyLogLevel = Message.MSG_ERR
+            ivyLogLevel = Message.MSG_INFO
         }
 
         if (options.d) {
