@@ -43,22 +43,22 @@ public class Install {
         if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
             return;
         }
-        File zipFile = new File(rootDir, distName + ".zip");
-        if (alwaysDownload || !zipFile.exists()) {
+        File localZipFile = new File(rootDir, "gradle.zip");
+        if (alwaysDownload || !localZipFile.exists()) {
             if (rootDir.isDirectory()) {
                 System.out.println("Deleting directory " + rootDir.getAbsolutePath());
                 deleteDir(rootDir);
             }
             String downloadUrl = urlRoot + "/" + distName + ".zip";
             System.out.println("Downloading " + downloadUrl);
-            download.download(downloadUrl, zipFile);
+            download.download(downloadUrl, localZipFile);
         }
         if (distDir.isDirectory()) {
             System.out.println("Deleting directory " + distDir.getAbsolutePath());
             deleteDir(distDir);
         }
-        System.out.println("Unzipping " + zipFile.getAbsolutePath() + " to " + rootDir.getAbsolutePath());
-        unzip(zipFile, rootDir);
+        System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + rootDir.getAbsolutePath());
+        unzip(localZipFile, rootDir);
     }
 
     public IDownload getDownload() {
