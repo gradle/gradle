@@ -1,8 +1,15 @@
-Release Notes - Gradle - Version 0.1.1
+
+Release Notes - Gradle - Version 0.1.2
 
 
 ** Bug
-    * [GRADLE-56] - The gradle.bat quits with an error, if the JAVA_HOME path has a space in it.
-    * [GRADLE-57] - The gradle.bat has *nix line separators when build on *nix.
+    * [GRADLE-48] - Failing integ test under windows leads to consol exit if started via gradlew
+    * [GRADLE-58] - Windows console closed on build failure
+    * [GRADLE-63] - Modify header of *nix gradle script
 
-                    
+** Improvement
+    * [GRADLE-41] - Offer a flag to control whether the build should stop when Ivy can't find a dependency.
+    * [GRADLE-61] - Rename addIBiblio to addMavenRepo
+    * [GRADLE-65] - Make ivy info log level the default
+
+
