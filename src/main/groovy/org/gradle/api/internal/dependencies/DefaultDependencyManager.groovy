@@ -223,8 +223,8 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         resolver
     }
 
-    IBiblioResolver addIBiblio() {
-        classpathResolvers.add([name: DependencyManager.DEFAULT_IBIBLIO_NAME, url: DependencyManager.IBIBLIO_URL])
+    IBiblioResolver addMavenRepo() {
+        classpathResolvers.add([name: DependencyManager.DEFAULT_MAVEN_REPO_NAME, url: DependencyManager.MAVEN_REPO_URL])
     }
 
 

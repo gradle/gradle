@@ -307,14 +307,14 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         }
     }
 
-    void testAddIBiblio() {
-        Map expectedDescription = [name: DependencyManager.DEFAULT_IBIBLIO_NAME, url: DependencyManager.IBIBLIO_URL]
+    void testAddMavenRepo() {
+        Map expectedDescription = [name: DependencyManager.DEFAULT_MAVEN_REPO_NAME, url: DependencyManager.MAVEN_REPO_URL]
         MockFor resolverContainerMocker = new MockFor(ResolverContainer)
         resolverContainerMocker.demand.add(1..1) { description ->
             assertEquals(expectedDescription, description)    
         }
         resolverContainerMocker.use(dependencyManager.classpathResolvers) {
-            dependencyManager.addIBiblio()
+            dependencyManager.addMavenRepo()
         }
     }
 

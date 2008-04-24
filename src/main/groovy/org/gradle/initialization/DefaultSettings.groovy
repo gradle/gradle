@@ -101,8 +101,8 @@ class DefaultSettings implements Settings {
         dependencyManager.addFlatDirResolver(name, dirs)
     }
 
-    IBiblioResolver addIBiblio() {
-        dependencyManager.addIBiblio()
+    IBiblioResolver addMavenRepo() {
+        dependencyManager.addMavenRepo()
     }
 
     URLClassLoader createClassLoader() {

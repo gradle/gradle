@@ -1,7 +1,6 @@
 %!TEX root = master.tex
 \chapter{Dependency Management}
 \label{cha:dependency_management}
-Java Plugin and FlatFileFolder and IBiblio to be done !!!!! Partial Builds
 \section{Introduction} % (fold)
 \label{sec:Introduction}
 The current dependency management solutions all require to work with XML descriptor files and are usually based on remote repositories for downloading the dependencies. Gradle fully supports this approach. Gradle works \emph{perfectly} with your existent dependency management infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom pom or ivy files can be used as they are. No changes necessary. But Gradle offers also a simpler approach which might be better suited for many projects. 
@@ -152,7 +151,7 @@ The Java Plugin preconfigures the dependency management. It adds a set of config
 
 \section{Strategies of transitive dependency management} % (fold)
 \label{sec:strategies_of_transitive_dependency_management}
-Many projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 IBiblio repository}. This is not without problems.
+Many projects rely on the \href{http://repo1.maven.org/maven2}{Maven2 repository}. This is not without problems.
 \begin{itemize}
 	\item The IBibilio repository is often down or has a very long response time.
 	\item The pom.xml's of many projects have wrong informations. (as one example, the pom of commons-httpclient-3.0 declares junit as a runtime dependency).
@@ -175,9 +174,9 @@ In a larger enterprise environment you are likely to have a number of independen
 \label{sub:other_environments}
 But what about other environments. What about a typical open source projects like Gradle or environments which consists of a single multi-project build	. They don't integrate with other projects in the same environment or need to share dependency information in this environment. In such a (very common) case we think dependency management based on remote repositories is an unnecessary indirection which makes things more complicated than necessary. Gradle itself (which is build by Gradle) stores its dependencies in svn. There is a lib folder which contains all jars needed to build Gradle. Yet we have a complete management of our dependencies. For Gradle the lib folder is a local repository containing all the jars (in a flat structure). There are no xml descriptors. We use either client module dependencies to express our dependency relations, or artifact dependencies in case a first level dependency has no transitive dependencies. People can check out Gradle from svn and have everything necessary to build it. The same applies to our source distribution. 
 
-You might argue that such an approach works only for projects like Gradle, which is not used as a library but is simply a distribution. What about open source library projects (e.g. commons-httpclient) that need to upload themselves to IBiblio together with a \texttt{pom.xml} file. As soon as the limitation mentioned in subsection \ref{sub:client_module_dependencies} has been overcome, your project can upload to such a repository without relying on XML descriptor files themselves.
+You might argue that such an approach works only for projects like Gradle, which is not used as a library but is simply a distribution. What about open source library projects (e.g. commons-httpclient) that need to upload themselves to the Maven2 repo together with a \texttt{pom.xml} file. As soon as the limitation mentioned in subsection \ref{sub:client_module_dependencies} has been overcome, your project can upload to such a repository without relying on XML descriptor files themselves.
 
-You could also have a mixed strategy. If your main concern is bad metadata in IBiblio and maintaining custom XML descriptors, \emph{Client Modules} offer an alternative. But you can of course still use IBiblio and your custom repository as a repository for \emph{jars only} and still enjoy \emph{transitive} dependency management.
+You could also have a mixed strategy. If your main concern is bad metadata in the  and maintaining custom XML descriptors, \emph{Client Modules} offer an alternative. But you can of course still use Maven2 repo and your custom repository as a repository for \emph{jars only} and still enjoy \emph{transitive} dependency management.
 % subsection other_environments (end)
 
 \subsection{Implicit transitive dependencies} % (fold)
@@ -209,16 +208,16 @@ Gradle (Ivy) distinguishes between \emph{resolvers} and \emph{repositories}. A r
 The Java plugin does not add any default resolver to your projects dependency manager. Gradle offers a couple of convenience methods to add resolvers. You can also always add an instance of an Ivy resolver object directly.
 % subsection introduction (end)
 
-\subsection{IBiblio} % (fold)
-\label{sub:ibiblio}
-To add a resolver for the IBiblio repository simply type:
+\subsection{Maven Repository} % (fold)
+\label{sub:maven_repo}
+To add a resolver for the Maven2 repository (\url{http://repo1.maven.org/maven2}) simply type:
 \begin{Verbatim}
 dependencies {
-	addIBiblio()
+	addMavenRepo()
 }
 \end{Verbatim}
-The added resolver has the name \texttt{IBiblio} and is added to the \texttt{classpathResolvers} (see  \ref{sub:resolver_container})
-% subsection ibiblio (end)
+The added resolver has the name \texttt{MavenRepo} and is added to the \texttt{classpathResolvers} (see  \ref{sub:resolver_container})
+% subsection maven_repo (end)
 
 \subsection{Maven style Repositories} % (fold)
 \label{sub:maven_style_repositories}
