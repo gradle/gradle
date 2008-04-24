@@ -31,12 +31,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 // todo the main method is too long. Extract methods.
 class Main {
     private static Logger logger = LoggerFactory.getLogger(Main)
-    
+
     static final String GRADLE_HOME = 'gradle.home'
     static final String DEFAULT_GRADLE_USER_HOME = System.properties['user.home'] + '/.gradle'
     final static String DEFAULT_CONF_FILE = "conf.buildg"
@@ -106,8 +106,8 @@ class Main {
         File gradleImportsFile = gradleHome + '/' + IMPORTS_FILE_NAME as File
 
         if (options.I) {
-           logger.info("Disabling default imports.")
-           gradleImportsFile = null
+            logger.info("Disabling default imports.")
+            gradleImportsFile = null
         }
 
         if (options.D) {
@@ -171,7 +171,7 @@ class Main {
                 logger.error(NL + 'Build exits abnormally. No task names are specified!')
                 return
             }
-            
+
             def buildScriptFinder = (embeddedBuildScript != null ? new EmbeddedBuildScriptFinder(embeddedBuildScript) :
                 new BuildScriptFinder(buildFileName))
             Closure buildFactory = Build.newInstanceFactory(gradleUserHomeDir, pluginProperties, gradleImportsFile)
@@ -185,7 +185,7 @@ class Main {
                 } else {
                     println(build.taskList(currentDir, recursive, searchUpwards, startProperties, systemProperties))
                 }
-                if (!options.S) { System.exit(0) }
+                if (!options.S) {System.exit(0)}
                 return
             }
 
@@ -203,10 +203,10 @@ class Main {
             logger.error(NL + "Build aborted anormally because of an internal error. Run with -d option to get additonal debug info. Please file an issue at: www.gradle.org")
             logger.error("Exception is:", e)
             finalOutput(buildStartTime)
-            System.exit(1)
+            stopExecutionWithError()
         }
         finalOutput(buildStartTime)
-        if (!options.S) { System.exit(0) }
+        if (!options.S) {System.exit(0)}
     }
 
     static void handleGradleException(Throwable t, boolean stacktrace, boolean debug, boolean fullStacktrace, long buildStartTime) {
@@ -221,7 +221,7 @@ class Main {
             logger.error("Exception: $t")
         }
         finalOutput(buildStartTime)
-        System.exit(1)
+        stopExecutionWithError()
     }
 
     static void finalOutput(long buildStartTime) {
@@ -229,7 +229,7 @@ class Main {
     }
 
     static void configureLogger(def options) {
-        
+
         //String normalLayout = '%msg%n'
         String normalLayout = '%msg%n'
         String debugLayout = '%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
@@ -242,7 +242,7 @@ class Main {
         int ivyLogLevel
         if (options.i && options.j) {
             println("Error: For the dependency output you must either set 'i' or 'j'. Not Both!")
-            System.exit(1)
+            stopExecutionWithError()
         } else if (options.i) {
             ivyLogLevel = Message.MSG_INFO
         } else if (options.j) {
@@ -275,9 +275,14 @@ class Main {
         hasFlags.each {
             if (options."$it") {
                 println("Error: Loglevel is already set. Can't specify it again to: $it")
-                System.exit(1)
+                stopExecutionWithError()
             }
         }
+    }
+
+    private static stopExecutionWithError() {
+        System.err.println("Exit with error!")
+        System.exit(1)
     }
 
 }
