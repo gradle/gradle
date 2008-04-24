@@ -17,7 +17,7 @@ If the rules for skipping a task can't be expressed with a simple property, you 
 %
 \codeInput{../../../build/distributions/exploded/samples/tutorial/stopExecutionExceptionfile}
 \outputInputTutorial{../../../build/tutorial-output/stopExecutionExceptionfile.out}
-This feature is helpful if you work with tasks provided by Gradle. It allows you to add \emph{conditional} execution of the build-in actions of such a task. 
+This feature is helpful if you work with tasks provided by Gradle. It allows you to add \emph{conditional} execution of the built-in actions of such a task. 
 
 You might be wondering why there is neither an import for the \texttt{StopExecutionException} nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script. These imports are customizable (see Appendix \ref{ide_support}).
 
@@ -30,9 +30,9 @@ All available command line options are listed in Appendix \ref{cha:command_line}
 
 \begin{tabular}{|l|l|} \hline
 Option & Meaning  \\ \hline
-neither \texttt{q} nor \texttt{d} & Gradle and Ant print out there info log messages.  \\ \hline
+neither \texttt{q} nor \texttt{d} & Gradle and Ant will print out info log messages.  \\ \hline
 \texttt{q} & Only errors are printed to the console.  \\ \hline
-\texttt{d} & Gradle and Ant print out there info and debug log messages. \\ \hline
+\texttt{d} & Gradle and Ant will print out info and debug log messages. \\ \hline
 \end{tabular}
 \medskip
 
@@ -41,28 +41,28 @@ neither \texttt{q} nor \texttt{d} & Gradle and Ant print out there info log mess
 
 \begin{tabular}{|l|p{15cm}|} \hline
 Option & Meaning  \\ \hline
-neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in case of an build error (e.g. a compile error). Only in case of internal exceptions stacktraces are printed. If the loglevel option \texttt{d} is choosen, truncated stacktraces are always printed. \\ \hline
+neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in case of internal exceptions will stacktraces be printed. If the loglevel option \texttt{d} is choosen, truncated stacktraces are always printed. \\ \hline
 \texttt{s} & Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information for what has gone wrong in \emph{your} code.)  \\ \hline
 \texttt{f} & The full stacktraces are printed out. \\ \hline
 \end{tabular}
 
 \section{Directory Creation} % (fold)
 \label{sec:directory_creation}
-There is the common situation, that multiple tasks depend on the existence of a directory. Of course you can deal with this by adding a \texttt{mkdir} to the beginning of those tasks. But this is kind of bloated. 
+There is a common situation, that multiple tasks depend on the existence of a directory. Of course you can deal with this by adding a \texttt{mkdir} to the beginning of those tasks. But this is kind of bloated. 
 There is a better solution (works only if the tasks that need the directory have a \emph{dependsOn} relationship):
 \codeInput{../../../build/distributions/exploded/samples/tutorial/makeDirectoryfile}
 \outputInputTutorial{../../../build/tutorial-output/makeDirectoryfile.out}
 But Gradle offers you also \emph{Directory Tasks} to deal with this.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/directoryTaskfile}
 \outputInputTutorial{../../../build/tutorial-output/directoryTaskfile.out}
-A \emph{Directory Task} is a simple task which name is a relative path to the project dir\footnote{The notation \texttt{dir('/somepath')} is a convenience method for \texttt{createTask('somepath', type: Directory)}}. During the execution phase the directory corresponding to this path gets created if it does not exists yet. Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn declaration of a task.
+A \emph{Directory Task} is a simple task which name is a relative path to the project dir\footnote{The notation \texttt{dir('/somepath')} is a convenience method for \texttt{createTask('somepath', type: Directory)}}. During the execution phase the directory corresponding to this path gets created if it does not exist yet. Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn declaration of a task.
 % section directory_creation (end)
 
 \section{Gradle Properties and System Properties} % (fold)
 \label{sec:gradle_properties_and_system_properties}
 Gradle offers a variety of ways to add properties to your build. With the \texttt{-D} command line option you can pass a system property to the JVM which runs Gradle. 
 
-There is also the possibility to add directly properties to your project objects. You can place a \texttt{gradle.properties} file either in the Gradle user home dir (defaults to \texttt{\emph{USER\_HOME}/.gradle}) or in your project dir. For multiproject builds you can place \texttt{gradle.properties} files in any subproject. The properties of the \texttt{gradle.properties} can be accessed via the project object.
+There is also the possibility to directly add properties to your project objects. You can place a \texttt{gradle.properties} file either in the Gradle user home dir (defaults to \texttt{\emph{USER\_HOME}/.gradle}) or in your project dir. For multiproject builds you can place \texttt{gradle.properties} files in any subproject. The properties of the \texttt{gradle.properties} can be accessed via the project object.
 
 You can also add properties directly to your project object via the \texttt{-P} command line option. For more exotic use cases you can even pass properties \emph{directly} to the project object via system and environment properties. For example if you run a build on a continuous integration server where you have no admin rights for the \emph{machine}. Your build script needs properties which values should not be seen by others. Therefore you can't use the \texttt{-P} option. In this case you can add an environment property in the project adminstration section (invisible to normal users).\footnote{\emph{Teamcity} or \emph{Bamboo} are for example CI servers which offer this functionality} If the environment property follows the pattern \texttt{ORG\_GRADLE\_PROJECT\_yourProperty=somevalue}, \texttt{yourProperty} is added to your project object. If in the future CI servers support Gradle directly, they might start Gradle via its main method. Therefore we already support the same mechanism for system properties. The only difference is the prefix, which is \texttt{org.gradle.project.}.
 \codeInput{../../../build/distributions/exploded/samples/properties/gradlefile}
