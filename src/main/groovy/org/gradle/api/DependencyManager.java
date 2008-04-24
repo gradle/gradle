@@ -150,6 +150,10 @@ public interface DependencyManager extends DependencyContainer {
      */
     RepositoryResolver getBuildResolver();
 
+    void setFailForMissingDependencies(boolean failForMissingDependencies);
+
+    boolean getFailForMissingDependencies();
+
     FileSystemResolver createFlatDirResolver(String name, File[] dirs);
 
     FileSystemResolver addFlatDirResolver(String name, File[] dirs);

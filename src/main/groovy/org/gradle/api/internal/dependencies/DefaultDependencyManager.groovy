@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.GradleException
 
 /**
  * @author Hans Dockter
@@ -90,6 +91,8 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     Map conf2Tasks = [:]
     Map task2Conf = [:]
 
+    boolean failForMissingDependencies = true
+
     DefaultDependencyManager() {
 
     }
@@ -117,6 +120,9 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         resolveOptions.setConfs([conf] as String[])
         resolveOptions.outputReport = false
         ResolveReport resolveReport = ivy.resolve(moduleDescriptor, resolveOptions)
+        if (resolveReport.hasError() && failForMissingDependencies) {
+            throw new GradleException("Not all dependencies could be resolved!")
+        }
         report2Classpath.getClasspath(conf, resolveReport)
     }
 
