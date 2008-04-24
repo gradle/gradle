@@ -14,7 +14,7 @@ set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
 @rem End local scope for the variables with windows NT shell
 if "%ERRORLEVEL%"=="0" goto mainEnd
 
-if "%OS%"=="Windows_NT" exit %ERRORLEVEL%
+if "%OS%"=="Windows_NT" color 00
 if not "%OS%"=="Windows_NT" echo 1 > nul | choice /n /c:1
 goto omega
 
