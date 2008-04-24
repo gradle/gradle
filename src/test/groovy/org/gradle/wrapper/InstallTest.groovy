@@ -40,7 +40,7 @@ class InstallTest extends GroovyTestCase {
         rootDir = new File(testDir, 'gradle')
         install = new Install(false, false)
         distName = 'gradle-1.0'
-        destFile = new File(rootDir, "${distName}.zip")
+        destFile = new File(rootDir, "gradle.zip")
         urlRoot = 'file://./tmpTest'
         initDownloadMock()
         distDir = new File(rootDir, distName)
