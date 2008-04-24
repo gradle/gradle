@@ -259,6 +259,9 @@ class Main {
             throwExceptionIf(options, 'm')
             loglevel = 'ERROR'
             layout = normalLayout
+            if (!options.i && !options.j) {
+                ivyLogLevel = Message.MSG_ERR
+            }
         } else if (options.m) {
             loglevel = 'INFO'
             layout = normalLayout
