@@ -31,9 +31,9 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface DependencyManager extends DependencyContainer {
-    public static final String DEFAULT_IBIBLIO_NAME = "IBiblio";
+    public static final String DEFAULT_MAVEN_REPO_NAME = "MavenRepo";
 
-    public static final String IBIBLIO_URL = "http://repo1.maven.org/maven2/";
+    public static final String MAVEN_REPO_URL = "http://repo1.maven.org/maven2/";
 
     public static final String BUILD_RESOLVER_NAME = "build-resolver";
 
@@ -150,9 +150,13 @@ public interface DependencyManager extends DependencyContainer {
      */
     RepositoryResolver getBuildResolver();
 
+    void setFailForMissingDependencies(boolean failForMissingDependencies);
+
+    boolean getFailForMissingDependencies();
+
     FileSystemResolver createFlatDirResolver(String name, File[] dirs);
 
     FileSystemResolver addFlatDirResolver(String name, File[] dirs);
 
-    IBiblioResolver addIBiblio();
+    IBiblioResolver addMavenRepo();
 }

@@ -124,11 +124,11 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testAddIBiblio() {
+    void testAddMavenRepo() {
         IBiblioResolver expectedResolver = new IBiblioResolver()
-        dependencyManagerMocker.demand.addIBiblio(1..1) {-> expectedResolver}
+        dependencyManagerMocker.demand.addMavenRepo(1..1) {-> expectedResolver}
         dependencyManagerMocker.use(dependencyManager) {
-            assert settings.addIBiblio().is(expectedResolver)
+            assert settings.addMavenRepo().is(expectedResolver)
         }
     }
 
