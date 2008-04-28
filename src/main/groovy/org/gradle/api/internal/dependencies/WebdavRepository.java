@@ -56,4 +56,25 @@ public class WebdavRepository extends URLRepository {
         wdr.putMethod(wdr.getPath() + '/' + destinationFileName, source);
         wdr.close();
     }
+
+    //    Alternative implementation with httpclient only. Unfortunately this is slower.
+//
+//    public void put(File source, String destination, boolean overwrite) throws IOException {
+//        HttpClient client = new HttpClient();
+//        HttpState state = client.getState();
+//        PutMethod putMethod = new PutMethod(destination);
+//        Credentials credentials = new UsernamePasswordCredentials("hans_d", "magus96");
+//        state.setCredentials(null, null, credentials);
+//        logger.info("Publishing: " + source.getAbsolutePath());
+////        putMethod.setRequestEntity(new InputStreamRequestEntity(new FileInputStream(source)));
+//        putMethod.setRequestEntity(new FileRequestEntity(source, "application/binary"));
+//        try {
+//            // execute the GET
+//            int status = client.executeMethod(putMethod);
+//            // evaluate status
+//        } finally {
+//            // release any connection resources used by the method
+//            putMethod.releaseConnection();
+//        }
+//    }
 }
