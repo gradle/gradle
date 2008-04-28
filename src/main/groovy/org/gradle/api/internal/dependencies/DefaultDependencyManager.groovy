@@ -93,6 +93,8 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
 
     boolean failForMissingDependencies = true
 
+    Map resolveCache = [:]
+
     DefaultDependencyManager() {
 
     }
@@ -113,6 +115,9 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     // todo: Build should fail, if resolve fails (at least optional) 
     List resolveClasspath(String taskName) {
         String conf = task2Conf[taskName] ?: taskName
+        if (resolveCache.keySet().contains(conf)) {
+            return resolveCache[conf]
+        }
         ivy = getIvy()
         //        ivy.configure(new File('/Users/hans/IdeaProjects/gradle/gradle-core/ivysettings.xml'))
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(this)
@@ -123,7 +128,8 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         if (resolveReport.hasError() && failForMissingDependencies) {
             throw new GradleException("Not all dependencies could be resolved!")
         }
-        report2Classpath.getClasspath(conf, resolveReport)
+        resolveCache[conf] = report2Classpath.getClasspath(conf, resolveReport)
+        resolveCache[conf]
     }
 
     void publish(List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor) {

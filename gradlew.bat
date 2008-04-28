@@ -43,12 +43,11 @@ goto end
 if not errorlevel 1 goto init
 
 echo.
-echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%
+echo ERROR: JAVA_HOME might be set to an invalid directory: %JAVA_HOME%
 echo.
 echo Please set the JAVA_HOME variable in your environment to match the
-echo location of your Java installation.
+echo location of your Java installation if there are problems.
 echo.
-goto end
 
 :init
 @rem get name of script to launch with full path
