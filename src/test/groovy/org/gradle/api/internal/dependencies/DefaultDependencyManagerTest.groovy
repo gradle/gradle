@@ -164,6 +164,9 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
                         dependencyManager.addConf2Tasks(testConfiguration, testTaskName)
                         dependencyManager.project = project
                         assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))
+                        // check cache (we get an exception by the mock if the cache does not work
+                        assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))
+
                         dependencyManager.addConf2Tasks(testConfiguration, testTaskName + 'XXXXX')
                     }
                 }
