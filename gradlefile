@@ -18,6 +18,7 @@ import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 import groovy.text.SimpleTemplateEngine
 import org.gradle.build.samples.Userguide
 import org.gradle.api.tasks.StopExecutionException
+import org.apache.commons.io.FilenameUtils
 
 usePlugin('groovy')
 
@@ -345,8 +346,9 @@ createTask('buildWebsite') {
     webContentSrcDir.eachFileMatch(~/.*html/) {File contentFile ->
         def contentTemplate = engine.createTemplate(contentFile)
         String content = contentTemplate.make(binding).toString()
+
         new File(buildWebsiteDir, contentFile.name).text =
-            skeletonTemplate.make(binding + [content: content, title: contentFile.name]).toString()
+            skeletonTemplate.make(binding + [content: content, title: extractTitle(contentFile)]).toString()
     }
     ant {
         copy(todir: new File(buildWebsiteDir, 'css')) {
@@ -356,6 +358,15 @@ createTask('buildWebsite') {
             fileset(dir: new File(webSrcDir, 'img'))
         }
     }
+}
+
+String extractTitle(File contentFile) {
+    String baseName = FilenameUtils.getBaseName(contentFile.name)
+    baseName = baseName[0].toUpperCase() + baseName.substring(1)
+    if (baseName == 'Index') {
+        baseName = 'Home'
+    }
+    baseName
 }
 
 createTask('uploadWebsite', dependsOn: 'buildWebsite') {
