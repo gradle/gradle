@@ -330,7 +330,7 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.1.2-080424160920+0200'
+    gradleVersion = '0.1.3-080428121437+0200'
 }
 
 buildWebsiteDir = new File(buildDir, 'website')
