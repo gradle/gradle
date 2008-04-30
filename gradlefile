@@ -51,18 +51,31 @@ configureByDag = {Dag dag ->
         userguideRemoteDir += 'latest'
         javadocRemoteDir += 'latest'
     }
-    manifest.mainAttributes([
-            (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
-                path, file -> path + file.name + ' '
-            },
-            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString()
-    ])
+    init.doLast {
+        manifest.mainAttributes([
+                (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
+                    path, file -> path + file.name + ' '
+                },
+                (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+                (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString()
+        ])
+    } 
 }
 
-//if (groovyJarUrl) {
-//
-//}
+
+groovyVersion = "1.5.5"
+dynamicLibsDir = new File(buildDir, 'dynamicLibs')
+if (hasProperty('groovyJarUrl')) {
+    int i = groovyJarUrl.lastIndexOf('groovy-all-')
+    def groovyName = groovyJarUrl.substring(i)
+    groovyVersion = groovyJarUrl.substring(i + 'groovy-all-'.length()) - '.jar'
+    init.doFirst {
+        dynamicLibsDir.mkdirs()
+        ant.get(src: groovyJarUrl,
+                dest: new File(dynamicLibsDir, groovyName),
+                verbose: "true")
+    }
+}
 
 dependencies {
     // todo: Improve dependency handling for xUnit jars
@@ -74,7 +87,7 @@ dependencies {
             dependencies(":oro:2.0.8:jar")
         }
     }
-    clientModule(['compile'], ":groovy-all:1.5.5") {
+    clientModule(['compile'], ":groovy-all:$groovyVersion") {
         dependency(":commons-cli:1.0")
         clientModule(":ant:1.7.0") {
             dependencies(":ant-junit:1.7.0:jar", ":ant-launcher:1.7.0")
@@ -100,7 +113,7 @@ dependencies {
 
     testCompile ":junit:4.4"
     distLib ":junit:4.4"
-    addFlatDirResolver('lib', new File(rootDir, 'lib'))
+    addFlatDirResolver('lib', new File(rootDir, 'lib'), dynamicLibsDir)
 }
 
 resources.doLast {
@@ -350,7 +363,7 @@ createTask('buildWebsite') {
     webContentSrcDir.eachFileMatch(~/.*html/) {File contentFile ->
         def contentTemplate = engine.createTemplate(contentFile)
         String content = contentTemplate.make(binding).toString()
-        
+
         new File(buildWebsiteDir, contentFile.name).text =
             skeletonTemplate.make(binding + [content: content, title: extractTitle(contentFile)]).toString()
     }
