@@ -38,7 +38,6 @@ import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.GradleException
 
 /**
  * @author Hans Dockter
@@ -393,5 +392,19 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
             testObj.'nonExistingConfigurationName'(AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
                     AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
         }
+    }
+
+    void testCreateModuleRevisionId() {
+        ModuleRevisionId moduleRevisionId = dependencyManager.createModuleRevisionId()
+        assertEquals(dependencyManager.project.name, moduleRevisionId.name)
+        assertEquals(DependencyManager.DEFAULT_VERSION, moduleRevisionId.revision)
+        assertEquals(DependencyManager.DEFAULT_GROUP, moduleRevisionId.organisation)
+
+        dependencyManager.project.version = '1.0'
+        dependencyManager.project.group = 'mygroup'
+        moduleRevisionId = dependencyManager.createModuleRevisionId()
+        assertEquals(dependencyManager.project.name, moduleRevisionId.name)
+        assertEquals(dependencyManager.project.version, moduleRevisionId.revision)
+        assertEquals(dependencyManager.project.group, moduleRevisionId.organisation)
     }
 }

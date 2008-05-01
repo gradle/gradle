@@ -34,6 +34,7 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -156,7 +157,15 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     }
 
     ModuleRevisionId createModuleRevisionId() {
-        new ModuleRevisionId(new ModuleId(project.group as String, project.name as String), project.version as String)
+        def group = DependencyManager.DEFAULT_GROUP
+        def version = DependencyManager.DEFAULT_VERSION
+        if (project.hasProperty('group') && project.group) {
+            group = project.group
+        }
+        if (project.hasProperty('version') && project.version) {
+            version = project.version
+        }
+        new ModuleRevisionId(new ModuleId(group as String, project.name as String), version as String)
     }
 
     Ivy getIvy() {

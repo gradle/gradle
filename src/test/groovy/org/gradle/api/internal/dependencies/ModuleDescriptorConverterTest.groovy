@@ -85,13 +85,12 @@ class ModuleDescriptorConverterTest extends GroovyTestCase {
         dependencyManager.dependencies = [dependency]
         dependencyManager.artifacts = [conf1: [gradleArtifact]]
 
+        dependencyManager.project.name = 'someproject'
         dependencyManager.project.group = 'group'
         dependencyManager.project.version = '1.1'
-        dependencyManager.project.name = 'someproject'
         dependencyManager.configurations = [conf1: new Configuration('conf1'), conf2: new Configuration('conf2')]
 
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager)
-        assertEquals(ModuleDescriptorConverter.DEFAULT_STATUS, moduleDescriptor.status)
-
+        assertEquals(DependencyManager.DEFAULT_STATUS, moduleDescriptor.status)
     }
 }

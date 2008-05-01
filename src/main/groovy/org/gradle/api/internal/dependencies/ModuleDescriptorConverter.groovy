@@ -23,6 +23,7 @@ import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.DependencyManager
 
 /**
  * @author Hans Dockter
@@ -30,13 +31,11 @@ import org.slf4j.LoggerFactory
 class ModuleDescriptorConverter {
     private static Logger logger = LoggerFactory.getLogger(ModuleDescriptorConverter)
 
-    static final String DEFAULT_STATUS = 'integration'
-
     ModuleDescriptorConverter() {
     }
 
     ModuleDescriptor convert(DefaultDependencyManager dependencyManager) {
-        def status = DEFAULT_STATUS
+        def status = DependencyManager.DEFAULT_STATUS
         if (dependencyManager.project.hasProperty('status')) {
             status = dependencyManager.project.status
         }
