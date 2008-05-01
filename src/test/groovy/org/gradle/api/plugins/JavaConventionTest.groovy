@@ -46,6 +46,10 @@ class JavaConventionTest extends GroovyTestCase {
         assert convention.archiveTypes.is(JavaConvention.DEFAULT_ARCHIVE_TYPES)
         assert convention.manifest != null
         assertEquals([], convention.metaInf)
+        assertEquals([], convention.floatingSrcDirs)
+        assertEquals([], convention.floatingTestSrcDirs)
+        assertEquals([], convention.floatingResourceDirs)
+        assertEquals([], convention.floatingTestResourceDirs)
         assertEquals('src', convention.srcRootName)
         assertEquals('docs', convention.srcDocsDirName)
         assertEquals('main/webapp', convention.webAppDirName)
@@ -73,11 +77,15 @@ class JavaConventionTest extends GroovyTestCase {
     }
 
     private void checkDirs(String srcRootName) {
+        convention.floatingSrcDirs << 'someSrcDir' as File
+        convention.floatingTestSrcDirs <<'someTestSrcDir' as File
+        convention.floatingResourceDirs <<'someResourceDir' as File
+        convention.floatingTestResourceDirs <<'someTestResourceDir' as File
         assertEquals(new File(testDir, srcRootName), convention.srcRoot)
-        assertEquals([new File(convention.srcRoot, convention.srcDirNames[0])], convention.srcDirs)
-        assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])], convention.testSrcDirs)
-        assertEquals([new File(convention.srcRoot, convention.resourceDirNames[0])], convention.resourceDirs)
-        assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])], convention.testResourceDirs)
+        assertEquals([new File(convention.srcRoot, convention.srcDirNames[0])] + convention.floatingSrcDirs, convention.srcDirs)
+        assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])] + convention.floatingTestSrcDirs, convention.testSrcDirs)
+        assertEquals([new File(convention.srcRoot, convention.resourceDirNames[0])] + convention.floatingResourceDirs, convention.resourceDirs)
+        assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])] + convention.floatingTestResourceDirs, convention.testResourceDirs)
         assertEquals(new File(convention.srcRoot, convention.srcDocsDirName), convention.srcDocsDir)
         assertEquals(new File(convention.srcRoot, convention.webAppDirName), convention.webAppDir)
         assertEquals(new File(project.buildDir, convention.classesDirName), convention.classesDir)

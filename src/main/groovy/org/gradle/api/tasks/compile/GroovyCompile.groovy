@@ -32,7 +32,7 @@ class GroovyCompile extends Compile {
 
     GroovyCompile(DefaultProject project, String name) {
         super(project, name)
-        actions << this.&compile
+        actions = [this.&compile]
         self = this
     }
 

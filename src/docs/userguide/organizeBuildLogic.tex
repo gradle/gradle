@@ -1,28 +1,28 @@
 %!TEX root = master.tex
 \chapter{Organizing Build Logic} % (fold)
 \label{cha:organizing_build_logic}
-% The requirements for a build is often far more than what out-of-the box functionality of any build system has to offer. A build has many responsibilities with often very specific requirements for a particular project, in particular in the enterprise. So a good build system should make applying your custom logic as easy, as maintainable and as powerful as possible. This is the real acid test for any build system and what counts most at the end. Out-of-the box functionality is nice to have but when your specific requirements are hard or impossible to implement it is worth not much. 
+% The requirements for a build is often far more than what out-of-the box functionality of any build system has to offer. A build has many responsibilities with often very specific requirements for a particular project, in particular in the enterprise. So a good build system should make applying your custom logic as easy, as maintainable and as powerful as possible. This is the real acid test for any build system and what counts most at the end. Out-of-the box functionality is nice to have but when your specific requirements are hard or impossible to implement it is worth not much.
 Gradle offers a variety of ways to organize your build logic. First of all you can put your build logic directly in the action closure of a task. If a couple of tasks share the same logic you can extract this logic into a method. If multiple projects of a multi-project build share some logic you can define this method in the parent project. If the build logic gets too complex for being properly modeled by methods you want have an OO Model.\footnote{Which might range from a single class to something very complex)} Gradle makes this very easy. Just drop your classes in a certain folder and Gradle automatically compiles them and puts them in the classpath of your build script.
 
 \section{Build Sources} % (fold)
 \label{sec:build_sources}
-If you run Gradle, it checks for the existence of a top level project folder called \texttt{buildSrc}. Just put your build source code in this folder and stick to the layout convention for a Java/Groovy project (see Table \ref{javalayout}). Gradle then automatically compiles and tests this code and puts it in the classpath of your build script. You don't need to provide any further instruction. 
+If you run Gradle, it checks for the existence of a folder called \texttt{buildSrc}. Just put your build source code in this folder and stick to the layout convention for a Java/Groovy project (see Table \ref{javalayout}). Gradle then automatically compiles and tests this code and puts it in the classpath of your build script. You don't need to provide any further instruction. For multi-project builds there can be only one \texttt{buildSrc} directory which has to be in the root project.
 
 This is probably good enough for most of the cases. If you need more flexibility, you can provide a \texttt{gradlefile} and a \texttt{gradlesettings} file in the \texttt{buildSrc} folder. If you like, you can even have a multi-project build in there.
 % section build_sources (end)
 
 \section{External dependencies} % (fold)
 \label{sec:external_dependencies}
-If your build script needs external libraries you can declare them in the \texttt{gradlesettings} file. 
+If your build script needs external libraries you can declare them in the \texttt{gradlesettings} file.
 \begin{Verbatim}[label=gradlesettings]
-dependencies("commons-math:commons-math:1.1:jar")	
+dependencies("commons-math:commons-math:1.1:jar")
 \end{Verbatim}
 You can pass any of the dependencies described in section \ref{sub:dependencies} (except project dependencies). There is \emph{no} need to provide a \emph{dependency configuration}(e.g. \texttt{compile}). For multi-project builds dependencies declared in the \texttt{gradlesettings} file of the root project, are available to all build scripts of the sub-projects.
 % section external_dependencies (end)
 
 \section{Ant Optional Dependencies} % (fold)
 \label{sec:ant_optional_dependencies}
-For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional tasks. But you can easily do it in another way.\footnote{In fact, we think this is anyway the nicer solution. Only if your buildscript and Ant's optional task need the \emph{same} library you would have to define it two times. In such a case it would be nice, if Ant's optional task would automatically pickup the classpath defined in the \texttt{gradesettings}.}  
+For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional tasks. But you can easily do it in another way.\footnote{In fact, we think this is anyway the nicer solution. Only if your buildscript and Ant's optional task need the \emph{same} library you would have to define it two times. In such a case it would be nice, if Ant's optional task would automatically pickup the classpath defined in the \texttt{gradesettings}.}
 \begin{Verbatim}[label=gradlesettings]
 dependencies {
     addConfiguration('ftpAntTask')
@@ -47,7 +47,7 @@ createTask('ftp') {
 
 \section{Summary} % (fold)
 \label{sec:philosophy}
-Gradle offers you a variety of ways of organizing your build logic. You can choose what is right for your domain and find the right balance between unnecessary indirections, and avoiding redundancy and a hard to maintain code base. 
+Gradle offers you a variety of ways of organizing your build logic. You can choose what is right for your domain and find the right balance between unnecessary indirections, and avoiding redundancy and a hard to maintain code base.
 It is our experience that even very complex custom build logic is rarely shared between different builds. Other build tools enforce a separation of this build logic into a separate project. Gradle spares you this unnecessary overhead and indirection.
 % section philosophy (end)
 

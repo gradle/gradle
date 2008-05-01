@@ -50,6 +50,11 @@ class JavaConvention {
     List resourceDirNames = []
     List testSrcDirNames = []
     List testResourceDirNames = []
+    List floatingSrcDirs = []
+    List floatingTestSrcDirs = []
+    List floatingResourceDirs = []
+    List floatingTestResourceDirs = []
+
     String sourceCompatibility
     String targetCompatibility
     Map archiveTypes
@@ -90,19 +95,19 @@ class JavaConvention {
     }
 
     List getSrcDirs() {
-        srcDirNames.collect {new File(srcRoot, it)}
+        srcDirNames.collect {new File(srcRoot, it)} + floatingSrcDirs
     }
 
     List getResourceDirs() {
-        resourceDirNames.collect {new File(srcRoot, it)}
+        resourceDirNames.collect {new File(srcRoot, it)} + floatingResourceDirs
     }
 
     List getTestSrcDirs() {
-        testSrcDirNames.collect {new File(srcRoot, it)}
+        testSrcDirNames.collect {new File(srcRoot, it)} + floatingTestSrcDirs
     }
 
     List getTestResourceDirs() {
-        testResourceDirNames.collect {new File(srcRoot, it)}
+        testResourceDirNames.collect {new File(srcRoot, it)} + floatingTestResourceDirs
     }
 
     File getSrcDocsDir() {
