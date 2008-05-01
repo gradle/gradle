@@ -9,26 +9,26 @@ Provided your build script contains the single line
 \begin{Verbatim}
 usePlugin('java')
 \end{Verbatim}
-Executing \texttt{gradle libs} will compile, test and jar your code. If you specify a remote repository, executing \texttt{gradle uploadLibs} will do additionally an upload of your jar to a remote repository. 
+Executing \texttt{gradle libs} will compile, test and jar your code. If you specify a remote repository, executing \texttt{gradle uploadLibs} will do additionally an upload of your jar to a remote repository.
 Builds have usually more requirements. Let's look at a typical multi-project build.
 
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- ultimateApp
   D- api
   D- webservice
-  D- shared 
+  D- shared
 \end{Verbatim}
 We have three projects. \texttt{api} is shipped to the client to provide them a Java client for your XML webservice. \texttt{webservice} is a webapp which returns XML. \texttt{shared} is code used both by \texttt{api} and \texttt{webservice}. Let's look at the Gradle build scripts of those projects.
 
 \begin{Verbatim}[frame=single,label=ultimateApp]
 subprojects {
-    manifest.mainAttributes([	       
+    manifest.mainAttributes([
 	    'Implementation-Title': 'Gradle',
 		'Implementation-Version': '0.1'
 	])
 	dependencies {
 		compile "commons-lang:commons-lang:3.1"
-		test "junit:junit:4.4"
+		testCompile "junit:junit:4.4"
 	}
 	sourceCompatibility = 1.5
 	targetCompatibility = 1.5
