@@ -37,6 +37,8 @@ class GroovyConventionTest extends JavaConventionTest {
     void testGroovyConvention() {
         assertEquals(['main/groovy'], groovyConvention.groovySrcDirNames)
         assertEquals(['test/groovy'], groovyConvention.groovyTestSrcDirNames)
+        assertEquals([], groovyConvention.floatingGroovySrcDirs)
+        assertEquals([], groovyConvention.floatingGroovyTestSrcDirs)
     }
 
     void testGroovyDefaultDirs() {
@@ -50,7 +52,11 @@ class GroovyConventionTest extends JavaConventionTest {
     }
 
     private void checkGroovyDirs(String srcRootName) {
-        assertEquals([new File(convention.srcRoot, groovyConvention.groovySrcDirNames[0])], groovyConvention.groovySrcDirs)
-        assertEquals([new File(convention.srcRoot, groovyConvention.groovyTestSrcDirNames[0])], groovyConvention.groovyTestSrcDirs)
+        groovyConvention.floatingGroovySrcDirs << 'someGroovySrcDir' as File
+        groovyConvention.floatingGroovyTestSrcDirs <<'someGroovyTestSrcDir' as File
+        assertEquals([new File(convention.srcRoot, groovyConvention.groovySrcDirNames[0])] + groovyConvention.floatingGroovySrcDirs,
+                groovyConvention.groovySrcDirs)
+        assertEquals([new File(convention.srcRoot, groovyConvention.groovyTestSrcDirNames[0])] + groovyConvention.floatingGroovyTestSrcDirs,
+                groovyConvention.groovyTestSrcDirs)
     }
 }

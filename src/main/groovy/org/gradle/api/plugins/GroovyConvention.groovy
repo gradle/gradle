@@ -24,6 +24,8 @@ import org.gradle.api.Project
 class GroovyConvention extends JavaConvention {
     List groovySrcDirNames = []
     List groovyTestSrcDirNames = []
+    List floatingGroovySrcDirs = []
+    List floatingGroovyTestSrcDirs = []
 
     GroovyConvention(Project project) {
         super(project)
@@ -32,10 +34,10 @@ class GroovyConvention extends JavaConvention {
     }
 
     List getGroovySrcDirs() {
-        groovySrcDirNames.collect {new File(srcRoot, it)}
+        groovySrcDirNames.collect {new File(srcRoot, it)} + floatingGroovySrcDirs
     }
 
     List getGroovyTestSrcDirs() {
-        groovyTestSrcDirNames.collect {new File(srcRoot, it)}
+        groovyTestSrcDirNames.collect {new File(srcRoot, it)} + floatingGroovyTestSrcDirs
     }
 }
