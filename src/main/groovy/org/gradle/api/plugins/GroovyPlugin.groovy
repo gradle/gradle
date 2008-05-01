@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,13 @@ class GroovyPlugin extends JavaPlugin {
         project.ant.taskdef(name: "groovyc", classname: "org.codehaus.groovy.ant.Groovyc")
         project.ant.taskdef(name: "groovydoc", classname: "org.codehaus.groovy.ant.Groovydoc")
 
-        configureCompile(project.createTask(JavaPlugin.COMPILE, dependsOn: JavaPlugin.RESOURCES, type: GroovyCompile, overwrite: true), groovyConvention, DefaultConventionsToPropertiesMapping.COMPILE).configure {
+        configureCompile(project.createTask(JavaPlugin.COMPILE, dependsOn: JavaPlugin.RESOURCES, type: GroovyCompile,
+                overwrite: true), groovyConvention, DefaultConventionsToPropertiesMapping.COMPILE).configure {
             antGroovyCompile = new AntGroovyc()
-            conventionMapping.groovySourceDirs = {groovyConvention.groovySrcDirs}
+            conventionMapping.groovySourceDirs = {it.groovySrcDirs}
         }
-        configureTestCompile(project.createTask(JavaPlugin.TEST_COMPILE, dependsOn: JavaPlugin.TEST_RESOURCES, type: GroovyCompile, overwrite: true),
+        configureTestCompile(project.createTask(JavaPlugin.TEST_COMPILE, dependsOn: JavaPlugin.TEST_RESOURCES,
+                type: GroovyCompile, overwrite: true),
                 project.task(JavaPlugin.COMPILE),
                 groovyConvention,
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE).configure {
