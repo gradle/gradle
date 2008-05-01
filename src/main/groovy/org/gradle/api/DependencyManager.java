@@ -41,6 +41,10 @@ public interface DependencyManager extends DependencyContainer {
 
     public static final String FLAT_DIR_RESOLVER_PATTERN = "[artifact]-[revision].[ext]";
 
+    public static final String DEFAULT_STATUS = "integration";
+    public static final String DEFAULT_GROUP = "unspecified";
+    public static final String DEFAULT_VERSION = "unspecified";
+
     /**
     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
     */
