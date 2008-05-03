@@ -52,7 +52,7 @@ configureByDag = {Dag dag ->
         javadocRemoteDir += 'latest'
     }
     manifest.mainAttributes([
-            (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
+            (Attributes.Name.CLASS_PATH.toString()): dependencies.resolve('runtime').inject('') {
                 path, file -> path + file.name + ' '
             },
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
@@ -132,7 +132,7 @@ createTask('explodedDist', dependsOn: 'libs') {
     File explodedDistLibDir = mkdir(explodedDistDir, 'lib')
     ant {
         logger.info('Generate lib dir')
-        dependencies.resolveClasspath('distLib').each {File file ->
+        dependencies.resolve('distLib').each {File file ->
             copy(file: file, todir: explodedDistLibDir)
         }
         jar(destfile: new File(explodedDistLibDir, "$distName-wrapper-${version}.jar"),
@@ -386,7 +386,7 @@ void ftp(Map args, Closure antFileset = {}) {
     ant {
         taskdef(name: 'ftp',
                 classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: dependencies.resolveClasspath('ftpAntTask').join(':'))
+                classpath: dependencies.resolve('ftpAntTask').join(':'))
         Map ftpArgs = args + [
                 server: 'www.gradle.org',
                 userid: websiteFtpUserName,

@@ -44,7 +44,7 @@ class WarTest extends AbstractArchiveTaskTest {
         war.additionalLibFileSets = [new FileSet()]
         antWarMocker = new MockFor(AntWar)
         filesFromDepencencyManager = ['/file1' as File]
-        war.dependencyManager = [resolveClasspath: {filesFromDepencencyManager}] as DependencyManager
+        war.dependencyManager = [resolve: {filesFromDepencencyManager}] as DependencyManager
     }
 
     AbstractArchiveTask getArchiveTask() {

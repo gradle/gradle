@@ -92,7 +92,7 @@ class Compile extends ConventionTask {
         }
         
         List classpath = classpathConverter.createFileClasspath(project.rootDir, self.unmanagedClasspath as Object[]) +
-                self.dependencyManager.resolveClasspath(name)
+                self.dependencyManager.resolveTask(name)
         antCompile.execute(existingSourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
                 self.targetCompatibility, self.options, project.ant)
     }

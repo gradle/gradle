@@ -117,7 +117,7 @@ class DefaultSettings implements Settings {
         } else {
             logger.info('No build sources found.')
         }
-        URL[] classpath = dependencyManager.resolveClasspath(BUILD_CONFIGURATION).collect {File file ->
+        URL[] classpath = dependencyManager.resolve(BUILD_CONFIGURATION).collect {File file ->
             Locator.fileToURL(file)
         }
         logger.debug("Adding to classpath: ${classpath as List}")

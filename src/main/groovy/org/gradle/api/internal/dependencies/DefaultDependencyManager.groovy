@@ -113,9 +113,7 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         this.specialResolverHandler.buildResolverDir = buildResolverDir
     }
 
-    // todo: Build should fail, if resolve fails (at least optional) 
-    List resolveClasspath(String taskName) {
-        String conf = task2Conf[taskName] ?: taskName
+    List resolve(String conf) {
         if (resolveCache.keySet().contains(conf)) {
             return resolveCache[conf]
         }
@@ -131,6 +129,18 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         }
         resolveCache[conf] = report2Classpath.getClasspath(conf, resolveReport)
         resolveCache[conf]
+    }
+
+     List resolveTask(String taskName) {
+        String conf = task2Conf[taskName]
+         if (!conf) {
+             throw new InvalidUserDataException("Task $taskName is not mapped to any conf!")
+         }
+        resolve(conf)
+    }
+
+    String antpath(String conf) {
+        resolve(conf).join(':')
     }
 
     void publish(List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor) {

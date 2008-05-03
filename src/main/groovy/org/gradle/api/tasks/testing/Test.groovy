@@ -96,7 +96,7 @@ class Test extends ConventionTask {
         existingDirsFilter.checkExistenceAndThrowStopActionIfNot(self.testClassesDir)
 
         List classpath = classpathConverter.createFileClasspath(
-                project.rootDir, [self.testClassesDir] + self.unmanagedClasspath as Object[]) + self.dependencyManager.resolveClasspath(name)
+                project.rootDir, [self.testClassesDir] + self.unmanagedClasspath as Object[]) + self.dependencyManager.resolveTask(name)
 
         antJunit.execute(self.testClassesDir, classpath, self.testResultsDir, includes, excludes, options, project.ant)
         if (stopAtFailuresOrErrors && project.ant.project.getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY)) {

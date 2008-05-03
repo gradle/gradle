@@ -52,7 +52,7 @@ class War extends Jar {
     Closure createAntArchiveTask() {
         { ->
             FileCollection files = new FileCollection() 
-            files.files = dependencyManager.resolveClasspath(libConfiguration)
+            files.files = dependencyManager.resolve(libConfiguration)
             antWar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.createIfEmpty,
                 self.destinationDir, archiveName, self.manifest, self.metaInfResourceCollections, project.ant),
                     self.classesFileSets, files, self.additionalLibFileSets, self.webInfFileSets, self.webXml)

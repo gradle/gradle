@@ -129,7 +129,7 @@ class CompileTest extends AbstractConventionTaskTest {
         compile.targetCompatibility = '1.5'
         compile.destinationDir = TEST_TARGET_DIR
         compile.antCompile = [:] as AntJavac
-        compile.dependencyManager = [resolveClasspath: {String taskName ->
+        compile.dependencyManager = [resolveTask: {String taskName ->
             assertEquals(compile.name, taskName)
             TEST_DEPENDENCY_MANAGER_CLASSPATH
         }] as DependencyManager

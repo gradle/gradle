@@ -61,7 +61,7 @@ class GroovyCompile extends Compile {
 
     private List createClasspath() {
         classpathConverter.createFileClasspath(project.rootDir, self.unmanagedClasspath as Object[]) +
-                self.dependencyManager.resolveClasspath(name)
+                self.dependencyManager.resolveTask(name)
     }
 
 }
