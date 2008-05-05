@@ -25,16 +25,16 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 /**
  * @author Steven Devijver
  */
 public class ToolsMain {
-    // As we don't want to start logging before logging is configured, we use this variable for messages from ToolsMain
-    static List toolsMainInfo = new ArrayList();
-
     public static void main(String[] args) throws Exception {
         boolean modernCompilerFound = false;
+        // As we don't want to start logging before logging is configured, we use this variable for messages from ToolsMain
+        List toolsMainInfo = new ArrayList();
 
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
         try {
@@ -64,10 +64,10 @@ public class ToolsMain {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
 
         }
-
         Class mainClass = classLoader.loadClass("org.gradle.Main");
         Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
-        mainMethod.invoke(null, new Object[]{args});
-
+        List argList = new ArrayList(Arrays.asList(args));
+        argList.add(0, toolsMainInfo.get(0));
+        mainMethod.invoke(null, new Object[]{(String[]) argList.toArray(new String[argList.size()])});
     }
 }

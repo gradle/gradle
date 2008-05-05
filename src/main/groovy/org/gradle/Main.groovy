@@ -46,6 +46,9 @@ class Main {
 
     static void main(String[] args) {
         long buildStartTime = System.currentTimeMillis()
+
+        String toolsMainInfo = args[0]
+
         boolean recursive = true
         boolean searchUpwards = true
         File currentDir = new File(System.properties.'user.dir')
@@ -78,7 +81,7 @@ class Main {
         cli.e(longOpt: 'embedded', 'Use an embedded build script.', args: 1)
         cli.v(longOpt: 'version', 'Prints version info.')
 
-        def options = cli.parse(args)
+        def options = cli.parse(args[1..args.length - 1])
 
         if (!options) {
             println 'Illegal usage!'
@@ -88,7 +91,7 @@ class Main {
 
         configureLogger(options)
 
-        ToolsMain.toolsMainInfo.each {logger.info(it)}
+        logger.info(toolsMainInfo)
 
         if (options.h) {cli.usage()}
 

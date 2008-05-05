@@ -34,12 +34,12 @@ class AntGroovyc {
     public void execute(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                         String targetCompatibility, CompileOptions compileOptions, List taskClasspath) {
         String groovyc = """taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
-    mkdir(dir: '${unbackslash(targetDir.absolutePath)}')
+    mkdir(dir: '${GradleUtil.unbackslash(targetDir.absolutePath)}')
     groovyc(
         includeAntRuntime: false,
-        srcdir: '${sourceDirs.collect {unbackslash(it)}.join(':')}',
-        destdir: '${unbackslash(targetDir)}',
-        classpath: '${classpath.collect {unbackslash(it)}.join(':')}',
+        srcdir: '${sourceDirs.collect {GradleUtil.unbackslash(it)}.join(':')}',
+        destdir: '${GradleUtil.unbackslash(targetDir)}',
+        classpath: '${classpath.collect {GradleUtil.unbackslash(it)}.join(':')}',
         verbose: true) {
         javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)})
     }
@@ -57,9 +57,4 @@ class AntGroovyc {
         }
         result
     }
-
-    private String unbackslash(def s) {
-        FilenameUtils.separatorsToUnix(s.toString())
-    }
-
 }
