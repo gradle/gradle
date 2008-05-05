@@ -105,9 +105,12 @@ ant.sequential {
 
     static executeIsolatedAntScript(List loaderClasspath, String filling) {
         ClassLoader oldCtx = Thread.currentThread().contextClassLoader
+        ClassLoader systemClassLoader = oldCtx.systemClassLoader
+        boolean modernCompilerFound = false
         try {
-            oldCtx.loadClass("com.sun.tools.javac.Main")
+            systemClassLoader.loadClass("com.sun.tools.javac.Main")
             logger.debug('Modern compiler found')
+            modernCompilerFound = true
         } catch (ClassNotFoundException e) {
             logger.debug('Modern compiler not found. Adding tools.jar')
             loaderClasspath << Locator.getToolsJar()
@@ -116,6 +119,9 @@ ant.sequential {
             Locator.fileToURL(it as File)
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, GradleUtil.class.classLoader.systemClassLoader.parent)
+        if (!modernCompilerFound) {
+            newLoader.loadClass("com.sun.tools.javac.Main");
+        }
         Thread.currentThread().contextClassLoader = newLoader
         String scriptText = createIsolatedAntScript(filling)
         logger.debug("Using groovyc as: $scriptText")
