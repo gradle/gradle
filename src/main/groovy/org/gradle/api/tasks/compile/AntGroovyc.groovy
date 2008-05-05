@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -34,11 +34,17 @@ class AntGroovyc {
         String groovyc = """
     taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
     mkdir(dir: '${targetDir.absolutePath}')
+    ant.path(id: 'classpath_id') {
+        classpath.each {
+            logger.debug("Add $it to Ant classpath!")
+            pathelement(location: it)
+        }
+    }
     groovyc(
         includeAntRuntime: false,
         srcdir: '${sourceDirs.join(':')}',
         destdir: '${targetDir}',
-        classpath: '${classpath.join(':')}',
+        classpathref: 'classpath_id',
         verbose: true) {
         javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)})
     }
