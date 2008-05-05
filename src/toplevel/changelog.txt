@@ -1,4 +1,17 @@
+
 Release Notes - Gradle - Version 0.1.4
+
+Breaking Changes:
+
+ * [GRADLE-80] - The groovy plugin should use the groovy ant tasks from the groovy provided by the user not from the groovy that ships with Gradle.
+
+ You need to assign a Groovy library to the groovy dependency configuration
+
+ * [GRADLE-81] - Add convenience methods for classpath resolving
+
+ The method name of dependencies has changed from resolveClasspath to resolve.
+
+Non-Breaking Changes:
 
 ** Bug
     * [GRADLE-76] - Documentation sometimes uses test "..." instead of testCompile
@@ -10,5 +23,3 @@ Release Notes - Gradle - Version 0.1.4
 ** Improvement
     * [GRADLE-73] - Make specifiying the group and version attribute optional.
     * [GRADLE-75] - Section 11.5.4 Flat Folder Resolver, Point out what the first parameter is for.
-    * [GRADLE-80] - The groovy plugin should use the groovy ant tasks from the groovy provided by the user not from the groovy that ships with Gradle.
-    * [GRADLE-81] - Add convenience methods for classpath resolving
