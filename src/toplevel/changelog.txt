@@ -1,5 +1,14 @@
-Release Notes - Gradle - Version 0.1.3
+Release Notes - Gradle - Version 0.1.4
+
+** Bug
+    * [GRADLE-76] - Documentation sometimes uses test "..." instead of testCompile
+    * [GRADLE-77] - Groovy Plugin does not remove Java compile action from compile task
+    * [GRADLE-78] - Groovy source folders are sometimes not found when Groovy projects are used in a multi-project build.
+    * [GRADLE-79] - Source folder can't be chosen for a location which is not under src.
+    * [GRADLE-82] - Gradle startup script does not work with cygwin when using parameters
 
 ** Improvement
-    * [GRADLE-70] - Avoid unnecessary Ivy resolves
-
+    * [GRADLE-73] - Make specifiying the group and version attribute optional.
+    * [GRADLE-75] - Section 11.5.4 Flat Folder Resolver, Point out what the first parameter is for.
+    * [GRADLE-80] - The groovy plugin should use the groovy ant tasks from the groovy provided by the user not from the groovy that ships with Gradle.
+    * [GRADLE-81] - Add convenience methods for classpath resolving
