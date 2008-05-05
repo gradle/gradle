@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.util.GradleUtil
+import org.apache.commons.io.FilenameUtils
 
 /**
  * @author Hans Dockter
@@ -27,32 +28,22 @@ class AntGroovyc {
     private static Logger logger = LoggerFactory.getLogger(AbstractAntCompile)
 
     // todo check this list after http://jira.codehaus.org/browse/GROOVY-2809 is resolved
-    static final List NON_GROOVY_JAVAC_OPTIONS = ['includeJavaRuntime', 'optimize', 'failonerror', 'deprecation', 'fork', 'listfiles', 'nowarn', 'verbose', 'depend']
+    List nonGroovycJavacOptions = ['includeJavaRuntime', 'optimize', 'failonerror', 'deprecation', 'fork', 'listfiles', 'nowarn', 'verbose', 'depend']
+    
 
     public void execute(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                         String targetCompatibility, CompileOptions compileOptions, List taskClasspath) {
-        StringWriter stringWriter = new StringWriter()
-        PrintWriter printWriter = new PrintWriter(stringWriter)
-        classpath.each {
-            logger.debug("Add $it to Ant classpath!")
-            printWriter.println("pathelement(location: /$it/)")
-        }
         String groovyc = """taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
-    mkdir(dir: /${targetDir.absolutePath}/)
-    path(id: 'classpath_id') {
-        $stringWriter
-    }
-    println System.getenv('JAVA_HOME')
+    mkdir(dir: '${unbackslash(targetDir.absolutePath)}')
     groovyc(
         includeAntRuntime: false,
-        srcdir: /${sourceDirs.join(':')}/,
-        destdir: /${targetDir}/,
-        classpathref: 'classpath_id',
+        srcdir: '${sourceDirs.collect {unbackslash(it)}.join(':')}',
+        destdir: '${unbackslash(targetDir)}',
+        classpath: '${classpath.collect {unbackslash(it)}.join(':')}',
         verbose: true) {
         javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)})
     }
 """
-        logger.debug("Using groovyc as: $groovyc")
         GradleUtil.executeIsolatedAntScript(taskClasspath, groovyc)
     }
 
@@ -60,11 +51,15 @@ class AntGroovyc {
         // todo check if groupBy allows a more concise solution
         Map result = [:]
         options.optionMap().each {String key, String value ->
-            if (!NON_GROOVY_JAVAC_OPTIONS.contains(key)) {
+            if (!nonGroovycJavacOptions.contains(key)) {
                 result[key] = value
             }
         }
         result
+    }
+
+    private String unbackslash(def s) {
+        FilenameUtils.separatorsToUnix(s.toString())
     }
 
 }

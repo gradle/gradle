@@ -93,9 +93,8 @@ class GradleUtil {
         logLevel
     }
 
-    static createIsolatedAntScript(String filling) {
-        String groovyc = """
-ClassLoader loader = Thread.currentThread().contextClassLoader
+    static String createIsolatedAntScript(String filling) {
+        """ClassLoader loader = Thread.currentThread().contextClassLoader
 AntBuilder ant = loader.loadClass('groovy.util.AntBuilder').newInstance()
 ant.project.getBuildListeners()[0].setMessageOutputLevel(${GradleUtil.antLogLevel})
 ant.sequential {
@@ -118,9 +117,10 @@ ant.sequential {
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, GradleUtil.class.classLoader.systemClassLoader.parent)
         Thread.currentThread().contextClassLoader = newLoader
-
+        String scriptText = createIsolatedAntScript(filling)
+        logger.debug("Using groovyc as: $scriptText")
         newLoader.loadClass("groovy.lang.GroovyShell").newInstance([newLoader] as Object[]).evaluate(
-                createIsolatedAntScript(filling))
+                scriptText)
         Thread.currentThread().contextClassLoader = oldCtx
     }
 }
