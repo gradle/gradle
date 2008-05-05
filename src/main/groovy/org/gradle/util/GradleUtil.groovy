@@ -19,6 +19,7 @@ package org.gradle.util
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.apache.tools.ant.launch.Locator
+import org.apache.commons.io.FilenameUtils
 
 /**
  * @author Hans Dockter
@@ -75,6 +76,10 @@ class GradleUtil {
         }
     }
 
+    static String unbackslash(def s) {
+        FilenameUtils.separatorsToUnix(s.toString())
+    }
+
     static setAntLogging(AntBuilder ant) {
         int logLevel = getAntLogLevel()
         logger.debug("Set ant loglevel to $logLevel")
@@ -103,19 +108,56 @@ ant.sequential {
 """
     }
 
+    static getToolsJar() {
+        ClassLoader classLoader = Thread.currentThread().contextClassLoader.systemClassLoader
+        // firstly check if the tools jar is already in the classpath
+        boolean toolsJarAvailable = false;
+        try {
+            // just check whether this throws an exception
+            classLoader.loadClass("com.sun.tools.javac.Main");
+            toolsJarAvailable = true;
+        } catch (Exception e) {
+            try {
+                classLoader.loadClass("sun.tools.javac.Main");
+                toolsJarAvailable = true;
+            } catch (Exception e2) {
+                // ignore
+            }
+        }
+        if (toolsJarAvailable) {
+            return null;
+        }
+        // couldn't find compiler - try to find tools.jar
+        // based on java.home setting
+        String javaHome = System.getProperty("java.home");
+        File toolsJar = new File(javaHome + "/lib/tools.jar");
+        if (toolsJar.exists()) {
+            // Found in java.home as given
+            return toolsJar;
+        }
+        if (javaHome.toLowerCase(Locale.US).endsWith(File.separator + "jre")) {
+            javaHome = javaHome.substring(0, javaHome.length() - 4);
+            toolsJar = new File(javaHome + "/lib/tools.jar");
+        }
+        if (!toolsJar.exists()) {
+            System.out.println("Unable to locate tools.jar. "
+                 + "Expected to find it in " + toolsJar.getPath());
+            return null;
+        }
+        return toolsJar;
+    }
+
     static executeIsolatedAntScript(List loaderClasspath, String filling) {
         ClassLoader oldCtx = Thread.currentThread().contextClassLoader
-        try {
-            oldCtx.loadClass("com.sun.tools.javac.Main")
-            logger.debug('Modern compiler found')
-        } catch (ClassNotFoundException e) {
-            logger.debug('Modern compiler not found. Adding tools.jar')
-            loaderClasspath << Locator.getToolsJar()
+        ClassLoader systemClassLoader = oldCtx.systemClassLoader
+        if (getToolsJar()) {
+            loaderClasspath << getToolsJar()
         }
         URL[] taskUrlClasspath = loaderClasspath.collect {
             Locator.fileToURL(it as File)
         }
-        ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, GradleUtil.class.classLoader.systemClassLoader.parent)
+        ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, systemClassLoader.parent)
+        newLoader.loadClass("com.sun.tools.javac.Main");
         Thread.currentThread().contextClassLoader = newLoader
         String scriptText = createIsolatedAntScript(filling)
         logger.debug("Using groovyc as: $scriptText")

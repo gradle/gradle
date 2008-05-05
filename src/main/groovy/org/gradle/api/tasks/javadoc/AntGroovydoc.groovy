@@ -25,7 +25,9 @@ class AntGroovydoc {
     void execute(List sourceDirs, File destDir, AntBuilder ant, List taskClasspath) {
         String groovydoc = """
     taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
-    groovydoc(destdir: '${destDir}', sourcepath: '${sourceDirs.join(':')}')
+    groovydoc(
+       destdir: '${GradleUtil.unbackslash(destDir)}',
+       sourcepath: '${sourceDirs.collect {GradleUtil.unbackslash(it)}.join(':')}')
 """
         GradleUtil.executeIsolatedAntScript(taskClasspath, groovydoc)
     }

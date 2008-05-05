@@ -69,14 +69,14 @@ class MainTest extends GroovyTestCase {
         fileStub.demand.isDirectory {false}
         buildMockFor.use {
             fileStub.use {
-                Main.main(["-p", TEST_DIR_NAME] as String[])
+                Main.main(args(["-p", TEST_DIR_NAME]) as String[])
             }
         }
         // The buildMockFor throws an exception, if the main method does not return prematurely (what it should do). 
     }
 
     void testMainWithoutAnyOptions() {
-        checkMain {Main.main(["-S"] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-S"]) + expectedTaskNames as String[])}
     }
 
     private checkMain(boolean embedded = false, boolean taskList = false, Closure mainCall) {
@@ -169,22 +169,22 @@ class MainTest extends GroovyTestCase {
 
     void testMainWithSpecifiedGradleUserHomeDirectory() {
         expectedGradleUserHome = HelperUtil.makeNewTestDir()
-        checkMain {Main.main(["-Sg", expectedGradleUserHome.canonicalFile] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-Sg", expectedGradleUserHome.canonicalFile]) + expectedTaskNames as String[])}
     }
 
     void testMainWithSpecifiedExistingProjectDirectory() {
         expectedProjectDir = HelperUtil.makeNewTestDir()
-        checkMain {Main.main(["-Sp", expectedProjectDir.canonicalFile] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-Sp", expectedProjectDir.canonicalFile]) + expectedTaskNames as String[])}
     }
 
     void testMainWithDisabledDefaultImports() {
         expectedGradleImportsFile = null
-        checkMain {Main.main(["-SI"] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-SI"] + expectedTaskNames) as String[])}
     }
 
     void testMainWithSpecifiedBuildFileName() {
         expectedBuildFileName = 'somename'
-        checkMain {Main.main(["-Sb", expectedBuildFileName] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-Sb", expectedBuildFileName] + expectedTaskNames) as String[])}
     }
 
     void testMainWithSystemProperties() {
@@ -193,7 +193,7 @@ class MainTest extends GroovyTestCase {
         String prop2 = 'gradle.prop2'
         String valueProp2 = 'value2'
         expectedSystemProperties = [(prop1): valueProp1, (prop2): valueProp2]
-        checkMain {Main.main(["-D$prop1=$valueProp1", "-SD", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-D$prop1=$valueProp1", "-SD", "$prop2=$valueProp2"]) + expectedTaskNames as String[])}
     }
 
     void testMainWithStartProperties() {
@@ -202,42 +202,42 @@ class MainTest extends GroovyTestCase {
         String prop2 = 'prop2'
         String valueProp2 = 'value2'
         expectedProjectProperties = [(prop1): valueProp1, (prop2): valueProp2]
-        checkMain {Main.main(["-SP$prop1=$valueProp1", "-P", "$prop2=$valueProp2"] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-SP$prop1=$valueProp1", "-P", "$prop2=$valueProp2"]) + expectedTaskNames as String[])}
     }
 
     void testMainWithNonRecursiveFlagSet() {
         expectedRecursive = false
-        checkMain {Main.main(["-Sn"] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-Sn"] + expectedTaskNames) as String[])}
     }
 
     void testMainWithSearchUpwardsFlagSet() {
         expectedSearchUpwards = false
-        checkMain {Main.main(["-Su"] + expectedTaskNames as String[])}
+        checkMain {Main.main(args(["-Su"] + expectedTaskNames) as String[])}
     }
 
     void testMainWithEmbeddedScript() {
-        checkMain(true) {Main.main(["-Se", expectedEmbeddedScript] + expectedTaskNames as String[])}
+        checkMain(true) {Main.main(args(["-Se", expectedEmbeddedScript]) + expectedTaskNames as String[])}
     }
 
     void testMainWithEmbeddedScriptAndConflictingOptions() {
         buildMockFor.use {
-            Main.main(["-Se", "someScript", "-u", "clean"] as String[])
-            Main.main(["-Se", "someScript", "-n", "clean"] as String[])
-            Main.main(["-Se", "someScript", "-bsomeFile", "clean"] as String[])
+            Main.main(args(["-Se", "someScript", "-u", "clean"]) as String[])
+            Main.main(args(["-Se", "someScript", "-n", "clean"]) as String[])
+            Main.main(args(["-Se", "someScript", "-bsomeFile", "clean"]) as String[])
         }
     }
 
     void testMainWithShowTargets() {
-        checkMain(false, true) {Main.main(["-St"] as String[])}
+        checkMain(false, true) {Main.main(args(["-St"]) as String[])}
     }
 
     void testMainWithShowTargetsAndEmbeddedScript() {
-        checkMain(true, true) {Main.main(["-Se$expectedEmbeddedScript", "-t"] as String[])}
+        checkMain(true, true) {Main.main(args(["-Se$expectedEmbeddedScript", "-t"]) as String[])}
     }
 
     void testMainWithPParameterWithoutArgument() {
         buildMockFor.use {
-            Main.main(["-Sp"] as String[])
+            Main.main(args(["-Sp"]) as String[])
         }
         // The projectLoaderMock throws an exception, if the main method does not return prematurely (what it should do).
     }
@@ -245,7 +245,7 @@ class MainTest extends GroovyTestCase {
     void testMainWithMissingGradleHome() {
         System.properties.remove('gradle.home')
         buildMockFor.use {
-            Main.main(["clean"] as String[])
+            Main.main(args(["clean"]) as String[])
         }
         // Tests are run in one JVM. Therefore we need to set it again.
         System.properties['gradle.home'] = TEST_GRADLE_HOME
@@ -253,8 +253,13 @@ class MainTest extends GroovyTestCase {
 
     void testMainWithMissingTargets() {
         buildMockFor.use {
-            Main.main([] as String[])
+            Main.main(args([]) as String[])
         }
+    }
+
+
+    private List args(List args) {
+        ['toolsinfo'] + args    
     }
 
 
