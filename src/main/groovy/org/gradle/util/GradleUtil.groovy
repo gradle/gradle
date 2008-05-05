@@ -93,9 +93,8 @@ class GradleUtil {
         logLevel
     }
 
-    static createIsolatedAntScript(String filling) {
-        String groovyc = """
-ClassLoader loader = Thread.currentThread().contextClassLoader
+    static String createIsolatedAntScript(String filling) {
+        """ClassLoader loader = Thread.currentThread().contextClassLoader
 AntBuilder ant = loader.loadClass('groovy.util.AntBuilder').newInstance()
 ant.project.getBuildListeners()[0].setMessageOutputLevel(${GradleUtil.antLogLevel})
 ant.sequential {
@@ -105,14 +104,23 @@ ant.sequential {
     }
 
     static executeIsolatedAntScript(List loaderClasspath, String filling) {
+        ClassLoader oldCtx = Thread.currentThread().contextClassLoader
+        try {
+            oldCtx.loadClass("com.sun.tools.javac.Main")
+            logger.debug('Modern compiler found')
+        } catch (ClassNotFoundException e) {
+            logger.debug('Modern compiler not found. Adding tools.jar')
+            loaderClasspath << Locator.getToolsJar()
+        }
         URL[] taskUrlClasspath = loaderClasspath.collect {
             Locator.fileToURL(it as File)
         }
-        ClassLoader oldCtx = Thread.currentThread().contextClassLoader
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, GradleUtil.class.classLoader.systemClassLoader.parent)
         Thread.currentThread().contextClassLoader = newLoader
+        String scriptText = createIsolatedAntScript(filling)
+        logger.debug("Using groovyc as: $scriptText")
         newLoader.loadClass("groovy.lang.GroovyShell").newInstance([newLoader] as Object[]).evaluate(
-                createIsolatedAntScript(filling))
+                scriptText)
         Thread.currentThread().contextClassLoader = oldCtx
     }
 }

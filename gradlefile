@@ -348,7 +348,7 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.1.4-080505102209+0200'
+    gradleVersion = '0.1.4-080505200130+0200'
 }
 
 buildWebsiteDir = new File(buildDir, 'website')
