@@ -31,14 +31,23 @@ class AntGroovyc {
 
     public void execute(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
                         String targetCompatibility, CompileOptions compileOptions, List taskClasspath) {
-        String groovyc = """
-    taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
-    mkdir(dir: '${targetDir.absolutePath}')
+        StringWriter stringWriter = new StringWriter()
+        PrintWriter printWriter = new PrintWriter(stringWriter)
+        classpath.each {
+            logger.debug("Add $it to Ant classpath!")
+            printWriter.println("pathelement(location: /$it/)")
+        }
+        String groovyc = """taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
+    mkdir(dir: /${targetDir.absolutePath}/)
+    path(id: 'classpath_id') {
+        $stringWriter
+    }
+    println System.getenv('JAVA_HOME')
     groovyc(
         includeAntRuntime: false,
-        srcdir: '${sourceDirs.join(':')}',
-        destdir: '${targetDir}',
-        classpath: '${classpath.join(':')}',
+        srcdir: /${sourceDirs.join(':')}/,
+        destdir: /${targetDir}/,
+        classpathref: 'classpath_id',
         verbose: true) {
         javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)})
     }
