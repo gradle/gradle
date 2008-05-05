@@ -53,13 +53,13 @@ configureByDag = {Dag dag ->
     }
     init.doLast {
         manifest.mainAttributes([
-                (Attributes.Name.CLASS_PATH.toString()): dependencies.resolveClasspath('runtime').inject('') {
+                (Attributes.Name.CLASS_PATH.toString()): dependencies.resolve('runtime').inject('') {
                     path, file -> path + file.name + ' '
                 },
                 (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
                 (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString()
         ])
-    } 
+    }
 }
 
 
@@ -87,15 +87,13 @@ dependencies {
             dependencies(":oro:2.0.8:jar")
         }
     }
-    clientModule(['compile'], ":groovy-all:$groovyVersion") {
+    clientModule(['groovy'], ":groovy-all:$groovyVersion") {
         dependency(":commons-cli:1.0")
         clientModule(":ant:1.7.0") {
             dependencies(":ant-junit:1.7.0:jar", ":ant-launcher:1.7.0")
         }
     }
-    clientModule(['compile'], ":logback-classic:0.9.8") {
-        dependencies(":logback-core:0.9.8", ":slf4j-api:1.4.3")
-    }
+    
     clientModule(['compile'], ":commons-httpclient:3.0:jar") {
         dependencies(":commons-codec:1.2", ":commons-logging:1.0.3")
     }
@@ -103,7 +101,10 @@ dependencies {
     dependency(['runtime'], ":ant-junit:1.7.0") {
         exclude(module: 'junit')
     }
-    compile ":commons-io:1.3.1:jar",
+    compile ":logback-classic:0.9.8",
+            ":slf4j-api:1.4.3",
+            ":logback-core:0.9.8",
+            ":commons-io:1.3.1:jar",
             ":commons-lang:2.3:jar",
             ":webdavlib:2.0",
             ":logback-classic:0.9.8",
@@ -149,7 +150,7 @@ createTask('explodedDist', dependsOn: 'libs') {
     File explodedDistLibDir = mkdir(explodedDistDir, 'lib')
     ant {
         logger.info('Generate lib dir')
-        dependencies.resolveClasspath('distLib').each {File file ->
+        dependencies.resolve('distLib').each {File file ->
             copy(file: file, todir: explodedDistLibDir)
         }
         jar(destfile: new File(explodedDistLibDir, "$distName-wrapper-${version}.jar"),
@@ -173,7 +174,7 @@ createTask('explodedDist', dependsOn: 'libs') {
         String gettingStartedContent = new File("$webSrcDir/content", 'getting-started.html').text
         new File(explodedDistDir, 'getting-started.html').text =
             new SimpleTemplateEngine().createTemplate(new File(srcDocsDir, 'distGettingStartedSkeleton.html')).make(content: gettingStartedContent).toString()
-        // Set permissions (important for running integration tests against the exploded dist) 
+        // Set permissions (important for running integration tests against the exploded dist)
         chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
     }
 }
@@ -403,7 +404,7 @@ void ftp(Map args, Closure antFileset = {}) {
     ant {
         taskdef(name: 'ftp',
                 classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: dependencies.resolveClasspath('ftpAntTask').join(':'))
+                classpath: dependencies.resolve('ftpAntTask').join(':'))
         Map ftpArgs = args + [
                 server: 'www.gradle.org',
                 userid: websiteFtpUserName,

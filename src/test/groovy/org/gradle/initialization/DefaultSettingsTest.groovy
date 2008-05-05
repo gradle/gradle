@@ -205,7 +205,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         dependencyManagerMocker.demand.getBuildResolverDir(0..1) {->
             expectedBuildResolverDir
         }
-        dependencyManagerMocker.demand.resolveClasspath(1..1) {String configuration ->
+        dependencyManagerMocker.demand.resolve(1..1) {String configuration ->
             assertEquals(DefaultSettings.BUILD_CONFIGURATION, configuration)
             testFiles
         }

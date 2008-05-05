@@ -37,7 +37,10 @@ class BuildSourceBuilder {
 usePlugin('groovy')
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
-compile.unmanagedClasspath(org.gradle.util.GradleUtil.gradleClasspath)
+groovyClasspath = {org.gradle.util.GradleUtil.groovyFiles}
+compile.groovyClasspath = org.gradle.util.GradleUtil.gradleClasspath
+testCompile.groovyClasspath = org.gradle.util.GradleUtil.gradleClasspath
+compile.unmanagedClasspath(org.gradle.util.GradleUtil.gradleClasspath as File[])
 test {
     include '**/*Test.class'
     exclude '**/Abstract*'

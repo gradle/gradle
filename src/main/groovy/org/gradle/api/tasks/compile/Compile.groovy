@@ -67,7 +67,7 @@ class Compile extends ConventionTask {
 
     protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
 
-    protected AbstractAntCompile antCompile = null
+    protected AbstractAntCompile antCompile = new AntJavac()
 
     protected DependencyManager dependencyManager
 
@@ -92,7 +92,7 @@ class Compile extends ConventionTask {
         }
         
         List classpath = classpathConverter.createFileClasspath(project.rootDir, self.unmanagedClasspath as Object[]) +
-                self.dependencyManager.resolveClasspath(name)
+                self.dependencyManager.resolveTask(name)
         antCompile.execute(existingSourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
                 self.targetCompatibility, self.options, project.ant)
     }

@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.util.ExistingDirsFilter
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -44,7 +45,8 @@ class Groovydoc extends ConventionTask {
     private void generate(Task task) {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 self.destinationDir, self.srcDirs)
-        antGroovydoc.execute(existingSourceDirs, self.destinationDir, project.ant)
+        List taskClasspath = GradleUtil.antJarFiles + project.groovyClasspath.call()
+        antGroovydoc.execute(existingSourceDirs, self.destinationDir, project.ant, taskClasspath)
     }
 
 }

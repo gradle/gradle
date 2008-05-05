@@ -101,7 +101,7 @@ public interface DependencyManager extends DependencyContainer {
     /**
      * Adds artifacts for the given confs. An artifact is normally a library produced by the project. Usually this
      * method is not directly used by the build master. The archive tasks of the libs bundle call this method to
-     * add the archive to the artifacts. 
+     * add the archive to the artifacts.
      *
      * @param configurationName
      * @param artifacts
@@ -112,25 +112,42 @@ public interface DependencyManager extends DependencyContainer {
      * Adds an <code>org.apache.ivy.core.module.descriptor.Configuration</code> You would use this method if
      * you need to add a configuration with special attributes. For example a configuration that extends another
      * configuration.
-     *  
+     *
      * @param configuration
      */
     void addConfiguration(Configuration configuration);
 
     /**
      * Adds a configuration with the given name. Under the hood an ivy configuration is created with default
-     * attributes. 
+     * attributes.
      * @param configuration
      */
     void addConfiguration(String configuration);
 
     /**
-     * Returns a list of file objects, denoting the path to the classpath elements belonging to this classname.
-     *  
-     * @param taskName
+     * Returns a list of file objects, denoting the path to the classpath elements belonging to this configuration.
+     *
+     * @param conf
      * @return
      */
-    List resolveClasspath(String taskName);
+    List resolve(String conf);
+
+    /**
+     * Returns a list of file objects, denoting the path to the classpath elements belonging to this task. Not all tasks
+     * have an classpagh assigned to them.
+     *
+     * @param taskName
+     * @return
+     * @throws InvalidUserDataException If no classpath is assigned to this tak
+     */
+    List resolveTask(String taskName);
+
+    /**
+     * Returns a classpath String in ant notation for the configuration. 
+     * @param conf
+     * @return
+     */
+    String antpath(String conf);
 
     /**
      * Returns a ResolverContainer with the resolvers responsible for resolving the classpath dependencies.

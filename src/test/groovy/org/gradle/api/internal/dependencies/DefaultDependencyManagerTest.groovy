@@ -107,10 +107,42 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         }
     }
 
-    void testResolveClasspath() {
-        String testConfiguration = 'compile'
+    void testResolveTask() {
         String testTaskName = 'myTask'
+        List expectedClasspath = ['a']
+        checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
+            dependencyManager.addConf2Tasks(TEST_CONFIG, testTaskName)
+            assert expectedClasspath.is(dependencyManager.resolveTask(testTaskName))
+            // check cache (we get an exception by the mock if the cache does not work
+            assert expectedClasspath.is(dependencyManager.resolveTask(testTaskName))
+        }
+    }
 
+    void testResolveTaskwithUnmappedTasked() {
+        shouldFail(InvalidUserDataException) {
+            dependencyManager.resolveTask('unmappedTask')
+        }
+    }
+
+    void testResolve() {
+        List expectedClasspath = ['a']
+        checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
+            assert expectedClasspath.is(dependencyManager.resolve(TEST_CONFIG))
+            // check cache (we get an exception by the mock if the cache does not work
+            assert expectedClasspath.is(dependencyManager.resolve(TEST_CONFIG))
+        }
+    }
+
+    void testAntpath() {
+        List expectedClasspath = ['a', 'b']
+        checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
+            assertEquals(expectedClasspath.join(':'), dependencyManager.antpath(TEST_CONFIG))
+            // check cache (we get an exception by the mock if the cache does not work
+            dependencyManager.antpath(TEST_CONFIG)
+        }
+    }
+
+    void checkResolveClasspath(List expectedClasspath, Closure test) {
         ResolveReport resolveReport = new ResolveReport(new DefaultModuleDescriptor(
                 new ModuleRevisionId(new ModuleId('org', 'name'), '1.4'), 'status', null))
         IvySettings expectedSettings = [:] as IvySettings
@@ -143,13 +175,12 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         }
         ivyMocker.demand.resolve(1..1) {ModuleDescriptor moduleDescriptor, ResolveOptions resolveOptions ->
             assert moduleDescriptor.is(expectedModuleDescriptor)
-            assertEquals([testConfiguration], resolveOptions.getConfs() as List)
+            assertEquals([TEST_CONFIG], resolveOptions.getConfs() as List)
             resolveReport
         }
-        List expectedClasspath = []
         MockFor report2classpathMocker = new MockFor(Report2Classpath)
         report2classpathMocker.demand.getClasspath(1..1) {String configurationName, ResolveReport report ->
-            assertEquals testConfiguration, configurationName
+            assertEquals TEST_CONFIG, configurationName
             assert resolveReport.is(report)
             expectedClasspath
         }
@@ -159,14 +190,9 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
                     report2classpathMocker.use(report2Classpath) {
                         dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
                                 settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
-                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
-                        dependencyManager.addConf2Tasks(testConfiguration, testTaskName)
                         dependencyManager.project = project
-                        assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))
-                        // check cache (we get an exception by the mock if the cache does not work
-                        assert expectedClasspath.is(dependencyManager.resolveClasspath(testTaskName))
-
-                        dependencyManager.addConf2Tasks(testConfiguration, testTaskName + 'XXXXX')
+                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
+                        test(dependencyManager)
                     }
                 }
             }

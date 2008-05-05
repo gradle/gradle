@@ -22,38 +22,44 @@ import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.tasks.compile.AntGroovyc
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
+import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 
 /**
  * @author Hans Dockter
  * todo: put convention mapping into constants
  */
 class GroovyPlugin extends JavaPlugin {
+    static final String GROOVY = 'groovy'
 
     void apply(Project project, PluginRegistry pluginRegistry, def convention = null) {
         GroovyConvention groovyConvention = new GroovyConvention(project)
         project.convention = groovyConvention
         pluginRegistry.getPlugin(JavaPlugin).apply(project, pluginRegistry, groovyConvention)
-
-        project.ant.taskdef(name: "groovyc", classname: "org.codehaus.groovy.ant.Groovyc")
-        project.ant.taskdef(name: "groovydoc", classname: "org.codehaus.groovy.ant.Groovydoc")
+        groovyConvention.groovyClasspath = {project.dependencies.resolve('groovy')}
 
         configureCompile(project.createTask(JavaPlugin.COMPILE, dependsOn: JavaPlugin.RESOURCES, type: GroovyCompile,
                 overwrite: true), groovyConvention, DefaultConventionsToPropertiesMapping.COMPILE).configure {
-            antGroovyCompile = new AntGroovyc()
             conventionMapping.groovySourceDirs = {it.groovySrcDirs}
+            conventionMapping.groovyClasspath = {it.project.dependencies.resolve('compile')}
         }
         configureTestCompile(project.createTask(JavaPlugin.TEST_COMPILE, dependsOn: JavaPlugin.TEST_RESOURCES,
                 type: GroovyCompile, overwrite: true),
                 project.task(JavaPlugin.COMPILE),
                 groovyConvention,
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE).configure {
-            antGroovyCompile = new AntGroovyc()
             conventionMapping.groovySourceDirs = {it.groovyTestSrcDirs}
+            conventionMapping.groovyClasspath = {it.project.dependencies.resolve('testCompile')}
         }
 
         project.createTask(JavaPlugin.JAVADOC, (DefaultProject.TASK_OVERWRITE): true, type: Groovydoc).configure {
             conventionMapping.srcDirs = {groovyConvention.srcDirs + groovyConvention.groovySrcDirs}
             conventionMapping.destDir = {groovyConvention.javadocDir}
+        }
+
+        project.dependencies {
+            addConfiguration(new Configuration(GROOVY, Visibility.PRIVATE, null, null, false, null))
+            addConfiguration(new Configuration(JavaPlugin.COMPILE, Visibility.PRIVATE, null, [GROOVY] as String[], false, null))
         }
     }
 }

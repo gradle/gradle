@@ -21,6 +21,7 @@ package org.gradle.build.integtests
  */
 class GroovyProject {
     static final String GROOVY_PROJECT_NAME = 'groovyproject'
+    static final String TEST_PROJECT_NAME = 'testproject'
 
     static void execute(String gradleHome, String samplesDirName) {
         String packagePrefix = 'build/classes/org/gradle'
@@ -30,23 +31,24 @@ class GroovyProject {
         List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
         File groovyProjectDir = new File(samplesDirName, GROOVY_PROJECT_NAME)
+        File testProjectDir = new File(groovyProjectDir, TEST_PROJECT_NAME)
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
-        mainFiles.each { JavaProject.checkExistence(groovyProjectDir, packagePrefix, it + ".class")}
+        mainFiles.each { JavaProject.checkExistence(testProjectDir, packagePrefix, it + ".class")}
 
-        testFiles.each { JavaProject.checkExistence(groovyProjectDir, testPackagePrefix, it + ".class") }
+        testFiles.each { JavaProject.checkExistence(testProjectDir, testPackagePrefix, it + ".class") }
 
         // The test produce marker files with the name of the test class
-        testFiles.each { JavaProject.checkExistence(groovyProjectDir, 'build', it) }
+        testFiles.each { JavaProject.checkExistence(testProjectDir, 'build', it) }
 
-        String unjarPath = "$groovyProjectDir/build/unjar"
+        String unjarPath = "$testProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()
-        ant.unjar(src: "$groovyProjectDir/build/$GROOVY_PROJECT_NAME-1.0.jar", dest: unjarPath)
+        ant.unjar(src: "$testProjectDir/build/$TEST_PROJECT_NAME-1.0.jar", dest: unjarPath)
         assert new File("$unjarPath/META-INF/MANIFEST.MF").text.contains('myprop: myvalue')
         assert new File("$unjarPath/META-INF/myfile").isFile()
 
         // This test is also important for test cleanup
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
-        assert !(new File(groovyProjectDir, "build").exists())
+        assert !(new File(testProjectDir, "build").exists())
     }
 
     static void main(String[] args) {

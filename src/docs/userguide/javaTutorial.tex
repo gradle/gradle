@@ -47,7 +47,7 @@ dependencies {
 
 dists {
 	zip() {
-		files(dependencies.resolveClasspath("runtime")) // add dependencies to zip
+		files(dependencies.resolve("runtime")) // add dependencies to zip
 		fileset(dir: "path/distributionFiles")
 	}
 }

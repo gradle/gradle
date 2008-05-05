@@ -164,7 +164,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.testResultsDir = TEST_TEST_RESULTS_DIR
         test.unmanagedClasspath = TEST_UNMANAGED_CLASSPATH
 
-        test.dependencyManager = [resolveClasspath: {String taskName ->
+        test.dependencyManager = [resolveTask: {String taskName ->
             assertEquals(test.name, taskName)
             TEST_DEPENDENCY_MANAGER_CLASSPATH
         }] as DependencyManager

@@ -36,7 +36,7 @@ createTask('ftp') {
     ant {
         taskdef(name: 'ftp',
                 classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: dependencies.resolveClasspath('ftpAntTask').join(':'))
+                classpath: dependencies.antpath('ftpAntTask'))
         ftp(server: "ftp.apache.org", userid: "anonymous", password: "me@myorg.com") {
             fileset(dir: "htdocs/manual")
         }
