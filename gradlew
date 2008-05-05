@@ -61,9 +61,9 @@ fi
 STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
 CLASSPATH=`dirname "$0"`/gradle-wrapper/gradle-wrapper.jar
 URL_ROOT=http://dist.codehaus.org/gradle
-DIST_NAME=gradle-0.1.3-080428121437+0200
-GRADLE_HOME=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.3-080428121437+0200
-GRADLE=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.3-080428121437+0200/bin/gradle
+DIST_NAME=gradle-0.1.4-080505102209+0200
+GRADLE_HOME=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.4-080505102209+0200
+GRADLE=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.4-080505102209+0200/bin/gradle
 # Determine the Java command to use to start the JVM.
 if [ -z "$JAVACMD" ] ; then
     if [ -n "$JAVA_HOME" ] ; then
@@ -106,13 +106,15 @@ if $cygwin ; then
     i=0
     for arg in "$@" ; do
         CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
-        if [ $CHECK -ne 0 ] ; then
+        CHECK2=`echo "$arg"|egrep -c "^-"`                                 ### Determine if an option
+
+        if [ $CHECK -ne 0 ] && [ $CHECK2 -eq 0 ] ; then                    ### Added a condition
             eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
         else
             eval `echo args$i`="\"$arg\""
         fi
         i=$((i+1))
-    done
+    done 
     case $i in
         (0) set -- ;;
         (1) set -- "$args0" ;;
