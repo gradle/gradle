@@ -18,23 +18,44 @@ package org.gradle.api.tasks.compile
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
  */
-class AntGroovyc extends AbstractAntCompile {
+class AntGroovyc {
     private static Logger logger = LoggerFactory.getLogger(AbstractAntCompile)
 
-    public void executeCompileTask(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
-                                   String targetCompatibility, CompileOptions compileOptions) {
-        antNode.groovyc(
-                includeAntRuntime: false,
-                srcdir: sourceDirs.join(':'),
-                destdir: targetDir,
-                classpathref: AbstractAntCompile.CLASSPATH_ID,
-                verbose: true) {
-            javac([source: sourceCompatibility, target: targetCompatibility] + compileOptions.optionMap())
+    // todo check this list after http://jira.codehaus.org/browse/GROOVY-2809 is resolved
+    static final List NON_GROOVY_JAVAC_OPTIONS = ['includeJavaRuntime', 'optimize', 'failonerror', 'deprecation', 'fork', 'listfiles', 'nowarn', 'verbose', 'depend']
+
+    public void execute(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
+                        String targetCompatibility, CompileOptions compileOptions, List taskClasspath) {
+        String groovyc = """
+    taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
+    mkdir(dir: '${targetDir.absolutePath}')
+    groovyc(
+        includeAntRuntime: false,
+        srcdir: '${sourceDirs.join(':')}',
+        destdir: '${targetDir}',
+        classpath: '${classpath.join(':')}',
+        verbose: true) {
+        javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)})
+    }
+"""
+        logger.debug("Using groovyc as: $groovyc")
+        GradleUtil.executeIsolatedAntScript(taskClasspath, groovyc)
+    }
+
+    private Map filterNonGroovycOptions(CompileOptions options) {
+        // todo check if groupBy allows a more concise solution
+        Map result = [:]
+        options.optionMap().each {String key, String value ->
+            if (!NON_GROOVY_JAVAC_OPTIONS.contains(key)) {
+                result[key] = value
+            }
         }
+        result
     }
 
 }

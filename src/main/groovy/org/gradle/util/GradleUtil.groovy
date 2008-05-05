@@ -18,13 +18,14 @@ package org.gradle.util
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.apache.tools.ant.launch.Locator
 
 /**
  * @author Hans Dockter
  */
 class GradleUtil {
     private static Logger logger = LoggerFactory.getLogger(GradleUtil)
-    
+
     static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
         if (!configureClosure) { return delegate}
         configureClosure.resolveStrategy = resolveStrategy
@@ -51,5 +52,67 @@ class GradleUtil {
             return gradleHomeLib.listFiles()
         }
         []
+    }
+
+    static List getGroovyFiles() {
+        gradleClasspath(['groovy-all'])
+    }
+
+    static List getAntJunitJarFiles() {
+        gradleClasspath(['ant', 'ant-launcher', 'ant-junit'])
+    }
+
+    static List getAntJarFiles() {
+        gradleClasspath(['ant', 'ant-launcher'])
+    }
+
+    static List gradleClasspath(List searchPatterns) {
+        List path = getGradleClasspath() as List
+        path.findAll {File file ->
+            int pos = file.name.lastIndexOf('-')
+            String libName = file.name.substring(0, pos)
+            searchPatterns.contains(libName)
+        }
+    }
+
+    static setAntLogging(AntBuilder ant) {
+        int logLevel = getAntLogLevel()
+        logger.debug("Set ant loglevel to $logLevel")
+        ant.project.getBuildListeners()[0].setMessageOutputLevel(logLevel)
+    }
+
+    static int getAntLogLevel() {
+        int logLevel
+        if (logger.isDebugEnabled()) {
+            logLevel = org.apache.tools.ant.Project.MSG_DEBUG
+        } else if (logger.isInfoEnabled()) {
+            logLevel = org.apache.tools.ant.Project.MSG_INFO
+        } else {
+            logLevel = org.apache.tools.ant.Project.MSG_WARN
+        }
+        logLevel
+    }
+
+    static createIsolatedAntScript(String filling) {
+        String groovyc = """
+ClassLoader loader = Thread.currentThread().contextClassLoader
+AntBuilder ant = loader.loadClass('groovy.util.AntBuilder').newInstance()
+ant.project.getBuildListeners()[0].setMessageOutputLevel(${GradleUtil.antLogLevel})
+ant.sequential {
+    $filling
+}
+"""
+    }
+
+    static executeIsolatedAntScript(List loaderClasspath, String filling) {
+        URL[] taskUrlClasspath = loaderClasspath.collect {
+            Locator.fileToURL(it as File)
+        }
+        ClassLoader oldCtx = Thread.currentThread().contextClassLoader
+        ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, GradleUtil.class.classLoader.systemClassLoader.parent)
+        Thread.currentThread().contextClassLoader = newLoader
+        newLoader.loadClass("groovy.lang.GroovyShell").newInstance([newLoader] as Object[]).evaluate(
+                createIsolatedAntScript(filling))
+        Thread.currentThread().contextClassLoader = oldCtx
     }
 }

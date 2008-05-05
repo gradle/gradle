@@ -67,7 +67,7 @@ class Compile extends ConventionTask {
 
     protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
 
-    protected AbstractAntCompile antCompile = null
+    protected AbstractAntCompile antCompile = new AntJavac()
 
     protected DependencyManager dependencyManager
 

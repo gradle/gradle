@@ -18,23 +18,13 @@ package org.gradle.api.tasks.compile
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.DependencyManager
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
-import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
-import org.gradle.api.tasks.util.ExistingDirsFilter
 
 /**
  * @author Hans Dockter
  */
-class CompileTest extends AbstractConventionTaskTest {
-    static final File TEST_TARGET_DIR = '/targetDir' as File
-    static final File TEST_ROOT_DIR = '/ROOTDir' as File
-
-    static final List TEST_DEPENDENCY_MANAGER_CLASSPATH = ['jar1' as File]
-    static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = ['jar2' as File]
-    static final List TEST_UNMANAGED_CLASSPATH = ['jar2']
-
+class CompileTest extends AbstractCompileTest {
     Compile compile
 
     MockFor antCompileMocker
@@ -44,37 +34,25 @@ class CompileTest extends AbstractConventionTaskTest {
     void setUp() {
         super.setUp()
         compile = new Compile(project, AbstractTaskTest.TEST_TASK_NAME)
-        compile.project.rootDir = TEST_ROOT_DIR
+        compile.project.rootDir = AbstractCompileTest.TEST_ROOT_DIR
         antCompileMocker = new MockFor(AntJavac)
         dependencyManagerMocker = new MockFor(DependencyManager)
     }
-
+           
     Task getTask() {
         compile
-    }
-
-    void testCompile() {
-        assertNotNull(compile.options)
-        assertNotNull(compile.existentDirsFilter)
-        assertNotNull(compile.classpathConverter)
-        assertNull(compile.antCompile)
-        assertNull(compile.destinationDir)
-        assertNull(compile.sourceCompatibility)
-        assertNull(compile.targetCompatibility)
-        assertNull(compile.dependencyManager)
-        assertEquals([], compile.srcDirs)
-        assertEquals([], compile.unmanagedClasspath)
     }
 
     void testExecute() {
         setUpMocksAndAttributes(compile)
         antCompileMocker.demand.execute(1..1) {List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
-                 String targetCompatibility, CompileOptions compileOptions, AntBuilder ant ->
+                                               String targetCompatibility, CompileOptions compileOptions, AntBuilder ant ->
             assertEquals(compile.srcDirs, sourceDirs)
-            assertEquals(TEST_TARGET_DIR, targetDir)
+            assertEquals(AbstractCompileTest.TEST_TARGET_DIR, targetDir)
             assertEquals(sourceCompatibility, compile.sourceCompatibility)
             assertEquals(targetCompatibility, compile.targetCompatibility)
-            assertEquals(TEST_CONVERTED_UNMANAGED_CLASSPATH + TEST_DEPENDENCY_MANAGER_CLASSPATH, classpath)
+            assertEquals(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH + AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH,
+                    classpath)
             assertEquals(compile.options, compileOptions)
             assert ant.is(compile.project.ant)
         }
@@ -84,61 +62,8 @@ class CompileTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testExecuteWithUnspecifiedSourceCompatibility() {
-        setUpMocksAndAttributes(compile)
-        compile.sourceCompatibility = null
-        shouldFailWithCause(InvalidUserDataException) {
-            compile.execute()
-        }
-    }
-
-    void testExecuteWithUnspecifiedTargetCompatibility() {
-        setUpMocksAndAttributes(compile)
-        compile.targetCompatibility = null
-        shouldFailWithCause(InvalidUserDataException) {
-            compile.execute()
-        }
-    }
-
-    void testExecuteWithUnspecifiedAntCompile() {
-        setUpMocksAndAttributes(compile)
-        compile.antCompile = null
-        shouldFailWithCause(InvalidUserDataException) {
-            compile.execute()
-        }
-    }
-
-    void testUnmanagedClasspath() {
-        List list1 = ['a', new Object()]
-        assert compile.unmanagedClasspath(list1 as Object[]).is(compile)
-        assertEquals(list1, compile.unmanagedClasspath)
-        List list2 = [['b', 'c']]
-        compile.unmanagedClasspath(list2)
-        assertEquals(list1 + list2.flatten(), compile.unmanagedClasspath)
-    }
-
-    private void setUpMocksAndAttributes(Compile compile) {
-        compile.srcDirs = ['sourceDir1' as File, 'sourceDir2' as File]
-        compile.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
-            assert destDir.is(compile.destinationDir)
-            assert srcDirs.is(compile.srcDirs)
-            compile.srcDirs
-        }] as ExistingDirsFilter
-        compile.unmanagedClasspath = TEST_UNMANAGED_CLASSPATH
-        compile.sourceCompatibility = "1.5"
-        compile.targetCompatibility = '1.5'
-        compile.destinationDir = TEST_TARGET_DIR
-        compile.antCompile = [:] as AntJavac
-        compile.dependencyManager = [resolveTask: {String taskName ->
-            assertEquals(compile.name, taskName)
-            TEST_DEPENDENCY_MANAGER_CLASSPATH
-        }] as DependencyManager
-
-        compile.classpathConverter = [createFileClasspath: {File baseDir, Object[] pathElements ->
-            assertEquals(TEST_ROOT_DIR, baseDir)
-            assertEquals(TEST_UNMANAGED_CLASSPATH, pathElements as List)
-            TEST_CONVERTED_UNMANAGED_CLASSPATH 
-        }] as ClasspathConverter
-
+    // todo We need to do this to make the compiler happy. We need to file a Jira to Groovy.
+    Compile getCompile() {
+        compile
     }
 }

@@ -27,6 +27,8 @@ class GroovyConvention extends JavaConvention {
     List floatingGroovySrcDirs = []
     List floatingGroovyTestSrcDirs = []
 
+    Closure groovyClasspath
+
     GroovyConvention(Project project) {
         super(project)
         groovySrcDirNames << 'main/groovy'
@@ -40,4 +42,6 @@ class GroovyConvention extends JavaConvention {
     List getGroovyTestSrcDirs() {
         groovyTestSrcDirNames.collect {new File(srcRoot, it)} + floatingGroovyTestSrcDirs
     }
+
+    
 }

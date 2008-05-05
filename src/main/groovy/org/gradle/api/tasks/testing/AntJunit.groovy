@@ -35,7 +35,7 @@ class AntJunit {
 
     void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, List includes, List excludes, JunitOptions junitOptions, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)
-        createAntClassPath(ant, classPath + antJunitJarFiles)
+        createAntClassPath(ant, classPath + GradleUtil.antJunitJarFiles)
         Map otherArgs = [
                 includeantruntime: 'false',
                 errorproperty: FAILURES_OR_ERRORS_PROPERTY,
@@ -74,16 +74,6 @@ class AntJunit {
                 logger.debug("Add $it to Ant classpath!")
                 pathelement(location: it)
             }
-        }
-    }
-
-    private List getAntJunitJarFiles() {
-        List libFiles = GradleUtil.gradleClasspath
-        List searchPatterns = ['ant', 'ant-launcher', 'ant-junit']
-        libFiles.findAll { File file ->
-            int pos = file.name.lastIndexOf('-')
-            String libName = file.name.substring(0, pos)
-            searchPatterns.contains(libName)
         }
     }
 }

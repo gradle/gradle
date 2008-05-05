@@ -1,7 +1,7 @@
 %!TEX root = master.tex
 \chapter{The Java Plugin} % (fold)
 \label{cha:the_java_plugin}
-Table \ref{javalayout} shows the default project layout assumed by the Java Plugin. This is configurable via the convention object. Table \ref{javatasks} shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds. Table \ref{javaconventionDir} and Table \ref{javaconventionNonDir} shows the most important properties of the convention object of the Java plugin.\footnote{The \emph{buildDir} property is a property of the project object. It defaults to \texttt{build}.}
+Table \ref{javalayout} shows the default project layout assumed by the Java Plugin. This is configurable via the convention object. Table \ref{javatasks} shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds. Table \ref{javaconventionDir} and Table \ref{javaconventionNonDir} shows the most important properties of the convention object of the Java plugin.\footnote{The \emph{buildDir} property is a property of the project object. It defaults to \texttt{build}.} Gradle's conventions contain a convention for the directory hierarchy as well as conventions for the element names of the hierarchy. For example the \texttt{srcDirs} are relative to the \texttt{srcRoot}. Therefore \texttt{srcDirs} is a read-only property. If you want to change the name of the source dirs you need to do this via the \texttt{srcDirNames} property. But the paths you specify here are \emph{relative} to the \texttt{srcRoot}. This has the advantage to make bulk changes easy. If you change \texttt{srcRoot} from \texttt{src} to \texttt{source}, this automatically applies to all directory properties which are relative to \texttt{srcRoot}. As this also introduces an inflexibility, we have additional floating dirs, which are not bound to any hierarchy (see Table \ref{javaconventionFloatingDir}). For example code generation tool could make use of this, by adding a source dir which is located in the build folder.
 
 \begin{table}
 	\begin{center}
@@ -58,9 +58,24 @@ Table \ref{javalayout} shows the default project layout assumed by the Java Plug
 			javadocDirName & javadocDir & \texttt{javadoc} & \emph{buildDir}\texttt{/javadoc} \\ \hline
 		\end{tabular}
 	\end{center}
-	\caption{Java Convention Object - Dir Properties}
+	\caption{Java Convention Object - Directory Hierarchy Properties}
 	\label{javaconventionDir}
 \end{table}
+
+\begin{table}
+	\begin{center}
+		\begin{tabular}{|l|l|l|} \hline
+			\textbf{Property} & \textbf{Type} & \textbf{Default Value} \\ \hline
+			floatingSrcDirs & List & empty \\ \hline
+			floatingResourceDirs & List & empty \\ \hline
+			floatingTestResourceDirs & List & empty \\ \hline
+			floatingTestResourceDirs & List & empty \\ \hline
+		\end{tabular}
+	\end{center}
+	\caption{Java Convention Object - Floating Dir Properties}
+	\label{javaconventionFloatingDir}
+\end{table}
+
 \begin{table}
 	\begin{center}
 		\begin{tabular}{|l|l|l|} \hline

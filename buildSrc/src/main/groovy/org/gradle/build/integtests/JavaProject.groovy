@@ -64,5 +64,9 @@ class JavaProject {
         }
     }
 
+    static void main(String[] args) {
+        execute(args[0], args[1])
+    }
+
     
 }

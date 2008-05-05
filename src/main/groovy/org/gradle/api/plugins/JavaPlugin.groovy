@@ -125,7 +125,7 @@ class JavaPlugin implements Plugin {
         project.dependencies {
             addConfiguration(new Configuration(COMPILE, Visibility.PRIVATE, null, null, false, null))
             addConfiguration(new Configuration(RUNTIME, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
-            addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
+            addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, [COMPILE] as String[], false, null))
             addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, [RUNTIME, TEST_COMPILE] as String[], true, null))
             addConfiguration(new Configuration(LIBS, Visibility.PUBLIC, null, null, true, null))
             addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, LIBS] as String[], true, null))
@@ -151,7 +151,6 @@ class JavaPlugin implements Plugin {
     protected Compile configureCompile(Compile compile, def javaConvention, Map propertyMapping) {
         compile.configure {
             convention(javaConvention, propertyMapping)
-            antCompile = new AntJavac()
         }
         compile
     }

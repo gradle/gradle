@@ -470,16 +470,7 @@ class DefaultProject implements Comparable, Project {
     AntBuilder getAnt() {
         if (ant == null) {
             ant = new AntBuilder()
-            int logLevel
-            if (logger.isDebugEnabled()) {
-                logLevel = org.apache.tools.ant.Project.MSG_DEBUG
-            } else if (logger.isInfoEnabled()) {
-                logLevel = org.apache.tools.ant.Project.MSG_INFO
-            } else {
-                logLevel = org.apache.tools.ant.Project.MSG_WARN
-            }
-            logger.debug("Set ant loglevel to $logLevel")
-            ant.project.getBuildListeners()[0].setMessageOutputLevel(logLevel)
+            GradleUtil.setAntLogging(ant)
         }
         ant
     }

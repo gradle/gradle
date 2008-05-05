@@ -16,11 +16,18 @@
 
 package org.gradle.api.tasks.javadoc
 
+import org.gradle.util.GradleUtil
+
 /**
  * @author Hans Dockter
  */
 class AntGroovydoc {
-    void execute(List sourceDirs, File destDir, AntBuilder ant) {
-        ant.groovydoc(destdir: destDir, sourcepath: sourceDirs.join(':'))
+    void execute(List sourceDirs, File destDir, AntBuilder ant, List taskClasspath) {
+        String groovydoc = """
+    taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
+    groovydoc(destdir: '${destDir}', sourcepath: '${sourceDirs.join(':')}')
+"""
+        GradleUtil.executeIsolatedAntScript(taskClasspath, groovydoc)
     }
+
 }
