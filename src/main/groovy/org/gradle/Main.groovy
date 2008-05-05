@@ -81,7 +81,7 @@ class Main {
         cli.e(longOpt: 'embedded', 'Use an embedded build script.', args: 1)
         cli.v(longOpt: 'version', 'Prints version info.')
 
-        def options = cli.parse(args[1..args.length - 1])
+        def options = cli.parse(args.length < 2 ? [] as String[] : args[1..args.length - 1])
 
         if (!options) {
             println 'Illegal usage!'
