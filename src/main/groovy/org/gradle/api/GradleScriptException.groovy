@@ -21,22 +21,15 @@ package org.gradle.api
 class GradleScriptException extends GradleException {
     String scriptName
     List lineNumbers
-    int lineNumberOffset
 
-    GradleScriptException(Throwable cause, String scriptName, int lineNumberOffset = 0) {
+    GradleScriptException(Throwable cause, String scriptName) {
         super(cause)
-        this.lineNumberOffset = lineNumberOffset
         this.scriptName = scriptName
         lineNumbers = cause.stackTrace.findAll {it.fileName == scriptName && it.lineNumber >= 0}.collect {it.lineNumber}
     }
 
     String getMessage() {
-        String lineInfo = lineNumbers ? "in line(s): ${lineNumbersWithOffset.join(' ')}" : 'No line info available from stacktrace.'
+        String lineInfo = lineNumbers ? "in line(s): ${lineNumbers.join(' ')}" : 'No line info available from stacktrace.'
         super.getMessage() + " Buildscript=$scriptName $lineInfo"
     }
-
-    List getLineNumbersWithOffset() {
-        lineNumbers.collect {((int) it) - lineNumberOffset}
-    }
-
 }

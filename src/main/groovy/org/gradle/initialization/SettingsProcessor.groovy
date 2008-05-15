@@ -70,14 +70,17 @@ class SettingsProcessor {
         initDependencyManagerFactory()
         DefaultSettings settings = settingsFactory.createSettings(currentDir, settingsFileHandler.rootDir,
                 dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
-        Map importsResult = importsReader.getImports(settingsFileHandler.rootDir)
         try {
-            Script settingsScript = new GroovyShell().parse(importsResult.text + settingsFileHandler.settingsText,
+            String importsResult = importsReader.getImports(settingsFileHandler.rootDir)
+            String scriptText = settingsFileHandler.settingsText + System.properties['line.separator'] + importsResult
+            logger.debug("Evaluated Settings Script: " + scriptText)
+            Script settingsScript = new GroovyShell().parse(
+                    scriptText,
                     DEFAULT_SETUP_FILE)
             replaceMetaclass(settingsScript, settings)
             settingsScript.run()
         } catch (Throwable t) {
-            throw new GradleScriptException(t, DEFAULT_SETUP_FILE, importsResult.importsLineCount)
+            throw new GradleScriptException(t, DEFAULT_SETUP_FILE)
         }
         if (currentDir != settingsFileHandler.rootDir && !isCurrentDirIncluded(settings)) {
             return createBasicSettings(currentDir)

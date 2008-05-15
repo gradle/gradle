@@ -144,11 +144,8 @@ class SettingsProcessorTest extends GroovyTestCase {
         StubFor settingsFileHandlerMocker = new StubFor(SettingsFileHandler)
         ImportsReader mockImportsReader = [getImports: {File importsRootDir ->
             assertEquals(rootDir, importsRootDir)
-            [
-                    text: '''import org.gradle.api.*
-''',
-                    importsLineCount: 1
-            ]
+            '''import org.gradle.api.*
+'''
         }] as ImportsReader
         settingsProcessor.importsReader = mockImportsReader
         String expectedSettingsText = """File myDir = rootDir

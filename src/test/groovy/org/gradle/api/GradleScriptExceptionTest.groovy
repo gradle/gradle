@@ -33,10 +33,8 @@ def b = 2
 unknownProp''', scriptName)
             fail()
         } catch (MissingPropertyException e) {
-            buildScriptException = new GradleScriptException(e, 'name', 5)
+            buildScriptException = new GradleScriptException(e, 'name')
         }
-        assertEquals(buildScriptException.lineNumberOffset, 5)
-        assertEquals(0, new GradleScriptException(new NullPointerException(), 'name').lineNumberOffset)
         assert buildScriptException.cause instanceof MissingPropertyException
         assert buildScriptException.message.contains(MissingPropertyException.name)
     }

@@ -26,7 +26,6 @@ import org.gradle.api.internal.project.DefaultProject
  */
 class BuildScriptProcessorTest extends GroovyTestCase {
     static final String TEST_BUILD_FILE_NAME = 'somename'
-    static final int TEST_IMPORTS_LINE_COUNT = 5
 
     static final String TEST_IMPORTS = '''import org.gradle.api.*
 '''
@@ -49,10 +48,7 @@ class BuildScriptProcessorTest extends GroovyTestCase {
         testRootDir = new File("/psth/root")
         mockImportsReader = [getImports: {File rootDir ->
             assertEquals(testRootDir, rootDir)
-            [
-                    text: TEST_IMPORTS,
-                    importsLineCount: TEST_IMPORTS_LINE_COUNT
-            ]
+            TEST_IMPORTS
         }] as ImportsReader
         classLoader = new InputStreamClassLoader()
         InputStream inputStream = this.getClass().getResourceAsStream('/org/gradle/api/ClasspathTester.dat')
@@ -86,7 +82,7 @@ def scriptMethod() { 'scriptMethod' }
     def x = bindingProperty // leads to an exception if bindingProperty is not available 
 '''
         dummyProject.buildScriptFinder = mockBuildScriptFinder(scriptCode)
-        assertEquals(TEST_IMPORTS_LINE_COUNT, buildScriptProcessor.evaluate(dummyProject, [bindingProperty: 'somevalue']))
+        buildScriptProcessor.evaluate(dummyProject, [bindingProperty: 'somevalue'])
         assertTrue(projectMethodCalled)
         assertEquals("scriptMethod", projectScript.scriptMethod())
         assertEquals(dummyProject.path + 'mySuffix', projectScript.scriptProperty)

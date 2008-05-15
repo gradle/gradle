@@ -40,24 +40,22 @@ class BuildScriptProcessor {
         this.importsReader = importsReader
     }
 
-    int evaluate(DefaultProject project, Map bindingVariables = [:]) {
+    void evaluate(DefaultProject project, Map bindingVariables = [:]) {
         Binding binding = new Binding(bindingVariables)
         CompilerConfiguration conf = new CompilerConfiguration()
         conf.scriptBaseClass = 'org.gradle.api.internal.project.ProjectScript'
-        Map buildScript
         try {
-            buildScript = buildScriptWithImports(project)
+            String buildScript = buildScriptWithImports(project)
+            logger.debug("Evaluated Build Script: " + buildScript)
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
-            Script script = groovyShell.parse(buildScript.text, project.buildScriptFinder.buildFileName)
+            Script script = groovyShell.parse(buildScript, project.buildScriptFinder.buildFileName)
             replaceMetaclass(script, project)
             project.projectScript = script
             script.run()
         } catch (Throwable t) {
-            throw new GradleScriptException(t, project.buildScriptFinder.buildFileName,
-                    buildScript.importsLineCount)
+            throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)
         }
         project.additionalProperties.putAll(binding.variables)
-        buildScript.importsLineCount
     }
 
     private void replaceMetaclass(Script script, DefaultProject project) {
@@ -81,11 +79,8 @@ class BuildScriptProcessor {
         script.metaClass = projectScriptExpandoMetaclass
     }
 
-    private Map buildScriptWithImports(DefaultProject project) {
-        Map importsResult = importsReader.getImports(project.rootDir) 
-        [
-                text: importsResult.text + project.buildScriptFinder.getBuildScript(project),
-                importsLineCount: importsResult.importsLineCount
-        ]
+    private String buildScriptWithImports(DefaultProject project) {
+        String importsResult = importsReader.getImports(project.rootDir)
+        project.buildScriptFinder.getBuildScript(project) + System.properties['line.separator'] + importsResult
     }
 }

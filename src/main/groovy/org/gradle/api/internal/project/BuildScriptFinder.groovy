@@ -39,8 +39,8 @@ class BuildScriptFinder {
         File projectFile = new File(project.projectDir, buildFileName)
         logger.debug("Evaluating project=$project.path Looking for build file=$projectFile.canonicalFile")
         if (projectFile.isFile()) {
+            logger.debug("Project file found, reading text.")
             String scriptText = projectFile.text
-            logger.debug("Script code:$scriptText")
             return scriptText
         } else {
             logger.info("No project file available. Using empty script!")

@@ -32,14 +32,10 @@ class ImportsReader {
         this.defaultImportsFile = defaultImportsFile
     }
 
-    Map getImports(File rootDir) {
+    String getImports(File rootDir) {
         File projectImportsFiles =  new File(rootDir, Main.IMPORTS_FILE_NAME)
         String importsText = (defaultImportsFile ? defaultImportsFile.text : '') +
         (projectImportsFiles.isFile() ? projectImportsFiles.text : '')
-        [
-                text: importsText,
-                importsLineCount: importsText.count(System.properties['line.separator'])
-        ]
-
+        importsText
     }
 }

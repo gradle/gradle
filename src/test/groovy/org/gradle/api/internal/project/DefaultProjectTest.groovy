@@ -43,7 +43,6 @@ class DefaultProjectTest extends GroovyTestCase {
     static final File TEST_ROOT = new File("root")
 
     static final String TEST_SCRIPT_TEXT = '// somescriptcode'
-    static final int TEST_IMPORTS_LINE_COUNT = 10
 
     DefaultProject project, child1, child2, childchild
 
@@ -115,7 +114,6 @@ class DefaultProjectTest extends GroovyTestCase {
         assertEquals(DefaultProject.STATE_INITIALIZED, project.state)
         assertTrue(project.tasks[TEST_TASK_NAME].lateInitialized)
         assertTrue(nestedTask.lateInitialized)
-        assertEquals(TEST_IMPORTS_LINE_COUNT, project.importsLineCount)
     }
 
     private MockFor createBuildScriptFinderMocker() {
@@ -131,7 +129,6 @@ class DefaultProjectTest extends GroovyTestCase {
         if (!evaluateClosure) {
             evaluateClosure = {DefaultProject project ->
                 assert this.project.is(project)
-                TEST_IMPORTS_LINE_COUNT
             }
         }
         MockFor buildScriptProcessorMocker = new MockFor(BuildScriptProcessor)
@@ -191,12 +188,10 @@ class DefaultProjectTest extends GroovyTestCase {
             project.evaluationDependsOn(child1.path)
             assertTrue(mockReader2Finished)
             mockReader1Called = true
-            TEST_IMPORTS_LINE_COUNT
         }] as BuildScriptProcessor
         final BuildScriptProcessor mockReader2 = [
                 evaluate: {DefaultProject project ->
                     mockReader2Finished = true
-                    TEST_IMPORTS_LINE_COUNT
                 }] as BuildScriptProcessor
         project.buildScriptProcessor = mockReader1
         child1.buildScriptProcessor = mockReader2
@@ -231,7 +226,6 @@ class DefaultProjectTest extends GroovyTestCase {
         boolean mockReaderCalled = false
         final BuildScriptProcessor mockReader = [evaluate: {DefaultProject project ->
             mockReaderCalled = true
-            TEST_IMPORTS_LINE_COUNT
         }] as BuildScriptProcessor
         child1.buildScriptProcessor = mockReader
         project.dependsOn(child1.name, false)
@@ -245,7 +239,6 @@ class DefaultProjectTest extends GroovyTestCase {
         boolean mockReaderCalled = false
         final BuildScriptProcessor mockReader = [evaluate: {DefaultProject project ->
             mockReaderCalled = true
-            TEST_IMPORTS_LINE_COUNT
         }] as BuildScriptProcessor
         child1.buildScriptProcessor = mockReader
         project.dependsOn(child1.name)
@@ -278,11 +271,9 @@ class DefaultProjectTest extends GroovyTestCase {
         Set evaluatedProjects = []
         buildScriptProcessorMocker.demand.evaluate(2..2) {DefaultProject project ->
             evaluatedProjects << project
-            TEST_IMPORTS_LINE_COUNT
         }
         buildScriptProcessorMocker.use(child1.buildScriptProcessor) {
             project.dependsOnChildren(true)
-            TEST_IMPORTS_LINE_COUNT
         }
         assertTrue(project.dependsOnProjects.contains(child1))
         assertTrue(project.dependsOnProjects.contains(child2))
