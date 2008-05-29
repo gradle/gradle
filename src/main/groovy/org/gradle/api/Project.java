@@ -57,6 +57,8 @@ public interface Project {
 
     Project usePlugin(String pluginName);
 
+    Project usePlugin(Class pluginClass);
+
     /**
      * Returns the task object which has the same name the name argument. If no such task exists, an exception is thrown.
      *
