@@ -62,4 +62,19 @@ dependencies {
 \end{table}
 
 \noindent All the Groovy source directories can contain Groovy \emph{and} Java code. The Java source directories may only contain Java source code (and can of course be empty)\footnote{We are using the same conventions as introduced by Russel Winders Gant tool (\url{http://gant.codehaus.org}).}
+
+\section{Compile} % (fold)
+\label{sec:compile}
+The \emph{GroovyCompile} task has two instances, \texttt{compile} and \texttt{testCompile}. The task type extends the \texttt{Compile} task (see section \ref{sec:compile})
+\begin{center}
+	\begin{tabular}{|l|l|l|} \hline
+		\multicolumn{3}{|c|}{Additional Convention to Property Mapping} \\ \hline
+		\textbf{Task Instance} & \textbf{Task Property} & \textbf{Convention Property} \\ \hline
+		compile & groovySourceDirs & groovySrcDirs \\ \hline
+		testCompile & groovySourceDirs & groovyTestSrcDirs \\ \hline
+	\end{tabular} 
+\end{center}
+Have a look at \href{\API tasks/compile/GroovyCompile.html}{org.gradle.api.tasks.compile.GroovyCompile} to learn about the details. The compile task delegates to the Ant Groovyc task to do the compile. Via the compile task you can set most of the properties of Ants Groovyc task. 
+% section compile (end)
+
 % chapter the_groovy_plugin (end)

@@ -55,20 +55,28 @@ class GroovyCompileTest extends AbstractCompileTest {
 
     void testExecute() {
         setUpMocksAndAttributes(testObj)
-        antJavacCompileMocker.demand.execute(1..1) {List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
+        antJavacCompileMocker.demand.execute(1..1) {List sourceDirs, List includes, List excludes, File targetDir, List classpath, String sourceCompatibility,
                                                     String targetCompatibility, CompileOptions compileOptions, AntBuilder ant ->
             assertEquals(testObj.srcDirs, sourceDirs)
             assertEquals(AbstractCompileTest.TEST_TARGET_DIR, targetDir)
             assertEquals(sourceCompatibility, testObj.sourceCompatibility)
             assertEquals(targetCompatibility, testObj.targetCompatibility)
+            assertEquals(testObj.includes, includes)
+            assertEquals(testObj.excludes, excludes)
             assertEquals(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH + AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH,
                     classpath)
             assertEquals(testObj.options, compileOptions)
             assert ant.is(testObj.project.ant)
         }
-        antGroovycCompileMocker.demand.execute(1..1) {AntBuilder ant, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
+        antGroovycCompileMocker.demand.execute(1..1) {AntBuilder ant, List sourceDirs, List groovyIncludes, List groovyExcludes,
+                                                      List groovyJavaIncludes, List groovyJavaExcludes,
+                                                      File targetDir, List classpath, String sourceCompatibility,
                                                       String targetCompatibility, CompileOptions compileOptions, List taskClasspath ->
             assertEquals(testObj.groovySourceDirs, sourceDirs)
+            assertEquals(testObj.groovyIncludes, groovyIncludes)
+            assertEquals(testObj.groovyExcludes, groovyExcludes)
+            assertEquals(testObj.groovyJavaIncludes, groovyJavaIncludes)
+            assertEquals(testObj.groovyJavaExcludes, groovyJavaExcludes)
             assertEquals(AbstractCompileTest.TEST_TARGET_DIR, targetDir)
             assertEquals(sourceCompatibility, testObj.sourceCompatibility)
             assertEquals(targetCompatibility, testObj.targetCompatibility)
@@ -99,5 +107,13 @@ class GroovyCompileTest extends AbstractCompileTest {
             fail('srcdirs not passed')
 
         }] as ExistingDirsFilter
+    }
+
+    void testGroovyIncludes() {
+        checkIncludesExcludes('groovyInclude')
+    }
+
+    void testGroovyExcludes() {
+        checkIncludesExcludes('groovyExclude')
     }
 }

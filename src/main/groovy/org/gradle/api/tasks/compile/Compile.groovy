@@ -65,9 +65,19 @@ class Compile extends ConventionTask {
      */
     CompileOptions options = new CompileOptions()
 
+    /**
+     * Include pattern for which files should be compiled (e.g. '**&#2F;org/gradle/package1/')).
+     */
+    List includes = []
+
+    /**
+     * Exclude pattern for which files should be compiled (e.g. '**&#2F;org/gradle/package2/A*.java').
+     */
+    List excludes = []
+
     protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter()
 
-    protected AbstractAntCompile antCompile = new AntJavac()
+    protected AntJavac antCompile = new AntJavac()
 
     protected DependencyManager dependencyManager
 
@@ -93,7 +103,7 @@ class Compile extends ConventionTask {
         
         List classpath = classpathConverter.createFileClasspath(project.rootDir, self.unmanagedClasspath as Object[]) +
                 self.dependencyManager.resolveTask(name)
-        antCompile.execute(existingSourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
+        antCompile.execute(existingSourceDirs, includes, excludes, self.destinationDir, classpath, self.sourceCompatibility,
                 self.targetCompatibility, self.options, project.ant)
     }
 
@@ -102,6 +112,16 @@ class Compile extends ConventionTask {
      */
     Compile unmanagedClasspath(Object[] elements) {
         self.unmanagedClasspath.addAll((elements as List).flatten())
+        this
+    }
+
+    Compile include(String[] includes) {
+        this.includes += (includes as List)
+        this
+    }
+
+    Compile exclude(String[] excludes) {
+        this.excludes += excludes as List
         this
     }
 

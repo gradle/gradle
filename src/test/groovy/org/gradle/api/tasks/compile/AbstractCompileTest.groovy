@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.compile
 
 import groovy.mock.interceptor.MockFor
@@ -27,12 +27,18 @@ import org.gradle.api.InvalidUserDataException
  * @author Hans Dockter
  */
 abstract class AbstractCompileTest extends AbstractConventionTaskTest {
+    static final String TEST_PATTERN_1 = 'pattern1'
+    static final String TEST_PATTERN_2 = 'pattern2'
+    static final String TEST_PATTERN_3 = 'pattern3'
+
     static final File TEST_TARGET_DIR = '/targetDir' as File
     static final File TEST_ROOT_DIR = '/ROOTDir' as File
 
     static final List TEST_DEPENDENCY_MANAGER_CLASSPATH = ['jar1' as File]
     static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = ['jar2' as File]
     static final List TEST_UNMANAGED_CLASSPATH = ['jar2']
+    static final List TEST_INCLUDES = ['incl']
+    static final List TEST_EXCLUDES = ['excl']
 
     MockFor antCompileMocker
 
@@ -57,7 +63,7 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         assertEquals([], compile.unmanagedClasspath)
     }
 
-    
+
 
     void testExecuteWithUnspecifiedSourceCompatibility() {
         setUpMocksAndAttributes(compile)
@@ -94,7 +100,9 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
     protected void setUpMocksAndAttributes(Compile compile) {
         compile.srcDirs = ['sourceDir1' as File, 'sourceDir2' as File]
-        compile.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
+        compile.includes = TEST_INCLUDES
+        compile.excludes = TEST_EXCLUDES
+        compile.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
             assert destDir.is(compile.destinationDir)
             assert srcDirs.is(compile.srcDirs)
             compile.srcDirs
@@ -114,5 +122,20 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
             AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH
         }] as ClasspathConverter
 
+    }
+
+    void testIncludes() {
+        checkIncludesExcludes('include')
+    }
+
+    void testExcludes() {
+        checkIncludesExcludes('exclude')
+    }
+
+    void checkIncludesExcludes(String name) {
+        assert compile."$name"(TEST_PATTERN_1, TEST_PATTERN_2).is(compile)
+        assertEquals([TEST_PATTERN_1, TEST_PATTERN_2], compile."${name}s")
+        compile."$name"(TEST_PATTERN_3)
+        assertEquals([TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3], compile."${name}s")
     }
 }

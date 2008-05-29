@@ -23,19 +23,39 @@ import org.slf4j.LoggerFactory
  * @author Hans Dockter
  * todo: integration test
  */
-class AntJavac extends AbstractAntCompile {
+class AntJavac {
     private static Logger logger = LoggerFactory.getLogger(AntJavac)
 
-    void executeCompileTask(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
-                            String targetCompatibility, CompileOptions compileOptions) {
+    static final String CLASSPATH_ID = 'compile.classpath'
+
+    void execute(List sourceDirs, List includes, List excludes, File targetDir, List classpath, String sourceCompatibility,
+                 String targetCompatibility, CompileOptions compileOptions, AntBuilder ant) {
+        ant.mkdir(dir: targetDir.absolutePath)
+        createAntClassPath(ant, classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
                 srcdir: sourceDirs.join(':'),
                 destdir: targetDir,
-                classpathref: AbstractAntCompile.CLASSPATH_ID,
+                classpathref: CLASSPATH_ID,
                 target: targetCompatibility,
                 source: sourceCompatibility
         ]
-        antNode.javac(otherArgs + compileOptions.optionMap())
+        ant.javac(otherArgs + compileOptions.optionMap()) {
+            includes.each {
+                include(name: it)
+            }
+            excludes.each {
+                exclude(name: it)
+            }
+        }
+    }
+
+    private void createAntClassPath(AntBuilder ant, List classpath) {
+        ant.path(id: CLASSPATH_ID) {
+            classpath.each {
+                logger.debug("Add $it to Ant classpath!")
+                pathelement(location: it)
+            }
+        }
     }
 }

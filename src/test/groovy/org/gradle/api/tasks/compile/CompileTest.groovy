@@ -45,8 +45,11 @@ class CompileTest extends AbstractCompileTest {
 
     void testExecute() {
         setUpMocksAndAttributes(compile)
-        antCompileMocker.demand.execute(1..1) {List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
+        antCompileMocker.demand.execute(1..1) {List sourceDirs, List includes, List excludes, File targetDir, List classpath, String sourceCompatibility,
                                                String targetCompatibility, CompileOptions compileOptions, AntBuilder ant ->
+            assertEquals(compile.srcDirs, sourceDirs)
+            assertEquals(compile.includes, includes)
+            assertEquals(compile.excludes, excludes)
             assertEquals(compile.srcDirs, sourceDirs)
             assertEquals(AbstractCompileTest.TEST_TARGET_DIR, targetDir)
             assertEquals(sourceCompatibility, compile.sourceCompatibility)

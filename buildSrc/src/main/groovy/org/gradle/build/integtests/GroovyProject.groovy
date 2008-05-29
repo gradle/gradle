@@ -28,12 +28,14 @@ class GroovyProject {
         String testPackagePrefix = 'build/test-classes/org/gradle'
 
         List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
+        List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
         List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
         File groovyProjectDir = new File(samplesDirName, GROOVY_PROJECT_NAME)
         File testProjectDir = new File(groovyProjectDir, TEST_PROJECT_NAME)
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
         mainFiles.each { JavaProject.checkExistence(testProjectDir, packagePrefix, it + ".class")}
+        excludedFiles.each { JavaProject.checkExistence(testProjectDir, false, packagePrefix, it + ".class")}
 
         testFiles.each { JavaProject.checkExistence(testProjectDir, testPackagePrefix, it + ".class") }
 

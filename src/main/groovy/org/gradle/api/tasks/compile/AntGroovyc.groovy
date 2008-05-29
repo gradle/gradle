@@ -25,14 +25,16 @@ import org.apache.commons.io.FilenameUtils
  * @author Hans Dockter
  */
 class AntGroovyc {
-    private static Logger logger = LoggerFactory.getLogger(AbstractAntCompile)
+    private static Logger logger = LoggerFactory.getLogger(AntGroovyc)
 
     // todo check this list after http://jira.codehaus.org/browse/GROOVY-2809 is resolved
     List nonGroovycJavacOptions = ['includeJavaRuntime', 'optimize', 'failonerror', 'deprecation', 'fork', 'listfiles', 'nowarn', 'verbose', 'depend']
-    
 
-    public void execute(antNode, List sourceDirs, File targetDir, List classpath, String sourceCompatibility,
+
+    public void execute(antNode, List sourceDirs, List groovyIncludes, List groovyExcludes, List groovyJavaIncludes,
+                        List groovyJavaExcludes, File targetDir, List classpath, String sourceCompatibility,
                         String targetCompatibility, CompileOptions compileOptions, List taskClasspath) {
+
         String groovyc = """taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
     mkdir(dir: '${GradleUtil.unbackslash(targetDir.absolutePath)}')
     groovyc(
@@ -41,7 +43,12 @@ class AntGroovyc {
         destdir: '${GradleUtil.unbackslash(targetDir)}',
         classpath: '${classpath.collect {GradleUtil.unbackslash(it)}.join(':')}',
         verbose: true) {
-        javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)})
+        ${groovyIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
+        ${groovyExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
+        javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)}) {
+            ${groovyJavaIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
+            ${groovyJavaExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
+        }
     }
 """
         GradleUtil.executeIsolatedAntScript(taskClasspath, groovyc)

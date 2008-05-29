@@ -149,7 +149,7 @@ The \emph{Compile} task has two instances, \texttt{compile} and \texttt{testComp
 \noindent The classpath of the compile task is derived from two sources. One is the \emph{configuration} assigned to the task by the dependency manager. The other classpath source is the \texttt{unmanagedClasspath} property: a list of files denoting a jar or a directory. Usually you create your classpath with the dependency manager. The \texttt{unmanagedClasspath} is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is it part of a dependency descriptor if you choose to upload your library to a repository. 
 See section \ref{} how the JavaPlugin glues the tasks with the dependency manager and see the whole chapter \ref{cha:dependency_management} how to use the dependency manager.
 
-Have a look at \href{}{org.gradle.api.tasks.compile.Compile} to learn about the details. The compile task delegates to Ants javac task to do the compile. Via the compile task you can set most of the properties of Ants javac task. 
+Have a look at \href{\API tasks/compile/Compile.html}{org.gradle.api.tasks.compile.Compile} to learn about the details. The compile task delegates to Ants javac task to do the compile. Via the compile task you can set most of the properties of Ants javac task. 
 % section compile (end)
 
 \section{Test} % (fold)

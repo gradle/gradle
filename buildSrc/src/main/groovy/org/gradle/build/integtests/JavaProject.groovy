@@ -55,9 +55,13 @@ class JavaProject {
     }
 
     static void checkExistence(File baseDir, String[] path) {
+        checkExistence(baseDir, true, path)
+    }
+
+    static void checkExistence(File baseDir, boolean shouldExists, String[] path) {
         File file = new File(baseDir, path.join('/'))
         try {
-            assert file.exists()
+            assert shouldExists ? file.exists() : !file.exists()
         } catch (AssertionError e) {
             println("File: $file should exists, but does not!")
             throw e

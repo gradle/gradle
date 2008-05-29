@@ -33,6 +33,32 @@ class GroovyCompile extends Compile {
 
     List groovyClasspath
 
+    /**
+     * Include pattern for which groovy files should be compiled (e.g. '**&#2F;org/gradle/package1/')).
+     * This pattern is added as an nested include the groovyc task.
+     */
+    List groovyIncludes = []
+
+    /**
+     * Exclude pattern for which files should be compiled (e.g. '**&#2F;org/gradle/package2/A*.java').
+     * This pattern is added as an nested exclude the groovyc task.
+     */
+    List groovyExcludes = []
+
+    /**
+     * Include pattern for which java files in the joint source folder should be compiled
+     * (e.g. '**&#2F;org/gradle/package1/')). This pattern is added as a nested include to the nested javac task of the
+     * groovyc task.
+     */
+    List groovyJavaIncludes = []
+
+    /**
+     * Exclude pattern for which java files in the joint source folder should be compiled
+     * (e.g. '**&#2F;org/gradle/package2/A*.java'). This pattern is added as a nested exclude to the nested javac task of the
+     * groovyc task.
+     */
+    List groovyJavaExcludes = []
+
     GroovyCompile(DefaultProject project, String name) {
         super(project, name)
         actions = [this.&compile]
@@ -51,7 +77,7 @@ class GroovyCompile extends Compile {
                 throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!")
             }
             classpath = createClasspath()
-            antCompile.execute(existingSourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
+            antCompile.execute(existingSourceDirs, self.includes, self.excludes, self.destinationDir, classpath, self.sourceCompatibility,
                     self.targetCompatibility, self.options, project.ant)
         }
         List existingGroovySourceDirs = existentDirsFilter.findExistingDirs(self.groovySourceDirs)
@@ -59,7 +85,8 @@ class GroovyCompile extends Compile {
             if (!classpath) {classpath = createClasspath()}
             // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but als Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
             List taskClasspath = GradleUtil.antJarFiles + self.groovyClasspath
-            antGroovyCompile.execute(project.ant, existingGroovySourceDirs, self.destinationDir, classpath, self.sourceCompatibility,
+            antGroovyCompile.execute(project.ant, existingGroovySourceDirs, self.groovyIncludes, self.groovyExcludes,
+                    self.groovyJavaIncludes, self.groovyJavaExcludes, self.destinationDir, classpath, self.sourceCompatibility,
                     self.targetCompatibility, self.options, taskClasspath)
         }
     }
@@ -69,4 +96,23 @@ class GroovyCompile extends Compile {
                 self.dependencyManager.resolveTask(name)
     }
 
+    GroovyCompile groovyInclude(String[] groovyIncludes) {
+        this.groovyIncludes += (groovyIncludes as List)
+        this
+    }
+
+    GroovyCompile groovyExclude(String[] groovyExcludes) {
+        this.groovyExcludes += groovyExcludes as List
+        this
+    }
+
+    GroovyCompile groovyJavaInclude(String[] groovyJavaIncludes) {
+        this.groovyJavaIncludes += (groovyJavaIncludes as List)
+        this
+    }
+
+    GroovyCompile groovyJavaExclude(String[] groovyJavaExcludes) {
+        this.groovyJavaExcludes += groovyJavaExcludes as List
+        this
+    }
 }
