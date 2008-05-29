@@ -17,6 +17,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.api.tasks.bundling.GradleManifest
 
 /**
  * We always cast the closure argument to the JavaConvention object. We try to do this with as less noise as possible.
@@ -75,7 +76,7 @@ class DefaultConventionsToPropertiesMapping {
     final static Map JAR = ARCHIVE + [
             baseDir: {_(it).classesDir},
             configurations: {[JavaPlugin.LIBS] as String[]},
-            manifest: {_(it).manifest},
+            manifest: {new GradleManifest(_(it).manifest.manifest)},
             metaInfResourceCollections: {_(it).metaInf},
             resourceCollections: {[new FileSet(_(it).classesDir)]}
     ]

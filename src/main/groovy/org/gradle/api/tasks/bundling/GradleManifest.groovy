@@ -21,12 +21,25 @@ import java.util.jar.Manifest
 import org.gradle.api.tasks.AntBuilderAware
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class GradleManifest implements AntBuilderAware {
     File file
 
+    /**
+     * The baseManifest is usually the common manifest info for all archives. It is usually not
+     * manipulated via this object but its attributed are added to the Ant manifest generation.
+     */
+    Manifest baseManifest = new Manifest()
+
     Manifest manifest = new Manifest()
+
+    GradleManifest() {}
+    
+    GradleManifest(Manifest baseManifest) {
+        assert baseManifest
+        this.baseManifest = baseManifest
+    }
 
     GradleManifest mainAttributes(Map attributes) {
         attributes.each {String key, String value ->
@@ -48,16 +61,19 @@ class GradleManifest implements AntBuilderAware {
 
     public addToAntBuilder(node, String childNodeName = null) {
         node."${childNodeName ?: 'manifest'}"() {
-            manifest.mainAttributes.keySet().each {Attributes.Name name ->
-                attribute(name: name.name, value: manifest.mainAttributes.getValue(name))
+            [manifest, baseManifest].each { manifest ->
+                manifest.mainAttributes.keySet().each {Attributes.Name name ->
+                    attribute(name: name.name, value: manifest.mainAttributes.getValue(name))
+                }
             }
-            manifest.entries.each {String sectionName, Attributes attributes ->
-                section(name: sectionName) {
-                    attributes.keySet().each {Attributes.Name name ->
-                        attribute(name: name.name, value: attributes.getValue(name))
+            [manifest, baseManifest].each { manifest ->
+                manifest.entries.each {String sectionName, Attributes attributes ->
+                    section(name: sectionName) {
+                        attributes.keySet().each {Attributes.Name name ->
+                            attribute(name: name.name, value: attributes.getValue(name))
+                        }
                     }
                 }
-
             }
         }
     }

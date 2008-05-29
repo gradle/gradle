@@ -28,6 +28,12 @@ class GradleManifestTest extends GroovyTestCase {
         gradleManifest = new GradleManifest()
     }
 
+    void testInit() {
+        Manifest baseManifest = new Manifest()
+        GradleManifest gradleManifest = new GradleManifest(baseManifest)
+        assert gradleManifest.baseManifest.is(baseManifest)
+    }
+
     void testGradleManifest() {
         assertNull(gradleManifest.file)
         assertNotNull(gradleManifest.manifest)
