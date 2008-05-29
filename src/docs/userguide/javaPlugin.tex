@@ -195,22 +195,20 @@ The \texttt{dists} task contains all the archive task that make up your distribu
 \label{sub:example}
 \begin{Verbatim}
 dists {
-	dists {
-	    tasksBaseName = 'gradle'
-	    dependsOn 'explodedDist'
-	    childrenDependOn << 'explodedDist'
-	    zip() {
-	        zipFileSet(dir: explodedDistDir, prefix: "gradle-$version") {
-	            exclude '**/*.tmp'
-	        }
-	    }
-	    zip("gradle-src") {
-	        String prefix = "$gradle-src-$version"
-	        zipFileSet(dir: projectDir, prefix: prefix) {
-	            include 'src/', 'gradle.groovy'
-	        }
-	    }
-	}
+    tasksBaseName = 'gradle'
+    dependsOn 'explodedDist'
+    childrenDependOn << 'explodedDist'
+    zip() {
+        zipFileSet(dir: explodedDistDir, prefix: "gradle-$version") {
+            exclude '**/*.tmp'
+        }
+    }
+    zip("gradle-src") {
+        String prefix = "$gradle-src-$version"
+        zipFileSet(dir: projectDir, prefix: prefix) {
+            include 'src/', 'gradle.groovy'
+        }
+    }
 }	
 \end{Verbatim}
 The Bundle task has a couple of convenience methods for adding new archive tasks to it. Right now there are the methods (\texttt{jar}, \texttt{war}, \texttt{zip}, \texttt{tar}, \texttt{tarGz}, \texttt{tarBzip2}). Calling such a method with no arguments (e.g. \texttt{zip()}) creates a zip archive task with:
