@@ -184,7 +184,7 @@ public interface DependencyManager extends DependencyContainer {
 
     boolean getFailForMissingDependencies();
 
-    FileSystemResolver addFlatDirResolver(String name, File[] dirs);
+    FileSystemResolver addFlatDirResolver(String name, Object[] dirs);
 
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed

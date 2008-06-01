@@ -360,11 +360,11 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     void testAddFlatDirResolver() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
-        File[] expectedDirs = ['a' as File]
+        Object[] expectedDirs = ['a', 'b' as File]
         MockFor resolverContainerMocker = new MockFor(ResolverContainer)
         resolverContainerMocker.demand.createFlatDirResolver(1..1) {String name, File[] dirs ->
             assertEquals(expectedName, name)
-            assertArrayEquals(expectedDirs, dirs)
+            assertArrayEquals(expectedDirs.collect {new File(it.toString())} as File[], dirs)
             expectedResolver
         }
         resolverContainerMocker.demand.add(1..1) {description ->

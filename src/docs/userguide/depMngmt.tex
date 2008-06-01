@@ -284,11 +284,11 @@ dependencies {
 If you want to use a (flat) filesytem directory as a repository, simply type:
 \begin{Verbatim}
 dependencies {
-	addFlatDirResolver('lib', new File(rootDir, 'lib1'), new File(rootDir, 'lib2'))
+	addFlatDirResolver('lib', "$rootDir/lib1", new File(rootDir, 'lib2'))
 	dependencies(':junit:4.4', ':commons-io:1.3.1:jar')
 }
 \end{Verbatim}
-In the example we assign multiple directories to a flat directory resolver\footnote{In the current release of Gradle you have to pass File objects and can't pass Strings.}. The first argument is the name of the resolver. The group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver simply ignores it. The repositories could look like this:
+In the example we assign multiple directories to a flat directory resolver\footnote{You can pass any type to describe a path, as long as the types toString() method returns a valid path.}. The first argument is the name of the resolver. The group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver simply ignores it. The repositories could look like this:
 \begin{Verbatim}
 project-root
   - lib1

@@ -246,8 +246,9 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         buildResolverHandler.buildResolverDir
     }
 
-    FileSystemResolver addFlatDirResolver(String name, File[] dirs) {
-        classpathResolvers.add(classpathResolvers.createFlatDirResolver(name, dirs))
+    FileSystemResolver addFlatDirResolver(String name, Object[] dirs) {
+        classpathResolvers.add(classpathResolvers.createFlatDirResolver(name,
+                dirs.collect {new File(it.toString())} as File[]))
     }
 
     DualResolver addMavenRepo(String[] jarRepoUrls) {
