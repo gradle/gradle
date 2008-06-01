@@ -19,6 +19,7 @@ package org.gradle.api.internal.dependencies
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
+import org.gradle.api.DependencyManager
 
 /**
  * @author Hans Dockter
@@ -33,6 +34,8 @@ class SettingsConverter {
     IvySettings convert(def classpathResolvers, def otherResolvers, File gradleUserHome, RepositoryResolver buildResolver,
                         Map clientModuleRegistry) {
         if (ivySettings) {return ivySettings}
+        IvySettings ivySettings = new IvySettings()
+        ivySettings.setVariable('ivy.cache.dir', "$gradleUserHome.canonicalPath/$DependencyManager.DEFAULT_CACHE_DIR_NAME")
         ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
         clientModuleResolver.moduleRegistry = clientModuleRegistry
         clientModuleResolver.name = CLIENT_MODULE_NAME
@@ -48,13 +51,11 @@ class SettingsConverter {
         clientModuleChain.returnFirst = true
         clientModuleChain.add(clientModuleResolver)
         clientModuleChain.add(chainResolver)
-        IvySettings ivySettings = new IvySettings()
         (otherResolvers + classpathResolvers + [buildResolver, clientModuleChain, clientModuleResolver, chainResolver]).each {
             ivySettings.addResolver(it)
             it.repositoryCacheManager.settings = ivySettings
         }
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME)
-        ivySettings.setVariable('ivy.cache.dir', gradleUserHome.canonicalPath + '/cache')
         ivySettings
     }
 

@@ -19,37 +19,34 @@ package org.gradle.api.internal.dependencies
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.DependencyManager
 import org.apache.ivy.plugins.resolver.RepositoryResolver
+import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 
 /**
  * @author Hans Dockter
  */
-class SpecialResolverHandlerTest extends GroovyTestCase {
-    SpecialResolverHandler handler
+class BuildResolverHandlerTest extends GroovyTestCase {
+    BuildResolverHandler handler
+
+    LocalReposCacheHandler localReposCacheHandler
+
+    DefaultRepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
 
     File buildResolverDir
 
     void setUp() {
+        localReposCacheHandler = new LocalReposCacheHandler()
         buildResolverDir = new File('buildResolver')
-        handler = new SpecialResolverHandler(buildResolverDir)
+        handler = new BuildResolverHandler(localReposCacheHandler)
+        handler.buildResolverDir = buildResolverDir
     }
 
     void testInit() {
         assertEquals(buildResolverDir, handler.buildResolverDir)
+        assertEquals(localReposCacheHandler, handler.localReposCacheHandler)
     }
 
-    //
-//    void testGetCacheManager() {
-//        File
-//        DefaultRepositoryCacheManager cacheManager = converter.getCacheManager()
-//        assert cacheManager.is(converter.getCacheManager())
-//        cacheManager.basedir = new File(buildResolverDir, 'cache')
-//        cacheManager.name = 'build-resolver-cache'
-//        cacheManager.useOrigin = true
-//        cacheManager.lockStrategy = new NoLockStrategy()
-//        cacheManager
-//    }
-//
     void testGetBuildResolver() {
+        handler.localReposCacheHandler = [getCacheManager: {dummyCacheManager}] as LocalReposCacheHandler
         FileSystemResolver buildResolver = handler.buildResolver
         // check lazy init
         assert buildResolver
@@ -63,15 +60,6 @@ class SpecialResolverHandlerTest extends GroovyTestCase {
         assertEquals(expectedPatterns, resolver.ivyPatterns)
         assertEquals(expectedPatterns, resolver.artifactPatterns)
         assertTrue(resolver.allownomd)
-        assert resolver.repositoryCacheManager == handler.cacheManager
-    }
-
-    void testCreateFlatDirResolver() {
-        File dir1 = new File('/rootFolder')
-        File dir2 = new File('/rootFolder2')
-        String expectedName = 'libs'
-        FileSystemResolver resolver = handler.createFlatDirResolver(expectedName, [dir1, dir2] as File[])
-        checkNoModuleRepository(resolver, expectedName,
-                [dir1, dir2].collect{"$it.absolutePath/$DependencyManager.FLAT_DIR_RESOLVER_PATTERN"})
+        assert resolver.repositoryCacheManager == dummyCacheManager
     }
 }

@@ -16,27 +16,24 @@
 
 package org.gradle.api.internal.dependencies
 
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
-import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.apache.ivy.plugins.lock.NoLockStrategy
+import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
-import org.apache.ivy.plugins.resolver.IBiblioResolver
 
 /**
  * @author Hans Dockter
  */
-class SpecialResolverHandler {
+class BuildResolverHandler {
     File buildResolverDir
 
-    DefaultRepositoryCacheManager cacheManagerInternal
+    LocalReposCacheHandler localReposCacheHandler
 
-    SpecialResolverHandler() {
+    BuildResolverHandler() {
 
     }
 
-    SpecialResolverHandler(File buildResolverDir) {
-        this.buildResolverDir = buildResolverDir
+    BuildResolverHandler(LocalReposCacheHandler localReposCacheHandler) {
+        this.localReposCacheHandler = localReposCacheHandler
     }
 
     RepositoryResolver buildResolverInternal
@@ -50,35 +47,12 @@ class SpecialResolverHandler {
         buildResolverInternal
     }
 
-    FileSystemResolver createFlatDirResolver(String name, File[] roots) {
-        FileSystemResolver resolver = new FileSystemResolver()
-        resolver.name = name 
-        resolver.setRepositoryCacheManager(cacheManager)
-        roots.collect {"$it.absolutePath/$DependencyManager.FLAT_DIR_RESOLVER_PATTERN"}.each { String pattern ->
-            resolver.addIvyPattern(pattern)
-            resolver.addArtifactPattern(pattern)
-        }
-        resolver.validate = false
-        resolver
-    }
-
     private void configureBuildResolver(FileSystemResolver buildResolver) {
-        buildResolver.setRepositoryCacheManager(cacheManager)
+        buildResolver.setRepositoryCacheManager(localReposCacheHandler.cacheManager)
         buildResolver.name = DependencyManager.BUILD_RESOLVER_NAME
         String pattern = "$buildResolverDir.absolutePath/$DependencyManager.BUILD_RESOLVER_PATTERN"
         buildResolver.addIvyPattern(pattern)
         buildResolver.addArtifactPattern(pattern)
         buildResolver.validate = false
-    }
-
-    DefaultRepositoryCacheManager getCacheManager() {
-        if (!cacheManagerInternal) {
-            cacheManagerInternal = new DefaultRepositoryCacheManager()
-            cacheManagerInternal.basedir = new File(buildResolverDir, 'cache')
-            cacheManagerInternal.name = 'build-resolver-cache'
-            cacheManagerInternal.useOrigin = true
-            cacheManagerInternal.lockStrategy = new NoLockStrategy()
-        }
-        cacheManagerInternal
     }
 }

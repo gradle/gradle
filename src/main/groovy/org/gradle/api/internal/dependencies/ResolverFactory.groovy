@@ -19,31 +19,68 @@ package org.gradle.api.internal.dependencies
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.InvalidUserDataException
+import org.apache.ivy.plugins.resolver.DualResolver
+import org.gradle.api.DependencyManager
+import org.apache.ivy.plugins.resolver.URLResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
 
 /**
  * @author Hans Dockter
  */
 class ResolverFactory {
     static final String MAVEN2_PATTERN = "[organisation]/[module]/[revision]/[module]-[revision].[ext]"
+
+    LocalReposCacheHandler localReposCacheHandler
+
+    ResolverFactory(LocalReposCacheHandler localReposCacheHandler) {
+        this.localReposCacheHandler = localReposCacheHandler
+    }
     
     DependencyResolver createResolver(def userDescription) {
         DependencyResolver result
         switch (userDescription.getClass()) {
-            case String: result = createIBiblioResolver(userDescription, userDescription); break;
-            case Map: result = createIBiblioResolver(userDescription.name, userDescription.url); break;
+            case String: result = createMavenRepoResolver(userDescription, userDescription); break;
+            case Map: result = createMavenRepoResolver(userDescription.name, userDescription.url); break;
             case DependencyResolver: result = userDescription; break;
             default: throw new InvalidUserDataException('Illegal Resolver type')
         }
         result
     }
 
-    IBiblioResolver createIBiblioResolver(String name, String root) {
-        IBiblioResolver iBiblioResolver = new IBiblioResolver()
+    FileSystemResolver createFlatDirResolver(String name, File[] roots) {
+        FileSystemResolver resolver = new FileSystemResolver()
+        resolver.name = name
+        resolver.setRepositoryCacheManager(localReposCacheHandler.cacheManager)
+        roots.collect {"$it.absolutePath/$DependencyManager.FLAT_DIR_RESOLVER_PATTERN"}.each {String pattern ->
+            resolver.addIvyPattern(pattern)
+            resolver.addArtifactPattern(pattern)
+        }
+        resolver.validate = false
+        resolver
+    }
+
+    /**
+     * @param jarRepos A list of name-url pairs, denoting repositories to look for artifacts only. This is needed
+     * if only the pom is in the MavenRepo repository (e.g. jta).
+     */
+    DependencyResolver createMavenRepoResolver(String name, String root, String[] jarRepoUrls) {
+        def iBiblioResolver = new IBiblioResolver()
         iBiblioResolver.setUsepoms(true)
-        iBiblioResolver.name = name
-        iBiblioResolver.pattern = MAVEN2_PATTERN
+        iBiblioResolver.name = name + "_poms"
         iBiblioResolver.root = root
+        iBiblioResolver.pattern = DependencyManager.MAVEN_REPO_PATTERN
         iBiblioResolver.m2compatible = true
-        iBiblioResolver
+        DualResolver dualResolver = new DualResolver()
+        dualResolver.name = name
+        dualResolver.ivyResolver = iBiblioResolver
+        def urlResolver = new URLResolver()
+        urlResolver.name = name + "_jars"
+        urlResolver.setM2compatible(true)
+        urlResolver.addArtifactPattern(root + '/' + DependencyManager.MAVEN_REPO_PATTERN)
+        jarRepoUrls.each {String urlRoot ->
+            urlResolver.addArtifactPattern(urlRoot + '/' + DependencyManager.MAVEN_REPO_PATTERN)
+        }
+        dualResolver.artifactResolver = urlResolver
+        dualResolver
     }
 }

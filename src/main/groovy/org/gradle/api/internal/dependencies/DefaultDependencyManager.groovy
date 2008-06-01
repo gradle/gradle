@@ -24,17 +24,16 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.publish.PublishOptions
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.ResolveOptions
+import org.apache.ivy.plugins.resolver.DualResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.GradleArtifact
+import org.gradle.api.dependencies.ResolverContainer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.apache.ivy.plugins.resolver.IBiblioResolver
-import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.GradleException
-import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -72,9 +71,11 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
 
     Report2Classpath report2Classpath
 
-    ResolverContainer classpathResolvers = new ResolverContainer()
+    LocalReposCacheHandler localReposCacheHandler = new LocalReposCacheHandler()
 
-    SpecialResolverHandler specialResolverHandler = new SpecialResolverHandler()
+    BuildResolverHandler buildResolverHandler = new BuildResolverHandler(localReposCacheHandler)
+
+    ResolverContainer classpathResolvers = new ResolverContainer(localReposCacheHandler)
 
     /**
      * The name of the task which produces the artifacts of this project. This is needed by other projects,
@@ -110,7 +111,8 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         this.settingsConverter = settingsConverter
         this.moduleDescriptorConverter = moduleDescriptorConverter
         this.report2Classpath = report2Classpath
-        this.specialResolverHandler.buildResolverDir = buildResolverDir
+        this.localReposCacheHandler.buildResolverDir = buildResolverDir
+        this.buildResolverHandler.buildResolverDir = buildResolverDir
     }
 
     List resolve(String conf) {
@@ -131,11 +133,11 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         resolveCache[conf]
     }
 
-     List resolveTask(String taskName) {
+    List resolveTask(String taskName) {
         String conf = task2Conf[taskName]
-         if (!conf) {
-             throw new InvalidUserDataException("Task $taskName is not mapped to any conf!")
-         }
+        if (!conf) {
+            throw new InvalidUserDataException("Task $taskName is not mapped to any conf!")
+        }
         resolve(conf)
     }
 
@@ -237,25 +239,24 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     }
 
     RepositoryResolver getBuildResolver() {
-        specialResolverHandler.buildResolver
+        buildResolverHandler.buildResolver
     }
 
     File getBuildResolverDir() {
-        specialResolverHandler.buildResolverDir
-    }
-
-    FileSystemResolver createFlatDirResolver(String name, File[] dirs) {
-        specialResolverHandler.createFlatDirResolver(name, dirs)
+        buildResolverHandler.buildResolverDir
     }
 
     FileSystemResolver addFlatDirResolver(String name, File[] dirs) {
-        FileSystemResolver resolver = createFlatDirResolver(name, dirs)
-        classpathResolvers.add(resolver)
-        resolver
+        classpathResolvers.add(classpathResolvers.createFlatDirResolver(name, dirs))
     }
 
-    IBiblioResolver addMavenRepo() {
-        classpathResolvers.add([name: DependencyManager.DEFAULT_MAVEN_REPO_NAME, url: DependencyManager.MAVEN_REPO_URL])
+    DualResolver addMavenRepo(String[] jarRepoUrls) {
+        classpathResolvers.add(classpathResolvers.createMavenRepoResolver(DependencyManager.DEFAULT_MAVEN_REPO_NAME,
+                DependencyManager.MAVEN_REPO_URL, jarRepoUrls))
+    }
+
+    DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls) {
+        classpathResolvers.add(classpathResolvers.createMavenRepoResolver(name, root, jarRepoUrls))
     }
 
 

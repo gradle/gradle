@@ -52,7 +52,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     Ivy ivy
     File buildResolverDir
     ArtifactFactory artifactFactory
-    SpecialResolverHandler mockSpecialResolverHandler
+    BuildResolverHandler mockSpecialResolverHandler
     RepositoryResolver expectedBuildResolver
 
     public DefaultDependencyContainer getTestObj() {
@@ -74,8 +74,8 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         dependencyManager.defaultConfs = testDefaultConfs
         expectedBuildResolver = new FileSystemResolver()
         mockSpecialResolverHandler = [getBuildResolver: {expectedBuildResolver},
-                getBuildResolverDir: {buildResolverDir}] as SpecialResolverHandler
-        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
+                getBuildResolverDir: {buildResolverDir}] as BuildResolverHandler
+        dependencyManager.buildResolverHandler = mockSpecialResolverHandler
     }
 
     void testInit() {
@@ -87,6 +87,8 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.classpathResolvers
         assert dependencyManager.failForMissingDependencies
+        assert dependencyManager.localReposCacheHandler.buildResolverDir.is(buildResolverDir)
+        assert dependencyManager.buildResolverHandler.buildResolverDir.is(buildResolverDir)
     }
 
     void testAddArtifacts() {
@@ -191,7 +193,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
                         dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
                                 settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
                         dependencyManager.project = project
-                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
+                        dependencyManager.buildResolverHandler = mockSpecialResolverHandler
                         test(dependencyManager)
                     }
                 }
@@ -225,7 +227,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
 //        ivyMocker.use() {
 //            dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
 //                    settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
-//            dependencyManager.specialResolverHandler = mockSpecialResolverHandler
+//            dependencyManager.buildResolverHandler = mockSpecialResolverHandler
 //            dependencyManager.addConf2Tasks(testConfiguration, testTaskName)
 //            dependencyManager.project = project
 //            shouldFail(GradleException) {
@@ -310,7 +312,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
                         publishEngine = new PublishEngine(null, null)
                         dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
                                 settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
-                        dependencyManager.specialResolverHandler = mockSpecialResolverHandler
+                        dependencyManager.buildResolverHandler = mockSpecialResolverHandler
                         dependencyManager.artifactPatterns = expectedArtifactPatterns
                         dependencyManager.project = project
                         dependencyManager.publish(expectedConfigurations, uploadResolvers, uploadModuleDescriptor)
@@ -355,32 +357,59 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         assert dependencyManager.buildResolver.is(expectedBuildResolver)
     }
 
-    void testAddAndCreateFlatDirRepository() {
+    void testAddFlatDirResolver() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
         File[] expectedDirs = ['a' as File]
-        MockFor specialResolverHandlerMocker = new MockFor(SpecialResolverHandler)
-        specialResolverHandlerMocker.demand.createFlatDirResolver(2..2) {String name, File[] dirs ->
+        MockFor resolverContainerMocker = new MockFor(ResolverContainer)
+        resolverContainerMocker.demand.createFlatDirResolver(1..1) {String name, File[] dirs ->
             assertEquals(expectedName, name)
             assertArrayEquals(expectedDirs, dirs)
             expectedResolver
         }
-        specialResolverHandlerMocker.use(dependencyManager.specialResolverHandler) {
-            assert dependencyManager.createFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
-            assert !dependencyManager.classpathResolvers.resolverList.contains(expectedResolver)
-            assert dependencyManager.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
-            assert dependencyManager.classpathResolvers.resolverList.contains(expectedResolver)
+        resolverContainerMocker.demand.add(1..1) {description ->
+            assert description.is(expectedResolver)
+        }
+        resolverContainerMocker.use(dependencyManager.classpathResolvers) {
+            dependencyManager.addFlatDirResolver(expectedName, expectedDirs)
         }
     }
 
     void testAddMavenRepo() {
-        Map expectedDescription = [name: DependencyManager.DEFAULT_MAVEN_REPO_NAME, url: DependencyManager.MAVEN_REPO_URL]
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String[] expectedJarUrls = ['http://www.somerepo.org']
         MockFor resolverContainerMocker = new MockFor(ResolverContainer)
+        resolverContainerMocker.demand.createMavenRepoResolver(1..1) {String name, String root, String[] jarRepoUrls ->
+            assertEquals(DependencyManager.DEFAULT_MAVEN_REPO_NAME, name)
+            assertEquals(DependencyManager.MAVEN_REPO_URL, root)
+            assertArrayEquals(expectedJarUrls, jarRepoUrls)
+            expectedResolver
+        }
         resolverContainerMocker.demand.add(1..1) {description ->
-            assertEquals(expectedDescription, description)
+            assert description.is(expectedResolver)
         }
         resolverContainerMocker.use(dependencyManager.classpathResolvers) {
-            dependencyManager.addMavenRepo()
+            dependencyManager.addMavenRepo(expectedJarUrls)
+        }
+    }
+
+    void testAddMavenStyleRepo() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        String expectedRoot = 'http://www.myroot.org'
+        String expectedName = 'myname'
+        String[] expectedJarUrls = ['http://www.somerepo.org']
+        MockFor resolverContainerMocker = new MockFor(ResolverContainer)
+        resolverContainerMocker.demand.createMavenRepoResolver(1..1) {String name, String root, String[] jarRepoUrls ->
+            assertEquals(expectedName, name)
+            assertEquals(expectedRoot, root)
+            assertArrayEquals(expectedJarUrls, jarRepoUrls)
+            expectedResolver
+        }
+        resolverContainerMocker.demand.add(1..1) {description ->
+            assert description.is(expectedResolver)
+        }
+        resolverContainerMocker.use(dependencyManager.classpathResolvers) {
+            dependencyManager.addMavenStyleRepo(expectedName, expectedRoot, expectedJarUrls)
         }
     }
 

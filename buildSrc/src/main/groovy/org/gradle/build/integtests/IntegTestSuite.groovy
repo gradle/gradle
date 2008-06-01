@@ -28,5 +28,6 @@ class IntegTestSuite {
         WaterProject.execute(distDirPath, samplesDirPath)
         JavaProject.execute(distDirPath, samplesDirPath)
         GroovyProject.execute(distDirPath, samplesDirPath)
+        MavenRepo.execute(distDirPath, samplesDirPath)
     }
 }

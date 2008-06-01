@@ -20,12 +20,25 @@ import groovy.mock.interceptor.MockFor
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.ResolverContainer
+import org.apache.ivy.core.cache.RepositoryCacheManager
+import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
+import org.apache.ivy.plugins.resolver.RepositoryResolver
+import org.gradle.api.DependencyManager
+import org.apache.ivy.plugins.resolver.DualResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.apache.ivy.plugins.resolver.URLResolver
 
 /**
  * @author Hans Dockter
  */
 class ResolverContainerTest extends GroovyTestCase {
+    static final String TEST_REPO_NAME = 'reponame'
+    static final String TEST_REPO_URL = 'http://www.gradle.org' 
     ResolverContainer resolverContainer
+
+    LocalReposCacheHandler localReposCacheHandler
+
+    RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
 
     def expectedUserDescription
     def expectedUserDescription2
@@ -43,7 +56,7 @@ class ResolverContainerTest extends GroovyTestCase {
 
 
     void setUp() {
-        resolverContainer = new ResolverContainer()
+        resolverContainer = new ResolverContainer(localReposCacheHandler)
         expectedUserDescription = 'somedescription'
         expectedUserDescription2 = 'somedescription2'
         expectedUserDescription3 = 'somedescription3'
@@ -69,6 +82,10 @@ class ResolverContainerTest extends GroovyTestCase {
             assertEquals(expectedUserDescription3, userDescription)
             expectedResolver3
         }
+    }
+
+    void testInit() {
+        assert resolverContainer.localReposCacheHandler.is(localReposCacheHandler)
     }
 
     void testAddResolver() {
@@ -150,6 +167,34 @@ class ResolverContainerTest extends GroovyTestCase {
             resolverContainer.addFirst(expectedUserDescription2)
         }
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolverList)
+    }
+
+    void testCreateFlatDirResolver() {
+        MockFor resolverFactoryMocker = new MockFor(ResolverFactory)
+        File[] expectedRoots = [new File('/rootFolder')]
+        String expectedName = 'libs'
+        resolverFactoryMocker.demand.createFlatDirResolver(1..1) {String name, File[] roots ->
+            assertEquals(expectedName, name)
+            assertArrayEquals(expectedRoots, roots)
+            expectedResolver
+        }
+        resolverFactoryMocker.use(resolverContainer.resolverFactory) {
+            assert resolverContainer.createFlatDirResolver(expectedName, expectedRoots as File[]).is(expectedResolver) 
+        }
+    }
+
+    public void testCreateMavenRepo() {
+        String testUrl2 = 'http://www.gradle2.org'
+        MockFor resolverFactoryMocker = new MockFor(ResolverFactory)
+        resolverFactoryMocker.demand.createMavenRepoResolver(1..1) {String name, String root, String[] jarRepoUrls ->
+            assertEquals(TEST_REPO_NAME, name)
+            assertEquals(TEST_REPO_URL, root)
+            assertArrayEquals([testUrl2] as String[], jarRepoUrls)
+            expectedResolver
+        }
+        resolverFactoryMocker.use(resolverContainer.resolverFactory) {
+            assert resolverContainer.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, [testUrl2] as String[]).is(expectedResolver)
+        }
     }
 
 }
