@@ -17,8 +17,11 @@
 package org.gradle.api;
 
 import org.gradle.api.dependencies.ResolverContainer;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.DualResolver;
 
 import java.util.List;
+import java.io.File;
 
 import groovy.lang.Closure;
 
@@ -68,4 +71,14 @@ public interface Settings {
      * @return the result of the dependencies manager getResolvers method.
      */
     ResolverContainer getResolvers();
+
+    FileSystemResolver addFlatDirResolver(String name, File[] dirs);
+
+    /**
+     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed
+     * if only the pom is in the MavenRepo repository (e.g. jta).
+     */
+    DualResolver addMavenRepo(String[] jarRepoUrls);
+
+    DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
 }

@@ -216,24 +216,68 @@ dependencies {
 	addMavenRepo()
 }
 \end{Verbatim}
-The added resolver has the name \texttt{MavenRepo} and is added to the \texttt{classpathResolvers} (see  \ref{sub:resolver_container})
-% subsection maven_repo (end)
+The added resolver has the name \texttt{MavenRepo} and is added to the \texttt{classpathResolvers} (see \ref{sub:resolver_container}). 
 
-\subsection{Maven style Repositories} % (fold)
-\label{sub:maven_style_repositories}
-To add another Maven style repository you simply do:
+If you want to add a custom repository with a Maven layout you can type:
 \begin{Verbatim}
 dependencies {
-	classpathResolvers.add('http://gradle.sourceforge.net/repository')
+	addMavenStyleRepo('myrepo', 'http://repo.gradle.org')
 }
 \end{Verbatim}
-In your build log the resolver will appear with a name equals to its URL. To give an explicit name to the resolver you can do:
+Quite often certain jars are not in the official Maven repository for licensing reasons (e.g. JTA). But the poms are there and you want to use them. Gradle (and Ivy) use the same resolver to look for the pom and the corresponding artifact. It is not possible to define a chain of resolvers, where one resolver is used for retrieving the pom and another resolver is used for retrieving the artifact. For the dependencies of the artifact the chain of resolvers can be used. To solve this problem
 \begin{Verbatim}
 dependencies {
-	classpathResolvers.add(name: 'sourceforge', url:'http://gradle.sourceforge.net/repository')
+	addMavenRepo('http://repo.gradle.org', 'http://repo2.gradle.org')
 }
 \end{Verbatim}
-% subsection maven_style_repositories (end)
+Now Gradle looks only in the official Maven repository for the poms, but looks in both the official Maven repository and the two repositories specified above for the artifacts belonging to the pom. Let's look at an example to understand this better.
+
+\begin{Verbatim}
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>repotest</groupId>
+    <artifactId>repotest</artifactId>
+    <version>1.0</version>
+    <dependencies>
+        <dependency>
+            <artifactId>testdep</artifactId>
+            <groupId>testdep</groupId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
+</project>
+\end{Verbatim}
+
+We have 4 files in different repositories. For this example let's assume that \texttt{repotest-1.0.pom} is in the official Maven repository and that the other files are in \texttt{http://repo.gradle.org}.
+
+Let's define our resolvers like this:
+\begin{Verbatim}
+dependencies {  
+    addMavenRepo() 
+	addMavenStyleRepo('myrepo', 'http://repo.gradle.org')
+	compile "repotest:repotest:1.0"	
+}
+\end{Verbatim}
+Gradle finds \texttt{repotest-1.0.pom} in the official Maven repo. After this it tries to find the corresponding artifact \texttt{repotest-1.0.jar}. It looks only in the Maven repo for this file as it expects to find pom and artifact by the same resolver. The build fails.
+
+Let's try to improve this: 
+\begin{Verbatim}
+dependencies {  
+    addMavenRepo('http://repo.gradle.org') 
+	compile "repotest:repotest:1.0"	
+}
+\end{Verbatim}
+Gradle finds \texttt{repotest-1.0.pom} in the Maven repo. After this it tries to find the corresponding artifact \texttt{repotest-1.0.jar} and finds it in \texttt{http://repo.gradle.org}. But what about \texttt{testdep-1.0.pom}? As Gradle looks for poms only in the Maven repo it can't find this pom file.\footnote{To make things more flexible (or complicated). By default the build would not fail, as Ivy's default behavior is to create internally a default pom if it can't find a pom. This default pom has of course no dependencies and defines just the artifact \texttt{testdep-1.0.jar} and would be found in \texttt{http://repo.gradle.org}. If you want the build to fail if a pom can't be found you must the set the \texttt{allownomd} property of the resolver to \texttt{false}.
+
+The final correct version to solve our use case is:
+\begin{Verbatim}
+dependencies {  
+    addMavenRepo('http://repo.gradle.org') 
+    addMavenStyleRepo('myrepo', 'http://repo.gradle.org') 
+	compile "repotest:repotest:1.0"	
+}
+\end{Verbatim}
+% subsection maven_repo (end)
 
 \subsection{Flat Directory Resolver} % (fold)
 \label{sub:flat_dir_resolver}
@@ -244,7 +288,7 @@ dependencies {
 	dependencies(':junit:4.4', ':commons-io:1.3.1:jar')
 }
 \end{Verbatim}
-In the example we assign multiple directories to a flat directory resolver\footnote{In the current release of Gradleyou have to pass File objects and can't pass Strings.}. The first argument is the name of the resolver. The group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver simply ignores it. The repositories could look like this:
+In the example we assign multiple directories to a flat directory resolver\footnote{In the current release of Gradle you have to pass File objects and can't pass Strings.}. The first argument is the name of the resolver. The group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver simply ignores it. The repositories could look like this:
 \begin{Verbatim}
 project-root
   - lib1

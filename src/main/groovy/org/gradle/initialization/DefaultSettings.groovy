@@ -27,7 +27,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.apache.ivy.plugins.resolver.DualResolver
 
 /**
  * @author Hans Dockter
@@ -101,8 +101,12 @@ class DefaultSettings implements Settings {
         dependencyManager.addFlatDirResolver(name, dirs)
     }
 
-    IBiblioResolver addMavenRepo() {
-        dependencyManager.addMavenRepo()
+    DualResolver addMavenRepo(String[] jarRepoUrls) {
+        dependencyManager.addMavenRepo(jarRepoUrls)
+    }
+
+    DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls) {
+       dependencyManager.addMavenStyleRepo(name, root, jarRepoUrls)
     }
 
     URLClassLoader createClassLoader() {

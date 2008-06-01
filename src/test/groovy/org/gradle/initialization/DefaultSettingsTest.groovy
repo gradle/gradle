@@ -26,6 +26,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.dependencies.ResolverContainer
+import org.apache.ivy.plugins.resolver.DualResolver
 
 /**
  * @author Hans Dockter
@@ -125,10 +126,30 @@ class DefaultSettingsTest extends GroovyTestCase {
     }
 
     void testAddMavenRepo() {
-        IBiblioResolver expectedResolver = new IBiblioResolver()
-        dependencyManagerMocker.demand.addMavenRepo(1..1) {-> expectedResolver}
+        DualResolver expectedResolver = new DualResolver()
+        String[] expectedJarRepoUrls = ['http://www.repo.org']
+        dependencyManagerMocker.demand.addMavenRepo(1..1) {String[] jarRepoUrls ->
+            assertArrayEquals(expectedJarRepoUrls, jarRepoUrls)
+            expectedResolver
+        }
         dependencyManagerMocker.use(dependencyManager) {
-            assert settings.addMavenRepo().is(expectedResolver)
+            assert settings.addMavenRepo(expectedJarRepoUrls).is(expectedResolver)
+        }
+    }
+
+    void testAddMavenStyleRepo() {
+        DualResolver expectedResolver = new DualResolver()
+        String expectedName = 'somename'
+        String expectedRoot = 'http://www.root.org'
+        String[] expectedJarRepoUrls = ['http://www.repo.org']
+        dependencyManagerMocker.demand.addMavenStyleRepo(1..1) {String name, String root, String[] jarRepoUrls ->
+            assertEquals(expectedName, name)
+            assertEquals(expectedRoot, root)
+            assertArrayEquals(expectedJarRepoUrls, jarRepoUrls)
+            expectedResolver
+        }
+        dependencyManagerMocker.use(dependencyManager) {
+            assert settings.addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls).is(expectedResolver)
         }
     }
 

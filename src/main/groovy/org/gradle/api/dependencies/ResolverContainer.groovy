@@ -21,6 +21,12 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.util.GradleUtil
 import org.gradle.api.internal.dependencies.ResolverFactory
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.gradle.api.DependencyManager
+import org.gradle.api.internal.dependencies.LocalReposCacheHandler
+import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.apache.ivy.plugins.resolver.URLResolver
+import org.apache.ivy.plugins.resolver.DualResolver
 
 /**
  * @author Hans Dockter
@@ -32,6 +38,10 @@ class ResolverContainer {
 
     Map resolvers = [:]
 
+    ResolverContainer(LocalReposCacheHandler localReposCacheHandler) {
+        resolverFactory = new ResolverFactory(localReposCacheHandler)
+    }
+
     DependencyResolver add(def userDescription, Closure configureClosure = null) {
         addInternal(userDescription, configureClosure) {String resolverName ->
             resolverNames << resolverName
@@ -39,20 +49,28 @@ class ResolverContainer {
     }
 
     DependencyResolver addBefore(def userDescription, String afterResolverName, Closure configureClosure = null) {
-        if (!afterResolverName) {throw new InvalidUserDataException(
-                'You must specify userDescription and afterResolverName')}
-        if (!resolvers[afterResolverName]) {throw new InvalidUserDataException(
-                "Resolver $afterResolverName does not exists!")}
+        if (!afterResolverName) {
+            throw new InvalidUserDataException(
+                    'You must specify userDescription and afterResolverName')
+        }
+        if (!resolvers[afterResolverName]) {
+            throw new InvalidUserDataException(
+                    "Resolver $afterResolverName does not exists!")
+        }
         addInternal(userDescription, configureClosure) {String resolverName ->
             resolverNames.add(resolverNames.indexOf(afterResolverName), resolverName)
         }
     }
 
     DependencyResolver addAfter(def userDescription, String beforeResolverName, Closure configureClosure = null) {
-        if (!beforeResolverName) {throw new InvalidUserDataException(
-                'You must specify userDescription and beforeResolverName')}
-        if (!resolvers[beforeResolverName]) {throw new InvalidUserDataException(
-                "Resolver $beforeResolverName does not exists!")}
+        if (!beforeResolverName) {
+            throw new InvalidUserDataException(
+                    'You must specify userDescription and beforeResolverName')
+        }
+        if (!resolvers[beforeResolverName]) {
+            throw new InvalidUserDataException(
+                    "Resolver $beforeResolverName does not exists!")
+        }
         addInternal(userDescription, configureClosure) {String resolverName ->
             int insertPos = resolverNames.indexOf(beforeResolverName) + 1
             insertPos == resolverNames.size() ? resolverNames.add(resolverName) : resolverNames.add(insertPos, resolverName)
@@ -82,5 +100,17 @@ class ResolverContainer {
 
     List getResolverList() {
         resolverNames.collect {resolvers[it]}
+    }
+
+    FileSystemResolver createFlatDirResolver(String name, File[] roots) {
+        resolverFactory.createFlatDirResolver(name, roots)
+    }
+
+    /**
+     * @param jarRepos A list of name-url pairs, denoting repositories to look for artifacts only. This is needed
+     * if only the pom is in the MavenRepo repository (e.g. jta).
+     */
+    DependencyResolver createMavenRepoResolver(String name, String root, String[] jarRepoUrls) {
+        resolverFactory.createMavenRepoResolver(name, root, jarRepoUrls)
     }
 }

@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
+import org.apache.ivy.plugins.resolver.DualResolver;
 import org.gradle.api.dependencies.DependencyContainer;
 import org.gradle.api.dependencies.ResolverContainer;
 
@@ -37,13 +38,21 @@ public interface DependencyManager extends DependencyContainer {
 
     public static final String BUILD_RESOLVER_NAME = "build-resolver";
 
+    public static final String DEFAULT_CACHE_DIR_NAME = "cache";
+
+    public static final String DEFAULT_CACHE_NAME = "default-gradle-cache";
+
     public static final String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
+
+    public static final String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]";
 
     public static final String FLAT_DIR_RESOLVER_PATTERN = "[artifact]-[revision].[ext]";
 
     public static final String DEFAULT_STATUS = "integration";
     public static final String DEFAULT_GROUP = "unspecified";
     public static final String DEFAULT_VERSION = "unspecified";
+
+
 
     /**
     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
@@ -175,9 +184,13 @@ public interface DependencyManager extends DependencyContainer {
 
     boolean getFailForMissingDependencies();
 
-    FileSystemResolver createFlatDirResolver(String name, File[] dirs);
-
     FileSystemResolver addFlatDirResolver(String name, File[] dirs);
 
-    IBiblioResolver addMavenRepo();
+    /**
+     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed
+     * if only the pom is in the MavenRepo repository (e.g. jta).
+     */
+    DualResolver addMavenRepo(String[] jarRepoUrls);
+
+    DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
 }
