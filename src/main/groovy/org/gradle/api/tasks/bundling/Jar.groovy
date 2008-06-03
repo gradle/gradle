@@ -34,6 +34,8 @@ class Jar extends Zip {
 
     List metaInfResourceCollections
 
+    String fileSetManifest
+
     Jar self
 
     Jar(Project project, String name) {
@@ -43,7 +45,7 @@ class Jar extends Zip {
     }
 
     Closure createAntArchiveTask() {
-        {-> antJar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.createIfEmpty,
-                self.destinationDir, archiveName, self.manifest, self.metaInfResourceCollections, project.ant))}
+        {-> antJar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets, fileSetManifest,
+                self.createIfEmpty, self.destinationDir, archiveName, self.manifest, self.metaInfResourceCollections, project.ant))}
     }
 }

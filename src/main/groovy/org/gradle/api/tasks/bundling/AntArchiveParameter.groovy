@@ -24,13 +24,17 @@ import org.apache.commons.lang.builder.HashCodeBuilder
  */
 class AntArchiveParameter {
     List resourceCollections
+    List mergeFileSets
+    List mergeGroupFileSets
     boolean createIfEmpty
     File destinationDir
     String archiveName
     AntBuilder ant
 
-    AntArchiveParameter(List resourceCollections, boolean createIfEmpty, File destinationDir, String archiveName, AntBuilder ant) {
+    AntArchiveParameter(List resourceCollections, List mergeFileSets, List mergeGroupFileSets, boolean createIfEmpty, File destinationDir, String archiveName, AntBuilder ant) {
         this.resourceCollections = resourceCollections
+        this.mergeFileSets = mergeFileSets
+        this.mergeGroupFileSets = mergeGroupFileSets
         this.createIfEmpty = createIfEmpty
         this.destinationDir = destinationDir
         this.archiveName = archiveName

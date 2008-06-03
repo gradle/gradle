@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 /**
  * @author Hans Dockter
  */
+// todo rename dir to base
 class FileSet extends PatternSet {
     File dir
 

@@ -31,15 +31,12 @@ class AntZipTest extends AbstractAntSkippableArchiveTest {
     }
 
     void testExecute() {
-        antZip.execute(new AntArchiveParameter(resourceCollections, true, testDir, archiveName, new AntBuilder()))
+        antZip.execute(new AntArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, true, testDir, archiveName, new AntBuilder()))
         unzipArchive()
-
         checkResourceFiles()
     }
 
     void executeWithEmptyFileList(boolean createIfEmpty) {
-        antZip.execute(new AntArchiveParameter([new FileSet(emptyDir)], createIfEmpty, testDir, archiveName, new AntBuilder()))
+        antZip.execute(new AntArchiveParameter([new FileSet(emptyDir)], [], [], createIfEmpty, testDir, archiveName, new AntBuilder()))
     }
-
-
 }

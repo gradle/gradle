@@ -36,7 +36,8 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     void setUp() {
         project = [getPath: {AbstractTaskTest.TEST_PROJECT_NAME},
                 getProjectDir: {new File(HelperUtil.TMP_DIR_FOR_TEST)},
-                file: {String path -> new File("$HelperUtil.TMP_DIR_FOR_TEST/$path")}] as DefaultProject
+                file: {path -> (path as File).isAbsolute() ? path as File :
+                    new File("$HelperUtil.TMP_DIR_FOR_TEST/$path").absoluteFile}] as DefaultProject
     }
 
     abstract Task getTask()

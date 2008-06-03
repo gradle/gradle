@@ -26,12 +26,9 @@ class AntWar extends AbstractAntArchive {
                  List webInfFileSets, File webXml) {
         assert parameter
         Map args = [:]
+        parameter.addToArgs(args)
         args.needxmlfile = 'false'
-        if (parameter.gradleManifest?.file) {
-            args.manifest = parameter.gradleManifest.file.absolutePath
-        }
         if (webXml) { args.webxml = webXml.absolutePath }
-        args.destfile = "${parameter.destinationDir.absolutePath}/$parameter.archiveName"
         parameter.ant.war(args) {
             addMetaArchiveParameter(parameter, delegate)
             addResourceCollections(classesFileSets, delegate, 'classes')

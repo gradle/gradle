@@ -90,6 +90,18 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     DependencyManager dependencyManager
 
+    /**
+     *
+     */
+    List mergeFileSets = []
+
+    /**
+     *
+     */
+    List mergeGroupFileSets = []
+
+    protected ArchiveDetector archiveDetector = new ArchiveDetector()
+
     private AbstractArchiveTask self
 
     AbstractArchiveTask(Project project, String name) {
@@ -186,5 +198,36 @@ abstract class AbstractArchiveTask extends ConventionTask {
         fileCollection
     }
 
+    /**
+     *
+     */
+    AbstractArchiveTask merge(Object[] archiveFiles) {
+        Object[] flattenedArchiveFiles = archiveFiles
+        Closure configureClosure = GradleUtil.extractClosure(flattenedArchiveFiles)
+        if (configureClosure) {
+            flattenedArchiveFiles = flattenedArchiveFiles[0..archiveFiles.length - 2]
+            if (flattenedArchiveFiles.length == 1 && flattenedArchiveFiles instanceof Object[]) {
+                flattenedArchiveFiles = flattenedArchiveFiles[0].collect {it}
+            }
+        }
+        GradleUtil.fileList(flattenedArchiveFiles).collect { project.file(it) }.each {
+            Class fileSetType = archiveDetector.archiveFileSetType(it)
+            if (!fileSetType) { throw new InvalidUserDataException("File $it is not a valid archive or has no valid extension.") }
+            def fileSet = fileSetType.newInstance(it)
+            GradleUtil.configure(configureClosure, fileSet)
+            mergeFileSets.add(fileSet)
+        }
+        this
+    }
 
+    /**
+     * Defines a fileset of zip-like archives
+     */
+    AbstractArchiveTask mergeGroup(def dir, Closure configureClosure = null) {
+        if (!dir) { throw new InvalidUserDataException('Dir argument must not be null!') }
+        FileSet fileSet = new FileSet(dir as File)
+        GradleUtil.configure(configureClosure, fileSet)
+        mergeGroupFileSets.add(fileSet)
+        this
+    }
 }

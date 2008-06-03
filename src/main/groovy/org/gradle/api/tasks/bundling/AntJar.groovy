@@ -24,11 +24,7 @@ class AntJar extends AbstractAntArchive {
         assert parameter
         
         Map args = [:]
-        if (parameter.gradleManifest?.file) {
-            args.manifest = parameter.gradleManifest.file.absolutePath
-        }
-        args.destfile = "${parameter.destinationDir.absolutePath}/$parameter.archiveName"
-        args.whenmanifestonly = parameter.emptyPolicy()
+        parameter.addToArgs(args)
         parameter.ant.jar(args) {
             addMetaArchiveParameter(parameter, delegate)
         }

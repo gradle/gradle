@@ -27,6 +27,17 @@ import org.apache.commons.io.FilenameUtils
 class GradleUtil {
     private static Logger logger = LoggerFactory.getLogger(GradleUtil)
 
+    static Closure extractClosure(Object[] args) {
+        if (args.length > 0 && args[args.length - 1] instanceof Closure) {
+            return args[args.length - 1]
+        }
+        return null
+    }
+
+    static def List fileList(Object[] fileDescriptions) {
+        fileDescriptions.collect { new File(it.toString()) }
+    }
+
     static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
         if (!configureClosure) { return delegate}
         configureClosure.resolveStrategy = resolveStrategy
@@ -141,7 +152,7 @@ ant.sequential {
         }
         if (!toolsJar.exists()) {
             System.out.println("Unable to locate tools.jar. "
-                 + "Expected to find it in " + toolsJar.getPath());
+                    + "Expected to find it in " + toolsJar.getPath());
             return null;
         }
         return toolsJar;

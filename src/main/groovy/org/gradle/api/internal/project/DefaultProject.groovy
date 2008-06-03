@@ -337,12 +337,12 @@ class DefaultProject implements Comparable, Project {
         foundTargets
     }
 
-    File file(String path) {
+    File file(Object path) {
         file(path, PathValidation.NONE)
     }
 
-    File file(String path, PathValidation validation) {
-        baseDirConverter.baseDir(path, projectDir, validation)
+    File file(Object path, PathValidation validation) {
+        baseDirConverter.baseDir(path.toString(), projectDir, validation)
     }
 
     Task dir(String path) {

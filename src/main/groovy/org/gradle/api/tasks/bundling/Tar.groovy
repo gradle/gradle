@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
@@ -41,14 +41,13 @@ class Tar extends Zip {
     }
 
     String getExtension() {
-        super.getExtension() + compression.extension    
+        super.getExtension() + compression.extension
     }
-
-
 
     Closure createAntArchiveTask() {
-        { -> antTar.execute(new AntArchiveParameter(self.resourceCollections, self.createIfEmpty,
-                self.destinationDir, archiveName, project.ant), self.compression, self.longFile) }
+        {->
+            antTar.execute(new AntArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets,
+                    self.createIfEmpty, self.destinationDir, archiveName, project.ant), self.compression, self.longFile)
+        }
     }
-
 }

@@ -24,15 +24,18 @@ import org.gradle.api.tasks.util.FileSet
 class AntMetaArchiveParameterTest extends AbstractArchiveParameterTest {
     GradleManifest expectedGradleManifest
     List expectedMetaInfFileSets
+    String expectedFileSetManifest
 
     public void setUp() {
         expectedGradleManifest = new GradleManifest()
         expectedMetaInfFileSets = [new FileSet('somedir')]
+        expectedFileSetManifest = 'skip'
         super.setUp()
     }
 
     public createAntArchiveParameter() {
-        new AntMetaArchiveParameter(expectedResourceCollections, expectedCreateIfEmpty,
+        new AntMetaArchiveParameter(expectedResourceCollections, expectedMergeFileSets, expectedMergeGroupFileSets, expectedFileSetManifest,
+                expectedCreateIfEmpty,
                 expectedDestinationDir, expectedArchiveName, expectedGradleManifest, expectedMetaInfFileSets, expectedAnt)
     }
 
@@ -41,6 +44,7 @@ class AntMetaArchiveParameterTest extends AbstractArchiveParameterTest {
         AntMetaArchiveParameter metaArchiveParameter = archiveParameter
         assert metaArchiveParameter.gradleManifest.is(expectedGradleManifest)
         assert metaArchiveParameter.metaInfFileSets.is(expectedMetaInfFileSets)
+        assertEquals(expectedFileSetManifest, metaArchiveParameter.fileSetManifest)
     }
 
 

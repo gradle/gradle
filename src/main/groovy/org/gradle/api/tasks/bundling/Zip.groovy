@@ -36,7 +36,7 @@ class Zip extends AbstractArchiveTask {
     }
 
     Closure createAntArchiveTask() {
-        { -> antZip.execute(new AntArchiveParameter(self.resourceCollections, self.createIfEmpty,
+        { -> antZip.execute(new AntArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets, self.createIfEmpty,
                 self.destinationDir, archiveName, project.ant)) }
     }
 

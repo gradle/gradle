@@ -20,6 +20,8 @@ import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.util.HelperUtil
+import org.gradle.api.tasks.util.ZipFileSet
+import org.gradle.api.tasks.util.TarFileSet
 
 /**
 * @author Hans Dockter
@@ -36,8 +38,20 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
     File unzipDir
     String archiveName
     FileSet fileSet
+    FileSet mergeGroupFileSet
+    List mergeGroupFileSets
+    FileSet mergeZipFileSet
+    FileSet mergeTarFileSet
+    List mergeFileSets
     FileCollection fileCollection
     List resourceCollections
+
+    File mergeZipFile
+    File mergeGroupFile
+    File mergeTarFile
+    File zipGroupContentFile
+    File zipContentFile
+    File tarContentFile
 
     GradleManifest manifest
     File manifestFile
@@ -52,8 +66,20 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
 
     void setUp() {
         testDir = HelperUtil.makeNewTestDir()
+        mergeGroupFile = new File(testDir, 'test_mergegroup.zip')
+        mergeZipFile = new File(testDir, 'test_merge_zip.zip')
+        mergeTarFile = new File(testDir, 'test_merge_tar.tar')
+
         (unzipDir = new File(testDir, 'unzipDir')).mkdir()
         archiveName = 'test.jar'
+
+        mergeGroupFileSet = new FileSet(testDir)
+        mergeGroupFileSet.include("$mergeGroupFile.name")
+        mergeGroupFileSets = [mergeGroupFileSet]
+
+        mergeZipFileSet = new ZipFileSet(mergeZipFile)
+        mergeTarFileSet = new TarFileSet(mergeTarFile)
+        mergeFileSets = [mergeZipFileSet, mergeTarFileSet]
 
         fileSet = new FileSet(testDir)
         fileSet.include('**/*.txt', '**/*.jpg')
@@ -70,6 +96,7 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
         }
         resourceCollections = [fileSet, fileCollection, antDirective]
     }
+    
     private void createMetaData() {
         mainAttributes = [attr1: 'value1', attr2: 'value2']
         sectionAttributes = [sectionAttr1: 'value1', sectionAttr2: 'value2']
@@ -88,6 +115,9 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
         assertTrue(new File(unzipDir, txtFile.name).exists())
         assertTrue(new File(unzipDir, gradleFile.name).exists())
         assertTrue(new File(unzipDir, groovyFile.name).exists())
+        assertTrue(new File(unzipDir, zipContentFile.name).exists())
+        assertTrue(new File(unzipDir, zipGroupContentFile.name).exists())
+        assertTrue(new File(unzipDir, tarContentFile.name).exists())
         assertFalse(new File(unzipDir, xmlFile.name).exists())
         assertFalse(new File(unzipDir, jpgFile.name).exists())
     }
@@ -121,6 +151,20 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
         (gradleFile = new File(testDir, 'test.gradle')).createNewFile()
         (groovyFile = new File(testDir, 'test.groovy')).createNewFile()
         (manifestFile = new File(testDir, 'MANIFEST.MF')).write("$manifestFileKey: $manifestFileValue")
+        createArchiveFiles()
+    }
+
+    protected void createArchiveFiles() {
+        (zipContentFile = new File(testDir, 'zipcontent.txt')).createNewFile()
+        (zipGroupContentFile = new File(testDir, 'zipgroupcontent.txt')).createNewFile()
+        (tarContentFile = new File(testDir, 'tarcontent.txt')).createNewFile()
+        AntBuilder ant = new AntBuilder()
+        ant.zip(destfile: mergeGroupFile, basedir: testDir, includes: "$zipGroupContentFile.name")
+        ant.zip(destfile: mergeZipFile, basedir: testDir, includes: "$zipContentFile.name")
+        ant.tar(destfile: mergeTarFile, basedir: testDir, includes: "$tarContentFile.name")
+        zipContentFile.delete()
+        zipGroupContentFile.delete()
+        tarContentFile.delete()
     }
 
     List createFileSetDuo(String key) {

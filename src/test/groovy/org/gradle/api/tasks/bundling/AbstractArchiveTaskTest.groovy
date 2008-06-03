@@ -23,6 +23,8 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.HelperUtil
 import org.gradle.api.tasks.util.FileCollection
+import org.gradle.api.tasks.util.ZipFileSet
+import org.gradle.api.tasks.util.TarFileSet
 
 /**
  * @author Hans Dockter
@@ -45,6 +47,8 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     void checkConstructor() {
         assertFalse(archiveTask.createIfEmpty)
         assertEquals([], archiveTask.resourceCollections)
+        assertEquals([], archiveTask.mergeFileSets)
+        assertEquals([], archiveTask.mergeGroupFileSets)
     }
 
     protected void configure(AbstractArchiveTask archiveTask) {
@@ -128,6 +132,50 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     void testArchivePath() {
         assertEquals(new File(archiveTask.destinationDir, archiveTask.archiveName), archiveTask.archivePath)
+    }
+
+    void testMerge() {
+        archiveTask.archiveDetector = [archiveFileSetType: {File file -> ZipFileSet }] as ArchiveDetector
+        Object[] fileDescriptions = ['a.zip' as File, new File(HelperUtil.TMP_DIR_FOR_TEST, 'b.zip').absolutePath]
+        assert archiveTask.merge(fileDescriptions) {
+            include('x')   
+        }.is(archiveTask)
+        List mergeFileSets = archiveTask.mergeFileSets
+        assertEquals(fileDescriptions.size(), mergeFileSets.size())
+        assert mergeFileSets[0] instanceof ZipFileSet
+        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
+        assertEquals(['x'] as Set, mergeFileSets[0].includes)
+        assert mergeFileSets[1] instanceof ZipFileSet
+        assertEquals(['x'] as Set, mergeFileSets[1].includes)
+    }
+
+    void testMergeWithoutClosure() {
+        archiveTask.archiveDetector = [archiveFileSetType: {File file -> ZipFileSet }] as ArchiveDetector
+        assert archiveTask.merge('a.zip').is(archiveTask)
+        List mergeFileSets = archiveTask.mergeFileSets
+        assertEquals(1, mergeFileSets.size())
+        assert mergeFileSets[0] instanceof ZipFileSet
+        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
+    }
+
+    void testMergeWithNonArchive() {
+        archiveTask.archiveDetector = [archiveFileSetType: {File file -> null }] as ArchiveDetector
+        shouldFail(InvalidUserDataException) {
+            archiveTask.merge('x')
+        }
+    }
+
+    void testMergeGroup() {
+        Object[] fileDescriptions = [new File('a'), new File('b').absolutePath]
+
+        assert archiveTask.mergeGroup(HelperUtil.TMP_DIR_FOR_TEST) {
+            include('a')
+        }.is(archiveTask)
+
+        List mergeGroups = archiveTask.mergeGroupFileSets
+        assertEquals(1, mergeGroups.size())
+        assertEquals(mergeGroups[0].dir, HelperUtil.TMP_DIR_FOR_TEST as File)
+        assertEquals(mergeGroups[0].includes, ['a'] as Set)
     }
 
 }

@@ -19,7 +19,7 @@ package org.gradle.api.tasks.util
 /**
  * @author Hans Dockter
  */
-class ZipFileSetTest extends FileSetTest{
+class ZipFileSetTest extends FileSetTest {
     
     Class getPatternSetType() {
         ZipFileSet

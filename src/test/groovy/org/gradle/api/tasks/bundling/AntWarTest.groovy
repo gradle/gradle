@@ -47,7 +47,8 @@ class AntWarTest extends AbstractAntArchiveTest {
     }
 
     void testExecute() {
-        antWar.execute(new AntMetaArchiveParameter(resourceCollections, true, testDir, archiveName, manifest,
+        antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
+                archiveName, manifest,
                 createFileSetDuo(AbstractAntArchiveTest.METAINFS_KEY), new AntBuilder()),
                 createFileSetDuo(FILESET_CLASSES_KEY),
                 libFiles,
@@ -63,7 +64,8 @@ class AntWarTest extends AbstractAntArchiveTest {
     void testExecuteWithImplicitWebxml() {
         FileSet fileSet = new FileSet(testDir)
         fileSet.include(implicitWebXml.name)
-        antWar.execute(new AntMetaArchiveParameter(resourceCollections, true, testDir, archiveName, manifest,
+        antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
+                archiveName, manifest,
                 createFileSetDuo(AbstractAntArchiveTest.METAINFS_KEY), new AntBuilder()),
                 createFileSetDuo(FILESET_CLASSES_KEY),
                 libFiles,
@@ -79,7 +81,8 @@ class AntWarTest extends AbstractAntArchiveTest {
     void testExecuteWithExplicitAndImplicitWebxml() {
         FileSet fileSet = new FileSet(testDir)
         fileSet.include(implicitWebXml.name)
-        antWar.execute(new AntMetaArchiveParameter(resourceCollections, true, testDir, archiveName, manifest,
+        antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
+                archiveName, manifest,
                 createFileSetDuo(AbstractAntArchiveTest.METAINFS_KEY), new AntBuilder()),
                 createFileSetDuo(FILESET_CLASSES_KEY),
                 libFiles,
@@ -93,7 +96,8 @@ class AntWarTest extends AbstractAntArchiveTest {
     }
 
     void testExecuteWithNullLists() {
-        antWar.execute(new AntMetaArchiveParameter(resourceCollections, true, testDir, archiveName, null,
+        antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
+                archiveName, null,
                 null, new AntBuilder()),
                 null,
                 null,

@@ -44,7 +44,7 @@ class DirectoryTest extends AbstractTaskTest {
     }
 
     void testInit() {
-        assertEquals(new File(project.projectDir, TASK_DIR_NAME), directory.dir)
+        assertEquals(new File(project.projectDir, TASK_DIR_NAME).absoluteFile, directory.dir)
     }
 
     void testInitWithAbsolutePathName() {

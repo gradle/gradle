@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.bundling
 
 /**
@@ -22,12 +22,24 @@ package org.gradle.api.tasks.bundling
 class AntMetaArchiveParameter extends AntArchiveParameter {
     GradleManifest gradleManifest
     List metaInfFileSets
+    String fileSetManifest
 
-    AntMetaArchiveParameter(List resourceCollections, boolean createIfEmpty, File destinationDir, String archiveName,
-                                  GradleManifest gradleManifest, List metaInfFileSets, AntBuilder ant) {
-        super(resourceCollections, createIfEmpty, destinationDir, archiveName, ant)
+    AntMetaArchiveParameter(List resourceCollections, List mergeFileSets, List mergeGroupFileSets, String fileSetManifest,
+                            boolean createIfEmpty, File destinationDir, String archiveName,
+                            GradleManifest gradleManifest, List metaInfFileSets, AntBuilder ant) {
+        super(resourceCollections, mergeFileSets, mergeGroupFileSets, createIfEmpty, destinationDir, archiveName, ant)
         this.gradleManifest = gradleManifest
         this.metaInfFileSets = metaInfFileSets
+        this.fileSetManifest = fileSetManifest
+    }
+
+    void addToArgs(Map args) {
+        if (gradleManifest?.file) {
+            args.manifest = gradleManifest.file.absolutePath
+        }
+        args.destfile = "${destinationDir.absolutePath}/$archiveName"
+        args.whenmanifestonly = emptyPolicy()
+        if (fileSetManifest) {args.filesetmanifest}
     }
 
 }

@@ -137,19 +137,19 @@ public interface Project {
     File getProjectDir();
 
     /**
-     * @param path a relative path to the project dir 
+     * @param path An object which toString method value is interpreted as a relative path to the project dir
      * @return
      */
-    File file(String path);
+    File file(Object path);
 
     /**
      * Returns a file which gets validated according to the validation type passed to the method. Possible validations
      * are: NONE, EXISTS, IS_FILE, IS_DIRECTORY
-     * @param path
+     * @param path An object which toString method value is interpreted as a relative path to the project dir 
      * @param validation
      * @return a File, which path is the absolute path of the project directory plus the relative path of the method argument
      */
-    File file(String path, PathValidation validation);
+    File file(Object path, PathValidation validation);
 
     String absolutePath(String path);
 
