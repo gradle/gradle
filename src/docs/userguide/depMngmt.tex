@@ -267,7 +267,7 @@ dependencies {
 	compile "repotest:repotest:1.0"	
 }
 \end{Verbatim}
-Gradle finds \texttt{repotest-1.0.pom} in the Maven repo. After this it tries to find the corresponding artifact \texttt{repotest-1.0.jar} and finds it in \texttt{http://repo.gradle.org}. But what about \texttt{testdep-1.0.pom}? As Gradle looks for poms only in the Maven repo it can't find this pom file.\footnote{To make things more flexible (or complicated). By default the build would not fail, as Ivy's default behavior is to create internally a default pom if it can't find a pom. This default pom has of course no dependencies and defines just the artifact \texttt{testdep-1.0.jar} and would be found in \texttt{http://repo.gradle.org}. If you want the build to fail if a pom can't be found you must the set the \texttt{allownomd} property of the resolver to \texttt{false}.
+Gradle finds \texttt{repotest-1.0.pom} in the Maven repo. After this it tries to find the corresponding artifact \texttt{repotest-1.0.jar} and finds it in \texttt{http://repo.gradle.org}. But what about \texttt{testdep-1.0.pom}? As Gradle looks for poms only in the Maven repo it can't find this pom file.\footnote{To make things more flexible (or complicated): By default the build would not fail, as Ivy's default behavior is to create internally a default pom if it can't find a pom. This default pom has of course no dependencies and defines just the artifact \texttt{testdep-1.0.jar} and would be found in \texttt{http://repo.gradle.org}. If you want the build to fail if a pom can't be found you must the set the \texttt{allownomd} property of the resolver to \texttt{false}.}
 
 The final correct version to solve our use case is:
 \begin{Verbatim}
