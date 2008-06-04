@@ -190,6 +190,12 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertFalse(action1Called)
         assertTrue(task.executed)
 
+        System.setProperty(task.skipProperties[0], '')
+        task.executed = false
+        task.execute()
+        assertFalse(action1Called)
+        assertTrue(task.executed)
+
         System.setProperty(task.skipProperties[0], 'false')
         task.executed = false
         task.execute()
