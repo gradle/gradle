@@ -87,7 +87,6 @@ class DefaultTask implements Task {
             String propValue = System.properties[prop]
             propValue != null && !(propValue.toUpperCase().equals('FALSE'))
         }
-        println trueSkips
         if (trueSkips) {
             logger.info("Skipping execution as following skip properties are true: ${trueSkips.join(' ')}")
         } else {

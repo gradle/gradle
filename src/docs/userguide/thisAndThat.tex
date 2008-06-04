@@ -5,8 +5,7 @@
 Gradle offers multiple ways to skip the execution of a task.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/skipPropertiesfile}
 \outputInputTutorial{../../../build/tutorial-output/skipPropertiesfile.out}
-The \texttt{-D} option of the \texttt{gradle} command has the same effect as the \texttt{-D} option of the \texttt{java} command. This way you can set system properties of the JVM that runs Gradle. You can add one ore more \emph{skip properties} to any existing task. If the corresponding system property is set to true (case does not matter), the actions of the task don't get executed.
-But often you don't even need to set the skip properties. If you set a system property according to the pattern \texttt{skip.\emph{taskname}}, the actions of this task don't get executed.
+The \texttt{-D} option of the \texttt{gradle} command has the same effect as the \texttt{-D} option of the \texttt{java} command. This way you can set system properties of the JVM that runs Gradle. You can add one ore more \emph{skip properties} to any existing task. If the corresponding system property is set to any value/footnote{The statement \texttt{-Dprop} sets the property to empty string, thus you don't need to type more to skip a task.} except false (case does not matter), the actions of the task don't get executed. But often you don't even need to set the skip properties. If you set a system property according to the pattern \texttt{skip.\emph{taskname}}, the actions of this task don't get executed.
 \codeInput{../../../build/distributions/exploded/samples/tutorial/autoskipfile}
 \outputInputTutorial{../../../build/tutorial-output/autoskipfile.out}
 If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via the skip properties
