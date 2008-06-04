@@ -125,16 +125,16 @@ File[] fileList(String property) {
 
         String autoskipTaskname = 'autoskip'
         scripts[autoskipTaskname] = ["""createTask('$autoskipTaskname') {
-    println 'This should not be printed if the skip.$autoskipTaskname system property is set to true.'
-}""", {assert "" == it}, "-Dskip.$autoskipTaskname=true $autoskipTaskname"]
+    println 'This should not be printed if the skip.$autoskipTaskname system property is set.'
+}""", {assert "" == it}, "-Dskip.$autoskipTaskname $autoskipTaskname"]
 // *****************
         scripts["${autoskipTaskname}Depends"] = ["""createTask('$autoskipTaskname') {
-    println 'This should not be printed if the skip.$autoskipTaskname system property is set to true.'
+    println 'This should not be printed if the skip.$autoskipTaskname system property is set.'
 }
 createTask('depends', dependsOn: '$autoskipTaskname') {
-    println "This should not be printed if the skip.$autoskipTaskname system property is set to true."
+    println "This should not be printed if the skip.$autoskipTaskname system property is set."
 }.skipProperties << 'skip.$autoskipTaskname'
-""", {assert "" == it}, "-Dskip.$autoskipTaskname=true depends"]
+""", {assert "" == it}, "-Dskip.$autoskipTaskname depends"]
 // *****************
         String unaffectedMessage = "I am not affected"
         scripts["stopExecutionException"] = ["""createTask('compile') {
