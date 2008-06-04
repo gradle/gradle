@@ -141,11 +141,19 @@ class BundleTest extends AbstractConventionTaskTest {
         assertEquals(testChildrenDependsOn as Set, task2.dependsOn)
     }
 
+    void testEmptyChildrenDependsOn() {
+        bundle.childrenDependOn = []
+        AbstractArchiveTask task1 = bundle.zip(baseName: 'zip1')
+        AbstractArchiveTask task2 = bundle.zip(baseName: 'zip2')
+        assertEquals(testBundleDependsOn as Set, task1.dependsOn)
+        assertEquals(testBundleDependsOn as Set, task2.dependsOn)
+    }
+
     private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType, Map args = [:]) {
         String baseName = args.baseName ?: bundle.tasksBaseName
         String classifier = args.classifier ? '_' + args.classifier  : ''
         checkCommonStuff(archiveTask, "${baseName}${classifier}_${archiveType.defaultExtension}",
-                archiveType.conventionMapping, baseName, classifier)
+                archiveType.conventionMapping, baseName, classifier ? classifier.substring(1) : '')
     }
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,

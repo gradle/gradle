@@ -76,18 +76,17 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     void checkArchiveParameterEqualsArchive(AntArchiveParameter archiveParameter, AbstractArchiveTask task) {
-        archiveParameter.ant.is(task.project.ant)
-        archiveParameter.archiveName == "${task.baseName}-${task.version}.${task.extension}-${task.classifier}"
-        archiveParameter.archiveName.is(task.project.ant)
-        archiveParameter.destinationDir.is(task.destinationDir)
-        archiveParameter.createIfEmpty == task.createIfEmpty
-        archiveParameter.resourceCollections.is(task.resourceCollections)
+        assert archiveParameter.ant.is(task.project.ant)
+        assert archiveParameter.archiveName == "${task.baseName}-${task.version}-${task.classifier}.${task.extension}"
+        assert archiveParameter.destinationDir.is(task.destinationDir)
+        assert archiveParameter.createIfEmpty == task.createIfEmpty
+        assert archiveParameter.resourceCollections.is(task.resourceCollections)
     }
 
     void checkMetaArchiveParameterEqualsArchive(AntMetaArchiveParameter metaArchiveParameter, AbstractArchiveTask task) {
         checkArchiveParameterEqualsArchive(metaArchiveParameter, task)
-        metaArchiveParameter.gradleManifest.is(task.manifest)
-        metaArchiveParameter.metaInfFileSets.is(task.metaInfResourceCollections)
+        assert metaArchiveParameter.gradleManifest.is(task.manifest)
+        assert metaArchiveParameter.metaInfFileSets.is(task.metaInfResourceCollections)
     }
 
     void testFileSetWithTaskBaseDir() {

@@ -22,6 +22,7 @@ import org.gradle.api.tasks.Resources
 import org.gradle.api.tasks.bundling.Jar
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
@@ -58,12 +59,20 @@ class Bundle extends ConventionTask {
         AbstractArchiveTask archiveTask = project.createTask(taskName, type: type.taskClass)
         archiveTask.convention(convention, type.conventionMapping)
         archiveTask.baseName = baseName
-        archiveTask.classifier = classifier
+        archiveTask.classifier = classifier ? classifier.substring(1) : ''
         if (configureClosure) {archiveTask.configure(configureClosure)}
-        archiveTask.dependsOn = self.childrenDependOn
+        setTaskDependsOn(archiveTask, childrenDependOn)
         this.dependsOn(taskName)
         archiveNames << archiveTask.name
         archiveTask
+    }
+
+    private void setTaskDependsOn(AbstractArchiveTask task, Set childrenDependOn) {
+        if (childrenDependOn) {
+            task.dependsOn = childrenDependOn
+        } else {
+            task.dependsOn = this.dependsOn - archiveNames
+        }
     }
 
     Jar jar(Closure configureClosure = null) {

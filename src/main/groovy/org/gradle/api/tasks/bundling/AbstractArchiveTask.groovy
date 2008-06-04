@@ -156,8 +156,8 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     String getArchiveName() {
         if (customName) { return customName }
-        self.baseName + (self.version ? "-$self.version" : "") + ".$self.extension" +
-                (self.classifier ? "-$self.classifier" : "")
+        self.baseName + (self.version ? "-$self.version" : "") + (self.classifier ? "-$self.classifier" : "") +
+                ".$self.extension"
     }
 
     /**
