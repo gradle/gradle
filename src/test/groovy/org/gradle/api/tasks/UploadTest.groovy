@@ -74,9 +74,9 @@ class UploadTest extends AbstractConventionTaskTest {
         Bundle bundle = new Bundle(upload.project, 'bundle')
         bundle.tasksBaseName = 'basename'
         bundle.defaultArchiveTypes = JavaConvention.DEFAULT_ARCHIVE_TYPES
-        AbstractArchiveTask zip1 = bundle.zip('zip1')
-        AbstractArchiveTask zip2 = bundle.zip('zip2')
-        AbstractArchiveTask zip3 = bundle.zip('zip3')
+        AbstractArchiveTask zip1 = bundle.zip(baseName: 'zip1')
+        AbstractArchiveTask zip2 = bundle.zip(baseName: 'zip2')
+        AbstractArchiveTask zip3 = bundle.zip(baseName: 'zip3')
         zip1.configurations('zip', 'zip1')
         zip2.configurations('zip2')
         zip2.publish = false

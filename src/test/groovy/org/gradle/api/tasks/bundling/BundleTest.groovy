@@ -25,6 +25,8 @@ import org.gradle.api.tasks.AbstractTaskTest
  * @author Hans Dockter
  */
 class BundleTest extends AbstractConventionTaskTest {
+    static final File TEST_DESTINATION_DIR = new File('testdestdir')
+    
     Bundle bundle
 
     ArchiveType testArchiveType
@@ -37,26 +39,37 @@ class BundleTest extends AbstractConventionTaskTest {
 
     List testChildrenDependsOn
 
+    List testBundleDependsOn
+
     String expectedArchiveName
 
     String customTaskName
 
     String expectedDefaultArchiveName
 
+    Map testArgs
+
+    Closure testClosure
+
     Task getTask() {bundle}
 
     void setUp() {
         super.setUp()
+        testArgs = [baseName: 'testBasename', classifier: 'testClassifier']
+        testClosure = {
+            destinationDir = TEST_DESTINATION_DIR
+        }
         testChildrenDependsOn = ['othertaskpath', 'othertaskpath2']
+        testBundleDependsOn = ['othertaskpath10', 'othertaskpath11']
         bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
         bundle.childrenDependOn = testChildrenDependsOn
+        bundle.dependsOn = testBundleDependsOn
         bundle.tasksBaseName = 'testbasename'
         bundle.defaultArchiveTypes = JavaConvention.DEFAULT_ARCHIVE_TYPES
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
         expectedDefaultArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
         testArchiveType = new ArchiveType('suf', [:], TestArchiveTask)
-
     }
 
     void testBundle() {
@@ -65,65 +78,84 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     void testJarWithDefaultValues() {
-        Jar jar = checkForDefaultValues(bundle.jar(), bundle.defaultArchiveTypes.jar)
+        (Jar) checkForDefaultValues(bundle.jar(testClosure), bundle.defaultArchiveTypes.jar)
+    }
+
+    void testJarWithArgs() {
+        (Jar) checkForDefaultValues(bundle.jar(testArgs, testClosure), bundle.defaultArchiveTypes.jar, testArgs)
     }
 
     void testZipWithDefaultValues() {
-        Zip zip = checkForDefaultValues(bundle.zip(), bundle.defaultArchiveTypes.zip)
+        (Zip) checkForDefaultValues(bundle.zip(testClosure), bundle.defaultArchiveTypes.zip)
+    }
+
+    void testZipWithArgs() {
+        (Zip) checkForDefaultValues(bundle.zip(testArgs, testClosure), bundle.defaultArchiveTypes.zip, testArgs)
     }
 
     void testWarWithDefaultValues() {
-        War war = checkForDefaultValues(bundle.war(), bundle.defaultArchiveTypes.war)
+        (War) checkForDefaultValues(bundle.war(testClosure), bundle.defaultArchiveTypes.war)
+    }
+
+    void testWarWithArgs() {
+        (War) checkForDefaultValues(bundle.war(testArgs, testClosure), bundle.defaultArchiveTypes.war, testArgs)
     }
 
     void testTarWithDefaultValues() {
-        Tar tar = checkForDefaultValues(bundle.tar(), bundle.defaultArchiveTypes.tar)
+        (Tar) checkForDefaultValues(bundle.tar(testClosure), bundle.defaultArchiveTypes.tar)
+    }
+
+    void testTarWithArgs() {
+        (Tar) checkForDefaultValues(bundle.tar(testArgs, testClosure), bundle.defaultArchiveTypes.tar, testArgs)
     }
 
     void testTarGzWithDefaultValues() {
-        Tar tar = checkForDefaultValues(bundle.tarGz(), bundle.defaultArchiveTypes['tar.gz'])
+        (Tar) checkForDefaultValues(bundle.tarGz(testClosure), bundle.defaultArchiveTypes['tar.gz'])
+    }
+
+    void testTarGzWithArgs() {
+        (Tar) checkForDefaultValues(bundle.tarGz(testArgs, testClosure), bundle.defaultArchiveTypes['tar.gz'], testArgs)
     }
 
     void testTarBzip2WithDefaultValues() {
-        Tar tar = checkForDefaultValues(bundle.tarBzip2(), bundle.defaultArchiveTypes['tar.bzip2'])
+        (Tar) checkForDefaultValues(bundle.tarBzip2(testClosure), bundle.defaultArchiveTypes['tar.bzip2'])
+    }
+
+    void testTarBzip2WithArgs() {
+        (Tar) checkForDefaultValues(bundle.tarBzip2(testArgs, testClosure), bundle.defaultArchiveTypes['tar.bzip2'], testArgs)
     }
 
     void testCreateArchiveWithDefaultValues() {
-        TestArchiveTask testTask = checkForDefaultValues(bundle.createArchive(testArchiveType), testArchiveType)
+        (TestArchiveTask) checkForDefaultValues(bundle.createArchive(testArchiveType, testClosure), testArchiveType)
     }
 
     void testCreateArchiveWithCustomName() {
-        TestArchiveTask testTask = bundle.createArchive(testArchiveType, customTaskName)
-        checkCommonStuff(testTask, "${customTaskName}_${testArchiveType.defaultExtension}", testArchiveType.conventionMapping, customTaskName)
+        TestArchiveTask testTask = bundle.createArchive(testArchiveType, testArgs, testClosure)
+        checkForDefaultValues(testTask, testArchiveType, testArgs)
     }
 
-    void testCreateMultipleArchives() {
-        AbstractArchiveTask task1 = bundle.zip('zip1')
-        AbstractArchiveTask task2 = bundle.zip('zip2')
+    void testChildrenDependsOn() {
+        AbstractArchiveTask task1 = bundle.zip(baseName: 'zip1')
+        AbstractArchiveTask task2 = bundle.zip(baseName: 'zip2')
         assertEquals(testChildrenDependsOn as Set, task1.dependsOn)
         assertEquals(testChildrenDependsOn as Set, task2.dependsOn)
     }
 
-    void testCreateArchiveWithConfigureClosure() {
-        Closure configureClosure = {
-            // manipulate some property
-            executed = true
-        }
-        TestArchiveTask testTask = bundle.createArchive(testArchiveType, configureClosure)
-        checkCommonStuff(testTask, "${bundle.tasksBaseName}_${testArchiveType.defaultExtension}", testArchiveType.conventionMapping, bundle.tasksBaseName)
-        assertTrue(testTask.executed)
-    }
-
-    private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType) {
-        checkCommonStuff(archiveTask, "${bundle.tasksBaseName}_${archiveType.defaultExtension}", archiveType.conventionMapping, bundle.tasksBaseName)
+    private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType, Map args = [:]) {
+        String baseName = args.baseName ?: bundle.tasksBaseName
+        String classifier = args.classifier ? '_' + args.classifier  : ''
+        checkCommonStuff(archiveTask, "${baseName}${classifier}_${archiveType.defaultExtension}",
+                archiveType.conventionMapping, baseName, classifier)
     }
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
-                                                 Map conventionMapping, String expectedArchiveBaseName) {
+                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveClassifier) {
+        assertEquals(TEST_DESTINATION_DIR, archiveTask.destinationDir)
         assert archiveTask.conventionMapping.is(conventionMapping)
         assertEquals(expectedArchiveTaskName, archiveTask.name)
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
-        assertEquals([expectedArchiveTaskName] as Set, bundle.dependsOn)
+        assertEquals(expectedArchiveClassifier, archiveTask.classifier)
+        assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
         assert bundle.archiveNames.contains(archiveTask.name)
         archiveTask

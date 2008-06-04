@@ -29,6 +29,9 @@ import org.slf4j.LoggerFactory
 class Bundle extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Resources)
 
+    static final BASENAME_KEY = 'basename'
+    static final CLASSIFIER_KEY = 'classifier'
+
     Bundle self
 
     String tasksBaseName
@@ -44,50 +47,73 @@ class Bundle extends ConventionTask {
         self = this
     }
 
-    AbstractArchiveTask createArchive(ArchiveType type, Closure configureClosure = null) {
-        createArchive(type, null, configureClosure)
+    AbstractArchiveTask createArchive(ArchiveType type, Closure configureClosure) {
+        createArchive(type, [:], configureClosure)
     }
 
-    AbstractArchiveTask createArchive(ArchiveType type, String baseName, Closure configureClosure = null) {
-        String taskName = (baseName ?: self.tasksBaseName) + "_$type.defaultExtension"
+    AbstractArchiveTask createArchive(ArchiveType type, Map args = [:], Closure configureClosure = null) {
+        String baseName = args.baseName ?: self.tasksBaseName
+        String classifier = args.classifier ? '_' + args.classifier : ''
+        String taskName = "$baseName${classifier}_$type.defaultExtension"
         AbstractArchiveTask archiveTask = project.createTask(taskName, type: type.taskClass)
         archiveTask.convention(convention, type.conventionMapping)
+        archiveTask.baseName = baseName
+        archiveTask.classifier = classifier
         if (configureClosure) {archiveTask.configure(configureClosure)}
-        archiveTask.baseName = (baseName ?: self.tasksBaseName)
         archiveTask.dependsOn = self.childrenDependOn
         this.dependsOn(taskName)
         archiveNames << archiveTask.name
         archiveTask
     }
 
-    Jar jar(String baseName = null, Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[Jar.DEFAULT_EXTENSION], baseName, configureClosure)
+    Jar jar(Closure configureClosure = null) {
+        jar([:], configureClosure)
     }
 
-    War war(String baseName = null, Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[War.WAR_EXTENSION], baseName, configureClosure)
+    Jar jar(Map args = [:], Closure configureClosure = null) {
+        createArchive(self.defaultArchiveTypes[Jar.DEFAULT_EXTENSION], args, configureClosure)
+    }
+
+    War war(Closure configureClosure = null) {
+        war([:], configureClosure)
+    }
+
+    War war(Map args = [:], Closure configureClosure = null) {
+        createArchive(self.defaultArchiveTypes[War.WAR_EXTENSION], args, configureClosure)
     }
 
     Zip zip(Closure configureClosure) {
-        zip(null, configureClosure)
+        zip([:], configureClosure)
     }
 
-    Zip zip(String baseName = null, Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[Zip.ZIP_EXTENSION], baseName, configureClosure)
+    Zip zip(Map args = [:], Closure configureClosure = null) {
+        createArchive(self.defaultArchiveTypes[Zip.ZIP_EXTENSION], args, configureClosure)
     }
 
-    Tar tar(String baseName = null, Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION], baseName, configureClosure)
+    Tar tar(Closure configureClosure = null) {
+        tar([:], configureClosure)
     }
 
-    Tar tarGz(String baseName = null, Closure configureClosure = null) {
-        Tar tar = createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION + Compression.GZIP.extension], baseName, configureClosure)
+    Tar tar(Map args = [:], Closure configureClosure = null) {
+        createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION], args, configureClosure)
+    }
+
+    Tar tarGz(Closure configureClosure = null) {
+        tarGz([:], configureClosure)
+    }
+
+    Tar tarGz(Map args = [:], Closure configureClosure = null) {
+        Tar tar = createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION + Compression.GZIP.extension], args, configureClosure)
         tar.compression = Compression.GZIP
         tar
     }
 
-    Tar tarBzip2(String baseName = null, Closure configureClosure = null) {
-        Tar tar = createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION + Compression.BZIP2.extension], baseName, configureClosure)
+    Tar tarBzip2(Closure configureClosure = null) {
+        tarBzip2([:], configureClosure)
+    }
+
+    Tar tarBzip2(Map args = [:], Closure configureClosure = null) {
+        Tar tar = createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION + Compression.BZIP2.extension], args, configureClosure)
         tar.compression = Compression.BZIP2
         tar
     }

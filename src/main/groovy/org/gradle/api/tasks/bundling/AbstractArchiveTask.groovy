@@ -76,6 +76,11 @@ abstract class AbstractArchiveTask extends ConventionTask {
     String extension
 
     /**
+     * The classifier part of the archive name. Default to an empty string. Could be 'src'. 
+     */
+    String classifier = ''
+
+    /**
      * Controlls whether the archive adds itself to the dependency configurations. Defaults to true.
      */
     boolean publish = true
@@ -129,7 +134,7 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     AbstractArchiveTask configurations(String[] configurations) {
         this.configurations = configurations
-        this                       
+        this
     }
 
     void generateArchive(Task task) {
@@ -151,7 +156,8 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     String getArchiveName() {
         if (customName) { return customName }
-        self.baseName + (self.version ? "-$self.version" : "")  + ".$self.extension"
+        self.baseName + (self.version ? "-$self.version" : "") + ".$self.extension" +
+                (self.classifier ? "-$self.classifier" : "")
     }
 
     /**

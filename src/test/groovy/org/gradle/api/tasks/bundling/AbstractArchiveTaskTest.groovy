@@ -49,12 +49,14 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertEquals([], archiveTask.resourceCollections)
         assertEquals([], archiveTask.mergeFileSets)
         assertEquals([], archiveTask.mergeGroupFileSets)
+        assertEquals('', archiveTask.classifier)
     }
 
     protected void configure(AbstractArchiveTask archiveTask) {
         File testDir = HelperUtil.makeNewTestDir()
         archiveTask.baseName = 'testbasename'
         archiveTask.version = '1.0'
+        archiveTask.classifier = 'src'
         archiveTask.destinationDir = new File('/destinationDir')
         archiveTask.resourceCollections = [new FileSet(testDir)]
         archiveTask.baseDir = testDir
@@ -75,7 +77,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     void checkArchiveParameterEqualsArchive(AntArchiveParameter archiveParameter, AbstractArchiveTask task) {
         archiveParameter.ant.is(task.project.ant)
-        archiveParameter.archiveName == "${task.baseName}-${task.version}.${task.extension}"
+        archiveParameter.archiveName == "${task.baseName}-${task.version}.${task.extension}-${task.classifier}"
         archiveParameter.archiveName.is(task.project.ant)
         archiveParameter.destinationDir.is(task.destinationDir)
         archiveParameter.createIfEmpty == task.createIfEmpty
