@@ -36,8 +36,10 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     void setUp() {
         project = [getPath: {AbstractTaskTest.TEST_PROJECT_NAME},
                 getProjectDir: {new File(HelperUtil.TMP_DIR_FOR_TEST)},
-                file: {path -> (path as File).isAbsolute() ? path as File :
-                    new File("$HelperUtil.TMP_DIR_FOR_TEST/$path").absoluteFile}] as DefaultProject
+                file: {path ->
+                    (path as File).isAbsolute() ? path as File :
+                        new File("$HelperUtil.TMP_DIR_FOR_TEST/$path").absoluteFile
+                }] as DefaultProject
     }
 
     abstract Task getTask()
@@ -47,6 +49,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testTask() {
+        assertTrue(task.enabled)
         assertEquals(TEST_TASK_NAME, task.name)
         assertEquals(project, task.project)
         assertNotNull(task.skipProperties)
@@ -174,6 +177,17 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         task.execute()
         assertTrue(action2Called)
         assertTrue(task.executed)
+    }
+
+    void testDisabled() {
+        task.actions = []
+        Closure action1 = {
+            fail()
+        }
+        task.doFirst(action1)
+        task.enabled = false
+        task.execute()
+        assert task.executed
     }
 
     void testSkipProperties() {

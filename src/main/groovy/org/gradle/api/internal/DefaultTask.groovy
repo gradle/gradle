@@ -53,6 +53,8 @@ class DefaultTask implements Task {
 
     List afterDagClosures = []
 
+    boolean enabled = true
+
     DefaultTask() {
 
     }
@@ -82,7 +84,12 @@ class DefaultTask implements Task {
     }
 
     void execute() {
-        logger.debug("Executing ProjectTarget: $path")
+        logger.debug("Executing Task: $path")
+        if (!enabled) {
+            logger.info("Skipping execution as task is disabled.")
+            executed = true
+            return
+        }
         List trueSkips = (skipProperties + ["$Task.AUTOSKIP_PROPERTY_PREFIX$name"]).findAll {String prop ->
             String propValue = System.properties[prop]
             propValue != null && !(propValue.toUpperCase().equals('FALSE'))

@@ -117,7 +117,11 @@ File[] fileList(String property) {
     int fileNumber = dir.size() >= 5 ? 5 : dir.size()
     dir[0..fileNumber]
 }""", {/* just a smoke test */}, "checksum"]
-
+//***************
+                scripts['disableTask'] = ["""createTask('disableMe') {
+            println 'This should not be printed if the task is disabled.'
+        }.enabled = false""", {assert "" == it}, "disableMe"]
+//********************
         String mySkipProperty = 'mySkipProperty'
         scripts['skipProperties'] = ["""createTask('skipMe') {
     println 'This should not be printed if the $mySkipProperty system property is set to true.'

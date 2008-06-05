@@ -20,6 +20,10 @@ This feature is helpful if you work with tasks provided by Gradle. It allows you
 
 You might be wondering why there is neither an import for the \texttt{StopExecutionException} nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script. These imports are customizable (see Appendix \ref{ide_support}).
 
+Every task has also a \texttt{enabled} flag which defaults to \texttt{true}. Setting it to false prevents the execution of any of the tasks actions.
+\codeInput{../../../build/distributions/exploded/samples/tutorial/disableTaskfile}
+\outputInputTutorial{../../../build/tutorial-output/disableTaskfile.out}
+
 \section{Console Output}
 All available command line options are listed in Appendix \ref{cha:command_line}. You can also print them to your console with \texttt{gradle -h}. We want to look at the \emph{console output} options in more detail. 
 \\
