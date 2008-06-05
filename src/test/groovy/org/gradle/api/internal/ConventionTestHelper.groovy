@@ -38,22 +38,9 @@ class ConventionTestHelper  {
     }
 
     void checkAll(IConventionAware conventionAwareObject) {
-        checkConvention(conventionAwareObject)
         checkConventionMapping(conventionAwareObject)
         checkProperty(conventionAwareObject)
-        checkSetGetConvention(conventionAwareObject)
         checkSetGetConventionMapping(conventionAwareObject)
-    }
-
-    void checkConvention(IConventionAware conventionAware) {
-        conventionAwareHelperMocker.demand.convention(1..1) { convention, Map conventionMapping ->
-            assert convention.is(expectedConvention)
-            assert conventionMapping.is(expectedConventionMapping)
-            conventionAware
-        }
-        conventionAwareHelperMocker.use(conventionAware.conventionAwareHelper) {
-            assert conventionAware.is(conventionAware.convention(expectedConvention, expectedConventionMapping))
-        }
     }
 
     void checkConventionMapping(IConventionAware conventionAware) {
@@ -73,20 +60,6 @@ class ConventionTestHelper  {
         }
         conventionAwareHelperMocker.use(conventionAware.conventionAwareHelper) {
             assert conventionAware.getProperty(expectedPropertyName).is(expectedProperty)
-        }
-    }
-
-    void checkSetGetConvention(IConventionAware conventionAware) {
-        conventionAwareHelperMocker.demand.setConvention(1..1) { convention ->
-            assert convention.is(expectedConvention)
-        }
-        conventionAwareHelperMocker.demand.getValue(1..1) { String conventionPropertyName ->
-            assert conventionPropertyName == 'convention'
-            expectedConvention
-        }
-        conventionAwareHelperMocker.use(conventionAware.conventionAwareHelper) {
-            conventionAware.convention = expectedConvention
-            assert conventionAware.convention.is(expectedConvention)
         }
     }
       

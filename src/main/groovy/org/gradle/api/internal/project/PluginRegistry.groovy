@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- package org.gradle.api.internal.project
+package org.gradle.api.internal.project
 
 import org.gradle.api.Plugin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Project
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 
 class PluginRegistry {
     private static Logger logger = LoggerFactory.getLogger(PluginRegistry)
@@ -51,5 +52,12 @@ class PluginRegistry {
         }
         plugins[pluginClass]
     }
-    
+
+    void apply(Class pluginClass, Project project, PluginRegistry pluginRegistry) {
+        if (project.pluginApplyRegistry[pluginClass] == null) {
+            getPlugin(pluginClass).apply(project, pluginRegistry)
+            project.pluginApplyRegistry[pluginClass] = ''
+        }
+    }
+
 }

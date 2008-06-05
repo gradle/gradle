@@ -29,6 +29,6 @@ class GroovyPluginTest extends GroovyTestCase {
         // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
         DefaultProject project = HelperUtil.createRootProject(new File('path', 'root'))
         GroovyPlugin groovyPlugin = new GroovyPlugin()
-        groovyPlugin.apply(project, new PluginRegistry(), new GroovyConvention(project))
+        groovyPlugin.apply(project, new PluginRegistry())
     }
 }

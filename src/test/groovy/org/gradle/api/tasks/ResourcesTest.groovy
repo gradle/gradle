@@ -21,6 +21,8 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.util.CopyInstructionFactory
 import org.gradle.api.tasks.util.CopyInstructionTest
 import org.gradle.api.tasks.util.ExistingDirsFilter
+import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.TestPluginConvention1
 
 /**
  * @author Hans Dockter
@@ -32,16 +34,16 @@ class ResourcesTest extends AbstractTaskTest {
 
     MockFor copyInstructionFactoryMocker
 
-    Expando convention
+    ResourcesTestConvention pluginConvention
 
     void setUp() {
         super.setUp()
         resources = new Resources(project, AbstractTaskTest.TEST_TASK_NAME)
         copyInstructionFactory = new CopyInstructionFactory()
         resources.copyInstructionFactory = copyInstructionFactory
-        convention = new Expando()
-        convention.classesDir = new File('/classes')
-        resources.convention = convention
+        pluginConvention = new ResourcesTestConvention()
+        pluginConvention.classesDir = new File('/classes')
+        project.convention.plugins.test = pluginConvention
         resources.conventionMapping = [destinationDir: { it.classesDir }]
         copyInstructionFactoryMocker = new MockFor(CopyInstructionFactory)
     }
@@ -49,13 +51,13 @@ class ResourcesTest extends AbstractTaskTest {
     Task getTask() {resources}
 
     void testExecute() {
-        assertEquals(convention.classesDir, resources.destinationDir)
-        
+        assertEquals(pluginConvention.classesDir, resources.destinationDir)
+
         File sourceDir1 = new File('/source1')
         File sourceDir2 = new File('/source2')
         File sourceDir3 = new File('/source3')
-        
-        File targetDir = convention.classesDir
+
+        File targetDir = pluginConvention.classesDir
 
         // We test also that the respective methods returns the resource object
         String globalPattern1 = 'gi1'
@@ -103,11 +105,11 @@ class ResourcesTest extends AbstractTaskTest {
             [execute: {instructionExecuted[sourceDir] = new Boolean(true)}] as CopyInstructionTest
         }
 
-        resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: { File destDir, Collection srcDirs ->
-                    assert destDir.is(resources.destinationDir)
-                    assert srcDirs.is(resources.srcDirs)
-                    resources.srcDirs
-                }] as ExistingDirsFilter
+        resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
+            assert destDir.is(resources.destinationDir)
+            assert srcDirs.is(resources.srcDirs)
+            resources.srcDirs
+        }] as ExistingDirsFilter
 
 
         copyInstructionFactoryMocker.use(copyInstructionFactory) {
@@ -145,5 +147,8 @@ class ResourcesTest extends AbstractTaskTest {
         assertEquals(excludes as HashSet, calledValues[2] as HashSet)
         assertEquals(filter, calledValues[3])
     }
+}
 
+public class ResourcesTestConvention {
+    File classesDir
 }

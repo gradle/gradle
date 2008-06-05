@@ -25,11 +25,9 @@ import org.gradle.api.tasks.Clean
 import org.gradle.api.tasks.Resources
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Bundle
-import org.gradle.api.tasks.compile.AntJavac
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.Task
 
 /**
@@ -53,9 +51,10 @@ class JavaPlugin implements Plugin {
     static final String DEFAULT = 'default'
     static final String UPLOAD_DISTS = 'uploadDists'
 
-    void apply(Project project, PluginRegistry pluginRegistry, def convention = null) {
-        def javaConvention = convention ?: new JavaConvention(project)
-        project.convention = javaConvention
+    void apply(Project project, PluginRegistry pluginRegistry) {
+        def javaConvention = new JavaConvention(project)
+        Convention convention = project.convention
+        convention.plugins.java = javaConvention
 
         configureDependencyManager(project)
 
@@ -63,29 +62,26 @@ class JavaPlugin implements Plugin {
 
         project.createTask(INIT)
 
-        project.createTask(CLEAN, type: Clean).convention(javaConvention, DefaultConventionsToPropertiesMapping.CLEAN)
+        project.createTask(CLEAN, type: Clean).conventionMapping(DefaultConventionsToPropertiesMapping.CLEAN)
 
-        project.createTask(JAVADOC, type: Javadoc).convention(javaConvention, DefaultConventionsToPropertiesMapping.JAVADOC)
+        project.createTask(JAVADOC, type: Javadoc).conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC)
 
-        project.createTask(RESOURCES, type: Resources, dependsOn: INIT).convention(javaConvention, DefaultConventionsToPropertiesMapping.RESOURCES)
+        project.createTask(RESOURCES, type: Resources, dependsOn: INIT).conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES)
 
-        configureCompile(project.createTask(COMPILE, dependsOn: RESOURCES, type: Compile), javaConvention,
+        configureCompile(project.createTask(COMPILE, dependsOn: RESOURCES, type: Compile),
                 DefaultConventionsToPropertiesMapping.COMPILE)
 
         project.createTask(TEST_RESOURCES, dependsOn: COMPILE, type: Resources).configure {
             skipProperties << "$Task.AUTOSKIP_PROPERTY_PREFIX$TEST"
-            // Warning: We need to add the delegate here, because otherwise the method argument with the name
-            // convention is addressed.
-            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
+            conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES)
         }
 
         configureTestCompile(project.createTask(TEST_COMPILE, dependsOn: TEST_RESOURCES, type: Compile),
                 project.task(COMPILE),
-                javaConvention,
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE)
 
         project.createTask(TEST, dependsOn: TEST_COMPILE, type: Test).configure {
-            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.TEST)
+            conventionMapping(DefaultConventionsToPropertiesMapping.TEST)
             doFirst {Test test ->
                 test.unmanagedClasspath(test.project.task(TEST_COMPILE).unmanagedClasspath as Object[])
             }
@@ -99,9 +95,7 @@ class JavaPlugin implements Plugin {
             createArchive(javaConvention.archiveTypes[type])
         }
         project.createTask(LIBS, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
-            // Warning: We need to add the delegate here, because otherwise the method argument with the name
-            // convention is addressed.
-            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.LIB)
+            conventionMapping(DefaultConventionsToPropertiesMapping.LIB)
         }
 
         project.createTask(UPLOAD_LIBS, type: Upload, dependsOn: LIBS).configure {
@@ -111,9 +105,7 @@ class JavaPlugin implements Plugin {
         }
 
         project.createTask(DISTS, type: Bundle, dependsOn: UPLOAD_LIBS).configure {
-            // Warning: We need to add the delegate here, because otherwise the method argument with the name
-            // convention is addressed.
-            delegate.convention(javaConvention, DefaultConventionsToPropertiesMapping.DIST)
+            conventionMapping(DefaultConventionsToPropertiesMapping.DIST)
         }
 
         project.createTask(UPLOAD_DISTS, type: Upload, dependsOn: DISTS).configure {
@@ -132,7 +124,7 @@ class JavaPlugin implements Plugin {
             addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null))
             artifactProductionTaskName = UPLOAD_LIBS
             artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
-            artifactPatterns << ("${project.convention.distsDir}/[artifact]-[revision].[ext]" as String)
+            artifactPatterns << ("${project.convention.plugins.java.distsDir}/[artifact]-[revision].[ext]" as String)
             addConf2Tasks(COMPILE, COMPILE)
             addConf2Tasks(RUNTIME, TEST)
             addConf2Tasks(TEST_COMPILE, TEST_COMPILE)
@@ -140,17 +132,17 @@ class JavaPlugin implements Plugin {
         }
     }
 
-    protected Compile configureTestCompile(Compile testCompile, Compile compile, def javaConvention, Map propertyMapping) {
+    protected Compile configureTestCompile(Compile testCompile, Compile compile, Map propertyMapping) {
         testCompile.skipProperties << "$Task.AUTOSKIP_PROPERTY_PREFIX$TEST"
-        configureCompile(testCompile, javaConvention, propertyMapping)
+        configureCompile(testCompile, propertyMapping)
         testCompile.doFirst {
             it.unmanagedClasspath(compile.unmanagedClasspath as Object[])
         }
     }
 
-    protected Compile configureCompile(Compile compile, def javaConvention, Map propertyMapping) {
+    protected Compile configureCompile(Compile compile, Map propertyMapping) {
         compile.configure {
-            convention(javaConvention, propertyMapping)
+            conventionMapping(propertyMapping)
         }
         compile
     }

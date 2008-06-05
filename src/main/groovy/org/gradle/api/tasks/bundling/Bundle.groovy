@@ -57,7 +57,7 @@ class Bundle extends ConventionTask {
         String classifier = args.classifier ? '_' + args.classifier : ''
         String taskName = "$baseName${classifier}_$type.defaultExtension"
         AbstractArchiveTask archiveTask = project.createTask(taskName, type: type.taskClass)
-        archiveTask.convention(convention, type.conventionMapping)
+        archiveTask.conventionMapping(type.conventionMapping)
         archiveTask.baseName = baseName
         archiveTask.classifier = classifier ? classifier.substring(1) : ''
         if (configureClosure) {archiveTask.configure(configureClosure)}

@@ -16,22 +16,22 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.HelperUtil
+
 /**
  * @author Hans Dockter
  */
-class GroovyConventionTest extends JavaConventionTest {
+class GroovyConventionTest extends GroovyTestCase {
     private GroovyConvention groovyConvention
-
-    JavaConvention getConvention() {
-        if (!groovyConvention) {
-            groovyConvention = new GroovyConvention(project)
-        }
-        groovyConvention
-    }
+    DefaultProject project
+    File testDir
 
     void setUp() {
-        super.setUp()
-        groovyConvention = getConvention()
+        testDir = HelperUtil.makeNewTestDir()
+        project = [getProjectDir: {testDir}] as DefaultProject
+        project.convention.plugins.java = new JavaConvention(project)
+        groovyConvention = new GroovyConvention(project)
     }
 
     void testGroovyConvention() {
@@ -42,21 +42,21 @@ class GroovyConventionTest extends JavaConventionTest {
     }
 
     void testGroovyDefaultDirs() {
-        checkGroovyDirs(convention.srcRootName)
+        checkGroovyDirs(project.srcRootName)
     }
 
     void testGroovyDynamicDirs() {
-        convention.srcRootName = 'mysrc'
+        project.srcRootName = 'mysrc'
         project.buildDirName = 'mybuild'
-        checkGroovyDirs(convention.srcRootName)
+        checkGroovyDirs(project.srcRootName)
     }
 
     private void checkGroovyDirs(String srcRootName) {
         groovyConvention.floatingGroovySrcDirs << 'someGroovySrcDir' as File
         groovyConvention.floatingGroovyTestSrcDirs <<'someGroovyTestSrcDir' as File
-        assertEquals([new File(convention.srcRoot, groovyConvention.groovySrcDirNames[0])] + groovyConvention.floatingGroovySrcDirs,
+        assertEquals([new File(project.srcRoot, groovyConvention.groovySrcDirNames[0])] + groovyConvention.floatingGroovySrcDirs,
                 groovyConvention.groovySrcDirs)
-        assertEquals([new File(convention.srcRoot, groovyConvention.groovyTestSrcDirNames[0])] + groovyConvention.floatingGroovyTestSrcDirs,
+        assertEquals([new File(project.srcRoot, groovyConvention.groovyTestSrcDirNames[0])] + groovyConvention.floatingGroovyTestSrcDirs,
                 groovyConvention.groovyTestSrcDirs)
     }
 }

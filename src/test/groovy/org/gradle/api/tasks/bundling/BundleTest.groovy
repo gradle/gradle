@@ -159,7 +159,7 @@ class BundleTest extends AbstractConventionTaskTest {
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
                                                  Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveClassifier) {
         assertEquals(TEST_DESTINATION_DIR, archiveTask.destinationDir)
-        assert archiveTask.conventionMapping.is(conventionMapping)
+        assertEquals(conventionMapping, archiveTask.conventionMapping)
         assertEquals(expectedArchiveTaskName, archiveTask.name)
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)

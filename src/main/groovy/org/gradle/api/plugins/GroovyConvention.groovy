@@ -21,7 +21,8 @@ import org.gradle.api.Project
 /**
  * @author Hans Dockter
  */
-class GroovyConvention extends JavaConvention {
+class GroovyConvention {
+    Project project
     List groovySrcDirNames = []
     List groovyTestSrcDirNames = []
     List floatingGroovySrcDirs = []
@@ -30,17 +31,17 @@ class GroovyConvention extends JavaConvention {
     Closure groovyClasspath
 
     GroovyConvention(Project project) {
-        super(project)
+        this.project = project
         groovySrcDirNames << 'main/groovy'
         groovyTestSrcDirNames << 'test/groovy'
     }
 
     List getGroovySrcDirs() {
-        groovySrcDirNames.collect {new File(srcRoot, it)} + floatingGroovySrcDirs
+        groovySrcDirNames.collect {new File(project.convention.plugins.java.srcRoot, it)} + floatingGroovySrcDirs
     }
 
     List getGroovyTestSrcDirs() {
-        groovyTestSrcDirNames.collect {new File(srcRoot, it)} + floatingGroovyTestSrcDirs
+        groovyTestSrcDirNames.collect {new File(project.convention.plugins.java.srcRoot, it)} + floatingGroovyTestSrcDirs
     }
 
     

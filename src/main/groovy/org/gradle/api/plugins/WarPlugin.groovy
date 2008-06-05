@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
  
-package org.gradle.api.internal.project
+package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.project.PluginRegistry
 
 /**
-* @author Hans Dockter
-*/
-class TestPlugin1 implements Plugin {
-    int applyCounter = 0
+ * @author Hans Dockter
+ */
+class WarPlugin implements Plugin {
 
-    void apply(Project project, PluginRegistry pluginRegistry, def convention = null) {
-        applyCounter++
+    void apply(Project project, PluginRegistry pluginRegistry) {
+        pluginRegistry.apply(JavaPlugin, project, pluginRegistry)   
     }
 
+    
 
 }

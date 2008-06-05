@@ -21,5 +21,5 @@ import org.gradle.api.internal.project.PluginRegistry;
  * @author Hans Dockter
  */
 public interface Plugin {
-    void apply(Project project, PluginRegistry pluginRegistry, Object convention);
+    void apply(Project project, PluginRegistry pluginRegistry);
 }

@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
+import org.gradle.api.plugins.Convention;
+
 /**
  * @author Hans Dockter
  */
@@ -157,7 +159,7 @@ public interface Project {
 
     DependencyManager getDependencies();
 
-    Object getConvention();
+    Convention getConvention();
 
-    void setConvention(Object convention);
+    void setConvention(Convention convention);
 }

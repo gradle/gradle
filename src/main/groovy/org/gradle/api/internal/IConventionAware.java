@@ -10,15 +10,9 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public interface IConventionAware {
-    Object convention(Object convention, Map conventionMapping);
-
     Object conventionMapping(Map mapping);
 
     Object getProperty(String name);
-
-    void setConvention(Object convention);
-
-    Object getConvention();
 
     void setConventionMapping(Map conventionMapping);
 

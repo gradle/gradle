@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Directory
 import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.util.HelperUtil
 import org.gradle.util.TestTask
+import org.gradle.api.plugins.Convention
 
 /**
  * @author Hans Dockter
@@ -86,10 +87,12 @@ class DefaultProjectTest extends GroovyTestCase {
         assertSame buildScriptProcessor, project.buildScriptProcessor
         assertNotNull(project.ant)
         assertNotNull(project.configureByDag)
+        assertNotNull(project.convention)
         assert project.dependencies.is(dependencyManager)
         assert dependencyManager.project.is(project)
         assert pluginRegistry.is(project.pluginRegistry)
         assertEquals 'root', project.name
+        assertEquals([:], project.pluginApplyRegistry)
         assertEquals DefaultProject.STATE_CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
 
@@ -550,7 +553,7 @@ class DefaultProjectTest extends GroovyTestCase {
         project.createTask('scriptMethod')
         project.scriptMethod(testConfigureClosure)
         assert closureCalled
-        project.convention = new TestConvention()
+        project.convention.plugins.test = new TestConvention()
         assertEquals(TestConvention.METHOD_RESULT, project.scriptMethod(testConfigureClosure))
         Script projectScript = createScriptForMethodMissingTest('projectScript')
         project.projectScript = projectScript
@@ -578,8 +581,7 @@ def scriptMethod(Closure closure) {
     void testPropertyMissingWithExistingConventionProperty() {
         String propertyName = 'conv'
         String expectedValue = 'somevalue'
-
-        project.convention = new TestConvention()
+        project.convention.plugins.test = new TestConvention()
         project.convention.conv = expectedValue
         assertEquals(expectedValue, project."$propertyName")
         assertEquals(expectedValue, project.convention."$propertyName")
@@ -589,8 +591,7 @@ def scriptMethod(Closure closure) {
     void testSetPropertyAndPropertyMissingWithConventionProperty() {
         String propertyName = 'conv'
         String expectedValue = 'somevalue'
-
-        project.convention = new TestConvention()
+        project.convention.plugins.test = new TestConvention()
         project."$propertyName" = expectedValue
         assertEquals(expectedValue, project."$propertyName")
         assertEquals(expectedValue, project.convention."$propertyName")
@@ -602,7 +603,7 @@ def scriptMethod(Closure closure) {
         String expectedValue = 'somename'
 
         project.name = expectedValue
-        project.convention = new TestConvention()
+        project.convention.plugins.test = new TestConvention()
         project.convention.name = 'someothername'
         project."$propertyName" = expectedValue
         assertEquals(expectedValue, project."$propertyName")
@@ -627,12 +628,11 @@ def scriptMethod(Closure closure) {
         assertFalse(project.hasProperty(propertyName))
         assertFalse(child1.hasProperty(propertyName))
 
-        project.convention = new FieldPosition(0)
+        project.convention.plugins.test = new FieldPosition(0)
         project.convention."$propertyName" = 5
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))
-        project.convention = null
-
+        project.convention = new Convention(project)
         project."$propertyName" = 4
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))

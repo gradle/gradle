@@ -28,10 +28,7 @@ abstract class ConventionTask extends DefaultTask implements IConventionAware {
     ConventionTask(Project project, String name) {
         super(project, name)
         conventionAwareHelper = new ConventionAwareHelper(this)
-    }
-
-    Task convention(def convention, Map conventionMapping) {
-        conventionAwareHelper.convention(convention, conventionMapping)
+        conventionAwareHelper.convention = project.convention
     }
 
     Task conventionMapping(Map mapping) {
@@ -41,15 +38,6 @@ abstract class ConventionTask extends DefaultTask implements IConventionAware {
     def getProperty(String name) {
         conventionAwareHelper.getValue(name)
     }
-
-    void setConvention(def convention) {
-        conventionAwareHelper.convention = convention
-    }
-
-    def getConvention() {
-        conventionAwareHelper.convention
-    }
-
 
     void setConventionMapping(Map conventionMapping) {
         conventionAwareHelper.conventionMapping = conventionMapping

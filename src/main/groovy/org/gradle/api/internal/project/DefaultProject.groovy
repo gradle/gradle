@@ -24,6 +24,7 @@ import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.plugins.Convention
 
 /**
  * @author Hans Dockter
@@ -89,12 +90,14 @@ class DefaultProject implements Comparable, Project {
 
     String buildDirName = Project.DEFAULT_BUILD_DIR_NAME
 
-    def convention
+    Convention convention
 
     Closure configureByDag = {}
 
-    DefaultProject() {
+    Map pluginApplyRegistry = [:]
 
+    DefaultProject() {
+        convention = new Convention(this)
     }
 
     DefaultProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, ProjectFactory projectFactory,
@@ -113,8 +116,7 @@ class DefaultProject implements Comparable, Project {
         this.buildScriptFinder = buildScriptFinder
         this.pluginRegistry = pluginRegistry
         this.state = STATE_CREATED
-
-
+        convention = new Convention(this)
     }
 
     /**
@@ -403,7 +405,7 @@ class DefaultProject implements Comparable, Project {
         if (additionalProperties.keySet().contains(name)) {
             return additionalProperties[name]
         }
-        if (convention?.metaClass?.hasProperty(convention, name)) {
+        if (convention.hasProperty(name)) {
             return convention."$name"
         }
         if (tasks[name]) {
@@ -413,7 +415,7 @@ class DefaultProject implements Comparable, Project {
         while (projectLooper) {
             if (projectLooper.additionalProperties.keySet().contains(name)) {
                 return projectLooper."$name"
-            } else if (projectLooper.convention?.metaClass?.hasProperty(convention, name)) {
+            } else if (projectLooper.convention.hasProperty(name)) {
                 return projectLooper.convention."$name"
             }
             projectLooper = projectLooper.parent
@@ -424,14 +426,14 @@ class DefaultProject implements Comparable, Project {
     boolean hasProperty(String name) {
         if (this.metaClass.hasProperty(this, name)) {return true}
         if (additionalProperties.keySet().contains(name)) {return true}
-        if (convention?.metaClass?.hasProperty(convention, name)) {
+        if (convention.hasProperty(name)) {
             return true
         }
         DefaultProject projectLooper = parent
         while (projectLooper) {
             if (projectLooper.additionalProperties.keySet().contains(name)) {
                 return true
-            } else if (projectLooper.convention?.metaClass?.hasProperty(convention, name)) {
+            } else if (projectLooper.convention.hasProperty(name)) {
                 return true
             }
             projectLooper = projectLooper.parent
@@ -444,7 +446,7 @@ class DefaultProject implements Comparable, Project {
         if (projectScript && projectScript.metaClass.respondsTo(projectScript, name, args)) {
             return projectScript.invokeMethod(name, args)
         }
-        if (convention && convention.metaClass.respondsTo(convention, name, args)) {
+        if (convention && convention.hasMethod(name, args)) {
             return convention.invokeMethod(name, args)
         }
         if (tasks[name] && args.size() == 1 && args[0] instanceof Closure) {
@@ -458,8 +460,8 @@ class DefaultProject implements Comparable, Project {
         if (this.metaClass.hasProperty(this, name)) {
             this.metaClass.setProperty(this, name, value)
             return
-        } else if (convention?.metaClass?.hasProperty(convention, name)) {
-            convention.metaClass.setProperty(convention, name, value)
+        } else if (convention.hasProperty(name)) {
+            convention.setProperty(name, value)
             return
         }
         project.additionalProperties[name] = value
