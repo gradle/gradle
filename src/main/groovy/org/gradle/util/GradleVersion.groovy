@@ -45,6 +45,7 @@ class GradleVersion {
         """Gradle $version
 Gradle buildtime: $buildTime
 Groovy $InvokerHelper.version
+Java ${System.getProperty("java.version")}
 JVM ${System.getProperty("java.vm.version")}
 JVM Vendor: ${System.getProperty("java.vm.vendor")}
 OS Name: ${System.getProperty("os.name")}
