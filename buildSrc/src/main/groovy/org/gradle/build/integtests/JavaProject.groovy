@@ -41,12 +41,14 @@ class JavaProject {
         checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME" as String, packagePrefix, WEBAPP_1_NAME, 'TestTest.class')
 
         Executer.execute(gradleHome, new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME").absolutePath,
-                ['clean', 'test'], [], '', Executer.DEBUG)
+                ['clean', 'libs'], [], '', Executer.DEBUG)
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
         checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
         checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
         checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME" as String, packagePrefix, WEBAPP_1_NAME, 'TestTest.class')
+        checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME" as String, 'build', 'webapp1-2.5.war')
+        checkExistence(javaprojectDir, false, "$SERVICES_NAME/$WEBAPP_1_NAME" as String, 'build', 'webapp1-2.5.jar')
 
         // This test is also important for test cleanup
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)

@@ -52,7 +52,11 @@ class Bundle extends ConventionTask {
         createArchive(type, [:], configureClosure)
     }
 
-    AbstractArchiveTask createArchive(ArchiveType type, Map args = [:], Closure configureClosure = null) {
+    AbstractArchiveTask createArchive(ArchiveType type, Map args, Closure configureClosure = null) {
+        // todo remove when Groovy bug with default args is fixed
+        if (args == null) {
+            args = [:]
+        }
         String baseName = args.baseName ?: self.tasksBaseName
         String classifier = args.classifier ? '_' + args.classifier : ''
         String taskName = "$baseName${classifier}_$type.defaultExtension"
@@ -79,7 +83,7 @@ class Bundle extends ConventionTask {
         jar([:], configureClosure)
     }
 
-    Jar jar(Map args = [:], Closure configureClosure = null) {
+    Jar jar(Map args, Closure configureClosure = null) {
         createArchive(self.defaultArchiveTypes[Jar.DEFAULT_EXTENSION], args, configureClosure)
     }
 

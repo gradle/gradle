@@ -24,7 +24,7 @@ import org.gradle.api.Project
 */
 class TestPlugin2 implements Plugin {
 
-    void apply(Project project, PluginRegistry pluginRegistry, def convention = null) {
+    void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
         
     }
 

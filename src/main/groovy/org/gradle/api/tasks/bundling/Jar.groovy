@@ -42,7 +42,7 @@ class Jar extends Zip {
         super(project, name)
         self = this
         extension = DEFAULT_EXTENSION
-    }
+    }   
 
     Closure createAntArchiveTask() {
         {-> antJar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets, fileSetManifest,

@@ -31,9 +31,9 @@ import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 class GroovyPlugin extends JavaPlugin {
     static final String GROOVY = 'groovy'
 
-    void apply(Project project, PluginRegistry pluginRegistry) {
-        pluginRegistry.apply(JavaPlugin, project, pluginRegistry)
-        GroovyConvention groovyPluginConvention = new GroovyConvention(project)
+    void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
+        pluginRegistry.apply(JavaPlugin, project, pluginRegistry, customValues)
+        GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues)
         project.convention.plugins.groovy = groovyPluginConvention
         groovyPluginConvention.groovyClasspath = {project.dependencies.resolve('groovy')}
         configureCompile(project.createTask(JavaPlugin.COMPILE, dependsOn: JavaPlugin.RESOURCES, type: GroovyCompile,
@@ -50,8 +50,8 @@ class GroovyPlugin extends JavaPlugin {
         }
 
         project.createTask(JavaPlugin.JAVADOC, (DefaultProject.TASK_OVERWRITE): true, type: Groovydoc).configure {
-            conventionMapping.srcDirs = {groovyPluginConvention.srcDirs + groovyPluginConvention.groovySrcDirs}
-            conventionMapping.destDir = {groovyPluginConvention.javadocDir}
+            conventionMapping.srcDirs = {project.convention.plugins.java.srcDirs + groovyPluginConvention.groovySrcDirs}
+            conventionMapping.destDir = {project.convention.plugins.java.javadocDir}
         }
 
         project.dependencies {

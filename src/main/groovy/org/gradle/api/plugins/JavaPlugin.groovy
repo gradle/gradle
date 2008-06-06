@@ -51,8 +51,8 @@ class JavaPlugin implements Plugin {
     static final String DEFAULT = 'default'
     static final String UPLOAD_DISTS = 'uploadDists'
 
-    void apply(Project project, PluginRegistry pluginRegistry) {
-        def javaConvention = new JavaConvention(project)
+    void apply(Project project, PluginRegistry pluginRegistry, Map customValues = [:]) {
+        def javaConvention = new JavaPluginConvention(project, customValues)
         Convention convention = project.convention
         convention.plugins.java = javaConvention
 
@@ -87,15 +87,9 @@ class JavaPlugin implements Plugin {
             }
         }
 
-        Closure lateInitClosureForPackage = {
-            def type = 'jar'
-            if (project.hasProperty('type') && project.type) {
-                type = project.type
-            }
-            createArchive(javaConvention.archiveTypes[type])
-        }
-        project.createTask(LIBS, type: Bundle, lateInitializer: [lateInitClosureForPackage], dependsOn: TEST).configure {
+        project.createTask(LIBS, type: Bundle, dependsOn: TEST).configure {
             conventionMapping(DefaultConventionsToPropertiesMapping.LIB)
+            jar()
         }
 
         project.createTask(UPLOAD_LIBS, type: Upload, dependsOn: LIBS).configure {

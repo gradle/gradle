@@ -53,9 +53,9 @@ class PluginRegistry {
         plugins[pluginClass]
     }
 
-    void apply(Class pluginClass, Project project, PluginRegistry pluginRegistry) {
+    void apply(Class pluginClass, Project project, PluginRegistry pluginRegistry, Map customValues) {
         if (project.pluginApplyRegistry[pluginClass] == null) {
-            getPlugin(pluginClass).apply(project, pluginRegistry)
+            getPlugin(pluginClass).apply(project, pluginRegistry, customValues)
             project.pluginApplyRegistry[pluginClass] = ''
         }
     }

@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Task
-import org.gradle.api.plugins.JavaConvention
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
 
@@ -65,7 +65,7 @@ class BundleTest extends AbstractConventionTaskTest {
         bundle.childrenDependOn = testChildrenDependsOn
         bundle.dependsOn = testBundleDependsOn
         bundle.tasksBaseName = 'testbasename'
-        bundle.defaultArchiveTypes = JavaConvention.DEFAULT_ARCHIVE_TYPES
+        bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
         expectedDefaultArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"

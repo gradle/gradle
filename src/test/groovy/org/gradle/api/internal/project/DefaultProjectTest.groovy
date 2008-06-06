@@ -92,6 +92,7 @@ class DefaultProjectTest extends GroovyTestCase {
         assert dependencyManager.project.is(project)
         assert pluginRegistry.is(project.pluginRegistry)
         assertEquals 'root', project.name
+        assertEquals 'root', project.archivesBaseName
         assertEquals([:], project.pluginApplyRegistry)
         assertEquals DefaultProject.STATE_CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
@@ -148,22 +149,22 @@ class DefaultProjectTest extends GroovyTestCase {
     }
 
     private void checkUsePlugin(def usePluginArgument) {
-        MockFor pluginMocker = new MockFor(Plugin)
+        Map expectedCustomValues = [:]
         Plugin mockPlugin = [:] as JavaPlugin
         PluginRegistry passedPluginRegistry
-        pluginMocker.demand.apply(1..1) {Project project, PluginRegistry pluginRegistry ->
-            assert this.project.is(project)
-            passedPluginRegistry = pluginRegistry
-        }
         MockFor pluginRegistryMocker = new MockFor(PluginRegistry)
         pluginRegistryMocker.demand.getPlugin(1..1) {pluginId ->
             assertEquals(pluginId, usePluginArgument)
             mockPlugin
         }
+        pluginRegistryMocker.demand.apply(1..1) {Class pluginType, Project project, PluginRegistry pluginRegistry, Map customValues ->
+            assertEquals(mockPlugin.class, pluginType)
+            assert this.project.is(project)
+            passedPluginRegistry = pluginRegistry
+            assert customValues.is(expectedCustomValues)
+        }
         pluginRegistryMocker.use(pluginRegistry) {
-            pluginMocker.use(mockPlugin) {
-                project.usePlugin(usePluginArgument)
-            }
+            project.usePlugin(usePluginArgument, expectedCustomValues)
         }
         assert passedPluginRegistry.is(pluginRegistry)
         assert project.plugins[0].is(mockPlugin)
@@ -493,7 +494,7 @@ class DefaultProjectTest extends GroovyTestCase {
         }
     }
 
-     void testGetProjectWithClosure() {
+    void testGetProjectWithClosure() {
         String newPropValue = 'someValue'
         assert child1.is(project.project("child1") {
             newProp = newPropValue
@@ -729,9 +730,9 @@ def scriptMethod(Closure closure) {
                     }
         } else {
             project."$configureMethod"
-                    {
-                        testSubProp = propValue
-                    }
+            {
+                testSubProp = propValue
+            }
         }
 
         projectsToCheck.each {

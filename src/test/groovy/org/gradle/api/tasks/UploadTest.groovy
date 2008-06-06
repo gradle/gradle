@@ -23,11 +23,12 @@ import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
 import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.plugins.JavaConvention
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.util.HelperUtil
 import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.plugins.JavaPluginConvention
 
 /**
  * @author Hans Dockter
@@ -73,7 +74,7 @@ class UploadTest extends AbstractConventionTaskTest {
         upload.project.dependencies = new DefaultDependencyManager()
         Bundle bundle = new Bundle(upload.project, 'bundle')
         bundle.tasksBaseName = 'basename'
-        bundle.defaultArchiveTypes = JavaConvention.DEFAULT_ARCHIVE_TYPES
+        bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
         AbstractArchiveTask zip1 = bundle.zip(baseName: 'zip1')
         AbstractArchiveTask zip2 = bundle.zip(baseName: 'zip2')
         AbstractArchiveTask zip3 = bundle.zip(baseName: 'zip3')

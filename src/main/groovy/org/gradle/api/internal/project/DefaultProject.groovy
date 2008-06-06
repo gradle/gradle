@@ -88,6 +88,8 @@ class DefaultProject implements Comparable, Project {
 
     DependencyManager dependencies
 
+    String archivesBaseName
+
     String buildDirName = Project.DEFAULT_BUILD_DIR_NAME
 
     Convention convention
@@ -95,6 +97,7 @@ class DefaultProject implements Comparable, Project {
     Closure configureByDag = {}
 
     Map pluginApplyRegistry = [:]
+
 
     DefaultProject() {
         convention = new Convention(this)
@@ -116,6 +119,7 @@ class DefaultProject implements Comparable, Project {
         this.buildScriptFinder = buildScriptFinder
         this.pluginRegistry = pluginRegistry
         this.state = STATE_CREATED
+        this.archivesBaseName = name
         convention = new Convention(this)
     }
 
@@ -177,18 +181,18 @@ class DefaultProject implements Comparable, Project {
         }
     }
 
-    Project usePlugin(String pluginName) {
-        usePluginInternal(pluginName)
+    Project usePlugin(String pluginName, Map customValues = [:]) {
+        usePluginInternal(pluginName, customValues)
     }
 
-    Project usePlugin(Class pluginClass) {
-        usePluginInternal(pluginClass)
+    Project usePlugin(Class pluginClass, Map customValues = [:]) {
+        usePluginInternal(pluginClass, customValues)
     }
 
-    Project usePluginInternal(def pluginId) {
+    Project usePluginInternal(def pluginId, Map customValues) {
         Plugin plugin = pluginRegistry.getPlugin(pluginId)
         if (!plugin) {throw new InvalidUserDataException("Plugin with id $pluginId can not be found!")}
-        plugin.apply(this, pluginRegistry)
+        pluginRegistry.apply(plugin.class, this, pluginRegistry, customValues)
         plugins << plugin
         this
     }

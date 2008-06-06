@@ -19,12 +19,13 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.*
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.api.internal.plugins.PluginUtil
 
 /**
  * @author Hans Dockter
  */
 // todo Think about moving the mkdir method to the project.
-class JavaConvention {
+class JavaPluginConvention {
     static final Map DEFAULT_ARCHIVE_TYPES = [
             jar: new ArchiveType("jar", DefaultConventionsToPropertiesMapping.JAR, Jar),
             zip: new ArchiveType("zip", DefaultConventionsToPropertiesMapping.ZIP, Zip),
@@ -61,7 +62,7 @@ class JavaConvention {
     GradleManifest manifest
     List metaInf
 
-    JavaConvention(Project project) {
+    JavaPluginConvention(Project project, Map customValues) {
         this.project = project
         manifest = new GradleManifest()
         metaInf = []
@@ -80,6 +81,7 @@ class JavaConvention {
         testSrcDirNames << 'test/java'
         testResourceDirNames << 'test/resources'
         archiveTypes = DEFAULT_ARCHIVE_TYPES
+        PluginUtil.applyCustomValues(project.convention, this, customValues)
     }
 
     File mkdir(File parent = null, String name) {

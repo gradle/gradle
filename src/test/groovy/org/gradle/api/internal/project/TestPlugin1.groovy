@@ -25,7 +25,7 @@ import org.gradle.api.Project
 class TestPlugin1 implements Plugin {
     int applyCounter = 0
 
-    void apply(Project project, PluginRegistry pluginRegistry, def convention = null) {
+    void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
         applyCounter++
     }
 

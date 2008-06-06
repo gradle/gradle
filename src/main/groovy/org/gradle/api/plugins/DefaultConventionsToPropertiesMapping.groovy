@@ -85,12 +85,12 @@ class DefaultConventionsToPropertiesMapping {
             classesFileSets: {[new FileSet(it.plugins.java.classesDir)]}
     ]
     final static Map LIB = [
-            tasksBaseName: {"${it.project.name}"},
+            tasksBaseName: {it.project.archivesBaseName},
             childrenDependOn: {[JavaPlugin.TEST]},
             defaultArchiveTypes: {it.plugins.java.archiveTypes}
     ]
     final static Map DIST = [
-            tasksBaseName: {"${it.project.name}"},
+            tasksBaseName: {it.project.archivesBaseName},
             childrenDependOn: {[JavaPlugin.LIBS]},
             defaultArchiveTypes: {it.plugins.java.archiveTypes}
     ]

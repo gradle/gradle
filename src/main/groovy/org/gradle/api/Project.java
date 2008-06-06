@@ -57,9 +57,9 @@ public interface Project {
 
     List getSubprojects();
 
-    Project usePlugin(String pluginName);
+    Project usePlugin(String pluginName, Map customValues);
 
-    Project usePlugin(Class pluginClass);
+    Project usePlugin(Class pluginClass, Map customValues);
 
     /**
      * Returns the task object which has the same name the name argument. If no such task exists, an exception is thrown.

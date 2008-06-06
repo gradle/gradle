@@ -17,9 +17,11 @@ package org.gradle.api;
 
 import org.gradle.api.internal.project.PluginRegistry;
 
+import java.util.Map;
+
 /**
  * @author Hans Dockter
  */
 public interface Plugin {
-    void apply(Project project, PluginRegistry pluginRegistry);
+    void apply(Project project, PluginRegistry pluginRegistry, Map customValues);
 }

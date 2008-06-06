@@ -22,16 +22,21 @@ import org.gradle.util.HelperUtil
 /**
  * @author Hans Dockter
  */
-class GroovyConventionTest extends GroovyTestCase {
-    private GroovyConvention groovyConvention
-    DefaultProject project
-    File testDir
+class GroovyPluginConventionTest extends AbstractPluginConventionTest {
+    private GroovyPluginConvention groovyConvention
+
+    Class getType() {
+        GroovyPluginConvention
+    }
+
+    Map getCustomValues() {
+        [groovySrcDirNames: ['newSourceRootName']]
+    }
 
     void setUp() {
-        testDir = HelperUtil.makeNewTestDir()
-        project = [getProjectDir: {testDir}] as DefaultProject
-        project.convention.plugins.java = new JavaConvention(project)
-        groovyConvention = new GroovyConvention(project)
+        super.setUp()
+        project.convention.plugins.java = new JavaPluginConvention(project, [:])
+        groovyConvention = new GroovyPluginConvention(project, [:])
     }
 
     void testGroovyConvention() {

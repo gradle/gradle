@@ -23,27 +23,24 @@ import org.gradle.util.HelperUtil
 /**
  * @author Hans Dockter
  */
-class JavaConventionTest extends GroovyTestCase {
-    DefaultProject project
-    File testDir
+class JavaPluginConventionTest extends AbstractPluginConventionTest {
+    private JavaPluginConvention convention
 
-    private JavaConvention javaConvention
-
-    // We need this getter as this test is extended
-    JavaConvention getConvention() {
-        if (!javaConvention) {
-            javaConvention = new JavaConvention(project)
-        }
-        javaConvention
+    Class getType() {
+        JavaPluginConvention
     }
 
+    Map getCustomValues() {
+        [srcRootName: 'newSourceRootName']
+    }
+    
     void setUp() {
-        testDir = HelperUtil.makeNewTestDir()
-        project = [getProjectDir: {testDir}] as DefaultProject
+        super.setUp()
+        convention = new JavaPluginConvention(project, [:])
     }
 
     void testJavaConvention() {
-        assert convention.archiveTypes.is(JavaConvention.DEFAULT_ARCHIVE_TYPES)
+        assert convention.archiveTypes.is(JavaPluginConvention.DEFAULT_ARCHIVE_TYPES)
         assert convention.manifest != null
         assertEquals([], convention.metaInf)
         assertEquals([], convention.floatingSrcDirs)

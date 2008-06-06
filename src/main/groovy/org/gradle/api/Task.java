@@ -103,4 +103,8 @@ public interface Task extends Comparable {
 
     boolean getLateInitialized();
 
+    boolean getEnabled();
+    
+    void setEnabled(boolean enabled);
+
 }

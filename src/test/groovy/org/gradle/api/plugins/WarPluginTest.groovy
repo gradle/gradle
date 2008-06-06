@@ -16,25 +16,19 @@
  
 package org.gradle.api.plugins
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
  */
-class WarPlugin implements Plugin {
-
-    void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
-        pluginRegistry.apply(JavaPlugin, project, pluginRegistry, customValues)
-        project.task("${project.name}_jar").enabled = false
-        project.libs {
-            war()
-        }
+class WarPluginTest extends GroovyTestCase {
+    void testApply() {
+        // todo Make test stronger
+        // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
+        DefaultProject project = HelperUtil.createRootProject(new File('path', 'root'))
+        WarPlugin warPlugin = new WarPlugin()
+        warPlugin.apply(project, new PluginRegistry(), [:])
     }
-
-    
-
-    
-
 }

@@ -58,8 +58,8 @@ class PluginRegistryTest extends GroovyTestCase {
     void testApply() {
         PluginRegistry pluginRegistry = new PluginRegistry()
         DefaultProject project = [:] as DefaultProject
-        pluginRegistry.apply(TestPlugin1, project, pluginRegistry)
-        pluginRegistry.apply(TestPlugin1, project, pluginRegistry)
+        pluginRegistry.apply(TestPlugin1, project, pluginRegistry, [:])
+        pluginRegistry.apply(TestPlugin1, project, pluginRegistry, [:])
         assertEquals(1, pluginRegistry.getPlugin(TestPlugin1).applyCounter)
     }
 }

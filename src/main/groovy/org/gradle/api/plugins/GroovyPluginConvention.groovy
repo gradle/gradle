@@ -17,11 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.internal.plugins.PluginUtil
 
 /**
  * @author Hans Dockter
  */
-class GroovyConvention {
+class GroovyPluginConvention {
     Project project
     List groovySrcDirNames = []
     List groovyTestSrcDirNames = []
@@ -30,10 +31,11 @@ class GroovyConvention {
 
     Closure groovyClasspath
 
-    GroovyConvention(Project project) {
+    GroovyPluginConvention(Project project, Map customValues) {
         this.project = project
         groovySrcDirNames << 'main/groovy'
         groovyTestSrcDirNames << 'test/groovy'
+        PluginUtil.applyCustomValues(project.convention, this, customValues)
     }
 
     List getGroovySrcDirs() {
