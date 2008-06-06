@@ -32,6 +32,7 @@ class GradleVersionTest extends GroovyTestCase {
         String expectedText = """Gradle $TestConsts.VERSION
 Gradle buildtime: $TestConsts.BUILD_TIME
 Groovy $InvokerHelper.version
+Java ${System.getProperty("java.version")}
 JVM ${System.getProperty("java.vm.version")}
 JVM Vendor: ${System.getProperty("java.vm.vendor")}
 OS Name: ${System.getProperty("os.name")}
