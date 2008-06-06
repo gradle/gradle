@@ -29,8 +29,6 @@ class PluginUtil {
     static void applyCustomValues(Convention convention, def newPluginConvention, Map customValues) {
         customValues.each { String key, value ->
             if (convention.plugins.keySet().contains(key) && value instanceof Map) {
-                println key
-                println value
                 value.each { String property, propertyValue ->
                     convention.plugins[key]."$property" = propertyValue
                 }

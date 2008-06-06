@@ -83,9 +83,9 @@ class ProjectsLoaderTest extends GroovyTestCase {
                 prop3: 'someEnvPropValue1',
                 (ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX): 'someValue'
         ]
-        new Properties(testUserProps).store(new FileOutputStream(new File(testUserDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
-        new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
-        new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, ProjectsLoader.GRADLE_PROPERTIES)), '')
+        new Properties(testUserProps).store(new FileOutputStream(new File(testUserDir, Project.GRADLE_PROPERTIES)), '')
+        new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, Project.GRADLE_PROPERTIES)), '')
+        new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, Project.GRADLE_PROPERTIES)), '')
 
         projectLoader.load(settings, testUserDir, testProjectProperties, testSystemProps, testEnvProps)
 

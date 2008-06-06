@@ -35,8 +35,6 @@ class SettingsProcessor {
 
     final static String DEFAULT_SETUP_FILE = "gradlesettings"
 
-    SettingsFileHandler settingsFileHandler
-
     ImportsReader importsReader
 
     SettingsFactory settingsFactory
@@ -53,10 +51,9 @@ class SettingsProcessor {
 
     }
 
-    SettingsProcessor(SettingsFileHandler settingsFileHandler, ImportsReader importsReader, SettingsFactory settingsFactory,
+    SettingsProcessor(ImportsReader importsReader, SettingsFactory settingsFactory,
                       DependencyManagerFactory dependencyManagerFactory,
                       BuildSourceBuilder buildSourceBuilder, File gradleUserHomeDir, File buildResolverDir) {
-        this.settingsFileHandler = settingsFileHandler
         this.importsReader = importsReader
         this.settingsFactory = settingsFactory
         this.dependencyManagerFactory = dependencyManagerFactory
@@ -65,14 +62,13 @@ class SettingsProcessor {
         this.buildResolverDir = buildResolverDir
     }
 
-    DefaultSettings process(File currentDir, boolean searchUpwards) {
-        settingsFileHandler.find(currentDir, searchUpwards)
-        initDependencyManagerFactory()
-        DefaultSettings settings = settingsFactory.createSettings(currentDir, settingsFileHandler.rootDir,
+    DefaultSettings process(RootFinder rootFinder) {
+        initDependencyManagerFactory(rootFinder)
+        DefaultSettings settings = settingsFactory.createSettings(rootFinder.currentDir, rootFinder.rootDir,
                 dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
         try {
-            String importsResult = importsReader.getImports(settingsFileHandler.rootDir)
-            String scriptText = settingsFileHandler.settingsText + System.properties['line.separator'] + importsResult
+            String importsResult = importsReader.getImports(rootFinder.rootDir)
+            String scriptText = rootFinder.settingsText + System.properties['line.separator'] + importsResult
             logger.debug("Evaluated Settings Script: " + scriptText)
             Script settingsScript = new GroovyShell().parse(
                     scriptText,
@@ -82,23 +78,24 @@ class SettingsProcessor {
         } catch (Throwable t) {
             throw new GradleScriptException(t, DEFAULT_SETUP_FILE)
         }
-        if (currentDir != settingsFileHandler.rootDir && !isCurrentDirIncluded(settings)) {
-            return createBasicSettings(currentDir)
+        if (rootFinder.currentDir != rootFinder.rootDir && !isCurrentDirIncluded(settings)) {
+            return createBasicSettings(rootFinder)
         }
         settings
     }
 
-    private def initDependencyManagerFactory() {
-        File buildResolverDir = this.buildResolverDir ?: new File(settingsFileHandler.rootDir, DependencyManager.BUILD_RESOLVER_NAME)
+    private def initDependencyManagerFactory(RootFinder rootFinder) {
+        File buildResolverDir = this.buildResolverDir ?: new File(rootFinder.rootDir, DependencyManager.BUILD_RESOLVER_NAME)
         GradleUtil.deleteDir(buildResolverDir)
         dependencyManagerFactory.buildResolverDir = buildResolverDir
         logger.debug("Set build resolver dir to: $dependencyManagerFactory.buildResolverDir")
 
     }
 
-    DefaultSettings createBasicSettings(File currentDir) {
+    DefaultSettings createBasicSettings(RootFinder rootFinder) {
         initDependencyManagerFactory()
-        return settingsFactory.createSettings(currentDir, currentDir, dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
+        return settingsFactory.createSettings(rootFinder.currentDir, rootFinder.currentDir,
+                dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
     }
 
     private void replaceMetaclass(Script script, DefaultSettings settings) {

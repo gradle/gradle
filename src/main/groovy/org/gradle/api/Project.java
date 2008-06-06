@@ -36,6 +36,10 @@ public interface Project {
 
     public static final String DEFAULT_BUILD_DIR_NAME = "build";
 
+    public static final String GRADLE_PROPERTIES = "gradle.properties";
+
+    public static final String SYSTEM_PROP_PREFIX = "systemProp";
+
     Project getRootProject();
 
     File getRootDir();

@@ -65,10 +65,31 @@ A \emph{Directory Task} is a simple task which name is a relative path to the pr
 \label{sec:gradle_properties_and_system_properties}
 Gradle offers a variety of ways to add properties to your build. With the \texttt{-D} command line option you can pass a system property to the JVM which runs Gradle. 
 
-There is also the possibility to directly add properties to your project objects. You can place a \texttt{gradle.properties} file either in the Gradle user home dir (defaults to \texttt{\emph{USER\_HOME}/.gradle}) or in your project dir. For multiproject builds you can place \texttt{gradle.properties} files in any subproject. The properties of the \texttt{gradle.properties} can be accessed via the project object.
+There is also the possibility to directly add properties to your project objects. You can place a \texttt{gradle.properties} file either in the Gradle user home dir (defaults to \texttt{\emph{USER\_HOME}/.gradle}) or in your project dir. For multiproject builds you can place \texttt{gradle.properties} files in any subproject. The properties of the \texttt{gradle.properties} can be accessed via the project object. The properties file in the the user's home directory has precedence over property files in the project directories. 
 
 You can also add properties directly to your project object via the \texttt{-P} command line option. For more exotic use cases you can even pass properties \emph{directly} to the project object via system and environment properties. For example if you run a build on a continuous integration server where you have no admin rights for the \emph{machine}. Your build script needs properties which values should not be seen by others. Therefore you can't use the \texttt{-P} option. In this case you can add an environment property in the project adminstration section (invisible to normal users).\footnote{\emph{Teamcity} or \emph{Bamboo} are for example CI servers which offer this functionality} If the environment property follows the pattern \texttt{ORG\_GRADLE\_PROJECT\_yourProperty=somevalue}, \texttt{yourProperty} is added to your project object. If in the future CI servers support Gradle directly, they might start Gradle via its main method. Therefore we already support the same mechanism for system properties. The only difference is the prefix, which is \texttt{org.gradle.project.}.
+
+With the \texttt{gradle.properties} files you can also set system properties. If a property in such a file has the prefix \texttt{systemProp.} the property and its value are added to the system properties (without the prefix).
+\codeInput{../../../build/distributions/exploded/samples/properties/gradle.properties}
 \codeInput{../../../build/distributions/exploded/samples/properties/gradlefile}
 \outputInputGradle[properties]{../../../build/distributions/exploded/samples/expectedOutput/properties.out}
 % section gradle_properties_and_system_properties (end)
 % chapter the_this_and_that_tutorial (end)
+
+\section{Accessing the web via a proxy} % (fold)
+\label{sec:accessing_the_web_via_a_proxy}
+Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to provide special functionality for this. The JVM can be instructed to go via proxy by setting certain system properties. You could set this system properties directly in your build script with \texttt{System.properties['proxy.proxyUser'] = 'userid'}. A arguably nicer way is shown in section \ref{sec:gradle_properties_and_system_properties}. Your gradle.properties file could look like this:
+
+\begin{Verbatim}
+systemProp.http.proxyHost=http://www.somehost.org
+systemProp.http.proxyPort=8080
+systemProp.http.proxyUser=userid
+systemProp.http.proxyPassword=password	
+\end{Verbatim}
+
+We could not find a good overview for all possible proxy settings. The best I can offer are the constants in a file from the ant project. Here a \href{link}{http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&pathrev=556977} to the svn view. If anyone knows a better overview please let us know via the mailing list.  
+% section accessing_the_web_via_a_proxy (end)
+
+
+
+

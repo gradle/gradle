@@ -22,7 +22,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.initialization.DefaultSettings
-import org.gradle.initialization.SettingsFileHandler
+import org.gradle.initialization.RootFinder
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.api.internal.project.ImportsReader
@@ -33,7 +33,7 @@ import org.gradle.api.internal.project.ImportsReader
 class SettingsProcessorTest extends GroovyTestCase {
     static final File TEST_ROOT_DIR = new File('rootDir')
     SettingsProcessor settingsProcessor
-    SettingsFileHandler settingsFileHandler
+    RootFinder rootFinder
     ImportsReader importsReader
     DependencyManagerFactory dependencyManagerFactory
     SettingsFactory settingsFactory
@@ -47,13 +47,13 @@ class SettingsProcessorTest extends GroovyTestCase {
     void setUp() {
         buildResolverDir = HelperUtil.makeNewTestDir()
         expectedSettings = new DefaultSettings()
-        settingsFileHandler = new SettingsFileHandler()
+        rootFinder = new RootFinder()
         importsReader = new ImportsReader()
         settingsFactory = new SettingsFactory()
         dependencyManagerFactory = new DefaultDependencyManagerFactory(new File('root'))
         buildSourceBuilder = new BuildSourceBuilder()
         gradleUserHomeDir = new File('gradleUserHomeDir')
-        settingsProcessor = new SettingsProcessor(settingsFileHandler, importsReader, settingsFactory, dependencyManagerFactory, buildSourceBuilder,
+        settingsProcessor = new SettingsProcessor(importsReader, settingsFactory, dependencyManagerFactory, buildSourceBuilder,
                 gradleUserHomeDir, buildResolverDir)
 
         settingsFactoryMocker = new MockFor(SettingsFactory)
@@ -64,7 +64,6 @@ class SettingsProcessorTest extends GroovyTestCase {
     }
 
     void testSettingsProcessor() {
-        assert settingsProcessor.settingsFileHandler.is(settingsFileHandler)
         assert settingsProcessor.importsReader.is(importsReader)
         assert settingsProcessor.settingsFactory.is(settingsFactory)
         assert settingsProcessor.dependencyManagerFactory.is(dependencyManagerFactory)
@@ -75,9 +74,10 @@ class SettingsProcessorTest extends GroovyTestCase {
 
     void testCreateBasicSettings() {
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
+        rootFinder.currentDir = expectedCurrentDir
         prepareSettingsFactoryMocker(expectedCurrentDir, expectedCurrentDir)
         settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
-            assert settingsProcessor.createBasicSettings(expectedCurrentDir).is(expectedSettings)
+            assert settingsProcessor.createBasicSettings(rootFinder).is(expectedSettings)
         }
         assertEquals([], expectedSettings.projectPaths)
         checkBuildResolverDir(buildResolverDir)
@@ -86,9 +86,10 @@ class SettingsProcessorTest extends GroovyTestCase {
     void testWithNonExistingBuildResolverDir() {
         HelperUtil.deleteTestDir()
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
+        rootFinder.currentDir = expectedCurrentDir
         prepareSettingsFactoryMocker(expectedCurrentDir, expectedCurrentDir)
         settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
-            assert settingsProcessor.createBasicSettings(expectedCurrentDir).is(expectedSettings)
+            assert settingsProcessor.createBasicSettings(rootFinder).is(expectedSettings)
         }
         assertEquals([], expectedSettings.projectPaths)
         checkBuildResolverDir(buildResolverDir)
@@ -141,7 +142,6 @@ class SettingsProcessorTest extends GroovyTestCase {
 
     private DefaultSettings runCUT(File rootDir, File currentDir, List includePaths, File expectedBuildResolverRoot,
                                    Closure customSettingsFactoryPreparation = {}) {
-        StubFor settingsFileHandlerMocker = new StubFor(SettingsFileHandler)
         ImportsReader mockImportsReader = [getImports: {File importsRootDir ->
             assertEquals(rootDir, importsRootDir)
             '''import org.gradle.api.*
@@ -154,24 +154,18 @@ include \"${includePaths[0]}\", \"${includePaths[1]}\"
 """
         boolean expectedSearchUpwards = false
 
-        settingsFileHandlerMocker.demand.find(1..1) {File dir, boolean searchUpwards ->
-            assertSame(currentDir, dir)
-            assertEquals(expectedSearchUpwards, searchUpwards)
-        }
-        settingsFileHandlerMocker.demand.getRootDir(0..10) {rootDir}
-        settingsFileHandlerMocker.demand.getSettingsText {expectedSettingsText}
+        rootFinder.rootDir = rootDir
+        rootFinder.currentDir = currentDir
+        rootFinder.settingsText = expectedSettingsText
 
         prepareSettingsFactoryMocker(rootDir, currentDir)
         customSettingsFactoryPreparation()
 
         DefaultSettings settings
         settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
-            settingsFileHandlerMocker.use(settingsProcessor.settingsFileHandler) {
-                settings = settingsProcessor.process(currentDir, expectedSearchUpwards)
-            }
+            settings = settingsProcessor.process(rootFinder)
         }
         checkBuildResolverDir(expectedBuildResolverRoot)
-        settingsFileHandlerMocker.expect.verify()
         settings
     }
 

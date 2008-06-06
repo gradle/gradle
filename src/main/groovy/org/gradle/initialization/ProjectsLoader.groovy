@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory
 class ProjectsLoader {
     private static Logger logger = LoggerFactory.getLogger(ProjectsLoader)
 
-    static final String GRADLE_PROPERTIES = 'gradle.properties'
-
     static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = 'org.gradle.project.'
 
     static final String ENV_PROJECT_PROPERTIES_PREFIX = 'ORG_GRADLE_PROJECT_'
@@ -79,7 +77,7 @@ class ProjectsLoader {
         if (systemAndEnvProjectProperties) {
             logger.debug("Added system and env project properties: " + systemAndEnvProjectProperties)
         }
-        File propertyFile = new File(gradleUserHomeDir, GRADLE_PROPERTIES)
+        File propertyFile = new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES)
         Properties userHomeProperties = new Properties()
         logger.debug("Looking for user properties from: $propertyFile")
         if (!propertyFile.isFile()) {
@@ -108,7 +106,7 @@ class ProjectsLoader {
 
     private addPropertiesToProject(File gradleUserHomeDir, Map userProperties, Map systemProjectProperties, Project project) {
         Properties projectProperties = new Properties()
-        File projectPropertiesFile = new File(project.projectDir, GRADLE_PROPERTIES)
+        File projectPropertiesFile = new File(project.projectDir, Project.GRADLE_PROPERTIES)
         logger.debug("Looking for project properties from: $projectPropertiesFile")
         if (projectPropertiesFile.isFile()) {
             projectProperties.load(new FileInputStream(projectPropertiesFile))

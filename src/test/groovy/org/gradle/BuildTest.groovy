@@ -26,12 +26,17 @@ import org.gradle.execution.BuildExecuter
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.ProjectsLoader
 import org.gradle.initialization.SettingsProcessor
+import org.gradle.util.HelperUtil
+import org.gradle.api.Project
+import org.gradle.initialization.RootFinder
+import org.gradle.initialization.RootFinder
 
 /**
  * @author Hans Dockter
  */
 class BuildTest extends GroovyTestCase {
     StubFor projectLoaderMocker
+    RootFinder dummyRootFinder
     MockFor settingsProcessorMocker
     MockFor buildConfigurerMocker
     File expectedCurrentDir
@@ -46,11 +51,14 @@ class BuildTest extends GroovyTestCase {
     Map expectedSystemPropertiesArgs
     List expectedTaskNames
 
+    Map userHomeGradleProperties = [:]
+    Map rootProjectGradleProperties = [:]
+
     Closure testBuildFactory
 
-    Build build
-
     void setUp() {
+        HelperUtil.deleteTestDir()
+        dummyRootFinder = [find: { File currentDir, boolean searchUpwards -> expectedSettings }] as RootFinder
         expectedTaskNames = ['a', 'b']
         settingsProcessorMocker = new MockFor(SettingsProcessor)
         projectLoaderMocker = new StubFor(ProjectsLoader)
@@ -62,11 +70,10 @@ class BuildTest extends GroovyTestCase {
         expectedSystemPropertiesArgs = [systemProp: 'systemPropValue']
 
         expectedCurrentDir = new File('currentDir')
-        expectedGradleUserHomeDir = new File('gradleUserHomeDir')
+        expectedGradleUserHomeDir = new File(HelperUtil.TMP_DIR_FOR_TEST, 'gradleUserHomeDir')
         expectedSettings = [:] as DefaultSettings
-        settingsProcessorMocker.demand.process(1..1) {File currentDir, boolean searchUpwards ->
-            assertSame(expectedCurrentDir, currentDir)
-            assertEquals(expectedSearchUpwards, searchUpwards)
+        settingsProcessorMocker.demand.process(1..1) {RootFinder rootFinder ->
+            assert rootFinder.is(dummyRootFinder)
             expectedSettings
         }
         expectedRootProject = [:] as DefaultProject
@@ -81,8 +88,30 @@ class BuildTest extends GroovyTestCase {
         }
         projectLoaderMocker.demand.getRootProject(0..10) {expectedRootProject}
         projectLoaderMocker.demand.getCurrentProject(0..10) {expectedCurrentProject}
-        testBuildFactory = {new Build(expectedGradleUserHomeDir, new SettingsProcessor(), new ProjectsLoader(),
-                new BuildConfigurer(), new BuildExecuter())}
+        testBuildFactory = {
+            new Build(expectedGradleUserHomeDir, dummyRootFinder, new SettingsProcessor(), new ProjectsLoader(),
+                    new BuildConfigurer(), new BuildExecuter())
+        }
+        createGradlePropertyFiles()
+        dummyRootFinder.rootDir = expectedSettings.rootDir
+        dummyRootFinder.currentDir = expectedCurrentDir
+    }
+
+    void tearDown() {
+        HelperUtil.deleteTestDir()
+    }
+
+    private void createGradlePropertyFiles() {
+        expectedGradleUserHomeDir.mkdirs()
+        expectedSettings.rootDir = new File(HelperUtil.TMP_DIR_FOR_TEST, 'root')
+        expectedSettings.rootDir.mkdirs()
+        userHomeGradleProperties = [(Project.SYSTEM_PROP_PREFIX + '.prop1'): 'value1', (Project.SYSTEM_PROP_PREFIX + '.prop2'): 'value2']
+        rootProjectGradleProperties = [(Project.SYSTEM_PROP_PREFIX + '.prop1'): 'value2', (Project.SYSTEM_PROP_PREFIX + '.prop3'): 'value3']
+        Properties properties = new Properties()
+        properties.putAll(userHomeGradleProperties)
+        properties.store(new FileOutputStream(new File(expectedGradleUserHomeDir, Project.GRADLE_PROPERTIES)), '')
+        properties.putAll(rootProjectGradleProperties)
+        properties.store(new FileOutputStream(new File(expectedSettings.rootDir, Project.GRADLE_PROPERTIES)), '')
     }
 
     void testRun() {
@@ -95,8 +124,8 @@ class BuildTest extends GroovyTestCase {
 
     void testRunWithEmbeddedScript() {
         settingsProcessorMocker = new MockFor(SettingsProcessor)
-        settingsProcessorMocker.demand.createBasicSettings(1..1) {File currentDir ->
-            assertSame(expectedCurrentDir, currentDir)
+        settingsProcessorMocker.demand.createBasicSettings(1..1) {RootFinder rootFinder ->
+            assert rootFinder.is(dummyRootFinder)
             expectedSettings
         }
         checkRun {
@@ -143,7 +172,8 @@ class BuildTest extends GroovyTestCase {
         }
         MockFor settingsMocker = new MockFor(DefaultSettings)
         settingsMocker.demand.createClassLoader(1..1) {
-            expectedClassLoader}
+            expectedClassLoader
+        }
 
         settingsMocker.use(expectedSettings) {
             settingsProcessorMocker.use {
@@ -175,7 +205,8 @@ class BuildTest extends GroovyTestCase {
         }
         MockFor settingsMocker = new MockFor(DefaultSettings)
         settingsMocker.demand.createClassLoader(1..1) {
-            expectedClassLoader}
+            expectedClassLoader
+        }
 
         settingsMocker.use(expectedSettings) {
             settingsProcessorMocker.use {
@@ -204,8 +235,8 @@ class BuildTest extends GroovyTestCase {
 
     void testTaskListEmbedded() {
         settingsProcessorMocker = new MockFor(SettingsProcessor)
-        settingsProcessorMocker.demand.createBasicSettings(1..1) {File currentDir ->
-            assertSame(expectedCurrentDir, currentDir)
+        settingsProcessorMocker.demand.createBasicSettings(1..1) {RootFinder rootFinder ->
+            assert rootFinder.is(dummyRootFinder)
             expectedSettings
         }
         checkTask {
@@ -237,7 +268,13 @@ class BuildTest extends GroovyTestCase {
     }
 
     private checkSystemProps(Map props) {
-        props.each {key, value ->
+        Map expectedProps = new HashMap(props)
+        expectedProps.putAll(rootProjectGradleProperties)
+        expectedProps.putAll(userHomeGradleProperties)
+        expectedProps.each {String key, value ->
+            if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
+                key = key.substring((Project.SYSTEM_PROP_PREFIX + '.').length())
+            }
             assertEquals(value, System.properties[key])
         }
     }

@@ -28,6 +28,7 @@ import org.gradle.execution.Dag
 import org.gradle.initialization.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory
 class Build {
     private static Logger logger = LoggerFactory.getLogger(Build)
 
+    RootFinder rootFinder
     SettingsProcessor settingsProcessor
     ProjectsLoader projectLoader
     BuildConfigurer buildConfigurer
@@ -43,9 +45,10 @@ class Build {
 
     Build() {}
 
-    Build(File gradleUserHomeDir, SettingsProcessor settingsProcessor, ProjectsLoader projectLoader, BuildConfigurer buildConfigurer,
-          BuildExecuter buildExecuter) {
+    Build(File gradleUserHomeDir, RootFinder rootFinder, SettingsProcessor settingsProcessor,
+          ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
         this.gradleUserHomeDir = gradleUserHomeDir
+        this.rootFinder = rootFinder
         this.settingsProcessor = settingsProcessor
         this.projectLoader = projectLoader
         this.buildConfigurer = buildConfigurer
@@ -94,19 +97,38 @@ class Build {
     }
 
     private DefaultSettings init(File currentDir, boolean searchUpwards, Map projectProperties, Map systemProperties) {
-        setSystemProperties(systemProperties)
-        DefaultSettings settings = settingsProcessor.process(currentDir, searchUpwards)
+        rootFinder.find(currentDir, searchUpwards)
+        setSystemProperties(systemProperties, rootFinder)
+        DefaultSettings settings = settingsProcessor.process(rootFinder)
         settings
     }
 
     private DefaultSettings init(File currentDir, Map projectProperties, Map systemProperties) {
-        setSystemProperties(systemProperties)
-        DefaultSettings settings = settingsProcessor.createBasicSettings(currentDir)
+        rootFinder.find(currentDir, false)
+        setSystemProperties(systemProperties, rootFinder)
+        DefaultSettings settings = settingsProcessor.createBasicSettings(rootFinder)
         settings
     }
 
-    private void setSystemProperties(Map properties) {
+    private void setSystemProperties(Map properties, RootFinder rootFinder) {
         System.properties.putAll(properties)
+        addSystemPropertiesFromGradleProperties(rootFinder)
+    }
+
+    private void addSystemPropertiesFromGradleProperties(RootFinder rootFinder) {
+        Closure addSystemProps = { String key, value ->
+            if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
+                System.properties[key.substring((Project.SYSTEM_PROP_PREFIX + '.').length())] = value
+            }
+        }
+        [new File(rootFinder.rootDir, Project.GRADLE_PROPERTIES),
+                new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES)].each { File propertyFile ->
+            if (propertyFile.isFile()) {
+                Properties gradleProperties = new Properties()
+                gradleProperties.load(new FileInputStream(propertyFile))
+                gradleProperties.each(addSystemProps)
+            }
+        }
     }
 
     private Map getAllSystemProperties() {
@@ -120,8 +142,7 @@ class Build {
     static Closure newInstanceFactory(File gradleUserHomeDir, File pluginProperties, File defaultImportsFile) {
         {BuildScriptFinder buildScriptFinder, File buildResolverDir ->
             DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory()
-            new Build(gradleUserHomeDir, new SettingsProcessor(
-                    new SettingsFileHandler(),
+            new Build(gradleUserHomeDir, new RootFinder(), new SettingsProcessor(
                     new ImportsReader(defaultImportsFile),
                     new SettingsFactory(),
                     dependencyManagerFactory,
