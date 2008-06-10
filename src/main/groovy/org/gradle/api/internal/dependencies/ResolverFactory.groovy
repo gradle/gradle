@@ -81,6 +81,7 @@ class ResolverFactory {
             urlResolver.addArtifactPattern(urlRoot + '/' + DependencyManager.MAVEN_REPO_PATTERN)
         }
         dualResolver.artifactResolver = urlResolver
+        dualResolver.allownomd = false
         dualResolver
     }
 }

@@ -46,21 +46,26 @@ class SettingsConverterTest extends GroovyTestCase {
 
     Map clientModuleRegistry
 
+    File testGradleUserHome
+
     void setUp() {
         converter = new SettingsConverter()
         clientModuleRegistry = [a: 'b']
+        testGradleUserHome = new File('gradleUserHome')
     }
+
     void testConvert() {
-        File testGradleUserHome = new File('gradleUserHome')
         IvySettings settings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
-                TEST_BUILD_RESOLVER, clientModuleRegistry)
+                TEST_BUILD_RESOLVER, clientModuleRegistry, null)
         ChainResolver chainResolver = settings.getResolver(SettingsConverter.CHAIN_RESOLVER_NAME)
         assertEquals(2, chainResolver.resolvers.size())
         assert chainResolver.resolvers[0].name.is(TEST_BUILD_RESOLVER.name)
         assert chainResolver.resolvers[1].is(TEST_RESOLVER)
+        assertTrue chainResolver.returnFirst
 
-        ClientModuleResolver clientModuleResolver =  settings.getResolver(SettingsConverter.CLIENT_MODULE_NAME)
+        ClientModuleResolver clientModuleResolver = settings.getResolver(SettingsConverter.CLIENT_MODULE_NAME)
         ChainResolver clientModuleChain = settings.getResolver(SettingsConverter.CLIENT_MODULE_CHAIN_NAME)
+        assertTrue clientModuleChain.returnFirst
         assert clientModuleChain.resolvers[0].is(clientModuleResolver)
         assert clientModuleChain.resolvers[1].is(chainResolver)
         assert settings.defaultResolver.is(clientModuleChain)
@@ -70,15 +75,23 @@ class SettingsConverterTest extends GroovyTestCase {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
         }
-        
+
         assert settings.getResolver(TEST_UPLOAD_RESOLVER.name).is(TEST_UPLOAD_RESOLVER)
         assertEquals(testGradleUserHome.canonicalPath + '/cache', settings.getVariable('ivy.cache.dir'))
+    }
+
+    void testConvertWithClientChainConfigurer() {
+        IvySettings settings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
+                TEST_BUILD_RESOLVER, clientModuleRegistry) {
+            returnFirst = false
+        }
+        assertFalse settings.getResolver(SettingsConverter.CHAIN_RESOLVER_NAME).returnFirst
     }
 
     void testWithGivenSettings() {
         IvySettings ivySettings = [:] as IvySettings
         converter.ivySettings = ivySettings
         assert ivySettings.is(converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], new File(''),
-                TEST_BUILD_RESOLVER, clientModuleRegistry))
+                TEST_BUILD_RESOLVER, clientModuleRegistry, null))
     }
 }

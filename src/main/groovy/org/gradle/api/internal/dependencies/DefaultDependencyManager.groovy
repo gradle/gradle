@@ -34,6 +34,7 @@ import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.dependencies.ResolverContainer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
@@ -93,6 +94,12 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     Map conf2Tasks = [:]
     Map task2Conf = [:]
 
+    /**
+     * All the classpath resolvers are contained in an Ivy chain resolver. With this closure you can configure the
+     * chain resolver if necessary.
+     */
+    Closure chainConfigurer
+
     boolean failForMissingDependencies = true
 
     Map resolveCache = [:]
@@ -116,6 +123,7 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     }
 
     List resolve(String conf) {
+        Clock clock = new Clock()
         if (resolveCache.keySet().contains(conf)) {
             return resolveCache[conf]
         }
@@ -125,11 +133,14 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         ResolveOptions resolveOptions = new ResolveOptions()
         resolveOptions.setConfs([conf] as String[])
         resolveOptions.outputReport = false
+        Clock ivyClock = new Clock()
         ResolveReport resolveReport = ivy.resolve(moduleDescriptor, resolveOptions)
+        logger.debug("Timing: Ivy resolve took " + clock.time)
         if (resolveReport.hasError() && failForMissingDependencies) {
             throw new GradleException("Not all dependencies could be resolved!")
         }
         resolveCache[conf] = report2Classpath.getClasspath(conf, resolveReport)
+        logger.debug("Timing: Complete resolve took " + clock.time)
         resolveCache[conf]
     }
 
@@ -187,7 +198,7 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     Ivy ivy(List resolvers) {
         ivy = ivy.newInstance(settingsConverter.convert(classpathResolvers.resolverList,
                 resolvers,
-                new File(project.gradleUserHome), buildResolver, clientModuleRegistry))
+                new File(project.gradleUserHome), buildResolver, clientModuleRegistry, chainConfigurer))
     }
 
     void addConf2Tasks(String conf, String[] tasks) {

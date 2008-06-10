@@ -72,6 +72,7 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
+        dependencyManager.chainConfigurer = {}
         expectedBuildResolver = new FileSystemResolver()
         mockSpecialResolverHandler = [getBuildResolver: {expectedBuildResolver},
                 getBuildResolverDir: {buildResolverDir}] as BuildResolverHandler
@@ -151,12 +152,13 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         MockFor settingsConverterMocker = new MockFor(SettingsConverter)
         settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
                                                       File gradleUserHome, RepositoryResolver buildResolver,
-                                                      Map clientModuleDescriptorRegistry ->
+                                                      Map clientModuleDescriptorRegistry, Closure clientModuleChainConfigurer ->
             assertEquals(gradleUserHome, new File(project.gradleUserHome))
             assertEquals(dependencyManager.buildResolver, buildResolver)
             assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
             assertEquals([], otherResolvers)
             assertEquals(dependencyManager.clientModuleRegistry, clientModuleDescriptorRegistry)
+            assert clientModuleChainConfigurer.is(dependencyManager.chainConfigurer)
             expectedSettings
         }
 
@@ -273,12 +275,13 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         MockFor settingsConverterMocker = new MockFor(SettingsConverter)
         settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
                                                       File gradleUserHome, RepositoryResolver buildResolver,
-                                                      Map clientModuleDescriptorRegistry ->
+                                                      Map clientModuleDescriptorRegistry, Closure clientModuleChainConfigurer ->
             assertEquals(gradleUserHome, new File(project.gradleUserHome))
             assertEquals(dependencyManager.buildResolver, buildResolver)
             assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
             assertEquals(uploadResolvers.resolverList, otherResolvers)
             assertEquals(dependencyManager.clientModuleRegistry, clientModuleDescriptorRegistry)
+            assert clientModuleChainConfigurer.is(dependencyManager.chainConfigurer)
             expectedSettings
         }
 

@@ -56,8 +56,8 @@ class ResolverFactoryTest extends GroovyTestCase {
     }
 
     void testCreateResolver() {
-        checkIBibiblioResolver(factory.createResolver(RESOLVER_URL), RESOLVER_URL, RESOLVER_URL)
-        checkIBibiblioResolver(factory.createResolver(RESOLVER_MAP), RESOLVER_MAP.name, RESOLVER_MAP.url)
+        checkMavenResolver(factory.createResolver(RESOLVER_URL), RESOLVER_URL, RESOLVER_URL)
+        checkMavenResolver(factory.createResolver(RESOLVER_MAP), RESOLVER_MAP.name, RESOLVER_MAP.url)
         DependencyResolver resolver = factory.createResolver(TEST_RESOLVER)
         assert resolver.is(TEST_RESOLVER)
         def someIllegalDescription = new NullPointerException()
@@ -66,9 +66,10 @@ class ResolverFactoryTest extends GroovyTestCase {
         }
     }
 
-    private void checkIBibiblioResolver(DualResolver resolver, String name, String url) {
+    private void checkMavenResolver(DualResolver resolver, String name, String url) {
         assertEquals url, resolver.ivyResolver.root
         assertEquals name, resolver.name
+        assertFalse resolver.allownomd
     }
 
     public void testCreateMavenRepo() {

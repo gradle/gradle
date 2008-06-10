@@ -20,6 +20,7 @@ import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -32,7 +33,7 @@ class SettingsConverter {
     IvySettings ivySettings
 
     IvySettings convert(def classpathResolvers, def otherResolvers, File gradleUserHome, RepositoryResolver buildResolver,
-                        Map clientModuleRegistry) {
+                        Map clientModuleRegistry, Closure clientModuleChainConfigurer) {
         if (ivySettings) {return ivySettings}
         IvySettings ivySettings = new IvySettings()
         ivySettings.setVariable('ivy.cache.dir', "$gradleUserHome.canonicalPath/$DependencyManager.DEFAULT_CACHE_DIR_NAME")
@@ -45,6 +46,8 @@ class SettingsConverter {
         classpathResolvers.each {
             chainResolver.add(it)
         }
+        // todo Wy has the chainResolver a higher precedence than the clientChainResolver when setting returnFirst
+        chainResolver.returnFirst = true
         clientModuleResolver.mainResolver = chainResolver
         ChainResolver clientModuleChain = new ChainResolver()
         clientModuleChain.name = CLIENT_MODULE_CHAIN_NAME
@@ -56,6 +59,7 @@ class SettingsConverter {
             it.repositoryCacheManager.settings = ivySettings
         }
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME)
+        GradleUtil.configure(clientModuleChainConfigurer, chainResolver)
         ivySettings
     }
 
