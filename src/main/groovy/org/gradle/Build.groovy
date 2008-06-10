@@ -29,6 +29,7 @@ import org.gradle.initialization.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.Project
+import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter

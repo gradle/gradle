@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectsTraverser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.Clock
 
 /**
 * @author Hans Dockter
@@ -47,11 +48,13 @@ class BuildConfigurer {
 
     void process(Project rootProject, ClassLoader classLoader) {
         logger.info('++ Configuring Project objects')
+        Clock clock = new Clock()
         rootProject.buildScriptProcessor.classLoader = classLoader
         projectsTraverser.traverse([rootProject]) {DefaultProject project ->
             project.evaluate()
         }
         projectDependencies2TasksResolver.resolve(rootProject)
+        logger.debug("Timing: Configuring projects took " + clock.time)
     }
 
     String taskList(Project rootProject, boolean recursive, Project currentProject, ClassLoader classLoader) {

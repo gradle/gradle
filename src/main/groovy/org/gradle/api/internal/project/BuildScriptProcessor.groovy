@@ -21,6 +21,7 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.internal.project.DefaultProject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
@@ -48,10 +49,14 @@ class BuildScriptProcessor {
             String buildScript = buildScriptWithImports(project)
             logger.debug("Evaluated Build Script: " + buildScript)
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
+            Clock clock = new Clock()
             Script script = groovyShell.parse(buildScript, project.buildScriptFinder.buildFileName)
+            logger.debug("Timing: Parsing the build script took " + clock.time)
             replaceMetaclass(script, project)
             project.projectScript = script
+            clock.reset()
             script.run()
+            logger.debug("Timing: Running the build script took " + clock.time)
         } catch (Throwable t) {
             throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)
         }

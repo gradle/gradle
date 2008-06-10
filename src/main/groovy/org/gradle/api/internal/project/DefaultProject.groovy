@@ -25,6 +25,7 @@ import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.plugins.Convention
+import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
@@ -163,11 +164,13 @@ class DefaultProject implements Comparable, Project {
         if (state == STATE_INITIALIZED) {
             return this
         }
+        Clock clock = new Clock()
         state = STATE_INITIALIZING
         buildScriptProcessor.evaluate(this)
         state = STATE_INITIALIZED
         lateInitializeTasks(tasks)
         logger.info("Project=$path evaluated.")
+        logger.debug("Timing: Project evaluation took " + clock.time)
         this
     }
 

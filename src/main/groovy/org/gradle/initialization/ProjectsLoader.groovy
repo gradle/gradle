@@ -22,6 +22,7 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
@@ -60,9 +61,11 @@ class ProjectsLoader {
     ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
                         Map systemProperties, Map envProperties) {
         logger.info('++ Loading Project objects')
+        Clock clock = new Clock()
         rootProject = createProjects(settings, gradleUserHomeDir, projectProperties, systemProperties, envProperties)
         currentProject = DefaultProject.findProject(rootProject,
                 PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.startParameter.currentDir))
+        logger.debug("Timing: Loading projects took: " + clock.time)
         this
     }
 
