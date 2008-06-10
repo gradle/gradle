@@ -27,14 +27,15 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.dependencies.ResolverContainer
 import org.apache.ivy.plugins.resolver.DualResolver
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
  */
 class DefaultSettingsTest extends GroovyTestCase {
-    File currentDir
-    File rootDir
-    File gradleUserHomeDir
+    RootFinder rootFinder
+    StartParameter startParameter
+
     DefaultDependencyManager dependencyManager
     BuildSourceBuilder buildSourceBuilder
     DefaultSettings settings
@@ -42,16 +43,16 @@ class DefaultSettingsTest extends GroovyTestCase {
     MockFor buildSourceBuilderMocker
 
     void setUp() {
-        rootDir = new File('/root')
-        currentDir = new File(rootDir, 'current')
-        gradleUserHomeDir = new File('gradleUserHomeDir')
+        rootFinder = new RootFinder()
+        rootFinder.rootDir = new File('/root')
+        rootFinder.gradleProperties.someGradleProp = 'someValue'
+        startParameter = new StartParameter(currentDir: new File(rootFinder.rootDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         dependencyManager = new DefaultDependencyManager()
         DependencyManagerFactory dependencyManagerFactory = [createDependencyManager: {->
-            assertEquals(this.rootDir, rootDir)
             dependencyManager
         }] as DependencyManagerFactory
         buildSourceBuilder = new BuildSourceBuilder(new EmbeddedBuildExecuter())
-        settings = new DefaultSettings(currentDir, rootDir, dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
+        settings = new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
         dependencyManagerMocker = new StubFor(DefaultDependencyManager)
         buildSourceBuilderMocker = new MockFor(BuildSourceBuilder)
     }
@@ -61,22 +62,19 @@ class DefaultSettingsTest extends GroovyTestCase {
     }
 
     void testSettings() {
-        assert settings.currentDir.is(currentDir)
-        assert settings.rootDir.is(rootDir)
+        assert settings.startParameter.is(startParameter)
+        assert settings.rootFinder.is(rootFinder)
         assert settings.dependencyManager.is(dependencyManager)
         assert settings.dependencyManager.configurations[DefaultSettings.BUILD_CONFIGURATION]
-        assertEquals(gradleUserHomeDir.absolutePath, settings.dependencyManager.project.gradleUserHome)
+        assertEquals(startParameter.gradleUserHomeDir.absolutePath, settings.dependencyManager.project.gradleUserHome)
         assertNotNull(settings.dependencyManager.project.name)
         assertNotNull(settings.dependencyManager.project.group)
         assertNotNull(settings.dependencyManager.project.version)
         assert settings.buildSourceBuilder.is(buildSourceBuilder)
-        assertEquals(DefaultSettings.DEFAULT_BUILD_SRC_DIR, settings.buildSrcDir)
-        assertEquals(Project.DEFAULT_PROJECT_FILE, settings.buildSrcScriptName)
-        assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS], settings.buildSrcTaskNames)
-        assertEquals([:], settings.buildSrcProjectProperties)
-        assertEquals([:], settings.buildSrcSystemProperties)
-        assertTrue(settings.buildSrcSearchUpwards)
-        assertTrue(settings.buildSrcRecursive)
+        assertEquals(Project.DEFAULT_PROJECT_FILE, settings.buildSrcStartParameter.buildFileName)
+        assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS], settings.buildSrcStartParameter.taskNames)
+        assertTrue(settings.buildSrcStartParameter.searchUpwards)
+        assertTrue(settings.buildSrcStartParameter.recursive)
     }
 
     void testInclude() {
@@ -209,18 +207,10 @@ class DefaultSettingsTest extends GroovyTestCase {
     private checkCreateClassLoader(def expectedDependency, boolean srcBuilderNull = false) {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
-        buildSourceBuilderMocker.demand.createDependency(1..1) {File buildSrcDir, File buildResolverDir,
-                                                                String buildScriptName,
-                                                                List taskNames, Map projectProperties, Map systemProperties,
-                                                                boolean recursive, boolean searchUpwards ->
-            assertEquals(new File(settings.rootDir, settings.buildSrcDir), buildSrcDir)
+        buildSourceBuilderMocker.demand.createDependency(1..1) {File buildResolverDir, StartParameter startParameter ->
             assertEquals(expectedBuildResolverDir, buildResolverDir)
-            assert buildScriptName.is(settings.buildSrcScriptName)
-            assert taskNames.is(settings.buildSrcTaskNames)
-            assert projectProperties.is(settings.buildSrcProjectProperties)
-            assert systemProperties.is(settings.buildSrcSystemProperties)
-            assertEquals(settings.buildSrcRecursive, recursive)
-            assertEquals(settings.buildSrcSearchUpwards, searchUpwards)
+            assertEquals(StartParameter.newInstance(settings.buildSrcStartParameter,
+                    currentDir: new File(settings.rootFinder.rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR)), startParameter)
             expectedDependency
         }
         dependencyManagerMocker.demand.getBuildResolverDir(0..1) {->
@@ -247,5 +237,14 @@ class DefaultSettingsTest extends GroovyTestCase {
 
         Set urls = createdClassLoader.URLs as HashSet
         assertEquals((testFiles.collect() {File file -> file.toURL()}) as HashSet, urls)
+    }
+
+    void testPropertyMissing() {
+        assert settings.rootDir.is(rootFinder.rootDir)
+        assert settings.currentDir.is(startParameter.currentDir)
+        assert settings.someGradleProp.is(rootFinder.gradleProperties.someGradleProp)
+        shouldFail(MissingPropertyException) {
+            settings.unknownProp
+        }
     }
 }

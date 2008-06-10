@@ -49,15 +49,14 @@ class Main {
 
         String toolsMainInfo = args[0]
 
-        boolean recursive = true
-        boolean searchUpwards = true
-        File currentDir = new File(System.properties.'user.dir')
-        File gradleUserHomeDir = new File(DEFAULT_GRADLE_USER_HOME)
-        String buildFileName = Project.DEFAULT_PROJECT_FILE
         String gradleHome = System.properties[GRADLE_HOME]
-        Map startProperties = [:]
-        Map systemProperties = [:]
         String embeddedBuildScript = null
+        StartParameter startParameter = new StartParameter()
+        startParameter.recursive = true
+        startParameter.searchUpwards = true
+        startParameter.currentDir = new File(System.properties.'user.dir')
+        startParameter.gradleUserHomeDir = new File(DEFAULT_GRADLE_USER_HOME)
+        startParameter.buildFileName = Project.DEFAULT_PROJECT_FILE
 
         def cli = new CliBuilder(usage: 'buildg -hnp "task1, ..., taskN')
         cli.h(longOpt: 'help', 'usage information')
@@ -117,7 +116,7 @@ class Main {
             logger.info("Running with System props: $options.Ds")
             options.Ds.each {String keyValueExpression ->
                 List elements = keyValueExpression.split('=')
-                systemProperties[elements[0]] = elements.size() == 1 ? '' : elements[1]
+                startParameter.systemPropertiesArgs[elements[0]] = elements.size() == 1 ? '' : elements[1]
             }
         }
 
@@ -125,27 +124,27 @@ class Main {
             logger.info("Running with Project props: $options.Ps")
             options.Ps.each {String keyValueExpression ->
                 List elements = keyValueExpression.split('=')
-                startProperties[elements[0]] = elements.size() == 1 ? '' : elements[1]
+                startParameter.projectProperties[elements[0]] = elements.size() == 1 ? '' : elements[1]
             }
         }
 
-        if (options.n) recursive = false
-        if (options.u) {searchUpwards = false}
+        if (options.n) startParameter.recursive = false
+        if (options.u) {startParameter.searchUpwards = false}
 
         if (options.p) {
-            currentDir = new File(options.p)
-            if (!currentDir.isDirectory()) {
-                logger.error("Error: Directory $currentDir.canonicalFile does not exists!")
+            startParameter.currentDir = new File(options.p)
+            if (!startParameter.currentDir.isDirectory()) {
+                logger.error("Error: Directory $startParameter.currentDir.canonicalFile does not exists!")
                 return
             }
         }
 
         if (options.g) {
-            gradleUserHomeDir = new File(options.g)
+            startParameter.gradleUserHomeDir = new File(options.g)
         }
 
         if (options.b) {
-            buildFileName = options.b
+            startParameter.buildFileName = options.b
         }
 
         if (options.l) {
@@ -161,41 +160,41 @@ class Main {
         }
 
         logger.debug("gradle.home=$gradleHome")
-        logger.debug("Current dir: $currentDir")
-        logger.debug("Gradle user home: $gradleUserHomeDir")
-        logger.info("Recursive: $recursive")
-        logger.info("Buildfilename: $buildFileName")
+        logger.debug("Current dir: $startParameter.currentDir")
+        logger.debug("Gradle user home: $startParameter.gradleUserHomeDir")
+        logger.info("Recursive: $startParameter.recursive")
+        logger.info("Buildfilename: $startParameter.buildFileName")
         logger.debug("Plugin properties: $pluginProperties")
         logger.debug("Default imports file: $gradleImportsFile")
 
         try {
-            def tasks = options.arguments()
-            if (!tasks && !options.t) {
+            startParameter.taskNames = options.arguments()
+            if (!startParameter.taskNames && !options.t) {
                 logger.error(NL + 'Build exits abnormally. No task names are specified!')
                 return
             }
 
             def buildScriptFinder = (embeddedBuildScript != null ? new EmbeddedBuildScriptFinder(embeddedBuildScript) :
-                new BuildScriptFinder(buildFileName))
-            Closure buildFactory = Build.newInstanceFactory(gradleUserHomeDir, pluginProperties, gradleImportsFile)
+                new BuildScriptFinder(startParameter.buildFileName))
+            Closure buildFactory = Build.newInstanceFactory(pluginProperties, gradleImportsFile)
             Build build = buildFactory(buildScriptFinder, null)
             build.settingsProcessor.buildSourceBuilder = new BuildSourceBuilder(
-                    new EmbeddedBuildExecuter(buildFactory, gradleUserHomeDir))
+                    new EmbeddedBuildExecuter(buildFactory))
 
             if (options.t) {
                 if (embeddedBuildScript != null) {
-                    println(build.taskList(currentDir, startProperties, systemProperties))
+                    println(build.taskListNonRecursivelyWithCurrentDirAsRoot(startParameter))
                 } else {
-                    println(build.taskList(currentDir, recursive, searchUpwards, startProperties, systemProperties))
+                    println(build.taskList(startParameter))
                 }
                 if (!options.S) {System.exit(0)}
                 return
             }
 
             if (embeddedBuildScript != null) {
-                build.run(tasks, currentDir, startProperties, systemProperties)
+                build.runNonRecursivelyWithCurrentDirAsRoot(startParameter)
             } else {
-                build.run(tasks, currentDir, recursive, searchUpwards, startProperties, systemProperties)
+                build.run(startParameter)
             }
             logger.info(NL + "BUILD SUCCESSFUL")
         } catch (BuildException e) {

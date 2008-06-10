@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.*
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.ProjectsLoader
 import org.gradle.util.HelperUtil
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -64,8 +65,10 @@ class ProjectsLoaderTest extends GroovyTestCase {
     }
 
     void testCreateProjects() {
-        DefaultSettings settings = new DefaultSettings(new File(testRootProjectDir, 'parent'),
-                testRootProjectDir, new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(), new File('gradleUserHome'))
+        RootFinder rootFinder = new RootFinder(rootDir: testRootProjectDir)
+        StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: new File('guh'))
+        DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
+                rootFinder, startParameter)
         settings.include('parent' + Project.PATH_SEPARATOR + 'child1', 'parent' + Project.PATH_SEPARATOR + 'child2',
                 'parent' + Project.PATH_SEPARATOR + 'folder' + Project.PATH_SEPARATOR + 'child3')
         Map testUserProps = [prop1: 'value1', prop2: 'value2', prop3: 'value3']
@@ -126,8 +129,10 @@ class ProjectsLoaderTest extends GroovyTestCase {
     }
 
     void testCreateProjectsWithNonExistingUserAndProjectGradleAndProjectProperties() {
-        DefaultSettings settings = new DefaultSettings(testRootProjectDir, testRootProjectDir,
-                new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(), new File('gradleUserHome'))
+        RootFinder rootFinder = new RootFinder(rootDir: testRootProjectDir)
+        StartParameter startParameter = new StartParameter(currentDir: testRootProjectDir, gradleUserHomeDir: new File('guh'))
+        DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
+                rootFinder, startParameter)
 
         File nonExistingGradleUserHomeDir = new File('nonexistingGradleHome')
         projectLoader.load(settings, nonExistingGradleUserHomeDir, [:], [:], [:])

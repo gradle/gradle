@@ -20,6 +20,7 @@ import org.apache.ivy.core.IvyPatternHelper
 import org.gradle.api.DependencyManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -57,29 +58,29 @@ test {
         this.embeddedBuildExecuter = embeddedBuildExecuter
     }
 
-    def createDependency(File buildSrcDir, File buildResolverDir, String buildScriptName,
-                         List taskNames, Map projectProperties, Map systemProperties,
-                         boolean recursive, boolean searchUpwards) {
-        assert buildSrcDir && buildScriptName && buildResolverDir
+    def createDependency(File buildResolverDir, StartParameter startParameter) {
+        assert startParameter.currentDir && startParameter.buildFileName && buildResolverDir
 
         logger.debug('Starting to build the build sources.')
-        if (!buildSrcDir.isDirectory()) {
+        if (!startParameter.currentDir.isDirectory()) {
             logger.debug('Build source dir does not exists!. We leave.')
             return null
         }
-        if (!taskNames) {
+        if (!startParameter.taskNames) {
             logger.debug('No task names specified. We leave..')
             return null
         }
         logger.info(('=' * 50) + ' Start building buildSrc')
-        Map allProjectProperties = projectProperties + dependencyProjectProps
-        if (!new File(buildSrcDir, buildScriptName).isFile()) {
+        StartParameter startParameterArg = StartParameter.newInstance(
+                startParameter,
+                projectProperties: startParameter.projectProperties + dependencyProjectProps,
+                searchUpwards: false
+        )
+        if (!new File(startParameter.currentDir, startParameter.buildFileName).isFile()) {
             logger.debug('Build script file does not exists. Using default one.')
-            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, buildSrcDir, DEFAULT_SCRIPT, taskNames, allProjectProperties,
-                    systemProperties)
+            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, DEFAULT_SCRIPT, startParameterArg)
         } else {
-            embeddedBuildExecuter.execute(buildResolverDir, buildSrcDir, buildScriptName, taskNames, allProjectProperties, systemProperties,
-                    recursive, searchUpwards)
+            embeddedBuildExecuter.execute(buildResolverDir, startParameterArg)
         }
         logger.info("Check if build artifact exists: ${buildArtifactFile(buildResolverDir)}")
         if (!buildArtifactFile(buildResolverDir).exists()) {

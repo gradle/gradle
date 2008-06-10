@@ -26,6 +26,7 @@ import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.internal.project.ImportsReader
+import org.gradle.StartParameter
 
 /**
 * @author Hans Dockter
@@ -43,8 +44,6 @@ class SettingsProcessor {
 
     BuildSourceBuilder buildSourceBuilder
 
-    File gradleUserHomeDir
-
     File buildResolverDir
 
     SettingsProcessor() {
@@ -53,19 +52,17 @@ class SettingsProcessor {
 
     SettingsProcessor(ImportsReader importsReader, SettingsFactory settingsFactory,
                       DependencyManagerFactory dependencyManagerFactory,
-                      BuildSourceBuilder buildSourceBuilder, File gradleUserHomeDir, File buildResolverDir) {
+                      BuildSourceBuilder buildSourceBuilder, File buildResolverDir) {
         this.importsReader = importsReader
         this.settingsFactory = settingsFactory
         this.dependencyManagerFactory = dependencyManagerFactory
         this.buildSourceBuilder = buildSourceBuilder
-        this.gradleUserHomeDir = gradleUserHomeDir
         this.buildResolverDir = buildResolverDir
     }
 
-    DefaultSettings process(RootFinder rootFinder) {
+    DefaultSettings process(RootFinder rootFinder, StartParameter startParameter) {
         initDependencyManagerFactory(rootFinder)
-        DefaultSettings settings = settingsFactory.createSettings(rootFinder.currentDir, rootFinder.rootDir,
-                dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
+        DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
         try {
             String importsResult = importsReader.getImports(rootFinder.rootDir)
             String scriptText = rootFinder.settingsText + System.properties['line.separator'] + importsResult
@@ -78,8 +75,8 @@ class SettingsProcessor {
         } catch (Throwable t) {
             throw new GradleScriptException(t, DEFAULT_SETUP_FILE)
         }
-        if (rootFinder.currentDir != rootFinder.rootDir && !isCurrentDirIncluded(settings)) {
-            return createBasicSettings(rootFinder)
+        if (startParameter.currentDir != rootFinder.rootDir && !isCurrentDirIncluded(settings)) {
+            return createBasicSettings(rootFinder, startParameter)
         }
         settings
     }
@@ -92,10 +89,9 @@ class SettingsProcessor {
 
     }
 
-    DefaultSettings createBasicSettings(RootFinder rootFinder) {
+    DefaultSettings createBasicSettings(RootFinder rootFinder, StartParameter startParameter) {
         initDependencyManagerFactory()
-        return settingsFactory.createSettings(rootFinder.currentDir, rootFinder.currentDir,
-                dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
+        return settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
     }
 
     private void replaceMetaclass(Script script, DefaultSettings settings) {
@@ -117,6 +113,6 @@ class SettingsProcessor {
 
     private boolean isCurrentDirIncluded(DefaultSettings settings) {
         settings.projectPaths.collect {Project.PATH_SEPARATOR + "$it" as String}.contains(
-                PathHelper.getCurrentProjectPath(settings.rootDir, settings.currentDir))
+                PathHelper.getCurrentProjectPath(settings.rootFinder.rootDir, settings.startParameter.currentDir))
     }
 }

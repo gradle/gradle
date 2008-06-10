@@ -20,6 +20,7 @@ import groovy.mock.interceptor.MockFor
 import org.gradle.Build
 import org.gradle.api.internal.project.BuildScriptFinder
 import org.gradle.api.internal.project.EmbeddedBuildScriptFinder
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -30,13 +31,8 @@ class EmbeddedBuildExecuterTest extends GroovyTestCase {
     Closure mockBuildFactory
     Build build
     int factoryCallCount
-    File gradleUserHome
-    List expectedTaskNames
+    StartParameter expectedStartParameter
     File buildResolverDir
-    File projectDir
-    String buildScriptName
-    Map expectedSystemProperties
-    Map expectedProjectProperties
     BuildScriptFinder calledBuildScriptFinder
     File calledBuildResolverDir
 
@@ -49,36 +45,28 @@ class EmbeddedBuildExecuterTest extends GroovyTestCase {
             factoryCallCount++
             build
         }
-        gradleUserHome = new File('gradleUserHome')
-        embeddedBuildExecuter = new EmbeddedBuildExecuter(mockBuildFactory, gradleUserHome)
+
+        expectedStartParameter = new StartParameter(
+                currentDir: new File('projectDir'),
+                buildFileName: 'buildScriptName',
+                taskNames: ['clean', 'compile'],
+                gradleUserHomeDir: new File('gradleUserHome'),
+                systemPropertiesArgs: [prop1: 'prop1'],
+                projectProperties: [projectProp1: 'projectProp1']
+        )
+        embeddedBuildExecuter = new EmbeddedBuildExecuter(mockBuildFactory)
         buildMocker = new MockFor(Build)
-        expectedTaskNames = ['clean', 'compile']
-        projectDir = new File('projectDir')
         buildResolverDir = new File('buildResolverDir')
-        buildScriptName = 'buildScriptName'
-        expectedSystemProperties = [prop1: 'prop1']
-        expectedProjectProperties = [projectProp1: 'projectProp1']
     }
 
     void testExecute() {
-        boolean expectedRecursive = false
-        boolean expectedSearchUpwards = false
-
-        buildMocker.demand.run(2..2) {List taskNames, File currentDir, boolean recursive, boolean searchUpwards,
-                                      Map projectProperties, Map systemProperties ->
-            assertEquals(expectedTaskNames, taskNames)
-            assertEquals(projectDir, currentDir)
-            assertEquals(this.gradleUserHome, gradleUserHome)
-            assertEquals(expectedRecursive, recursive)
-            assertEquals(expectedSearchUpwards, searchUpwards)
-            assertEquals(expectedProjectProperties, projectProperties)
-            assertEquals(expectedSystemProperties, systemProperties)
+        StartParameter localExpectedStartParameter = StartParameter.newInstance(expectedStartParameter, recursive: true, searchUpwards: true);
+        buildMocker.demand.run(2..2) {StartParameter startParameter ->
+            assertEquals(localExpectedStartParameter, startParameter)
         }
         buildMocker.use(build) {
-            embeddedBuildExecuter.execute(buildResolverDir, projectDir, buildScriptName, expectedTaskNames, expectedProjectProperties,
-                    expectedSystemProperties, expectedRecursive, expectedSearchUpwards)
-            embeddedBuildExecuter.execute(buildResolverDir, projectDir, buildScriptName, expectedTaskNames, expectedProjectProperties,
-                    expectedSystemProperties, expectedRecursive, expectedSearchUpwards)
+            embeddedBuildExecuter.execute(buildResolverDir, localExpectedStartParameter)
+            embeddedBuildExecuter.execute(buildResolverDir, localExpectedStartParameter)
         }
         assertEquals(2, factoryCallCount)
         assertEquals(calledBuildResolverDir, buildResolverDir)
@@ -87,18 +75,12 @@ class EmbeddedBuildExecuterTest extends GroovyTestCase {
 
     void testExecuteEmbedded() {
         String embeddedScript = 'embeddedScript'
-        buildMocker.demand.run(2..2) {List taskNames, File currentDir, Map projectProperties, Map systemProperties ->
-            assertEquals(expectedTaskNames, taskNames)
-            assertEquals(projectDir, currentDir)
-            assertEquals(this.gradleUserHome, gradleUserHome)
-            assertEquals(expectedProjectProperties, projectProperties)
-            assertEquals(expectedSystemProperties, systemProperties)
+        buildMocker.demand.runNonRecursivelyWithCurrentDirAsRoot(2..2) {StartParameter startParameter ->
+            assertEquals(expectedStartParameter, startParameter)
         }
         buildMocker.use(build) {
-            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, projectDir, embeddedScript, expectedTaskNames, expectedProjectProperties,
-                    expectedSystemProperties)
-            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, projectDir, embeddedScript, expectedTaskNames, expectedProjectProperties,
-                    expectedSystemProperties)
+            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, embeddedScript, expectedStartParameter)
+            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, embeddedScript, expectedStartParameter)
         }
         assertEquals(2, factoryCallCount)
         assertEquals(calledBuildResolverDir, buildResolverDir)

@@ -29,7 +29,6 @@ import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.api.Project
 import org.gradle.initialization.RootFinder
-import org.gradle.initialization.RootFinder
 
 /**
  * @author Hans Dockter
@@ -50,15 +49,19 @@ class BuildTest extends GroovyTestCase {
     Map expectedProjectProperties
     Map expectedSystemPropertiesArgs
     List expectedTaskNames
+    StartParameter expectedStartParams
 
-    Map userHomeGradleProperties = [:]
-    Map rootProjectGradleProperties = [:]
+    Map testGradleProperties = [:]
 
     Closure testBuildFactory
 
     void setUp() {
         HelperUtil.deleteTestDir()
-        dummyRootFinder = [find: { File currentDir, boolean searchUpwards -> expectedSettings }] as RootFinder
+        testGradleProperties = [(Project.SYSTEM_PROP_PREFIX + '.prop1'): 'value1', prop2: 'value2']
+        dummyRootFinder = [
+                find: {StartParameter startParameter -> expectedSettings },
+                getGradleProperties: {-> testGradleProperties }
+        ] as RootFinder
         expectedTaskNames = ['a', 'b']
         settingsProcessorMocker = new MockFor(SettingsProcessor)
         projectLoaderMocker = new StubFor(ProjectsLoader)
@@ -72,8 +75,19 @@ class BuildTest extends GroovyTestCase {
         expectedCurrentDir = new File('currentDir')
         expectedGradleUserHomeDir = new File(HelperUtil.TMP_DIR_FOR_TEST, 'gradleUserHomeDir')
         expectedSettings = [:] as DefaultSettings
-        settingsProcessorMocker.demand.process(1..1) {RootFinder rootFinder ->
+
+        expectedStartParams = new StartParameter(
+                taskNames: expectedTaskNames,
+                currentDir: expectedCurrentDir,
+                recursive: expectedRecursive,
+                searchUpwards: expectedSearchUpwards,
+                projectProperties: expectedProjectProperties,
+                systemPropertiesArgs: expectedSystemPropertiesArgs,
+                gradleUserHomeDir: expectedGradleUserHomeDir
+        )
+        settingsProcessorMocker.demand.process(1..1) {RootFinder rootFinder, StartParameter startParameter->
             assert rootFinder.is(dummyRootFinder)
+            assert startParameter.is(expectedStartParams)
             expectedSettings
         }
         expectedRootProject = [:] as DefaultProject
@@ -89,48 +103,30 @@ class BuildTest extends GroovyTestCase {
         projectLoaderMocker.demand.getRootProject(0..10) {expectedRootProject}
         projectLoaderMocker.demand.getCurrentProject(0..10) {expectedCurrentProject}
         testBuildFactory = {
-            new Build(expectedGradleUserHomeDir, dummyRootFinder, new SettingsProcessor(), new ProjectsLoader(),
+            new Build(dummyRootFinder, new SettingsProcessor(), new ProjectsLoader(),
                     new BuildConfigurer(), new BuildExecuter())
         }
-        createGradlePropertyFiles()
-        dummyRootFinder.rootDir = expectedSettings.rootDir
-        dummyRootFinder.currentDir = expectedCurrentDir
     }
 
     void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    private void createGradlePropertyFiles() {
-        expectedGradleUserHomeDir.mkdirs()
-        expectedSettings.rootDir = new File(HelperUtil.TMP_DIR_FOR_TEST, 'root')
-        expectedSettings.rootDir.mkdirs()
-        userHomeGradleProperties = [(Project.SYSTEM_PROP_PREFIX + '.prop1'): 'value1', (Project.SYSTEM_PROP_PREFIX + '.prop2'): 'value2']
-        rootProjectGradleProperties = [(Project.SYSTEM_PROP_PREFIX + '.prop1'): 'value2', (Project.SYSTEM_PROP_PREFIX + '.prop3'): 'value3']
-        Properties properties = new Properties()
-        properties.putAll(userHomeGradleProperties)
-        properties.store(new FileOutputStream(new File(expectedGradleUserHomeDir, Project.GRADLE_PROPERTIES)), '')
-        properties.putAll(rootProjectGradleProperties)
-        properties.store(new FileOutputStream(new File(expectedSettings.rootDir, Project.GRADLE_PROPERTIES)), '')
-    }
-
     void testRun() {
         checkRun {
-            testBuildFactory().run(
-                    expectedTaskNames, expectedCurrentDir,
-                    expectedRecursive, expectedSearchUpwards, expectedProjectProperties, expectedSystemPropertiesArgs)
+            testBuildFactory().run(expectedStartParams)
         }
     }
 
     void testRunWithEmbeddedScript() {
         settingsProcessorMocker = new MockFor(SettingsProcessor)
-        settingsProcessorMocker.demand.createBasicSettings(1..1) {RootFinder rootFinder ->
+        settingsProcessorMocker.demand.createBasicSettings(1..1) {RootFinder rootFinder, StartParameter startParameter ->
             assert rootFinder.is(dummyRootFinder)
+            assert startParameter.is(expectedStartParams)
             expectedSettings
         }
         checkRun {
-            testBuildFactory().run(
-                    expectedTaskNames, expectedCurrentDir, expectedProjectProperties, expectedSystemPropertiesArgs)
+            testBuildFactory().runNonRecursivelyWithCurrentDirAsRoot(expectedStartParams)
         }
     }
 
@@ -214,9 +210,7 @@ class BuildTest extends GroovyTestCase {
                     buildConfigurerMocker.use {
                         buildExecuterMocker.use {
                             shouldFail(UnknownTaskException) {
-                                testBuildFactory().run(
-                                        expectedTaskNames, expectedCurrentDir, expectedRecursive,
-                                        expectedSearchUpwards, expectedProjectProperties, expectedSystemPropertiesArgs)
+                                testBuildFactory().run(expectedStartParams)
                             }
                         }
                     }
@@ -227,21 +221,20 @@ class BuildTest extends GroovyTestCase {
 
     void testTaskList() {
         checkTask {
-            testBuildFactory().taskList(
-                    expectedCurrentDir, expectedRecursive, expectedSearchUpwards,
-                    expectedProjectProperties, expectedSystemPropertiesArgs)
+            testBuildFactory().taskList(expectedStartParams)
         }
     }
 
     void testTaskListEmbedded() {
+        StartParameter expectedStartParameterArg = StartParameter.newInstance(expectedStartParams, searchUpwards: false)
         settingsProcessorMocker = new MockFor(SettingsProcessor)
-        settingsProcessorMocker.demand.createBasicSettings(1..1) {RootFinder rootFinder ->
+        settingsProcessorMocker.demand.createBasicSettings(1..1) {RootFinder rootFinder, StartParameter startParameter ->
             assert rootFinder.is(dummyRootFinder)
+            assertEquals(expectedStartParameterArg, startParameter)
             expectedSettings
         }
         checkTask {
-            testBuildFactory().taskList(
-                    expectedCurrentDir, expectedProjectProperties, expectedSystemPropertiesArgs)
+            testBuildFactory().taskListNonRecursivelyWithCurrentDirAsRoot(expectedStartParams)
         }
     }
 
@@ -268,30 +261,21 @@ class BuildTest extends GroovyTestCase {
     }
 
     private checkSystemProps(Map props) {
-        Map expectedProps = new HashMap(props)
-        expectedProps.putAll(rootProjectGradleProperties)
-        expectedProps.putAll(userHomeGradleProperties)
-        expectedProps.each {String key, value ->
-            if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
-                key = key.substring((Project.SYSTEM_PROP_PREFIX + '.').length())
-            }
-            assertEquals(value, System.properties[key])
-        }
+        assertEquals(testGradleProperties[Project.SYSTEM_PROP_PREFIX + '.prop1'], System.properties['prop1'])
+        assertFalse(System.properties.keySet().contains('prop2'))
     }
 
     // todo: This test is rather weak. Make it stronger.
     void testNewInstanceFactory() {
         File expectedPluginProps = new File('pluginProps')
         File expectedDefaultImports = new File('defaultImports')
-        Build build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps, expectedDefaultImports).call(
+        Build build = Build.newInstanceFactory(expectedPluginProps, expectedDefaultImports).call(
                 new BuildScriptFinder(),
                 new File('buildResolverDir'))
-        assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)
         assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
         assertEquals(expectedDefaultImports, build.settingsProcessor.importsReader.defaultImportsFile)
-        build = Build.newInstanceFactory(expectedGradleUserHomeDir, expectedPluginProps, expectedDefaultImports).call(new BuildScriptFinder(),
+        build = Build.newInstanceFactory(expectedPluginProps, expectedDefaultImports).call(new BuildScriptFinder(),
                 null)
-        assertEquals(expectedGradleUserHomeDir, build.gradleUserHomeDir)
         assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
     }
 

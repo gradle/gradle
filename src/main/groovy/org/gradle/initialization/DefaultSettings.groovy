@@ -28,6 +28,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.DualResolver
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -37,39 +38,37 @@ class DefaultSettings implements Settings {
     static final String BUILD_CONFIGURATION = 'build'
     static final String DEFAULT_BUILD_SRC_DIR = 'buildSrc'
 
-    File currentDir
-    File rootDir
     DependencyManager dependencyManager
     BuildSourceBuilder buildSourceBuilder
 
-    String buildSrcDir
-    String buildSrcScriptName
-    List buildSrcTaskNames
-    boolean buildSrcRecursive
-    boolean buildSrcSearchUpwards
-    Map buildSrcProjectProperties
-    Map buildSrcSystemProperties
+    Map additionalProperties = [:]
+
+    StartParameter startParameter
+
+    RootFinder rootFinder
+
+    StartParameter buildSrcStartParameter
 
     List projectPaths = []
 
     DefaultSettings() {}
 
-    DefaultSettings(File currentDir, File rootDir, DependencyManagerFactory dependencyManagerFactory,
-                    BuildSourceBuilder buildSourceBuilder, File gradleUserHomeDir) {
-        this.currentDir = currentDir
-        this.rootDir = rootDir
+    DefaultSettings(DependencyManagerFactory dependencyManagerFactory,
+                    BuildSourceBuilder buildSourceBuilder, RootFinder rootFinder, StartParameter startParameter) {
+        this.rootFinder = rootFinder
+        this.startParameter = startParameter
         this.dependencyManager = dependencyManagerFactory.createDependencyManager()
-        
-        configureDependencyManager(dependencyManager, gradleUserHomeDir)
+
+        configureDependencyManager(dependencyManager)
         this.buildSourceBuilder = buildSourceBuilder
         dependencyManager.addConfiguration(BUILD_CONFIGURATION)
-        buildSrcDir = DEFAULT_BUILD_SRC_DIR
-        buildSrcScriptName = Project.DEFAULT_PROJECT_FILE
-        buildSrcTaskNames = [JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS]
-        buildSrcRecursive = true
-        buildSrcSearchUpwards = true
-        buildSrcProjectProperties = [:]
-        buildSrcSystemProperties = [:]
+        buildSrcStartParameter = new StartParameter(
+                buildFileName: Project.DEFAULT_PROJECT_FILE,
+                taskNames: [JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS],
+                recursive: true,
+                searchUpwards: true,
+                gradleUserHomeDir: startParameter.gradleUserHomeDir
+        )
     }
 
     void include(String[] projectPaths) {
@@ -106,14 +105,14 @@ class DefaultSettings implements Settings {
     }
 
     DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls) {
-       dependencyManager.addMavenStyleRepo(name, root, jarRepoUrls)
+        dependencyManager.addMavenStyleRepo(name, root, jarRepoUrls)
     }
 
     URLClassLoader createClassLoader() {
         def dependency = null
         if (buildSourceBuilder) {
-            dependency = buildSourceBuilder.createDependency(new File(rootDir, buildSrcDir), dependencyManager.buildResolverDir, buildSrcScriptName,
-                    buildSrcTaskNames, buildSrcProjectProperties, buildSrcSystemProperties, buildSrcRecursive, buildSrcSearchUpwards)
+            dependency = buildSourceBuilder.createDependency(dependencyManager.buildResolverDir,
+                    StartParameter.newInstance(buildSrcStartParameter, currentDir: new File(rootFinder.rootDir, DEFAULT_BUILD_SRC_DIR)))
         }
         logger.debug("Build src dependency: $dependency")
         if (dependency) {
@@ -129,14 +128,24 @@ class DefaultSettings implements Settings {
         new URLClassLoader(classpath, parentClassLoader)
     }
 
-    private configureDependencyManager(DependencyManager dependencyManager, File gradleUserHomeDir) {
-        assert gradleUserHomeDir
+    private configureDependencyManager(DependencyManager dependencyManager) {
         DefaultProject dummyProjectForDepencencyManager = new DefaultProject()
         dummyProjectForDepencencyManager.group = 'org.gradle'
         dummyProjectForDepencencyManager.name = 'build'
         dummyProjectForDepencencyManager.version = 'SNAPSHOT'
-        dummyProjectForDepencencyManager.gradleUserHome = gradleUserHomeDir.canonicalPath
+        dummyProjectForDepencencyManager.gradleUserHome = startParameter.gradleUserHomeDir.canonicalPath
         dependencyManager.project = dummyProjectForDepencencyManager
         dependencyManager
+    }
+
+    def propertyMissing(String property) {
+        def delegateObject = [rootFinder, startParameter].find {
+            it.metaClass.hasProperty(it, property)
+        }
+        if (delegateObject) { return delegateObject."$property" }
+        if (rootFinder.gradleProperties.keySet().contains(property)) {
+            return rootFinder.gradleProperties[property]
+        }
+        throw new MissingPropertyException(property, DefaultSettings)
     }
 }

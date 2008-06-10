@@ -26,9 +26,9 @@ import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 
 /**
-* @author Hans Dockter
-* todo write disabled test 'testMainWithException' as integration test
-*/
+ * @author Hans Dockter
+ * todo write disabled test 'testMainWithException' as integration test
+ */
 class MainTest extends GroovyTestCase {
     final static String TEST_DIR_NAME = "/testdir"
 
@@ -80,6 +80,16 @@ class MainTest extends GroovyTestCase {
     }
 
     private checkMain(boolean embedded = false, boolean taskList = false, Closure mainCall) {
+        Closure checkStartParameter = {StartParameter startParameter, boolean noTasks = false ->
+            assertEquals(noTasks ? [] : expectedTaskNames, startParameter.taskNames)
+            assertEquals(expectedProjectDir.canonicalFile, startParameter.currentDir.canonicalFile)
+            assertEquals(expectedRecursive, startParameter.recursive)
+            assertEquals(expectedSearchUpwards, startParameter.searchUpwards)
+            assertEquals(expectedProjectProperties, startParameter.projectProperties)
+            assertEquals(expectedSystemProperties, startParameter.systemPropertiesArgs)
+            assertEquals(expectedGradleUserHome.absoluteFile, startParameter.gradleUserHomeDir.absoluteFile)
+        }
+
         File expectedBuildResolverRoot = new File(expectedProjectDir, DependencyManager.BUILD_RESOLVER_NAME)
         Throwable assertException = null
         SettingsProcessor settingsProcessor = new SettingsProcessor()
@@ -94,8 +104,7 @@ class MainTest extends GroovyTestCase {
             }
             new Build()
         }
-        buildMockFor.demand.newInstanceFactory(1..1) {File gradleUserHomeDir, File pluginProperties, File importsFile ->
-            assertEquals(expectedGradleUserHome.canonicalFile, gradleUserHomeDir.canonicalFile)
+        buildMockFor.demand.newInstanceFactory(1..1) {File pluginProperties, File importsFile ->
             assertEquals(expectedGradleImportsFile, importsFile)
             assertEquals(new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES), pluginProperties)
             buildFactory
@@ -105,22 +114,17 @@ class MainTest extends GroovyTestCase {
         }
         if (embedded) {
             if (taskList) {
-                buildMockFor.demand.taskList(1..1) {File currentDir,  Map projectProperties, Map systemProperties ->
+                buildMockFor.demand.taskListNonRecursivelyWithCurrentDirAsRoot(1..1) {StartParameter startParameter ->
                     try {
-                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
-                        assertEquals(expectedProjectProperties, projectProperties)
-                        assertEquals(expectedSystemProperties, systemProperties)
+                        checkStartParameter(startParameter, true)
                     } catch (Throwable e) {
                         assertException = e
                     }
                 }
             } else {
-                buildMockFor.demand.run(1..1) {List taskNames, File currentDir,  Map projectProperties, Map systemProperties ->
+                buildMockFor.demand.runNonRecursivelyWithCurrentDirAsRoot(1..1) {StartParameter startParameter ->
                     try {
-                        assertEquals(expectedTaskNames, taskNames)
-                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
-                        assertEquals(expectedProjectProperties, projectProperties)
-                        assertEquals(expectedSystemProperties, systemProperties)
+                        checkStartParameter(startParameter)
                     } catch (Throwable e) {
                         assertException = e
                     }
@@ -128,29 +132,17 @@ class MainTest extends GroovyTestCase {
             }
         } else {
             if (taskList) {
-
-                buildMockFor.demand.taskList(1..1) {File currentDir,  boolean recursive, boolean searchUpwards,
-                                                    Map projectProperties, Map systemProperties ->
+                buildMockFor.demand.taskList(1..1) {StartParameter startParameter ->
                     try {
-                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
-                        assertEquals(expectedRecursive, recursive)
-                        assertEquals(expectedSearchUpwards, searchUpwards)
-                        assertEquals(expectedProjectProperties, projectProperties)
-                        assertEquals(expectedSystemProperties, systemProperties)
+                        checkStartParameter(startParameter, true)
                     } catch (Throwable e) {
                         assertException = e
                     }
                 }
             } else {
-                buildMockFor.demand.run(1..1) {List taskNames, File currentDir,  boolean recursive, boolean searchUpwards,
-                                               Map projectProperties, Map systemProperties ->
+                buildMockFor.demand.run(1..1) {StartParameter startParameter ->
                     try {
-                        assertEquals(expectedTaskNames, taskNames)
-                        assertEquals(expectedProjectDir.canonicalFile, currentDir.canonicalFile)
-                        assertEquals(expectedRecursive, recursive)
-                        assertEquals(expectedSearchUpwards, searchUpwards)
-                        assertEquals(expectedProjectProperties, projectProperties)
-                        assertEquals(expectedSystemProperties, systemProperties)
+                        checkStartParameter(startParameter)
                     } catch (Throwable e) {
                         assertException = e
                     }
@@ -162,7 +154,6 @@ class MainTest extends GroovyTestCase {
             mainCall.call()
         }
         assertNotNull(settingsProcessor.buildSourceBuilder)
-        assertEquals(expectedGradleUserHome.canonicalFile, settingsProcessor.buildSourceBuilder.embeddedBuildExecuter.gradleUserHome.canonicalFile)
         assertEquals(buildFactory, settingsProcessor.buildSourceBuilder.embeddedBuildExecuter.buildFactory)
         if (assertException) throw assertException
     }
@@ -259,10 +250,8 @@ class MainTest extends GroovyTestCase {
 
 
     private List args(List args) {
-        ['toolsinfo'] + args    
+        ['toolsinfo'] + args
     }
-
-
 
     //    void testMainWithException() {
     //        showProp()
@@ -274,7 +263,6 @@ class MainTest extends GroovyTestCase {
     //            // Getting here means the exception was caught. This is what we want to test.
     //        }
     //    }
-
 
 
 }

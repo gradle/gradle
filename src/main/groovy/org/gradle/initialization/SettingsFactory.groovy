@@ -18,13 +18,14 @@ package org.gradle.initialization
 
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Settings
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
  */
 class SettingsFactory {
-    Settings createSettings(File currentDir, File rootDir, DependencyManagerFactory dependencyManagerFactory,
-                            BuildSourceBuilder buildSourceBuilder, File gradleUserHomeDir) {
-        new DefaultSettings(currentDir, rootDir, dependencyManagerFactory, buildSourceBuilder, gradleUserHomeDir)
+    Settings createSettings(DependencyManagerFactory dependencyManagerFactory,
+                            BuildSourceBuilder buildSourceBuilder, RootFinder rootFinder, StartParameter startParameter) {
+        new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
     }
 }

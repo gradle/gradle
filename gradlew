@@ -61,9 +61,9 @@ fi
 STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
 CLASSPATH=`dirname "$0"`/gradle-wrapper/gradle-wrapper.jar
 URL_ROOT=http://dist.codehaus.org/gradle
-DIST_NAME=gradle-0.1.4-080506001033+0200
-GRADLE_HOME=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.4-080506001033+0200
-GRADLE=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.4-080506001033+0200/bin/gradle
+DIST_NAME=gradle-0.1.5-080610094752+0200-bin
+GRADLE_HOME=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.5-080610094752+0200
+GRADLE=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.5-080610094752+0200/bin/gradle
 # Determine the Java command to use to start the JVM.
 if [ -z "$JAVACMD" ] ; then
     if [ -n "$JAVA_HOME" ] ; then

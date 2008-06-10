@@ -19,6 +19,7 @@ package org.gradle.initialization
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -30,6 +31,7 @@ class BuildSourceBuilderTest extends GroovyTestCase {
     File rootDir
     File testBuildSrcDir
     File testBuildResolverDir
+    StartParameter expectedStartParameter
 
     void setUp() {
         File testDir = HelperUtil.makeNewTestDir()
@@ -39,6 +41,14 @@ class BuildSourceBuilderTest extends GroovyTestCase {
         embeddedBuildExecuter = new EmbeddedBuildExecuter()
         buildSourceBuilder = new BuildSourceBuilder(embeddedBuildExecuter)
         embeddedBuildExecuterMocker = new MockFor(EmbeddedBuildExecuter)
+        expectedStartParameter = new StartParameter(
+                searchUpwards: true,
+                currentDir: testBuildSrcDir,
+                buildFileName: Project.DEFAULT_PROJECT_FILE,
+                taskNames: ['task1', 'task2'],
+                gradleUserHomeDir: new File('gradleUserHome'),
+                projectProperties: dependencyProjectProps
+        )
     }
 
     void tearDown() {
@@ -56,73 +66,47 @@ class BuildSourceBuilderTest extends GroovyTestCase {
     }
 
     void testCreateDependencyWithExistingBuildSources() {
-        List expectedTaskNames = ['task1', 'task2']
-        Map expectedSystemProperties = [prop1: 'prop1']
-        Map expectedProjectProperties = [projectProp1: 'projectProp1']
-        boolean expectedRecursive = false
-        boolean expectedSearchUpwards = false
-        embeddedBuildExecuterMocker.demand.execute(1..1) {File buildResolverDir, File projectDir, String buildScriptName, List taskNames,
-                                                          Map projectProperties, Map systemProperties,
-                                                          boolean recursive, boolean searchUpwards ->
+        embeddedBuildExecuterMocker.demand.execute(1..1) {File buildResolverDir, StartParameter startParameter ->
             createArtifact()
             assertEquals(testBuildResolverDir, buildResolverDir)
-            assertEquals(testBuildSrcDir, projectDir)
-            assertEquals(Project.DEFAULT_PROJECT_FILE, buildScriptName)
-            assertEquals(expectedTaskNames, taskNames)
-            assertEquals(expectedProjectProperties + dependencyProjectProps, projectProperties)
-            assertEquals(expectedSystemProperties, systemProperties)
-            assertEquals(expectedRecursive, recursive)
-            assertEquals(expectedSearchUpwards, searchUpwards)
+            assertEquals(StartParameter.newInstance(expectedStartParameter, searchUpwards: false), startParameter)
         }
         createBuildFile()
         embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
-            def result = buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir,
-                    Project.DEFAULT_PROJECT_FILE, expectedTaskNames,
-                    expectedProjectProperties, expectedSystemProperties, expectedRecursive, expectedSearchUpwards)
+            def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
             assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
         }
     }
 
     void testCreateDependencyWithNonExistingBuildScript() {
-        Map expectedSystemProperties = [prop1: 'prop1']
-        Map expectedProjectProperties = [projectProp1: 'projectProp1']
-        List expectedTaskNames = ['task1', 'task2']
-        boolean expectedRecursive = false
-        boolean expectedSearchUpwards = false
-        embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, File projectDir, String embeddedScript, List taskNames,
-                                                                        Map projectProperties, Map systemProperties ->
+        embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, String embeddedScript, StartParameter startParameter ->
             createArtifact()
             assertEquals(testBuildResolverDir, buildResolverDir)
-            assertEquals(testBuildSrcDir, projectDir)
             assertEquals(embeddedScript, BuildSourceBuilder.DEFAULT_SCRIPT)
-            assertEquals(expectedTaskNames, taskNames)
-            assertEquals(expectedProjectProperties + dependencyProjectProps, projectProperties)
-            assertEquals(expectedSystemProperties, systemProperties)
+            assertEquals(StartParameter.newInstance(expectedStartParameter, searchUpwards: false), startParameter)
         }
         embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
-            def result = buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir,
-                    Project.DEFAULT_PROJECT_FILE, expectedTaskNames,
-                    expectedProjectProperties, expectedSystemProperties, expectedRecursive, expectedSearchUpwards)
+            def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
             assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
         }
     }
 
     void testCreateDependencyWithNonExistingBuildSrcDir() {
-        assertNull(buildSourceBuilder.createDependency(new File('nonexisting'), testBuildResolverDir, Project.DEFAULT_PROJECT_FILE, ['sometask'],
-                [:], [:], true, true))
+        expectedStartParameter = StartParameter.newInstance(expectedStartParameter, currentDir: new File('nonexisting'))
+        assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }
 
     void testCreateDependencyWithNoArtifactProducingBuild() {
-        embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, File projectDir, String embeddedScript, List taskNames,
-                                                                        Map projectProperties, Map systemProperties ->}
+        embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, String embeddedScript, StartParameter startParameter -> }
         embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
-            assertNull(buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir, 'somescript', ['sometask'], [:], [:], true, true))
+            assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
         }
     }
 
     void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
-        assertNull(buildSourceBuilder.createDependency(testBuildSrcDir, testBuildResolverDir, Project.DEFAULT_PROJECT_FILE, [], [:], [:], true, true))
+        expectedStartParameter = StartParameter.newInstance(expectedStartParameter, taskNames: [])
+        assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }
 
     private createBuildFile() {

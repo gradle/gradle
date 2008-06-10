@@ -45,7 +45,7 @@ class WrapperScriptGenerator {
 STARTER_MAIN_CLASS=$InstallMain.name
 CLASSPATH=$wrapperJarUnix
 URL_ROOT=$downloadUrlRoot
-DIST_NAME=gradle-${gradleVersion}
+DIST_NAME=gradle-${gradleVersion}-bin
 GRADLE_HOME=$gradleHomeUnix
 GRADLE=$gradleUnix
 """

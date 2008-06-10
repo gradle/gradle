@@ -19,29 +19,27 @@ package org.gradle.initialization
 import org.gradle.Build
 import org.gradle.api.internal.project.BuildScriptFinder
 import org.gradle.api.internal.project.EmbeddedBuildScriptFinder
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
  */
 class EmbeddedBuildExecuter {
     Closure buildFactory
-    File gradleUserHome
 
     EmbeddedBuildExecuter() {}
 
-    EmbeddedBuildExecuter(Closure buildFactory, File gradleUserHome) {
+    EmbeddedBuildExecuter(Closure buildFactory) {
         this.buildFactory = buildFactory
-        this.gradleUserHome = gradleUserHome
     }
 
-    void execute(File buildResolverDir, File projectDir, String buildScriptName, List taskNames, Map projectProperties, Map systemProperties,
-                 boolean recursive, boolean searchUpwards) {
-        Build build = buildFactory(new BuildScriptFinder(buildScriptName), buildResolverDir)
-        build.run(taskNames, projectDir, recursive, searchUpwards, projectProperties, systemProperties)
+    void execute(File buildResolverDir, StartParameter startParameter) {
+        Build build = buildFactory(new BuildScriptFinder(startParameter.buildFileName), buildResolverDir)
+        build.run(startParameter)
     }
 
-    void executeEmbeddedScript(File buildResolverDir, File projectDir, String embeddedScript, List taskNames, Map projectProperties, Map systemProperties) {
+    void executeEmbeddedScript(File buildResolverDir, String embeddedScript, StartParameter startParameter) {
         Build build = buildFactory(new EmbeddedBuildScriptFinder(embeddedScript),  buildResolverDir)
-        build.run(taskNames, projectDir, projectProperties, systemProperties)
+        build.runNonRecursivelyWithCurrentDirAsRoot(startParameter)
     }
 }

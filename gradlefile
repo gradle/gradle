@@ -20,12 +20,12 @@ import org.gradle.build.samples.Userguide
 import org.gradle.api.tasks.StopExecutionException
 import org.apache.commons.io.FilenameUtils
 
+archivesBaseName = 'gradle'
 usePlugin('groovy')
 
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 
-distName = 'gradle'
 svn = new Svn(project)
 distributionUploadUrl = null
 userguideRemoteDir = 'userguide/'
@@ -110,6 +110,7 @@ dependencies {
             ":logback-classic:0.9.8",
             ":ivy:2.0.0.beta2_20080305165542:jar"
     runtime ":ant-launcher:1.7.0",
+            ":ant-nodeps:1.7.0",
             ":junit:4.4"
 
     testCompile ":junit:4.4"
@@ -134,9 +135,6 @@ test {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere"])
 }
 
-// todo: Add DefaultArchiveTask
-libs.tasksBaseName = distName
-
 explodedDistDir = new File(distsDir, 'exploded')
 explodedDistDocsDir = new File(explodedDistDir, 'docs')
 explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
@@ -153,16 +151,16 @@ createTask('explodedDist', dependsOn: 'libs') {
         dependencies.resolve('distLib').each {File file ->
             copy(file: file, todir: explodedDistLibDir)
         }
-        jar(destfile: new File(explodedDistLibDir, "$distName-wrapper-${version}.jar"),
+        jar(destfile: new File(explodedDistLibDir, "$archivesBaseName-wrapper-${version}.jar"),
                 basedir: classesDir, includes: 'org/gradle/wrapper/')
         // todo: find out why Ivy does not include the jar in the resolve
         copy(file: task('gradle_jar').archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
-        StartScriptsGenerator.generate("$distName-${version}.jar", explodedDistBinDir, distName)
+        StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
         logger.info('Generate and copy samples.')
         TutorialCreator.writeScripts(explodedDistTutorialDir)
         WaterProjectCreator.createProjectTree(explodedDistSamplesDir)
-        WrapperProjectCreator.createProject(explodedDistSamplesDir, task('gradle_zip').archivePath.parentFile,
+        WrapperProjectCreator.createProject(explodedDistSamplesDir, task('gradle_bin_zip').archivePath.parentFile,
                 version.toString())
         copy(toDir: explodedDistSamplesDir) {fileset(dir: new File(srcRoot, 'samples'))}
         logger.info('Copy binary sources.')
@@ -171,7 +169,7 @@ createTask('explodedDist', dependsOn: 'libs') {
         }
         logger.info('Copy and generate top level files.')
         copy(toDir: explodedDistDir) {fileset(dir: new File(srcRoot, 'toplevel'))}
-        String gettingStartedContent = new File("$webSrcDir/content", 'getting-started.html').text
+        String gettingStartedContent = new File(srcDocsDir, 'getting-started.html').text
         new File(explodedDistDir, 'getting-started.html').text =
             new SimpleTemplateEngine().createTemplate(new File(srcDocsDir, 'distGettingStartedSkeleton.html')).make(content: gettingStartedContent).toString()
         // Set permissions (important for running integration tests against the exploded dist)
@@ -179,13 +177,12 @@ createTask('explodedDist', dependsOn: 'libs') {
     }
 }
 
-zipRootFolder = "$distName-${-> version}"
+zipRootFolder = "$archivesBaseName-${-> version}"
 
 dists {
     dependsOn 'explodedDist', 'userguide', 'javadoc'
-    tasksBaseName = distName
-    childrenDependOn << 'explodedDist'
-    zip().afterDag {
+    childrenDependsOn = 'explodedDist'
+    zip(classifier: 'all').afterDag {
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
             exclude 'bin/*'
         }
@@ -197,13 +194,26 @@ dists {
             include 'bin/*.*'
         }
     }
-    zip("$distName-src").afterDag {
-        String prefix = "$distName-src-$version"
+    zip(classifier: 'bin').afterDag {
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+            exclude 'bin/*'
+            exclude 'src/'
+            exclude 'samples/'
+        }
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
+            include 'bin/*'
+            exclude 'bin/*.*'
+        }
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+            include 'bin/*.*'
+        }
+    }
+    zip(classifier: 'src').afterDag {
         destinationDir = distsDir
-        zipFileSet(dir: projectDir, prefix: prefix, fileMode: '775') {
+        zipFileSet(dir: projectDir, prefix: archiveName, fileMode: '775') {
             include 'gradlew'
         }
-        zipFileSet(dir: projectDir, prefix: prefix) {
+        zipFileSet(dir: projectDir, prefix: archiveName) {
             include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'gradlefile', 'gradlew.bat'
         }
     }
@@ -308,17 +318,17 @@ createTask('integTest', dependsOn: ['dists', 'tutorialOutput']) {
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc'])
 
 createTask('install', dependsOn: 'integTest') {
-    String installDirName = distName + '-SNAPSHOT'
+    String installDirName = archivesBaseName + '-SNAPSHOT'
     ant {
         delete(dir: "$installDir/$installDirName")
         exec(dir: installDir, executable: "rm") {
-            arg(value: distName)
+            arg(value: archivesBaseName)
         }
         exec(dir: installDir, executable: "unzip") {
             arg(value: '-q')
             arg(value: '-d')
             arg(value: installDir)
-            arg(value: "${task('gradle_zip').archivePath}")
+            arg(value: "${task('gradle_all_zip').archivePath}")
         }
         exec(dir: installDir, executable: "mv") {
             arg(value: zipRootFolder)
@@ -327,7 +337,7 @@ createTask('install', dependsOn: 'integTest') {
         exec(dir: installDir, executable: "ln") {
             arg(value: '-s')
             arg(value: "$installDir/$installDirName")
-            arg(value: distName)
+            arg(value: archivesBaseName)
         }
     }
 }
@@ -348,57 +358,10 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.1.4-080506001033+0200'
+    gradleVersion = '0.1.5-080610094752+0200'
 }
 
-buildWebsiteDir = new File(buildDir, 'website')
-createTask('buildWebsite') {
-    buildWebsiteDir.mkdirs()
-    File webContentSrcDir = new File(webSrcDir, 'content')
-    def engine = new SimpleTemplateEngine()
-    def binding = [
-            currentRelease: version.lastRelease,
-            sidebar: engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(currentRelease: version.lastRelease).toString()
-    ]
-    def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
-    webContentSrcDir.eachFileMatch(~/.*html/) {File contentFile ->
-        def contentTemplate = engine.createTemplate(contentFile)
-        String content = contentTemplate.make(binding).toString()
 
-        new File(buildWebsiteDir, contentFile.name).text =
-            skeletonTemplate.make(binding + [content: content, title: extractTitle(contentFile)]).toString()
-    }
-    ant {
-        copy(todir: new File(buildWebsiteDir, 'css')) {
-            fileset(dir: new File(webSrcDir, 'css'))
-        }
-        copy(todir: new File(buildWebsiteDir, 'img')) {
-            fileset(dir: new File(webSrcDir, 'img'))
-        }
-    }
-}
-
-String extractTitle(File contentFile) {
-    String baseName = FilenameUtils.getBaseName(contentFile.name)
-    baseName = baseName[0].toUpperCase() + baseName.substring(1)
-    if (baseName == 'Index') {
-        baseName = 'Home'
-    }
-    baseName
-}
-
-createTask('uploadWebsite', dependsOn: 'buildWebsite') {
-    ant {
-        ftp(action: 'delete') {
-            fileset() {
-                include(name: '*.html')
-            }
-        }
-        ftp(action: 'send') {
-            fileset(dir: buildWebsiteDir)
-        }
-    }
-}
 
 void ftp(Map args, Closure antFileset = {}) {
     ant {

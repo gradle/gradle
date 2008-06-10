@@ -62,7 +62,7 @@ class ProjectsLoader {
         logger.info('++ Loading Project objects')
         rootProject = createProjects(settings, gradleUserHomeDir, projectProperties, systemProperties, envProperties)
         currentProject = DefaultProject.findProject(rootProject,
-                PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.currentDir))
+                PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.startParameter.currentDir))
         this
     }
 
@@ -87,7 +87,7 @@ class ProjectsLoader {
             logger.debug("Adding user properties (if not overwritten by system project properties: $userHomeProperties")
         }
         logger.debug("Looking for system project properties")
-        DefaultProject rootProject = projectFactory.createProject(settings.rootDir.name, null, settings.rootDir, null,
+        DefaultProject rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null, settings.rootFinder.rootDir, null,
                 projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
         addPropertiesToProject(gradleUserHomeDir, userHomeProperties + projectProperties, systemAndEnvProjectProperties, rootProject)
         settings.projectPaths.each {
