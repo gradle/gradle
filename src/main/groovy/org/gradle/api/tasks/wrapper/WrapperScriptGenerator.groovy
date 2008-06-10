@@ -53,7 +53,7 @@ GRADLE=$gradleUnix
 set STARTER_MAIN_CLASS=$InstallMain.name
 set CLASSPATH=$wrapperJarWindows
 set URL_ROOT=$downloadUrlRoot
-set DIST_NAME=gradle-${gradleVersion}
+set DIST_NAME=gradle-${gradleVersion}-bin
 set GRADLE_HOME=$gradleHomeWindows
 set Path=$gradleWindowsPath;%Path%
 """
