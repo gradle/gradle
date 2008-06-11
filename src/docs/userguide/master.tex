@@ -7,7 +7,9 @@
 \oddsidemargin}{-0.7cm}
 
 \def \API {http://www.gradle.org/api/latest/org/gradle/api/} 
-\def \PKG {org.gradle.api.} 
+\def \PKG {org.gradle.api.}
+\def \TUT {../../samples/userguide/tutorial}  
+\def \UGOUT {../../samples/userguideOutput}  
 
 \includeonly{introduction,buildScripts,javaTutorial,thisAndThat,overview,projectTaskApi,tasks,plugins,javaPlugin,groovyPlugin,depMngmt,buildLifecycle,multiproject,organizeBuildLogic,gradleWrapper,potentialTraps,commandLine,ideSupport,mavenPoms} 
 \usepackage{upquote} 
@@ -41,7 +43,7 @@
 \newcommand\HRule{
 \noindent\rule{\linewidth}{1.5pt}} 
 \newcommand{\codeInput}[1]{\VerbatimInput[framesep=1mm]{#1}}
-\newcommand{\codebuild.gradle}[2][]{\VerbatimInput[frame=single,label=#1build.gradle,framesep=1mm]{#2}}
+\newcommand{\codeGradleFile}[2][]{\VerbatimInput[frame=single,label=#1build.gradle,framesep=1mm]{#2}}
 \newcommand{\outputInput}[1]{\VerbatimInput[frame=single,framesep=1mm,framerule=1mm]{#1}}
 \newcommand{\outputInputGradle}[2][]{\VerbatimInput[frame=single,label=current dir: #1,framesep=1mm,framerule=1mm]{#2}}
 \newcommand{\outputInputTutorial}[1]{\outputInputGradle[tutorial]{#1}}

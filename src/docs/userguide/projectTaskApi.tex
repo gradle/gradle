@@ -10,8 +10,8 @@ In the tutorial in chapter \ref{cha:gradle_core_tutorial} we have called for exa
 	\item Any property you access in your build script, which \emph{is not defined} in the build script, is delegated to the project object.
 \end{itemize}
 Let's try this out and try to access the \texttt{name} property of the Project object.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/projectApifile}
-\outputInputTutorial{../../../build/tutorial-output/projectApifile.out}
+\codeInput{../../samples/userguide/tutorial/projectApi.gradle}
+\outputInputTutorial{../../samples/userguideOutput/projectApi.out}
 Both \texttt{println} statements print out the same property. One uses the auto delegation to the project object, for properties not defined in the build script. The other statement uses the \texttt{project} property available to any build script, which provides an instance of the associated project object. Only if you define a property or a method which has the same name as a member of the project object, you need to use the \texttt{project} property. Look here to learn more about \href{\API Project.html}{org.gradle.api.Project}.
 % section project_api (end)
 \section{Task API} % (fold)

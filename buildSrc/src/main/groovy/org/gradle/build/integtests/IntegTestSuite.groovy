@@ -25,7 +25,6 @@ class IntegTestSuite {
         JavaProject.execute(distDirPath, samplesDirPath)
         GroovyProject.execute(distDirPath, samplesDirPath)
         WaterProject.execute(distDirPath, samplesDirPath)
-        PropertiesTest.execute(distDirPath, samplesDirPath, userguideOutputDir)
         org.gradle.build.integtests.Version.execute(distDirPath)
         Userguide.execute(distDirPath, samplesDirPath, userguideOutputDir)
         MavenRepo.execute(distDirPath, samplesDirPath)

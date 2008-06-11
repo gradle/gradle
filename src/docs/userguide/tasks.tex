@@ -48,8 +48,8 @@ If you pass a closure to the \texttt{createTask()} method, this closure gets add
 
 \section{Replacing Tasks}
 Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin with a custom task of a different type. You can achieve this with:
-\codeInput{../../../build/distributions/exploded/samples/tutorial/replaceTaskfile}
-\outputInputTutorial{../../../build/tutorial-output/replaceTaskfile.out}
+\codeInput{../../samples/userguide/tutorial/replaceTask.gradle}
+\outputInputTutorial{../../samples/userguideOutput/replaceTask.out}
 Here we replace a task of type \texttt{Resources} with a simple task. When creating the simple task, you have to set the \texttt{overwrite} property to true. Otherwise Gradle throws an exception, saying that a task with such a name already exists.
 
 \section{Summary} % (fold)

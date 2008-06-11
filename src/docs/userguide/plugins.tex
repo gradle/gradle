@@ -16,8 +16,8 @@ at the beginning of your script. That's all. From a technological point of view 
     \item Adding a so called \emph{convention object} to your project configuration.
 \end{itemize}
 Let's check this out:
-\codeInput{../../../build/distributions/exploded/samples/tutorial/pluginIntrofile}
-\outputInputTutorial{../../../build/tutorial-output/pluginIntrofile.out}
+\codeInput{../../samples/userguide/tutorial/pluginIntro.gradle}
+\outputInputTutorial{../../samples/userguideOutput/pluginIntro.out}
 The JavaPlugin adds a \texttt{compile} task to the project object which can be access by a build script.
 
 \noindent The usePlugin method either takes a string or a class as an argument. You can write\footnote{Thanks to Gradles default imports (see \ref{cha:ide_support}) you can also write \texttt{usePlugin(JavaPlugin)} in this case.}
@@ -32,13 +32,13 @@ If you want to use your own plugins, you must make sure that they are accessible
 \section{Configuration} % (fold)
 \label{sec:configuration}
 If you use the \emph{JavaPlugin} there is for example a compile and resources task for your production code (the same is true for your test code). The default location for the output of those task is the directory \texttt{build/classes}. What if you want to change this? Let's try:
-\codeInput{../../../build/distributions/exploded/samples/tutorial/pluginConfigfile}
-\outputInputTutorial{../../../build/tutorial-output/pluginConfigfile.out}
+\codeInput{../../samples/userguide/tutorial/pluginConfig.gradle}
+\outputInputTutorial{../../samples/userguideOutput/pluginConfig.out}
 Setting the \texttt{destinationDir} of the resources task had only an effect on the resources task. Maybe this was what you wanted. But what if you want to change the output directory for all tasks? It would be unfortunate if you had to do this for each task separately. 
 
 Gradles tasks are usually \emph{convention aware}. A plugin can add a convention object to your build. It can also map certain values of this convention object to task properties.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/pluginConventionfile}
-\outputInputTutorial{../../../build/tutorial-output/pluginConventionfile.out}
+\codeInput{../../samples/userguide/tutorial/pluginConvention.gradle}
+\outputInputTutorial{../../samples/userguideOutput/pluginConvention.out}
 The \emph{JavaPlugin} has added a convention object with a \texttt{classesDirName} property. The properties of a convention object can be accessed like project properties. As shown in the example, you can also access the convention object explicitly.
 
 By setting a task attribute explicitly (as we have done in the first example) you overwrite the convention value for this particular task.

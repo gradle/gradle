@@ -3,26 +3,26 @@
 \label{cha:the_this_and_that_tutorial}
 \section{Skipping Tasks}
 Gradle offers multiple ways to skip the execution of a task.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/skipPropertiesfile}
-\outputInputTutorial{../../../build/tutorial-output/skipPropertiesfile.out}
+\codeInput{../../samples/userguide/tutorial/skipProperties.gradle}
+\outputInputTutorial{../../samples/userguideOutput/skipProperties.out}
 The \texttt{-D} option of the \texttt{gradle} command has the same effect as the \texttt{-D} option of the \texttt{java} command. This way you can set system properties of the JVM that runs Gradle. You can add one ore more \emph{skip properties} to any existing task. If the corresponding system property is set to any value/footnote{The statement \texttt{-Dprop} sets the property to empty string, thus you don't need to type more to skip a task.} except false (case does not matter), the actions of the task don't get executed. But often you don't even need to set the skip properties. If you set a system property according to the pattern \texttt{skip.\emph{taskname}}, the actions of this task don't get executed.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/autoskipfile}
-\outputInputTutorial{../../../build/tutorial-output/autoskipfile.out}
+\codeInput{../../samples/userguide/tutorial/autoskip.gradle}
+\outputInputTutorial{../../samples/userguideOutput/autoskip.out}
 If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via the skip properties
 %
-\codeInput{../../../build/distributions/exploded/samples/tutorial/autoskipDependsfile}
-\outputInputTutorial{../../../build/tutorial-output/autoskipDependsfile.out}
+\codeInput{../../samples/userguide/tutorial/autoskipDepends.gradle}
+\outputInputTutorial{../../samples/userguideOutput/autoskipDepends.out}
 If the rules for skipping a task can't be expressed with a simple property, you can use the \texttt{StopExecutionException}\footnote{The fully qualified name is \texttt{org.gradle.api.tasks.StopExecutionException}}. If this exception is thrown by an action, the further execution of this action as well as the execution of any following action of this task is skipped. The build continues with executing the next task.
 %
-\codeInput{../../../build/distributions/exploded/samples/tutorial/stopExecutionExceptionfile}
-\outputInputTutorial{../../../build/tutorial-output/stopExecutionExceptionfile.out}
+\codeInput{../../samples/userguide/tutorial/stopExecutionException.gradle}
+\outputInputTutorial{../../samples/userguideOutput/stopExecutionException.out}
 This feature is helpful if you work with tasks provided by Gradle. It allows you to add \emph{conditional} execution of the built-in actions of such a task. 
 
 You might be wondering why there is neither an import for the \texttt{StopExecutionException} nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script. These imports are customizable (see Appendix \ref{ide_support}).
 
 Every task has also a \texttt{enabled} flag which defaults to \texttt{true}. Setting it to false prevents the execution of any of the tasks actions.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/disableTaskfile}
-\outputInputTutorial{../../../build/tutorial-output/disableTaskfile.out}
+\codeInput{../../samples/userguide/tutorial/disableTask.gradle}
+\outputInputTutorial{../../samples/userguideOutput/disableTask.out}
 
 \section{Console Output}
 All available command line options are listed in Appendix \ref{cha:command_line}. You can also print them to your console with \texttt{gradle -h}. We want to look at the \emph{console output} options in more detail. 
@@ -53,11 +53,11 @@ neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in
 \label{sec:directory_creation}
 There is a common situation, that multiple tasks depend on the existence of a directory. Of course you can deal with this by adding a \texttt{mkdir} to the beginning of those tasks. But this is kind of bloated. 
 There is a better solution (works only if the tasks that need the directory have a \emph{dependsOn} relationship):
-\codeInput{../../../build/distributions/exploded/samples/tutorial/makeDirectoryfile}
-\outputInputTutorial{../../../build/tutorial-output/makeDirectoryfile.out}
+\codeInput{../../samples/userguide/tutorial/makeDirectory.gradle}
+\outputInputTutorial{../../samples/userguideOutput/makeDirectory.out}
 But Gradle offers you also \emph{Directory Tasks} to deal with this.
-\codeInput{../../../build/distributions/exploded/samples/tutorial/directoryTaskfile}
-\outputInputTutorial{../../../build/tutorial-output/directoryTaskfile.out}
+\codeInput{../../samples/userguide/tutorial/directoryTask.gradle}
+\outputInputTutorial{../../samples/userguideOutput/directoryTask.out}
 A \emph{Directory Task} is a simple task which name is a relative path to the project dir\footnote{The notation \texttt{dir('/somepath')} is a convenience method for \texttt{createTask('somepath', type: Directory)}}. During the execution phase the directory corresponding to this path gets created if it does not exist yet. Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn declaration of a task.
 % section directory_creation (end)
 
@@ -70,9 +70,9 @@ There is also the possibility to directly add properties to your project objects
 You can also add properties directly to your project object via the \texttt{-P} command line option. For more exotic use cases you can even pass properties \emph{directly} to the project object via system and environment properties. For example if you run a build on a continuous integration server where you have no admin rights for the \emph{machine}. Your build script needs properties which values should not be seen by others. Therefore you can't use the \texttt{-P} option. In this case you can add an environment property in the project adminstration section (invisible to normal users).\footnote{\emph{Teamcity} or \emph{Bamboo} are for example CI servers which offer this functionality} If the environment property follows the pattern \texttt{ORG\_GRADLE\_PROJECT\_yourProperty=somevalue}, \texttt{yourProperty} is added to your project object. If in the future CI servers support Gradle directly, they might start Gradle via its main method. Therefore we already support the same mechanism for system properties. The only difference is the prefix, which is \texttt{org.gradle.project.}.
 
 With the \texttt{gradle.properties} files you can also set system properties. If a property in such a file has the prefix \texttt{systemProp.} the property and its value are added to the system properties (without the prefix).
-\VerbatimInput[frame=single,label=gradle.properties]{../../../build/distributions/exploded/samples/properties/gradle.properties}
-\codebuild.gradle[properties - ]{../../../build/distributions/exploded/samples/properties/build.gradle}
-\outputInputGradle[properties]{../../../build/distributions/exploded/samples/expectedOutput/properties.out}
+\VerbatimInput[frame=single,label=gradle.properties]{../../samples/userguide/properties/gradle.properties}
+\codeGradleFile[properties - ]{../../samples/userguide/properties/build.gradle}
+\outputInputGradle[properties]{../../samples/userguideOutput/properties.out}
 % section gradle_properties_and_system_properties (end)
 % chapter the_this_and_that_tutorial (end)
 
