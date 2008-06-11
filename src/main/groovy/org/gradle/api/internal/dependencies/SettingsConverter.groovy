@@ -46,7 +46,6 @@ class SettingsConverter {
         classpathResolvers.each {
             chainResolver.add(it)
         }
-        // todo Wy has the chainResolver a higher precedence than the clientChainResolver when setting returnFirst
         chainResolver.returnFirst = true
         clientModuleResolver.mainResolver = chainResolver
         ChainResolver clientModuleChain = new ChainResolver()

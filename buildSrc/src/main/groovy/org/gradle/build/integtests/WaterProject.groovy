@@ -16,40 +16,52 @@
 
 package org.gradle.build.integtests
 
-import org.gradle.build.samples.WaterProjectCreator
 
 /**
  * @author Hans Dockter
  */
 class WaterProject {
+    final static String NL = System.properties['line.separator']
 
-   static void execute(String gradleHome, String samplesDirName) {
-        File waterDir = new File(samplesDirName, WaterProjectCreator.WATER_NAME)
+    final static String HELLO_CLAUSE = "Hello, I'm "
+    final static String CHILDREN_TEXT = 'I love water.'
+    final static String WATER_INFO = 'As you all know, I cover three quarters of this planet!'
+    final static String BLUE_WHALE_INFO = "I'm the largets animal which has ever lived on this planet!"
+    final static String KRILL_INFO = "The weight of my species in summer is twice as heavy as all human beings!"
+    final static String PHYTOPLANKTON_INFO = "I produce as much oxygen as all the other plants on earth together!"
+
+    final static String WATER_NAME = 'water'
+    final static String BLUE_WHALE_NAME = 'bluewhale'
+    final static String KRILL_NAME = 'krill'
+    final static String PHYTOPLANKTON_NAME = 'phytoplankton'
+
+    static void execute(String gradleHome, String samplesDirName) {
+        File waterDir = new File(samplesDirName, WATER_NAME)
         String taskName = 'hello'
         Map result = Executer.execute(gradleHome, waterDir.absolutePath, [taskName])
-        assert result.output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
-                intro(WaterProjectCreator.PHYTOPLANKTON_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.PHYTOPLANKTON_INFO,
-                intro(WaterProjectCreator.KRILL_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.KRILL_INFO,
-                intro(WaterProjectCreator.BLUE_WHALE_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.BLUE_WHALE_INFO])
+        assert result.output == list2text([intro(WATER_NAME), WATER_INFO,
+                intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO,
+                intro(KRILL_NAME), CHILDREN_TEXT, KRILL_INFO,
+                intro(BLUE_WHALE_NAME), CHILDREN_TEXT, BLUE_WHALE_INFO])
 
-        result = Executer.execute(gradleHome, new File(waterDir, WaterProjectCreator.BLUE_WHALE_NAME).absolutePath, [taskName])
-        assert result.output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
-                intro(WaterProjectCreator.PHYTOPLANKTON_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.PHYTOPLANKTON_INFO,
-                intro(WaterProjectCreator.KRILL_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.KRILL_INFO,
-                intro(WaterProjectCreator.BLUE_WHALE_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.BLUE_WHALE_INFO])
+        result = Executer.execute(gradleHome, new File(waterDir, BLUE_WHALE_NAME).absolutePath, [taskName])
+        assert result.output == list2text([intro(WATER_NAME), WATER_INFO,
+                intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO,
+                intro(KRILL_NAME), CHILDREN_TEXT, KRILL_INFO,
+                intro(BLUE_WHALE_NAME), CHILDREN_TEXT, BLUE_WHALE_INFO])
 
-        result = Executer.execute(gradleHome, new File(waterDir, WaterProjectCreator.PHYTOPLANKTON_NAME).absolutePath,
+        result = Executer.execute(gradleHome, new File(waterDir, PHYTOPLANKTON_NAME).absolutePath,
                 [taskName])
-        assert result.output == list2text([intro(WaterProjectCreator.WATER_NAME), WaterProjectCreator.WATER_INFO,
-                intro(WaterProjectCreator.PHYTOPLANKTON_NAME), WaterProjectCreator.CHILDREN_TEXT, WaterProjectCreator.PHYTOPLANKTON_INFO])
+        assert result.output == list2text([intro(WATER_NAME), WATER_INFO,
+                intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO])
     }
 
     static String intro(String projectName) {
-        WaterProjectCreator.HELLO_CLAUSE + projectName
+        HELLO_CLAUSE + projectName
     }
 
     static String list2text(List list) {
-        list.join(WaterProjectCreator.NL) + WaterProjectCreator.NL
+        list.join(NL) + NL
     }
 
 }

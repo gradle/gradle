@@ -20,14 +20,14 @@ package org.gradle.build.integtests
  * @author Hans Dockter
  */
 class IntegTestSuite {
-    static void execute(String distDirPath, String samplesDirPath, File tutorialOutputDir) {
+    static void execute(String distDirPath, String samplesDirPath, String userguideOutputDir) {
         WrapperProject.execute(distDirPath, samplesDirPath)
-        PropertiesTest.execute(distDirPath, samplesDirPath)
-        org.gradle.build.integtests.Version.execute(distDirPath)
-        TutorialTest.execute(tutorialOutputDir)
-        WaterProject.execute(distDirPath, samplesDirPath)
         JavaProject.execute(distDirPath, samplesDirPath)
         GroovyProject.execute(distDirPath, samplesDirPath)
+        WaterProject.execute(distDirPath, samplesDirPath)
+        PropertiesTest.execute(distDirPath, samplesDirPath, userguideOutputDir)
+        org.gradle.build.integtests.Version.execute(distDirPath)
+        Userguide.execute(distDirPath, samplesDirPath, userguideOutputDir)
         MavenRepo.execute(distDirPath, samplesDirPath)
     }
 }

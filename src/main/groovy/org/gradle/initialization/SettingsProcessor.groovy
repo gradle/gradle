@@ -34,7 +34,7 @@ import org.gradle.StartParameter
 class SettingsProcessor {
     private static  Logger logger = LoggerFactory.getLogger(SettingsProcessor)
 
-    final static String DEFAULT_SETUP_FILE = "gradlesettings"
+    final static String DEFAULT_SETUP_FILE = "settings.gradle"
 
     ImportsReader importsReader
 

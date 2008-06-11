@@ -30,7 +30,7 @@ import org.gradle.api.plugins.Convention;
  * @author Hans Dockter
  */
 public interface Project {
-    public static final String DEFAULT_PROJECT_FILE = "gradlefile";
+    public static final String DEFAULT_PROJECT_FILE = "build.gradle";
 
     public static final String PATH_SEPARATOR = ":";
 

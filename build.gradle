@@ -7,8 +7,6 @@ import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.build.integtests.*
 import org.gradle.build.release.Svn
 import org.gradle.build.release.Version
-import org.gradle.build.samples.TutorialCreator
-import org.gradle.build.samples.WaterProjectCreator
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.execution.Dag
@@ -16,9 +14,7 @@ import org.gradle.util.GradleVersion
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 import groovy.text.SimpleTemplateEngine
-import org.gradle.build.samples.Userguide
 import org.gradle.api.tasks.StopExecutionException
-import org.apache.commons.io.FilenameUtils
 
 archivesBaseName = 'gradle'
 usePlugin('groovy')
@@ -51,30 +47,13 @@ configureByDag = {Dag dag ->
         userguideRemoteDir += 'latest'
         javadocRemoteDir += 'latest'
     }
-    init.doLast {
-        manifest.mainAttributes([
-                (Attributes.Name.CLASS_PATH.toString()): dependencies.resolve('runtime').inject('') {
-                    path, file -> path + file.name + ' '
-                },
-                (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-                (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString()
-        ])
-    }
-}
-
-
-groovyVersion = "1.5.5"
-dynamicLibsDir = new File(buildDir, 'dynamicLibs')
-if (hasProperty('groovyJarUrl')) {
-    int i = groovyJarUrl.lastIndexOf('groovy-all-')
-    def groovyName = groovyJarUrl.substring(i)
-    groovyVersion = groovyJarUrl.substring(i + 'groovy-all-'.length()) - '.jar'
-    init.doFirst {
-        dynamicLibsDir.mkdirs()
-        ant.get(src: groovyJarUrl,
-                dest: new File(dynamicLibsDir, groovyName),
-                verbose: "true")
-    }
+    manifest.mainAttributes([
+            (Attributes.Name.CLASS_PATH.toString()): dependencies.resolve('runtime').inject('') {
+                path, file -> path + file.name + ' '
+            },
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString()
+    ])
 }
 
 dependencies {
@@ -87,7 +66,7 @@ dependencies {
             dependencies(":oro:2.0.8:jar")
         }
     }
-    clientModule(['groovy'], ":groovy-all:$groovyVersion") {
+    clientModule(['groovy'], ":groovy-all:1.5.5") {
         dependency(":commons-cli:1.0")
         clientModule(":ant:1.7.0") {
             dependencies(":ant-junit:1.7.0:jar", ":ant-launcher:1.7.0")
@@ -115,7 +94,7 @@ dependencies {
 
     testCompile ":junit:4.4"
     distLib ":junit:4.4"
-    addFlatDirResolver('lib', new File(rootDir, 'lib'), dynamicLibsDir)
+    addFlatDirResolver('lib', new File(rootDir, 'lib'))
 }
 
 resources.doLast {
@@ -140,6 +119,7 @@ explodedDistDocsDir = new File(explodedDistDir, 'docs')
 explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
 explodedDistTutorialDir = new File(explodedDistSamplesDir, 'tutorial')
+explodedDistUserguideOutputDir = new File(explodedDistSamplesDir, 'userguideOutput')
 
 createTask('explodedDist', dependsOn: 'libs') {
     [explodedDistDir, explodedDistSamplesDir, explodedDistTutorialDir]*.mkdirs()
@@ -158,8 +138,6 @@ createTask('explodedDist', dependsOn: 'libs') {
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
         logger.info('Generate and copy samples.')
-        TutorialCreator.writeScripts(explodedDistTutorialDir)
-        WaterProjectCreator.createProjectTree(explodedDistSamplesDir)
         WrapperProjectCreator.createProject(explodedDistSamplesDir, task('gradle_bin_zip').archivePath.parentFile,
                 version.toString())
         copy(toDir: explodedDistSamplesDir) {fileset(dir: new File(srcRoot, 'samples'))}
@@ -232,18 +210,9 @@ createTask('uploadJavadoc', dependsOn: 'javadoc') {
     }
 }
 
-// This is already a kind of integration test. We have to run the tutorials separately, to get the output for the userguide.
-tutorialOutputDir = dir("$buildDir.name/tutorial-output")
-
-createTask('tutorialOutput', dependsOn: ['explodedDist', tutorialOutputDir]) {
-    Userguide.createNonTutorialOutput(tutorialOutputDir.dir, explodedDistDir, explodedDistSamplesDir)
-    TutorialCreator.createOutput(explodedDistDir.absolutePath, explodedDistTutorialDir, tutorialOutputDir.dir)
-    Userguide.checkGroovyScripts(explodedDistTutorialDir, tutorialOutputDir.dir)
-}.skipProperties << 'skip.integTest'
-
 userguideDir = dir("$buildDir.name/$docsDir.name/userguide")
 
-createTask('userguide', dependsOn: ['tutorialOutput', userguideDir]) {
+createTask('userguide', dependsOn: [userguideDir]) {
     File userguideSrc = new File(srcDocsDir, 'userguide')
     File userguideData = mkdir(userguideDir.dir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
@@ -311,8 +280,8 @@ createTask('uploadUserguide', dependsOn: 'userguide') {
 }
 
 // The integtests depend on dists because of the wrapper test
-createTask('integTest', dependsOn: ['dists', 'tutorialOutput']) {
-    IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, tutorialOutputDir.dir)
+createTask('integTest', dependsOn: ['dists']) {
+    IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, explodedDistUserguideOutputDir.absolutePath)
 }.skipProperties
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc'])

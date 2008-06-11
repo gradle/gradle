@@ -14,18 +14,18 @@ We have the following project tree\footnote{F means File and D means Directory}.
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- water
-  F- gradlefile
-  F- gradlesettings
+  F- build.gradle
+  F- settings.gradle
   D- bluewhale	
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/settings.gradle}
 \end{minipage}
 \\
 
 \noindent And where is the build script for the bluewhale project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the water project and execute it.:
-\codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/gradlefile}
+\codebuild.gradle[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/firstExample/water/build.gradle}
 \outputInputGradle[userguide/multiproject/firstExample/water]{../../../build/tutorial-output/multiprojectFirstExample.out}
 Gradle allows you to access any project of the multi-project build from any build script. The Project API provides a method called project, which takes a path as an argument and returns the project object for this path. The capability to configure a project build from any build script we call \emph{Cross Project Configuration}. Gradle implements this via \emph{Configuration Injection}.
 
@@ -34,19 +34,19 @@ We are not that happy with the build script of the water project. It is inconven
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- water
-  F- gradlefile
-  F- gradlesettings
+  F- build.gradle
+  F- settings.gradle
   D- bluewhale
   D- krill	
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/addKrill/water/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/addKrill/water/settings.gradle}
 \end{minipage}
 \\
 
 \noindent Now we rewrite the water build script and boil it down to a single line.
-\codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/addKrill/water/gradlefile}
+\codebuild.gradle[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/addKrill/water/build.gradle}
 \outputInputGradle[userguide/multiproject/addKrill/water]{../../../build/tutorial-output/multiprojectAddKrill.out}
 Is this cool or is this cool? And how does this work? The Project API provides a property \texttt{allprojects} which returns a list with the current project and all its subprojects underneath it. If you call \texttt{allprojects} with a closure, the statements of the closure are delegated to the projects associated with \texttt{allprojects}. You could also do an iteration via \texttt{allprojects.each}, but that would be more verbose.
 \\
@@ -63,7 +63,7 @@ Other build systems use inheritance as the primary means for defining common beh
 
 \subsection{Defining Common Behavior} % (fold)
 \label{sub:defining_common_behavior}
-\codeGradleFile{../../../build/distributions/exploded/samples/userguide/multiproject/useSubprojects/water/gradlefile}
+\codebuild.gradle{../../../build/distributions/exploded/samples/userguide/multiproject/useSubprojects/water/build.gradle}
 \outputInputGradle[userguide/multiproject/useSubprojects/water]{../../../build/tutorial-output/multiprojectUseSubprojects.out}
 % subsection defining_common_behavior (end)
 
@@ -71,7 +71,7 @@ Other build systems use inheritance as the primary means for defining common beh
 \label{sub:adding_specific_behavior}
 You can add specific behavior on top of the common behavior. Usually we put the project specific behavior in the build script of the project where we want to apply this specific behavior. But as we have already seen, we don't have to do it this way. We could add project specific behavior for the bluewhale project like this:
 
-\codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/subProjectsAddFromTop/water/gradlefile}
+\codebuild.gradle[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/subProjectsAddFromTop/water/build.gradle}
 \outputInputGradle[userguide/multiproject/subProjectsAddFromTop/water]{../../../build/tutorial-output/multiprojectSubProjectsAddFromTop.out}
 As we have said, we usually prefer to put project specific behavior into the build script of this project. Let's refactor and also add some project specific behavior to the krill project.
 \\
@@ -79,21 +79,21 @@ As we have said, we usually prefer to put project specific behavior into the bui
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- water
-  F- gradlefile
-  F- gradlesettings
+  F- build.gradle
+  F- settings.gradle
   D- bluewhale
-    F- gradlefile
+    F- build.gradle
   D- krill
-    F- gradlefile	
+    F- build.gradle
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/settings.gradle}
 \end{minipage}
 
-\codeGradleFile[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/bluewhale/gradlefile}
-\codeGradleFile[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/krill/gradlefile}
-\codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/gradlefile}
+\codebuild.gradle[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/bluewhale/build.gradle}
+\codebuild.gradle[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/krill/build.gradle}
+\codebuild.gradle[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/spreadSpecifics/water/build.gradle}
 \outputInputGradle[userguide/multiproject/spreadSpecifics/water]{../../../build/tutorial-output/multiprojectSpreadSpecifics.out}
 % subsection adding_specific_behavior (end)
 \subsection{Project Filtering} % (fold)
@@ -105,20 +105,20 @@ To show more of the power of \emph{Configuration Injection}, lets' add another p
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- water
-  F- gradlefile
-  F- gradlesettings
+  F- build.gradle
+  F- settings.gradle
   D- bluewhale
-    F- gradlefile
+    F- build.gradle
   D- krill
-    F- gradlefile
+    F- build.gradle
   D- tropicalFish	
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/addTropical/water/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/addTropical/water/settings.gradle}
 \end{minipage}
 
-\codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/addTropical/water/gradlefile}
+\codebuild.gradle[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/addTropical/water/build.gradle}
 \outputInputGradle[userguide/multiproject/addTropical/water]{../../../build/tutorial-output/multiprojectAddTropical.out}
 The \texttt{configureProjects} takes a list as an argument and applies the configuration to the projects in this list.
 % subsubsection filtering_by_name (end)
@@ -132,24 +132,24 @@ Using the projectname for filtering is one option. Using dynamic project propert
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- water
-  F- gradlefile
-  F- gradlesettings
+  F- build.gradle
+  F- settings.gradle
   D- bluewhale
-    F- gradlefile
+    F- build.gradle
   D- krill
-    F- gradlefile
+    F- build.gradle
   D- tropicalFish
-    F- gradlefile	
+    F- build.gradle
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/settings.gradle}
 \end{minipage}
 
-\codeGradleFile[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/bluewhale/gradlefile}
-\codeGradleFile[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/krill/gradlefile}
-\codeGradleFile[tropicalFish - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/tropicalFish/gradlefile}
-\codeGradleFile[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/gradlefile}
+\codebuild.gradle[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/bluewhale/build.gradle}
+\codebuild.gradle[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/krill/build.gradle}
+\codebuild.gradle[tropicalFish - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/tropicalFish/build.gradle}
+\codebuild.gradle[water - ]{../../../build/distributions/exploded/samples/userguide/multiproject/tropicalWithProperties/water/build.gradle}
 \outputInputGradle[userguide/multiproject/tropicalWithProperties/water]{../../../build/tutorial-output/multiprojectTropicalWithProperties.out}
 In the \texttt{gradefile} of the \texttt{water} project we use \texttt{lateInitialize}. This means that the closure we are passing get evaluated \texttt{after} the build scripts of the subproject are evaluated. As the property \texttt{arctic} is set in those build scripts, we have to do it this way. You will find more on this topic in section \ref{sec:dependencies_which_dependencies}
 % subsubsection filtering_by_properties (end)
@@ -161,8 +161,8 @@ In the \texttt{gradefile} of the \texttt{water} project we use \texttt{lateIniti
 When we have executed the \texttt{hello} task from the root project dir things behaved in an intuitive way. All the \texttt{hello} tasks of the different projects were executed. Let's switch to the \texttt{bluewhale} dir and see what happens if we execute Gradle from there. 
 \outputInputGradle[current dir: userguide/multiproject/partialTasks/water/bluewhale]{../../../build/tutorial-output/multiprojectSubBuild.out}
 The basic rule behind Gradles behavior is simple. Gradle looks down the hierarchy, starting with the \emph{current dir}, for tasks with the name \texttt{hello} an executes them. One thing is very important to note. Gradle \emph{always} evaluates \emph{every} project of the multi-project build and creates all existing task objects. Then, according to the task name arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradles \emph{Cross Project Configuration} \emph{every} project has to be evaluated before \emph{any} task gets executed. We will have a closer look at this in the next section. Let's now have our last marine example. Let's add a task to \texttt{bluewhale} and \texttt{krill}.
-\codeGradleFile[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/bluewhale/gradlefile}
-\codeGradleFile[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/krill/gradlefile}
+\codebuild.gradle[bluewhale - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/bluewhale/build.gradle}
+\codebuild.gradle[krill - ]{../../../build/distributions/exploded/samples/userguide/multiproject/partialTasks/water/krill/build.gradle}
 \outputInputGradle[userguide/multiproject/partialTasks/water]{../../../build/tutorial-output/multiprojectPartialTasks.out}
 Here the output without the \texttt{-q} option
 \outputInputGradle[userguide/multiproject/partialTasks/water]{../../../build/tutorial-output/multiprojectPartialTasksNotQuiet.out}
@@ -191,38 +191,38 @@ The examples from the last section were special, as the projects had no \emph{Ex
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- messages
-  F- gradlesettings
+  F- settings.gradle
   D- consumer
-    F- gradlefile
+    F- build.gradle
   D- producer
-    F- gradlefile	
+    F- build.gradle
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/settings.gradle}
 \end{minipage}
 
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/consumer/gradlefile}
-\codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/producer/gradlefile}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/consumer/build.gradle}
+\codebuild.gradle[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/firstMessages/messages/producer/build.gradle}
 \outputInputGradle[userguide/multiproject/dependencies/firstMessages/messages]{../../../build/tutorial-output/multiprojectFirstMessages.out}
 This did not work out. If nothing else is defined, Gradle executes the task in alphanumeric order. Therefore \texttt{:consumer:action} is executed before \texttt{:producer:action}. Let's try to solve this with a hack and rename the producer project to \texttt{aProducer}.
 
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- messages
-  F- gradlesettings
+  F- settings.gradle
   D- aProducer
-    F- gradlefile
+    F- build.gradle
   D- consumer
-    F- gradlefile	
+    F- build.gradle
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/settings.gradle}
 \end{minipage}
 
-\codeGradleFile[aProducer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/aProducer/gradlefile}
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/consumer/gradlefile}
+\codebuild.gradle[aProducer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/aProducer/build.gradle}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle}
 \outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages]{../../../build/tutorial-output/multiprojectMessagesHack.out}
 Now we take the air out of this hack. We simply switch to the \texttt{consumer} dir and execute the build.
 \outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesHackBroken.out}
@@ -234,19 +234,19 @@ For Gradle the two \texttt{action} tasks are just not related. If you execute th
 \begin{minipage}[t]{7cm}
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- messages
-  F- gradlesettings
+  F- settings.gradle
   D- consumer
-    F- gradlefile
+    F- build.gradle
   D- producer
-    F- gradlefile	
+    F- build.gradle
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/gradlesettings}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/settings.gradle}
 \end{minipage}
 
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer/gradlefile}
-\codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/producer/gradlefile}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer/build.gradle}
+\codebuild.gradle[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/producer/build.gradle}
 \outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages]{../../../build/tutorial-output/multiprojectMessagesDependencies.out}
 \outputInputGradle[userguide/multiproject/dependencies/messagesHack/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesDependenciesSubBuild.out}
 We have now declared that the \texttt{consumer} project has an \emph{execution dependency} on the \texttt{producer} project. For Gradle declaring \emph{execution dependencies} between \emph{projects} is syntactic sugar. Under the hood Gradle creates task dependencies out of them. You can also create cross project tasks dependencies manually by using the absolute path of the tasks. 
@@ -255,12 +255,12 @@ We have now declared that the \texttt{consumer} project has an \emph{execution d
 \subsubsection{The Nature of Project Dependencies} % (fold)
 \label{ssub:the_nature_of_project_dependencies}
 Let's change the naming of our tasks and execute the build.
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer/gradlefile}
-\codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/producer/gradlefile}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer/build.gradle}
+\codebuild.gradle[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/producer/build.gradle}
 \outputInputGradle[userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesDifferentTaskNames.out}
 Uhps. Why does this not work? The \texttt{dependsOn} command is created for projects with a common lifecycle. Provided you have two Java projects were one depends on the other. If you trigger a compile for for the dependent project you don't want that \emph{all} tasks of the other project get executed. Therefore a \texttt{dependsOn} creates dependencies between tasks with equal names. To deal with the scenario above you would do the following:
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer/gradlefile}
-\codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesTaskDependencies/messages/producer/gradlefile}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer/build.gradle}
+\codebuild.gradle[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesTaskDependencies/messages/producer/build.gradle}
 \outputInputGradle[userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesTaskDependencies.out}
 % subsubsection the_nature_of_project_dependencies (end)
 % subsection execution_time_dependencies (end)
@@ -268,15 +268,15 @@ Uhps. Why does this not work? The \texttt{dependsOn} command is created for proj
 \subsection{Configuration Time Dependencies} % (fold)
 \label{sub:configuration_time_dependencies}
 Let's have one more example with our producer-consumer build before we enter \emph{Java} land. We add a property to the producer project and create now a configuration time dependency from consumer on producer. 
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/consumer/gradlefile}
-\codeGradleFile[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/producer/gradlefile}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/consumer/build.gradle}
+\codebuild.gradle[producer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/producer/build.gradle}
 \outputInputGradle[consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependenciesBroken.out}
 The default \emph{evaluation} order of the projects is alphanumeric (for the same nesting level). Therefore the \texttt{consumer} project is evaluated before the \texttt{producer} project and the \texttt{key} value of the \texttt{producer} is set \emph{after} it is read by the \texttt{consumer} project. Gradle offers a solution for this. 
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer/gradlefile}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer/build.gradle}
 \outputInputGradle[userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependencies.out}
 The command \texttt{evaluationDependsOn} triggers the evaluation of \texttt{producer} \emph{before} \texttt{consumer} is evaluated.
 The example is a bit contrived for the sake of showing the mechanism. In \emph{this} case there would be an easier solution by reading the key property at execution time.
-\codeGradleFile[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages/consumer/gradlefile}
+\codebuild.gradle[consumer - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages/consumer/build.gradle}
 \outputInputGradle[userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer]{../../../build/tutorial-output/multiprojectMessagesConfigDependenciesAltSolution.out}
 Configuration dependencies are very different to execution dependencies. Configuration dependencies are between projects whereas execution dependencies are always resolved to task dependencies. Another difference is that always all projects are configured, even when you start the build from a subproject. The default configuration order is top down, which is usually what is needed. 
 
@@ -288,15 +288,15 @@ On the same nesting level the configuration order depends on the alphanumeric po
 Gradles multi-project features are driven by real life use cases. The first example for describing such a use case, consists of two webapplication projects and a parent project that creates a distribution out of them.\footnote{The real use case we had, was using \url{http://lucene.apache.org/solr}, where you need a separate war for each index your are accessing. That was one reason why we have created a distribution of webapps. The Resin servlet container allows us, to let such a distribution point to a base installation of the servlet container.} For the example we use only one build script and do \emph{cross project configuration}.
 \begin{Verbatim}[frame=single,label=Project Tree]
 D- webDist
-  F- gradlesettings
-  F- gradlefile
+  F- settings.gradle
+  F- build.gradle
   D- date
     F- src/main/java/org/gradle/sample/DateServlet.java
   D- hello
     F- src/main/java/org/gradle/sample/HelloServlet.java
 \end{Verbatim}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webDist/gradlesettings}
-\codeGradleFile[webDist - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webdist/gradlefile}
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webDist/settings.gradle}
+\codebuild.gradle[webDist - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/webdist/build.gradle}
 We have an interesting set of dependencies. Obviously the \texttt{date} and \texttt{hello} task have a \emph{configuration} dependency on \texttt{webDist}, as all the build logic for the webapp projects is injected by \texttt{webDist}. The \emph{execution} dependency is in the other direction, as \texttt{webDist} depends on the build artifacts of \texttt{date} and \texttt{hello}. There is even a third dependency. \texttt{webDist} has a \emph{configuration} dependency on \texttt{date} and \texttt{hello} because it needs to know the \texttt{archivePath}. But it asks for this information at \emph{execution time}. Therefore we have no circular dependency.
 
 Such and other dependency patterns are daily bread in the problem space of multi-project builds. If a build system does not support such patterns, you either can't solve your problem or you need to do ugly hacks which are hard to maintain and massively afflict your productivity as a build master.
@@ -321,18 +321,18 @@ D- java
       F- src/main/test/org/gradle/sample/services/PersonServiceTest.java
   D- shared 
     F- src/main/java/org/gradle/sample/shared/Helper.java 
-  F- gradlesettings
-  F- gradlefile
+  F- settings.gradle
+  F- build.gradle
 \end{Verbatim}
 We have the projects \texttt{shared}, \texttt{api} and \texttt{personService}. \texttt{personService} has a lib dependency on the other two projects. \texttt{api} has a lib dependency on \texttt{shared}.\footnote{\texttt{services} is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script.}
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/java/gradlesettings}
-\codeGradleFile[userguide/multiproject/dependencies/java - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/java/gradlefile}
-All the build logic is in the \texttt{gradlefile} of the root project.
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/java/settings.gradle}
+\codebuild.gradle[userguide/multiproject/dependencies/java - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/java/build.gradle}
+All the build logic is in the \texttt{build.gradle} of the root project.
 \footnote{We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the buildscript of the respective projects.} 
 A \emph{lib} dependency is a special form of an execution dependency. It causes the other project to be build first and adds the jar with the classes of the other project to the classpath. It also add the dependencies of the other project to the classpath. So you can enter the \texttt{api} folder and trigger a \texttt{gradle compile}. First \texttt{shared} is build and then \texttt{api} is build. Project dependencies enable partial multi-project builds.
 
 If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might expect some more fine grained control. Gradle offers this to you:
-\codeGradleFile[userguide/multiproject/dependencies/javaWithCustomConf - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/javaWithCustomConf/gradlefile}
+\codebuild.gradle[userguide/multiproject/dependencies/javaWithCustomConf - ]{../../../build/distributions/exploded/samples/userguide/multiproject/dependencies/javaWithCustomConf/build.gradle}
 The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an \emph{additional} library containing only the interfaces of the \texttt{api} project. We assign this library to a new \emph{dependency configuration}. For the person service we declare that the project should be compiled only against the \texttt{api} interfaces but tested with all classes from \texttt{api}.
 % section project_jar_dependencies (end) 
 

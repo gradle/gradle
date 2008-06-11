@@ -17,11 +17,11 @@ A Gradle build has three distinct phases.
 
 \section{Settings File} % (fold)
 \label{sec:settings_file}
-Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle via a naming convention. The default name for this file is \emph{gradlesettings}. Later in this chapter we explain, how Gradle looks for a settings file. 
+Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle via a naming convention. The default name for this file is \emph{settings.gradle}. Later in this chapter we explain, how Gradle looks for a settings file.
 
-The settings file gets executed during the initialization phase. A multiproject build must have a gradlesettings file in the root project of the multiproject hierarchy. It is required because in the gradlesettings file it is defined, which projects are taking part in the multi-project build (see chapter \ref{cha:multi_project_builds}). For a single-project build, a gradlesettings file is optional. You might need it for example, to add libraries to your build script classpath (see chapter \ref{cha:organizing_build_logic}). Let's first do some introspection with a single project build:
-\VerbatimInput[frame=single,label=gradlesettings]{../../../build/distributions/exploded/samples/userguide/buildlifecycle/gradlesettings}
-\VerbatimInput[frame=single,label=gradlefile]{../../../build/distributions/exploded/samples/userguide/buildlifecycle/gradlefile}
+The settings file gets executed during the initialization phase. A multiproject build must have a settings.gradle file in the root project of the multiproject hierarchy. It is required because in the settings.gradle file it is defined, which projects are taking part in the multi-project build (see chapter \ref{cha:multi_project_builds}). For a single-project build, a settings.gradle file is optional. You might need it for example, to add libraries to your build script classpath (see chapter \ref{cha:organizing_build_logic}). Let's first do some introspection with a single project build:
+\VerbatimInput[frame=single,label=settings.gradle]{../../../build/distributions/exploded/samples/userguide/buildlifecycle/settings.gradle}
+\VerbatimInput[frame=single,label=build.gradle]{../../../build/distributions/exploded/samples/userguide/buildlifecycle/build.gradle}
 \outputInputGradle[userguide/buildlifecycle]{../../../build/tutorial-output/buildlifecycle.out}
 For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Have a look at \href{\API Settings.html}{\PKG Settings}.
 % section settings_file (end)
@@ -34,16 +34,16 @@ There is much more to say about multi-project builds in the chapter dedicated to
 
 \section{Initialization} % (fold)
 \label{sec:initialization}
-How does Gradle know whether to do a single or multiproject build? In particular as you may not just trigger a multiproject build from the root project, but also from within any subproject taking part in the build.\footnote{Gradle supports partial multiproject builds (see chapter \ref{cha:multi_project_builds})}. If you execute Gradle from within a project that has no gradlesettings file, Gradle does the following:
+How does Gradle know whether to do a single or multiproject build? In particular as you may not just trigger a multiproject build from the root project, but also from within any subproject taking part in the build.\footnote{Gradle supports partial multiproject builds (see chapter \ref{cha:multi_project_builds})}. If you execute Gradle from within a project that has no settings.gradle file, Gradle does the following:
 \begin{itemize}
-	\item It searches the parent directories for the existence of a gradlesettings file.
-	\item If no gradlesettings file is found, the build is executed as a single project build.
-    \item If a gradlesettings file is found, Gradle checks if the current project is part of the multiproject hierarchy defined in the found gradlesettings file. If not, the build is executed as a single project build. Otherwise a multiproject build is executed.
+	\item It searches the parent directories for the existence of a settings.gradle file.
+	\item If no settings.gradle file is found, the build is executed as a single project build.
+    \item If a settings.gradle file is found, Gradle checks if the current project is part of the multiproject hierarchy defined in the found settings.gradle file. If not, the build is executed as a single project build. Otherwise a multiproject build is executed.
 \end{itemize}
-What is the purpose of this behavior? Somehow Gradle has to find out, whether the project you are into, is a subproject of a multiproject build or not. Of course, if it is a subproject, only the subproject and its dependent projects are build. But Gradle needs to create the build configuration for the whole multiproject build (see chapter \ref{cha:multi_project_builds}). Via the \texttt{-u} command line option, you can tell Gradle not to look in the parent hierarchy for a gradlesettings file. The current project is then always build as a single project build. If the current project contains a gradlesettings file, the \texttt{-u} option has no meaning. Such a build is always executed as:
+What is the purpose of this behavior? Somehow Gradle has to find out, whether the project you are into, is a subproject of a multiproject build or not. Of course, if it is a subproject, only the subproject and its dependent projects are build. But Gradle needs to create the build configuration for the whole multiproject build (see chapter \ref{cha:multi_project_builds}). Via the \texttt{-u} command line option, you can tell Gradle not to look in the parent hierarchy for a settings.gradle file. The current project is then always build as a single project build. If the current project contains a settings.gradle file, the \texttt{-u} option has no meaning. Such a build is always executed as:
 \begin{itemize}
-	\item a single project build, if the gradlesettings file does not define a multiproject hierarchy
-    \item a multiproject build, if the gradlesettings file does define a multiproject hierarchy.
+	\item a single project build, if the settings.gradle file does not define a multiproject hierarchy
+    \item a multiproject build, if the settings.gradle file does define a multiproject hierarchy.
 \end{itemize}
 Gradle creates Project objects for every project taking part in the build. For a single project build this is only one project. For a multi-project build these are the projects specified in Settings object (plus the root project). Each project object has a name equals to the name of its top level folder. The projects form a tree according to there position in the file system. Thus every project except the root project has a parent project and might have child projects. There are no gaps in the project tree. This means every parent folder between a specified project folder and the project root is considered to be a project and is automatically part of the project tree. This means no additional work for you, as a project might have a build script but it is not mandatory (see chapter \ref{cha:multi_project_builds}).
 

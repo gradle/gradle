@@ -20,9 +20,9 @@ package org.gradle.build.integtests
  * @author Hans Dockter
  */
 class PropertiesTest {
-    static void execute(String gradleHome, String samplesDirName) {
+    static void execute(String gradleHome, String samplesDirName, String userguideOutputDir) {
         String output = Executer.execute(gradleHome, "$samplesDirName/properties", ['-PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps'], ['ORG_GRADLE_PROJECT_envProjectProp=envPropertyValue'], '', Executer.QUIET).output
-        String expectedOutput = expectedOutput(new File(samplesDirName, 'expectedOutput/properties.out'))
+        String expectedOutput = expectedOutput(new File(userguideOutputDir, 'properties.out'))
         assert expectedOutput == output
     }
 

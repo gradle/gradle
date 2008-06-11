@@ -8,22 +8,22 @@ Gradle offers a variety of ways to organize your build logic. First of all you c
 \label{sec:build_sources}
 If you run Gradle, it checks for the existence of a folder called \texttt{buildSrc}. Just put your build source code in this folder and stick to the layout convention for a Java/Groovy project (see Table \ref{javalayout}). Gradle then automatically compiles and tests this code and puts it in the classpath of your build script. You don't need to provide any further instruction. For multi-project builds there can be only one \texttt{buildSrc} directory which has to be in the root project.
 
-This is probably good enough for most of the cases. If you need more flexibility, you can provide a \texttt{gradlefile} and a \texttt{gradlesettings} file in the \texttt{buildSrc} folder. If you like, you can even have a multi-project build in there.
+This is probably good enough for most of the cases. If you need more flexibility, you can provide a \texttt{build.gradle} and a \texttt{settings.gradle} file in the \texttt{buildSrc} folder. If you like, you can even have a multi-project build in there.
 % section build_sources (end)
 
 \section{External dependencies} % (fold)
 \label{sec:external_dependencies}
-If your build script needs external libraries you can declare them in the \texttt{gradlesettings} file.
-\begin{Verbatim}[label=gradlesettings]
+If your build script needs external libraries you can declare them in the \texttt{settings.gradle} file.
+\begin{Verbatim}[label=settings.gradle]
 dependencies("commons-math:commons-math:1.1:jar")
 \end{Verbatim}
-You can pass any of the dependencies described in section \ref{sub:dependencies} (except project dependencies). There is \emph{no} need to provide a \emph{dependency configuration}(e.g. \texttt{compile}). For multi-project builds dependencies declared in the \texttt{gradlesettings} file of the root project, are available to all build scripts of the sub-projects.
+You can pass any of the dependencies described in section \ref{sub:dependencies} (except project dependencies). There is \emph{no} need to provide a \emph{dependency configuration}(e.g. \texttt{compile}). For multi-project builds dependencies declared in the \texttt{settings.gradle} file of the root project, are available to all build scripts of the sub-projects.
 % section external_dependencies (end)
 
 \section{Ant Optional Dependencies} % (fold)
 \label{sec:ant_optional_dependencies}
 For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional tasks. But you can easily do it in another way.\footnote{In fact, we think this is anyway the nicer solution. Only if your buildscript and Ant's optional task need the \emph{same} library you would have to define it two times. In such a case it would be nice, if Ant's optional task would automatically pickup the classpath defined in the \texttt{gradesettings}.}
-\begin{Verbatim}[label=gradlesettings]
+\begin{Verbatim}[label=settings.gradle]
 dependencies {
     addConfiguration('ftpAntTask')
     clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {

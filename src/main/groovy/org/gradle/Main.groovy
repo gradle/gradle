@@ -62,7 +62,7 @@ class Main {
         cli.h(longOpt: 'help', 'usage information')
         cli.n(longOpt: 'nonRecursive', 'Do not execute primary tasks of childprojects.')
         cli.S(longOpt: 'noJvmTermination', 'Don\'t trigger a System.exit(0) for normal termination. Use for Gradle\'s internal testing.')
-        cli.u(longOpt: 'noSearchUpwards', 'Don\'t search in parent folders for a gradlesettings file.')
+        cli.u(longOpt: 'noSearchUpwards', 'Don\'t search in parent folders for a settings.gradle file.')
         cli.p(longOpt: 'projectDir', 'Use this dir instead of the current dir as the project dir.', args: 1)
         cli.l(longOpt: 'pluginProperties', 'Use this file as the plugin properties file.', args: 1)
         cli.b(longOpt: 'buildfile', 'Use this build file name (also for subprojects)', args: 1)
