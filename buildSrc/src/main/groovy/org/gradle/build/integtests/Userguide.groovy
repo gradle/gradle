@@ -34,12 +34,12 @@ class Userguide {
             if (run.groovyScript) {
                 result = runGroovyScript(new File(userguideDir, "$run.subDir/$run.file"))
             } else {
-                result = Executer.execute(gradleHome, new File(userguideDir, run.subDir).absolutePath, [run.execute], [], run.file,
+                result = Executer.execute(gradleHome, new File(userguideDir, run.subDir).absolutePath, [run.execute], run.envs, run.file,
                         run.debugLevel)
             }
+            result.output = ">$result.command$NL" + result.output
 //            println new File(userguideOutputDir, run.id + '.out').text
 //            println result.output
-            result.output = ">$result.command$NL" + result.output
             assert result.output == new File(userguideOutputDir, run.id + '.out').text
         }
     }
@@ -50,7 +50,8 @@ class Userguide {
 
     static List getScripts() {
         [
-                run('tutorial', 'configByDag', 'release'),
+                new GradleRun(subDir: 'properties', id: 'properties', debugLevel: Executer.QUIET, envs: ['ORG_GRADLE_PROJECT_envProjectProp=envPropertyValue'],
+                    execute: '-PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps'),
                 new GradleRun(subDir: 'tutorial', id: 'scope', file: 'scope.groovy', groovyScript: true),
                 runMp('firstExample/water', 'FirstExample', 'hello'),
                 runMp('addKrill/water', 'AddKrill', 'hello'),
@@ -76,6 +77,7 @@ class Userguide {
                 run('tutorial', 'antChecksumWithMethod', 'checksum'),
                 run('tutorial', 'autoskip', '-Dskip.autoskip autoskip'),
                 run('tutorial', 'autoskipDepends', '-Dskip.autoskip depends'),
+                run('tutorial', 'configByDag', 'release'),
                 run('tutorial', 'count', 'count'),
                 run('tutorial', 'date', 'date'),
                 run('tutorial', 'directoryTask', 'otherResources'),
@@ -104,6 +106,10 @@ class Userguide {
         new GradleRun(subDir: subDir, id: id, execute: execute, debugLevel: debugLevel, file: id + '.gradle')
     }
 
+    static GradleRun runEnv(String subDir, String id, String execute, List envs, int debugLevel = Executer.QUIET) {
+        new GradleRun(subDir: subDir, id: id, execute: execute, debugLevel: debugLevel, file: id + '.gradle', envs: envs)
+    }
+
     static GradleRun runMp(String subDir, String id, String execute, int debugLevel = Executer.QUIET) {
         new GradleRun(subDir: "multiproject/" + subDir, id: 'multiproject' + id, execute: execute, debugLevel: debugLevel)
     }
@@ -125,4 +131,5 @@ class GradleRun {
     String file
     String subDir
     boolean groovyScript = false
+    List envs = []
 }

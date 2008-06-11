@@ -47,7 +47,6 @@ class BuildScriptProcessor {
         conf.scriptBaseClass = 'org.gradle.api.internal.project.ProjectScript'
         try {
             String buildScript = buildScriptWithImports(project)
-            logger.debug("Evaluated Build Script: " + buildScript)
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
             Clock clock = new Clock()
             Script script = groovyShell.parse(buildScript, project.buildScriptFinder.buildFileName)
@@ -57,6 +56,7 @@ class BuildScriptProcessor {
             clock.reset()
             script.run()
             logger.debug("Timing: Running the build script took " + clock.time)
+            logger.debug("Evaluated Build Script: " + buildScript)
         } catch (Throwable t) {
             throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)
         }
