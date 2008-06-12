@@ -18,6 +18,7 @@ package org.gradle.build.integtests
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import groovy.io.PlatformLineWriter
 
 /**
  * @author Hans Dockter
@@ -37,11 +38,47 @@ class Userguide {
                 result = Executer.execute(gradleHome, new File(userguideDir, run.subDir).absolutePath, [run.execute], run.envs, run.file,
                         run.debugLevel)
             }
-            result.output = ">$result.command$NL" + result.output
-//            println new File(userguideOutputDir, run.id + '.out').text
-//            println result.output
-            assert result.output == new File(userguideOutputDir, run.id + '.out').text
+            result.output = ">$result.unixCommand$NL" + result.output
+            String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.id + '.out').text)
+            try {
+                assert result.output == expectedResult
+            } catch (AssertionError e) {
+                println 'Expected Result:'
+                println expectedResult
+                println 'Actual Result:'
+                println result.output
+                checkDifference(expectedResult, result.output)
+                throw e
+            }
         }
+    }
+
+    static String replaceWithPlatformNewLines(String text) {
+        StringWriter stringWriter = new StringWriter()
+        new PlatformLineWriter(stringWriter).withWriter { it.write(text) }
+        stringWriter.toString()
+    }
+
+    static void checkDifference(String expected, String actual) {
+        String source = expected.length() > actual.length() ? expected : actual
+        source.eachWithIndex {c, index ->
+            boolean expectedOutOfRange = false
+            boolean actualOutOfRange = false
+            boolean difference = false
+            if (index >= expected.length()) {
+                expectedOutOfRange = true
+            } else if (index >= actual.length()) {
+                actualOutOfRange = true
+            } else if (expected[index] != actual[index]) {
+                difference = true
+            }
+            if (expectedOutOfRange || actualOutOfRange || difference) {
+                println "Difference in position $index:"
+                println("Expected: " + (expectedOutOfRange ? 'Out of range' : "${(char) expected[index]} ${(int) expected[index]}"))
+                println("Actual: " + (expectedOutOfRange ? 'Out of range' : "${(char) actual[index]} ${(int) actual[index]}"))
+            }
+        }
+
     }
 
     static void main(String[] args) {
@@ -51,7 +88,7 @@ class Userguide {
     static List getScripts() {
         [
                 new GradleRun(subDir: 'properties', id: 'properties', debugLevel: Executer.QUIET, envs: ['ORG_GRADLE_PROJECT_envProjectProp=envPropertyValue'],
-                    execute: '-PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps'),
+                        execute: '-PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps'),
                 new GradleRun(subDir: 'tutorial', id: 'scope', file: 'scope.groovy', groovyScript: true),
                 runMp('firstExample/water', 'FirstExample', 'hello'),
                 runMp('addKrill/water', 'AddKrill', 'hello'),
@@ -79,7 +116,6 @@ class Userguide {
                 run('tutorial', 'autoskipDepends', '-Dskip.autoskip depends'),
                 run('tutorial', 'configByDag', 'release'),
                 run('tutorial', 'count', 'count'),
-                run('tutorial', 'date', 'date'),
                 run('tutorial', 'directoryTask', 'otherResources'),
                 run('tutorial', 'disableTask', 'disableMe'),
                 run('tutorial', 'dynamic', 'task_1'),
@@ -97,7 +133,8 @@ class Userguide {
                 run('tutorial', 'projectApi', 'check'),
                 run('tutorial', 'replaceTask', 'resources'),
                 run('tutorial', 'skipProperties', '-DmySkipProperty skipMe'),
-                run('tutorial', 'stopExecutionException', 'myTask')
+                run('tutorial', 'stopExecutionException', 'myTask'),
+                run('tutorial', 'upper', 'upper')
 
         ]
     }
@@ -119,7 +156,7 @@ class Userguide {
         PrintWriter printWriter = new PrintWriter(stringWriter)
         logger.info("Evaluating Groovy script: $script.absolutePath")
         new GroovyShell(new Binding(out: printWriter)).evaluate(script)
-        [output: stringWriter, command: "groovy $script.name"]
+        [output: stringWriter, command: "groovy $script.name", unixCommand: "groovy $script.name", windowsCommand: "groovy $script.name"]
     }
 
 }

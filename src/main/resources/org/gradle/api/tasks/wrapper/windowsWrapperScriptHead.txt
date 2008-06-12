@@ -53,7 +53,7 @@ echo.
 @rem get name of script to launch with full path
 @rem Get command-line arguments, handling Windowz variants
 SET _marker=%JAVA_HOME: =%
-IF NOT "%_marker%" == "%JAVA_HOME%" ECHO JAVA_HOME "%JAVA_HOME%" contains spaces. Please change to a location without spaces if this causes problems.
+@rem IF NOT "%_marker%" == "%JAVA_HOME%" ECHO JAVA_HOME "%JAVA_HOME%" contains spaces. Please change to a location without spaces if this causes problems.
 
 if not "%OS%" == "Windows_NT" goto win9xME_args
 if "%eval[2+2]" == "4" goto 4NT_args

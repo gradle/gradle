@@ -42,7 +42,7 @@ class Executer {
         "PATH=${System.getenv('PATH')}"
     }
 
-    static Map executeInternal(String windowsCommand, String unixCommand, String gradleHome,
+    static Map executeInternal(String windowsCommandSnippet, String unixCommandSnippet, String gradleHome,
                                   List envs, String currentDirName,
                                   List tasknames, String buildFileName, int outputType) {
         def proc
@@ -56,22 +56,23 @@ class Executer {
         long runBeforeKill = 30 * 60 * 1000
         List additionalEnvs = []
         if (System.getenv('JAVA_HOME')) {additionalEnvs << "JAVA_HOME=${System.getenv('JAVA_HOME')}"}
-        String command
+        String actualCommand
+        String windowsCommand = "cmd /c $windowsCommandSnippet ${outputOption(outputType)}" + "$buildFileSpecifier $taskNameText"
+        String unixCommand = "$unixCommandSnippet ${outputOption(outputType)}$buildFileSpecifier $taskNameText"
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             Execute execute = new Execute()
-            command = "cmd /c $windowsCommand ${outputOption(outputType)}" + "$buildFileSpecifier $taskNameText"
-            println "Execute in $currentDirName with: $command"
+            actualCommand = windowsCommand
+            println "Execute in $currentDirName with: $actualCommand"
             additionalEnvs << windowsPath(gradleHome)
             execute.setEnvironment(envs + additionalEnvs as String[])
-            proc = Runtime.getRuntime().exec(command, execute.getEnvironment(), new File(currentDirName))
+            proc = Runtime.getRuntime().exec(actualCommand, execute.getEnvironment(), new File(currentDirName))
         } else {
-            command = "$unixCommand ${outputOption(outputType)}$buildFileSpecifier $taskNameText"
-            println "Execute in $currentDirName with: $command"
+            actualCommand = unixCommand
+            println "Execute in $currentDirName with: $actualCommand"
             additionalEnvs << unixPath()
-            proc = command.execute(envs + additionalEnvs, new File(currentDirName))
-            // strip path
-            command = command.replaceFirst(unixCommand, windowsCommand)
+            proc = actualCommand.execute(envs + additionalEnvs, new File(currentDirName))
         }
+        unixCommand = stripGradlePath(unixCommand, unixCommandSnippet)
         proc.consumeProcessOutput(outStream, errStream)
         proc.waitForOrKill(runBeforeKill)
         int exitValue = proc.exitValue()
@@ -80,7 +81,11 @@ class Executer {
         if (exitValue) {
             throw new RuntimeException("Integrationtests failed with: $output $error")
         }
-        return [output: output, command: command]
+        return [output: output, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand]
+    }
+
+    static String stripGradlePath(String unixCommand, String gradleWithPath) {
+        unixCommand.substring(gradleWithPath.length() - 'gradle'.length())
     }
 
     static String outputOption(int outputType) {
