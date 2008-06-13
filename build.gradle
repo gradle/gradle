@@ -327,7 +327,7 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.1.5-080611174827+0200'
+    gradleVersion = '0.1.5-080613181139+0200'
 }
 
 

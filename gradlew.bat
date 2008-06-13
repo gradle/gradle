@@ -53,7 +53,7 @@ echo.
 @rem get name of script to launch with full path
 @rem Get command-line arguments, handling Windowz variants
 SET _marker=%JAVA_HOME: =%
-IF NOT "%_marker%" == "%JAVA_HOME%" ECHO JAVA_HOME "%JAVA_HOME%" contains spaces. Please change to a location without spaces if this causes problems.
+@rem IF NOT "%_marker%" == "%JAVA_HOME%" ECHO JAVA_HOME "%JAVA_HOME%" contains spaces. Please change to a location without spaces if this causes problems.
 
 if not "%OS%" == "Windows_NT" goto win9xME_args
 if "%eval[2+2]" == "4" goto 4NT_args
@@ -99,9 +99,9 @@ set CMD_LINE_ARGS=%$
 set STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
 set CLASSPATH=%DIRNAME%gradle-wrapper\gradle-wrapper.jar
 set URL_ROOT=http://dist.codehaus.org/gradle
-set DIST_NAME=gradle-0.1.5-080611174827+0200-bin
-set GRADLE_HOME=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1.5-080611174827+0200
-set Path=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1.5-080611174827+0200\bin;%Path%
+set DIST_NAME=gradle-0.1.5-080613181139+0200-bin
+set GRADLE_HOME=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1.5-080613181139+0200
+set Path=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1.5-080613181139+0200\bin;%Path%
 
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
