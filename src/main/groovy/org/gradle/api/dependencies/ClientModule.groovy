@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.dependencies.DefaultDependencyContainer
 import org.gradle.api.internal.dependencies.DependencyFactory
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
 
 
 /**
@@ -35,6 +36,8 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
 
     Set confs
 
+    DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory()
+
     ClientModule() {}
 
     ClientModule(DependencyFactory dependencyFactory, Set confs,
@@ -46,17 +49,13 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
     }
 
     DependencyDescriptor createDepencencyDescriptor() {
-        addModuleDescriptors()
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null,
-                createModuleRevisionId([(CLIENT_MODULE_KEY): id]), false, true, true)
-        confs.each {String conf ->
-            dd.addDependencyConfiguration(conf, Dependency.DEFAULT_CONFIGURATION)
-        }
+        DefaultDependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor(id, false, true, true, confs, [],
+                [(CLIENT_MODULE_KEY): id])
+        addModuleDescriptors(dd.dependencyRevisionId)
         dd
     }
 
-    void addModuleDescriptors() {
-        ModuleRevisionId moduleRevisionId = createModuleRevisionId([(CLIENT_MODULE_KEY): id])
+    void addModuleDescriptors(ModuleRevisionId moduleRevisionId) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
                 'release', null)
         moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION))
@@ -70,11 +69,6 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
             dependency.createDepencencyDescriptor()
         }
         (dependencyDescriptors + this.dependencyDescriptors).each {moduleDescriptor.addDependency(it)}
-    }
-
-    ModuleRevisionId createModuleRevisionId(Map extraAttributes) {
-        List dependencyParts = id.split(':')
-        new ModuleRevisionId(new ModuleId(dependencyParts[0], dependencyParts[1]), dependencyParts[2], extraAttributes)
     }
 
     public void setProject(DefaultProject project) {

@@ -50,12 +50,13 @@ class BuildScriptProcessor {
             GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
             Clock clock = new Clock()
             Script script = groovyShell.parse(buildScript, project.buildScriptFinder.buildFileName)
-            logger.debug("Timing: Parsing the build script took " + clock.time)
+            logger.info("Timing: Parsing the build script took " + clock.time)
             replaceMetaclass(script, project)
             project.projectScript = script
             clock.reset()
             script.run()
-            logger.debug("Timing: Running the build script took " + clock.time)
+            logger.info("Timing: Running the build script took " + clock.time)
+            logger.info("Timing: Missing calls took " + (project.missingTime / 1000.0))
             logger.debug("Evaluated Build Script: " + buildScript)
         } catch (Throwable t) {
             throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)

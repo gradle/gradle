@@ -63,17 +63,17 @@ dependencies {
 
     clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
         clientModule(":commons-net:1.4.1") {
-            dependencies(":oro:2.0.8:jar")
+            dependencies(":oro:2.0.8@jar")
         }
     }
     clientModule(['groovy'], ":groovy-all:1.5.5") {
         dependency(":commons-cli:1.0")
         clientModule(":ant:1.7.0") {
-            dependencies(":ant-junit:1.7.0:jar", ":ant-launcher:1.7.0")
+            dependencies(":ant-junit:1.7.0@jar", ":ant-launcher:1.7.0")
         }
     }
     
-    clientModule(['compile'], ":commons-httpclient:3.0:jar") {
+    clientModule(['compile'], ":commons-httpclient:3.0") {
         dependencies(":commons-codec:1.2", ":commons-logging:1.0.3")
     }
 
@@ -83,11 +83,11 @@ dependencies {
     compile ":logback-classic:0.9.8",
             ":slf4j-api:1.4.3",
             ":logback-core:0.9.8",
-            ":commons-io:1.3.1:jar",
-            ":commons-lang:2.3:jar",
+            ":commons-io:1.3.1@jar",
+            ":commons-lang:2.3@jar",
             ":webdavlib:2.0",
             ":logback-classic:0.9.8",
-            ":ivy:2.0.0.beta2_20080305165542:jar"
+            ":ivy:2.0.0.beta2_20080305165542@jar"
     runtime ":ant-launcher:1.7.0",
             ":ant-nodeps:1.7.0",
             ":junit:4.4"
@@ -318,7 +318,7 @@ uploadDists {
         name = 'gradleReleases'
         user = codehausUserName
         userPassword = codehausUserPassword
-        addArtifactPattern("$distributionUploadUrl/[artifact]-[revision].[ext]" as String)
+        addArtifactPattern("$distributionUploadUrl/[artifact]-[revision](-[classifier]).[ext]" as String)
     }
 }
 

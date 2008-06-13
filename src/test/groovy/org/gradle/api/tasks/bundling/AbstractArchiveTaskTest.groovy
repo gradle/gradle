@@ -24,13 +24,18 @@ import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.HelperUtil
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.ZipFileSet
-import org.gradle.api.tasks.util.TarFileSet
+import org.gradle.api.DependencyManager
+import org.gradle.api.internal.dependencies.DefaultDependencyManager
 
 /**
  * @author Hans Dockter
  */
 abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
+    static final String TEST_CONFIGURATION = 'testconf'
+
     abstract AbstractArchiveTask getArchiveTask()
+
+    MockFor dependencyManagerMock
 
     Task getTask() {
         archiveTask
@@ -60,11 +65,48 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.destinationDir = new File('/destinationDir')
         archiveTask.resourceCollections = [new FileSet(testDir)]
         archiveTask.baseDir = testDir
+        archiveTask.configurations = [TEST_CONFIGURATION]
+        archiveTask.dependencyManager = [:] as DefaultDependencyManager
+        dependencyManagerMock = new MockFor(DefaultDependencyManager)
     }
 
     void testExecute() {
+        dependencyManagerMock.demand.addArtifacts(1..1) {String configurationName, Object[] artifacts ->
+            assertEquals(AbstractArchiveTaskTest.TEST_CONFIGURATION, configurationName)
+            assertEquals(1, artifacts.size())
+            assertEquals("$archiveTask.baseName:${archiveTask.classifier}@$archiveTask.extension", artifacts[0])
+        }
         getAntMocker(true).use(ant) {
-            archiveTask.execute()
+            dependencyManagerMock.use(archiveTask.dependencyManager) {
+                archiveTask.execute()
+            }
+        }
+    }
+
+    void testExecuteWithEmptyClassifier() {
+        dependencyManagerMock.demand.addArtifacts(1..1) {String configurationName, Object[] artifacts ->
+            assertEquals(AbstractArchiveTaskTest.TEST_CONFIGURATION, configurationName)
+            assertEquals(1, artifacts.size())
+            assertEquals("${archiveTask.baseName}@$archiveTask.extension", artifacts[0])
+        }
+        archiveTask.classifier = ''
+        getAntMocker(true).use(ant) {
+            DefaultDependencyManager dm = archiveTask.dependencyManager
+            dependencyManagerMock.use(archiveTask.dependencyManager) {
+                archiveTask.execute()
+            }
+        }
+    }
+
+    void testExecuteWithPublishFalse() {
+        dependencyManagerMock.demand.addArtifacts(0..0) {String configurationName, Object[] artifacts ->
+            
+        }
+        archiveTask.publish = false
+        getAntMocker(true).use(ant) {
+            dependencyManagerMock.use(archiveTask.dependencyManager) {
+                archiveTask.execute()
+            }
         }
     }
 
@@ -77,7 +119,8 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     void checkArchiveParameterEqualsArchive(AntArchiveParameter archiveParameter, AbstractArchiveTask task) {
         assert archiveParameter.ant.is(task.project.ant)
-        assert archiveParameter.archiveName == "${task.baseName}-${task.version}-${task.classifier}.${task.extension}"
+        String classifierSnippet = task.classifier ? '-' + task.classifier : ''
+        assert archiveParameter.archiveName == "${task.baseName}-${task.version}${classifierSnippet}.${task.extension}"
         assert archiveParameter.destinationDir.is(task.destinationDir)
         assert archiveParameter.createIfEmpty == task.createIfEmpty
         assert archiveParameter.resourceCollections.is(task.resourceCollections)
@@ -139,7 +182,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.archiveDetector = [archiveFileSetType: {File file -> ZipFileSet }] as ArchiveDetector
         Object[] fileDescriptions = ['a.zip' as File, new File(HelperUtil.TMP_DIR_FOR_TEST, 'b.zip').absolutePath]
         assert archiveTask.merge(fileDescriptions) {
-            include('x')   
+            include('x')
         }.is(archiveTask)
         List mergeFileSets = archiveTask.mergeFileSets
         assertEquals(fileDescriptions.size(), mergeFileSets.size())

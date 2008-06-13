@@ -144,7 +144,8 @@ abstract class AbstractArchiveTask extends ConventionTask {
         }
         createAntArchiveTask().call()
         if (publish) {
-            self.configurations.each {self.dependencyManager.addArtifacts(it, "${self.baseName}.$self.extension")}
+            String classifierSnippet = classifier ? ':' + classifier : ''
+            self.configurations.each {self.dependencyManager.addArtifacts(it, "${self.baseName}${classifierSnippet}@$self.extension")}
         }
     }
 

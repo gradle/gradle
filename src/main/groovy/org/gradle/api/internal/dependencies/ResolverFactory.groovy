@@ -28,8 +28,6 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
  * @author Hans Dockter
  */
 class ResolverFactory {
-    static final String MAVEN2_PATTERN = "[organisation]/[module]/[revision]/[module]-[revision].[ext]"
-
     LocalReposCacheHandler localReposCacheHandler
 
     ResolverFactory(LocalReposCacheHandler localReposCacheHandler) {

@@ -21,11 +21,18 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.util.GradleUtil
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
+import org.gradle.api.internal.dependencies.DependenciesUtil
+import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
+import org.apache.ivy.core.module.id.ArtifactId
+import org.apache.ivy.core.module.id.ModuleId
+import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 
 /**
-* @author Hans Dockter
-* todo: deleteTestDir throws an exception if dir does not exists. failonerror attribute seems not to work. Check this out.
-*/
+ * @author Hans Dockter
+ * todo: deleteTestDir throws an exception if dir does not exists. failonerror attribute seems not to work. Check this out.
+ */
 class HelperUtil {
     static final String TMP_DIR_FOR_TEST = 'tmpTest'
 
@@ -35,7 +42,7 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        return new DefaultProject(rootDir.name, null, rootDir, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder(), new PluginRegistry())    
+        return new DefaultProject(rootDir.name, null, rootDir, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder(), new PluginRegistry())
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name) {
@@ -60,5 +67,17 @@ class HelperUtil {
 
     static File getTestDir() {
         new File(TMP_DIR_FOR_TEST)
+    }
+
+    static DefaultExcludeRule getTestExcludeRules() {
+        new DefaultExcludeRule(new ArtifactId(
+                new ModuleId('org', 'module'), PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION),
+                ExactPatternMatcher.INSTANCE, null)
+    }
+
+    static DefaultDependencyDescriptor getTestDescriptor() {
+        new DefaultDependencyDescriptor(DependenciesUtil.moduleRevisionId('org', 'name', 'rev'), false)
     }
 }

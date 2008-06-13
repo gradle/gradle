@@ -42,58 +42,62 @@ public interface DependencyManager extends DependencyContainer {
 
     public static final String DEFAULT_CACHE_NAME = "default-gradle-cache";
 
+    public static final String DEFAULT_CACHE_ARTIFACT_PATTERN = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
+
+    public static final String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
+
     public static final String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
 
-    public static final String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]";
+    public static final String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
 
-    public static final String FLAT_DIR_RESOLVER_PATTERN = "[artifact]-[revision].[ext]";
+    public static final String FLAT_DIR_RESOLVER_PATTERN = "[artifact]-[revision](-[classifier]).[ext]";
 
     public static final String DEFAULT_STATUS = "integration";
     public static final String DEFAULT_GROUP = "unspecified";
     public static final String DEFAULT_VERSION = "unspecified";
-
+    public static final String CLASSIFIER = "classifier";
 
 
     /**
-    * A map where the key is the name of the configuration and the values are Ivy configuration objects.
-    */
+     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
+     */
     Map getConfigurations();
 
     /**
-    * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
-    */
+     * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
+     */
     Map getArtifacts();
 
     /**
-    * A map for passing directly instances of Ivy Artifact objects.
-    */
+     * A map for passing directly instances of Ivy Artifact objects.
+     */
     Map getArtifactDescriptors();
 
     /**
-    * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
-    */
+     * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
+     */
     List getArtifactPatterns();
 
     /**
-    * The name of the task which produces the artifacts of this project. This is needed by other projects,
-    * which have a dependency on a project.
-    */
+     * The name of the task which produces the artifacts of this project. This is needed by other projects,
+     * which have a dependency on a project.
+     */
     String getArtifactProductionTaskName();
 
     /**
-    * A map where the key is the name of the configuration and the value is the name of a task. This is needed
-    * to deal with project dependencies. In case of a project dependency, we need to establish a dependsOn relationship,
-    * between a task of the project and the task of the dependsOn project, which builds the artifacts. The default is,
-    * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
-    * the mapping can be specified via this map.
-    */
+     * A map where the key is the name of the configuration and the value is the name of a task. This is needed
+     * to deal with project dependencies. In case of a project dependency, we need to establish a dependsOn relationship,
+     * between a task of the project and the task of the dependsOn project, which builds the artifacts. The default is,
+     * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
+     * the mapping can be specified via this map.
+     */
     Map getConf2Tasks();
 
     /**
      * A configuration can be assigned to one or more tasks. One usage of this mapping is that for example the
      * <pre>compile</pre> task can ask for its classpath by simple passing its name as an argument. Of course the JavaPlugin
      * had to create the mapping during the initialization phase.
-     *
+     * <p/>
      * Another important use case are multi-project builds. Let's say you add a project dependency to the testCompile conf.
      * You don't want the other project to be build, if you do just a compile. The testCompile task is mapped to the
      * testCompile conf. With this knowledge we create a dependsOn relation ship between the testCompile task and the
@@ -102,7 +106,7 @@ public interface DependencyManager extends DependencyContainer {
      * If a mapping between a task and a conf is not specified an implicit mapping is assumed which looks for a task
      * with the same name as the conf. But for example for the test task you have to specify an explicit mapping.
      *
-     * @param conf the name of the conf
+     * @param conf  the name of the conf
      * @param tasks the name of the tasks
      */
     void addConf2Tasks(String conf, String[] tasks);
@@ -129,6 +133,7 @@ public interface DependencyManager extends DependencyContainer {
     /**
      * Adds a configuration with the given name. Under the hood an ivy configuration is created with default
      * attributes.
+     *
      * @param configuration
      */
     void addConfiguration(String configuration);
@@ -152,7 +157,8 @@ public interface DependencyManager extends DependencyContainer {
     List resolveTask(String taskName);
 
     /**
-     * Returns a classpath String in ant notation for the configuration. 
+     * Returns a classpath String in ant notation for the configuration.
+     *
      * @param conf
      * @return
      */
@@ -162,7 +168,7 @@ public interface DependencyManager extends DependencyContainer {
      * Returns a ResolverContainer with the resolvers responsible for resolving the classpath dependencies.
      * There are different resolver containers for uploading the libraries and the distributions of a project.
      * The same resolvers can be part of multiple resolver container.
-     * 
+     *
      * @return a ResolverContainer containing the classpathResolvers
      */
     ResolverContainer getClasspathResolvers();
@@ -175,7 +181,7 @@ public interface DependencyManager extends DependencyContainer {
     /**
      * The build resolver is the resolver responsible for uploading and resolving the build source libraries as well
      * as project libraries between multi-project builds.
-     *  
+     *
      * @return the build resolver
      */
     RepositoryResolver getBuildResolver();
@@ -188,7 +194,7 @@ public interface DependencyManager extends DependencyContainer {
 
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed
-     * if only the pom is in the MavenRepo repository (e.g. jta).
+     *                    if only the pom is in the MavenRepo repository (e.g. jta).
      */
     DualResolver addMavenRepo(String[] jarRepoUrls);
 

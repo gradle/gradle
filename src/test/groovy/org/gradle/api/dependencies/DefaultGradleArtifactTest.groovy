@@ -19,25 +19,36 @@ package org.gradle.api.dependencies
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.DependencyManager
 
 /**
 * @author Hans Dockter
 */
 class DefaultGradleArtifactTest extends GroovyTestCase {
-    static final String TEST_NAME_1 = 'myfile-1.jar'
+    static final String TEST_NAME_1 = 'myfile-1'
 
     DefaultGradleArtifact defaultGradleArtifact
 
-    void setUp() {
-        defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME_1)
-    }
-    
+
     void testCreateIvyArtifact() {
+        defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME_1 + '@jar')
         ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId('group', 'name'), 'version')
         Artifact artifact = defaultGradleArtifact.createIvyArtifact(moduleRevisionId)
-        assertEquals(TEST_NAME_1.split(/\./)[0], artifact.name)
+        assertEquals(TEST_NAME_1, artifact.name)
         assertEquals(moduleRevisionId, artifact.moduleRevisionId)
         assertEquals('jar', artifact.ext)
         assertEquals('jar', artifact.type)
+        assert !artifact.extraAttributes[DependencyManager.CLASSIFIER]
+    }
+
+    void testCreateIvyArtifactWithClassifier() {
+        defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME_1 + ':src@jar')
+        ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId('group', 'name'), 'version')
+        Artifact artifact = defaultGradleArtifact.createIvyArtifact(moduleRevisionId)
+        assertEquals(TEST_NAME_1, artifact.name)
+        assertEquals(moduleRevisionId, artifact.moduleRevisionId)
+        assertEquals('jar', artifact.ext)
+        assertEquals('jar', artifact.type)
+        assertEquals('src', artifact.extraAttributes[DependencyManager.CLASSIFIER])
     }
 }

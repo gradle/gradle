@@ -16,10 +16,11 @@
  
 package org.gradle.api.dependencies
 
-import org.apache.commons.io.FilenameUtils
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.DependencyManager
+import org.gradle.api.internal.dependencies.DependenciesUtil
 
 /**
  * @author Hans Dockter
@@ -27,14 +28,18 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 class DefaultGradleArtifact implements GradleArtifact {
     String userDescription
 
+    
+
     DefaultGradleArtifact(String userDescription) {
         this.userDescription = userDescription
     }
 
     Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId) {
-        String baseName = FilenameUtils.getBaseName(userDescription)
-        String extension = FilenameUtils.getExtension(userDescription)
-        new DefaultArtifact(moduleRevisionId, null, baseName, extension, extension)
+        Map groups = DependenciesUtil.splitExtension(userDescription)
+        List coreSplit = groups.core.split(':')
+        String baseName = coreSplit[0]
+        Map extraAttributes = coreSplit.size() > 1 ? [(DependencyManager.CLASSIFIER): coreSplit[1]] : [:]
+        new DefaultArtifact(moduleRevisionId, null, baseName, groups.extension, groups.extension, extraAttributes)
     }
 
     String toString() {

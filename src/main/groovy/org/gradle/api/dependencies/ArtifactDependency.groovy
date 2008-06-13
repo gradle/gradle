@@ -20,17 +20,25 @@ import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
+import org.gradle.api.internal.dependencies.DependenciesUtil
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class ArtifactDependency extends AbstractDependency {
+    boolean force = false
+
+    DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory()
+
     ArtifactDependency(Set confs, Object userDependencyDescription, DefaultProject project) {
         super(confs, userDependencyDescription, project)
     }
 
     boolean isValidDescription(Object userDependencyDescription) {
-        (userDependencyDescription as String).split(':').size() == 4
+        if (!DependenciesUtil.hasExtension(userDependencyDescription)) { return false }
+        int elementCount = (userDependencyDescription as String).split(':').size()
+        return (elementCount == 3 || elementCount == 4)
     }
 
     Class[] userDepencencyDescriptionType() {
@@ -38,9 +46,10 @@ class ArtifactDependency extends AbstractDependency {
     }
 
     DependencyDescriptor createDepencencyDescriptor() {
-        List dependencyParts = (userDependencyDescription as String).split(':')
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null, createModuleRevisionId(dependencyParts[0], dependencyParts[1], dependencyParts[2]), false, false, false)
-        DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(dependencyParts[1], dependencyParts[3], dependencyParts[3], null, null)
+        Map groups = DependenciesUtil.splitExtension(userDependencyDescription)
+        DefaultDependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor((String) groups.core, force, false, false, confs, [])
+        DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(dd.dependencyRevisionId.name,
+                groups.extension, groups.extension, null, null)
         dd.addDependencyArtifact(Dependency.DEFAULT_CONFIGURATION, artifactDescriptor)
         confs.each {
             dd.addDependencyConfiguration(it, Dependency.DEFAULT_CONFIGURATION)

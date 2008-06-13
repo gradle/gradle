@@ -117,8 +117,8 @@ class JavaPlugin implements Plugin {
             addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, LIBS] as String[], true, null))
             addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null))
             artifactProductionTaskName = UPLOAD_LIBS
-            artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision].[ext]" as String)
-            artifactPatterns << ("${project.convention.plugins.java.distsDir}/[artifact]-[revision].[ext]" as String)
+            artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision](-[classifier]).[ext]" as String)
+            artifactPatterns << ("${project.convention.plugins.java.distsDir}/[artifact]-[revision](-[classifier]).[ext]" as String)
             addConf2Tasks(COMPILE, COMPILE)
             addConf2Tasks(RUNTIME, TEST)
             addConf2Tasks(TEST_COMPILE, TEST_COMPILE)

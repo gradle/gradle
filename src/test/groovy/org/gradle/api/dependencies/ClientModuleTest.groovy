@@ -22,8 +22,11 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.dependencies.AbstractDependencyContainerTest
 import org.gradle.api.internal.dependencies.DefaultDependencyContainer
 import org.gradle.api.internal.dependencies.DependencyFactory
-import org.gradle.api.internal.dependencies.IvyUtil
+import org.gradle.api.internal.dependencies.DependenciesUtil
 import org.gradle.api.internal.project.DefaultProject
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
@@ -39,6 +42,10 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
 
     List parentConfs = ['parentConf']
 
+    MockFor dependencyDescriptorFactoryMock
+
+    DefaultDependencyDescriptor expectedDependencyDescriptor
+
     public DefaultDependencyContainer getTestObj() {
         clientModule
     }
@@ -50,6 +57,9 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         dependencyFactoryMocker = new MockFor(DependencyFactory)
         testDefaultConfs = clientModule.defaultConfs
         testConfs = clientModule.defaultConfs
+        dependencyDescriptorFactoryMock = new MockFor(DependencyDescriptorFactory)
+        clientModule.dependencyDescriptorFactory = [:] as DependencyDescriptorFactory
+        expectedDependencyDescriptor = HelperUtil.getTestDescriptor()
     }
 
     void testInit() {
@@ -60,20 +70,35 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
     }
 
     void testCreateDependencyDescriptor() {
+        String testDependencyUserDescription = "org.apache:test:5.0.4"
         DependencyDescriptor testDependencyDescriptor = [:] as DependencyDescriptor
         Dependency testDependency = [createDepencencyDescriptor: {testDependencyDescriptor}] as Dependency
         dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependency, DefaultProject project ->
+            assertEquals(testDependencyUserDescription, userDependency)
             testDependency
         }
-        DependencyDescriptor dependencyDescriptor
-        dependencyFactoryMocker.use(clientModule.dependencyFactory) {
-            clientModule.dependencies("org.apache:test:5.0.4")
-            dependencyDescriptor = clientModule.createDepencencyDescriptor()
+        dependencyDescriptorFactoryMock.demand.createDescriptor(1..1) {String descriptor, boolean force, boolean transitive,
+                                                                       boolean changing, Set confs, List excludeRules, Map extraAttributes ->
+            assertEquals(testId, descriptor)
+            assert !force
+            assert transitive
+            assert changing
+            assertEquals(clientModule.confs, confs)
+            assertEquals([], excludeRules)
+            assertEquals([(ClientModule.CLIENT_MODULE_KEY): testId], extraAttributes)
+            expectedDependencyDescriptor
         }
-        assertEquals(IvyUtil.moduleRevisionId('org.gradle', 'test', '1.3.4').toString(),
-                dependencyDescriptor.getDependencyRevisionId().toString())
+        
+        DependencyDescriptor dependencyDescriptor
+        dependencyDescriptorFactoryMock.use(clientModule.dependencyDescriptorFactory) {
+            dependencyFactoryMocker.use(clientModule.dependencyFactory) {
+                clientModule.dependencies(testDependencyUserDescription)
+                assert clientModule.createDepencencyDescriptor().is(expectedDependencyDescriptor)
+            }
+        }
         ModuleDescriptor moduleDescriptor = testModuleRegistry[testId]
         assert moduleDescriptor
+        assert moduleDescriptor.moduleRevisionId == expectedDependencyDescriptor.dependencyRevisionId
         assert moduleDescriptor.dependencies[0].is(testDependencyDescriptor)
     }
 

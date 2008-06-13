@@ -21,6 +21,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.FileCollection
+import org.gradle.api.internal.dependencies.DefaultDependencyManager
 
 /**
  * @author Hans Dockter
@@ -44,7 +45,9 @@ class WarTest extends AbstractArchiveTaskTest {
         war.additionalLibFileSets = [new FileSet()]
         antWarMocker = new MockFor(AntWar)
         filesFromDepencencyManager = ['/file1' as File]
-        war.dependencyManager = [resolve: {filesFromDepencencyManager}] as DependencyManager
+        dependencyManagerMock.demand.resolve(0..1000) {
+            filesFromDepencencyManager
+        }
     }
 
     AbstractArchiveTask getArchiveTask() {

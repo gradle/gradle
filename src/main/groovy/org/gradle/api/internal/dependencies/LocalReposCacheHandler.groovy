@@ -44,6 +44,8 @@ class LocalReposCacheHandler {
             cacheManagerInternal.name = DependencyManager.DEFAULT_CACHE_NAME
             cacheManagerInternal.useOrigin = true
             cacheManagerInternal.lockStrategy = new NoLockStrategy()
+            cacheManagerInternal.setIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN)
+            cacheManagerInternal.setArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN)
         }
         cacheManagerInternal
     }

@@ -31,6 +31,8 @@ class LocalReposCacheHandlerTest extends GroovyTestCase {
          assert cacheManager.is(cacheHandler.cacheManager)
          assert cacheManager.useOrigin
          assert cacheManager.name == DependencyManager.DEFAULT_CACHE_NAME
+         assertEquals(DependencyManager.DEFAULT_CACHE_IVY_PATTERN, cacheManager.ivyPattern)
+         assert cacheManager.artifactPattern == DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN
          assertEquals(new File(buildResolverDir, DependencyManager.DEFAULT_CACHE_DIR_NAME), cacheManager.basedir)
          assert cacheManager.lockStrategy instanceof NoLockStrategy
      }

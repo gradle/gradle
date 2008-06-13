@@ -99,6 +99,8 @@ class DefaultProject implements Comparable, Project {
 
     Map pluginApplyRegistry = [:]
 
+    long missingTime = 0
+
 
     DefaultProject() {
         convention = new Convention(this)
@@ -409,68 +411,98 @@ class DefaultProject implements Comparable, Project {
     }
 
     def propertyMissing(String name) {
+        Clock clock = new Clock()
         if (additionalProperties.keySet().contains(name)) {
+            missingTime += clock.timeInMs
             return additionalProperties[name]
         }
         if (convention.hasProperty(name)) {
+            missingTime += clock.timeInMs
             return convention."$name"
         }
         if (tasks[name]) {
+            missingTime += clock.timeInMs
             return tasks[name]
         }
         DefaultProject projectLooper = parent
         while (projectLooper) {
             if (projectLooper.additionalProperties.keySet().contains(name)) {
+                missingTime += clock.timeInMs
                 return projectLooper."$name"
             } else if (projectLooper.convention.hasProperty(name)) {
+                missingTime += clock.timeInMs
                 return projectLooper.convention."$name"
             }
             projectLooper = projectLooper.parent
         }
+        missingTime += clock.timeInMs
         throw new MissingPropertyException("$name is unknown property!")
     }
 
     boolean hasProperty(String name) {
-        if (this.metaClass.hasProperty(this, name)) {return true}
-        if (additionalProperties.keySet().contains(name)) {return true}
+        Clock clock = new Clock()
+        if (this.metaClass.hasProperty(this, name)) {
+            missingTime += clock.timeInMs
+            return true
+        }
+        if (additionalProperties.keySet().contains(name)) {
+            missingTime += clock.timeInMs
+            return true
+        }
         if (convention.hasProperty(name)) {
+            missingTime += clock.timeInMs
             return true
         }
         DefaultProject projectLooper = parent
         while (projectLooper) {
             if (projectLooper.additionalProperties.keySet().contains(name)) {
+                missingTime += clock.timeInMs
                 return true
             } else if (projectLooper.convention.hasProperty(name)) {
+                missingTime += clock.timeInMs
                 return true
             }
             projectLooper = projectLooper.parent
         }
+        missingTime += clock.timeInMs
 
         tasks[name] ? true : false
     }
 
     def methodMissing(String name, args) {
+        Clock clock = new Clock()
         if (projectScript && projectScript.metaClass.respondsTo(projectScript, name, args)) {
+            missingTime += clock.timeInMs
             return projectScript.invokeMethod(name, args)
         }
         if (convention && convention.hasMethod(name, args)) {
+            missingTime += clock.timeInMs
             return convention.invokeMethod(name, args)
         }
         if (tasks[name] && args.size() == 1 && args[0] instanceof Closure) {
+            missingTime += clock.timeInMs
             return task(name, (Closure) args[0])
         }
-        if (this.parent) {return this.parent.invokeMethod(name, args)}
+        if (this.parent) {
+            missingTime += clock.timeInMs
+            return this.parent.invokeMethod(name, args)
+        }
+        missingTime += clock.timeInMs
         throw new MissingMethodException(name, this.class, args)
     }
 
     void setProperty(String name, value) {
+        Clock clock = new Clock()
         if (this.metaClass.hasProperty(this, name)) {
             this.metaClass.setProperty(this, name, value)
+            missingTime += clock.timeInMs
             return
         } else if (convention.hasProperty(name)) {
             convention.setProperty(name, value)
+            missingTime += clock.timeInMs
             return
         }
+        missingTime += clock.timeInMs
         project.additionalProperties[name] = value
     }
 

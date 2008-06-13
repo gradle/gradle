@@ -40,7 +40,6 @@ abstract class AbstractPluginConventionTest extends GroovyTestCase {
         project.convention.plugins.test1 = new TestPluginConvention1()
         project.convention.plugins.test2 = new TestPluginConvention2()
         Map testCustomValues = getCustomValues()
-        println testCustomValues
         testCustomValues.test1 = [:]
         testCustomValues.test1.a = 'newA'
         testCustomValues.c = 'newC'

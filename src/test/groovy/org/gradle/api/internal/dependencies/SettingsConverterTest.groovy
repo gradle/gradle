@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.internal.dependencies.SettingsConverter
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.gradle.api.DependencyManager
 
 /**
  * @author Hans Dockter
@@ -77,7 +78,9 @@ class SettingsConverterTest extends GroovyTestCase {
         }
 
         assert settings.getResolver(TEST_UPLOAD_RESOLVER.name).is(TEST_UPLOAD_RESOLVER)
-        assertEquals(testGradleUserHome.canonicalPath + '/cache', settings.getVariable('ivy.cache.dir'))
+        assertEquals(new File(testGradleUserHome, DependencyManager.DEFAULT_CACHE_DIR_NAME),
+                settings.defaultCache)
+        assertEquals(settings.defaultCacheArtifactPattern, DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN)
     }
 
     void testConvertWithClientChainConfigurer() {

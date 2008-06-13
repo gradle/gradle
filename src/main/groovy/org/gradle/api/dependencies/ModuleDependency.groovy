@@ -24,14 +24,19 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.dependencies.DependenciesUtil
+import org.gradle.api.DependencyManager
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class ModuleDependency extends AbstractDependency {
     boolean force = false
 
     List excludeRules = []
+
+    DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory()
 
     ModuleDependency(Object userDependencyDescription) {
         super(null, userDependencyDescription, null)
@@ -42,10 +47,9 @@ class ModuleDependency extends AbstractDependency {
     }
 
     boolean isValidDescription(Object userDependencyDescription) {
-        if (String.isCase(userDependencyDescription)) {
-            return (userDependencyDescription as String).split(':').size() == 3
-        }
-        true
+        if (DependenciesUtil.hasExtension(userDependencyDescription)) { return false }
+        int elementCount = (userDependencyDescription as String).split(':').size()
+        return (elementCount == 3 || elementCount == 4)
     }
 
     Class[] userDepencencyDescriptionType() {
@@ -53,14 +57,7 @@ class ModuleDependency extends AbstractDependency {
     }
 
     DependencyDescriptor createDepencencyDescriptor() {
-        String id = userDependencyDescription
-        List dependencyParts = id.split(':')
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null, createModuleRevisionId(dependencyParts[0], dependencyParts[1], dependencyParts[2]), force, false, true)
-        confs.each { String conf ->
-            dd.addDependencyConfiguration(conf, Dependency.DEFAULT_CONFIGURATION)
-            excludeRules.each {dd.addExcludeRule(conf, it)}
-        }
-        dd
+        dependencyDescriptorFactory.createDescriptor((String) userDependencyDescription, force, true, false, confs, excludeRules)
     }
 
     ModuleDependency exclude(Map args) {

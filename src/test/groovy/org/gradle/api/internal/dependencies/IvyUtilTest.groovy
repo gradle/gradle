@@ -24,7 +24,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 class IvyUtilTest extends GroovyTestCase {
     void testModuleRevisionId() {
         List l = ['myorg', 'myname', 'myrev']
-        ModuleRevisionId moduleRevisionId = IvyUtil.moduleRevisionId(*l)
+        ModuleRevisionId moduleRevisionId = DependenciesUtil.moduleRevisionId(*l)
         assertEquals(l[0], moduleRevisionId.organisation)
         assertEquals(l[1], moduleRevisionId.name)
         assertEquals(l[2], moduleRevisionId.revision)
