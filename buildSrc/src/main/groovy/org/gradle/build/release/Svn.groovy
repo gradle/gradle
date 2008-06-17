@@ -97,7 +97,7 @@ class Svn {
 
     def commitProperties() {
         File props = new File(project.projectDir, 'gradle.properties')
-        javaHlClient.commit([props.absolutePath,] as String[], "Incremented version properties", false)
+        javaHlClient.commit([props.absolutePath] as String[], "Incremented version properties", false)
     }
 
     def exitIfReleaseBranchDirectoryExists() {
