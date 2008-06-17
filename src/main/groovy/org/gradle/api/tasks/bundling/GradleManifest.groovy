@@ -28,7 +28,7 @@ class GradleManifest implements AntBuilderAware {
 
     /**
      * The baseManifest is usually the common manifest info for all archives. It is usually not
-     * manipulated via this object but its attributed are added to the Ant manifest generation.
+     * manipulated via this object but its attributes are added to the Ant manifest generation.
      */
     Manifest baseManifest = new Manifest()
 

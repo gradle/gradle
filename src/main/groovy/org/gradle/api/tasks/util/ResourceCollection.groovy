@@ -30,7 +30,7 @@ class FileCollection implements AntBuilderAware {
 
     def addToAntBuilder(node, String childNodeName = null) {
         files.each { File file ->
-            node.resources() {
+            node."${childNodeName ?: 'resources'}"() {
                 delegate.file(file: file.absolutePath)   
             }
         }

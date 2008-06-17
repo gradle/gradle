@@ -29,6 +29,7 @@ import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.Task
+import org.gradle.api.tasks.util.FileSet
 
 /**
  * @author Hans Dockter
@@ -88,8 +89,11 @@ class JavaPlugin implements Plugin {
         }
 
         project.createTask(LIBS, type: Bundle, dependsOn: TEST).configure {
+            childrenDependOn = [JavaPlugin.TEST]
             conventionMapping(DefaultConventionsToPropertiesMapping.LIB)
-            jar()
+            jar() {
+                conventionMapping(resourceCollections: {[new FileSet(javaConvention.classesDir)]})
+            }
         }
 
         project.createTask(UPLOAD_LIBS, type: Upload, dependsOn: LIBS).configure {
@@ -99,6 +103,7 @@ class JavaPlugin implements Plugin {
         }
 
         project.createTask(DISTS, type: Bundle, dependsOn: UPLOAD_LIBS).configure {
+            childrenDependOn = [JavaPlugin.LIBS]
             conventionMapping(DefaultConventionsToPropertiesMapping.DIST)
         }
 

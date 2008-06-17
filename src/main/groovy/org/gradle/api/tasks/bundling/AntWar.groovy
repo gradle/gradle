@@ -17,12 +17,13 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileCollection
+import org.gradle.api.tasks.util.FileSet
 
 /**
  * @author Hans Dockter
  */
 class AntWar extends AbstractAntArchive {
-    void execute(AntMetaArchiveParameter parameter, List classesFileSets, FileCollection libFiles, List additionalLibFileSets,
+    void execute(AntMetaArchiveParameter parameter, List classesFileSets, List libFiles, List additionalLibFileSets,
                  List webInfFileSets, File webXml) {
         assert parameter
         Map args = [:]
@@ -32,6 +33,11 @@ class AntWar extends AbstractAntArchive {
         parameter.ant.war(args) {
             addMetaArchiveParameter(parameter, delegate)
             addResourceCollections(classesFileSets, delegate, 'classes')
+            libFiles.each { File file ->
+                FileSet fileSet = new FileSet(file.absoluteFile.parentFile)
+                fileSet.include("$file.name")
+                addResourceCollections([fileSet], delegate, 'lib')
+            }
             addResourceCollections(additionalLibFileSets, delegate, 'lib')
             addResourceCollections(webInfFileSets, delegate, 'webinf')
         }

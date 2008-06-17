@@ -27,6 +27,8 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManager
  * @author Hans Dockter
  */
 class WarTest extends AbstractArchiveTaskTest {
+    static final String TEST_LIB_CONFIGURATION = 'testLibConf'
+
     War war
     
     MockFor antWarMocker
@@ -43,9 +45,11 @@ class WarTest extends AbstractArchiveTaskTest {
         war.webXml = 'myweb.xml' as File
         war.classesFileSets = [new FileSet()]
         war.additionalLibFileSets = [new FileSet()]
+        war.libConfiguration = TEST_LIB_CONFIGURATION
         antWarMocker = new MockFor(AntWar)
         filesFromDepencencyManager = ['/file1' as File]
-        dependencyManagerMock.demand.resolve(0..1000) {
+        dependencyManagerMock.demand.resolve(0..1000) { String configuration ->
+            assertEquals(TEST_LIB_CONFIGURATION, configuration)
             filesFromDepencencyManager
         }
     }
@@ -56,13 +60,13 @@ class WarTest extends AbstractArchiveTaskTest {
 
     MockFor getAntMocker(boolean toBeCalled) {
         antWarMocker.demand.execute(toBeCalled ? 1..1 : 0..0) {AntMetaArchiveParameter metaArchiveParameter,
-                                                                     List classesFileSets, FileCollection libFiles, List additionalLibFileSets,
+                                                                     List classesFileSets, List dependencyLibFiles, List additionalLibFileSets,
                                                                      List webInfFileSets, File webXml ->
             if (toBeCalled) {
                 checkMetaArchiveParameterEqualsArchive(metaArchiveParameter, war)
                 assert classesFileSets.is(war.classesFileSets)
                 assert additionalLibFileSets.is(war.additionalLibFileSets)
-                assertEquals(filesFromDepencencyManager as Set, libFiles.files)
+                assertEquals(filesFromDepencencyManager, dependencyLibFiles)
                 assertEquals(webXml, war.webXml)
                 assert webInfFileSets.is(war.webInfFileSets)
             }

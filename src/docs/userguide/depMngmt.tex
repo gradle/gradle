@@ -58,7 +58,7 @@ dependencies {
 	compile "org.apache.ant:ant-junit:1.7.0:jar"
 }
 \end{Verbatim}
-An artifact dependency is just a file, usually a jar file. The notation for such a dependency follows the  pattern: \texttt{[group]:[artifact]:[version]:[type]}. Gradle needs a repository somewhere where this artifact can be found, but there is \texttt{no} xml descriptor required in the repository. If there is one, it is ignored. In the simplest case such a repository is a folder on your local machine.
+An artifact dependency is just a file, usually a jar file. The notation for such a dependency follows the  pattern: \texttt{[group]:[artifact]:[version]@[extension]} or \texttt{[group]:[artifact]:[version]:[classifier]@[extension]}.\footnote{Some depedencies in the Maven repository use classifiers, for example TestNG. A declaration would look like this: \texttt{"org.testng:testng:5.8:jdk15@jar"}. But they are not very common.} Gradle needs a repository somewhere where this artifact can be found, but there is \texttt{no} xml descriptor required in the repository. If there is one, it is ignored. In the simplest case such a repository is a folder on your local machine. 
 % subsection artifact_dependencies (end)
 
 \subsection{Module Dependencies} % (fold)
@@ -288,7 +288,7 @@ dependencies {
 	dependencies(':junit:4.4', ':commons-io:1.3.1:jar')
 }
 \end{Verbatim}
-In the example we assign multiple directories to a flat directory resolver\footnote{You can pass any type to describe a path, as long as the types toString() method returns a valid path.}. The first argument is the name of the resolver. The group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver simply ignores it. The repositories could look like this:
+In the example we assign multiple directories to a flat directory resolver\footnote{You can pass any type for describing a path, as long as the type's toString() method returns a valid path.}. The first argument is the name of the resolver. The group attributes in the dependency declaration is empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver simply ignores it. The repositories could look like this:
 \begin{Verbatim}
 project-root
   - lib1
@@ -301,11 +301,16 @@ The \texttt{addFlatDirResolver} methods adds a resolver to the \texttt{classpath
 You can add easily file system repositories with a different layout (see \ref{sub:more_about_ivy_resolvers})
 % subsection flat_dir_resolver (end)
 
+\subsection{Cache} % (fold)
+\label{sub:cache}
+When Gradle downloads dependencies from remote repositories it stores them in a local cache located at \texttt{USER\_HOME/.gradle/cache}. When Gradle downloads dependencies from one of its predefined local resolvers (e.g. Flat Directory resolver), the cache is not used as an intermediate storage for dependencies. 
+% subsection cache (end)
+
 \subsection{Resolver Container} % (fold)
 \label{sub:resolver_container}
 There are three hooks for adding resolvers. Via the resolvers assigned to the \texttt{classpathResolvers} property of the dependency manager, the \texttt{compile}, \texttt{testCompile} and \texttt{test} tasks retrieve there dependencies. The \texttt{uploadLibs} and \texttt{uploadDists} tasks have both an \texttt{uploadResolvers} property. You can assign one resolver to multiple hooks.
 
-All of those hooks are instances of \href{\API dependencies/ResolverContainer.html}{\PKG dependencies.ResolverContainer}. This class provided methods for adding new resolvers at a particular position in the resolve chain. Ivy offers more complex structures for resolvers than simple chains. The resolver container does not offer particular support for this. But by manipulating its properties directly you could set up such other structures.
+All of those hooks are instances of \href{\API dependencies/ResolverContainer.html}{\PKG dependencies.ResolverContainer}. This class provided methods for adding new resolvers at a particular position in the resolve chain.\footnote{Ivy power users can set \texttt{dependencies.chainConfigurer = { // some statements }}. This closure is applied to the \texttt{ChainResolver} containing the other Ivy resolvers.} Ivy offers more complex structures for resolvers than simple chains. The resolver container does not offer particular support for this. But by manipulating its properties directly you could set up such other structures.
 % subsection resolver_container (end)
 
 \subsection{More about Ivy resolvers} % (fold)

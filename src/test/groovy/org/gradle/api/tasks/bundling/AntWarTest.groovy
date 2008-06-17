@@ -29,7 +29,7 @@ class AntWarTest extends AbstractAntArchiveTest {
     static final String EXPLICIT_WEB_XML_TEXT = 'exlicitwebxmltext'
     static final String IMPLICIT_WEB_XML_TEXT = 'imlicitwebxmltext'
 
-    FileCollection libFiles
+    List libFiles
 
     File explicitWebXml
     File implicitWebXml
@@ -39,9 +39,9 @@ class AntWarTest extends AbstractAntArchiveTest {
     void setUp() {
         super.setUp()
         antWar = new AntWar()
-        libFiles = new FileCollection()
-        libFiles.files = [new File(testDir, 'libFile1'), new File(testDir, 'libFile2')]
-        libFiles.files*.createNewFile()
+        libFiles = []
+        libFiles = [new File(testDir, 'libFile1'), new File(testDir, 'libFile2')]
+        libFiles*.createNewFile()
         (explicitWebXml = new File(testDir, 'myweb.xml')).write(EXPLICIT_WEB_XML_TEXT)
         (implicitWebXml = new File(testDir, 'web.xml')).write(IMPLICIT_WEB_XML_TEXT)
     }
@@ -113,6 +113,9 @@ class AntWarTest extends AbstractAntArchiveTest {
         unzipArchive()
         checkResourceFiles()
         checkMetaData()
+        libFiles.each { File file ->
+            assert new File("$unzipDir.absolutePath/WEB-INF/lib/", file.name).isFile()
+        }
         checkExistenceOfFileSetDuo(unzipDir, 'WEB-INF/classes/', FILESET_CLASSES_KEY)
         checkExistenceOfFileSetDuo(unzipDir, 'WEB-INF/', WEBINFS_KEY)
         checkExistenceOfFileSetDuo(unzipDir, 'WEB-INF/lib/', ADDITIONAL_LIBS_KEY)

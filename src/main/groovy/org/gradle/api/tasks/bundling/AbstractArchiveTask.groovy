@@ -26,6 +26,7 @@ import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.util.FileCollection
+import org.gradle.api.tasks.util.AntDirective
 
 /**
  * @author Hans Dockter
@@ -167,6 +168,12 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     File getArchivePath() {
         new File(self.destinationDir, self.archiveName)
+    }
+
+    AntDirective antDirective(Closure directive){
+        AntDirective antDirective = new AntDirective(directive)
+        resourceCollections << antDirective
+        antDirective
     }
 
     /**

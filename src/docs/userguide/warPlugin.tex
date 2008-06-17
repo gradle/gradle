@@ -1,0 +1,23 @@
+%!TEX root = master.tex
+\chapter{The War Plugin} % (fold)
+\label{cha:the_war_plugin}
+The war plugin in its current form does not do much. Expect it to grow over time. The war plugin extends the JavaPlugin. It disables the default jar archive generation of the Java Plugin and adds a default war archive task (\texttt{\emph{myProjectName\_war}}). Here are the most important properties of the war archive task:
+\begin{center}
+	\begin{tabular}{|l|l|l|} \hline
+		\multicolumn{3}{|c|}{Convention to Property Mapping} \\ \hline
+	    \textbf{Task Property} & \textbf{Convention Property} & Meaning \\ \hline
+		libConfiguration & runtime &  Adds all the libraries associated with specified configuration to the lib folder of the war archive.\\ \hline
+		additionalLibFileSets & [] & A list of \texttt{FileSet} container, specifying files to be put in the lib folder of the war archive. \\ \hline
+		classesFileSets & [new FileSet('build/classes')] & A list of \texttt{FileSet} container, specifying files to be put in the classes folder of the war archive.\\ \hline
+		webInfFileSets & [new FileSet('src/main/webapp')] & A list of \texttt{FileSet} container, specifying files to be put in the WEB-INF folder of the war archive.\\ \hline
+		webXml & null & A file object pointing to an arbitrary file, which is copied to WEB-INF/web.xml location in the war archive. If this property is set, it has precedence over a web.xml file located in webInfFileSets\\ \hline
+	\end{tabular} 
+\end{center}
+Have also a look at \href{\API tasks/bundling/War.html}{org.gradle.api.tasks.bundling.War}.
+\\
+
+\noindent If you want to enable the generation of the default jar archive additional to the war archive just type:
+\begin{Verbatim}
+myProjectName_jar.enabled = true
+\end{Verbatim}
+% chapter the_war_plugin (end)

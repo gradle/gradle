@@ -18,7 +18,7 @@ at the beginning of your script. That's all. From a technological point of view 
 Let's check this out:
 \codeInput{../../samples/userguide/tutorial/pluginIntro.gradle}
 \outputInputTutorial{../../samples/userguideOutput/pluginIntro.out}
-The JavaPlugin adds a \texttt{compile} task to the project object which can be access by a build script.
+The JavaPlugin adds a \texttt{compile} task to the project object which can be accessed by a build script.
 
 \noindent The usePlugin method either takes a string or a class as an argument. You can write\footnote{Thanks to Gradles default imports (see \ref{cha:ide_support}) you can also write \texttt{usePlugin(JavaPlugin)} in this case.}
 \begin{Verbatim}
@@ -44,6 +44,29 @@ The \emph{JavaPlugin} has added a convention object with a \texttt{classesDirNam
 By setting a task attribute explicitly (as we have done in the first example) you overwrite the convention value for this particular task.
 
 Not all of the tasks attributes are mapped to convention object values. It is the decision of the plugin to decide what are the shared properties and then bundle them in a convention object and map them to the tasks.
+
+\subsection{More about convention objects} % (fold)
+\label{sub:more_about_convention_objects}
+Every project object has a convention object which is a container for convention objects contributed by the plugins declared for your project. If you simply access or set a property or access a method in your build script, the project object first looks if this is a property of itself. If not, it delegates the request to its convention object. The convention object checks if any of the plugin convention objects can fulfill the request (first wins and the order is not defined). The plugin convention objects also introduce a namespace.   
+\begin{Verbatim}
+usePlugin('java')
+println classesDir
+println convention.classesDir
+println convention.plugins.java.classesDir
+\end{Verbatim}   
+All three statements print out the same property. The more specific statements are useful if there are ambiguities.  
+% subsection more_about_convention_objects (end)
+
+\subsection{Declaring Plugins Multiple Times} % (fold)
+\label{sub:declaring_plugins_multiple_times}
+A plugin is only called once for a given project, even if you have multiple \texttt{usePlugin()} statements. An additional call after the first call has no effect but doesn't hurt either. This can be important if you use plugins which extends other plugins. For example \texttt{usePlugin('groovy')} calls also the Java Plugin. We say the Groovy plugin extend the Java plugin. But you might as well write:
+\begin{Verbatim}
+usePlugin('java')
+usePlugin('groovy')
+\end{Verbatim}
+If you use cross-project configuration in multi-project builds this is a useful feature.
+% subsection declaring_plugins_multiple_times (end)
+
 % section configuration (end)
 \section{Summary} % (fold)
 \label{sec:summary}

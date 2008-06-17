@@ -118,6 +118,10 @@ public interface Project {
 
     Task createTask(Map args, String name, Closure action);
 
+    String getArchivesBaseName();
+
+    void setArchivesBaseName(String archivesBaseName);
+
     String getPath();
 
     void dependsOn(String path);

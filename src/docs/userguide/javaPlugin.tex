@@ -174,94 +174,172 @@ The \emph{Bundle} task has two instances, \texttt{libs} and \texttt{dists}. The 
 	\begin{tabular}{|l|l|l|} \hline
 		\multicolumn{3}{|c|}{Convention to Property Mapping} \\ \hline
 		\textbf{Task Instance} & \textbf{Task Property} & \textbf{Convention Property} \\ \hline
-		libs & tasksBaseName & \texttt{project.name} \\ \hline
-		libs & childrenDependOn & ['test'] \\ \hline
-		dists & tasksBaseName & \texttt{project.name} \\ \hline
-		dists & childrenDependOn & ['libs'] \\ \hline
+		libs & tasksBaseName & \texttt{project.archivesBaseName} \\ \hline
+		dists & tasksBaseName & \texttt{project.archivesBaseName} \\ \hline
 	\end{tabular} 
 \end{center}
 \subsection{The libs Task} % (fold)
 \label{sub:the_libs_task}
-The \texttt{libs} task contains all the archive tasks which constitute the libraries needed to use your project as a library. For example in a multi-project build the archives which are produced by the \texttt{libs} task are available in the classpath of a dependent project. If you upload your project into a repository, those archives are part of the dependency descriptor. If you come from Maven you can have only one library jar per project. With Ivy you can have as many as you want. 
-The Java plugin adds by default one jar archive to the \texttt{libs} task. This jar contains the content of the \texttt{classesDir}. This is the behavior your are used from Maven. If you are happy with that you usually don't have to touch this task. Except if you want to change the names of the produced archives. 
+The \texttt{libs} task contains all the archive tasks which constitute the libraries needed to use your project as a library. Executing the libs task leads to the execution of all the contained archive tasks. In a multi-project build the archives which are produced by the \texttt{libs} task are available in the classpath of a dependent project. If you upload your project into a repository, those archives are part of the dependency descriptor. If you come from Maven you can have only one library jar per project. With Ivy you can have as many as you want. 
+The Java plugin adds by default one jar archive to the \texttt{libs} task. The task name is by default \texttt{projectName\_jar} and can of course be manipulated by this name. This jar contains the content of the \texttt{classesDir}. This is the behavior your are used from Maven. If you are happy with that you usually don't have to touch this task. Except if you want to change the names of the generated archives. 
 
 The \texttt{libs} task depends on the \texttt{test} task and its archive tasks. The archive tasks assigned to the \texttt{libs} task depend by default on the \texttt{test} task as well. You can change this via the \texttt{childrenDependsOn} property of the \texttt{libs} task. 
 % subsection the_libs_task (end)
 \subsection{The dists Task} % (fold)
 \label{sub:the_dists_task}
-The \texttt{dists} task contains all the archive task that make up your distributions. For example a binary and a source distribution. The \texttt{dists} task has two purposes. One is providing a hook for distributions in the lifecycle. The other is for collection distribution archives for uploading (the same is also true for the \texttt{libs} task.) The \texttt{dists} task depends on its archive tasks and the \texttt{libs} task. The contained archive tasks depend by default on the \texttt{libs} task as well.
+The \texttt{dists} task contains all the archive task that make up your distributions. For example a binary and a source distribution. The \texttt{dists} task has two purposes. One is providing a hook for distributions in the lifecycle. The other is for uploading distribution archives (the same is also true for the \texttt{libs} task.) The \texttt{dists} task depends on its archive tasks and the \texttt{libs} task. The contained archive tasks depend by default on the \texttt{libs} task as well. You can change this via the \texttt{childrenDependsOn} property of the \texttt{dists} task. 
 % subsection the_dis (end)
-\subsection{Example} % (fold)
-\label{sub:example}
+\subsection{Adding Archives} % (fold)
+\label{sub:adding_archives}
+The Bundle task has a couple of convenience methods for adding new archive tasks to it. Right now there are the methods (\texttt{jar}, \texttt{war}, \texttt{zip}, \texttt{tar}, \texttt{tarGz}, \texttt{tarBzip2}). They all behave in the same way.
 \begin{Verbatim}
+usePlugin('java')
+archivesBaseName = gradle // defaults to project.name
+version = 1.0
 dists {
-    tasksBaseName = 'gradle'
-    dependsOn 'explodedDist'
-    childrenDependOn << 'explodedDist'
     zip() {
-        zipFileSet(dir: explodedDistDir, prefix: "gradle-$version") {
-            exclude '**/*.tmp'
-        }
-    }
-    zip("gradle-src") {
-        String prefix = "$gradle-src-$version"
-        zipFileSet(dir: projectDir, prefix: prefix) {
-            include 'src/', 'gradle.groovy'
-        }
+        fileSet(dir: 'somedir')
     }
 }	
+gradle_zip.baseName = 'i_am_special' // Now the generated archive will be: i_am_special-1.0.zip
 \end{Verbatim}
-The Bundle task has a couple of convenience methods for adding new archive tasks to it. Right now there are the methods (\texttt{jar}, \texttt{war}, \texttt{zip}, \texttt{tar}, \texttt{tarGz}, \texttt{tarBzip2}). Calling such a method with no arguments (e.g. \texttt{zip()}) creates a zip archive task with:
-\begin{itemize}
-	\item a name: \texttt{tasksBaseName} plus the \_TYPE suffix (e.g. gradle\_zip).
-	\item a resulting archive name: \texttt{tasksBaseName} plus version plus the \_TYPE suffix (e.g. gradle-1.0.zip).
-\end{itemize}
-You can pass two (optional) arguments to those methods. One is a name which replaces the \texttt{tasksBaseName} value for this archive task. The other is a closure for configuring the archive task (e.g. defining the files of the archive).
-The default value for \texttt{tasksBaseName} is the project name. So usually you don't need to set it explicitly. 
-% subsection examples (end)  
+This adds an archive task with the name \texttt{gradle\_zip}. It is important to distinguish between the name of the archive task and the name of the archive generated by the archive task. The latter can be changed at any time later on and is by default \texttt{gradle-1.0.zip}. You can pass a closure to the \texttt{zip()} method, which statements are applied against the newly created archive task object. In section \ref{sec:archive_tasks} you will learn more about which statements you can apply against a particular archive task.
+\begin{Verbatim}
+dists {
+    zip(baseName: 'craidle', classifier: 'src') {
+        fileSet(dir: 'somedir')
+    }
+}
+\end{Verbatim}
+You can pass also optionally pass arguments to the \texttt{zip()} method. In this example we create an archive task with the name \texttt{craidle\_src\_zip} which generates an archive with the name \texttt{craidle-1.0-src.zip}. 
+% subsection adding_archives (end)
 
 \section{Archive Tasks} % (fold)
 \label{sec:archive_tasks}
 An archive task is a task which produces an archive at execution time. The following archives tasks are available:
 \begin{center}
-	\begin{tabular}{|l|l|} \hline
-		Type & Accepted file container \\ \hline
-		\href{\API tasks/bundling/Zip.html}{org.gradle.api.tasks.bundling.Zip} & fileSet, fileCollection, zipFileSet \\ \hline
-		\href{\API tasks/bundling/Tar.html}{org.gradle.api.tasks.bundling.Tar} & fileSet, fileCollection, zipFileSet \\ \hline
-		\href{\API tasks/bundling/Jar.html}{org.gradle.api.tasks.bundling.Jar} & fileSet, fileCollection \\ \hline
-		\href{\API tasks/bundling/War.html}{org.gradle.api.tasks.bundling.War} & fileSet, fileCollection \\ \hline		
+	\begin{tabular}{|l|l|l|} \hline
+		Type & Accepted file container & Extends \\ \hline
+		\href{\API tasks/bundling/Zip.html}{org.gradle.api.tasks.bundling.Zip} & fileSet, fileCollection, zipFileSet & AbstractArchiveTask \\ \hline
+		\href{\API tasks/bundling/Tar.html}{org.gradle.api.tasks.bundling.Tar} & fileSet, fileCollection, zipFileSet, tarFileSet & Zip \\ \hline
+		\href{\API tasks/bundling/Jar.html}{org.gradle.api.tasks.bundling.Jar} & fileSet, fileCollection, zipFileSet & Zip \\ \hline
+		\href{\API tasks/bundling/War.html}{org.gradle.api.tasks.bundling.War} & fileSet, fileCollection, zipFileSet & Jar \\ \hline		
 	\end{tabular}
 \end{center}
 The following file containers are available:
+\begin{table}
 \begin{center}
-	\begin{tabularx}{\textwidth}{|l|X|} \hline
+\begin{tabularx}{\textwidth}{|l|X|} \hline
 		Type & Meaning \\ \hline
 		\href{\API tasks/util/FileSet.html}{org.gradle.api.tasks.util.FileSet} & A set of files defined by a common baseDir and include/exclude patterns. \\ \hline
 		\href{\API tasks/util/ZipFileSet.html}{org.gradle.api.tasks.util.ZipFileSet} & Extends FileSet with additional properties known from Ants zipfileset task.\\ \hline
-		\href{\API tasks/util/FileCollection.html}{org.gradle.api.tasks.util.FileCollection} & An arbitrary collection of files to the archive. In contrast to a FileSet they don't need to have a common basedir.\\ \hline		
-	\end{tabularx}
+	    \href{\API tasks/util/TarFileSet.html}{org.gradle.api.tasks.util.TarFileSet} & Extends ZipFileSet with additional properties known from Ants tarfileset task.\\ \hline
+		\href{\API tasks/util/FileCollection.html}{org.gradle.api.tasks.util.FileCollection} & An arbitrary collection of files to the archive. In contrast to a FileSet they don't need to have a common basedir.\\ \hline
+	    \href{\API tasks/util/AntDirective.html}{org.gradle.api.tasks.util.AntDirective} & An arbitrary Ant resource declaration.\\ \hline	
+\end{tabularx}
 \end{center}
-% section archive_tasks (end)
+	\caption{Filecontainer for Archives}
+	\label{filecontainer}
+\end{table}
+To learn about all the details have a look at the javadoc of the archive task class or the file container class itself.
+\subsection{Common Properties} % (fold)
+\label{sub:common_properties}
+The name of the generated archive is assembled from the task properties \texttt{baseName}, \texttt{classifier} and \texttt{extension} to: \texttt{baseName-project.version-classifier.extension}.\footnote{If the classifier is empty the trailing \texttt{-} is not added to the name. The same is true for the \texttt{project.version} property}. The assembled name is accessible via the \texttt{archiveName} property. The \texttt{name} property denotes the name of the task, not the generated archive. An archive task has also a \texttt{customName} property. If this property is set, the \texttt{archiveName} property returns its value instead of assembling a name out of the properties mentioned above.
+
+Archives have a \texttt{destinationDir} property to specify where the generated archive should be placed. It has also an \texttt{archivePath} property, which returns a File object with the absolute path of the generated archive.
+% subsection common_properties (end)
+
+\subsection{Adding Content} % (fold)
+\label{sub:adding_content}
+To add content to an archive you must add file container to an archive (see Table \ref{filecontainer}). You can add as many file container as you like. They behave pretty much the same as the Ant resources with similar names. 
+\begin{Verbatim}
+myZipTask.fileSet(dir: 'contentDir') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+}
+\end{Verbatim}
+You can add arbitrary files to an archive:
+\begin{Verbatim}
+myZipTask.files('path_to_file1', 'path_to_file2')
+\end{Verbatim}
+Other examples:
+\begin{Verbatim}
+myZipTask.zipFileSet(dir: 'contentDir') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+	prefix = 'myprefix'
+}
+\end{Verbatim}
+
+\begin{Verbatim}
+myTarTask.tarFileSet(dir: 'contentDir') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+	uid = 'myuid'
+}
+\end{Verbatim}
+There is also the option to add an arbitrary Ant expression describing an Ant resource.
+\begin{Verbatim}
+myZipTask.antDirective {        
+   zipgroupfileset(dir: new File(rootDir, 'lib'))    
+}
+\end{Verbatim}
+This is for rather exotic use cases. Usually you should be fine with the file container provided by Gradle.  
+% subsection adding_content (end)
+
+\subsection{Merging} % (fold)
+\label{sub:merging}
+If you want to merge the content of other archives into the archive to be generated Gradle offers you two methods. One is \texttt{merge}:
+\begin{Verbatim}
+myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz')
+\end{Verbatim} 
+This merges the whole content of the archive passed to the merge method into the generated archive. If you need more control which content of the archive should be merged and to what path, you can pass a closure to the merge method:
+\begin{Verbatim}
+myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+	prefix = 'myprefix'
+}
+\end{Verbatim}
+Under the hood Gradle scans the extension of the archives to be merged. According to the extension, it creates a \texttt{ZipFileSet} or \texttt{TarFileSet}. The closure is applied to this newly created file container.  
+\\
+\noindent There is another method for merging called \texttt{mergeGroup}.
+\begin{Verbatim}
+myZipTask.mergeGroup('path_to_dir_with_archives') {
+	include('**/*.zip')
+	exclude('**/*.tar.gz')
+}
+\end{Verbatim}
+With this method you can assign a set of archives to be merged. Those archives have to be located under the directory you pass as an argument. You can define filters what archives should be included. They are always included fully and you can't specify a path. If you need this features, you must use the \texttt{merge} method.  
+% subsection merging (end)
+\subsection{Manifest} % (fold)
+\label{sub:manifest}
+The convention object of the JavaPlugin has a \texttt{manifest} property pointing to an instance of \href{\API tasks/bundling/GradleManifest.html}{org.gradle.api.bundling.GradleManifest}. With this \texttt{GradleManifest} object you can define the content of the \texttt{MANIFEST.MF} file of all the jar or a war archives in your project. 
+\begin{Verbatim}
+manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
+\end{Verbatim}
+You can also define sections of a manifest file.
+
+If a particular archive needs unique entries in its manifest you have to create an own \texttt{GradleManifest} object for it.
+\begin{Verbatim}
+manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
+myZipTask.manifest = new GradleManifest(manifest)
+myZipTask.manifest.mainAttributes(mykey: "myvalue")
+\end{Verbatim} 
+Passing the common manifest object to the constructor of \texttt{GradleManifest} add the common manifest values to the task specific manifest instance.
+% subsection manifest (end)
+
+\subsection{MetaInf} % (fold)
+\label{sub:metainf}
+The convention object of the JavaPlugin has a \texttt{metaInf} property pointing to a list of \texttt{FileSet} objects. With this file sets you can define which files should be in the META-INF directory of a jar or a war archive. 
+\begin{Verbatim}
+metaInf << new FileSet(someDir)
+\end{Verbatim}
+% subsection archive_tasks (end)
 
 \section{Upload} % (fold)
 \label{sec:upload}
 The \emph{Upload} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}. An easy way of describing there behavior, is that all archives added to the \texttt{libs} and \texttt{dists} bundle are uploaded by the corresponding upload task. An upload task uploads to the repositories assigned to it. If needed you have more control on what files get uploaded. Have a look at \href{\API tasks/Upload.html}{org.gradle.api.tasks.Upload} to learn more.
 % section upload (end)
-
-\section{Manifest} % (fold)
-\label{sec:manifest}
-The convention object of the JavaPlugin has a \texttt{manifest} property pointing to an instance of \href{\API tasks/bundling/GradleManifest.html}{org.gradle.api.bundling.GradleManifest}. With this \texttt{GradleManifest} object you can define the content of the \texttt{MANIFEST.MF} file of a jar or a war archive. 
-\begin{Verbatim}
-manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
-\end{Verbatim}
-You can also define sections of a manifest file.
-% section manifest (end)
-
-\section{MetaInf} % (fold)
-\label{sec:metainf}
-The convention object of the JavaPlugin has a \texttt{metaInf} property pointing to a list file containers as described in section \ref{sec:archive_tasks}. With this file containers you can define which files should be in the META-INF directory of a jar or a war archive. 
-\begin{Verbatim}
-metaInf << new FileSet(someDir)
-\end{Verbatim}
 % section metainf_and_manifest (end)
 % chapter the_java_plugin (end)

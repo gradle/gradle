@@ -24,8 +24,8 @@ import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.HelperUtil
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.ZipFileSet
-import org.gradle.api.DependencyManager
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
+import org.gradle.api.tasks.util.AntDirective
 
 /**
  * @author Hans Dockter
@@ -166,6 +166,14 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         FileCollection fileCollection = archiveTask.files(files as File[])
         assertTrue(archiveTask.resourceCollections.contains(fileCollection))
         assertEquals(files, fileCollection.files)
+    }
+
+    void testAntDirective() {
+        Closure expectedDirective = {}
+        AntDirective antDirective = archiveTask.antDirective(expectedDirective)
+        assertTrue(archiveTask.resourceCollections.contains(antDirective))
+        assert antDirective.directive.is(expectedDirective)
+
     }
 
     private void applyToFileSetMethods(Closure cl) {

@@ -27,14 +27,9 @@ class WarPlugin implements Plugin {
 
     void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
         pluginRegistry.apply(JavaPlugin, project, pluginRegistry, customValues)
-        project.task("${project.name}_jar").enabled = false
+        project.task("${project.archivesBaseName}_jar").enabled = false
         project.libs {
             war()
         }
     }
-
-    
-
-    
-
 }

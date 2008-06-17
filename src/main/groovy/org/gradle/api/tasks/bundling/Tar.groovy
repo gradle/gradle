@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.util.TarFileSet
 
 /**
  * @author Hans Dockter
@@ -49,5 +50,13 @@ class Tar extends Zip {
             antTar.execute(new AntArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets,
                     self.createIfEmpty, self.destinationDir, archiveName, project.ant), self.compression, self.longFile)
         }
+    }
+
+    TarFileSet tarFileSet(Closure configureClosure) {
+        tarFileSet([:], configureClosure)
+    }
+
+    TarFileSet tarFileSet(Map args = [:], Closure configureClosure = null) {
+        createFileSetInternal(args, TarFileSet, configureClosure)
     }
 }
