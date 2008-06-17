@@ -1,0 +1,39 @@
+Release Notes - Gradle - Version 0.2
+
+
+** Bug
+    * [GRADLE-57] - The gradle.bat has *nix line separators when build on *nix.
+    * [GRADLE-60] - Not all linenumbers are read from the stacktrace in case of an GradleScriptException
+    * [GRADLE-88] - Adding to the manifest within an archive adds also to the base manifest used by all archives.
+    * [GRADLE-90] - usePlugin(Class) is missing from org.grade.api.Project
+    * [GRADLE-93] - The gradle default cache (.gradle/cache) is not always used for downloading dependencies. Sometimes .ivy2/cache is used.
+    * [GRADLE-94] - An artifact dependency is not recognized if the user description is of type GString.
+    * [GRADLE-109] - Resolve from flatDirResolver takes very long if there are other remote resolvers in the chain.
+
+** Improvement
+    * [GRADLE-31] - Split the tutorial creator into single files
+    * [GRADLE-36] - Add additional modifier for archive names (e.g. src)
+    * [GRADLE-59] - Allow classifiers to be added to a dependency notation (e.g. testng-5.8-jdk14)
+    * [GRADLE-62] - Move website from gradle-core trunk to an own top level folder in svn
+    * [GRADLE-72] - report the actual JRE version (1.6.0_5) , not the version of the hotspot VM. (10.0)
+    * [GRADLE-83] - Split the distribution into a pure binary and binary+src+samples.
+    * [GRADLE-89] - Compile task should offer includes/excludes functionality for the files in the srcDirs
+    * [GRADLE-91] - Allow to add URL's to the MavenRepo resolver for retrieving jars.
+    * [GRADLE-95] - Allow string descriptions of paths for DependencyManager.addFlatDirResolver arguments.
+    * [GRADLE-98] - Bundle Gradle with ant-nodeps
+    * [GRADLE-101] - Setting a skip property is enough to skip the task. Only setting it to false or not setting it does not skip a task.
+    * [GRADLE-102] - Add debug timing information to log
+    * [GRADLE-103] - Improve default archive usability by not using late creation via type and by introducing a war plugin.
+    * [GRADLE-104] - Use only one convention object which can be dynamically enhanced by any plugin and which preserves a plugin namespace.
+    * [GRADLE-105] - Add disable/enable flag to task
+    * [GRADLE-107] - Add an optional parameter to the usePlugin method, to overwrite default values of the plugin convention object before the plugin manipulates the project.
+    * [GRADLE-110] - Make gradle properties conveniently accessible to settings.gradle
+    * [GRADLE-111] - Make the internal chain resolver properties configurable
+    * [GRADLE-113] - Rename gradlefile to build.gradle and gradlesettings to settings.gradle
+    * [GRADLE-115] - Make userguide generation independent of the execution of the integration tests (rely on the expected out files only).
+
+** New Feature
+    * [GRADLE-96] - Add merge functionality for archives
+    * [GRADLE-99] - Provide build-in Proxy support (also via gradle user home properties)
+    * [GRADLE-100] - Set a default for the bundle childrenDependsOn property
+    * [GRADLE-108] - Set system props via the gradle.properties files
