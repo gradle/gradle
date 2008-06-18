@@ -118,11 +118,10 @@ explodedDistDir = new File(distsDir, 'exploded')
 explodedDistDocsDir = new File(explodedDistDir, 'docs')
 explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
-explodedDistTutorialDir = new File(explodedDistSamplesDir, 'tutorial')
 explodedDistUserguideOutputDir = new File(explodedDistSamplesDir, 'userguideOutput')
 
-createTask('explodedDist', dependsOn: 'libs') {
-    [explodedDistDir, explodedDistSamplesDir, explodedDistTutorialDir]*.mkdirs()
+createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
+    [explodedDistDir, explodedDistSamplesDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
     File explodedDistLibDir = mkdir(explodedDistDir, 'lib')
@@ -158,7 +157,7 @@ createTask('explodedDist', dependsOn: 'libs') {
 zipRootFolder = "$archivesBaseName-${-> version}"
 
 dists {
-    dependsOn 'explodedDist', 'userguide', 'javadoc'
+    dependsOn 'explodedDist'
     childrenDependsOn = 'explodedDist'
     zip(classifier: 'all').afterDag {
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
