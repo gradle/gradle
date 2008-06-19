@@ -15,6 +15,7 @@ import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.tasks.StopExecutionException
+import org.apache.tools.ant.taskdefs.condition.Os
 
 archivesBaseName = 'gradle'
 usePlugin('groovy')
@@ -72,7 +73,7 @@ dependencies {
             dependencies(":ant-junit:1.7.0@jar", ":ant-launcher:1.7.0")
         }
     }
-    
+
     clientModule(['compile'], ":commons-httpclient:3.0") {
         dependencies(":commons-codec:1.2", ":commons-logging:1.0.3")
     }
@@ -286,27 +287,28 @@ createTask('integTest', dependsOn: ['dists']) {
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc'])
 
 createTask('install', dependsOn: 'integTest') {
-    String installDirName = archivesBaseName + '-SNAPSHOT'
-    ant {
-        delete(dir: "$installDir/$installDirName")
-        exec(dir: installDir, executable: "rm") {
-            arg(value: archivesBaseName)
-        }
-        exec(dir: installDir, executable: "unzip") {
-            arg(value: '-q')
-            arg(value: '-d')
-            arg(value: installDir)
-            arg(value: "${task('gradle_all_zip').archivePath}")
-        }
-        exec(dir: installDir, executable: "mv") {
-            arg(value: zipRootFolder)
-            arg(value: installDirName)
-        }
-        exec(dir: installDir, executable: "ln") {
-            arg(value: '-s')
-            arg(value: "$installDir/$installDirName")
-            arg(value: archivesBaseName)
-        }
+    ant.delete(dir: "$gradle_installDir/$gradle_installDirName")
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        windowsInstall()
+    } else {
+        asternixInstall()
+    }
+    ant.move(file: "$gradle_installDir/$zipRootFolder", tofile: "$gradle_installDir/$gradle_installDirName")
+}
+
+void windowsInstall() {
+    ant.unzip(src: task('gradle_all_zip').archivePath, dest: gradle_installDir)
+}
+
+/**
+ * We can't use the Ant unzip task, as this task does not preserve the *nix file system permissions of the Gradle zip.
+ */
+void asternixInstall() {
+    ant.exec(dir: gradle_installDir, executable: "unzip") {
+        arg(value: '-q')
+        arg(value: '-d')
+        arg(value: gradle_installDir)
+        arg(value: "${task('gradle_all_zip').archivePath}")
     }
 }
 
