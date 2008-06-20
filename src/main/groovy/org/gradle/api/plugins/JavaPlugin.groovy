@@ -112,22 +112,23 @@ class JavaPlugin implements Plugin {
         }
     }
 
+    // todo Get rid of the JavaPlugin prefixes when GROOVY-2913 is fixed
     void configureDependencyManager(Project project) {
         project.dependencies {
-            addConfiguration(new Configuration(COMPILE, Visibility.PRIVATE, null, null, false, null))
-            addConfiguration(new Configuration(RUNTIME, Visibility.PRIVATE, null, [COMPILE] as String[], true, null))
-            addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, [COMPILE] as String[], false, null))
-            addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, [RUNTIME, TEST_COMPILE] as String[], true, null))
-            addConfiguration(new Configuration(LIBS, Visibility.PUBLIC, null, null, true, null))
-            addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, [RUNTIME, LIBS] as String[], true, null))
-            addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null))
-            artifactProductionTaskName = UPLOAD_LIBS
+            addConfiguration(new Configuration(JavaPlugin.COMPILE, Visibility.PRIVATE, null, null, false, null))
+            addConfiguration(new Configuration(JavaPlugin.RUNTIME, Visibility.PRIVATE, null, [JavaPlugin.COMPILE] as String[], true, null))
+            addConfiguration(new Configuration(JavaPlugin.TEST_COMPILE, Visibility.PRIVATE, null, [JavaPlugin.COMPILE] as String[], false, null))
+            addConfiguration(new Configuration(JavaPlugin.TEST_RUNTIME, Visibility.PRIVATE, null, [JavaPlugin.RUNTIME, JavaPlugin.TEST_COMPILE] as String[], true, null))
+            addConfiguration(new Configuration(JavaPlugin.LIBS, Visibility.PUBLIC, null, null, true, null))
+            addConfiguration(new Configuration(JavaPlugin.DEFAULT, Visibility.PUBLIC, null, [JavaPlugin.RUNTIME, JavaPlugin.LIBS] as String[], true, null))
+            addConfiguration(new Configuration(JavaPlugin.DISTS, Visibility.PUBLIC, null, null, true, null))
+            artifactProductionTaskName = JavaPlugin.UPLOAD_LIBS
             artifactPatterns << ("${project.buildDir.absolutePath}/[artifact]-[revision](-[classifier]).[ext]" as String)
             artifactPatterns << ("${project.convention.plugins.java.distsDir}/[artifact]-[revision](-[classifier]).[ext]" as String)
-            addConf2Tasks(COMPILE, COMPILE)
-            addConf2Tasks(RUNTIME, TEST)
-            addConf2Tasks(TEST_COMPILE, TEST_COMPILE)
-            addConf2Tasks(TEST_RUNTIME, TEST)
+            addConf2Tasks(JavaPlugin.COMPILE, JavaPlugin.COMPILE)
+            addConf2Tasks(JavaPlugin.RUNTIME, JavaPlugin.TEST)
+            addConf2Tasks(JavaPlugin.TEST_COMPILE, JavaPlugin.TEST_COMPILE)
+            addConf2Tasks(JavaPlugin.TEST_RUNTIME, JavaPlugin.TEST)
         }
     }
 
