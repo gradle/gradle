@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.project
 
-import org.codehaus.groovy.control.CompilerConfiguration
-import org.gradle.api.GradleScriptException
 import org.gradle.api.internal.project.DefaultProject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
@@ -29,63 +26,67 @@ import org.gradle.util.Clock
 class BuildScriptProcessor {
     private static Logger logger = LoggerFactory.getLogger(BuildScriptProcessor)
 
-    ClassLoader classLoader
+    String inMemoryScriptText
+
+    ScriptHandler scriptCacheHandler = new ScriptHandler()
 
     ImportsReader importsReader
+
+    boolean useCache
 
     BuildScriptProcessor() {
 
     }
 
-    BuildScriptProcessor(ImportsReader importsReader) {
+    BuildScriptProcessor(ImportsReader importsReader, String inMemoryScriptText, boolean useCache) {
         this.importsReader = importsReader
+        this.inMemoryScriptText = inMemoryScriptText
+        this.useCache = useCache
     }
 
-    void evaluate(DefaultProject project, Map bindingVariables = [:]) {
-        Binding binding = new Binding(bindingVariables)
-        CompilerConfiguration conf = new CompilerConfiguration()
-        conf.scriptBaseClass = 'org.gradle.api.internal.project.ProjectScript'
-        try {
-            String buildScript = buildScriptWithImports(project)
-            GroovyShell groovyShell = new GroovyShell(classLoader, binding, conf)
-            Clock clock = new Clock()
-            Script script = groovyShell.parse(buildScript, project.buildScriptFinder.buildFileName)
-            logger.debug("Timing: Parsing the build script took " + clock.time)
-            replaceMetaclass(script, project)
-            project.projectScript = script
-            clock.reset()
-            script.run()
-            logger.debug("Timing: Running the build script took " + clock.time)
-            logger.debug("Evaluated Build Script: " + buildScript)
-        } catch (Throwable t) {
-            throw new GradleScriptException(t, project.buildScriptFinder.buildFileName)
-        }
-        project.additionalProperties.putAll(binding.variables)
-    }
-
-    private void replaceMetaclass(Script script, DefaultProject project) {
-        ExpandoMetaClass projectScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
-        projectScriptExpandoMetaclass.methodMissing = {String name, args ->
-            logger.debug("Project: $project.path Method $name not found in script! Delegating to project.")
-            project.invokeMethod(name, args)
-        }
-        projectScriptExpandoMetaclass.propertyMissing = {String name ->
-            if (name == 'out') {
-                return System.out
+    Script createScript(DefaultProject project) {
+        File buildFile = buildFile(project)
+        String scriptTextForNonCachedExecution = ''
+        if (inMemoryScriptText) { scriptTextForNonCachedExecution = inMemoryScriptText }
+        else if (!useCache) {
+            if (buildFile.isFile()) {
+                scriptTextForNonCachedExecution = buildFile.text
+            } else {
+               return returnEmptyScript()
             }
-            logger.debug("Project: $project.path Property $name not found in script! Delegating to project.")
-            project."$name"
         }
-        projectScriptExpandoMetaclass.setProperty = {String name, value ->
-            logger.debug("Project: $project.path Property $name set a project property.")
-            project."$name" = value
+        if (scriptTextForNonCachedExecution) {
+            return scriptCacheHandler.createScript(project, buildScriptWithImports(project, scriptTextForNonCachedExecution))
         }
-        projectScriptExpandoMetaclass.initialize()
-        script.metaClass = projectScriptExpandoMetaclass
+        if (!buildFile.isFile()) { return returnEmptyScript() }
+
+        Script cachedScript = scriptCacheHandler.loadFromCache(project, buildFile.lastModified())
+        if (cachedScript) { return cachedScript }
+
+        scriptCacheHandler.writeToCache(project, buildScriptWithImports(project))
+    }
+
+    private File buildFile(DefaultProject project) {
+        new File(project.projectDir, project.buildFileName)
     }
 
     private String buildScriptWithImports(DefaultProject project) {
+        buildScriptWithImports(project, buildFile(project).text)
+    }
+
+    private String buildScriptWithImports(DefaultProject project, String scriptText) {
         String importsResult = importsReader.getImports(project.rootDir)
-        project.buildScriptFinder.getBuildScript(project) + System.properties['line.separator'] + importsResult
+        scriptText + System.properties['line.separator'] + importsResult
+    }
+
+    private Script returnEmptyScript() {
+        logger.info("No build file available. Using empty script!")
+            return new EmptyScript()
+    }
+}
+
+class EmptyScript extends Script {
+    Object run() {
+        null
     }
 }

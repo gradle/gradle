@@ -59,13 +59,17 @@ class DefaultProject implements Comparable, Project {
 
     BuildScriptProcessor buildScriptProcessor
 
-    BuildScriptFinder buildScriptFinder
+    ClassLoader buildScriptClassLoader
+
+    String buildFileName
+
+    Script buildScript
 
     PluginRegistry pluginRegistry
 
     File rootDir
 
-    org.gradle.api.Project parent
+    Project parent
 
     String name
 
@@ -78,8 +82,6 @@ class DefaultProject implements Comparable, Project {
     Map additionalProperties = [:]
 
     int state
-
-    Script projectScript
 
     List plugins = []
 
@@ -104,20 +106,21 @@ class DefaultProject implements Comparable, Project {
         convention = new Convention(this)
     }
 
-    DefaultProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, ProjectFactory projectFactory,
-                   DependencyManager dependencyManager, BuildScriptProcessor buildScriptProcessor, BuildScriptFinder buildScriptFinder,
-                   PluginRegistry pluginRegistry) {
+    DefaultProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, String buildFileName,
+                   ClassLoader buildScriptClassLoader, ProjectFactory projectFactory, DependencyManager dependencyManager,
+                   BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry) {
         assert name
         assert (!parent && !rootProject) || (parent && rootProject)
         this.rootProject = rootProject ?: this
         this.rootDir = rootDir
         this.parent = parent
         this.name = name
+        this.buildFileName = buildFileName
+        this.buildScriptClassLoader = buildScriptClassLoader
         this.projectFactory = projectFactory
         dependencyManager.project = this
         this.dependencies = dependencyManager
         this.buildScriptProcessor = buildScriptProcessor
-        this.buildScriptFinder = buildScriptFinder
         this.pluginRegistry = pluginRegistry
         this.state = STATE_CREATED
         this.archivesBaseName = name
@@ -166,11 +169,14 @@ class DefaultProject implements Comparable, Project {
         }
         Clock clock = new Clock()
         state = STATE_INITIALIZING
-        buildScriptProcessor.evaluate(this)
+        buildScript = buildScriptProcessor.createScript(this)
+        Clock runClock = new Clock()
+        buildScript.run()
+        logger.info("Timing: Running the build script took " + clock.time)
         state = STATE_INITIALIZED
         lateInitializeTasks(tasks)
         logger.info("Project=$path evaluated.")
-        logger.debug("Timing: Project evaluation took " + clock.time)
+        logger.info("Timing: Project evaluation took " + clock.time)
         this
     }
 
@@ -250,8 +256,7 @@ class DefaultProject implements Comparable, Project {
     }
 
     DefaultProject addChildProject(String name) {
-        childProjects[name] = projectFactory.createProject(name, this, rootDir, rootProject, projectFactory,
-                buildScriptProcessor, buildScriptFinder, pluginRegistry)
+        childProjects[name] = projectFactory.createProject(name, this, rootDir, rootProject, buildScriptClassLoader)
     }
 
     String getPath() {
@@ -450,8 +455,8 @@ class DefaultProject implements Comparable, Project {
     }
 
     def methodMissing(String name, args) {
-        if (projectScript && projectScript.metaClass.respondsTo(projectScript, name, args)) {
-            return projectScript.invokeMethod(name, args)
+        if (buildScript && buildScript.metaClass.respondsTo(buildScript, name, args)) {
+            return buildScript.invokeMethod(name, args)
         }
         if (convention && convention.hasMethod(name, args)) {
             return convention.invokeMethod(name, args)

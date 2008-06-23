@@ -34,7 +34,7 @@ class ProjectDependencies2TaskResolverTest extends GroovyTestCase {
 
     void setUp() {
         resolver = new ProjectDependencies2TasksResolver()
-        root = new DefaultProject("root", null, new File(""), null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManager(), null, null, null)
+        root = new DefaultProject("root", null, new File(""), null, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null), new DefaultDependencyManager(), null, null)
         child = root.addChildProject("child")
         rootTask = new DefaultTask(root, 'compile')
         childTask = new DefaultTask(child, 'compile')

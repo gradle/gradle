@@ -17,23 +17,32 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.DependencyManagerFactory
-import org.gradle.api.internal.project.BuildScriptFinder
 import org.gradle.api.internal.project.BuildScriptProcessor
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.PluginRegistry
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class ProjectFactory {
     DependencyManagerFactory dependencyManagerFactory
+    BuildScriptProcessor buildScriptProcessor
+    PluginRegistry pluginRegistry
+    String buildFileName
 
-    ProjectFactory(DependencyManagerFactory dependencyManagerFactory) {
+    ProjectFactory() {}
+
+    ProjectFactory(DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
+                   PluginRegistry pluginRegistry, String buildFileName) {
         this.dependencyManagerFactory = dependencyManagerFactory
+        this.buildScriptProcessor = buildScriptProcessor
+        this.pluginRegistry = pluginRegistry
+        this.buildFileName = buildFileName
     }
-    
-    DefaultProject createProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, ProjectFactory projectFactory, BuildScriptProcessor buildScriptProcessor, BuildScriptFinder buildScriptFinder, PluginRegistry pluginRegistry) {
-        return new DefaultProject(name, parent, rootDir, rootProject, projectFactory, dependencyManagerFactory.createDependencyManager(), buildScriptProcessor, buildScriptFinder, pluginRegistry)
+
+    DefaultProject createProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, ClassLoader buildScriptClassLoader) {
+        return new DefaultProject(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, this,
+                dependencyManagerFactory.createDependencyManager(), buildScriptProcessor, pluginRegistry)
     }
 
 }

@@ -28,35 +28,30 @@ import org.gradle.api.internal.project.ProjectsTraverser
 class BuildConfigurerTest extends GroovyTestCase {
     BuildConfigurer buildConfigurer
     ProjectDependencies2TasksResolver projectDependencies2TasksResolver
-    BuildClasspathLoader buildClasspathLoader
     ProjectsTraverser projectsTraverser
     BuildScriptProcessor buildScriptProcessor
     ProjectTasksPrettyPrinter projectTasksPrettyPrinter
-    URLClassLoader classLoader
     DefaultProject rootProject
     boolean evaluatedCalled
 
     void setUp() {
         projectDependencies2TasksResolver = new ProjectDependencies2TasksResolver()
-        buildClasspathLoader = new BuildClasspathLoader()
         projectsTraverser = new ProjectsTraverser()
         projectTasksPrettyPrinter = new ProjectTasksPrettyPrinter()
-        buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver, buildClasspathLoader, projectsTraverser, projectTasksPrettyPrinter)
+        buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver, projectsTraverser, projectTasksPrettyPrinter)
         buildScriptProcessor = new BuildScriptProcessor()
-        classLoader = new URLClassLoader([] as URL[])
         evaluatedCalled = false
         rootProject = [evaluate: {evaluatedCalled = true; null}, getBuildScriptProcessor: { buildScriptProcessor }] as DefaultProject
     }
 
     void testBuildConfigurer() {
         assert buildConfigurer.projectDependencies2TasksResolver.is(projectDependencies2TasksResolver)
-        assert buildConfigurer.buildClasspathLoader.is(buildClasspathLoader)
         assert buildConfigurer.projectsTraverser.is(projectsTraverser)
         assert buildConfigurer.projectTasksPrettyPrinter.is(projectTasksPrettyPrinter)
     }
 
     void testProcess() {
-        Closure execution = { buildConfigurer.process(rootProject, classLoader) }
+        Closure execution = { buildConfigurer.process(rootProject) }
         checkProcess(execution)
     }
 
@@ -68,7 +63,7 @@ class BuildConfigurerTest extends GroovyTestCase {
             assertEquals(expectedRecursive, recursive)
             expectedTasksMap
         }] as Project
-        Closure execution = { buildConfigurer.taskList(rootProject, true, currentProjectMock, classLoader) }
+        Closure execution = { buildConfigurer.taskList(rootProject, true, currentProjectMock) }
         buildConfigurer.projectTasksPrettyPrinter = [getPrettyText: { SortedMap tasks ->
             assert tasks.is(expectedTasksMap)    
             expectedTasksPrettyText
@@ -93,7 +88,6 @@ class BuildConfigurerTest extends GroovyTestCase {
         }
         traverseClosure(rootProject)
         assertTrue(evaluatedCalled)
-        assert buildScriptProcessor.classLoader.is(classLoader)
         result
     }
 }

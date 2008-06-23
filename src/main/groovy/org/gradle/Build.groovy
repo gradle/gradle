@@ -19,7 +19,6 @@ package org.gradle
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
-import org.gradle.configuration.BuildClasspathLoader
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.configuration.ProjectDependencies2TasksResolver
 import org.gradle.configuration.ProjectTasksPrettyPrinter
@@ -29,7 +28,6 @@ import org.gradle.initialization.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.Project
-import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
@@ -69,8 +67,9 @@ class Build {
         boolean unknownTaskCheck = false
         startParameter.taskNames.each {String taskName ->
             logger.info("++++ Starting build for primary task: $taskName")
-            projectLoader.load(settings, startParameter.gradleUserHomeDir, startParameter.projectProperties, allSystemProperties, allEnvProperties)
-            buildConfigurer.process(projectLoader.rootProject, classLoader)
+            projectLoader.load(settings, classLoader, startParameter, startParameter.projectProperties,
+                    allSystemProperties, allEnvProperties)
+            buildConfigurer.process(projectLoader.rootProject)
             if (!unknownTaskCheck) {
                 List unknownTasks = buildExecuter.unknownTasks(startParameter.taskNames, startParameter.recursive, projectLoader.currentProject)
                 if (unknownTasks) {throw new UnknownTaskException("Task(s) $unknownTasks are unknown!")}
@@ -90,8 +89,8 @@ class Build {
     }
 
     private String taskListInternal(DefaultSettings settings, StartParameter startParameter) {
-        projectLoader.load(settings, startParameter.gradleUserHomeDir, startParameter.projectProperties, allSystemProperties, allEnvProperties)
-        buildConfigurer.taskList(projectLoader.rootProject, startParameter.recursive, projectLoader.currentProject, settings.createClassLoader())
+        projectLoader.load(settings, settings.createClassLoader(), startParameter, startParameter.projectProperties, allSystemProperties, allEnvProperties)
+        buildConfigurer.taskList(projectLoader.rootProject, startParameter.recursive, projectLoader.currentProject)
     }
 
     private DefaultSettings init(StartParameter startParameter) {
@@ -130,20 +129,33 @@ class Build {
         System.getenv()
     }
 
-    static Closure newInstanceFactory(File pluginProperties, File defaultImportsFile) {
-        {BuildScriptFinder buildScriptFinder, File buildResolverDir ->
+    static Closure newInstanceFactory(StartParameter startParameter) {
+        {String inMemoryScriptText, File buildResolverDir ->
             DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory()
-            new Build(new RootFinder(),
-                    new SettingsProcessor(new ImportsReader(defaultImportsFile),
+            ImportsReader importsReader = new ImportsReader(startParameter.defaultImportsFile)
+            new Build(
+                    new RootFinder(),
+                    new SettingsProcessor(
+                            importsReader,
                             new SettingsFactory(),
                             dependencyManagerFactory,
-                            null, buildResolverDir),
-                    new ProjectsLoader(new ProjectFactory(dependencyManagerFactory),
-                            new BuildScriptProcessor(new ImportsReader(defaultImportsFile)),
-                            buildScriptFinder, new PluginRegistry(pluginProperties)),
-                    new BuildConfigurer(new ProjectDependencies2TasksResolver(), new BuildClasspathLoader(), new ProjectsTraverser(),
+                            null,
+                            buildResolverDir),
+                    new ProjectsLoader(
+                            new ProjectFactory(
+                                    dependencyManagerFactory,
+                                    new BuildScriptProcessor(importsReader, inMemoryScriptText, startParameter.useCache),
+                                    new PluginRegistry(
+                                            startParameter.pluginPropertiesFile),
+                            startParameter.buildFileName),
+
+                    ),
+                    new BuildConfigurer(
+                            new ProjectDependencies2TasksResolver(),
+                            new ProjectsTraverser(),
                             new ProjectTasksPrettyPrinter()),
-                    new BuildExecuter(new Dag()))
+                    new BuildExecuter(
+                            new Dag()))
         }
     }
 

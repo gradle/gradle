@@ -23,6 +23,7 @@ import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.util.Clock
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -40,38 +41,29 @@ class ProjectsLoader {
 
     DefaultProject currentProject
 
-    BuildScriptProcessor buildScriptProcessor
-
-    BuildScriptFinder buildScriptFinder
-
-    PluginRegistry pluginRegistry
-
     ProjectsLoader() {
 
     }
 
-    ProjectsLoader(ProjectFactory projectFactory, BuildScriptProcessor buildScriptProcessor,
-                   BuildScriptFinder buildScriptFinder, PluginRegistry pluginRegistry) {
+    ProjectsLoader(ProjectFactory projectFactory) {
         this.projectFactory = projectFactory
-        this.buildScriptProcessor = buildScriptProcessor
-        this.buildScriptFinder = buildScriptFinder
-        this.pluginRegistry = pluginRegistry
+
     }
 
-    ProjectsLoader load(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
-                        Map systemProperties, Map envProperties) {
+    ProjectsLoader load(DefaultSettings settings, ClassLoader buildScriptClassLoader, StartParameter startParameter,
+                        Map projectProperties, Map systemProperties, Map envProperties) {
         logger.info('++ Loading Project objects')
         Clock clock = new Clock()
-        rootProject = createProjects(settings, gradleUserHomeDir, projectProperties, systemProperties, envProperties)
+        rootProject = createProjects(settings, buildScriptClassLoader, startParameter, projectProperties, systemProperties, envProperties)
         currentProject = DefaultProject.findProject(rootProject,
-                PathHelper.getCurrentProjectPath(rootProject.rootDir, settings.startParameter.currentDir))
+                PathHelper.getCurrentProjectPath(rootProject.rootDir, startParameter.currentDir))
         logger.debug("Timing: Loading projects took: " + clock.time)
         this
     }
 
     // todo Why are the projectProperties passed only to the root project and the userHomeProperties passed to every Project
-    private DefaultProject createProjects(DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
-                                          Map systemProperties, Map envProperties) {
+    private DefaultProject createProjects(DefaultSettings settings, ClassLoader buildScriptClassLoader,
+                                          StartParameter startParameter, Map projectProperties, Map systemProperties, Map envProperties) {
         assert projectProperties != null
 
         logger.debug("Creating the projects and evaluating the project files!")
@@ -80,7 +72,7 @@ class ProjectsLoader {
         if (systemAndEnvProjectProperties) {
             logger.debug("Added system and env project properties: " + systemAndEnvProjectProperties)
         }
-        File propertyFile = new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES)
+        File propertyFile = new File(startParameter.gradleUserHomeDir, Project.GRADLE_PROPERTIES)
         Properties userHomeProperties = new Properties()
         logger.debug("Looking for user properties from: $propertyFile")
         if (!propertyFile.isFile()) {
@@ -90,16 +82,16 @@ class ProjectsLoader {
             logger.debug("Adding user properties (if not overwritten by system project properties: $userHomeProperties")
         }
         logger.debug("Looking for system project properties")
-        DefaultProject rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null, settings.rootFinder.rootDir, null,
-                projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
-        addPropertiesToProject(gradleUserHomeDir, userHomeProperties + projectProperties, systemAndEnvProjectProperties, rootProject)
+        DefaultProject rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null,
+                settings.rootFinder.rootDir, null, buildScriptClassLoader)
+        addPropertiesToProject(startParameter.gradleUserHomeDir, userHomeProperties + projectProperties, systemAndEnvProjectProperties, rootProject)
         settings.projectPaths.each {
             List folders = it.split(Project.PATH_SEPARATOR)
             DefaultProject parent = rootProject
             folders.each {name ->
                 if (!parent.childProjects[name]) {
                     parent.childProjects[name] = parent.addChildProject(name)
-                    addPropertiesToProject(gradleUserHomeDir, userHomeProperties, systemAndEnvProjectProperties, parent.childProjects[name])
+                    addPropertiesToProject(startParameter.gradleUserHomeDir, userHomeProperties, systemAndEnvProjectProperties, parent.childProjects[name])
                 }
                 parent = parent.childProjects[name]
             }

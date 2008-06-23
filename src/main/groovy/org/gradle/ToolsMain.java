@@ -45,29 +45,35 @@ public class ToolsMain {
             toolsMainInfo.add("No modern compiler.");
         }
 
-        if (!modernCompilerFound) {
-            ClassLoader _cl = classLoader;
-            while (_cl.getParent() != null) {
-                _cl = _cl.getParent();
-            }
-            File toolsJar = Locator.getToolsJar();
-            List jars = new ArrayList();
-
-            File[] files = GradleUtil.getGradleClasspath();
-            for (int i = 0; i < files.length; i++) {
-                jars.add(Locator.fileToURL(files[i]));
-            }
-            jars.add(Locator.fileToURL(toolsJar));
-            ClassLoader contextClassLoader = new URLClassLoader((URL[]) jars.toArray(new URL[jars.size()]), _cl);
-            contextClassLoader.loadClass("com.sun.tools.javac.Main");
-            classLoader = contextClassLoader;
-            Thread.currentThread().setContextClassLoader(contextClassLoader);
-
+        ClassLoader _cl = classLoader;
+        while (_cl.getParent() != null) {
+            _cl = _cl.getParent();
         }
+        File toolsJar = Locator.getToolsJar();
+        List jars = new ArrayList();
+
+        File[] files = GradleUtil.getGradleClasspath();
+        for (int i = 0; i < files.length; i++) {
+            jars.add(Locator.fileToURL(files[i]));
+        }
+
+        if (!modernCompilerFound) {
+            jars.add(Locator.fileToURL(toolsJar));
+        }
+        
+        ClassLoader contextClassLoader = new URLClassLoader((URL[]) jars.toArray(new URL[jars.size()]), _cl);
+        contextClassLoader.loadClass("com.sun.tools.javac.Main");
+        classLoader = contextClassLoader;
+        Thread.currentThread().setContextClassLoader(contextClassLoader);
+
         Class mainClass = classLoader.loadClass("org.gradle.Main");
         Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
         List argList = new ArrayList(Arrays.asList(args));
         argList.add(0, toolsMainInfo.get(0));
-        mainMethod.invoke(null, new Object[]{(String[]) argList.toArray(new String[argList.size()])});
+        mainMethod.invoke(null, new Object[]
+                {
+                        (String[]) argList.toArray(new String[argList.size()])
+                }
+        );
     }
 }

@@ -41,11 +41,13 @@ class MainTest extends GroovyTestCase {
     String expectedBuildFileName
     File expectedGradleUserHome
     File expectedGradleImportsFile
+    File expectedPluginPropertiesFile
     File expectedProjectDir
     List expectedTaskNames = ["clean", "compile"]
     Map expectedSystemProperties
     Map expectedProjectProperties
     boolean expectedRecursive
+    boolean expectedUseCache
     boolean expectedSearchUpwards
     String expectedEmbeddedScript
 
@@ -54,12 +56,14 @@ class MainTest extends GroovyTestCase {
         buildMockFor = new MockFor(Build)
         expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME)
         expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME)
+        expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES)
         expectedTaskNames = ["clean", "compile"]
         expectedProjectDir = new File("").canonicalFile
         expectedProjectProperties = [:]
         expectedSystemProperties = [:]
         expectedBuildFileName = Project.DEFAULT_PROJECT_FILE
         expectedRecursive = true
+        expectedUseCache = true
         expectedSearchUpwards = true
         expectedEmbeddedScript = 'somescript'
     }
@@ -79,41 +83,42 @@ class MainTest extends GroovyTestCase {
         checkMain {Main.main(args(["-S"]) + expectedTaskNames as String[])}
     }
 
-    private checkMain(boolean embedded = false, boolean taskList = false, Closure mainCall) {
-        Closure checkStartParameter = {StartParameter startParameter, boolean noTasks = false ->
-            assertEquals(noTasks ? [] : expectedTaskNames, startParameter.taskNames)
+    private checkMain(boolean embedded = false, boolean noTasks = false, Closure mainCall) {
+        Closure checkStartParameter = {StartParameter startParameter, boolean emptyTasks = false ->
+            assertEquals(emptyTasks ? [] : expectedTaskNames, startParameter.taskNames)
             assertEquals(expectedProjectDir.canonicalFile, startParameter.currentDir.canonicalFile)
             assertEquals(expectedRecursive, startParameter.recursive)
+            assertEquals(expectedUseCache, startParameter.useCache)
             assertEquals(expectedSearchUpwards, startParameter.searchUpwards)
             assertEquals(expectedProjectProperties, startParameter.projectProperties)
             assertEquals(expectedSystemProperties, startParameter.systemPropertiesArgs)
+            assertEquals(expectedGradleUserHome.absoluteFile, startParameter.gradleUserHomeDir.absoluteFile)
+            assertEquals(expectedGradleImportsFile, startParameter.defaultImportsFile)
+            assertEquals(expectedPluginPropertiesFile, startParameter.pluginPropertiesFile)
             assertEquals(expectedGradleUserHome.absoluteFile, startParameter.gradleUserHomeDir.absoluteFile)
         }
 
         File expectedBuildResolverRoot = new File(expectedProjectDir, DependencyManager.BUILD_RESOLVER_NAME)
         Throwable assertException = null
         SettingsProcessor settingsProcessor = new SettingsProcessor()
-        Closure buildFactory = {BuildScriptFinder buildScriptFinder, File buildResolverDir ->
+        Closure buildFactory = {String embeddedScript, File buildResolverDir ->
             assertNull(buildResolverDir)
             if (embedded) {
-                assert buildScriptFinder instanceof EmbeddedBuildScriptFinder
-                assertEquals(expectedEmbeddedScript, buildScriptFinder.getBuildScript(null))
+                assertEquals(expectedEmbeddedScript, embeddedScript)
             } else {
-                assert !(buildScriptFinder instanceof EmbeddedBuildScriptFinder)
-                assertEquals(expectedBuildFileName, buildScriptFinder.buildFileName)
+                assert !embeddedScript
             }
             new Build()
         }
-        buildMockFor.demand.newInstanceFactory(1..1) {File pluginProperties, File importsFile ->
-            assertEquals(expectedGradleImportsFile, importsFile)
-            assertEquals(new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES), pluginProperties)
+        buildMockFor.demand.newInstanceFactory(1..1) {StartParameter startParameter ->
+            checkStartParameter(startParameter, noTasks)
             buildFactory
         }
         buildMockFor.demand.getSettingsProcessor(1..1) {
             settingsProcessor
         }
         if (embedded) {
-            if (taskList) {
+            if (noTasks) {
                 buildMockFor.demand.taskListNonRecursivelyWithCurrentDirAsRoot(1..1) {StartParameter startParameter ->
                     try {
                         checkStartParameter(startParameter, true)
@@ -131,7 +136,7 @@ class MainTest extends GroovyTestCase {
                 }
             }
         } else {
-            if (taskList) {
+            if (noTasks) {
                 buildMockFor.demand.taskList(1..1) {StartParameter startParameter ->
                     try {
                         checkStartParameter(startParameter, true)
@@ -199,6 +204,11 @@ class MainTest extends GroovyTestCase {
     void testMainWithNonRecursiveFlagSet() {
         expectedRecursive = false
         checkMain {Main.main(args(["-Sn"] + expectedTaskNames) as String[])}
+    }
+
+    void testMainWithNoCacheFlagSet() {
+        expectedUseCache = false
+        checkMain {Main.main(args(["-Sx"] + expectedTaskNames) as String[])}
     }
 
     void testMainWithSearchUpwardsFlagSet() {

@@ -31,21 +31,21 @@ class ProjectsLoaderTest extends GroovyTestCase {
     ProjectsLoader projectLoader
     ProjectFactory projectFactory
     BuildScriptProcessor buildScriptProcessor
-    BuildScriptFinder buildScriptFinder
     PluginRegistry pluginRegistry
     File testDir
     File testUserDir
     File testRootProjectDir
     File testParentProjectDir
+    ClassLoader testClassLoader
     Map testProjectProperties
 
     void setUp() {
+        testClassLoader = new URLClassLoader([] as URL[])
         testProjectProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
-        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')))
+        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null)
         buildScriptProcessor = new BuildScriptProcessor()
-        buildScriptFinder = new BuildScriptFinder()
         pluginRegistry = new PluginRegistry()
-        projectLoader = new ProjectsLoader(projectFactory, buildScriptProcessor, buildScriptFinder, pluginRegistry)
+        projectLoader = new ProjectsLoader(projectFactory)
         testDir = HelperUtil.makeNewTestDir()
         (testUserDir = new File(testDir, 'userDir')).mkdirs()
         (testRootProjectDir = new File(testDir, 'root')).mkdirs()
@@ -55,9 +55,6 @@ class ProjectsLoaderTest extends GroovyTestCase {
 
     void testProjectsLoader() {
         assertSame(projectFactory, projectLoader.projectFactory)
-        assertSame(buildScriptProcessor, projectLoader.buildScriptProcessor)
-        assertSame(buildScriptFinder, projectLoader.buildScriptFinder)
-        assertSame(pluginRegistry, projectLoader.pluginRegistry)
     }
 
     void tearDown() {
@@ -66,7 +63,7 @@ class ProjectsLoaderTest extends GroovyTestCase {
 
     void testCreateProjects() {
         RootFinder rootFinder = new RootFinder(rootDir: testRootProjectDir)
-        StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: new File('guh'))
+        StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: testUserDir)
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
                 rootFinder, startParameter)
         settings.include('parent' + Project.PATH_SEPARATOR + 'child1', 'parent' + Project.PATH_SEPARATOR + 'child2',
@@ -90,9 +87,10 @@ class ProjectsLoaderTest extends GroovyTestCase {
         new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, Project.GRADLE_PROPERTIES)), '')
         new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, Project.GRADLE_PROPERTIES)), '')
 
-        projectLoader.load(settings, testUserDir, testProjectProperties, testSystemProps, testEnvProps)
+        projectLoader.load(settings, testClassLoader, startParameter, testProjectProperties, testSystemProps, testEnvProps)
 
         DefaultProject rootProject = projectLoader.rootProject
+        assert rootProject.buildScriptClassLoader.is(testClassLoader)
         assertSame(testRootProjectDir, rootProject.rootDir)
         assertEquals(Project.PATH_SEPARATOR, rootProject.path)
         assertEquals("$testRootProjectDir.name", rootProject.name)
@@ -134,12 +132,12 @@ class ProjectsLoaderTest extends GroovyTestCase {
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
                 rootFinder, startParameter)
 
-        File nonExistingGradleUserHomeDir = new File('nonexistingGradleHome')
-        projectLoader.load(settings, nonExistingGradleUserHomeDir, [:], [:], [:])
+        startParameter.gradleUserHomeDir = new File('nonexistingGradleHome')
+        projectLoader.load(settings, testClassLoader, startParameter, [:], [:], [:])
 
         DefaultProject rootProject = projectLoader.rootProject
 
-        checkUserProperties(nonExistingGradleUserHomeDir, [:], [], rootProject)
+        checkUserProperties(startParameter.gradleUserHomeDir, [:], [], rootProject)
     }
 
     private void checkUserProperties(File gradleUserHomeDir, Map properties, List excludeKeys, Project[] projects) {

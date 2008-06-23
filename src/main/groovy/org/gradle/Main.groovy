@@ -29,6 +29,7 @@ import org.gradle.initialization.EmbeddedBuildExecuter
 import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.internal.project.BuildScriptProcessor
 
 /**
  * @author Hans Dockter
@@ -52,11 +53,6 @@ class Main {
         String gradleHome = System.properties[GRADLE_HOME]
         String embeddedBuildScript = null
         StartParameter startParameter = new StartParameter()
-        startParameter.recursive = true
-        startParameter.searchUpwards = true
-        startParameter.currentDir = new File(System.properties.'user.dir')
-        startParameter.gradleUserHomeDir = new File(DEFAULT_GRADLE_USER_HOME)
-        startParameter.buildFileName = Project.DEFAULT_PROJECT_FILE
 
         def cli = new CliBuilder(usage: 'buildg -hnp "task1, ..., taskN')
         cli.h(longOpt: 'help', 'usage information')
@@ -79,6 +75,7 @@ class Main {
         cli.g(longOpt: 'gradleUserHome', 'The user gradle home dir.', args: 1)
         cli.e(longOpt: 'embedded', 'Use an embedded build script.', args: 1)
         cli.v(longOpt: 'version', 'Prints version info.')
+        cli.x(longOpt: 'noCache', 'No cashing of compiled build scripts.')
 
         def options = cli.parse(args.length < 2 ? [] as String[] : args[1..args.length - 1])
 
@@ -104,14 +101,8 @@ class Main {
             return
         }
 
-        File pluginProperties = gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES as File
-        File gradleImportsFile = gradleHome + '/' + IMPORTS_FILE_NAME as File
-
-        if (options.I) {
-            logger.info("Disabling default imports.")
-            gradleImportsFile = null
-        }
-
+        startParameter.defaultImportsFile = options.I ? null : gradleHome + '/' + IMPORTS_FILE_NAME as File
+        
         if (options.D) {
             logger.info("Running with System props: $options.Ds")
             options.Ds.each {String keyValueExpression ->
@@ -128,8 +119,8 @@ class Main {
             }
         }
 
-        if (options.n) startParameter.recursive = false
-        if (options.u) {startParameter.searchUpwards = false}
+        startParameter.recursive = options.n ? false : true
+        startParameter.searchUpwards = options.u ? false : true
 
         if (options.p) {
             startParameter.currentDir = new File(options.p)
@@ -137,19 +128,17 @@ class Main {
                 logger.error("Error: Directory $startParameter.currentDir.canonicalFile does not exists!")
                 return
             }
+        } else {
+            startParameter.currentDir = new File(System.properties.'user.dir')
         }
 
-        if (options.g) {
-            startParameter.gradleUserHomeDir = new File(options.g)
-        }
+        startParameter.gradleUserHomeDir = options.g ? options.g as File : DEFAULT_GRADLE_USER_HOME as File
 
-        if (options.b) {
-            startParameter.buildFileName = options.b
-        }
+        startParameter.buildFileName = options.b ?: Project.DEFAULT_PROJECT_FILE
 
-        if (options.l) {
-            pluginProperties = options.l
-        }
+        startParameter.pluginPropertiesFile = options.l ? options.l as File : gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES as File
+
+        startParameter.useCache = !options.x
 
         if (options.e) {
             if (options.b || options.n || options.u) {
@@ -164,8 +153,8 @@ class Main {
         logger.debug("Gradle user home: $startParameter.gradleUserHomeDir")
         logger.info("Recursive: $startParameter.recursive")
         logger.info("Buildfilename: $startParameter.buildFileName")
-        logger.debug("Plugin properties: $pluginProperties")
-        logger.debug("Default imports file: $gradleImportsFile")
+        logger.debug("Plugin properties: $startParameter.pluginPropertiesFile")
+        logger.debug("Default imports file: $startParameter.defaultImportsFile")
 
         try {
             startParameter.taskNames = options.arguments()
@@ -174,10 +163,8 @@ class Main {
                 return
             }
 
-            def buildScriptFinder = (embeddedBuildScript != null ? new EmbeddedBuildScriptFinder(embeddedBuildScript) :
-                new BuildScriptFinder(startParameter.buildFileName))
-            Closure buildFactory = Build.newInstanceFactory(pluginProperties, gradleImportsFile)
-            Build build = buildFactory(buildScriptFinder, null)
+            Closure buildFactory = Build.newInstanceFactory(startParameter)
+            Build build = buildFactory(embeddedBuildScript, null)
             build.settingsProcessor.buildSourceBuilder = new BuildSourceBuilder(
                     new EmbeddedBuildExecuter(buildFactory))
 

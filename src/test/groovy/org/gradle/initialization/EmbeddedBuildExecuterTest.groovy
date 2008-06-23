@@ -32,16 +32,17 @@ class EmbeddedBuildExecuterTest extends GroovyTestCase {
     Build build
     int factoryCallCount
     StartParameter expectedStartParameter
-    File buildResolverDir
-    BuildScriptFinder calledBuildScriptFinder
+    File expectedBuildResolverDir
+    String expectedEmbeddedScript
+    String calledEmbeddedScript
     File calledBuildResolverDir
 
     void setUp() {
         build = [:] as Build
         factoryCallCount = 0
-        mockBuildFactory = {BuildScriptFinder buildScriptFinder, File buildResolverDir ->
+        mockBuildFactory = {String embeddedScript, File buildResolverDir ->
             calledBuildResolverDir = buildResolverDir
-            calledBuildScriptFinder = buildScriptFinder
+            calledEmbeddedScript = embeddedScript
             factoryCallCount++
             build
         }
@@ -56,7 +57,8 @@ class EmbeddedBuildExecuterTest extends GroovyTestCase {
         )
         embeddedBuildExecuter = new EmbeddedBuildExecuter(mockBuildFactory)
         buildMocker = new MockFor(Build)
-        buildResolverDir = new File('buildResolverDir')
+        expectedBuildResolverDir = new File('buildResolverDir')
+        expectedEmbeddedScript = 'somescript'
     }
 
     void testExecute() {
@@ -65,25 +67,24 @@ class EmbeddedBuildExecuterTest extends GroovyTestCase {
             assertEquals(localExpectedStartParameter, startParameter)
         }
         buildMocker.use(build) {
-            embeddedBuildExecuter.execute(buildResolverDir, localExpectedStartParameter)
-            embeddedBuildExecuter.execute(buildResolverDir, localExpectedStartParameter)
+            embeddedBuildExecuter.execute(expectedBuildResolverDir, localExpectedStartParameter)
+            embeddedBuildExecuter.execute(expectedBuildResolverDir, localExpectedStartParameter)
         }
         assertEquals(2, factoryCallCount)
-        assertEquals(calledBuildResolverDir, buildResolverDir)
-        assert (calledBuildScriptFinder instanceof BuildScriptFinder) && !(calledBuildScriptFinder instanceof EmbeddedBuildScriptFinder)
+        assertEquals(calledBuildResolverDir, expectedBuildResolverDir)
+        assertNull(calledEmbeddedScript)
     }
 
     void testExecuteEmbedded() {
-        String embeddedScript = 'embeddedScript'
         buildMocker.demand.runNonRecursivelyWithCurrentDirAsRoot(2..2) {StartParameter startParameter ->
             assertEquals(expectedStartParameter, startParameter)
         }
         buildMocker.use(build) {
-            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, embeddedScript, expectedStartParameter)
-            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, embeddedScript, expectedStartParameter)
+            embeddedBuildExecuter.executeEmbeddedScript(expectedBuildResolverDir, expectedEmbeddedScript, expectedStartParameter)
+            embeddedBuildExecuter.executeEmbeddedScript(expectedBuildResolverDir, expectedEmbeddedScript, expectedStartParameter)
         }
         assertEquals(2, factoryCallCount)
-        assertEquals(calledBuildResolverDir, buildResolverDir)
-        assert calledBuildScriptFinder instanceof EmbeddedBuildScriptFinder
+        assertEquals(calledBuildResolverDir, expectedBuildResolverDir)
+        assertEquals(expectedEmbeddedScript, calledEmbeddedScript)
     }
 }

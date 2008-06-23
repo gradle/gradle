@@ -34,12 +34,12 @@ class EmbeddedBuildExecuter {
     }
 
     void execute(File buildResolverDir, StartParameter startParameter) {
-        Build build = buildFactory(new BuildScriptFinder(startParameter.buildFileName), buildResolverDir)
+        Build build = buildFactory(null, buildResolverDir)
         build.run(startParameter)
     }
 
     void executeEmbeddedScript(File buildResolverDir, String embeddedScript, StartParameter startParameter) {
-        Build build = buildFactory(new EmbeddedBuildScriptFinder(embeddedScript),  buildResolverDir)
+        Build build = buildFactory(embeddedScript,  buildResolverDir)
         build.runNonRecursivelyWithCurrentDirAsRoot(startParameter)
     }
 }

@@ -29,8 +29,6 @@ import org.gradle.util.Clock
 class BuildConfigurer {
     private static Logger logger = LoggerFactory.getLogger(BuildConfigurer)
 
-    BuildClasspathLoader buildClasspathLoader
-
     ProjectDependencies2TasksResolver projectDependencies2TasksResolver
 
     ProjectsTraverser projectsTraverser
@@ -39,17 +37,15 @@ class BuildConfigurer {
 
     BuildConfigurer() {}
 
-    BuildConfigurer(ProjectDependencies2TasksResolver projectDependencies2TasksResolver, BuildClasspathLoader buildClasspathLoader, ProjectsTraverser projectsTraverser, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
+    BuildConfigurer(ProjectDependencies2TasksResolver projectDependencies2TasksResolver, ProjectsTraverser projectsTraverser, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
         this.projectDependencies2TasksResolver = projectDependencies2TasksResolver
-        this.buildClasspathLoader = buildClasspathLoader
         this.projectsTraverser = projectsTraverser
         this.projectTasksPrettyPrinter = projectTasksPrettyPrinter
     }
 
-    void process(Project rootProject, ClassLoader classLoader) {
+    void process(Project rootProject) {
         logger.info('++ Configuring Project objects')
         Clock clock = new Clock()
-        rootProject.buildScriptProcessor.classLoader = classLoader
         projectsTraverser.traverse([rootProject]) {DefaultProject project ->
             project.evaluate()
         }
@@ -57,11 +53,11 @@ class BuildConfigurer {
         logger.debug("Timing: Configuring projects took " + clock.time)
     }
 
-    String taskList(Project rootProject, boolean recursive, Project currentProject, ClassLoader classLoader) {
+    String taskList(Project rootProject, boolean recursive, Project currentProject) {
         assert rootProject
         assert currentProject
 
-        process(rootProject, classLoader)
+        process(rootProject)
 
         logger.debug("Finding tasks for project: $currentProject Recursive:$recursive")
         Map tasks = currentProject.getAllTasks(recursive)

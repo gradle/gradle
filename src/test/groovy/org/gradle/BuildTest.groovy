@@ -19,7 +19,6 @@ package org.gradle
 import groovy.mock.interceptor.MockFor
 import groovy.mock.interceptor.StubFor
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.internal.project.BuildScriptFinder
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildExecuter
@@ -29,6 +28,7 @@ import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.api.Project
 import org.gradle.initialization.RootFinder
+import org.gradle.api.internal.project.BuildScriptProcessor
 
 /**
  * @author Hans Dockter
@@ -74,7 +74,9 @@ class BuildTest extends GroovyTestCase {
 
         expectedCurrentDir = new File('currentDir')
         expectedGradleUserHomeDir = new File(HelperUtil.TMP_DIR_FOR_TEST, 'gradleUserHomeDir')
-        expectedSettings = [:] as DefaultSettings
+        expectedSettings = [createClassLoader: {
+            expectedClassLoader
+        }] as DefaultSettings
 
         expectedStartParams = new StartParameter(
                 taskNames: expectedTaskNames,
@@ -85,20 +87,21 @@ class BuildTest extends GroovyTestCase {
                 systemPropertiesArgs: expectedSystemPropertiesArgs,
                 gradleUserHomeDir: expectedGradleUserHomeDir
         )
-        settingsProcessorMocker.demand.process(1..1) {RootFinder rootFinder, StartParameter startParameter->
+        settingsProcessorMocker.demand.process(1..1) {RootFinder rootFinder, StartParameter startParameter ->
             assert rootFinder.is(dummyRootFinder)
             assert startParameter.is(expectedStartParams)
             expectedSettings
         }
         expectedRootProject = [:] as DefaultProject
         expectedCurrentProject = [:] as DefaultProject
-        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
+        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, ClassLoader classLoader, StartParameter startParameter, Map projectProperties,
                                                Map systemProperties, Map envProperties ->
             assertEquals(expectedProjectProperties, projectProperties)
             assertEquals(System.properties, systemProperties)
             assertEquals(System.getenv(), envProperties)
-            assertSame(expectedSettings, settings)
-            assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
+            assert settings.is(expectedSettings)
+            assert classLoader.is(expectedClassLoader)
+            assertEquals(expectedStartParams, startParameter)
         }
         projectLoaderMocker.demand.getRootProject(0..10) {expectedRootProject}
         projectLoaderMocker.demand.getCurrentProject(0..10) {expectedCurrentProject}
@@ -132,8 +135,7 @@ class BuildTest extends GroovyTestCase {
 
     private void checkRun(Closure runMethodCall) {
         MockFor buildExecuterMocker = new MockFor(BuildExecuter)
-        buildConfigurerMocker.demand.process(1..1) {DefaultProject root, URLClassLoader urlClassLoader ->
-            assert urlClassLoader.is(expectedClassLoader)
+        buildConfigurerMocker.demand.process(1..1) {DefaultProject root ->
             assertSame(expectedRootProject, root)
         }
         buildExecuterMocker.demand.unknownTasks(1..1) {List taskNames, boolean recursive, DefaultProject currentProject ->
@@ -148,16 +150,16 @@ class BuildTest extends GroovyTestCase {
             assertSame(expectedCurrentProject, projectLoaderCurrent)
             assertSame(expectedRootProject, projectLoaderRoot)
         }
-        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, File gradleUserHomeDir, Map projectProperties,
+        projectLoaderMocker.demand.load(1..1) {DefaultSettings settings, ClassLoader classLoader, StartParameter startParameter, Map projectProperties,
                                                Map systemProperties, Map envProperties ->
             assertEquals(expectedProjectProperties, projectProperties)
             assertEquals(System.properties, systemProperties)
             assertEquals(System.getenv(), envProperties)
             assertSame(expectedSettings, settings)
-            assert gradleUserHomeDir.is(expectedGradleUserHomeDir)
+            assert classLoader.is(expectedClassLoader)
+        assert startParameter.is(expectedStartParams)
         }
-        buildConfigurerMocker.demand.process(1..1) {DefaultProject root, URLClassLoader urlClassLoader ->
-            assert urlClassLoader.is(expectedClassLoader)
+        buildConfigurerMocker.demand.process(1..1) {DefaultProject root ->
             assertSame(expectedRootProject, root)
         }
         buildExecuterMocker.demand.execute(1..1) {String taskName, boolean recursive, DefaultProject projectLoaderCurrent, DefaultProject projectLoaderRoot ->
@@ -166,18 +168,11 @@ class BuildTest extends GroovyTestCase {
             assertSame(expectedCurrentProject, projectLoaderCurrent)
             assertSame(expectedRootProject, projectLoaderRoot)
         }
-        MockFor settingsMocker = new MockFor(DefaultSettings)
-        settingsMocker.demand.createClassLoader(1..1) {
-            expectedClassLoader
-        }
-
-        settingsMocker.use(expectedSettings) {
-            settingsProcessorMocker.use {
-                projectLoaderMocker.use {
-                    buildConfigurerMocker.use {
-                        buildExecuterMocker.use {
-                            runMethodCall.call()
-                        }
+        settingsProcessorMocker.use {
+            projectLoaderMocker.use {
+                buildConfigurerMocker.use {
+                    buildExecuterMocker.use {
+                        runMethodCall.call()
                     }
                 }
             }
@@ -188,8 +183,7 @@ class BuildTest extends GroovyTestCase {
 
     void testRunWithUnknownTask() {
         List expectedTaskNames = ['a', 'b']
-        buildConfigurerMocker.demand.process(1..1) {DefaultProject root, URLClassLoader urlClassLoader ->
-            assert urlClassLoader.is(expectedClassLoader)
+        buildConfigurerMocker.demand.process(1..1) {DefaultProject root ->
             assertSame(expectedRootProject, root)
         }
         MockFor buildExecuterMocker = new MockFor(BuildExecuter)
@@ -199,19 +193,12 @@ class BuildTest extends GroovyTestCase {
             assert currentProject.is(expectedCurrentProject)
             ['a']
         }
-        MockFor settingsMocker = new MockFor(DefaultSettings)
-        settingsMocker.demand.createClassLoader(1..1) {
-            expectedClassLoader
-        }
-
-        settingsMocker.use(expectedSettings) {
-            settingsProcessorMocker.use {
-                projectLoaderMocker.use {
-                    buildConfigurerMocker.use {
-                        buildExecuterMocker.use {
-                            shouldFail(UnknownTaskException) {
-                                testBuildFactory().run(expectedStartParams)
-                            }
+        settingsProcessorMocker.use {
+            projectLoaderMocker.use {
+                buildConfigurerMocker.use {
+                    buildExecuterMocker.use {
+                        shouldFail(UnknownTaskException) {
+                            testBuildFactory().run(expectedStartParams)
                         }
                     }
                 }
@@ -233,27 +220,22 @@ class BuildTest extends GroovyTestCase {
             assertEquals(expectedStartParameterArg, startParameter)
             expectedSettings
         }
+        expectedStartParams = expectedStartParameterArg
         checkTask {
             testBuildFactory().taskListNonRecursivelyWithCurrentDirAsRoot(expectedStartParams)
         }
     }
 
     private void checkTask(Closure taskListCall) {
-        buildConfigurerMocker.demand.taskList(1..1) {DefaultProject root, boolean recursive, DefaultProject current, URLClassLoader urlClassLoader ->
-            assert urlClassLoader.is(expectedClassLoader)
+        buildConfigurerMocker.demand.taskList(1..1) {DefaultProject root, boolean recursive, DefaultProject current ->
             assertSame(expectedRootProject, root)
             assertSame(expectedCurrentProject, current)
             assertEquals(expectedRecursive, recursive)
         }
-        MockFor settingsMocker = new MockFor(DefaultSettings)
-        settingsMocker.demand.createClassLoader(1..1) {expectedClassLoader}
-
-        settingsMocker.use(expectedSettings) {
-            settingsProcessorMocker.use {
-                projectLoaderMocker.use {
-                    buildConfigurerMocker.use {
-                        taskListCall.call()
-                    }
+        settingsProcessorMocker.use {
+            projectLoaderMocker.use {
+                buildConfigurerMocker.use {
+                    taskListCall.call()
                 }
             }
         }
@@ -269,14 +251,18 @@ class BuildTest extends GroovyTestCase {
     void testNewInstanceFactory() {
         File expectedPluginProps = new File('pluginProps')
         File expectedDefaultImports = new File('defaultImports')
-        Build build = Build.newInstanceFactory(expectedPluginProps, expectedDefaultImports).call(
-                new BuildScriptFinder(),
+        StartParameter startParameter = new StartParameter(
+                buildFileName: 'buildfile',
+                defaultImportsFile: new File('imports'),
+                pluginPropertiesFile: new File('plugin')
+        )
+        Build build = Build.newInstanceFactory(startParameter).call(
+                'embeddedscript',
                 new File('buildResolverDir'))
-        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
-        assertEquals(expectedDefaultImports, build.settingsProcessor.importsReader.defaultImportsFile)
-        build = Build.newInstanceFactory(expectedPluginProps, expectedDefaultImports).call(new BuildScriptFinder(),
-                null)
-        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
+//        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
+//        assertEquals(expectedDefaultImports, build.settingsProcessor.importsReader.defaultImportsFile)
+        build = Build.newInstanceFactory(startParameter).call(null, null)
+//        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
     }
 
 }

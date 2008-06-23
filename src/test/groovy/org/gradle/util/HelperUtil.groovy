@@ -38,17 +38,17 @@ class HelperUtil {
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
         return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [projectName, parent, new File(""),
-                parent, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManager(), null, null, null] as Object[])
+                parent, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null), new DefaultDependencyManager(), null, null] as Object[])
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        return new DefaultProject(rootDir.name, null, rootDir, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root'))), new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(), new BuildScriptProcessor(), new BuildScriptFinder(), new PluginRegistry())
+        return new DefaultProject(rootDir.name, null, rootDir, null, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), new BuildScriptProcessor(), new PluginRegistry(), 'testBuildFileName'), new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(), new BuildScriptProcessor(), new PluginRegistry())
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name) {
-        return new DefaultProject(name, parentProject, parentProject.rootDir, parentProject.rootProject,
+        return new DefaultProject(name, parentProject, parentProject.rootDir, parentProject.rootProject, parentProject.buildFileName, parentProject.buildScriptClassLoader,
                 parentProject.projectFactory, parentProject.dependencies, parentProject.buildScriptProcessor,
-                parentProject.buildScriptFinder, parentProject.pluginRegistry)
+                parentProject.pluginRegistry)
     }
 
     static def pureStringTransform(def collection) {
@@ -65,6 +65,10 @@ class HelperUtil {
         GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST))
     }
 
+    static File makeNewTestDir(String dirName) {
+        GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST, dirName))
+    }
+
     static File getTestDir() {
         new File(TMP_DIR_FOR_TEST)
     }
@@ -79,5 +83,17 @@ class HelperUtil {
 
     static DefaultDependencyDescriptor getTestDescriptor() {
         new DefaultDependencyDescriptor(DependenciesUtil.moduleRevisionId('org', 'name', 'rev'), false)
+    }
+
+    static Script createTestScript() {
+        new MyScript()        
+    }
+
+
+}
+
+class MyScript extends Script {
+    Object run() {
+        return null;  
     }
 }

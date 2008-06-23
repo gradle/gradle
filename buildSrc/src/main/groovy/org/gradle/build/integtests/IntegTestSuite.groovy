@@ -28,5 +28,13 @@ class IntegTestSuite {
         org.gradle.build.integtests.Version.execute(distDirPath)
         Userguide.execute(distDirPath, samplesDirPath, userguideOutputDir)
         MavenRepo.execute(distDirPath, samplesDirPath)
+        deleteGradleDirs(samplesDirPath)
+    }
+
+    private static void deleteGradleDirs(String samplesDirPath) {
+        AntBuilder ant = new AntBuilder()
+        ant.delete(includeEmptyDirs: "true") {
+            fileset(dir: samplesDirPath, includes: "**/.gradle/")
+        }
     }
 }

@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.project
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 /**
  * @author Hans Dockter
  *
  * todo: We need our own base class as a workaround for http://jira.codehaus.org/browse/GROOVY-2635. When this bug is fixed we can use the metaclass.
+ * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
 abstract class ProjectScript extends Script {
+    static Logger logger = LoggerFactory.getLogger(ProjectScript)
 
     void setProperty(String property, newValue) {
         if ("metaClass".equals(property)) {
@@ -30,5 +35,4 @@ abstract class ProjectScript extends Script {
             project.setProperty(property, newValue)
         }
     }
-
 }

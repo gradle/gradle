@@ -31,8 +31,11 @@ class StartParameter {
     Map projectProperties = [:]
     Map systemPropertiesArgs = [:]
     File gradleUserHomeDir
+    File defaultImportsFile
+    File pluginPropertiesFile
+    boolean useCache
 
-    static StartParameter newInstance(Map args, StartParameter startParameterSrc) {
+    static StartParameter newInstance(Map args = [:], StartParameter startParameterSrc) {
         StartParameter startParameter = new StartParameter()
         startParameter.buildFileName = startParameterSrc.buildFileName
         startParameter.taskNames = startParameterSrc.taskNames
@@ -42,6 +45,9 @@ class StartParameter {
         startParameter.projectProperties = startParameterSrc.projectProperties
         startParameter.systemPropertiesArgs = startParameterSrc.systemPropertiesArgs
         startParameter.gradleUserHomeDir = startParameterSrc.gradleUserHomeDir
+        startParameter.defaultImportsFile = startParameterSrc.defaultImportsFile
+        startParameter.pluginPropertiesFile = startParameterSrc.pluginPropertiesFile
+        startParameter.useCache = startParameterSrc.useCache
 
         args.each { key, value ->
             startParameter."$key" = value

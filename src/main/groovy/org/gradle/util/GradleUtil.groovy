@@ -53,7 +53,7 @@ class GradleUtil {
 
     static File makeNewDir(File dir) {
         deleteDir(dir)
-        dir.mkdir()
+        dir.mkdirs()
         dir.deleteOnExit()
         dir
     }

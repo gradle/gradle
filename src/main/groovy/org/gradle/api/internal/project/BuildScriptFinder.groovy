@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory
 class BuildScriptFinder {
     private static Logger logger = LoggerFactory.getLogger(BuildScriptFinder)
 
+    ImportsReader importsReader
+
     String buildFileName
 
     BuildScriptFinder() {
@@ -46,5 +48,10 @@ class BuildScriptFinder {
             logger.info("No project file available. Using empty script!")
             return ''
         }
+    }
+
+    private String buildScriptWithImports(DefaultProject project) {
+        String importsResult = importsReader.getImports(project.rootDir)
+        project.buildScriptFinder.getBuildScript(project) + System.properties['line.separator'] + importsResult
     }
 }
