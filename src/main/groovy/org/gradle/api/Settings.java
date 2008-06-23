@@ -72,7 +72,7 @@ public interface Settings {
      */
     ResolverContainer getResolvers();
 
-    FileSystemResolver addFlatDirResolver(String name, File[] dirs);
+    FileSystemResolver addFlatDirResolver(String name, Object[] dirs);
 
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed

@@ -92,11 +92,11 @@ class DefaultSettings implements Settings {
     }
 
 
-    FileSystemResolver createFlatDirResolver(String name, File[] dirs) {
+    FileSystemResolver createFlatDirResolver(String name, Object[] dirs) {
         dependencyManager.createFlatDirResolver(name, dirs)
     }
 
-    FileSystemResolver addFlatDirResolver(String name, File[] dirs) {
+    FileSystemResolver addFlatDirResolver(String name, Object[] dirs) {
         dependencyManager.addFlatDirResolver(name, dirs)
     }
 
