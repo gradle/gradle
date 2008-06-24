@@ -89,7 +89,6 @@ class JavaPlugin implements Plugin {
         }
 
         project.createTask(LIBS, type: Bundle, dependsOn: TEST).configure {
-            childrenDependOn = [JavaPlugin.TEST]
             conventionMapping(DefaultConventionsToPropertiesMapping.LIB)
             jar() {
                 conventionMapping(resourceCollections: {[new FileSet(javaConvention.classesDir)]})
@@ -103,7 +102,6 @@ class JavaPlugin implements Plugin {
         }
 
         project.createTask(DISTS, type: Bundle, dependsOn: UPLOAD_LIBS).configure {
-            childrenDependOn = [JavaPlugin.LIBS]
             conventionMapping(DefaultConventionsToPropertiesMapping.DIST)
         }
 

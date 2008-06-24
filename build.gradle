@@ -159,7 +159,6 @@ zipRootFolder = "$archivesBaseName-${-> version}"
 
 dists {
     dependsOn 'explodedDist'
-    childrenDependsOn = 'explodedDist'
     zip(classifier: 'all').afterDag {
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
             exclude 'bin/*'
@@ -192,7 +191,7 @@ dists {
             include 'gradlew'
         }
         zipFileSet(dir: projectDir, prefix: archiveName) {
-            include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'gradlefile', 'gradlew.bat'
+            include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
         }
     }
 }
