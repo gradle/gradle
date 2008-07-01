@@ -25,6 +25,7 @@ import org.gradle.api.tasks.bundling.Bundle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.Project
 
 /**
  * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
@@ -56,9 +57,9 @@ class Upload extends ConventionTask {
      */
     Set bundles = []
 
-    Upload(DefaultProject project, String name) {
+    Upload(Project project, String name) {
         super(project, name)
-        actions << this.&upload
+        doFirst(this.&upload);
     }
 
     private void upload(Task task) {

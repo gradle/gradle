@@ -231,12 +231,14 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         }
     }
 
-    void addConfiguration(Configuration configuration) {
+    DependencyManager addConfiguration(Configuration configuration) {
         configurations[configuration.name] = configuration
+        this
     }
 
-    void addConfiguration(String configuration) {
+    DependencyManager addConfiguration(String configuration) {
         configurations[configuration] = new Configuration(configuration)
+        this
     }
 
     def methodMissing(String name, args) {

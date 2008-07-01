@@ -36,7 +36,7 @@ versionModifier = null
 
 webSrcDir = new File("$srcRoot", 'website')
 
-configureByDag = {Dag dag ->
+configureByDag {Dag dag ->
     if (dag.hasTask(':release')) {
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
@@ -93,7 +93,11 @@ dependencies {
             ":ant-nodeps:1.7.0",
             ":junit:4.4"
 
-    testCompile ":junit:4.4"
+    def FIRST_LEVEL_JMOCK = [':hamcrest-core:1.1', ':hamcrest-library:1.1', ':jmock-junit4:2.4.0']
+    testCompile ":junit:4.4", FIRST_LEVEL_JMOCK
+    clientModule(['testCompile'], ":jmock:2.4.0") {
+        dependencies(':jmock-legacy:2.4.0', ':objenesis:1.0', ':cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
+    }
     distLib ":junit:4.4"
     addFlatDirResolver('lib', new File(rootDir, 'lib'))
 }

@@ -27,6 +27,7 @@ import org.gradle.api.internal.dependencies.LocalReposCacheHandler
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.apache.ivy.plugins.resolver.URLResolver
 import org.apache.ivy.plugins.resolver.DualResolver
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -34,9 +35,9 @@ import org.apache.ivy.plugins.resolver.DualResolver
 class ResolverContainer {
     ResolverFactory resolverFactory = new ResolverFactory()
 
-    List resolverNames = []
+    List<String> resolverNames = []
 
-    Map resolvers = [:]
+    Map<String, DependencyResolver> resolvers = [:]
 
     ResolverContainer(LocalReposCacheHandler localReposCacheHandler) {
         resolverFactory = new ResolverFactory(localReposCacheHandler)
@@ -87,7 +88,7 @@ class ResolverContainer {
     private DependencyResolver addInternal(def userDescription, Closure configureClosure, Closure orderClosure) {
         if (!userDescription) {throw new InvalidUserDataException('You must specify userDescription')}
         DependencyResolver resolver = resolverFactory.createResolver(userDescription)
-        GradleUtil.configure(configureClosure, resolver)
+        ConfigureUtil.configure(configureClosure, resolver)
         resolvers[resolver.name] = resolver
         orderClosure(resolver.name)
         resolver
@@ -98,7 +99,7 @@ class ResolverContainer {
         resolvers[name]
     }
 
-    List getResolverList() {
+    List<DependencyResolver> getResolverList() {
         resolverNames.collect {resolvers[it]}
     }
 

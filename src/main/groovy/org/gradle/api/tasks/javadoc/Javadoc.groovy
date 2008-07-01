@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -41,9 +42,9 @@ class Javadoc extends ConventionTask {
 
     def self
 
-    Javadoc(DefaultProject project, String name) {
+    Javadoc(Project project, String name) {
         super(project, name)
-        actions << this.&generate
+        doFirst(this.&generate)
         self = this
     }
 

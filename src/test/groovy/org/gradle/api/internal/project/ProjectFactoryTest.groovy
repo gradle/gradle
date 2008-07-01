@@ -20,6 +20,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
@@ -31,14 +32,16 @@ class ProjectFactoryTest extends GroovyTestCase {
 
         String expectedName = 'somename'
         String expectedBuildFileName = 'build.gradle'
-        Project parentProject = new DefaultProject()
         File rootDir = '/root' as File
-        Project rootProject = new DefaultProject()
+        Project rootProject = HelperUtil.createRootProject(rootDir)
+        Project parentProject = rootProject.addChildProject('parent')
         BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor()
-        PluginRegistry pluginRegistry = new PluginRegistry()
+        PluginRegistry expectedPluginRegistry = new PluginRegistry()
+        ProjectRegistry expectedProjectRegistry = rootProject.getProjectRegistry()
         ClassLoader expectedBuildScriptClassLoader = new URLClassLoader([] as URL[])
 
-        ProjectFactory projectFactory = new ProjectFactory(dependencyManagerFactory, buildScriptProcessor, pluginRegistry, expectedBuildFileName)
+        ProjectFactory projectFactory = new ProjectFactory(dependencyManagerFactory, buildScriptProcessor, expectedPluginRegistry,
+                expectedBuildFileName, expectedProjectRegistry)
         Project project = projectFactory.createProject(expectedName, parentProject, rootDir, rootProject, expectedBuildScriptClassLoader)
 
         assert project.name.is(expectedName)
@@ -50,7 +53,8 @@ class ProjectFactoryTest extends GroovyTestCase {
         assert project.projectFactory.is(projectFactory)
         assert project.dependencies.is(dependencyManager)
         assert project.buildScriptProcessor.is(buildScriptProcessor)
-        assert project.pluginRegistry.is(pluginRegistry)
+        assert project.pluginRegistry.is(expectedPluginRegistry)
+        assert project.projectRegistry.is(expectedProjectRegistry)
     }
 
 }

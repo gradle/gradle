@@ -27,7 +27,7 @@ class ScriptHandlerTest extends GroovyTestCase {
     static final String TEST_BUILD_FILE_NAME = 'somename.craidle'
     static final String TEST_BUILD_FILE_CACHE_NAME = 'somename_craidle'
 
-    ScriptHandler scriptHandler
+    DefaultScriptHandler scriptHandler
 
     DefaultProject testProject
 
@@ -53,9 +53,9 @@ class ScriptHandlerTest extends GroovyTestCase {
                 getBuildFileName: {TEST_BUILD_FILE_NAME},
                 getBuildScriptClassLoader: {classLoader}
         ] as DefaultProject
-        scriptHandler = new ScriptHandler()
+        scriptHandler = new DefaultScriptHandler()
         projectMethodCalled = false
-        gradleDir = new File(testProjectDir, ScriptHandler.GRADLE_DIR_NAME)
+        gradleDir = new File(testProjectDir, DefaultScriptHandler.GRADLE_DIR_NAME)
         cacheDir = new File(gradleDir, TEST_BUILD_FILE_CACHE_NAME)
         cachedFile = new File(gradleDir, "$TEST_BUILD_FILE_CACHE_NAME/${TEST_BUILD_FILE_CACHE_NAME}.class")
     }

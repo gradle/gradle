@@ -60,7 +60,7 @@ public class ToolsMain {
         if (!modernCompilerFound) {
             jars.add(Locator.fileToURL(toolsJar));
         }
-        
+
         ClassLoader contextClassLoader = new URLClassLoader((URL[]) jars.toArray(new URL[jars.size()]), _cl);
         contextClassLoader.loadClass("com.sun.tools.javac.Main");
         classLoader = contextClassLoader;
@@ -75,5 +75,22 @@ public class ToolsMain {
                         (String[]) argList.toArray(new String[argList.size()])
                 }
         );
+////        Main.main(args);
+//
+////        URLClassLoader appClassLoader = new URLClassLoader(GradleUtil.filesToUrl(new File("/Users/hans/java/groovy-1.5.5/embeddable/groovy-all-1.5.5.jar")), ClassLoader.getSystemClassLoader().getParent());
+////
+////        URLClassLoader gradleLibsClassLoader = new URLClassLoader(GradleUtil.getGradleLiBClasspath(), appClassLoader);
+////        Thread.currentThread().setContextClassLoader(gradleLibsClassLoader);
+////        System.out.println(gradleLibsClassLoader);
+////        Class mainClass = gradleLibsClassLoader.loadClass("org.gradle.Main");
+////        Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
+//        List<String> argList = new ArrayList<String>(Arrays.asList(args));
+//        argList.add(0, "XXXXXXXXX");
+////        mainMethod.invoke(null, new Object[]
+////                {
+////                        (String[]) argList.toArray(new String[argList.size()])
+////                }
+////        );
+//        Main.main(argList.toArray(new String[argList.size()]));
     }
 }

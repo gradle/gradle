@@ -95,14 +95,11 @@ class TestTest extends AbstractConventionTaskTest {
 
     void testExecuteWithTestFailuresAndStopAtFailures() {
         setUpMocks(test)
-
         setExistingDirsFilter()
-
         antJUnitMocker.demand.execute(1..1) {File testClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
             ant.project.setProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY, 'somevalue')
         }
-
         antJUnitMocker.use(test.antJunit) {
             shouldFailWithCause(GradleException) {
                 test.execute()
@@ -114,7 +111,6 @@ class TestTest extends AbstractConventionTaskTest {
         setUpMocks(test)
         test.stopAtFailuresOrErrors = false
         setExistingDirsFilter()
-
         antJUnitMocker.demand.execute(1..1) {File testClassesDir, List classpath, File testResultsDir, List includes,
                                              List excludes, JunitOptions junitOptions, AntBuilder ant ->
             ant.project.setProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY, 'somevalue')

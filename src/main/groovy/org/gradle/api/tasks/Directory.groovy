@@ -31,7 +31,7 @@ class Directory extends DefaultTask {
     Directory(Project project, String name) {
         super(project, name)
         if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
-        actions << this.&mkdir
+        doFirst(this.&mkdir)
         dir = project.file(name)
     }
 

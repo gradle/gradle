@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Project
 
 /**
 * @author Hans Dockter
@@ -85,9 +86,9 @@ class Compile extends ConventionTask {
 
     protected Compile self
 
-    Compile(DefaultProject project, String name) {
+    Compile(Project project, String name) {
         super(project, name)
-        actions << this.&compile
+        doFirst(this.&compile)
         self = this
     }
 
@@ -111,7 +112,10 @@ class Compile extends ConventionTask {
      * Add the elements to the unmanaged classpath.
      */
     Compile unmanagedClasspath(Object[] elements) {
-        self.unmanagedClasspath.addAll((elements as List).flatten())
+        if (!unmanagedClasspath) {
+            unmanagedClasspath.addAll(self.unmanagedClasspath)
+        }
+        unmanagedClasspath.addAll((elements as List).flatten())
         this
     }
 

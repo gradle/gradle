@@ -25,6 +25,7 @@ import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.dependencies.DependencyContainer
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -70,7 +71,7 @@ class DefaultDependencyContainer implements DependencyContainer {
     ModuleDependency dependency(List confs, String id, Closure configureClosure = null) {
         def dependency = dependencyFactory.createDependency(confs as Set, id, project)
         dependencies << dependency
-        GradleUtil.configure(configureClosure, dependency)
+        ConfigureUtil.configure(configureClosure, dependency)
         dependency
     }
 
@@ -82,7 +83,7 @@ class DefaultDependencyContainer implements DependencyContainer {
         // todo: We might better have a client module factory here
         ClientModule clientModule = new ClientModule(dependencyFactory, confs as Set, id, clientModuleRegistry)
         dependencies << clientModule
-        GradleUtil.configure(configureClosure, clientModule)
+        ConfigureUtil.configure(configureClosure, clientModule)
         clientModule
     }
 

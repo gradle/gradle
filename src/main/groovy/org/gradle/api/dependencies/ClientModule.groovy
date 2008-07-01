@@ -30,7 +30,7 @@ import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
  */
 // todo the setProject method of Dependency is only needed by the ProjectDependency. We need to refactor.
 class ClientModule extends DefaultDependencyContainer implements Dependency {
-    static final String CLIENT_MODULE_KEY = 'org.gradle.clientModule'
+    public static final String CLIENT_MODULE_KEY = 'org.gradle.clientModule'
 
     String id
 
@@ -81,7 +81,7 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
 
     void dependencies(List confs, Object[] dependencies) {
         if (confs != defaultConfs) {
-            throw new UnsupportedOperationException("You can assign confs $confs to dependencies in a client module.")
+            throw new UnsupportedOperationException("You can assign confs " + confs + " to dependencies in a client module.")
         }
         super.dependencies(confs, dependencies)
     }

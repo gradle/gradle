@@ -19,6 +19,7 @@ package org.gradle.api.dependencies
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.Project
 
 /**
 * @author Hans Dockter
@@ -40,7 +41,7 @@ class ProjectDependency extends AbstractDependency {
     }
 
     Class[] userDepencencyDescriptionType() {
-        [DefaultProject]
+        [Project]
     }
 
     DependencyDescriptor createDepencencyDescriptor() {

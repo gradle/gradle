@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.api;
 
 /**
  * @author Hans Dockter
  */
-class GradleException extends RuntimeException {
-    GradleException() {
+public class GradleException extends RuntimeException {
+    public GradleException() {
     }
 
-    GradleException(String message) {
+    public GradleException(String message) {
         super(message);
     }
 
-    GradleException(String message, Throwable cause) {
+    public GradleException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    GradleException(Throwable cause) {
+    public GradleException(Throwable cause) {
         super(cause);
     }
 }

@@ -22,19 +22,19 @@ package org.gradle.api
  * 
  * @author Hans Dockter
  */
-class CircularReferenceException extends GradleException {
-    CircularReferenceException() {
+public class CircularReferenceException extends GradleException {
+    public CircularReferenceException() {
     }
 
-    CircularReferenceException(String message) {
+    public CircularReferenceException(String message) {
         super(message);
     }
 
-    CircularReferenceException(String message, Throwable cause) {
+    public CircularReferenceException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    CircularReferenceException(Throwable cause) {
+    public CircularReferenceException(Throwable cause) {
         super(cause);
     }
 }

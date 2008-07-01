@@ -27,6 +27,7 @@ import org.gradle.api.internal.dependencies.DependenciesUtil
 import org.gradle.api.DependencyManager
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
+import org.gradle.api.UnknownDependencyNotation
 
 /**
  * @author Hans Dockter
@@ -53,19 +54,19 @@ class ModuleDependencyTest extends GroovyTestCase {
     }
 
     void testValidation() {
-        shouldFail(InvalidUserDataException) {
+        shouldFail(UnknownDependencyNotation) {
             new ModuleDependency(TEST_CONF_SET, "singlestring", TEST_PROJECT)
         }
-        shouldFail(InvalidUserDataException) {
+        shouldFail(UnknownDependencyNotation) {
             new ModuleDependency(TEST_CONF_SET, "junit:junit", TEST_PROJECT)
         }
-        shouldFail(InvalidUserDataException) {
+        shouldFail(UnknownDependencyNotation) {
             new ModuleDependency(TEST_CONF_SET, "junit:junit:3.8.2@jar", TEST_PROJECT)
         }
-        shouldFail(InvalidUserDataException) {
+        shouldFail(UnknownDependencyNotation) {
             new ModuleDependency(TEST_CONF_SET, "junit:junit:3.8.2:jdk14@jar", TEST_PROJECT)
         }
-        shouldFail(InvalidUserDataException) {
+        shouldFail(UnknownDependencyNotation) {
             new ModuleDependency(TEST_CONF_SET, new Point(3, 4), TEST_PROJECT)
         }
     }

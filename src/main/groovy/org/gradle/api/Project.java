@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.SortedMap;
 
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.project.BuildScriptProcessor;
 
 /**
  * @author Hans Dockter
@@ -44,22 +45,28 @@ public interface Project {
 
     File getRootDir();
 
+    File getBuildDir();
+
+    String getBuildFileName();
+
     Project getParent();
 
     String getName();
 
-    SortedMap getChildProjects();
+    Map getChildProjects();
 
-    Set getDependsOnProjects();
+    Set<Project> getDependsOnProjects();
+
+    void setProperty(String name, Object value);
 
     /**
      * This method is used when scripts access the project via project.x
      */
     Project getProject();
 
-    List getAllprojects();
+    Set getAllprojects();
 
-    List getSubprojects();
+    Set getSubprojects();
 
     Project usePlugin(String pluginName, Map customValues);
 
@@ -105,7 +112,7 @@ public interface Project {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists.
      */
-    Task createTask(String name, Closure action);
+    Task createTask(String name, TaskAction action);
 
     /**
      * Creates a task with the given name. The task creation depends on the args map. 
@@ -116,7 +123,7 @@ public interface Project {
      */
     Task createTask(Map args, String name);
 
-    Task createTask(Map args, String name, Closure action);
+    Task createTask(Map args, String name, TaskAction action);
 
     String getArchivesBaseName();
 
@@ -135,6 +142,8 @@ public interface Project {
     Project dependsOnChildren();
 
     Project dependsOnChildren(boolean evaluateDependsOnProject);
+
+    Project findProject(String path);
 
     Project project(String path);
 
@@ -170,4 +179,17 @@ public interface Project {
     Convention getConvention();
 
     void setConvention(Convention convention);
+
+    int depthCompare(Project otherProject);
+    int getDepth();
+
+    DagAction getConfigureByDag();
+
+    Map<String, Task> getTasks();
+
+    Map getPluginApplyRegistry();
+
+    public Project evaluate();
+
+    public BuildScriptProcessor getBuildScriptProcessor();
 }

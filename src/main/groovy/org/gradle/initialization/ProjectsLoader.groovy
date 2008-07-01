@@ -55,9 +55,8 @@ class ProjectsLoader {
         logger.info('++ Loading Project objects')
         Clock clock = new Clock()
         rootProject = createProjects(settings, buildScriptClassLoader, startParameter, projectProperties, systemProperties, envProperties)
-        currentProject = DefaultProject.findProject(rootProject,
-                PathHelper.getCurrentProjectPath(rootProject.rootDir, startParameter.currentDir))
-        logger.debug("Timing: Loading projects took: " + clock.time)
+        currentProject = rootProject.project(PathHelper.getCurrentProjectPath(rootProject.rootDir, startParameter.currentDir))
+        logger.info("Timing: Loading projects took: " + clock.time)
         this
     }
 
@@ -65,10 +64,9 @@ class ProjectsLoader {
     private DefaultProject createProjects(DefaultSettings settings, ClassLoader buildScriptClassLoader,
                                           StartParameter startParameter, Map projectProperties, Map systemProperties, Map envProperties) {
         assert projectProperties != null
-
         logger.debug("Creating the projects and evaluating the project files!")
         Map systemAndEnvProjectProperties = getSystemProjectProperties(systemProperties) +
-                getEnvProjectProperties(envProperties)
+        getEnvProjectProperties(envProperties)
         if (systemAndEnvProjectProperties) {
             logger.debug("Added system and env project properties: " + systemAndEnvProjectProperties)
         }

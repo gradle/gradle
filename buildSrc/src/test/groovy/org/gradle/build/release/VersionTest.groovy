@@ -18,6 +18,11 @@ package org.gradle.build.release
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.GradleUtil
+import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectFactory
+import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
+import org.gradle.api.internal.project.BuildScriptProcessor
+import org.gradle.api.internal.project.PluginRegistry
 
 /**
  * @author Hans Dockter
@@ -33,15 +38,32 @@ class VersionTest extends GroovyTestCase {
         testDir = GradleUtil.makeNewDir(new File('tmpTest'))
         File rootDir = new File(testDir, 'root')
         rootDir.mkdir()
-        project = new DefaultProject()
-        project.rootDir = rootDir
-        project.rootProject = project
-        project.name = rootDir.name
+        project = createTestProject(rootDir);
         project.previousMajor = '1'
         project.previousMinor = '2'
         project.previousRevision = '3'
         svn = [isTrunk: {trunk}] as Svn
         version = new Version(svn, project, false)
+    }
+
+    private createTestProject(File rootDir) {
+        ProjectRegistry projectRegistry = new ProjectRegistry()
+        return new DefaultProject(rootDir.name,
+                null,
+                rootDir,
+                null,
+                null,
+                null,
+                new ProjectFactory(
+                        new DefaultDependencyManagerFactory(new File('root')),
+                        new BuildScriptProcessor(),
+                        new PluginRegistry(),
+                        'testBuildFileName',
+                        projectRegistry),
+                new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(),
+                new BuildScriptProcessor(),
+                new PluginRegistry(),
+                projectRegistry)
     }
 
     void tearDown() {

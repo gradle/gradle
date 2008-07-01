@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencies
+package org.gradle.api.internal.dependencies;
 
-import groovy.mock.interceptor.MockFor
-import groovy.mock.interceptor.StubFor
-import org.apache.ivy.Ivy
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.core.publish.PublishEngine
-import org.apache.ivy.core.publish.PublishOptions
-import org.apache.ivy.core.report.ResolveReport
-import org.apache.ivy.core.resolve.ResolveOptions
-import org.apache.ivy.core.settings.IvySettings
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.apache.ivy.plugins.resolver.RepositoryResolver
-import org.gradle.api.DependencyManager
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.dependencies.Dependency
-import org.gradle.api.dependencies.GradleArtifact
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.dependencies.ResolverContainer
+import groovy.mock.interceptor.MockFor;
+import groovy.mock.interceptor.StubFor;
+import org.apache.ivy.Ivy;
+import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.publish.PublishEngine;
+import org.apache.ivy.core.publish.PublishOptions;
+import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.core.resolve.ResolveOptions;
+import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.gradle.api.DependencyManager;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.GradleArtifact;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.dependencies.ResolverContainer;
 
 /**
  * @author Hans Dockter
  */
-class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
-    static final String TEST_CONFIG = 'testConfig'
+public class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
+    static final String TEST_CONFIG = 'testConfig';
 
     DefaultDependencyManager dependencyManager
     SettingsConverter settingsConverter
@@ -79,8 +79,10 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
         dependencyManager.buildResolverHandler = mockSpecialResolverHandler
     }
 
+
+
     void testInit() {
-        //        assert dependencyManager.ivy.is(ivy)
+        // assert dependencyManager.ivy.is(ivy)
         assert dependencyManager.artifactFactory.is(artifactFactory)
         assert dependencyManager.settingsConverter.is(settingsConverter)
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
@@ -419,10 +421,8 @@ class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     void testAddConfiguration() {
         // todo: add test for String argument
         Configuration testConfiguration = new Configuration('someconf')
-        assert testObj.configure {
-            addConfiguration(testConfiguration)
-        }.is(testObj)
-        assert testObj.configurations.someconf.is(testConfiguration)
+        assert dependencyManager.addConfiguration(testConfiguration).is(testObj)
+        assert dependencyManager.configurations.someconf.is(testConfiguration)
     }
 
 

@@ -47,6 +47,8 @@ public interface DependencyContainer {
      * @return an instance of a project
      */
     Project getProject();
+
+    void setProject(Project project);
     
     /**
      * A list of Gradle Dependency objects.

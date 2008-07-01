@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencies
+package org.gradle.api.internal.dependencies;
 
-import groovy.mock.interceptor.MockFor
+import groovy.mock.interceptor.MockFor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.dependencies.ClientModule
 import org.gradle.api.dependencies.Dependency
@@ -32,18 +32,18 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
     static final String TEST_CONFIGURATION = 'testConfig'
     static final String DEFAULT_CONFIGURATION = 'testConfig'
 
-    static final String TEST_DEPENDENCY_1 = 'junit:junit:3.8.2:jar'
+    static final String TEST_DEPENDENCY_1 = 'junit:junit:3.8.2@jar'
     static final String TEST_DEPENDENCY_2 = 'log4j:log4j:1.2.9'
     static final String TEST_DEPENDENCY_3 = 'spring:spring:2.0.0'
     static final String TEST_DEPENDENCY_4 = 'spring:spring-mock:2.1'
     static final List TEST_DEPENDENCIES = [TEST_DEPENDENCY_1, TEST_DEPENDENCY_2, TEST_DEPENDENCY_3, TEST_DEPENDENCY_4]
 
-    DependencyFactory dependencyFactory
-    DefaultProject project
-    File projectRootDir
+    protected DependencyFactory dependencyFactory
+    protected DefaultProject project
+    protected File projectRootDir
 
-    List testDefaultConfs
-    List testConfs
+    protected List testDefaultConfs
+    protected List testConfs
 
     abstract DefaultDependencyContainer getTestObj()
 

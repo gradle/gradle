@@ -38,17 +38,42 @@ class HelperUtil {
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
         return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [projectName, parent, new File(""),
-                parent, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null), new DefaultDependencyManager(), null, null] as Object[])
+                parent, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null, parent.projectRegistry), new DefaultDependencyManager(), null, null, parent.projectRegistry] as Object[])
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        return new DefaultProject(rootDir.name, null, rootDir, null, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), new BuildScriptProcessor(), new PluginRegistry(), 'testBuildFileName'), new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(), new BuildScriptProcessor(), new PluginRegistry())
+        ProjectRegistry projectRegistry = new ProjectRegistry()
+        return new DefaultProject(rootDir.name,
+                null,
+                rootDir,
+                null,
+                null,
+                null, 
+                new ProjectFactory(
+                        new DefaultDependencyManagerFactory(new File('root')),
+                        new BuildScriptProcessor(),
+                        new PluginRegistry(),
+                        'testBuildFileName',
+                        projectRegistry),
+                new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(),
+                new BuildScriptProcessor(),
+                new PluginRegistry(),
+                projectRegistry)
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name) {
-        return new DefaultProject(name, parentProject, parentProject.rootDir, parentProject.rootProject, parentProject.buildFileName, parentProject.buildScriptClassLoader,
-                parentProject.projectFactory, parentProject.dependencies, parentProject.buildScriptProcessor,
-                parentProject.pluginRegistry)
+        return new DefaultProject(
+                name,
+                parentProject,
+                parentProject.rootDir,
+                parentProject.rootProject,
+                parentProject.buildFileName,
+                parentProject.buildScriptClassLoader,
+                parentProject.projectFactory,
+                parentProject.dependencies,
+                parentProject.buildScriptProcessor,
+                parentProject.pluginRegistry,
+                parentProject.projectRegistry)
     }
 
     static def pureStringTransform(def collection) {

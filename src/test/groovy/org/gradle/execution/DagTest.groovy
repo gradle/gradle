@@ -46,7 +46,16 @@ class DagTest extends GroovyTestCase {
     private static final Set ACD = new LinkedHashSet([A, C, D]);
     private static final Set BD = new LinkedHashSet([B, D]);
 
-    private Dag dag = new Dag();
+    private Project root;
+
+    private Dag dag
+
+    protected void setUp() {
+        dag = new Dag()
+        root = HelperUtil.createRootProject(new File('root'))
+    }
+
+
 
     public void testEmpty() throws Exception {
         assertTrue(dag.getChildren(new Object()).isEmpty());
@@ -141,16 +150,18 @@ class DagTest extends GroovyTestCase {
     }
 
     void testAddTask() {
-        DefaultTask dummyTask = [getPath: {'/a'}] as DefaultTask
-        Set dependsOnTasks = [[getPath: {'/b'}] as DefaultTask, [getPath: {'/c'}] as DefaultTask]
+        DefaultTask dummyTask = new DefaultTask(root, 'a')
+        Set dependsOnTasks = [new DefaultTask(root, 'b'), new DefaultTask(root, 'c')] 
         dag.addTask(dummyTask, dependsOnTasks)
         assertEquals(new HashSet([dummyTask]), dag.sources)
         assertEquals(new HashSet(dependsOnTasks), dag.sinks)
     }
 
+
+
     void testAddTaskWithCircularReference() {
-        DefaultTask dummyTask = [getPath: {'/a'}] as DefaultTask
-        DefaultTask dummyTask2 = [getPath: {'/b'}] as DefaultTask
+        DefaultTask dummyTask = new DefaultTask(root, 'a')
+        DefaultTask dummyTask2 = new DefaultTask(root, 'b')
         dag.addTask(dummyTask, [dummyTask2] as Set)
         shouldFail(CircularReferenceException) {
             dag.addTask(dummyTask2, [dummyTask] as Set)
@@ -158,27 +169,32 @@ class DagTest extends GroovyTestCase {
     }
 
     void testExecute() {
-        List executed = []
-        DefaultTask dummyTask0 = [getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'a'},
-                execute: {executed << 2}] as DefaultTask
-        Set dependsOnTasks0 = [[getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'child2'},
-                execute: {executed << 1}] as DefaultTask, [getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'child1'},
-                execute: {executed << 0}] as DefaultTask]
-        DefaultTask dummyTask1 = [getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'b'},
-                execute: {executed << 5}] as DefaultTask
-        Set dependsOnTasks1 = [[getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'child' + Project.PATH_SEPARATOR + 'child'},
-                execute: {executed << 4}] as DefaultTask, [getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'longlonglonglongchild'},
-                execute: {executed << 3}] as DefaultTask]
+        Project child = root.addChildProject('child')
+        List executedIdList = []
+        DefaultTask dummyTask0 = createTask(root, 'a', executedIdList, 2)
+        println dummyTask0.getPath()
+        Set dependsOnTasks0 = [createTask(root, 'child2', executedIdList, 1),
+                createTask(root, 'child1', executedIdList, 0)]
+        DefaultTask dummyTask1 = createTask(root, 'b', executedIdList, 5)
+        Set dependsOnTasks1 = [createTask(child, 'child', executedIdList, 4),
+                createTask(root, 'longlonglonglongchild', executedIdList, 3)]
         dag.addTask(dummyTask0, dependsOnTasks0)
+        println dag.sources
+        println dag.sinks
         dag.addTask(dummyTask1, dependsOnTasks1)
         dag.execute()
-        assertEquals([0, 1, 2, 3, 4, 5], executed)
+        assertEquals([0, 1, 2, 3, 4, 5], executedIdList)
+    }
+
+    private DefaultTask createTask(Project project, String name, List executedIdList, int executedId) {
+        DefaultTask dummyTask0 = new DefaultTask(project, name)
+        dummyTask0.doFirst { executedIdList << executedId }
+        dummyTask0
     }
 
     void testReset() {
-        DefaultTask dummyTask0 = [getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'a'}] as DefaultTask
-        Set dependsOnTasks0 = [[getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'child2'}] as DefaultTask,
-                [getPath: {Project.PATH_SEPARATOR + 'root' + Project.PATH_SEPARATOR + 'child1'}] as DefaultTask]
+        DefaultTask dummyTask0 = new DefaultTask(root, 'a')
+        Set dependsOnTasks0 = [new DefaultTask(root, 'child2'), new DefaultTask(root, 'child1')]
         dag.addTask(dummyTask0, dependsOnTasks0)
         assertTrue(dag.sources.size() > 0)
         assertTrue(dag.sinks.size() > 0)

@@ -24,6 +24,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.UnknownDependencyNotation
+import org.gradle.util.HelperUtil
 
 /**
 * @author Hans Dockter
@@ -40,16 +42,13 @@ class ProjectDependencyTest extends GroovyTestCase {
     String dependencyProjectArtifactProductionTaskName
 
     void setUp() {
-        project = new DefaultProject()
-        project.rootProject = project
-        project.dependencies = new DefaultDependencyManager()
+        project = HelperUtil.createRootProject(new File('root'))
 
         dependencyProjectModuleRevisionId = new ModuleRevisionId(new ModuleId('org', 'otherproject'), '1.0')
         dependencyProjectArtifactProductionTaskName = 'somename'
         DefaultDependencyManager mockDependencyManager = [createModuleRevisionId: {dependencyProjectModuleRevisionId},
                 getArtifactProductionTaskName: {dependencyProjectArtifactProductionTaskName}] as DefaultDependencyManager
-        dependencyProject = new DefaultProject()
-        dependencyProject.rootProject = dependencyProject
+        dependencyProject = HelperUtil.createRootProject(new File('dependency'))
         dependencyProject.dependencies = mockDependencyManager
         dependencyProject.createTask(dependencyProjectArtifactProductionTaskName)
 
@@ -72,10 +71,10 @@ class ProjectDependencyTest extends GroovyTestCase {
     }
 
     void testValidation() {
-        shouldFail(InvalidUserDataException) {
+        shouldFail(UnknownDependencyNotation) {
             new ProjectDependency(TEST_CONF_SET, "string", project)
         }
-        shouldFail(InvalidUserDataException) {
+        shouldFail(UnknownDependencyNotation) {
             new ProjectDependency(TEST_CONF_SET, new Point(3, 4), project)
         }
     }

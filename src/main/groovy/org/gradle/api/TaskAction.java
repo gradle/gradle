@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.api.internal
-
-import org.gradle.api.Project
+package org.gradle.api;
 
 /**
  * @author Hans Dockter
  */
-class PathOrder {
-    static int compareTo(String path1, String path2) {
-        int depth1 = path1.split(Project.PATH_SEPARATOR).size()
-        int depth2 = path2.split(Project.PATH_SEPARATOR).size()
-        if (depth1 == depth2) {
-            return path1.compareTo(path2)
-        } else {
-            return depth1.compareTo(depth2)
-        }
-    }
+public interface TaskAction {
+    void execute(Task task);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+package org.gradle.util
 
-package org.gradle.api
+import org.gradle.api.TaskAction
 
 /**
  * @author Hans Dockter
  */
-class InvalidUserDataException extends GradleException {
-    InvalidUserDataException() {
+class GroovyJavaHelper {
+    static TaskAction closureToAction(Closure closure) {
+        closure as TaskAction
     }
 
-    InvalidUserDataException(String message) {
-        super(message);
+    static Closure createNoArgsClosure(Object returnValue) {
+        {->  returnValue }
     }
 
-    InvalidUserDataException(String message, Throwable cause) {
-        super(message, cause);
+    static Closure createConventionClosure(Object returnValue) {
+        {Convention ->  returnValue }
     }
 
-    InvalidUserDataException(Throwable cause) {
-        super(cause);
+    static Closure createExecuteClosure(Object executable) {
+        { -> executable.execute() }
     }
 }

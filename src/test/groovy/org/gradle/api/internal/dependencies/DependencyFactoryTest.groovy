@@ -42,13 +42,15 @@ class DependencyFactoryTest extends GroovyTestCase {
     }
 
     void testCreateDependencyWithValidDescription() {
-        TestDependencyImplInteger dependencyImplInteger = dependencyFactory.createDependency(TEST_CONFIGURATION_SET, new Integer(5), project)
+        TestDependencyImplInteger dependencyImplInteger = dependencyFactory.createDependency(
+                TEST_CONFIGURATION_SET, new Integer(5), project)
         assertEquals(TEST_CONFIGURATION_SET, dependencyImplInteger.confs)
         assertEquals(new Integer(5), dependencyImplInteger.userDependencyDescription)
         assertEquals(project, dependencyImplInteger.project)
         assertTrue dependencyImplInteger.initialized
 
-        TestDependencyImplString dependencyImplString = dependencyFactory.createDependency(TEST_CONFIGURATION_SET, 'somestring', project)
+        TestDependencyImplString dependencyImplString = dependencyFactory.createDependency(
+                TEST_CONFIGURATION_SET, 'somestring', project)
         assertEquals(TEST_CONFIGURATION_SET, dependencyImplString.confs)
         assertEquals('somestring', dependencyImplString.userDependencyDescription)
         assertEquals(project, dependencyImplString.project)

@@ -42,7 +42,7 @@ class ProjectsLoaderTest extends GroovyTestCase {
     void setUp() {
         testClassLoader = new URLClassLoader([] as URL[])
         testProjectProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
-        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null)
+        projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null, new ProjectRegistry())
         buildScriptProcessor = new BuildScriptProcessor()
         pluginRegistry = new PluginRegistry()
         projectLoader = new ProjectsLoader(projectFactory)

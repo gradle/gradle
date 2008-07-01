@@ -46,7 +46,7 @@ class ProjectTasksPrettyPrinterTest extends GroovyTestCase {
         String separator = '*' * 50
         new PlatformLineWriter(stringWriter).withWriter { it.write("""$separator
 Project: $project1
-++Task: $task11.path: $task11.dependsOn
+++Task: $task11.path: ${task11.dependsOn.toString().replace("\"", "")}
 ++Task: $task12.path: $task12.dependsOn
 $separator
 Project: $project2

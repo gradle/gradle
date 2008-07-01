@@ -1,0 +1,112 @@
+/*
+ * Copyright 2007-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.util;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+/**
+ * Common methods to wrap objects in generic collections.
+ *
+ */
+public class WrapUtil {
+    /**
+     * Wraps the given items in a mutable unordered set.
+     */
+    public static <T> Set<T> toSet(T... items) {
+        Set<T> coll = new HashSet<T>();
+        Collections.addAll(coll, items);
+        return coll;
+    }
+
+    /**
+     * Wraps the given items in a mutable ordered set.
+     */
+    public static <T> Set<T> toLinkedSet(T... items) {
+        Set<T> coll = new LinkedHashSet<T>();
+        Collections.addAll(coll, items);
+        return coll;
+    }
+
+    /**
+     * Wraps the given items in a mutable sorted set.
+     */
+    public static <T> SortedSet<T> toSortedSet(T... items) {
+        SortedSet<T> coll = new TreeSet<T>();
+        Collections.addAll(coll, items);
+        return coll;
+    }
+
+    /**
+     * Wraps the given items in a mutable sorted set using the given comparator.
+     */
+    public static <T> SortedSet<T> toSortedSet(Comparator<T> comp, T... items) {
+        SortedSet<T> coll = new TreeSet<T>(comp);
+        Collections.addAll(coll, items);
+        return coll;
+    }
+
+    /**
+     * Wraps the given items in a mutable list.
+     */
+    public static <T> List<T> toList(T... items) {
+        ArrayList<T> coll = new ArrayList<T>();
+        Collections.addAll(coll, items);
+        return coll;
+    }
+
+    /**
+     * Wraps the given key and value in a mutable unordered map.
+     */
+    public static <K, V> Map<K, V> toMap(K key, V value) {
+        Map<K, V> map = new HashMap<K, V>();
+        map.put(key, value);
+        return map;
+    }
+
+    /**
+     * Wraps the given key and value in a mutable ordered map.
+     */
+    public static <K, V> Map<K, V> toLinkedMap(K key, V value) {
+        Map<K, V> map = new LinkedHashMap<K, V>();
+        map.put(key, value);
+        return map;
+    }
+
+    /**
+     * Wraps the given key and value in a mutable properties instance.
+     */
+    public static Properties toProperties(String key, String value) {
+        Properties props = new Properties();
+        props.setProperty(key, value);
+        return props;
+    }
+
+    public static <T> T[] toArray(T... items) {
+        return items;
+    }
+}

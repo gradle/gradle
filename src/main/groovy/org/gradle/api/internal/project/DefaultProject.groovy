@@ -17,402 +17,28 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.*
-import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.PathOrder
-import org.gradle.api.tasks.Directory
-import org.gradle.api.tasks.util.BaseDirConverter
-import org.gradle.util.GradleUtil
+import org.gradle.util.ConfigureUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.plugins.Convention
-import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
  */
-// todo add new public methods to interface
-class DefaultProject implements Comparable, Project {
+class DefaultProject extends AbstractProject {
     private static Logger logger = LoggerFactory.getLogger(DefaultProject)
 
-    static final int STATE_CREATED = 0
-
-    static final int STATE_INITIALIZING = 1
-
-    static final int STATE_INITIALIZED = 2
-
-    static final String TASK_NAME = 'name'
-
-    static final String TASK_TYPE = 'type'
-
-    static final String TASK_DEPENDS_ON = 'dependsOn'
-
-    static final String TASK_OVERWRITE = 'overwrite'
-
-    static final String TASK_TYPE_LATE_INITIALIZER = 'lateInitializer'
-
-    org.gradle.api.Project rootProject
-
-    ProjectFactory projectFactory
-
-    // This is an implementation detail of Project. Therefore we don't use IoC here.
-    ProjectsTraverser projectsTraverser = new ProjectsTraverser()
-
-    BuildScriptProcessor buildScriptProcessor
-
-    ClassLoader buildScriptClassLoader
-
-    String buildFileName
-
-    Script buildScript
-
-    PluginRegistry pluginRegistry
-
-    File rootDir
-
-    Project parent
-
-    String name
-
-    SortedMap childProjects = new TreeMap()
-
-    Map tasks = [:]
-
-    Set dependsOnProjects = []
-
-    Map additionalProperties = [:]
-
-    int state
-
-    List plugins = []
-
-    BaseDirConverter baseDirConverter = new BaseDirConverter()
-
-    AntBuilder ant = null
-
-    DependencyManager dependencies
-
-    String archivesBaseName
-
-    String buildDirName = Project.DEFAULT_BUILD_DIR_NAME
-
-    Convention convention
-
-    Closure configureByDag = {}
-
-    Map pluginApplyRegistry = [:]
-
-
-    DefaultProject() {
-        convention = new Convention(this)
+    public DefaultProject() {
+        super();
     }
 
-    DefaultProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, String buildFileName,
-                   ClassLoader buildScriptClassLoader, ProjectFactory projectFactory, DependencyManager dependencyManager,
-                   BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry) {
-        assert name
-        assert (!parent && !rootProject) || (parent && rootProject)
-        this.rootProject = rootProject ?: this
-        this.rootDir = rootDir
-        this.parent = parent
-        this.name = name
-        this.buildFileName = buildFileName
-        this.buildScriptClassLoader = buildScriptClassLoader
-        this.projectFactory = projectFactory
-        dependencyManager.project = this
-        this.dependencies = dependencyManager
-        this.buildScriptProcessor = buildScriptProcessor
-        this.pluginRegistry = pluginRegistry
-        this.state = STATE_CREATED
-        this.archivesBaseName = name
-        convention = new Convention(this)
+    public DefaultProject(String name, Project parent, File rootDir, Project rootProject, String buildFileName,
+                          ClassLoader buildScriptClassLoader, ProjectFactory projectFactory, DependencyManager dependencyManager,
+                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry) {
+        super(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, projectFactory, dependencyManager,
+                buildScriptProcessor, pluginRegistry, projectRegistry);
     }
 
-    /**
-     * This method is used when scripts access the project via project.x
-     */
-    org.gradle.api.Project getProject() {
-        this
-    }
-
-    List getAllprojects() {
-        gatherProjects([this])
-    }
-
-    List getSubprojects() {
-        gatherProjects(childProjects.values())
-    }
-
-    void subprojects(Closure configureClosure) {
-        configureProjects(subprojects, configureClosure)
-    }
-
-    void allprojects(Closure configureClosure) {
-        configureProjects(allprojects, configureClosure)
-    }
-
-    void configureProjects(List projects, Closure configureClosure) {
-        projects.each {DefaultProject project ->
-            GradleUtil.configure(configureClosure, project)
-        }
-    }
-
-    private List gatherProjects(Collection rootCollection) {
-        List projects = []
-        projectsTraverser.traverse(rootCollection) {DefaultProject project -> projects << project}
-        Collections.sort(projects)
-        projects
-    }
-
-    DefaultProject evaluate() {
-        if (state == STATE_INITIALIZED) {
-            return this
-        }
-        Clock clock = new Clock()
-        state = STATE_INITIALIZING
-        buildScript = buildScriptProcessor.createScript(this)
-        Clock runClock = new Clock()
-        buildScript.run()
-        logger.info("Timing: Running the build script took " + clock.time)
-        state = STATE_INITIALIZED
-        lateInitializeTasks(tasks)
-        logger.info("Project=$path evaluated.")
-        logger.info("Timing: Project evaluation took " + clock.time)
-        this
-    }
-
-    private void lateInitializeTasks(Map tasks) {
-        while (true) {
-            Set uninitializedTasks = tasks.values().findAll {Task task -> !task.lateInitialized}
-            if (!uninitializedTasks) {break}
-            uninitializedTasks.each {Task task ->
-                task.applyLateInitialize()
-            }
-        }
-    }
-
-    Project usePlugin(String pluginName, Map customValues = [:]) {
-        usePluginInternal(pluginName, customValues)
-    }
-
-    Project usePlugin(Class pluginClass, Map customValues = [:]) {
-        usePluginInternal(pluginClass, customValues)
-    }
-
-    Project usePluginInternal(def pluginId, Map customValues) {
-        Plugin plugin = pluginRegistry.getPlugin(pluginId)
-        if (!plugin) {throw new InvalidUserDataException("Plugin with id $pluginId can not be found!")}
-        pluginRegistry.apply(plugin.class, this, pluginRegistry, customValues)
-        plugins << plugin
-        this
-    }
-
-    Task task(String name) {
-        task(name, null)
-    }
-
-    Task task(String name, Closure configureClosure) {
-        if (!tasks[name]) {throw new InvalidUserDataException("Task with name=$name does not exists!")}
-        if (configureClosure) {tasks[name].configure(configureClosure)}
-        tasks[name]
-    }
-
-    Task createTask(String name) {
-        createTask([:], name, null)
-    }
-
-    Task createTask(Map args, String name) {
-        createTask(args, name, null)
-    }
-
-    Task createTask(String name, Closure action) {
-        createTask([:], name, action)
-    }
-
-    Task createTask(Map args, String name, Closure action = null) {
-        if (!name) {throw new InvalidUserDataException('The name of the task must be set!')}
-        checkTaskArgsAndCreateDefaultValues(args)
-        if (!args[TASK_OVERWRITE] && tasks[name]) {throw new InvalidUserDataException('A task with this name already exists!')}
-        Task task = args[TASK_TYPE].metaClass.invokeConstructor([this, name] as Object[])
-        task.lateInitalizeClosures = args[TASK_TYPE_LATE_INITIALIZER]
-        tasks[name] = task
-        if ((args[TASK_DEPENDS_ON] instanceof String) || (args[TASK_DEPENDS_ON] instanceof GString)) {
-            String singleDependencyName = args[TASK_DEPENDS_ON]
-            if (!singleDependencyName) {throw new InvalidUserDataException('A dependency name must not be empty!')}
-            args[TASK_DEPENDS_ON] = [singleDependencyName]
-        }
-        logger.debug("Adding dependencies: ${args[TASK_DEPENDS_ON]}")
-
-        task.dependsOn(args[TASK_DEPENDS_ON] as Object[])
-
-        if (action) task.actions << action
-        task
-    }
-
-    private void checkTaskArgsAndCreateDefaultValues(Map args) {
-        if (!args[TASK_TYPE]) args[TASK_TYPE] = DefaultTask
-        if (!args[TASK_DEPENDS_ON]) args[TASK_DEPENDS_ON] = []
-        if (!args[TASK_TYPE_LATE_INITIALIZER]) args[TASK_TYPE_LATE_INITIALIZER] = []
-        if (!args[TASK_OVERWRITE]) args[TASK_OVERWRITE] = false
-    }
-
-    DefaultProject addChildProject(String name) {
-        childProjects[name] = projectFactory.createProject(name, this, rootDir, rootProject, buildScriptClassLoader)
-    }
-
-    String getPath() {
-        String prefix = parent && parent.is(rootProject) ? '' : Project.PATH_SEPARATOR
-        parent ? parent.path + prefix + name : Project.PATH_SEPARATOR
-    }
-
-    String getRelativeFilePath() {
-        '/' + rootProject.name + '/' + path.substring(1).replace(Project.PATH_SEPARATOR, '/')
-    }
-
-    File getProjectDir() {
-        new File(rootDir.parent, relativeFilePath)
-    }
-
-    File getBuildDir() {
-        new File(projectDir, buildDirName)
-    }
-
-    void dependsOn(String path) {
-        dependsOn(path, true)
-    }
-
-    void dependsOn(String path, boolean evaluateDependsOnProject) {
-        if (!path) throw new InvalidUserDataException("You must specify a project!")
-        dependsOnProjects << findProject(rootProject, absolutePath(path))
-        if (evaluateDependsOnProject) {
-            evaluationDependsOn(path)
-        }
-    }
-
-    Project evaluationDependsOn(String path) {
-        if (!path) throw new InvalidUserDataException("You must specify a project!")
-        DefaultProject projectToEvaluate = findProject(rootProject, absolutePath(path))
-        if (projectToEvaluate.state == DefaultProject.STATE_INITIALIZING) {
-            throw new CircularReferenceException("Circular referencing during evaluation for project: $projectToEvaluate")
-        }
-        projectToEvaluate.evaluate()
-    }
-
-    Project childrenDependOnMe() {
-        childProjects.values()*.dependsOn(this.path, false)
-        this
-    }
-
-    Project dependsOnChildren() {
-        dependsOnChildren(false)
-    }
-
-    Project dependsOnChildren(boolean evaluateDependsOnProject) {
-        childProjects.values().each {dependsOn(it.path, evaluateDependsOnProject)}
-        this
-    }
-
-    String toString() {
-        path
-    }
-
-    Project project(String path) {
-        project(path, null)
-    }
-
-    Project project(String path, Closure configureClosure = null) {
-        if (!path) {
-            throw new InvalidUserDataException("A path must be specified!")
-        }
-        Project project = findProject(rootProject,
-                (isAbsolutePath(path)) ? path : absolutePath(path))
-        GradleUtil.configure(configureClosure, project)
-    }
-
-    SortedMap getAllTasks(boolean recursive) {
-        SortedMap foundTargets = new TreeMap()
-        Closure select = {DefaultProject project ->
-            foundTargets[project] = new TreeSet(project.tasks.values())
-        }
-        recursive ? projectsTraverser.traverse([this], select) : select(this)
-        foundTargets
-    }
-
-    SortedMap getTasksByName(String name, boolean recursive) {
-        if (!name) {
-            throw new InvalidUserDataException('Name is not specified!')
-        }
-        SortedMap foundTargets = new TreeMap()
-        Closure select = {DefaultProject project ->
-            if (project.tasks[name]) {
-                foundTargets[project] = project.tasks[name]
-            }
-        }
-        recursive ? projectsTraverser.traverse([this], select) : select(this)
-        foundTargets
-    }
-
-    File file(Object path) {
-        file(path, PathValidation.NONE)
-    }
-
-    File file(Object path, PathValidation validation) {
-        baseDirConverter.baseDir(path.toString(), projectDir, validation)
-    }
-
-    Task dir(String path) {
-        String resultTaskName = path
-        path.split('/').inject('') {name, pathElement ->
-            name += (name ? "/$pathElement" : pathElement)
-            if (tasks[name]) {
-                if (!(task(name) instanceof Directory)) {
-                    throw new InvalidUserDataException(
-                            'A non directory task with this name already exsists.')
-                }
-            } else {
-                createTask(name, type: Directory)
-            }
-            name
-        }
-        task(resultTaskName)
-    }
-
-    boolean equals(Object other) {
-        path.equals(other.path)
-    }
-
-    public int hashCode() {
-        return path.hashCode();
-    }
-
-    int compareTo(Object other) {
-        PathOrder.compareTo(path, other.path)
-    }
-
-    public String absolutePath(String path) {
-        if (!isAbsolutePath(path)) {
-            String prefix = this.is(rootProject) ? '' : Project.PATH_SEPARATOR
-            return "${this.path}$prefix$path"
-        }
-        path
-    }
-
-    static DefaultProject findProject(Project root, String absolutePath) {
-        assert root
-        assert DefaultProject.isAbsolutePath(absolutePath)
-        logger.debug("Find project by absolute path: $absolutePath")
-        absolutePath.split(Project.PATH_SEPARATOR).inject(root) {Project currentProject, String name ->
-            if (currentProject.is(root) && !name) {return root}
-            currentProject = currentProject.childProjects[name]
-            if (!currentProject) throw new UnknownProjectException("Project with path $absolutePath could not be found")
-            currentProject
-        }
-    }
-
-    static boolean isAbsolutePath(String path) {
-        assert path
-        return path.startsWith(Project.PATH_SEPARATOR)
-    }
-
+    
     def propertyMissing(String name) {
         if (additionalProperties.keySet().contains(name)) {
             return additionalProperties[name]
@@ -479,19 +105,49 @@ class DefaultProject implements Comparable, Project {
         project.additionalProperties[name] = value
     }
 
-    AntBuilder getAnt() {
-        if (ant == null) {
-            ant = new AntBuilder()
-            GradleUtil.setAntLogging(ant)
+    public void configureByDag(Closure configureByDag) {
+        setConfigureByDag(configureByDag as DagAction)
+    }
+
+    public Task createTask(String name, Closure action) {
+        return createTask(new HashMap(), name, action);
+    }
+
+    public Task createTask(Map args, String name, Closure action) {
+        return createTask(args, name, action as TaskAction)
+    }
+
+    public AntBuilder ant(Closure configureClosure) {
+        return (AntBuilder) ConfigureUtil.configure(configureClosure, getAnt(), Closure.OWNER_FIRST);
+    }
+
+    public DependencyManager dependencies(Closure configureClosure) {
+        return (DependencyManager) ConfigureUtil.configure(configureClosure, dependencies);
+    }
+
+    public void subprojects(Closure configureClosure) {
+        configureProjects(getSubprojects() as List, configureClosure);
+    }
+
+    public void allprojects(Closure configureClosure) {
+        configureProjects(getAllprojects() as List, configureClosure);
+    }
+
+    public void configureProjects(List<Project> projects, Closure configureClosure) {
+        for (Project project : projects) {
+            ConfigureUtil.configure(configureClosure, project);
         }
-        ant
     }
 
-    AntBuilder ant(Closure configureClosure) {
-        GradleUtil.configure(configureClosure, getAnt(), Closure.OWNER_FIRST)
+    public Project project(String path, Closure configureClosure) {
+        return (Project) ConfigureUtil.configure(configureClosure, project(path));
     }
 
-    DependencyManager dependencies(Closure configureClosure) {
-        dependencies.configure(configureClosure)
+    public Task task(String name, Closure configureClosure) {
+        Task task = task(name);
+        if (configureClosure != null) {
+            task.configure(configureClosure);
+        }
+        return task;
     }
 }

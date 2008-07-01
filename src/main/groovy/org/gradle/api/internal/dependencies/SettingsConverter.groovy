@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
 import org.gradle.util.GradleUtil
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -61,7 +62,7 @@ class SettingsConverter {
             it.repositoryCacheManager.settings = ivySettings
         }
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME)
-        GradleUtil.configure(clientModuleChainConfigurer, chainResolver)
+        ConfigureUtil.configure(clientModuleChainConfigurer, chainResolver)
         ivySettings
     }
 

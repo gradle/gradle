@@ -22,6 +22,7 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.GradleVersion
 import org.gradle.wrapper.Install
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -41,9 +42,9 @@ class Wrapper extends ConventionTask {
 
     def self
 
-    Wrapper(DefaultProject project, String name) {
+    Wrapper(Project project, String name) {
         super(project, name)
-        actions << this.&generate
+        doFirst(this.&generate)
         self = this
         scriptDestinationDir = project.projectDir
         gradleWrapperHomeParent = project.projectDir

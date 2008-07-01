@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.UnknownDependencyNotation
 
 /**
 * @author Hans Dockter
@@ -38,7 +39,7 @@ class TestDependencyImplInteger implements Dependency {
 
     TestDependencyImplInteger(Set confs, Object userDependencyDescription, DefaultProject project) {
         if (!(userDependencyDescription instanceof Integer)) {
-            throw new InvalidUserDataException('somemsg')
+            throw new UnknownDependencyNotation('somemsg')
         }
         this.confs = confs
         this.userDependencyDescription = userDependencyDescription

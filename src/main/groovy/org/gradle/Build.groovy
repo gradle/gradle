@@ -20,7 +20,6 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.configuration.BuildConfigurer
-import org.gradle.configuration.ProjectDependencies2TasksResolver
 import org.gradle.configuration.ProjectTasksPrettyPrinter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.Dag
@@ -28,6 +27,7 @@ import org.gradle.initialization.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.Project
+import org.gradle.configuration.ProjectDependencies2TaskResolver
 
 /**
  * @author Hans Dockter
@@ -147,11 +147,12 @@ class Build {
                                     new BuildScriptProcessor(importsReader, inMemoryScriptText, startParameter.useCache),
                                     new PluginRegistry(
                                             startParameter.pluginPropertiesFile),
-                            startParameter.buildFileName),
+                                    startParameter.buildFileName,
+                                    new ProjectRegistry())
 
                     ),
                     new BuildConfigurer(
-                            new ProjectDependencies2TasksResolver(),
+                            new ProjectDependencies2TaskResolver(),
                             new ProjectsTraverser(),
                             new ProjectTasksPrettyPrinter()),
                     new BuildExecuter(

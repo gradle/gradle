@@ -22,35 +22,39 @@ import org.gradle.api.internal.project.ProjectsTraverser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.util.Clock
+import org.gradle.api.ProjectAction
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class BuildConfigurer {
     private static Logger logger = LoggerFactory.getLogger(BuildConfigurer)
 
-    ProjectDependencies2TasksResolver projectDependencies2TasksResolver
+    ProjectDependencies2TaskResolver projectDependencies2TasksResolver
 
     ProjectsTraverser projectsTraverser
 
     ProjectTasksPrettyPrinter projectTasksPrettyPrinter
 
+    ProjectAction projectEvaluateAction
+
     BuildConfigurer() {}
 
-    BuildConfigurer(ProjectDependencies2TasksResolver projectDependencies2TasksResolver, ProjectsTraverser projectsTraverser, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
+    BuildConfigurer(ProjectDependencies2TaskResolver projectDependencies2TasksResolver, ProjectsTraverser projectsTraverser, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
         this.projectDependencies2TasksResolver = projectDependencies2TasksResolver
         this.projectsTraverser = projectsTraverser
         this.projectTasksPrettyPrinter = projectTasksPrettyPrinter
+        projectEvaluateAction = {DefaultProject project ->
+            project.evaluate()
+        } as ProjectAction
     }
 
     void process(Project rootProject) {
         logger.info('++ Configuring Project objects')
         Clock clock = new Clock()
-        projectsTraverser.traverse([rootProject]) {DefaultProject project ->
-            project.evaluate()
-        }
+        projectsTraverser.traverse([rootProject], projectEvaluateAction)
         projectDependencies2TasksResolver.resolve(rootProject)
-        logger.debug("Timing: Configuring projects took " + clock.time)
+        logger.info("Timing: Configuring projects took " + clock.time)
     }
 
     String taskList(Project rootProject, boolean recursive, Project currentProject) {

@@ -27,18 +27,11 @@ import org.apache.commons.io.FilenameUtils
 class GradleUtil {
     private static Logger logger = LoggerFactory.getLogger(GradleUtil)
 
-    static Closure extractClosure(Object[] args) {
-        if (args.length > 0 && args[args.length - 1] instanceof Closure) {
-            return args[args.length - 1]
-        }
-        return null
-    }
-
     static def List fileList(Object[] fileDescriptions) {
         fileDescriptions.collect { new File(it.toString()) }
     }
 
-    static def configure(Closure configureClosure, def delegate, int resolveStrategy = Closure.DELEGATE_FIRST) {
+    static def configure(Closure configureClosure, def delegate, int resolveStrategy) {
         if (!configureClosure) { return delegate}
         configureClosure.resolveStrategy = resolveStrategy
         configureClosure.delegate = delegate
@@ -66,6 +59,22 @@ class GradleUtil {
         []
     }
 
+    static URL[] filesToUrl(File file) {
+        List files = [file]
+        files.collect { it.toURL() }
+    }
+
+    static URL[] getGradleLiBClasspath() {
+        File gradleHomeLib = new File(System.properties["gradle.home"] + "/lib")
+        if (gradleHomeLib.isDirectory()) {
+            List list = gradleHomeLib.listFiles().findAll { File file -> !file.name.startsWith('groovy-all')}.collect { File file ->
+                file.toURL()
+            }
+            return list
+        }
+        []
+    }
+
     static List getGroovyFiles() {
         gradleClasspath(['groovy-all'])
     }
@@ -82,6 +91,7 @@ class GradleUtil {
         List path = getGradleClasspath() as List
         path.findAll {File file ->
             int pos = file.name.lastIndexOf('-')
+            if (pos == -1) { return }
             String libName = file.name.substring(0, pos)
             searchPatterns.contains(libName)
         }

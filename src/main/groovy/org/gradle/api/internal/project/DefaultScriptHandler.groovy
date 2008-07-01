@@ -21,18 +21,18 @@ import org.codehaus.groovy.control.CompilationUnit
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 import org.gradle.util.Clock
-import org.apache.commons.io.IOUtils
 import org.apache.commons.io.FileUtils
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
  */
-class ScriptHandler {
-    static Logger logger = LoggerFactory.getLogger(ScriptHandler)
+class DefaultScriptHandler implements ScriptHandler {
+    static Logger logger = LoggerFactory.getLogger(DefaultScriptHandler)
 
     static final String GRADLE_DIR_NAME = '.gradle'
 
-    Script createScript(DefaultProject project, String scriptText) {
+    Script createScript(Project project, String scriptText) {
         logger.debug("Parsing Script:\n$scriptText")
         Clock clock = new Clock()
         CompilerConfiguration configuration = createBaseCompilerConfiguration()
@@ -43,7 +43,7 @@ class ScriptHandler {
         script
     }
 
-    Script writeToCache(DefaultProject project, String scriptText) {
+    Script writeToCache(Project project, String scriptText) {
         Clock clock = new Clock()
         String buildFileCacheName = buildFileCacheName(project)
         File cacheDir = cacheDir(project, buildFileCacheName)
@@ -64,7 +64,7 @@ class ScriptHandler {
         configuration
     }
 
-    Script loadFromCache(DefaultProject project, long lastModified) {
+    Script loadFromCache(Project project, long lastModified) {
         String buildFileCacheName = buildFileCacheName(project)
         if (cacheFile(project, buildFileCacheName).lastModified() < lastModified) {
             return null
@@ -83,19 +83,19 @@ class ScriptHandler {
         script
     }
 
-    private File cacheDir(DefaultProject project, String buildCacheFileName) {
+    private File cacheDir(Project project, String buildCacheFileName) {
         new File(project.projectDir, "$GRADLE_DIR_NAME/$buildCacheFileName")
     }
 
-    private File cacheFile(DefaultProject project, String buildCacheFileName) {
+    private File cacheFile(Project project, String buildCacheFileName) {
         new File(cacheDir(project, buildCacheFileName), "${buildCacheFileName}.class")
     }
 
-    private String buildFileCacheName(DefaultProject project) {
+    private String buildFileCacheName(Project project) {
         project.buildFileName.replaceAll('\\.', '_')
     }
 
-    private Script replaceMetaclass(Script script, DefaultProject project) {
+    private Script replaceMetaclass(Script script, Project project) {
         ExpandoMetaClass projectScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
         projectScriptExpandoMetaclass.methodMissing = {String name, args ->
             logger.debug("Project: $project.path Method $name not found in script! Delegating to project.")

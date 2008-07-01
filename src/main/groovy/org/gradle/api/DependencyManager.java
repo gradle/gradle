@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import groovy.lang.Closure;
+
 /**
  * @author Hans Dockter
  */
@@ -84,6 +86,8 @@ public interface DependencyManager extends DependencyContainer {
      */
     String getArtifactProductionTaskName();
 
+    void setArtifactProductionTaskName(String name);
+
     /**
      * A map where the key is the name of the configuration and the value is the name of a task. This is needed
      * to deal with project dependencies. In case of a project dependency, we need to establish a dependsOn relationship,
@@ -128,7 +132,7 @@ public interface DependencyManager extends DependencyContainer {
      *
      * @param configuration
      */
-    void addConfiguration(Configuration configuration);
+    DependencyManager addConfiguration(Configuration configuration);
 
     /**
      * Adds a configuration with the given name. Under the hood an ivy configuration is created with default
@@ -136,7 +140,7 @@ public interface DependencyManager extends DependencyContainer {
      *
      * @param configuration
      */
-    void addConfiguration(String configuration);
+    DependencyManager addConfiguration(String configuration);
 
     /**
      * Returns a list of file objects, denoting the path to the classpath elements belonging to this configuration.

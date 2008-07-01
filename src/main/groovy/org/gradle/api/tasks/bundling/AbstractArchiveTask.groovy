@@ -27,6 +27,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.AntDirective
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -198,7 +199,7 @@ abstract class AbstractArchiveTask extends ConventionTask {
     protected def createFileSetInternal(Map args, Class type, Closure configureClosure) {
         args.dir = args.dir ?: self.baseDir
         def fileSet = type.newInstance(args)
-        resourceCollections << GradleUtil.configure(configureClosure, fileSet)
+        resourceCollections << ConfigureUtil.configure(configureClosure, fileSet)
         fileSet
     }
 
@@ -217,7 +218,7 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     AbstractArchiveTask merge(Object[] archiveFiles) {
         Object[] flattenedArchiveFiles = archiveFiles
-        Closure configureClosure = GradleUtil.extractClosure(flattenedArchiveFiles)
+        Closure configureClosure = ConfigureUtil.extractClosure(flattenedArchiveFiles)
         if (configureClosure) {
             flattenedArchiveFiles = flattenedArchiveFiles[0..archiveFiles.length - 2]
             if (flattenedArchiveFiles.length == 1 && flattenedArchiveFiles instanceof Object[]) {
@@ -228,7 +229,7 @@ abstract class AbstractArchiveTask extends ConventionTask {
             Class fileSetType = archiveDetector.archiveFileSetType(it)
             if (!fileSetType) { throw new InvalidUserDataException("File $it is not a valid archive or has no valid extension.") }
             def fileSet = fileSetType.newInstance(it)
-            GradleUtil.configure(configureClosure, fileSet)
+            ConfigureUtil.configure(configureClosure, fileSet)
             mergeFileSets.add(fileSet)
         }
         this
@@ -240,7 +241,7 @@ abstract class AbstractArchiveTask extends ConventionTask {
     AbstractArchiveTask mergeGroup(def dir, Closure configureClosure = null) {
         if (!dir) { throw new InvalidUserDataException('Dir argument must not be null!') }
         FileSet fileSet = new FileSet(dir as File)
-        GradleUtil.configure(configureClosure, fileSet)
+        ConfigureUtil.configure(configureClosure, fileSet)
         mergeGroupFileSets.add(fileSet)
         this
     }

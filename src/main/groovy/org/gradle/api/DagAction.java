@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api;
 
-package org.gradle.configuration
-
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.execution.Dag;
 
 /**
  * @author Hans Dockter
  */
-class ProjectTasksPrettyPrinter {
-    String getPrettyText(Map tasks) {
-        StringWriter stringWriter = new StringWriter()
-        new BufferedWriter(stringWriter).withWriter {Writer writer ->
-            tasks.keySet().each {Project project ->
-                writer.writeLine('*' * 50)
-                writer.writeLine("Project: $project")
-                tasks[project].each {Task task ->
-                    writer.writeLine("++Task: $task.path: $task.dependsOn")
-                }
-            }
-        }
-        stringWriter.toString()
-    }
+public interface DagAction {
+     void execute(Dag dag);
 }

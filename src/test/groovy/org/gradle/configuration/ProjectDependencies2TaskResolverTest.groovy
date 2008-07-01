@@ -21,6 +21,7 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectFactory
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
@@ -30,11 +31,11 @@ class ProjectDependencies2TaskResolverTest extends GroovyTestCase {
     DefaultProject child
     DefaultTask rootTask
     DefaultTask childTask
-    ProjectDependencies2TasksResolver resolver
+    ProjectDependencies2TaskResolver resolver
 
     void setUp() {
-        resolver = new ProjectDependencies2TasksResolver()
-        root = new DefaultProject("root", null, new File(""), null, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null), new DefaultDependencyManager(), null, null)
+        resolver = new ProjectDependencies2TaskResolver()
+        root = HelperUtil.createRootProject(new File('rootDir'))
         child = root.addChildProject("child")
         rootTask = new DefaultTask(root, 'compile')
         childTask = new DefaultTask(child, 'compile')

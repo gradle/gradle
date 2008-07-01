@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.project;
 
-package org.gradle.api.internal.project
+import groovy.lang.Script;
 
 /**
  * @author Hans Dockter
  */
-class ProjectsTraverser {
-    void traverse(Collection projects, Closure action) {
-        projects = new TreeSet(projects)
-        if (!projects) return
-        projects.each {
-            action(it)
-        }
-        projects.each {traverse(it.childProjects.values(), action)}
+public class EmptyScript extends Script{
+    public Object run() {
+        return null;
     }
 }

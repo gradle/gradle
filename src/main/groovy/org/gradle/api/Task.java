@@ -50,6 +50,8 @@ public interface Task extends Comparable {
      */
     Set getDependsOn();
 
+    void setDependsOn(Set dependsOnTasks);
+
     /**
      * @return true if this task has been executed already, false otherwise. This is in particular relevant for
      * multiproject builds.
@@ -80,7 +82,7 @@ public interface Task extends Comparable {
      * @param action
      * @return the task object this method is applied to
      */
-    Task doFirst(Closure action);
+    Task doFirst(TaskAction action);
 
     /**
      * Adds the given action closure to the end of the tasks action list.
@@ -88,7 +90,7 @@ public interface Task extends Comparable {
      * @param action
      * @return the task object this method is applied to
      */
-    Task doLast(Closure action);
+    Task doLast(TaskAction action);
 
     /**
      * Removes all the actions of this task.
@@ -99,12 +101,20 @@ public interface Task extends Comparable {
 
     Task lateInitialize(Closure configureClosure);
 
+    Task applyLateInitialize();
+
     Task afterDag(Closure configureClosure);
 
     boolean getLateInitialized();
 
+    List<Closure> getLateInitalizeClosures();
+
+    void setLateInitalizeClosures(List<Closure> lateInitalizeClosures);
+
     boolean getEnabled();
     
     void setEnabled(boolean enabled);
+
+    Task configure(Closure configureClosure);
 
 }

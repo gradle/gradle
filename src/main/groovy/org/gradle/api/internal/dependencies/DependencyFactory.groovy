@@ -19,6 +19,8 @@ package org.gradle.api.internal.dependencies
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.UnknownDependencyNotation
+import org.gradle.api.Project
 
 /**
 * @author Hans Dockter
@@ -30,7 +32,7 @@ class DependencyFactory {
         this.dependencyImplementations = dependencyImplementations
     }
 
-    Dependency createDependency(Set confs, Object userDependencyDescription, DefaultProject project) {
+    Dependency createDependency(Set confs, Object userDependencyDescription, Project project) {
         Dependency dependency = null
 
         if (userDependencyDescription instanceof Dependency) {
@@ -42,7 +44,7 @@ class DependencyFactory {
                 try {
                     dependency = clazz.newInstance(confs, userDependencyDescription, project)
                     break
-                } catch (InvalidUserDataException e) {
+                } catch (UnknownDependencyNotation e) {
                     // ignore
                 }
             }

@@ -79,6 +79,10 @@ class Bundle extends ConventionTask {
         }
     }
 
+    Jar jar() {
+        jar(null);
+    }
+
     Jar jar(Closure configureClosure = null) {
         jar([:], configureClosure)
     }

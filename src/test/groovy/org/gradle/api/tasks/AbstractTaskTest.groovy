@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import org.gradle.api.TaskAction
 
 /**
  * @author Hans Dockter
@@ -94,8 +95,8 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testDoFirst() {
-        Closure action1 = {}
-        Closure action2 = {}
+        TaskAction action1 = {} as TaskAction
+        TaskAction action2 = {} as TaskAction
         int actionSizeBefore = task.actions.size()
         assert task.is(task.doFirst(action2))
         assertEquals(actionSizeBefore + 1, task.actions.size())
@@ -105,8 +106,8 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testDoLast() {
-        Closure action1 = {}
-        Closure action2 = {}
+        TaskAction action1 = {} as TaskAction
+        TaskAction action2 = {} as TaskAction
         int actionSizeBefore = task.actions.size()
         assert task.is(task.doLast(action1))
         assertEquals(actionSizeBefore + 1, task.actions.size())
@@ -116,8 +117,8 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testDeleteAllActions() {
-        Closure action1 = {}
-        Closure action2 = {}
+        TaskAction action1 = {} as TaskAction
+        TaskAction action2 = {} as TaskAction
         task.doLast(action1)
         task.doLast(action2)
         assert task.is(task.deleteAllActions())
@@ -130,13 +131,27 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         }
     }
 
-    void testBasicExecute() {
+    void testAddActionsWithClosures() {
         task.actions = []
-        assertFalse(task.executed)
         boolean action1Called = false
         Closure action1 = {Task task -> action1Called = true}
         boolean action2Called = false
         Closure action2 = {Task task -> action2Called = true}
+        task.doFirst(action1)
+        task.doLast(action2)
+        task.execute()
+        assertTrue(action1Called)
+        assertTrue(action2Called)
+    }
+
+
+    void testBasicExecute() {
+        task.actions = []
+        assertFalse(task.executed)
+        boolean action1Called = false
+        TaskAction action1 = {Task task -> action1Called = true} as TaskAction
+        boolean action2Called = false
+        TaskAction action2 = {Task task -> action2Called = true} as TaskAction
         task.doLast(action1)
         task.doLast(action2)
         task.execute()
@@ -146,7 +161,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testConfigure() {
-        Closure action1 = {}
+        TaskAction action1 = {} as TaskAction
         assert task.configure {
             doFirst(action1)
         }.is(task)
@@ -154,9 +169,9 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void testStopExecution() {
-        Closure action1 = {throw new StopExecutionException()}
+        TaskAction action1 = {throw new StopExecutionException()} as TaskAction
         boolean action2Called = false
-        Closure action2 = {action2Called = true}
+        TaskAction action2 = {action2Called = true} as TaskAction
         task.doFirst(action2)
         task.doFirst(action1)
         task.execute()
@@ -166,12 +181,12 @@ abstract class AbstractTaskTest extends GroovyTestCase {
 
     void testStopAction() {
         task.actions = []
-        Closure action1 = {
+        TaskAction action1 = {
             throw new StopActionException()
             fail()
-        }
+        }  as TaskAction
         boolean action2Called = false
-        Closure action2 = {action2Called = true}
+        TaskAction action2 = {action2Called = true} as TaskAction
         task.doFirst(action2)
         task.doFirst(action1)
         task.execute()
@@ -181,9 +196,9 @@ abstract class AbstractTaskTest extends GroovyTestCase {
 
     void testDisabled() {
         task.actions = []
-        Closure action1 = {
+        TaskAction action1 = {
             fail()
-        }
+        } as TaskAction
         task.doFirst(action1)
         task.enabled = false
         task.execute()
@@ -193,10 +208,10 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     void testSkipProperties() {
         task.skipProperties = ['prop1']
         boolean action1Called = false
-        Closure action1 = {
+        TaskAction action1 = {
             action1Called = true
             throw new StopExecutionException()
-        }
+        }  as TaskAction
         task.doFirst(action1)
 
         System.setProperty(task.skipProperties[0], 'true')
@@ -220,10 +235,10 @@ abstract class AbstractTaskTest extends GroovyTestCase {
 
     void testAutoSkipProperties() {
         boolean action1Called = false
-        Closure action1 = {
+        TaskAction action1 = {
             action1Called = true
             throw new StopExecutionException()
-        }
+        } as TaskAction
         task.doFirst(action1)
 
         System.setProperty("skip.$task.name", 'true')
@@ -250,8 +265,8 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
     void checkConfigureEvent(Closure addMethod, Closure applyMethod) {
-        Closure action1 = {}
-        Closure action2 = {}
+        TaskAction action1 = {} as TaskAction
+        TaskAction action2 = {} as TaskAction
         assert addMethod {
             doFirst(action2)
         }.is(task)
@@ -263,4 +278,6 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assert task.actions[0].is(action1)
         assert task.actions[1].is(action2)
     }
+
+
 }

@@ -21,6 +21,7 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.gradle.util.GradleUtil
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -36,9 +37,9 @@ class Groovydoc extends ConventionTask {
 
     def self
 
-    Groovydoc(DefaultProject project, String name) {
+    Groovydoc(Project project, String name) {
         super(project, name)
-        actions << this.&generate
+        doFirst(this.&generate)
         self = this
     }
 

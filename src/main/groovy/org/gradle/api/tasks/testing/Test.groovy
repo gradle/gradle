@@ -26,6 +26,7 @@ import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -83,9 +84,9 @@ class Test extends ConventionTask {
 
     protected ClasspathConverter classpathConverter = new ClasspathConverter()
 
-    Test(DefaultProject project, String name) {
+    Test(Project project, String name) {
         super(project, name)
-        actions << this.&executeTests
+        doFirst(this.&executeTests)
         self = this
     }
 
@@ -115,7 +116,10 @@ class Test extends ConventionTask {
     }
 
     Test unmanagedClasspath(Object[] elements) {
-        self.unmanagedClasspath.addAll((elements as List).flatten())
+        if (!unmanagedClasspath) {
+            unmanagedClasspath.addAll(self.unmanagedClasspath)
+        }
+        unmanagedClasspath.addAll((elements as List).flatten())
         this
     }
 

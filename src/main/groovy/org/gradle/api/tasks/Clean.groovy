@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Project
 
 /**
 * @author Hans Dockter
@@ -36,9 +37,9 @@ class Clean extends ConventionTask {
 
     Clean self
 
-    Clean(DefaultProject project, String name) {
+    Clean(Project project, String name) {
         super(project, name)
-        actions << this.&clean
+        doFirst(this.&clean)
         self = this
     }
 

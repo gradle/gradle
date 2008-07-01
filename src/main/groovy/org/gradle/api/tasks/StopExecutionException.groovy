@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 /**
  * @author Hans Dockter
  */
-class StopExecutionException extends Exception {
+class StopExecutionException extends RuntimeException {
 
     StopExecutionException() {
         super()

@@ -42,7 +42,7 @@ import java.util.*;
  *
  * @since 3.3
  */
-public final class Dag {
+public class Dag {
     private static final Logger logger = LoggerFactory.getLogger(Dag.class);
 
     /**
@@ -234,7 +234,7 @@ public final class Dag {
     }
 
     public void addTask(DefaultTask task, Set<DefaultTask> dependsOnTasks) {
-        logger.debug(String.format("Add task: %s DependsOnTargets: %s", task, dependsOnTasks));
+        logger.debug(String.format("Add task: %s DependsOnTasks: %s", task, dependsOnTasks));
         addVertex(task);
         for (DefaultTask dependsOnTask : dependsOnTasks) {
             if (!addEdge(task, dependsOnTask)) {
@@ -243,14 +243,13 @@ public final class Dag {
         }
     }
 
-    public Dag execute() {
-        execute(new TreeSet(getSources()));
-        return this;
+    public void execute() {
+        execute(getSources());
     }
 
     private void execute(Set<DefaultTask> tasks) {
         for (DefaultTask task : tasks) {
-            execute(new TreeSet(getChildren(task)));
+            execute(getChildren(task));
             if (!task.getExecuted()) {
                 logger.info("Executing: " + task);
                 task.execute();
@@ -268,20 +267,20 @@ public final class Dag {
         return false;
     }
 
-    public SortedSet<DefaultTask> getAllTasks() {
-        return accumulateTasks(new TreeSet(getSources()));
+    public Set<DefaultTask> getAllTasks() {
+        return accumulateTasks(getSources());
     }
 
-    private SortedSet<DefaultTask> accumulateTasks(SortedSet<DefaultTask> tasks) {
-        SortedSet<DefaultTask> resultTasks = new TreeSet<DefaultTask>();
+    private Set<DefaultTask> accumulateTasks(Set<DefaultTask> tasks) {
+        Set<DefaultTask> resultTasks = new HashSet<DefaultTask>();
         for (DefaultTask task : tasks) {
-            resultTasks.addAll(accumulateTasks(new TreeSet(getChildren(task))));
+            resultTasks.addAll(accumulateTasks(new HashSet(getChildren(task))));
             resultTasks.add(task);
         }
         return resultTasks;
     }
 
-    public Set getProjects() {
+    public Set<Project> getProjects() {
         HashSet<Project> projects = new HashSet<Project>();
         for (DefaultTask task : getAllTasks()) {
             projects.add(task.getProject());
