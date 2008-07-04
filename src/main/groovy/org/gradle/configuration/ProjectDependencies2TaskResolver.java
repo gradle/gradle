@@ -29,12 +29,6 @@ import org.gradle.util.WrapUtil;
 public class ProjectDependencies2TaskResolver {
     private static Logger logger = LoggerFactory.getLogger(ProjectDependencies2TaskResolver.class);
 
-    // This is an implementation detail of ProjectDependencies2TasksResolver. Therefore we don't use IoC here.
-    ProjectsTraverser projectsTraverser = new ProjectsTraverser();
-
-    ProjectDependencies2TaskResolver(ProjectsTraverser projectsTraverser) {
-    }
-
     public void resolve(Project rootProject) {
         ProjectAction projectAction = new ProjectAction() {
             public void execute(Project project) {
@@ -49,6 +43,6 @@ public class ProjectDependencies2TaskResolver {
                 }
             }
         };
-        projectsTraverser.traverse(WrapUtil.toSet(rootProject), projectAction);
+        rootProject.allprojects(projectAction);
     }
 }

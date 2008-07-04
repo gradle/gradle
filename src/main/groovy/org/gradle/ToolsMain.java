@@ -16,81 +16,44 @@
 
 package org.gradle;
 
-import org.apache.tools.ant.launch.Locator;
-import org.gradle.util.GradleUtil;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
 /**
- * @author Steven Devijver
+ * @author Steven Devijver, Hans Dockter
  */
 public class ToolsMain {
     public static void main(String[] args) throws Exception {
-        boolean modernCompilerFound = false;
-        // As we don't want to start logging before logging is configured, we use this variable for messages from ToolsMain
-        List toolsMainInfo = new ArrayList();
-
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        try {
-            classLoader.loadClass("com.sun.tools.javac.Main");
-            modernCompilerFound = true;
-            toolsMainInfo.add("Modern compiler found.");
-        } catch (ClassNotFoundException e) {
-            toolsMainInfo.add("No modern compiler.");
-        }
-
-        ClassLoader _cl = classLoader;
-        while (_cl.getParent() != null) {
-            _cl = _cl.getParent();
-        }
-        File toolsJar = Locator.getToolsJar();
         List jars = new ArrayList();
-
-        File[] files = GradleUtil.getGradleClasspath();
+        File[] files = getGradleClasspath();
         for (int i = 0; i < files.length; i++) {
-            jars.add(Locator.fileToURL(files[i]));
+            jars.add(files[i].toURL());
         }
-
-        if (!modernCompilerFound) {
-            jars.add(Locator.fileToURL(toolsJar));
-        }
-
-        ClassLoader contextClassLoader = new URLClassLoader((URL[]) jars.toArray(new URL[jars.size()]), _cl);
-        contextClassLoader.loadClass("com.sun.tools.javac.Main");
+        ClassLoader contextClassLoader = new URLClassLoader((URL[]) jars.toArray(new URL[jars.size()]), classLoader.getParent());
         classLoader = contextClassLoader;
         Thread.currentThread().setContextClassLoader(contextClassLoader);
-
         Class mainClass = classLoader.loadClass("org.gradle.Main");
         Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
         List argList = new ArrayList(Arrays.asList(args));
-        argList.add(0, toolsMainInfo.get(0));
+        argList.add(0, "-B Adding jars to context loader: " + jars);
         mainMethod.invoke(null, new Object[]
                 {
                         (String[]) argList.toArray(new String[argList.size()])
                 }
         );
-////        Main.main(args);
-//
-////        URLClassLoader appClassLoader = new URLClassLoader(GradleUtil.filesToUrl(new File("/Users/hans/java/groovy-1.5.5/embeddable/groovy-all-1.5.5.jar")), ClassLoader.getSystemClassLoader().getParent());
-////
-////        URLClassLoader gradleLibsClassLoader = new URLClassLoader(GradleUtil.getGradleLiBClasspath(), appClassLoader);
-////        Thread.currentThread().setContextClassLoader(gradleLibsClassLoader);
-////        System.out.println(gradleLibsClassLoader);
-////        Class mainClass = gradleLibsClassLoader.loadClass("org.gradle.Main");
-////        Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
-//        List<String> argList = new ArrayList<String>(Arrays.asList(args));
-//        argList.add(0, "XXXXXXXXX");
-////        mainMethod.invoke(null, new Object[]
-////                {
-////                        (String[]) argList.toArray(new String[argList.size()])
-////                }
-////        );
-//        Main.main(argList.toArray(new String[argList.size()]));
+    }
+
+    private static File[] getGradleClasspath() {
+        File gradleHomeLib = new File(System.getProperty("gradle.home") + "/lib");
+        if (gradleHomeLib.isDirectory()) {
+            return gradleHomeLib.listFiles();
+        }
+        return new File[0];
     }
 }

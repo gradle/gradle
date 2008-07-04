@@ -38,7 +38,7 @@ class ProjectTasksPrettyPrinterTest extends GroovyTestCase {
         Task task12 = [getPath: {expectedTask12String}, getDependsOn: {[] as SortedSet}] as Task
         Task task21 = [getPath: {expectedTask21String}, getDependsOn: {[] as SortedSet}] as Task
 
-        Map tasks = [(project1): [task11, task12], (project2): [task21]]
+        Map tasks = [(project1): new LinkedHashSet([task11, task12]), (project2): [task21] as Set]
         // We can't use triple quoted strings for cresting the expected value, as they use always /n as
         // line separator. In contrast to writeLine, which uses the platform specific line separator. This
         // would(has) lead to failing tests under Windows.

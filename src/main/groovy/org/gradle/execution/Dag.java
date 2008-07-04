@@ -30,6 +30,7 @@ package org.gradle.execution;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,6 @@ import java.util.*;
 
 /**
  * A directed acyclic graph. See http://en.wikipedia.org/wiki/Directed_acyclic_graph
- *
- * @since 3.3
  */
 public class Dag {
     private static final Logger logger = LoggerFactory.getLogger(Dag.class);
@@ -227,16 +226,15 @@ public class Dag {
 
     /*
       * @see java.lang.Object#toString()
-      * @since 3.3
       */
     public String toString() {
         return "Out: " + fOut.toString() + " In: " + fIn.toString(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
-    public void addTask(DefaultTask task, Set<DefaultTask> dependsOnTasks) {
+    public void addTask(Task task, Set<Task> dependsOnTasks) {
         logger.debug(String.format("Add task: %s DependsOnTasks: %s", task, dependsOnTasks));
         addVertex(task);
-        for (DefaultTask dependsOnTask : dependsOnTasks) {
+        for (Task dependsOnTask : dependsOnTasks) {
             if (!addEdge(task, dependsOnTask)) {
                 throw new CircularReferenceException(String.format("Can't establish dependency %s ==> %s", task, dependsOnTask));
             }
@@ -244,12 +242,12 @@ public class Dag {
     }
 
     public void execute() {
-        execute(getSources());
+        execute(new TreeSet(getSources()));
     }
 
     private void execute(Set<DefaultTask> tasks) {
         for (DefaultTask task : tasks) {
-            execute(getChildren(task));
+            execute(new TreeSet(getChildren(task)));
             if (!task.getExecuted()) {
                 logger.info("Executing: " + task);
                 task.execute();

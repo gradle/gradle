@@ -23,34 +23,45 @@ import org.gradle.api.tasks.util.CopyInstructionTest
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1
+import org.junit.runner.RunWith
+import org.gradle.util.JUnit4GroovyMockery
+import org.junit.Test
+import org.junit.Before
+import org.jmock.lib.legacy.ClassImposteriser
+import org.jmock.Expectations
+import org.gradle.api.tasks.util.CopyInstruction
 
 /**
  * @author Hans Dockter
  */
+@RunWith (org.jmock.integration.junit4.JMock)
 class ResourcesTest extends AbstractTaskTest {
     Resources resources
 
-    CopyInstructionFactory copyInstructionFactory
+    CopyInstructionFactory copyInstructionFactoryMock
 
     MockFor copyInstructionFactoryMocker
 
     ResourcesTestConvention pluginConvention
 
-    void setUp() {
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery();
+
+    @Before
+    public void setUp() {
         super.setUp()
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         resources = new Resources(project, AbstractTaskTest.TEST_TASK_NAME)
-        copyInstructionFactory = new CopyInstructionFactory()
-        resources.copyInstructionFactory = copyInstructionFactory
         pluginConvention = new ResourcesTestConvention()
         pluginConvention.classesDir = new File('/classes')
         project.convention.plugins.test = pluginConvention
         resources.conventionMapping = [destinationDir: { it.classesDir }]
-        copyInstructionFactoryMocker = new MockFor(CopyInstructionFactory)
+        copyInstructionFactoryMock = context.mock(CopyInstructionFactory.class)
+        resources.copyInstructionFactory = copyInstructionFactoryMock
     }
 
     Task getTask() {resources}
 
-    void testExecute() {
+    @Test public void testExecute() {
         assertEquals(pluginConvention.classesDir, resources.destinationDir)
 
         File sourceDir1 = new File('/source1')
@@ -98,12 +109,43 @@ class ResourcesTest extends AbstractTaskTest {
 
         Map instructionExecuted = [:]
 
+        resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
+            assert destDir.is(resources.destinationDir)
+            assert srcDirs.is(resources.srcDirs)
+            resources.srcDirs
+        }] as ExistingDirsFilter
 
-        Map record = [:]
-        copyInstructionFactoryMocker.demand.createCopyInstruction(3..3) {File sourceDir, File target, Set includes, Set excludes, Map filter ->
-            record[sourceDir] = [target, includes, excludes, filter]
-            [execute: {instructionExecuted[sourceDir] = new Boolean(true)}] as CopyInstructionTest
+        int executeCounter = 0
+        CopyInstruction copyInstructionMock = [execute: {executeCounter++}] as CopyInstruction
+       
+        context.checking {
+            one(copyInstructionFactoryMock).createCopyInstruction(
+                    sourceDir1,
+                    targetDir,
+                    [globalPattern1, globalPattern2, globalPattern3, sourceDir1Pattern1, sourceDir1Pattern2, sourceDir1Pattern3] as Set,
+                    [globalPattern1, globalPattern2, globalPattern3, sourceDir1Pattern1, sourceDir1Pattern2, sourceDir1Pattern3] as Set,
+                    globalFilter1 + globalFilter2 + sourceDir1Filter1 + sourceDir1Filter2
+            )
+            will(returnValue(copyInstructionMock))
+            one(copyInstructionFactoryMock).createCopyInstruction(
+                    sourceDir2,
+                    targetDir,
+                    [globalPattern1, globalPattern2, globalPattern3, sourceDir2Pattern1, sourceDir2Pattern2, sourceDir2Pattern3] as Set,
+                    [globalPattern1, globalPattern2, globalPattern3, sourceDir2Pattern1, sourceDir2Pattern2, sourceDir2Pattern3] as Set,
+                    globalFilter1 + globalFilter2 + sourceDir2Filter1 + sourceDir2Filter2
+            )
+            will(returnValue(copyInstructionMock))
+            one(copyInstructionFactoryMock).createCopyInstruction(
+                    sourceDir3,
+                    targetDir,
+                    [globalPattern1, globalPattern2, globalPattern3] as Set,
+                    [globalPattern1, globalPattern2, globalPattern3] as Set,
+                    globalFilter1 + globalFilter2
+            )
+            will(returnValue(copyInstructionMock))
+//            exactly(3).of(copyInstructionMock).execute()
         }
+
 
         resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
             assert destDir.is(resources.destinationDir)
@@ -111,34 +153,10 @@ class ResourcesTest extends AbstractTaskTest {
             resources.srcDirs
         }] as ExistingDirsFilter
 
+        resources.execute()
 
-        copyInstructionFactoryMocker.use(copyInstructionFactory) {
-            resources.execute()
-        }
-
-        assertEquals(3, record.size())
-
-        assertNotNull record[sourceDir1]
-        checkCopyInstructionCall(record[sourceDir1], targetDir,
-                [globalPattern1, globalPattern2, globalPattern3, sourceDir1Pattern1, sourceDir1Pattern2, sourceDir1Pattern3],
-                [globalPattern1, globalPattern2, globalPattern3, sourceDir1Pattern1, sourceDir1Pattern2, sourceDir1Pattern3],
-                (globalFilter1 + globalFilter2 + sourceDir1Filter1 + sourceDir1Filter2))
-
-        assertNotNull record[sourceDir2]
-        checkCopyInstructionCall(record[sourceDir2], targetDir,
-                [globalPattern1, globalPattern2, globalPattern3, sourceDir2Pattern1, sourceDir2Pattern2, sourceDir2Pattern3],
-                [globalPattern1, globalPattern2, globalPattern3, sourceDir2Pattern1, sourceDir2Pattern2, sourceDir2Pattern3],
-                globalFilter1 + globalFilter2 + sourceDir2Filter1 + sourceDir2Filter2)
-
-        assertNotNull record[sourceDir3]
-        checkCopyInstructionCall(record[sourceDir3], targetDir,
-                [globalPattern1, globalPattern2, globalPattern3],
-                [globalPattern1, globalPattern2, globalPattern3],
-                globalFilter1 + globalFilter2)
-
-        assertTrue(instructionExecuted[sourceDir1])
-        assertTrue(instructionExecuted[sourceDir2])
-        assertTrue(instructionExecuted[sourceDir3])
+        assert executeCounter == 3
+        
     }
 
     private void checkCopyInstructionCall(List calledValues, File targetDir, List includes, List excludes, Map filter) {

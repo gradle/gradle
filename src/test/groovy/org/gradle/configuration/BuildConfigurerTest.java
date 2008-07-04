@@ -41,7 +41,6 @@ import java.util.TreeMap;
 public class BuildConfigurerTest extends TestCase {
     BuildConfigurer buildConfigurer;
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver;
-    ProjectsTraverser projectsTraverser;
     BuildScriptProcessor buildScriptProcessor;
     ProjectTasksPrettyPrinter projectTasksPrettyPrinter;
     Project rootProject;
@@ -55,10 +54,9 @@ public class BuildConfigurerTest extends TestCase {
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        projectsTraverser = context.mock(ProjectsTraverser.class);
         projectDependencies2TasksResolver = context.mock(ProjectDependencies2TaskResolver.class);
         projectTasksPrettyPrinter = new ProjectTasksPrettyPrinter();
-        buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver, projectsTraverser, projectTasksPrettyPrinter);
+        buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver, projectTasksPrettyPrinter);
         buildScriptProcessor = new BuildScriptProcessor();
         resolveCalled = false;
         expectedTasksMap = new TreeMap();
@@ -77,7 +75,7 @@ public class BuildConfigurerTest extends TestCase {
             allowing(rootProject).evaluate(); will(returnValue(rootProject));
             allowing(rootProject).getBuildScriptProcessor(); will(returnValue(buildScriptProcessor));
             allowing(rootProject).getAllTasks(expectedRecursive); will(returnValue(expectedTasksMap));
-            one(projectsTraverser).traverse(WrapUtil.toList(rootProject), testEvaluateAction);
+            one(rootProject).allprojects(testEvaluateAction);
             one(projectDependencies2TasksResolver).resolve(with(same(rootProject)));
         }});
     }
@@ -85,7 +83,6 @@ public class BuildConfigurerTest extends TestCase {
     @Test
     public void testBuildConfigurer() {
         assert buildConfigurer.getProjectDependencies2TasksResolver() == projectDependencies2TasksResolver;
-        assert buildConfigurer.getProjectsTraverser() == projectsTraverser;
         assert buildConfigurer.getProjectTasksPrettyPrinter() == projectTasksPrettyPrinter;
     }
 

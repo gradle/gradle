@@ -75,11 +75,6 @@ public abstract class AbstractTask implements Task {
         return ant;
     }
 
-    public void setAnt(AntBuilder ant) {
-        this.ant = ant;
-    }
-
-
     public Project getProject() {
         return project;
     }

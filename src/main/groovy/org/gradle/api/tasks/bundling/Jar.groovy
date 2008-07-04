@@ -20,10 +20,12 @@ import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.List;
+
 /**
 * @author Hans Dockter
 */
-class Jar extends Zip {
+public class Jar extends Zip {
     static final String DEFAULT_EXTENSION = 'jar'
 
     private static Logger logger = LoggerFactory.getLogger(Jar)
@@ -36,16 +38,45 @@ class Jar extends Zip {
 
     String fileSetManifest
 
-    Jar self
-
     Jar(Project project, String name) {
         super(project, name)
-        self = this
         extension = DEFAULT_EXTENSION
     }   
 
     Closure createAntArchiveTask() {
-        {-> antJar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets, fileSetManifest,
-                self.createIfEmpty, self.destinationDir, archiveName, self.manifest, self.metaInfResourceCollections, project.ant))}
+        {-> antJar.execute(new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
+                getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant))}
+    }
+
+    public AntJar getAntJar() {
+        return antJar;
+    }
+
+    public void setAntJar(AntJar antJar) {
+        this.antJar = antJar;
+    }
+
+    public GradleManifest getManifest() {
+        return conv(manifest, "manifest");
+    }
+
+    public void setManifest(GradleManifest manifest) {
+        this.manifest = manifest;
+    }
+
+    public List getMetaInfResourceCollections() {
+        return conv(metaInfResourceCollections, "metaInfResourceCollections");
+    }
+
+    public void setMetaInfResourceCollections(List metaInfResourceCollections) {
+        this.metaInfResourceCollections = metaInfResourceCollections;
+    }
+
+    public String getFileSetManifest() {
+        return conv(fileSetManifest, "fileSetManifest");
+    }
+
+    public void setFileSetManifest(String fileSetManifest) {
+        this.fileSetManifest = fileSetManifest;
     }
 }

@@ -48,14 +48,14 @@ public class BuildExecuter {
 
         logger.info(String.format("++ Executing: %s Recursive:%s Startproject: %s", taskName, recursive, currentProject));
 
-        Map<DefaultProject, DefaultTask> calledTasks = currentProject.getTasksByName(taskName, recursive);
-        logger.debug("Found tasks: " + calledTasks.values());
-        if (calledTasks.size() == 0) {
+        Set<Task> calledTasks = currentProject.getTasksByName(taskName, recursive);
+        logger.debug("Found tasks: " + calledTasks);
+        if (calledTasks.size() == 0) {           
             throw new UnknownTaskException("No tasks available for " + taskName);
         }
         Clock clock = new Clock();
         dag.reset();
-        fillDag(this.dag, calledTasks.values(), rootProject);
+        fillDag(this.dag, calledTasks, rootProject);
         for (Project project : dag.getProjects()) {
             if (project.getConfigureByDag() != null) {
                 project.getConfigureByDag().execute(dag);
@@ -88,9 +88,9 @@ public class BuildExecuter {
         return unknownTasks;
     }
 
-    private void fillDag(Dag dag, Collection<DefaultTask> tasks, Project rootProject) {
-        for (DefaultTask task : tasks) {
-            Set<DefaultTask> dependsOnTasks = findDependsOnTasks(task, rootProject);
+    private void fillDag(Dag dag, Collection<Task> tasks, Project rootProject) {
+        for (Task task : tasks) {
+            Set<Task> dependsOnTasks = findDependsOnTasks(task, rootProject);
             dag.addTask(task, dependsOnTasks);
             if (dependsOnTasks.size() > 0) {
                 logger.debug("Found dependsOn tasks for " + task + ": " + dependsOnTasks);
@@ -101,9 +101,9 @@ public class BuildExecuter {
         }
     }
 
-    private Set<DefaultTask> findDependsOnTasks(DefaultTask task, Project rootProject) {
+    private Set<Task> findDependsOnTasks(Task task, Project rootProject) {
         logger.debug("Find dependsOn tasks for " + task);
-        Set<DefaultTask> dependsOnTasks = new HashSet<DefaultTask>();
+        Set<Task> dependsOnTasks = new HashSet<Task>();
         for (Object taskDescriptor : task.getDependsOn()) {
             String absolutePath = absolutePath(task.getProject(), taskDescriptor);
             Path path = new Path(absolutePath);

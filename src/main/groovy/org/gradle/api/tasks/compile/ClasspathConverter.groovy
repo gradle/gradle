@@ -30,10 +30,11 @@ class ClasspathConverter {
 
     BaseDirConverter baseDirConverter = new BaseDirConverter()
     
-    List createFileClasspath(File baseDir, Object[] args) {
-        logger.debug("Create additional classpath from $args")
+    List createFileClasspath(File baseDir, List args) {
+        List flattenedArgs = args ? args.flatten() : []
+        logger.debug("Create additional classpath from " + flattenedArgs);
         List classpath = []
-        args.each {classpathElement ->
+        flattenedArgs.each {classpathElement ->
             if (!classpathElement) {
                 throw new IllegalArgumentException('Classpath elements must not be null or empty')
             }
@@ -41,8 +42,8 @@ class ClasspathConverter {
             switch (elementType) {
                 case String: classpath << baseDirConverter.baseDir(classpathElement, baseDir, PathValidation.EXISTS); break
                 case File: classpath << classpathElement; break
-                case Collection: classpathElement.flatten().each() {classpath += createFileClasspath(baseDir, it)[0]}; break
-                default: throw new InvalidUserDataException ("Illegal classpathelement $classpathElement")
+//                case Collection: classpathElement.flatten().each() {classpath += createFileClasspath(baseDir, it)[0]}; break
+                default: throw new InvalidUserDataException ("Illegal classpathelement " + classpathElement.getClass())
             }
         }
         logger.debug("Created path as: $classpath")

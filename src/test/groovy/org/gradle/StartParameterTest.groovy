@@ -43,11 +43,4 @@ class StartParameterTest extends GroovyTestCase {
         StartParameter startParameter = StartParameter.newInstance(testObj)
         assert startParameter.equals(testObj)
     }
-
-    void testNewInstanceWithModifiedParameter() {
-        String newBuildFileName = 'newname'
-        StartParameter startParameter = StartParameter.newInstance(testObj, buildFileName: newBuildFileName)
-        assert !startParameter.equals(testObj)
-        assertEquals(newBuildFileName, startParameter.buildFileName)
-    }
 }

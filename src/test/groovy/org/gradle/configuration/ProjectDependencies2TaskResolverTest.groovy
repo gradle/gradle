@@ -17,10 +17,7 @@
 package org.gradle.configuration
 
 import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.ProjectFactory
 import org.gradle.util.HelperUtil
 
 /**

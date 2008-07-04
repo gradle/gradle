@@ -29,7 +29,7 @@ import org.gradle.wrapper.Install
 /**
  * @author Hans Dockter
  */
-class WrapperTest extends AbstractConventionTaskTest {
+class WrapperTest extends AbstractTaskTest {
     Wrapper wrapper
     MockFor wrapperScriptGeneratorMocker
     File testDir
@@ -48,13 +48,13 @@ class WrapperTest extends AbstractConventionTaskTest {
         gradleHomeLib.mkdirs()
         sourceWrapperJar = new File(gradleHomeLib.absolutePath, "$Install.WRAPPER_DIR-${TestConsts.VERSION}.jar")
         sourceWrapperJar.write('sometext' + System.currentTimeMillis())
-        System.properties[Main.GRADLE_HOME] = gradleHomeLib.parent
+        System.properties[Main.GRADLE_HOME_PROPERTY_KEY] = gradleHomeLib.parent
         gradleWrapperHome = new File(testDir, Install.WRAPPER_DIR)
         targetWrapperJar = new File(gradleWrapperHome, Install.WRAPPER_JAR)
     }
 
     void tearDown() {
-        System.properties[Main.GRADLE_HOME] = MainTest.TEST_GRADLE_HOME
+        System.properties[Main.GRADLE_HOME_PROPERTY_KEY] = MainTest.TEST_GRADLE_HOME
         HelperUtil.deleteTestDir()
     }
 

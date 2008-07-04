@@ -33,7 +33,7 @@ import org.gradle.api.plugins.JavaPluginConvention
 /**
  * @author Hans Dockter
  */
-class UploadTest extends AbstractConventionTaskTest {
+class UploadTest extends AbstractTaskTest {
     static final String RESOLVER_NAME_1 = 'resolver1'
     static final String RESOLVER_NAME_2 = 'resolver2'
 

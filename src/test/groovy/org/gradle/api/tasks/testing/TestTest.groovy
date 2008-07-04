@@ -165,7 +165,7 @@ class TestTest extends AbstractConventionTaskTest {
             TEST_DEPENDENCY_MANAGER_CLASSPATH
         }] as DependencyManager
 
-        test.classpathConverter = [createFileClasspath: {File baseDir, Object[] pathElements ->
+        test.classpathConverter = [createFileClasspath: {File baseDir, List pathElements ->
             assertEquals(TEST_ROOT_DIR, baseDir)
             assertEquals([TEST_TEST_CLASSES_DIR] + TEST_UNMANAGED_CLASSPATH, pathElements as List)
             [TEST_TEST_CLASSES_DIR] + TEST_CONVERTED_UNMANAGED_CLASSPATH

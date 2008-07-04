@@ -71,11 +71,10 @@ test {
             return null
         }
         logger.info(('=' * 50) + ' Start building buildSrc')
-        StartParameter startParameterArg = StartParameter.newInstance(
-                startParameter,
-                projectProperties: startParameter.projectProperties + dependencyProjectProps,
-                searchUpwards: false
-        )
+        StartParameter startParameterArg = StartParameter.newInstance(startParameter)
+        startParameterArg.setProjectProperties(startParameter.projectProperties + dependencyProjectProps)
+        startParameterArg.setSearchUpwards(false)
+
         if (!new File(startParameter.currentDir, startParameter.buildFileName).isFile()) {
             logger.debug('Build script file does not exists. Using default one.')
             embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, DEFAULT_SCRIPT, startParameterArg)

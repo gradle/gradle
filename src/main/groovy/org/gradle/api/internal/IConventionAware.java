@@ -17,4 +17,6 @@ public interface IConventionAware {
     void setConventionMapping(Map conventionMapping);
 
     Object getConventionMapping();
+
+    Object conv(Object internalValue, String propertyName);
 }

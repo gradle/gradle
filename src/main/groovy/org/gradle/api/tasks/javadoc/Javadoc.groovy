@@ -40,17 +40,53 @@ class Javadoc extends ConventionTask {
 
     AntJavadoc antJavadoc = new AntJavadoc()
 
-    def self
-
     Javadoc(Project project, String name) {
         super(project, name)
         doFirst(this.&generate)
-        self = this
     }
 
     private void generate(Task task) {
-        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(self.setDestinationDir, self.setSrcDirs)
-        antJavadoc.execute(existingSourceDirs, self.setDestinationDir, self.maxMemory, project.ant)
+        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs())
+        antJavadoc.execute(existingSourceDirs, getDestinationDir(), getMaxMemory(), project.ant)
     }
 
+    public List getSrcDirs() {
+        return conv(srcDirs, "srcDirs");
+    }
+
+    public void setSrcDirs(List srcDirs) {
+        this.srcDirs = srcDirs;
+    }
+
+    public File getDestinationDir() {
+        return conv(destinationDir, "destinationDir");
+    }
+
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
+
+    public String getMaxMemory() {
+        return maxMemory;
+    }
+
+    public void setMaxMemory(String maxMemory) {
+        this.maxMemory = maxMemory;
+    }
+
+    public AntJavadoc getAntJavadoc() {
+        return antJavadoc;
+    }
+
+    public void setAntJavadoc(AntJavadoc antJavadoc) {
+        this.antJavadoc = antJavadoc;
+    }
+
+    public ExistingDirsFilter getExistentDirsFilter() {
+        return existentDirsFilter;
+    }
+
+    public void setExistentDirsFilter(ExistingDirsFilter existentDirsFilter) {
+        this.existentDirsFilter = existentDirsFilter;
+    }
 }

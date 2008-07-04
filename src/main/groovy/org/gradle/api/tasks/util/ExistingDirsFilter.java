@@ -33,7 +33,7 @@ import java.io.File;
 public class ExistingDirsFilter {
     private static Logger logger = LoggerFactory.getLogger(ExistingDirsFilter.class);
 
-    public Collection findExistingDirs(Collection<File> dirFiles) {
+    public List<File> findExistingDirs(Collection<File> dirFiles) {
         List<File> existingDirs = new ArrayList<File>();
         for (File dirFile : dirFiles) {
             if (dirFile.isDirectory()) {
@@ -43,24 +43,24 @@ public class ExistingDirsFilter {
         return existingDirs;
     }
 
-    public Collection findExistingDirsAndLogExitMessage(Collection dirFiles) {
+    public List<File> findExistingDirsAndLogExitMessage(Collection dirFiles) {
         logger.debug("Looking for existing folders: " + dirFiles);
-        Collection result = findExistingDirs(dirFiles);
+        List result = findExistingDirs(dirFiles);
         if (result.size() == 0) {
             logger.debug("No existing directories to work on. We don't do anything here.");
         }
         return result;
     }
 
-    public Collection findExistingDirsAndThrowStopActionIfNone(Collection dirFiles) {
-        Collection result = findExistingDirsAndLogExitMessage(dirFiles);
+    public List<File> findExistingDirsAndThrowStopActionIfNone(Collection dirFiles) {
+        List result = findExistingDirsAndLogExitMessage(dirFiles);
         if (result.size() == 0) {
             throw new StopActionException();
         }
         return result;
     }
 
-    public Collection checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir, Collection dirFiles) {
+    public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir, Collection dirFiles) {
         if (destDir == null) {
             throw new InvalidUserDataException("The destination dir is not set!");
         }

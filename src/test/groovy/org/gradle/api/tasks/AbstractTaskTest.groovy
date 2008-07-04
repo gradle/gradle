@@ -28,9 +28,9 @@ import org.gradle.api.TaskAction
  * @author Hans Dockter
  */
 abstract class AbstractTaskTest extends GroovyTestCase {
-    static final String TEST_TASK_NAME = 'taskname'
+    public static final String TEST_TASK_NAME = 'taskname'
 
-    static final String TEST_PROJECT_NAME = '/projectTestName'
+    public static final String TEST_PROJECT_NAME = '/projectTestName'
 
     DefaultProject project
 

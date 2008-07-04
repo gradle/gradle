@@ -70,4 +70,30 @@ public class GUtil {
         return true;
     }
 
+    public static Set addToSet(Set source, Collection setToAdd) {
+        source.addAll(setToAdd);
+        return source;
+    }
+
+    public static Set addSets(Set set1, Set set2) {
+        HashSet set = new HashSet();
+        set.addAll(set1);
+        set.addAll(set2);
+        return set;
+    }
+
+    public static List addLists(List list1, List list2) {
+        ArrayList list = new ArrayList();
+        list.addAll(list1);
+        list.addAll(list2);
+        return list;
+    }
+
+    public static Map addMaps(Map map1, Map map2) {
+        HashMap map = new HashMap();
+        map.putAll(map1);
+        map.putAll(map2);
+        return map;
+    }
+
 }

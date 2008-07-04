@@ -26,7 +26,7 @@ class RootFinder {
     File rootDir
     File settingsFile = null
     String settingsText
-    Map gradleProperties = [:]
+    Map<String, String> gradleProperties = [:]
 
     void find(StartParameter startParameter) {
         File searchDir = startParameter.currentDir

@@ -29,6 +29,9 @@ import org.slf4j.LoggerFactory
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.gradle.StartParameter
+import java.lang.reflect.Method
+import org.gradle.util.ClasspathUtil
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -108,11 +111,16 @@ class DefaultSettings implements Settings {
         dependencyManager.addMavenStyleRepo(name, root, jarRepoUrls)
     }
 
+    // todo We don't have command query separation here. This si a temporary thing. If our new classloader handling works out, which
+    // adds simply the build script jars to the context classloader we can remove the return argument and simplify our design. 
     URLClassLoader createClassLoader() {
+        URLClassLoader classLoader = Thread.currentThread().contextClassLoader
         def dependency = null
+        StartParameter startParameter = StartParameter.newInstance(buildSrcStartParameter)
+        startParameter.setCurrentDir(new File(rootFinder.rootDir, DEFAULT_BUILD_SRC_DIR)) 
         if (buildSourceBuilder) {
             dependency = buildSourceBuilder.createDependency(dependencyManager.buildResolverDir,
-                    StartParameter.newInstance(buildSrcStartParameter, currentDir: new File(rootFinder.rootDir, DEFAULT_BUILD_SRC_DIR)))
+                    startParameter)
         }
         logger.debug("Build src dependency: $dependency")
         if (dependency) {
@@ -120,12 +128,12 @@ class DefaultSettings implements Settings {
         } else {
             logger.info('No build sources found.')
         }
-        URL[] classpath = dependencyManager.resolve(BUILD_CONFIGURATION).collect {File file ->
-            Locator.fileToURL(file)
-        }
-        logger.debug("Adding to classpath: ${classpath as List}")
-        ClassLoader parentClassLoader = Thread.currentThread().contextClassLoader
-        new URLClassLoader(classpath, parentClassLoader)
+        List additionalClasspath = dependencyManager.resolve(BUILD_CONFIGURATION)
+        File toolsJar = GradleUtil.getToolsJar()
+        if (toolsJar) { additionalClasspath.add(toolsJar) }
+        logger.debug("Adding to classpath: " + additionalClasspath)
+        ClasspathUtil.addUrl(classLoader, additionalClasspath)
+        classLoader
     }
 
     private configureDependencyManager(DependencyManager dependencyManager) {

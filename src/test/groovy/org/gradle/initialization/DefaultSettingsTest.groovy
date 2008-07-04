@@ -209,8 +209,9 @@ class DefaultSettingsTest extends GroovyTestCase {
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         buildSourceBuilderMocker.demand.createDependency(1..1) {File buildResolverDir, StartParameter startParameter ->
             assertEquals(expectedBuildResolverDir, buildResolverDir)
-            assertEquals(StartParameter.newInstance(settings.buildSrcStartParameter,
-                    currentDir: new File(settings.rootFinder.rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR)), startParameter)
+            StartParameter expectedStartParameter = StartParameter.newInstance(settings.buildSrcStartParameter);
+            expectedStartParameter.setCurrentDir(new File(settings.rootFinder.rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
+            assertEquals(expectedStartParameter, startParameter)
             expectedDependency
         }
         dependencyManagerMocker.demand.getBuildResolverDir(0..1) {->
@@ -236,7 +237,9 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
 
         Set urls = createdClassLoader.URLs as HashSet
-        assertEquals((testFiles.collect() {File file -> file.toURL()}) as HashSet, urls)
+        testFiles.collect() {File file -> file.toURL()}.each {
+            assert urls.contains(it)
+        }
     }
 
     void testPropertyMissing() {

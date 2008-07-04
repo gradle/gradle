@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.util;
 
 /**
  * @author Hans Dockter
  */
-class Clock {
-    long start
+public class Clock {
+    long start;
 
-    Clock() {
-        reset()
+    public Clock() {
+        reset();
     }
 
-    String getTime() {
-        getTimeInMs() / 1000.0 + " secs"
+    public String getTime() {
+        return getTimeInMs() / 1000.0 + " secs";
     }
 
-    long getTimeInMs() {
-        System.currentTimeMillis() - start
+    public long getTimeInMs() {
+        return System.currentTimeMillis() - start;
     }
 
-    void reset() {
-        start = System.currentTimeMillis()
+    public void reset() {
+        start = System.currentTimeMillis();
     }
 
 }

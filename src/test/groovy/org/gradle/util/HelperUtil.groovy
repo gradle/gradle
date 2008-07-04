@@ -34,7 +34,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
  * todo: deleteTestDir throws an exception if dir does not exists. failonerror attribute seems not to work. Check this out.
  */
 class HelperUtil {
-    static final String TMP_DIR_FOR_TEST = 'tmpTest'
+    public static final String TMP_DIR_FOR_TEST = 'tmpTest'
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
         return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [projectName, parent, new File(""),

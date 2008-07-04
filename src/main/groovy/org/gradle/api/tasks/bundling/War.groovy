@@ -21,6 +21,9 @@ import org.gradle.api.tasks.util.FileCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.List;
+import java.io.File;
+
 /**
  * @author Hans Dockter
  */
@@ -41,20 +44,65 @@ class War extends Jar {
 
     File webXml
 
-    War self
-
     War(Project project, String name) {
         super(project, name)
-        self = this
         extension = WAR_EXTENSION
     }
 
     Closure createAntArchiveTask() {
         {->
-            List files = libConfiguration ? dependencyManager.resolve(libConfiguration) : []
-            antWar.execute(new AntMetaArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets, self.fileSetManifest,
-                    self.createIfEmpty, self.destinationDir, archiveName, self.manifest, self.metaInfResourceCollections, project.ant),
-                    self.classesFileSets, files, self.additionalLibFileSets, self.webInfFileSets, self.webXml)
+            List files = getLibConfiguration() ? dependencyManager.resolve(getLibConfiguration()) : []
+            antWar.execute(new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
+                    getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant),
+                    getClassesFileSets(), files, getAdditionalLibFileSets(), getWebInfFileSets(), getWebXml())
         }
+    }
+
+    public AntWar getAntWar() {
+        return antWar;
+    }
+
+    public void setAntWar(AntWar antWar) {
+        this.antWar = antWar;
+    }
+
+    public List getClassesFileSets() {
+        return conv(classesFileSets, "classesFileSets");
+    }
+
+    public void setClassesFileSets(List classesFileSets) {
+        this.classesFileSets = classesFileSets;
+    }
+
+    public String getLibConfiguration() {
+        return conv(libConfiguration, "libConfiguration");
+    }
+
+    public void setLibConfiguration(String libConfiguration) {
+        this.libConfiguration = libConfiguration;
+    }
+
+    public List getAdditionalLibFileSets() {
+        return conv(additionalLibFileSets, "additionalLibFileSets");
+    }
+
+    public void setAdditionalLibFileSets(List additionalLibFileSets) {
+        this.additionalLibFileSets = additionalLibFileSets;
+    }
+
+    public List getWebInfFileSets() {
+        return conv(webInfFileSets, "webInfFileSets");
+    }
+
+    public void setWebInfFileSets(List webInfFileSets) {
+        this.webInfFileSets = webInfFileSets;
+    }
+
+    public File getWebXml() {
+        return conv(webXml, "webXml");
+    }
+
+    public void setWebXml(File webXml) {
+        this.webXml = webXml;
     }
 }

@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
 import java.io.StringWriter;
 import java.io.BufferedWriter;
 
@@ -32,7 +33,7 @@ public class ProjectTasksPrettyPrinter {
     public static final String NL = System.getProperty("line.separator");
     public static final String SEPARATOR = "**************************************************" + NL;
 
-    String getPrettyText(Map<Project, List<Task>> tasks) {
+    String getPrettyText(Map<Project, Set<Task>> tasks) {
         StringBuffer sb = new StringBuffer();
         for (Project project : tasks.keySet()) {
             sb.append(SEPARATOR);

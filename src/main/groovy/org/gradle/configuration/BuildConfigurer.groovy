@@ -18,7 +18,6 @@ package org.gradle.configuration
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.ProjectsTraverser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.util.Clock
@@ -32,17 +31,14 @@ class BuildConfigurer {
 
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver
 
-    ProjectsTraverser projectsTraverser
-
     ProjectTasksPrettyPrinter projectTasksPrettyPrinter
 
     ProjectAction projectEvaluateAction
 
     BuildConfigurer() {}
 
-    BuildConfigurer(ProjectDependencies2TaskResolver projectDependencies2TasksResolver, ProjectsTraverser projectsTraverser, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
+    BuildConfigurer(ProjectDependencies2TaskResolver projectDependencies2TasksResolver, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
         this.projectDependencies2TasksResolver = projectDependencies2TasksResolver
-        this.projectsTraverser = projectsTraverser
         this.projectTasksPrettyPrinter = projectTasksPrettyPrinter
         projectEvaluateAction = {DefaultProject project ->
             project.evaluate()
@@ -52,7 +48,7 @@ class BuildConfigurer {
     void process(Project rootProject) {
         logger.info('++ Configuring Project objects')
         Clock clock = new Clock()
-        projectsTraverser.traverse([rootProject], projectEvaluateAction)
+        rootProject.allprojects(projectEvaluateAction)
         projectDependencies2TasksResolver.resolve(rootProject)
         logger.info("Timing: Configuring projects took " + clock.time)
     }

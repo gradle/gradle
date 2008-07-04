@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+package org.gradle.api;
 
-package org.gradle.api.tasks.util
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-class CopyInstructionFactory {
-    CopyInstruction createCopyInstruction(File sourceDir, File targetDir, Set includes, Set excludes, Map filter) {
-        new CopyInstruction(sourceDir: sourceDir, targetDir: targetDir, includes: includes, excludes: excludes, filters: filter)
-    }
+public interface DependencyManagerFactory {
+    void setBuildResolverDir(File buildResolverDir);
+    
+    DependencyManager createDependencyManager();
 }

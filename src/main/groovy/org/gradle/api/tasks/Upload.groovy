@@ -26,6 +26,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.Project
+import org.gradle.api.internal.DefaultTask
 
 /**
  * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
@@ -33,7 +34,7 @@ import org.gradle.api.Project
  * 
  * @author Hans Dockter
  */
-class Upload extends ConventionTask {
+class Upload extends DefaultTask {
     private static Logger logger = LoggerFactory.getLogger(Upload)
 
     /**

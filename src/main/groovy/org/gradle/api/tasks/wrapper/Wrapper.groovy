@@ -23,11 +23,12 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.GradleVersion
 import org.gradle.wrapper.Install
 import org.gradle.api.Project
+import org.gradle.api.internal.DefaultTask
 
 /**
  * @author Hans Dockter
  */
-class Wrapper extends ConventionTask {
+class Wrapper extends DefaultTask {
     static final DEFAULT_URL_ROOT = 'http://dist.codehaus.org/gradle'
 
     File scriptDestinationDir
@@ -40,22 +41,19 @@ class Wrapper extends ConventionTask {
 
     WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator()
 
-    def self
-
     Wrapper(Project project, String name) {
         super(project, name)
         doFirst(this.&generate)
-        self = this
         scriptDestinationDir = project.projectDir
         gradleWrapperHomeParent = project.projectDir
         urlRoot = DEFAULT_URL_ROOT
     }
 
     private void generate(Task task) {
-        if (self.scriptDestinationDir == null) {
+        if (scriptDestinationDir == null) {
             throw new InvalidUserDataException("The scriptDestinationDir property must be specified!")
         }
-        File gradleWrapperHome = new File(self.gradleWrapperHomeParent, Install.WRAPPER_DIR)
+        File gradleWrapperHome = new File(getGradleWrapperHomeParent(), Install.WRAPPER_DIR)
         gradleWrapperHome.mkdirs()
         File gradleWrapperJar = new File(System.properties['gradle.home'] + '/lib',
                 "$Install.WRAPPER_DIR-${new GradleVersion().version}.jar")
@@ -64,6 +62,6 @@ class Wrapper extends ConventionTask {
                 tofile: new File(gradleWrapperHome, Install.WRAPPER_JAR),
                 overwrite: true)
         }
-        wrapperScriptGenerator.generate(self.gradleVersion, self.urlRoot, self.scriptDestinationDir, project.ant)
+        wrapperScriptGenerator.generate(getGradleVersion(), getUrlRoot(), getScriptDestinationDir(), project.ant)
     }
 }

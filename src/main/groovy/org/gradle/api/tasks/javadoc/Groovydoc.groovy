@@ -45,9 +45,40 @@ class Groovydoc extends ConventionTask {
 
     private void generate(Task task) {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                self.destinationDir, self.srcDirs)
+                getDestinationDir(), getSrcDirs())
         List taskClasspath = GradleUtil.antJarFiles + project.groovyClasspath.call()
-        antGroovydoc.execute(existingSourceDirs, self.destinationDir, project.ant, taskClasspath)
+        antGroovydoc.execute(existingSourceDirs, getDestinationDir(), project.ant, taskClasspath)
     }
 
+    public List getSrcDirs() {
+        return conv(srcDirs, "srcDirs");
+    }
+
+    public void setSrcDirs(List srcDirs) {
+        this.srcDirs = srcDirs;
+    }
+
+    public File getDestinationDir() {
+        return conv(destinationDir, "destinationDir");
+    }
+
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
+
+    public ExistingDirsFilter getExistentDirsFilter() {
+        return existentDirsFilter;
+    }
+
+    public void setExistentDirsFilter(ExistingDirsFilter existentDirsFilter) {
+        this.existentDirsFilter = existentDirsFilter;
+    }
+
+    public AntGroovydoc getAntGroovydoc() {
+        return antGroovydoc;
+    }
+
+    public void setAntGroovydoc(AntGroovydoc antGroovydoc) {
+        this.antGroovydoc = antGroovydoc;
+    }
 }

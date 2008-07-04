@@ -174,8 +174,9 @@ include \"${includePaths[0]}\", \"${includePaths[1]}\"
     }
 
     StartParameter createStartParameter(File currentDir) {
-        StartParameter.newInstance(expectedStartParameter,
-                gradleUserHomeDir: new File('gradleUserHomeDir'),
-                currentDir: currentDir)
+        StartParameter startParameter = StartParameter.newInstance(expectedStartParameter);
+        startParameter.setGradleUserHomeDir(new File('gradleUserHomeDir'))
+        startParameter.setCurrentDir(currentDir);
+        startParameter
     }
 }

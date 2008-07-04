@@ -69,7 +69,9 @@ class BuildSourceBuilderTest extends GroovyTestCase {
         embeddedBuildExecuterMocker.demand.execute(1..1) {File buildResolverDir, StartParameter startParameter ->
             createArtifact()
             assertEquals(testBuildResolverDir, buildResolverDir)
-            assertEquals(StartParameter.newInstance(expectedStartParameter, searchUpwards: false), startParameter)
+            StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
+            expectedStartParameter.setSearchUpwards(false)
+            assertEquals(StartParameter.newInstance(expectedStartParameter), startParameter)
         }
         createBuildFile()
         embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
@@ -83,7 +85,9 @@ class BuildSourceBuilderTest extends GroovyTestCase {
             createArtifact()
             assertEquals(testBuildResolverDir, buildResolverDir)
             assertEquals(embeddedScript, BuildSourceBuilder.DEFAULT_SCRIPT)
-            assertEquals(StartParameter.newInstance(expectedStartParameter, searchUpwards: false), startParameter)
+            StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
+            expectedStartParameter.setSearchUpwards(false)
+            assertEquals(StartParameter.newInstance(expectedStartParameter), startParameter)
         }
         embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
             def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
@@ -92,7 +96,8 @@ class BuildSourceBuilderTest extends GroovyTestCase {
     }
 
     void testCreateDependencyWithNonExistingBuildSrcDir() {
-        expectedStartParameter = StartParameter.newInstance(expectedStartParameter, currentDir: new File('nonexisting'))
+        expectedStartParameter = StartParameter.newInstance(expectedStartParameter)
+        expectedStartParameter.setCurrentDir(new File('nonexisting'));
         assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }
 
@@ -105,7 +110,8 @@ class BuildSourceBuilderTest extends GroovyTestCase {
 
     void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
-        expectedStartParameter = StartParameter.newInstance(expectedStartParameter, taskNames: [])
+        expectedStartParameter = StartParameter.newInstance(expectedStartParameter)
+        expectedStartParameter.setTaskNames([])
         assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }
 

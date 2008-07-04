@@ -51,7 +51,7 @@ public class BuildExecuterTest {
 
     Dag dagMock;
 
-    AddElementsAction addElementsAction;
+    CollectDagTasksAction collectDagTasksAction;
 
     @Before
     public void setUp() {
@@ -60,7 +60,7 @@ public class BuildExecuterTest {
         root = HelperUtil.createRootProject(new File("root"));
         child = root.addChildProject("child");
         buildExecuter = new BuildExecuter(dagMock);
-        addElementsAction = new AddElementsAction();
+        collectDagTasksAction = new CollectDagTasksAction();
     }
 
     @Test
@@ -103,20 +103,20 @@ public class BuildExecuterTest {
 
         buildExecuter.execute(expectedTaskName, expectedRecursive, root, root);
 
-        assertEquals(addElementsAction.checkerFirstRun.size(), 5);
-        assertEquals(WrapUtil.toSet(rootCompile), addElementsAction.checkerFirstRun.get(rootTest));
-        assertEquals(WrapUtil.toSet(childCompile, childOther), addElementsAction.checkerFirstRun.get(childTest));
-        assertEquals(new HashSet(), addElementsAction.checkerFirstRun.get(rootCompile));
-        assertEquals(new HashSet(), addElementsAction.checkerFirstRun.get(childCompile));
+        assertEquals(collectDagTasksAction.tasksMap.size(), 5);
+        assertEquals(WrapUtil.toSet(rootCompile), collectDagTasksAction.tasksMap.get(rootTest));
+        assertEquals(WrapUtil.toSet(childCompile, childOther), collectDagTasksAction.tasksMap.get(childTest));
+        assertEquals(new HashSet(), collectDagTasksAction.tasksMap.get(rootCompile));
+        assertEquals(new HashSet(), collectDagTasksAction.tasksMap.get(childCompile));
         assert dagCalls.keySet().contains("root");
         assert dagCalls.keySet().contains("child");
         assert dagCalls.keySet().contains("rootConfigure");
     }
 
-    public static class AddElementsAction<T> implements Action {
-        Map<DefaultTask, Set<DefaultTask>> checkerFirstRun = new HashMap<DefaultTask, Set<DefaultTask>>();
+    public static class CollectDagTasksAction<T> implements Action {
+        Map<DefaultTask, Set<DefaultTask>> tasksMap = new HashMap<DefaultTask, Set<DefaultTask>>();
 
-        public AddElementsAction() {
+        public CollectDagTasksAction() {
         }
 
         public void describeTo(Description description) {
@@ -126,7 +126,7 @@ public class BuildExecuterTest {
         public Object invoke(Invocation invocation) throws Throwable {
             DefaultTask task = (DefaultTask) invocation.getParameter(0);
             Set<DefaultTask> dependsOnTasks = (Set<DefaultTask>) invocation.getParameter(1);
-            checkerFirstRun.put(task, dependsOnTasks);
+            tasksMap.put(task, dependsOnTasks);
             return null;
         }
     }
@@ -136,7 +136,7 @@ public class BuildExecuterTest {
             {
                 one(dagMock).reset();
                 allowing(dagMock).addTask(with(any(DefaultTask.class)), with(any(Set.class)));
-                will(addElementsAction);
+                will(collectDagTasksAction);
                 allowing(dagMock).getProjects();
                 will(returnValue(projects));
                 allowing(dagMock).getAllTasks();
@@ -176,9 +176,9 @@ public class BuildExecuterTest {
 
         buildExecuter.execute("task3", false, root, root);
 
-        assertEquals(WrapUtil.toSet(task2), addElementsAction.checkerFirstRun.get(task3));
-        assertEquals(WrapUtil.toSet(task1), addElementsAction.checkerFirstRun.get(task2));
-        assertEquals(new HashSet(), addElementsAction.checkerFirstRun.get(task1));
+        assertEquals(WrapUtil.toSet(task2), collectDagTasksAction.tasksMap.get(task3));
+        assertEquals(WrapUtil.toSet(task1), collectDagTasksAction.tasksMap.get(task2));
+        assertEquals(new HashSet(), collectDagTasksAction.tasksMap.get(task1));
 
     }
 
@@ -186,7 +186,7 @@ public class BuildExecuterTest {
     public void testExecuteWithNonExistingProjectForDependentTask() {
         final Project root = context.mock(Project.class);
         final Task task = context.mock(Task.class);
-        final TreeMap result = new TreeMap();
+        final Set result = new HashSet();
         final String taskName = ":unknownchild:compile";
 
         context.checking(new Expectations() {{
@@ -197,7 +197,7 @@ public class BuildExecuterTest {
             allowing(root).project(":unknownchild"); will(throwException(new UnknownProjectException()));
             allowing(dagMock).reset();
         }});
-        result.put(root, new DefaultTask(root, "compile").dependsOn(new String[]{taskName}));
+        result.add(new DefaultTask(root, "compile").dependsOn(new String[]{taskName}));
         buildExecuter.execute("compile", false, root, root);
     }
 
@@ -205,7 +205,7 @@ public class BuildExecuterTest {
     public void testExecuteWithNonExistingDependentTask() {
         final Project root = context.mock(Project.class);
         final Task task = context.mock(Task.class);
-        final TreeMap result = new TreeMap();
+        final Set result = new HashSet();
         final String taskName = ":child:compile";
         context.checking(new Expectations() {{
             allowing(root).getTasksByName("compile", false); will(returnValue(result));
@@ -214,7 +214,7 @@ public class BuildExecuterTest {
             allowing(root).absolutePath(taskName); will(returnValue(taskName));
             allowing(dagMock).reset();
         }});
-        result.put(root, new DefaultTask(root, "compile").dependsOn(new String[]{taskName}));
+        result.add(new DefaultTask(root, "compile").dependsOn(new String[]{taskName}));
         buildExecuter.execute("compile", false, child, root);
     }
 
@@ -222,7 +222,7 @@ public class BuildExecuterTest {
     public void testExecuteWithNonExistingTask() {
         final Project root = context.mock(Project.class);
         context.checking(new Expectations() {{
-            allowing(root).getTasksByName("compil", true); will(returnValue(new TreeMap()));
+            allowing(root).getTasksByName("compil", true); will(returnValue(new HashSet()));
         }});
             buildExecuter.execute("compil", true, root, root);
     }

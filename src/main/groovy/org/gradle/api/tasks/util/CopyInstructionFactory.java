@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api
+
+package org.gradle.api.tasks.util;
+
+import java.io.File;
+import java.util.Set;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-interface DependencyManagerFactory {
-    void setBuildResolverDir(File buildResolverDir)
-    
-    DependencyManager createDependencyManager()
+public class CopyInstructionFactory {
+    public CopyInstruction createCopyInstruction(File sourceDir, File targetDir, Set includes, Set excludes, Map filters) {
+        CopyInstruction copyInstruction = new CopyInstruction();
+        copyInstruction.setSourceDir(sourceDir);
+        copyInstruction.setTargetDir(targetDir);
+        copyInstruction.setIncludes(includes);
+        copyInstruction.setExcludes(excludes);
+        copyInstruction.setFilters(filters);
+        return copyInstruction;
+    }
 }

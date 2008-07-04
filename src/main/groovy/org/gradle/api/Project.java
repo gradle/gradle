@@ -45,6 +45,8 @@ public interface Project {
 
     File getRootDir();
 
+    void setRootDir(File rootDir);
+    
     File getBuildDir();
 
     String getBuildFileName();
@@ -151,7 +153,7 @@ public interface Project {
 
     SortedMap getAllTasks(boolean recursive);
 
-    SortedMap getTasksByName(String name, boolean recursive);
+    Set<Task> getTasksByName(String name, boolean recursive);
 
     File getProjectDir();
 
@@ -192,4 +194,10 @@ public interface Project {
     public Project evaluate();
 
     public BuildScriptProcessor getBuildScriptProcessor();
+
+    public void subprojects(ProjectAction action);
+
+    public void allprojects(ProjectAction action);
+
+    public void applyActions(Set<Project> projects, ProjectAction action);
 }

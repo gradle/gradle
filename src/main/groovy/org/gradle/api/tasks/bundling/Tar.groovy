@@ -22,10 +22,8 @@ import org.gradle.api.tasks.util.TarFileSet
 /**
  * @author Hans Dockter
  */
-class Tar extends Zip {
+public class Tar extends Zip {
     static final String TAR_EXTENSION = 'tar'
-
-    Tar self
 
     Compression compression
 
@@ -35,7 +33,6 @@ class Tar extends Zip {
 
     Tar(Project project, String name) {
         super(project, name)
-        self = this
         extension = TAR_EXTENSION
         compression = Compression.NONE
         longFile = LongFile.WARN
@@ -47,8 +44,8 @@ class Tar extends Zip {
 
     Closure createAntArchiveTask() {
         {->
-            antTar.execute(new AntArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets,
-                    self.createIfEmpty, self.destinationDir, archiveName, project.ant), self.compression, self.longFile)
+            antTar.execute(new AntArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(),
+                    getCreateIfEmpty(), getDestinationDir(), getArchiveName(), project.ant), getCompression(), getLongFile())
         }
     }
 
@@ -58,5 +55,29 @@ class Tar extends Zip {
 
     TarFileSet tarFileSet(Map args = [:], Closure configureClosure = null) {
         createFileSetInternal(args, TarFileSet, configureClosure)
+    }
+
+    public Compression getCompression() {
+        return conv(compression, "compression");
+    }
+
+    public void setCompression(Compression compression) {
+        this.compression = compression;
+    }
+
+    public LongFile getLongFile() {
+        return conv(longFile, "longFile");
+    }
+
+    public void setLongFile(LongFile longFile) {
+        this.longFile = longFile;
+    }
+
+    public AntTar getAntTar() {
+        return antTar;
+    }
+
+    public void setAntTar(AntTar antTar) {
+        this.antTar = antTar;
     }
 }

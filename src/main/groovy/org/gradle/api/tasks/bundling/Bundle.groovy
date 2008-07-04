@@ -24,28 +24,29 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.Task
 
+import java.util.Set;
+import java.util.Map;
+import java.util.List;
+
 /**
  * @author Hans Dockter
  */
-class Bundle extends ConventionTask {
+public class Bundle extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Resources)
 
-    static final BASENAME_KEY = 'basename'
-    static final CLASSIFIER_KEY = 'classifier'
+    static final String BASENAME_KEY = 'basename'
+    static final String CLASSIFIER_KEY = 'classifier'
 
-    Bundle self
+    private String tasksBaseName
 
-    String tasksBaseName
+    private Set childrenDependOn = []
 
-    Set childrenDependOn = []
+    private Map defaultArchiveTypes
 
-    Map defaultArchiveTypes
-
-    List archiveNames = []
+    private List archiveNames = []
 
     Bundle(Project project, String name) {
         super(project, name)
-        self = this
     }
 
     AbstractArchiveTask createArchive(ArchiveType type, Closure configureClosure) {
@@ -57,7 +58,7 @@ class Bundle extends ConventionTask {
         if (args == null) {
             args = [:]
         }
-        String baseName = args.baseName ?: self.tasksBaseName
+        String baseName = args.baseName ?: getTasksBaseName()
         String classifier = args.classifier ? '_' + args.classifier : ''
         String taskName = "$baseName${classifier}_$type.defaultExtension"
         AbstractArchiveTask archiveTask = project.createTask(taskName, type: type.taskClass)
@@ -65,7 +66,7 @@ class Bundle extends ConventionTask {
         archiveTask.baseName = baseName
         archiveTask.classifier = classifier ? classifier.substring(1) : ''
         if (configureClosure) {archiveTask.configure(configureClosure)}
-        setTaskDependsOn(archiveTask, childrenDependOn)
+        setTaskDependsOn(archiveTask, getChildrenDependOn())
         this.dependsOn(taskName)
         archiveNames << archiveTask.name
         archiveTask
@@ -88,7 +89,7 @@ class Bundle extends ConventionTask {
     }
 
     Jar jar(Map args, Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[Jar.DEFAULT_EXTENSION], args, configureClosure)
+        createArchive(getDefaultArchiveTypes()[Jar.DEFAULT_EXTENSION], args, configureClosure)
     }
 
     War war(Closure configureClosure = null) {
@@ -96,7 +97,7 @@ class Bundle extends ConventionTask {
     }
 
     War war(Map args = [:], Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[War.WAR_EXTENSION], args, configureClosure)
+        createArchive(getDefaultArchiveTypes()[War.WAR_EXTENSION], args, configureClosure)
     }
 
     Zip zip(Closure configureClosure) {
@@ -104,7 +105,7 @@ class Bundle extends ConventionTask {
     }
 
     Zip zip(Map args = [:], Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[Zip.ZIP_EXTENSION], args, configureClosure)
+        createArchive(getDefaultArchiveTypes()[Zip.ZIP_EXTENSION], args, configureClosure)
     }
 
     Tar tar(Closure configureClosure = null) {
@@ -112,7 +113,7 @@ class Bundle extends ConventionTask {
     }
 
     Tar tar(Map args = [:], Closure configureClosure = null) {
-        createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION], args, configureClosure)
+        createArchive(getDefaultArchiveTypes()[Tar.TAR_EXTENSION], args, configureClosure)
     }
 
     Tar tarGz(Closure configureClosure = null) {
@@ -120,7 +121,7 @@ class Bundle extends ConventionTask {
     }
 
     Tar tarGz(Map args = [:], Closure configureClosure = null) {
-        Tar tar = createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION + Compression.GZIP.extension], args, configureClosure)
+        Tar tar = createArchive(getDefaultArchiveTypes()[Tar.TAR_EXTENSION + Compression.GZIP.extension], args, configureClosure)
         tar.compression = Compression.GZIP
         tar
     }
@@ -130,8 +131,40 @@ class Bundle extends ConventionTask {
     }
 
     Tar tarBzip2(Map args = [:], Closure configureClosure = null) {
-        Tar tar = createArchive(self.defaultArchiveTypes[Tar.TAR_EXTENSION + Compression.BZIP2.extension], args, configureClosure)
+        Tar tar = createArchive(getDefaultArchiveTypes()[Tar.TAR_EXTENSION + Compression.BZIP2.extension], args, configureClosure)
         tar.compression = Compression.BZIP2
         tar
+    }
+
+    public String getTasksBaseName() {
+        return conv(tasksBaseName, "tasksBaseName");
+    }
+
+    public void setTasksBaseName(String tasksBaseName) {
+        this.tasksBaseName = tasksBaseName;
+    }
+
+    public Set getChildrenDependOn() {
+        return conv(childrenDependOn, "childrenDependOn");
+    }
+
+    public void setChildrenDependOn(Set childrenDependOn) {
+        this.childrenDependOn = childrenDependOn;
+    }
+
+    public Map getDefaultArchiveTypes() {
+        return conv(defaultArchiveTypes, "defaultArchiveTypes");
+    }
+
+    public void setDefaultArchiveTypes(Map defaultArchiveTypes) {
+        this.defaultArchiveTypes = defaultArchiveTypes;
+    }
+
+    public List getArchiveNames() {
+        return archiveNames;
+    }
+
+    public void setArchiveNames(List archiveNames) {
+        this.archiveNames = archiveNames;
     }
 }

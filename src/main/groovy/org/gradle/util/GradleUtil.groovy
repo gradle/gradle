@@ -129,7 +129,7 @@ ant.sequential {
 """
     }
 
-    static getToolsJar() {
+    static File getToolsJar() {
         ClassLoader classLoader = Thread.currentThread().contextClassLoader.systemClassLoader
         // firstly check if the tools jar is already in the classpath
         boolean toolsJarAvailable = false;
@@ -161,7 +161,7 @@ ant.sequential {
             toolsJar = new File(javaHome + "/lib/tools.jar");
         }
         if (!toolsJar.exists()) {
-            System.out.println("Unable to locate tools.jar. "
+            logger.warn("Unable to locate tools.jar. "
                     + "Expected to find it in " + toolsJar.getPath());
             return null;
         }

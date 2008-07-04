@@ -17,29 +17,28 @@
 package org.gradle.initialization
 
 import org.gradle.Build
-import org.gradle.api.internal.project.BuildScriptFinder
-import org.gradle.api.internal.project.EmbeddedBuildScriptFinder
 import org.gradle.StartParameter
+import org.gradle.Build.BuildFactory
 
 /**
  * @author Hans Dockter
  */
 class EmbeddedBuildExecuter {
-    Closure buildFactory
+    BuildFactory buildFactory
 
     EmbeddedBuildExecuter() {}
 
-    EmbeddedBuildExecuter(Closure buildFactory) {
+    EmbeddedBuildExecuter(BuildFactory buildFactory) {
         this.buildFactory = buildFactory
     }
 
     void execute(File buildResolverDir, StartParameter startParameter) {
-        Build build = buildFactory(null, buildResolverDir)
+        Build build = buildFactory.newInstance(null, buildResolverDir)
         build.run(startParameter)
     }
 
     void executeEmbeddedScript(File buildResolverDir, String embeddedScript, StartParameter startParameter) {
-        Build build = buildFactory(embeddedScript,  buildResolverDir)
+        Build build = buildFactory.newInstance(embeddedScript,  buildResolverDir)
         build.runNonRecursivelyWithCurrentDirAsRoot(startParameter)
     }
 }

@@ -22,22 +22,19 @@ import org.gradle.api.tasks.util.ZipFileSet
 /**
  * @author Hans Dockter
  */
-class Zip extends AbstractArchiveTask {
+public class Zip extends AbstractArchiveTask {
     static final String ZIP_EXTENSION = 'zip'
-
-    Zip self
 
     AntZip antZip = new AntZip()
 
     Zip(Project project, String name) {
         super(project, name)
-        self = this
         extension = ZIP_EXTENSION
     }
 
     Closure createAntArchiveTask() {
-        { -> antZip.execute(new AntArchiveParameter(self.resourceCollections, self.mergeFileSets, self.mergeGroupFileSets, self.createIfEmpty,
-                self.destinationDir, archiveName, project.ant)) }
+        { -> antZip.execute(new AntArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getCreateIfEmpty(),
+                getDestinationDir(), getArchiveName(), project.ant)) }
     }
 
     ZipFileSet zipFileSet(Closure configureClosure) {
@@ -48,4 +45,11 @@ class Zip extends AbstractArchiveTask {
         createFileSetInternal(args, ZipFileSet, configureClosure)
     }
 
+    public AntZip getAntZip() {
+        return antZip;
+    }
+
+    public void setAntZip(AntZip antZip) {
+        this.antZip = antZip;
+    }
 }

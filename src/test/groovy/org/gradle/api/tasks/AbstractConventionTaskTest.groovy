@@ -28,6 +28,9 @@ abstract class AbstractConventionTaskTest extends AbstractTaskTest {
     }
     
     void testConventionAwareness() {
-        new ConventionTestHelper().checkAll(getTask())
+        ConventionTestHelper conventionTestHelper = new ConventionTestHelper()
+        getTask().setConventionAwareHelper(conventionTestHelper.conventionAwareHelperMock)
     }
 }
+
+

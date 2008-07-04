@@ -499,27 +499,27 @@ class DefaultProjectTest {
         List tasksClean = project.allprojects*.createTask('clean')
         List tasksCompile = project.allprojects*.createTask('compile')
         SortedMap expectedMap = new TreeMap()
-        getListWithAllProjects().eachWithIndex {DefaultProject project, int i ->
-            expectedMap[project] = new TreeSet([tasksClean[i], tasksCompile[i]])
+        (tasksClean + tasksCompile).each {Task task ->
+            if (!expectedMap[task.project]) {
+                expectedMap[task.project] = new TreeSet()
+            }
+            expectedMap[task.project].add(task)
         }
         assertEquals(expectedMap, project.getAllTasks(true))
         assertEquals(expectedMap.subMap([project]), project.getAllTasks(false))
     }
 
-    @Test void testGetTasks() {
-        List tasksClean = project.allprojects*.createTask('clean')
+    @Test void testGetTasksByName() {
+        Set tasksClean = project.allprojects*.createTask('clean')
         project.allprojects*.createTask('compile')
-        SortedMap expectedMap = new TreeMap()
-        getListWithAllProjects().eachWithIndex {DefaultProject project, int i ->
-            expectedMap[project] = tasksClean[i]
-        }
-        assertEquals(expectedMap, project.getTasksByName('clean', true))
-        assertEquals([(project): expectedMap[project]] as TreeMap, project.getTasksByName('clean', false))
+        Set expectedMap = new HashSet()
+        assertEquals(tasksClean, project.getTasksByName('clean', true))
+        assertEquals([project.tasks['clean']] as Set, project.getTasksByName('clean', false))
     }
 
-    @Test void testGetTasksWithSingularTask() {
+    @Test void testGetTasksByNameWithSingularTask() {
         DefaultTask child1Task = child1.createTask('child1Task')
-        assertEquals([(child1): child1Task] as TreeMap, project.getTasksByName(child1Task.name, true))
+        assertEquals([child1Task] as Set, project.getTasksByName(child1Task.name, true))
         assertEquals(0, project.getTasksByName(child1Task.name, false).size())
     }
 

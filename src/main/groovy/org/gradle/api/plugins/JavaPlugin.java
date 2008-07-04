@@ -122,7 +122,6 @@ public class JavaPlugin implements Plugin {
         distsUpload.getConfigurations().add(DISTS);
     }
 
-    // todo Get rid of the JavaPlugin prefixes when GROOVY-2913 is fixed
     void configureDependencyManager(Project project, JavaPluginConvention javaPluginConvention) {
         DependencyManager dependencies = project.getDependencies();
         dependencies.addConfiguration(
@@ -149,7 +148,9 @@ public class JavaPlugin implements Plugin {
         return (Compile) testCompile.doFirst(new TaskAction() {
             public void execute(Task task) {
                 Compile testCompile = (Compile) task;
-                testCompile.unmanagedClasspath((Object[]) compile.getUnmanagedClasspath().toArray(new Object[compile.getUnmanagedClasspath().size()]));
+                if (compile.getUnmanagedClasspath() != null) {
+                    testCompile.unmanagedClasspath((Object[]) compile.getUnmanagedClasspath().toArray(new Object[compile.getUnmanagedClasspath().size()]));
+                }
             }
         });
     }

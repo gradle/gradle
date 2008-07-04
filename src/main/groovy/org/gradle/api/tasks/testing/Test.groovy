@@ -76,9 +76,7 @@ class Test extends ConventionTask {
 
     AntJunit antJunit = new AntJunit()
 
-    protected Test self
-
-    protected DependencyManager dependencyManager = null
+    DependencyManager dependencyManager = null
 
     protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter()
 
@@ -87,19 +85,18 @@ class Test extends ConventionTask {
     Test(Project project, String name) {
         super(project, name)
         doFirst(this.&executeTests)
-        self = this
     }
 
     protected void executeTests(Task task) {
-        if (!self.testClassesDir) throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!")
-        if (!self.testResultsDir) throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!")
+        if (!getTestClassesDir()) throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!")
+        if (!getTestResultsDir()) throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!")
 
-        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(self.testClassesDir)
+        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(getTestClassesDir())
 
         List classpath = classpathConverter.createFileClasspath(
-                project.rootDir, [self.testClassesDir] + self.unmanagedClasspath as Object[]) + self.dependencyManager.resolveTask(name)
+                project.rootDir, [getTestClassesDir()] + getUnmanagedClasspath()) + getDependencyManager().resolveTask(name)
 
-        antJunit.execute(self.testClassesDir, classpath, self.testResultsDir, includes, excludes, options, project.ant)
+        antJunit.execute(getTestClassesDir(), classpath, getTestResultsDir(), includes, excludes, options, project.ant)
         if (stopAtFailuresOrErrors && project.ant.project.getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY)) {
             throw new GradleException("There were failing tests!")
         }
@@ -117,10 +114,82 @@ class Test extends ConventionTask {
 
     Test unmanagedClasspath(Object[] elements) {
         if (!unmanagedClasspath) {
-            unmanagedClasspath.addAll(self.unmanagedClasspath)
+            unmanagedClasspath.addAll(getUnmanagedClasspath())
         }
         unmanagedClasspath.addAll((elements as List).flatten())
         this
     }
 
+    public File getTestClassesDir() {
+        return conv(testClassesDir, "testClassesDir");
+    }
+
+    public void setTestClassesDir(File testClassesDir) {
+        this.testClassesDir = testClassesDir;
+    }
+
+    public File getTestResultsDir() {
+        return conv(testResultsDir, "testResultsDir");
+    }
+
+    public void setTestResultsDir(File testResultsDir) {
+        this.testResultsDir = testResultsDir;
+    }
+
+    public JunitOptions getOptions() {
+        return options;
+    }
+
+    public void setOptions(JunitOptions options) {
+        this.options = options;
+    }
+
+    public List getIncludes() {
+        return conv(includes, "includes");
+    }
+
+    public void setIncludes(List includes) {
+        this.includes = includes;
+    }
+
+    public List getExcludes() {
+        return conv(excludes, "excludes");
+    }
+
+    public void setExcludes(List excludes) {
+        this.excludes = excludes;
+    }
+
+    // todo Uncomment after refactoring to Java
+//    public boolean isStopAtFailuresOrErrors() {
+//        return stopAtFailuresOrErrors;
+//    }
+
+    public void setStopAtFailuresOrErrors(boolean stopAtFailuresOrErrors) {
+        this.stopAtFailuresOrErrors = stopAtFailuresOrErrors;
+    }
+
+    public List getUnmanagedClasspath() {
+        return conv(unmanagedClasspath, "unmanagedClasspath");
+    }
+
+    public void setUnmanagedClasspath(List unmanagedClasspath) {
+        this.unmanagedClasspath = unmanagedClasspath;
+    }
+
+    public AntJunit getAntJunit() {
+        return antJunit;
+    }
+
+    public void setAntJunit(AntJunit antJunit) {
+        this.antJunit = antJunit;
+    }
+
+    public DependencyManager getDependencyManager() {
+        return conv(dependencyManager, "dependencyManager");
+    }
+
+    public void setDependencyManager(DependencyManager dependencyManager) {
+        this.dependencyManager = dependencyManager;
+    }
 }

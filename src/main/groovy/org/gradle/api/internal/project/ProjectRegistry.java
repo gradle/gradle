@@ -29,7 +29,7 @@ public class ProjectRegistry {
 
     public void addProject(AbstractProject project) {
         projects.put(project.getPath(), project);
-        subProjects.put(project.getPath(), new HashSet());
+        subProjects.put(project.getPath(), new TreeSet());
         Project loopProject = project.getParent();
         while (loopProject != null) {
             subProjects.get(loopProject.getPath()).add(project);
@@ -42,7 +42,7 @@ public class ProjectRegistry {
     }
 
     public Set<Project> getAllProjects(String path) {
-        Set<Project> result = new HashSet<Project>(subProjects.get(path));
+        Set<Project> result = new TreeSet(getSubProjects(path));
         result.add(projects.get(path));
         return result;
     }

@@ -29,10 +29,14 @@ import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.util.ConfigureUtil
 
+import java.io.File;
+import java.util.List
+import org.gradle.util.GUtil;
+
 /**
  * @author Hans Dockter
  */
-abstract class AbstractArchiveTask extends ConventionTask {
+public abstract class AbstractArchiveTask extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractArchiveTask)
 
     /**
@@ -44,7 +48,7 @@ abstract class AbstractArchiveTask extends ConventionTask {
     /**
      * A list with all entities (e.g. filesets) which describe the files of this archive.
      */
-    List resourceCollections = []
+    List resourceCollections = null
 
     /**
      * Controls if an archive gets created if no files would go into it.  
@@ -109,12 +113,9 @@ abstract class AbstractArchiveTask extends ConventionTask {
 
     protected ArchiveDetector archiveDetector = new ArchiveDetector()
 
-    private AbstractArchiveTask self
-
     AbstractArchiveTask(Project project, String name) {
         super(project, name)
         doLast(this.&generateArchive)
-        self = this
     }
 
     /**
@@ -141,13 +142,13 @@ abstract class AbstractArchiveTask extends ConventionTask {
 
     void generateArchive(Task task) {
         logger.debug("Creating archive: $name")
-        if (!self.destinationDir) {
+        if (!getDestinationDir()) {
             throw new InvalidUserDataException('You mustspecify the destinationDir.')
         }
         createAntArchiveTask().call()
         if (publish) {
             String classifierSnippet = classifier ? ':' + classifier : ''
-            self.configurations.each {self.dependencyManager.addArtifacts(it, "${self.baseName}${classifierSnippet}@$self.extension")}
+            getConfigurations().each {getDependencyManager().addArtifacts(it, "${getBaseName()}${classifierSnippet}@${getExtension()}")}
         }
     }
 
@@ -159,8 +160,8 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     String getArchiveName() {
         if (customName) { return customName }
-        self.baseName + (self.version ? "-$self.version" : "") + (self.classifier ? "-$self.classifier" : "") +
-                ".$self.extension"
+        getBaseName() + (getVersion() ? "-${getVersion()}" : "") + (getClassifier() ? "-${getClassifier()}" : "") +
+                ".${getExtension()}"
     }
 
     /**
@@ -168,12 +169,12 @@ abstract class AbstractArchiveTask extends ConventionTask {
      * @return a File object with the path to the archive
      */
     File getArchivePath() {
-        new File(self.destinationDir, self.archiveName)
+        new File(getDestinationDir(), getArchiveName())
     }
 
-    AntDirective antDirective(Closure directive){
+    AntDirective antDirective(Closure directive) {
         AntDirective antDirective = new AntDirective(directive)
-        resourceCollections << antDirective
+        resourceCollections(antDirective)
         antDirective
     }
 
@@ -197,9 +198,9 @@ abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     protected def createFileSetInternal(Map args, Class type, Closure configureClosure) {
-        args.dir = args.dir ?: self.baseDir
+        args.dir = args.dir ?: getBaseDir()
         def fileSet = type.newInstance(args)
-        resourceCollections << ConfigureUtil.configure(configureClosure, fileSet)
+        resourceCollections(ConfigureUtil.configure(configureClosure, fileSet))
         fileSet
     }
 
@@ -209,7 +210,7 @@ abstract class AbstractArchiveTask extends ConventionTask {
      */
     FileCollection files(File[] files) {
         FileCollection fileCollection = new FileCollection(files as Set)
-        resourceCollections << fileCollection
+        resourceCollections(fileCollection)
         fileCollection
     }
 
@@ -244,5 +245,131 @@ abstract class AbstractArchiveTask extends ConventionTask {
         ConfigureUtil.configure(configureClosure, fileSet)
         mergeGroupFileSets.add(fileSet)
         this
+    }
+
+    public AbstractArchiveTask resourceCollections(Object... elements) {
+        if (resourceCollections == null) {
+            List conventionCollection = getResourceCollections();
+            if (conventionCollection != null) {
+                resourceCollections = conventionCollection;
+            } else {
+                resourceCollections = new ArrayList();
+            }
+        }
+        GUtil.flatten(Arrays.asList(elements), resourceCollections);
+        return this;
+    }
+
+    public File getBaseDir() {
+        return conv(baseDir, "baseDir");
+    }
+
+    public void setBaseDir(File baseDir) {
+        this.baseDir = baseDir;
+    }
+
+    public List getResourceCollections() {
+        return conv(resourceCollections, "resourceCollections");
+    }
+
+    public void setResourceCollections(List resourceCollections) {
+        this.resourceCollections = resourceCollections;
+    }
+
+    // todo Uncomment after refacotring to Java
+//    public boolean isCreateIfEmpty() {
+//        return conv(createIfEmpty, "createIfEmpty");
+//    }
+
+    public void setCreateIfEmpty(boolean createIfEmpty) {
+        this.createIfEmpty = createIfEmpty;
+    }
+
+    public File getDestinationDir() {
+        return conv(destinationDir, "destinationDir");
+    }
+
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
+
+    public String getCustomName() {
+        return customName;
+    }
+
+    public void setCustomName(String customName) {
+        this.customName = customName;
+    }
+
+    public String getBaseName() {
+        return conv(baseName, "baseName");
+    }
+
+    public void setBaseName(String baseName) {
+        this.baseName = baseName;
+    }
+
+    public String getVersion() {
+        return conv(version, "version");
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getExtension() {
+        return conv(extension, "extension");
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    public String getClassifier() {
+        return conv(classifier, "classifier");
+    }
+
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
+     // todo Uncomment after refacotring to Java
+//    public boolean isPublish() {
+//        return conv(publish, "publish");
+//    }
+
+    public void setPublish(boolean publish) {
+        this.publish = publish;
+    }
+
+    public String[] getConfigurations() {
+        return conv(configurations, "configurations");
+    }
+
+    public void setConfigurations(String[] configurations) {
+        this.configurations = configurations;
+    }
+
+    public DependencyManager getDependencyManager() {
+        return conv(dependencyManager, "dependencyManager");
+    }
+
+    public void setDependencyManager(DependencyManager dependencyManager) {
+        this.dependencyManager = dependencyManager;
+    }
+
+    public List getMergeFileSets() {
+        return mergeFileSets;
+    }
+
+    public void setMergeFileSets(List mergeFileSets) {
+        this.mergeFileSets = mergeFileSets;
+    }
+
+    public List getMergeGroupFileSets() {
+        return mergeGroupFileSets;
+    }
+
+    public void setMergeGroupFileSets(List mergeGroupFileSets) {
+        this.mergeGroupFileSets = mergeGroupFileSets;
     }
 }

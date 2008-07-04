@@ -146,11 +146,13 @@ public abstract class AbstractProject implements Project, Comparable {
             path = parent == rootProject ? Project.PATH_SEPARATOR + name : parent.getPath() + Project.PATH_SEPARATOR + name;
         }
 
-        projectRegistry.addProject(this);
-
         if (parent != null) {
             depth = parent.getDepth() + 1;
         }
+
+        projectRegistry.addProject(this);
+
+
         convention = new Convention(this);
     }
 
@@ -680,15 +682,15 @@ public abstract class AbstractProject implements Project, Comparable {
         return foundTargets;
     }
 
-    public SortedMap getTasksByName(final String name, boolean recursive) {
-        if (name == null || name.length() == 0) {
+    public Set<Task> getTasksByName(final String name, boolean recursive) {
+        if (!GUtil.isTrue(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
-        final SortedMap<Project, Task> foundTargets = new TreeMap<Project, Task>();
+        final Set<Task> foundTargets = new HashSet<Task>();
         ProjectAction action = new ProjectAction() {
             public void execute(Project project) {
                 if (project.getTasks().get(name) != null) {
-                    foundTargets.put(project, project.getTasks().get(name));
+                    foundTargets.add(project.getTasks().get(name));
                 }
             }
         };

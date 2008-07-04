@@ -27,22 +27,20 @@ import org.gradle.api.InvalidUserDataException
  * @author Hans Dockter
  */
 abstract class AbstractCompileTest extends AbstractConventionTaskTest {
-    static final String TEST_PATTERN_1 = 'pattern1'
-    static final String TEST_PATTERN_2 = 'pattern2'
-    static final String TEST_PATTERN_3 = 'pattern3'
+    public static final String TEST_PATTERN_1 = 'pattern1'
+    public static final String TEST_PATTERN_2 = 'pattern2'
+    public static final String TEST_PATTERN_3 = 'pattern3'
 
-    static final File TEST_TARGET_DIR = '/targetDir' as File
-    static final File TEST_ROOT_DIR = '/ROOTDir' as File
+    public static final File TEST_TARGET_DIR = '/targetDir' as File
+    public static final File TEST_ROOT_DIR = '/ROOTDir' as File
 
-    static final List TEST_DEPENDENCY_MANAGER_CLASSPATH = ['jar1' as File]
-    static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = ['jar2' as File]
-    static final List TEST_UNMANAGED_CLASSPATH = ['jar2']
-    static final List TEST_INCLUDES = ['incl']
-    static final List TEST_EXCLUDES = ['excl']
+    public static final List TEST_DEPENDENCY_MANAGER_CLASSPATH = ['jar1' as File]
+    public static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = ['jar2' as File]
+    public static final List TEST_UNMANAGED_CLASSPATH = ['jar2']
+    public static final List TEST_INCLUDES = ['incl']
+    public static final List TEST_EXCLUDES = ['excl']
 
     MockFor antCompileMocker
-
-    MockFor dependencyManagerMocker
 
     abstract Compile getCompile()
 
@@ -59,8 +57,8 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         assertNull(compile.sourceCompatibility)
         assertNull(compile.targetCompatibility)
         assertNull(compile.dependencyManager)
-        assertEquals([], compile.srcDirs)
-        assertEquals([], compile.unmanagedClasspath)
+        assertNull(compile.srcDirs)
+        assertNull(compile.unmanagedClasspath)
     }
 
 
@@ -116,7 +114,7 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
             AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH
         }] as DependencyManager
 
-        compile.classpathConverter = [createFileClasspath: {File baseDir, Object[] pathElements ->
+        compile.classpathConverter = [createFileClasspath: {File baseDir, List pathElements ->
             assertEquals(AbstractCompileTest.TEST_ROOT_DIR, baseDir)
             assertEquals(AbstractCompileTest.TEST_UNMANAGED_CLASSPATH, pathElements as List)
             AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH
