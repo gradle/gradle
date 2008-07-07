@@ -33,6 +33,10 @@ class WrapperProjectCreator {
 createTask('$WRAPPER_TASK_NAME', type: $Wrapper.name).configure {
     gradleVersion = '$gradleVersion'
     urlRoot = '${downloadUrlRoot.toURL()}'
+    zipBase = Wrapper.PathBase.PROJECT
+    zipPath = 'wrapper'
+    distributionBase = Wrapper.PathBase.PROJECT
+    distributionPath = 'dist'
 }
 
 createTask('$TEST_TASK_NAME') {
