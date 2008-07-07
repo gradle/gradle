@@ -102,6 +102,8 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private String archivesBaseName;
 
+    private String gradleUserHome;
+
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 
     private Convention convention;
@@ -358,6 +360,14 @@ public abstract class AbstractProject implements Project, Comparable {
 
     public int getDepth() {
         return depth;
+    }
+
+    public String getGradleUserHome() {
+        return gradleUserHome;
+    }
+
+    public void setGradleUserHome(String gradleUserHome) {
+        this.gradleUserHome = gradleUserHome;
     }
 
     public ProjectRegistry getProjectRegistry() {
