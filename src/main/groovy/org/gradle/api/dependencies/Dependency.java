@@ -16,7 +16,7 @@
 package org.gradle.api.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.Project;
 
 import java.util.Set;
 
@@ -28,7 +28,7 @@ public interface Dependency {
             
     DependencyDescriptor createDepencencyDescriptor();
 
-    void setProject(DefaultProject project);
+    void setProject(Project project);
 
     void setConfs(Set confs);
 

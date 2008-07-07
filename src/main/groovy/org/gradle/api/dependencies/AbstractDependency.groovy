@@ -19,8 +19,8 @@ package org.gradle.api.dependencies
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.UnknownDependencyNotation
+import org.gradle.api.Project
 
 /**
 * @author Hans Dockter
@@ -30,9 +30,9 @@ abstract class AbstractDependency implements Dependency {
 
     Object userDependencyDescription
 
-    DefaultProject project
+    Project project
 
-    AbstractDependency(Set confs, Object userDependencyDescription, DefaultProject project) {
+    AbstractDependency(Set confs, Object userDependencyDescription, Project project) {
         boolean valid = true
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
             throw new UnknownDependencyNotation("Description $userDependencyDescription not valid!")

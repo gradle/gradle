@@ -18,7 +18,6 @@ package org.gradle.api.dependencies
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.Project
 
 /**
@@ -27,12 +26,12 @@ import org.gradle.api.Project
 class ProjectDependency extends AbstractDependency {
     String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION
 
-    ProjectDependency(DefaultProject dependencyProject, String dependencyConfiguration) {
+    ProjectDependency(Project dependencyProject, String dependencyConfiguration) {
         super(null, dependencyProject, null)
         this.dependencyConfiguration = dependencyConfiguration
     }
 
-    ProjectDependency(Set confs, Object userDependencyDescription, DefaultProject project) {
+    ProjectDependency(Set confs, Object userDependencyDescription, Project project) {
         super(confs, userDependencyDescription, project)
     }
 
@@ -54,7 +53,7 @@ class ProjectDependency extends AbstractDependency {
         this.dependencyConfiguration = dependencyConfiguration
     }
 
-    DefaultProject getDependencyProject() {
+    Project getDependencyProject() {
         userDependencyDescription
     }
 
