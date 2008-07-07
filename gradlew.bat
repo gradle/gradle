@@ -97,11 +97,13 @@ set CMD_LINE_ARGS=%$
 @rem Setup the command line
 
 set STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
-set CLASSPATH=%DIRNAME%gradle-wrapper\gradle-wrapper.jar
+set CLASSPATH=%DIRNAME%\\gradle-wrapper.jar
 set URL_ROOT=http://dist.codehaus.org/gradle
-set DIST_NAME=gradle-0.1.5-080613181139+0200-bin
-set GRADLE_HOME=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1.5-080613181139+0200
-set Path=%DIRNAME%gradle-wrapper\gradle-dist\gradle-0.1.5-080613181139+0200\bin;%Path%
+set DIST_PATH=%HOMEPATH%\.gradle\wrapper/dists
+set DIST_NAME=gradle-0.2-bin
+set ZIP_STORE=%DIRNAME%\wrapper
+set GRADLE_HOME=%HOMEPATH%\.gradle\wrapper/dists\gradle-0.2
+set Path=%HOMEPATH%\.gradle\wrapper/dists\gradle-0.2\bin;%Path%
 
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
@@ -109,7 +111,7 @@ set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 if "%JAVA_OPTS%" == "" set JAVA_OPTS="-Xmx128m"
 set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
 
-"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %URL_ROOT% %DIST_NAME%
+"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %URL_ROOT% %DIST_PATH% %DIST_NAME% %ZIP_STORE%
 
 @rem Execute Gradle
 gradle %CMD_LINE_ARGS%

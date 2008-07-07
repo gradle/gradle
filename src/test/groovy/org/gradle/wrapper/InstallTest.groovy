@@ -17,11 +17,15 @@
 package org.gradle.wrapper
 
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.After
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class InstallTest extends GroovyTestCase {
+class InstallTest {
     File testDir
     Install install
     String distName
@@ -29,38 +33,41 @@ class InstallTest extends GroovyTestCase {
     IDownload downloadMock
     boolean downloadCalled
     File zip
-    File rootDir
+    File distributionPath
+    File zipStore
     File someScript
     File distDir
     File destFile
 
-    void setUp() {
+    @Before public void setUp()  {
         downloadCalled = false
         testDir = HelperUtil.makeNewTestDir()
-        rootDir = new File(testDir, 'gradle')
+        distributionPath = new File(testDir, 'gradle')
         install = new Install(false, false)
         distName = 'gradle-1.0'
-        destFile = new File(rootDir, "gradle.zip")
+        zipStore = new File(testDir, 'zips');
+        destFile = new File(zipStore, "$distName" + ".zip")
         urlRoot = 'file://./tmpTest'
         initDownloadMock()
-        distDir = new File(rootDir, distName)
+        distDir = new File(distributionPath, distName)
     }
 
     void initDownloadMock() {
         downloadMock = [download: {String url, File destination ->
-            assertEquals("$urlRoot/${distName}.zip", url)
-            assertEquals(destFile, destination)
+            assertEquals("$urlRoot/${distName}.zip" as String, url)
+            assertEquals(destFile.getAbsolutePath(), destination.getAbsolutePath())
             zip = createTestZip()
             downloadCalled = true
         }] as IDownload
         install.setDownload(downloadMock)
     }
 
-     void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assert !install.alwaysDownload
         assert !install.alwaysUnpack
     }
@@ -71,7 +78,7 @@ class InstallTest extends GroovyTestCase {
         binDir.mkdirs()
         someScript = new File(binDir, 'somescript')
         someScript.write('something')
-        rootDir.mkdirs()
+        zipStore.mkdirs()
         AntBuilder antBuilder = new AntBuilder()
         antBuilder.zip(destfile: destFile) {
             zipfileset(dir: explodedZipDir, prefix: distName)
@@ -79,52 +86,51 @@ class InstallTest extends GroovyTestCase {
         destFile
     }
 
-    void testCreateDist() {
-        install.createDist(urlRoot, distName, rootDir)
+    @Test public void testCreateDist() {
+        install.createDist(urlRoot, distributionPath, distName, zipStore)
         assert downloadCalled
         assert distDir.isDirectory()
         assert someScript.exists()
     }
 
-    void testCreateDistWithExistingRoot() {
-        rootDir.mkdirs()
-        File otherFile = new File(rootDir, 'other')
+    @Test public void testCreateDistWithExistingRoot() {
+        distributionPath.mkdirs()
+        File otherFile = new File(distributionPath, 'other')
         otherFile.createNewFile()
-        install.createDist(urlRoot, distName, rootDir)
+        install.createDist(urlRoot, distributionPath, distName, zipStore)
         assert downloadCalled
         assert distDir.isDirectory()
         assert someScript.exists()
-        assert !otherFile.exists()
     }
 
-    void testCreateDistWithExistingDist() {
+    @Test public void testCreateDistWithExistingDist() {
         distDir.mkdirs()
         long lastModified = distDir.lastModified()
-        install.createDist(urlRoot, distName, rootDir)
+        install.createDist(urlRoot, distributionPath, distName, zipStore)
         assert !downloadCalled
         assert lastModified == distDir.lastModified()
     }
 
-    void testCreateDistWithExistingDistAndZipAndAlwaysUnpackTrue() {
+    @Test public void testCreateDistWithExistingDistAndZipAndAlwaysUnpackTrue() {
         install = new Install(false, true)
         initDownloadMock()
         createTestZip()
         distDir.mkdirs()
         File testFile = new File(distDir, 'testfile')
-        install.createDist(urlRoot, distName, rootDir)
+        install.createDist(urlRoot, distributionPath, distName, zipStore)
         assert distDir.isDirectory()
         assert someScript.exists()
         assert !testFile.exists()
         assert !downloadCalled
     }
 
-    void testCreateDistWithExistingZipAndDistAndAlwaysDownloadTrue() {
+    @Test public void testCreateDistWithExistingZipAndDistAndAlwaysDownloadTrue() {
         install = new Install(true, false)
         initDownloadMock()
         createTestZip()
         distDir.mkdirs()
         File testFile = new File(distDir, 'testfile')
-        install.createDist(urlRoot, distName, rootDir)
+        install.createDist(urlRoot, distributionPath, distName, zipStore)
         assert distDir.isDirectory()
         assert someScript.exists()
         assert !testFile.exists()

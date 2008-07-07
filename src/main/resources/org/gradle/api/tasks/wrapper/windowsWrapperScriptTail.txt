@@ -5,7 +5,7 @@ set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 if "%JAVA_OPTS%" == "" set JAVA_OPTS="-Xmx128m"
 set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
 
-"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %URL_ROOT% %DIST_NAME%
+"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %URL_ROOT% %DIST_PATH% %DIST_NAME% %ZIP_STORE%
 
 @rem Execute Gradle
 gradle %CMD_LINE_ARGS%

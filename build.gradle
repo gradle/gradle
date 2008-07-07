@@ -78,6 +78,7 @@ dependencies {
         exclude(module: 'junit')
     }
     compile ":jopt-simple:2.4",
+            ":ant:1.7.0",
             ":logback-classic:0.9.8",
             ":slf4j-api:1.4.3",
             ":logback-core:0.9.8",
@@ -328,7 +329,9 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.1.5-080613181139+0200'
+    gradleVersion = '0.2'
+    zipBase = Wrapper.PathBase.PROJECT
+    zipPath = 'wrapper'
 }
 
 

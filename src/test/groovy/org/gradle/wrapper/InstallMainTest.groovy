@@ -16,14 +16,16 @@
 
 package org.gradle.wrapper
 
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
-class InstallMainTest extends GroovyTestCase {
+class InstallMainTest {
 
     // todo: Mockers do not work for Java. We have to find something better.
 
-    void testMain() {
+    @Test public void testMain() {
 //        MockFor wrapperMocker = new MockFor(Install)
 //        wrapperMocker.demand.createDist() {String urlRoot, String distName, File rootDir ->
 //            assertEquals('file://path', urlRoot)

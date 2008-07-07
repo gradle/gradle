@@ -57,13 +57,14 @@ if $cygwin ; then
     [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
 fi
 
-
 STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
-CLASSPATH=`dirname "$0"`/gradle-wrapper/gradle-wrapper.jar
+CLASSPATH=`dirname "$0"`//gradle-wrapper.jar
 URL_ROOT=http://dist.codehaus.org/gradle
-DIST_NAME=gradle-0.1.5-080613181139+0200-bin
-GRADLE_HOME=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.5-080613181139+0200
-GRADLE=`dirname "$0"`/gradle-wrapper/gradle-dist/gradle-0.1.5-080613181139+0200/bin/gradle
+DIST_PATH=~/.gradle/wrapper/dists
+DIST_NAME=gradle-0.2-bin
+ZIP_STORE=`dirname "$0"`/wrapper
+GRADLE_HOME=~/.gradle/wrapper/dists/gradle-0.2
+GRADLE=~/.gradle/wrapper/dists/gradle-0.2/bin/gradle
 # Determine the Java command to use to start the JVM.
 if [ -z "$JAVACMD" ] ; then
     if [ -n "$JAVA_HOME" ] ; then
@@ -134,7 +135,9 @@ fi
         -Dtools.jar="$TOOLS_JAR" \
         $STARTER_MAIN_CLASS \
         $URL_ROOT\
-        $DIST_NAME
+        $DIST_PATH\
+        $DIST_NAME\
+        $ZIP_STORE
 
 chmod 775 $GRADLE
 

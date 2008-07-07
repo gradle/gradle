@@ -17,11 +17,14 @@
 package org.gradle.wrapper
 
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class DownloadTest extends GroovyTestCase {
+class DownloadTest {
     Download download
     File testDir
     File downloadFile
@@ -29,7 +32,7 @@ class DownloadTest extends GroovyTestCase {
     String sourceRoot
     File remoteFile
 
-    void setUp() {
+    @Before public void setUp()  {
         download = new Download()
         testDir = HelperUtil.makeNewTestDir()
         rootDir = new File(testDir, 'root')
@@ -38,7 +41,7 @@ class DownloadTest extends GroovyTestCase {
         sourceRoot = "file:///$remoteFile.canonicalPath"
     }
 
-    void testDownload() {
+    @Test public void testDownload() {
         assert !downloadFile.exists()
         download.download(sourceRoot, downloadFile)
         assert downloadFile.exists()
