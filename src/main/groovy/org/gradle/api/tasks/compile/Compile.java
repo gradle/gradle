@@ -84,8 +84,6 @@ public class Compile extends ConventionTask {
 
     protected AntJavac antCompile = new AntJavac();
 
-
-
     protected ClasspathConverter classpathConverter = new ClasspathConverter();
 
     public Compile(Project project, String name) {
