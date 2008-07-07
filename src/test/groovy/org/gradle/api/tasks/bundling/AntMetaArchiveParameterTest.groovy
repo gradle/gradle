@@ -17,6 +17,9 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileSet
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -26,7 +29,7 @@ class AntMetaArchiveParameterTest extends AbstractArchiveParameterTest {
     List expectedMetaInfFileSets
     String expectedFileSetManifest
 
-    public void setUp() {
+    @Before public void setUp()  {
         expectedGradleManifest = new GradleManifest()
         expectedMetaInfFileSets = [new FileSet('somedir')]
         expectedFileSetManifest = 'skip'
@@ -39,7 +42,7 @@ class AntMetaArchiveParameterTest extends AbstractArchiveParameterTest {
                 expectedDestinationDir, expectedArchiveName, expectedGradleManifest, expectedMetaInfFileSets, expectedAnt)
     }
 
-    public void testAntArchiveParameter() {
+    @Test public void testAntArchiveParameter() {
         super.testAntArchiveParameter()
         AntMetaArchiveParameter metaArchiveParameter = archiveParameter
         assert metaArchiveParameter.gradleManifest.is(expectedGradleManifest)

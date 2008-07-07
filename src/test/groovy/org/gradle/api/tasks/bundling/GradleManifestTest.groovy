@@ -17,29 +17,32 @@
 package org.gradle.api.tasks.bundling
 
 import java.util.jar.Manifest
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
 * @author Hans Dockter
 */
-class GradleManifestTest extends GroovyTestCase {
+class GradleManifestTest {
     GradleManifest gradleManifest = new GradleManifest()
 
-    void setUp() {
+    @Before public void setUp()  {
         gradleManifest = new GradleManifest()
     }
 
-    void testInit() {
+    @Test public void testInit() {
         Manifest baseManifest = new Manifest()
         GradleManifest gradleManifest = new GradleManifest(baseManifest)
         assert gradleManifest.baseManifest.is(baseManifest)
     }
 
-    void testGradleManifest() {
+    @Test public void testGradleManifest() {
         assertNull(gradleManifest.file)
         assertNotNull(gradleManifest.manifest)
     }
 
-    void testAddMainAttributes() {
+    @Test public void testAddMainAttributes() {
         Map attributes = [key1: 'value1', key2: 'value2']
         Map attributes2 = [key3: 'value3']
         assert gradleManifest.is(gradleManifest.mainAttributes(attributes))
@@ -52,7 +55,7 @@ class GradleManifestTest extends GroovyTestCase {
         }
     }
 
-    void testAddSectionAttributes() {
+    @Test public void testAddSectionAttributes() {
         String section1 = 'section1'
         String section2 = 'section2'
         Map attributes = [key1: 'value1', key2: 'value2']
@@ -74,7 +77,7 @@ class GradleManifestTest extends GroovyTestCase {
         }
     }
 
-    void testAddToAntBuilder() {
+    @Test public void testAddToAntBuilder() {
         // todo: manifest behaves differently when used within a jar or outside a jar. The commented out approach does not work
 //        HelperUtil.makeNewTestDir()
 //        gradleManifest.addToAntBuilder(new AntBuilder().jar(destfile: new File(HelperUtil.TMP_DIR_FOR_TEST, 'somedest').absolutePath))

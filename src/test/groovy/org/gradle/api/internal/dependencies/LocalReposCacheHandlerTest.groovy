@@ -19,12 +19,14 @@ package org.gradle.api.internal.dependencies
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.apache.ivy.plugins.lock.NoLockStrategy
 import org.gradle.api.DependencyManager
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class LocalReposCacheHandlerTest extends GroovyTestCase {
-     void testGetCacheManager() {
+class LocalReposCacheHandlerTest {
+     @Test public void testGetCacheManager() {
          File buildResolverDir = '/somedir' as File
          LocalReposCacheHandler cacheHandler = new LocalReposCacheHandler(buildResolverDir)
          DefaultRepositoryCacheManager cacheManager = cacheHandler.cacheManager

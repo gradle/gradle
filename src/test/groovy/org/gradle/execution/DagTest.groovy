@@ -1,4 +1,4 @@
-/*******************************************************************************
+/** *****************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ ****************************************************************************** */
 /*
  * For the additions made to this class:
  *
@@ -32,8 +32,11 @@ import org.gradle.api.Project
 import org.gradle.api.internal.DefaultTask
 import org.gradle.execution.Dag
 import org.gradle.util.HelperUtil
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.Test;
 
-class DagTest extends GroovyTestCase {
+class DagTest {
     private static final Object A = "A";
     private static final Object B = "B";
     private static final Object C = "C";
@@ -50,19 +53,19 @@ class DagTest extends GroovyTestCase {
 
     private Dag dag
 
-    protected void setUp() {
+    @Before public void setUp() {
         dag = new Dag()
         root = HelperUtil.createRootProject(new File('root'))
     }
 
-
-
+    @Test
     public void testEmpty() throws Exception {
         assertTrue(dag.getChildren(new Object()).isEmpty());
         assertTrue(dag.getSources().isEmpty());
         assertTrue(dag.getSinks().isEmpty());
     }
 
+    @Test
     public void testIllegal() throws Exception {
         assertFalse(dag.addEdge(A, A));
         try {
@@ -87,6 +90,7 @@ class DagTest extends GroovyTestCase {
         }
     }
 
+    @Test
     public void testDag() throws Exception {
         assertTrue(dag.addEdge(A, B));
         assertEquals(AS, dag.getSources());
@@ -149,9 +153,9 @@ class DagTest extends GroovyTestCase {
         assertTrue(dag.getChildren(D).isEmpty());
     }
 
-    void testAddTask() {
+    @Test public void testAddTask() {
         DefaultTask dummyTask = new DefaultTask(root, 'a')
-        Set dependsOnTasks = [new DefaultTask(root, 'b'), new DefaultTask(root, 'c')] 
+        Set dependsOnTasks = [new DefaultTask(root, 'b'), new DefaultTask(root, 'c')]
         dag.addTask(dummyTask, dependsOnTasks)
         assertEquals(new HashSet([dummyTask]), dag.sources)
         assertEquals(new HashSet(dependsOnTasks), dag.sinks)
@@ -159,16 +163,14 @@ class DagTest extends GroovyTestCase {
 
 
 
-    void testAddTaskWithCircularReference() {
+    @Test (expected = CircularReferenceException) public void testAddTaskWithCircularReference() {
         DefaultTask dummyTask = new DefaultTask(root, 'a')
         DefaultTask dummyTask2 = new DefaultTask(root, 'b')
         dag.addTask(dummyTask, [dummyTask2] as Set)
-        shouldFail(CircularReferenceException) {
-            dag.addTask(dummyTask2, [dummyTask] as Set)
-        }
+        dag.addTask(dummyTask2, [dummyTask] as Set)
     }
 
-    void testExecute() {
+    @Test public void testExecute() {
         Project child = root.addChildProject('child')
         List executedIdList = []
         DefaultTask dummyTask0 = createTask(root, 'a', executedIdList, 2)
@@ -192,7 +194,7 @@ class DagTest extends GroovyTestCase {
         dummyTask0
     }
 
-    void testReset() {
+    @Test public void testReset() {
         DefaultTask dummyTask0 = new DefaultTask(root, 'a')
         Set dependsOnTasks0 = [new DefaultTask(root, 'child2'), new DefaultTask(root, 'child1')]
         dag.addTask(dummyTask0, dependsOnTasks0)
@@ -203,7 +205,7 @@ class DagTest extends GroovyTestCase {
         assertEquals(0, dag.sinks.size())
     }
 
-    void testGetProjects() {
+    @Test public void testGetProjects() {
         Project root = HelperUtil.createRootProject(new File('/root'))
         Project child = HelperUtil.createProjectMock([:], 'child', root)
         DefaultTask task1 = new DefaultTask(root, 'task1')
@@ -213,7 +215,7 @@ class DagTest extends GroovyTestCase {
         assertEquals([root, child] as Set, dag.projects)
     }
 
-    void testHasTask() {
+    @Test public void testHasTask() {
         Project root = HelperUtil.createRootProject(new File('/root'))
         Project child = HelperUtil.createProjectMock([:], 'child', root)
         DefaultTask task1 = new DefaultTask(root, 'task1')
@@ -225,7 +227,7 @@ class DagTest extends GroovyTestCase {
         assertTrue(dag.hasTask(':child:task2'))
     }
 
-    void testAddProjectDependencies() {
-        
+    @Test public void testAddProjectDependencies() {
+
     }
 }

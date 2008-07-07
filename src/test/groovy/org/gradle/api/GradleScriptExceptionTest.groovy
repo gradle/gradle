@@ -18,12 +18,14 @@ package org.gradle.api
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-class GradleScriptExceptionTest extends GroovyTestCase {
-    void testMessage() {
+class GradleScriptExceptionTest {
+    @Test public void testMessage() {
         String scriptName = 'scriptfile'
         GradleScriptException buildScriptException
         try {

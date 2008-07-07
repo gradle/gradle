@@ -19,6 +19,9 @@ package org.gradle.api.tasks.bundling
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -28,7 +31,7 @@ class JarTest extends AbstractArchiveTaskTest {
 
     MockFor antJarMocker
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         jar = new Jar(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(jar)
@@ -54,7 +57,7 @@ class JarTest extends AbstractArchiveTaskTest {
         jar.antJar
     }
 
-    void testJar() {
+    @Test public void testJar() {
         assertEquals(Jar.DEFAULT_EXTENSION, jar.extension)
     }
 

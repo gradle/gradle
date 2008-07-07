@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.dependencies
 
 import java.awt.Point
@@ -28,11 +28,14 @@ import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.gradle.util.HelperUtil
 import org.gradle.api.UnknownDependencyNotation
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
-* @author Hans Dockter
-*/
-class ArtifactDependencyTest extends GroovyTestCase {
+ * @author Hans Dockter
+ */
+class ArtifactDependencyTest {
     static final String TEST_CONF = "conf"
     static final Set TEST_CONF_SET = [TEST_CONF]
     static final String TEST_ORG = "org.springframework"
@@ -49,39 +52,42 @@ class ArtifactDependencyTest extends GroovyTestCase {
 
     DefaultDependencyDescriptor expectedDependencyDescriptor
 
-    void setUp() {
+    @Before public void setUp() {
         artifactDependency = new ArtifactDependency(TEST_CONF_SET, TEST_DESCRIPTOR, TEST_PROJECT)
         dependencyDescriptorFactoryMock = new MockFor(DependencyDescriptorFactory)
         artifactDependency.dependencyDescriptorFactory = [:] as DependencyDescriptorFactory
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor()
     }
 
-    void testArtifactDependency() {
+    @Test public void testArtifactDependency() {
         assertEquals(TEST_CONF_SET, artifactDependency.confs)
         assertEquals(TEST_DESCRIPTOR, artifactDependency.userDependencyDescription)
-        assertEquals(TEST_PROJECT, artifactDependency.project)
+        assertSame(TEST_PROJECT, artifactDependency.project)
         assert !artifactDependency.force
     }
 
-    void testValidation() {
-        shouldFail(UnknownDependencyNotation) {
-            new ArtifactDependency(TEST_CONF_SET, "singlestring", TEST_PROJECT)
-        }
-        shouldFail(UnknownDependencyNotation) {
-            new ArtifactDependency(TEST_CONF_SET, "junit:junit", TEST_PROJECT)
-        }
-        shouldFail(UnknownDependencyNotation) {
-            new ArtifactDependency(TEST_CONF_SET, "junit:junit:3.8.2", TEST_PROJECT)
-        }
-        shouldFail(UnknownDependencyNotation) {
-            new ArtifactDependency(TEST_CONF_SET, "junit:junit:3.8.2:jdk1.4", TEST_PROJECT)
-        }
-        shouldFail(UnknownDependencyNotation) {
-            new ArtifactDependency(TEST_CONF_SET, new Point(3,4), TEST_PROJECT)
-        }
+    @Test (expected = UnknownDependencyNotation) public void testValidationWithSingleString() {
+        new ArtifactDependency(TEST_CONF_SET, "singlestring", TEST_PROJECT)
     }
 
-    void testCreateDependencyDescriptor() {
+    @Test (expected = UnknownDependencyNotation) public void testValidationWithMissingVersion() {
+        new ArtifactDependency(TEST_CONF_SET, "junit:junit", TEST_PROJECT)
+    }
+
+    @Test (expected = UnknownDependencyNotation) public void testValidationWithMissingArtifactDescriptor() {
+        new ArtifactDependency(TEST_CONF_SET, "junit:junit:3.8.2", TEST_PROJECT)
+    }
+
+    @Test (expected = UnknownDependencyNotation) public void testValidationWithWrongArtifactSeparator() {
+        new ArtifactDependency(TEST_CONF_SET, "junit:junit:3.8.2:jdk1.4", TEST_PROJECT)
+    }
+
+    @Test (expected = UnknownDependencyNotation) public void testValidationWithUnknownType() {
+        new ArtifactDependency(TEST_CONF_SET, new Point(3, 4), TEST_PROJECT)
+    }
+
+
+    @Test public void testCreateDependencyDescriptor() {
         dependencyDescriptorFactoryMock.demand.createDescriptor(1..1) {String descriptor, boolean force, boolean transitive,
                                                                        boolean changing, Set confs, List excludeRules ->
             assertEquals(TEST_MODULE_DESCRIPTOR, descriptor)

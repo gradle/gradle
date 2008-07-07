@@ -23,11 +23,14 @@ import org.gradle.api.internal.dependencies.SettingsConverter
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.DependencyManager
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class SettingsConverterTest extends GroovyTestCase {
+class SettingsConverterTest {
     static final IBiblioResolver TEST_RESOLVER = new IBiblioResolver()
     static {
         TEST_RESOLVER.name = 'resolver'
@@ -49,13 +52,13 @@ class SettingsConverterTest extends GroovyTestCase {
 
     File testGradleUserHome
 
-    void setUp() {
+    @Before public void setUp()  {
         converter = new SettingsConverter()
         clientModuleRegistry = [a: 'b']
         testGradleUserHome = new File('gradleUserHome')
     }
 
-    void testConvert() {
+    @Test public void testConvert() {
         IvySettings settings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
                 TEST_BUILD_RESOLVER, clientModuleRegistry, null)
         ChainResolver chainResolver = settings.getResolver(SettingsConverter.CHAIN_RESOLVER_NAME)
@@ -83,7 +86,7 @@ class SettingsConverterTest extends GroovyTestCase {
         assertEquals(settings.defaultCacheArtifactPattern, DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN)
     }
 
-    void testConvertWithClientChainConfigurer() {
+    @Test public void testConvertWithClientChainConfigurer() {
         IvySettings settings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
                 TEST_BUILD_RESOLVER, clientModuleRegistry) {
             returnFirst = false
@@ -91,7 +94,7 @@ class SettingsConverterTest extends GroovyTestCase {
         assertFalse settings.getResolver(SettingsConverter.CHAIN_RESOLVER_NAME).returnFirst
     }
 
-    void testWithGivenSettings() {
+    @Test public void testWithGivenSettings() {
         IvySettings ivySettings = [:] as IvySettings
         converter.ivySettings = ivySettings
         assert ivySettings.is(converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], new File(''),

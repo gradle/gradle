@@ -16,22 +16,26 @@
  
 package org.gradle.api.tasks.testing
 
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
+
 /**
  * @author Hans Dockter
  */
-class JunitOptionsTest extends GroovyTestCase {
+class JunitOptionsTest {
     static final Map TEST_FORMATTER_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
     JunitOptions junitOptions
 
-    void setUp() {
+    @Before public void setUp()  {
         junitOptions = new JunitOptions()
         junitOptions.formatterOptions  = [optionMap: {TEST_FORMATTER_OPTION_MAP}] as FormatterOptions
         junitOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as JunitForkOptions
     }
 
-    void testCompileOptions() {
+    @Test public void testCompileOptions() {
         junitOptions = new JunitOptions()
         assertTrue(junitOptions.fork)
         assertTrue(junitOptions.filterTrace)
@@ -50,13 +54,13 @@ class JunitOptionsTest extends GroovyTestCase {
         assertEquals([:], junitOptions.environment)
     }
 
-    void testOptionMapForFromatterAndForkOptions() {
+    @Test public void testOptionMapForFromatterAndForkOptions() {
         Map optionMap = junitOptions.optionMap()
         TEST_FORMATTER_OPTION_MAP.keySet().each { assertFalse(optionMap.containsKey(it)) }
         assertEquals(TEST_FORK_OPTION_MAP, optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()))
     }
 
-    void testOptionMapWithNullables() {
+    @Test public void testOptionMapWithNullables() {
         junitOptions.printSummary = null
         Map optionMap = junitOptions.optionMap()
         Map nullables = [
@@ -70,11 +74,11 @@ class JunitOptionsTest extends GroovyTestCase {
         nullables.keySet().each {junitOptions."$it" = "${it}Value"}
         optionMap = junitOptions.optionMap()
         nullables.each {String field, String antProperty ->
-            assertEquals("${field}Value", optionMap[antProperty])
+            assertEquals(field + "Value", optionMap[antProperty])
         }
     }
 
-    void testOptionMapWithTrueFalseValues() {
+    @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
                 fork: 'fork',
                 filterTrace: 'filtertrace',
@@ -94,7 +98,7 @@ class JunitOptionsTest extends GroovyTestCase {
         }
     }
 
-    void testFork() {
+    @Test public void testFork() {
         junitOptions.fork = false
         boolean forkUseCalled = false
         junitOptions.forkOptions = [define: {Map args ->
@@ -106,7 +110,7 @@ class JunitOptionsTest extends GroovyTestCase {
         assertTrue(forkUseCalled)
     }
 
-    void testDefine() {
+    @Test public void testDefine() {
         junitOptions.fork = false
         junitOptions.tempDir = null
         junitOptions.printSummary = 'xxxx'

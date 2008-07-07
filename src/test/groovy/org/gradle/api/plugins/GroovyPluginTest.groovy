@@ -19,12 +19,14 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class GroovyPluginTest extends GroovyTestCase {
-    void testApply() {
+class GroovyPluginTest {
+    @Test public void testApply() {
         // todo Make test stronger
         // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
         DefaultProject project = HelperUtil.createRootProject(new File('path', 'root'))

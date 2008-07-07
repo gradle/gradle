@@ -17,13 +17,15 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
 * @author Hans Dockter
 */
 
-class PluginRegistryTest extends GroovyTestCase {
-    void testGetPlugin() {
+class PluginRegistryTest {
+    @Test public void testGetPlugin() {
         Properties properties = new Properties()
         properties.putAll([plugin1: 'org.gradle.api.internal.project.TestPlugin1'])
         File testDir = HelperUtil.makeNewTestDir()
@@ -40,7 +42,7 @@ class PluginRegistryTest extends GroovyTestCase {
         assertNull(pluginRegistry.getPlugin('unknownId'))
     }
 
-    void testGetPluginWithNonExistentPropertiesFile() {
+    @Test public void testGetPluginWithNonExistentPropertiesFile() {
         File propertiesFile = new File('/plugin.properties')
         assertFalse(propertiesFile.isFile())
         PluginRegistry pluginRegistry = new PluginRegistry(propertiesFile)
@@ -48,14 +50,14 @@ class PluginRegistryTest extends GroovyTestCase {
         assertNull(pluginRegistry.getPlugin('unknownId'))
     }
 
-    void testGetPluginWithNoPropertiesFile() {
+    @Test public void testGetPluginWithNoPropertiesFile() {
         PluginRegistry pluginRegistry = new PluginRegistry()
         assertTrue(pluginRegistry.getPlugin(TestPlugin2) instanceof TestPlugin2)
         assertNull(pluginRegistry.getPlugin('unknownId'))
     }
 
 
-    void testApply() {
+    @Test public void testApply() {
         PluginRegistry pluginRegistry = new PluginRegistry()
         DefaultProject project = [:] as DefaultProject
         pluginRegistry.apply(TestPlugin1, project, pluginRegistry, [:])

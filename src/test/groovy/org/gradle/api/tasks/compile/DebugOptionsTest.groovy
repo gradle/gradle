@@ -16,25 +16,29 @@
  
 package org.gradle.api.tasks.compile
 
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
+
 /**
  * @author Hans Dockter
  */
-class DebugOptionsTest extends GroovyTestCase {
+class DebugOptionsTest {
     static final String TEST_DEBUG_LEVEL = 'testDebugLevel'
     static final String DEBUG_LEVEL_PROPERTY_NAME = 'debugLevel'
     static final String DEBUG_LEVEL_ANT_PROPERTY_NAME = 'debuglevel'
 
     DebugOptions debugOptions
 
-    void setUp() {
+    @Before public void setUp()  {
         debugOptions = new DebugOptions()
     }
 
-    void testDebugOptions() {
+    @Test public void testDebugOptions() {
         assertNull(debugOptions.debugLevel)
     }
 
-    void testOptionMap() {
+    @Test public void testOptionMap() {
         Map optionMap = debugOptions.optionMap()
         assertEquals(0, optionMap.size())
 
@@ -44,7 +48,7 @@ class DebugOptionsTest extends GroovyTestCase {
         assertEquals(optionMap[DEBUG_LEVEL_ANT_PROPERTY_NAME], TEST_DEBUG_LEVEL)
     }
 
-    void testDefine() {
+    @Test public void testDefine() {
         debugOptions.debugLevel = null
         debugOptions.define((DEBUG_LEVEL_PROPERTY_NAME): TEST_DEBUG_LEVEL)
         assertEquals(TEST_DEBUG_LEVEL, debugOptions.debugLevel)

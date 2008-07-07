@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.dependencies
 
+import org.junit.Test
+import static org.junit.Assert.*;
+
 /**
  * @author Hans Dockter
  */
-class ClientModuleResolverTest extends GroovyTestCase {
-    void testGetDependency() {
+class ClientModuleResolverTest {
+    @Test public void testGetDependency() {
 //        ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
 //        clientModuleResolver.moduleRegistry = [:]
 //        clientModuleResolver.mainResolver = [:] as DependencyResolver

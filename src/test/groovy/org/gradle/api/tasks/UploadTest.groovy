@@ -29,6 +29,9 @@ import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.util.HelperUtil
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.plugins.JavaPluginConvention
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -44,7 +47,7 @@ class UploadTest extends AbstractTaskTest {
     MockFor publishEngineMocker
     MockFor moduleDescriptorConverterMocker
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         upload = new Upload(project, AbstractTaskTest.TEST_TASK_NAME)
         (projectRootDir = new File(HelperUtil.makeNewTestDir(), 'root')).mkdir()
@@ -58,14 +61,14 @@ class UploadTest extends AbstractTaskTest {
         upload
     }
 
-    void testUpload() {
+    @Test public void testUpload() {
         assert !upload.uploadModuleDescriptor
         assert upload.uploadResolvers
         assertEquals([], upload.configurations)
         assertEquals([] as Set, upload.bundles)
     }
 
-    void testUploading() {
+    @Test public void testUploading() {
         upload.uploadResolvers.add([name: RESOLVER_NAME_1, url: 'http://www.url1.com'])
         upload.uploadResolvers.add([name: RESOLVER_NAME_2, url: 'http://www.url2.com'])
         List expectedConfigurations = ['conf1']

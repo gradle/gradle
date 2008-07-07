@@ -18,18 +18,21 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.api.tasks.util.TarFileSet
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ArchiveDetectorTest extends GroovyTestCase {
+class ArchiveDetectorTest {
     ArchiveDetector archiveDetector
 
-    void setUp() {
+    @Before public void setUp()  {
         archiveDetector = new ArchiveDetector()
     }
 
-    void testArchiveFileSetType() {
+    @Test public void testArchiveFileSetType() {
         List zipFiles = ['a.zip', 'b.jar', 'c.war', 'd.ear']
         zipFiles.each {
             assertEquals(ZipFileSet, archiveDetector.archiveFileSetType(it as File))
@@ -44,7 +47,7 @@ class ArchiveDetectorTest extends GroovyTestCase {
         }
     }
 
-    void testUnknownArchive() {
+    @Test public void testUnknownArchive() {
         assertNull archiveDetector.archiveFileSetType('k' as File)
         assertNull archiveDetector.archiveFileSetType('k.tip' as File)
     }

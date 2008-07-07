@@ -27,11 +27,15 @@ import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.api.internal.project.ImportsReader
 import org.gradle.StartParameter
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.After
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class SettingsProcessorTest extends GroovyTestCase {
+class SettingsProcessorTest {
     static final File TEST_ROOT_DIR = new File('rootDir')
     SettingsProcessor settingsProcessor
     RootFinder expectedRootFinder
@@ -45,7 +49,7 @@ class SettingsProcessorTest extends GroovyTestCase {
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
 
-    void setUp() {
+    @Before public void setUp()  {
         buildResolverDir = HelperUtil.makeNewTestDir()
         expectedSettings = new DefaultSettings()
         expectedStartParameter = new StartParameter()
@@ -60,11 +64,12 @@ class SettingsProcessorTest extends GroovyTestCase {
         settingsFactoryMocker = new MockFor(SettingsFactory)
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testSettingsProcessor() {
+    @Test public void testSettingsProcessor() {
         assert settingsProcessor.importsReader.is(importsReader)
         assert settingsProcessor.settingsFactory.is(settingsFactory)
         assert settingsProcessor.dependencyManagerFactory.is(dependencyManagerFactory)
@@ -72,7 +77,7 @@ class SettingsProcessorTest extends GroovyTestCase {
         assert settingsProcessor.buildResolverDir.is(buildResolverDir)
     }
 
-    void testCreateBasicSettings() {
+    @Test public void testCreateBasicSettings() {
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
         expectedStartParameter = createStartParameter(expectedCurrentDir)
         prepareSettingsFactoryMocker(expectedCurrentDir, expectedCurrentDir)
@@ -83,7 +88,7 @@ class SettingsProcessorTest extends GroovyTestCase {
         checkBuildResolverDir(buildResolverDir)
     }
 
-    void testWithNonExistingBuildResolverDir() {
+    @Test public void testWithNonExistingBuildResolverDir() {
         HelperUtil.deleteTestDir()
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
         expectedStartParameter = createStartParameter(expectedCurrentDir)
@@ -95,14 +100,14 @@ class SettingsProcessorTest extends GroovyTestCase {
         checkBuildResolverDir(buildResolverDir)
     }
 
-    void testProcessWithCurrentDirAsSubproject() {
+    @Test public void testProcessWithCurrentDirAsSubproject() {
         File currentDir = new File(TEST_ROOT_DIR, 'currentDir')
         List includePaths = ['currentDir', 'path2']
         DefaultSettings settings = runCUT(TEST_ROOT_DIR, currentDir, includePaths, buildResolverDir)
         assertEquals(includePaths, settings.projectPaths)
     }
 
-    void testProcessWithCurrentDirNoSubproject() {
+    @Test public void testProcessWithCurrentDirNoSubproject() {
         File currentDir = new File(TEST_ROOT_DIR, 'currentDir')
         DefaultSettings settings = runCUT(TEST_ROOT_DIR, currentDir, ['path1', 'path2'], buildResolverDir) {
             prepareSettingsFactoryMocker(currentDir, currentDir)
@@ -110,13 +115,13 @@ class SettingsProcessorTest extends GroovyTestCase {
         assertEquals([], settings.projectPaths)
     }
 
-    void testProcessWithCurrentDirAsRootDir() {
+    @Test public void testProcessWithCurrentDirAsRootDir() {
         List includePaths = ['path1', 'path2']
         DefaultSettings settings = runCUT(TEST_ROOT_DIR, TEST_ROOT_DIR, includePaths, buildResolverDir)
         assertEquals(includePaths, settings.projectPaths)
     }
 
-    void testProcessWithNullBuildResolver() {
+    @Test public void testProcessWithNullBuildResolver() {
         settingsProcessor.buildResolverDir = null
         List includePaths = ['path1', 'path2']
         DefaultSettings settings = runCUT(TEST_ROOT_DIR, TEST_ROOT_DIR, includePaths,

@@ -17,17 +17,21 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.ConventionTestHelper
+import org.junit.Before
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
 abstract class AbstractConventionTaskTest extends AbstractTaskTest {
 
-    void setUp() {
+    @Before
+    public void setUp() {
         super.setUp()
     }
-    
-    void testConventionAwareness() {
+
+    @Test
+    public void testConventionAwareness() {
         ConventionTestHelper conventionTestHelper = new ConventionTestHelper()
         getTask().setConventionAwareHelper(conventionTestHelper.conventionAwareHelperMock)
     }

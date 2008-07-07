@@ -164,6 +164,7 @@ public class BuildExecuterTest {
         assertEquals(WrapUtil.toList("other"), buildExecuter.unknownTasks(WrapUtil.toList("compile", "other"), false, root));
     }
 
+    @Test
     public void testExecuteWithTransitiveTargetDependecies() {
         Task task1 = new DefaultTask(root, "task1");
         Task task2 = new DefaultTask(root, "task2").dependsOn(new String[]{"task1"});

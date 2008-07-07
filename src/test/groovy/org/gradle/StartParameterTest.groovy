@@ -16,13 +16,16 @@
  
 package org.gradle
 
+import org.junit.Before
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
-class StartParameterTest extends GroovyTestCase {
+class StartParameterTest {
     StartParameter testObj
 
-    protected void setUp() {
+    @Before public void setUp()  {
         testObj = new StartParameter(
                 buildFileName: 'buildfile',
                 taskNames: ['a'],
@@ -39,7 +42,7 @@ class StartParameterTest extends GroovyTestCase {
     }
 
 
-    void testNewInstance() {
+    @Test public void testNewInstance() {
         StartParameter startParameter = StartParameter.newInstance(testObj)
         assert startParameter.equals(testObj)
     }

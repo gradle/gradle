@@ -20,11 +20,14 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.DependencyManager
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-class BuildResolverHandlerTest extends GroovyTestCase {
+class BuildResolverHandlerTest {
     BuildResolverHandler handler
 
     LocalReposCacheHandler localReposCacheHandler
@@ -33,19 +36,19 @@ class BuildResolverHandlerTest extends GroovyTestCase {
 
     File buildResolverDir
 
-    void setUp() {
+    @Before public void setUp()  {
         localReposCacheHandler = new LocalReposCacheHandler()
         buildResolverDir = new File('buildResolver')
         handler = new BuildResolverHandler(localReposCacheHandler)
         handler.buildResolverDir = buildResolverDir
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assertEquals(buildResolverDir, handler.buildResolverDir)
         assertEquals(localReposCacheHandler, handler.localReposCacheHandler)
     }
 
-    void testGetBuildResolver() {
+    @Test public void testGetBuildResolver() {
         handler.localReposCacheHandler = [getCacheManager: {dummyCacheManager}] as LocalReposCacheHandler
         FileSystemResolver buildResolver = handler.buildResolver
         // check lazy init
@@ -57,8 +60,8 @@ class BuildResolverHandlerTest extends GroovyTestCase {
 
     private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedPatterns) {
         assertEquals(expectedName, resolver.name)
-        assertEquals(expectedPatterns, resolver.ivyPatterns)
-        assertEquals(expectedPatterns, resolver.artifactPatterns)
+        assert expectedPatterns == resolver.ivyPatterns
+        assert expectedPatterns == resolver.artifactPatterns
         assertTrue(resolver.allownomd)
         assert resolver.repositoryCacheManager == dummyCacheManager
     }

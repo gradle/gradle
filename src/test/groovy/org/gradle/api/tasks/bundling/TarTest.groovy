@@ -18,6 +18,9 @@ package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.tasks.AbstractTaskTest
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -27,7 +30,7 @@ class TarTest extends AbstractArchiveTaskTest {
 
     MockFor antTarMocker
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         tar = new Tar(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(tar)
@@ -38,7 +41,7 @@ class TarTest extends AbstractArchiveTaskTest {
         tar
     }
 
-    void testTar() {
+    @Test public void testTar() {
         assert tar.compression.is(Compression.NONE)
         assert tar.longFile.is(LongFile.WARN)
         tar.compression = Compression.BZIP2

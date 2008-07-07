@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.DefaultProject
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ConventionTest extends GroovyTestCase {
+class ConventionTest {
     Convention convention
 
     TestPluginConvention1 convention1
@@ -29,63 +32,60 @@ class ConventionTest extends GroovyTestCase {
 
     DefaultProject testProject
 
-    void setUp() {
+    @Before public void setUp() {
         testProject = new DefaultProject()
         convention = new Convention(testProject)
         convention1 = new TestPluginConvention1()
-        convention2 = new TestPluginConvention2() 
+        convention2 = new TestPluginConvention2()
         convention.plugins.plugin1 = convention1
         convention.plugins.plugin2 = convention2
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assert convention.project.is(testProject)
     }
 
-    void testGetProperties() {
+    @Test public void testGetProperties() {
         assertEquals(convention1.a, convention.plugins.plugin1.a)
         assertEquals(convention1.a, convention.a)
     }
 
-    void testGetPropertiesWithAmbiguity() {
+    @Test public void testGetPropertiesWithAmbiguity() {
         assertEquals(convention1.a, convention.plugins.plugin1.a)
         assertEquals(convention2.a, convention.plugins.plugin2.a)
         assert convention.a == convention1.a || convention.a == convention2.a
     }
 
-    void testSetProperties() {
+    @Test public void testSetProperties() {
         convention.b = 'newvalue'
         assertEquals('newvalue', convention.plugins.plugin1.b)
     }
 
-    void testSetPropertiesWithAmbiguity() {
+    @Test public void testSetPropertiesWithAmbiguity() {
         convention.a = 'newvalue'
         assert convention1.a == 'newvalue' || convention2.a == 'newvalue'
     }
 
-    void testMissingProperties() {
-        shouldFail(MissingPropertyException) {
-            convention.prop
-        }
-        shouldFail(MissingPropertyException) {
-            convention.prop  = 'newvalue'
-        }
+    @Test (expected = MissingPropertyException) public void testMissingPropertiesWithGet() {
+        convention.prop
     }
 
-    void testMethods() {
+    @Test(expected = MissingPropertyException) public void testMissingPropertiesWithSet() {
+        convention.prop = 'newvalue'
+    }
+
+    @Test public void testMethods() {
         assertEquals(convention1.meth('somearg'), convention.plugins.plugin1.meth('somearg'))
         assertEquals(convention1.meth('somearg'), convention.meth('somearg'))
     }
 
-    void testMethodsWithAmbiguity() {
+    @Test public void testMethodsWithAmbiguity() {
         assertEquals(convention1.meth(), convention.plugins.plugin1.meth())
         assertEquals(convention2.meth(), convention.plugins.plugin2.meth())
         assert convention.meth() == convention1.meth() || convention.meth() == convention2.meth()
     }
 
-    void testMissingMethod() {
-        shouldFail(MissingMethodException) {
-            convention.methUnknown()
-        }
+    @Test (expected = MissingMethodException) public void testMissingMethod() {
+        convention.methUnknown()
     }
 }

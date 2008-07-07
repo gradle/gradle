@@ -18,11 +18,14 @@ package org.gradle.api.internal.project
 
 import org.gradle.Main
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ImportsReaderTest extends GroovyTestCase {
+class ImportsReaderTest {
     static final String NL = System.properties['line.separator']
     
     static final String TEST_DEFAULT_IMPORTS = "import a.b.*$NL"
@@ -34,35 +37,35 @@ class ImportsReaderTest extends GroovyTestCase {
     File testProjectImportsFile
 
 
-    void setUp() {
+    @Before public void setUp()  {
         testDir = HelperUtil.makeNewTestDir()
         (testDefaultImportsFile = new File(testDir, 'defaultImports')).write(TEST_DEFAULT_IMPORTS)
         (testProjectImportsFile = new File(testDir, Main.IMPORTS_FILE_NAME)).write(TEST_PROJECT_IMPORTS)
         testObj = new ImportsReader(testDefaultImportsFile)
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assertEquals(testDefaultImportsFile, testObj.defaultImportsFile)
     }
 
-    void testReadImports() {
+    @Test public void testReadImports() {
         String result = testObj.getImports(testDir)
         assertEquals(TEST_DEFAULT_IMPORTS + TEST_PROJECT_IMPORTS, result)
     }
 
-    void testReadImportsWithNullDefaultImportsFile() {
+    @Test public void testReadImportsWithNullDefaultImportsFile() {
         testObj.defaultImportsFile = null
         String result = testObj.getImports(testDir)
         assertEquals(TEST_PROJECT_IMPORTS, result)
     }
 
-    void testReadImportsWithNonExistingProjectImportsFile() {
+    @Test public void testReadImportsWithNonExistingProjectImportsFile() {
         testProjectImportsFile.delete()
         String result = testObj.getImports(testDir)
         assertEquals(TEST_DEFAULT_IMPORTS, result)
     }
 
-    void testReadImportsWithNonExistingProjectImportsAndNullDefaultsImportsFile() {
+    @Test public void testReadImportsWithNonExistingProjectImportsAndNullDefaultsImportsFile() {
         testObj.defaultImportsFile = null
         testProjectImportsFile.delete()
         String result = testObj.getImports(testDir)

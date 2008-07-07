@@ -16,17 +16,21 @@
  
 package org.gradle.api.tasks.testing
 
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
+
 /**
  * @author Hans Dockter
  */
-class JunitForkOptionsTest extends GroovyTestCase {
+class JunitForkOptionsTest {
     JunitForkOptions junitForkOptions
 
-    void setUp() {
+    @Before public void setUp()  {
         junitForkOptions = new JunitForkOptions()
     }
 
-    void testJunitForkOptions() {
+    @Test public void testJunitForkOptions() {
         assertFalse(junitForkOptions.newEnvironment)
         assertFalse(junitForkOptions.cloneVm)
 
@@ -38,14 +42,14 @@ class JunitForkOptionsTest extends GroovyTestCase {
         assertNull(junitForkOptions.dir)
     }
 
-    void testOptionMapWithDir() {
+    @Test public void testOptionMapWithDir() {
         Map optionMap = junitForkOptions.optionMap()
         assertFalse(optionMap.keySet().contains('dir'))
         junitForkOptions.dir = 'dirFile' as File
         assertEquals('dirFile', junitForkOptions.optionMap()['dir'])
     }
 
-    void testOptionMapWithNullables() {
+    @Test public void testOptionMapWithNullables() {
         Map optionMap = junitForkOptions.optionMap()
         Map nullables = [
                 timeout: 'timeout',
@@ -59,15 +63,15 @@ class JunitForkOptionsTest extends GroovyTestCase {
         nullables.keySet().each {junitForkOptions."$it" = "${it}Value"}
         optionMap = junitForkOptions.optionMap()
         nullables.each {String field, String antProperty ->
-            assertEquals("${field}Value", optionMap[antProperty])
+            assertEquals(field + "Value", optionMap[antProperty])
         }
     }
 
-    void testOptionMapWithForkMode() {
+    @Test public void testOptionMapWithForkMode() {
         assertEquals(ForkMode.PER_TEST.toString(), junitForkOptions.optionMap()['forkmode'])
     }
 
-    void testOptionMapWithTrueFalseValues() {
+    @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
                 newEnvironment: 'newenvironment',
                 cloneVm: 'clonevm',
@@ -84,7 +88,7 @@ class JunitForkOptionsTest extends GroovyTestCase {
         }
     }
 
-    void testDefine() {
+    @Test public void testDefine() {
         junitForkOptions.maxMemory = null
         junitForkOptions.newEnvironment = true
         junitForkOptions.timeout = 'xxxx'

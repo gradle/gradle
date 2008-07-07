@@ -22,11 +22,14 @@ import org.gradle.api.tasks.util.FileCollection
 import org.gradle.util.HelperUtil
 import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.api.tasks.util.TarFileSet
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.After;
 
 /**
 * @author Hans Dockter
 */
-abstract class AbstractAntArchiveTest extends GroovyTestCase {
+abstract class AbstractAntArchiveTest {
     static final String METAINFS_KEY = 'mymetainfs'
 
     File testDir
@@ -64,7 +67,7 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
     Map fileSetDuos = [:]
     Map fileSetDuosFiles = [:]
 
-    void setUp() {
+    @Before public void setUp()  {
         testDir = HelperUtil.makeNewTestDir()
         mergeGroupFile = new File(testDir, 'test_mergegroup.zip')
         mergeZipFile = new File(testDir, 'test_merge_zip.zip')
@@ -107,7 +110,8 @@ abstract class AbstractAntArchiveTest extends GroovyTestCase {
         manifest.sections(sectionAttributes, sectionName)
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 

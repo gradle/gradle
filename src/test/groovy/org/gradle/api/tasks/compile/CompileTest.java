@@ -23,10 +23,16 @@ import org.gradle.util.GUtil;
 import org.jmock.Mockery;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import static org.junit.Assert.*;
+
 
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock.class)
 public class CompileTest extends AbstractCompileTest {
     private Compile compile;
 
@@ -34,7 +40,7 @@ public class CompileTest extends AbstractCompileTest {
 
     private Mockery context = new Mockery();
 
-    public void setUp() {
+    @Before public void setUp()  {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
         compile = new Compile(getProject(), AbstractTaskTest.TEST_TASK_NAME);
@@ -47,6 +53,7 @@ public class CompileTest extends AbstractCompileTest {
         return compile;
     }
 
+    @Test
     public void testExecute() {
         setUpMocksAndAttributes(compile);
         context.checking(new Expectations() {{
@@ -54,9 +61,7 @@ public class CompileTest extends AbstractCompileTest {
                     GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
                     compile.getSourceCompatibility(), compile.getTargetCompatibility(), compile.getOptions(), compile.getProject().getAnt());
         }});
-
         compile.execute();
-        context.assertIsSatisfied();
     }
 
     // todo We need to do this to make the compiler happy. We need to file a Jira to Groovy.

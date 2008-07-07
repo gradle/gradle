@@ -20,11 +20,16 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.util.HelperUtil
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.Test
+import org.junit.After;
+
 
 /**
-* @author Hans Dockter
-*/
-class BaseDirConverterTest extends GroovyTestCase {
+ * @author Hans Dockter
+ */
+class BaseDirConverterTest {
     static final String TEST_PATH = 'testpath'
 
     File baseDir
@@ -34,7 +39,7 @@ class BaseDirConverterTest extends GroovyTestCase {
 
     BaseDirConverter baseDirConverter
 
-    void setUp() {
+    @Before public void setUp() {
         baseDirConverter = new BaseDirConverter()
         rootDir = HelperUtil.makeNewTestDir()
         baseDir = new File(rootDir, 'basedir')
@@ -43,70 +48,76 @@ class BaseDirConverterTest extends GroovyTestCase {
         testDir = new File(baseDir, 'testdir')
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testWithInvalidArguments() {
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir(null, testFile)
-        }
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir('somepath', null)
-        }
+    @Test (expected = InvalidUserDataException) public void testWithNullPath() {
+        baseDirConverter.baseDir(null, testFile)
     }
 
-    void testWithNoPathValidation() {
+    @Test (expected = InvalidUserDataException) public void testWithNullBaseDir() {
+        baseDirConverter.baseDir('somepath', null)
+    }
+
+    @Test public void testWithNoPathValidation() {
         // No exceptions means test has passed
         baseDirConverter.baseDir(TEST_PATH, testFile)
         baseDirConverter.baseDir(TEST_PATH, testFile, PathValidation.NONE)
     }
 
-    void testWithFilePathValidation() {
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.FILE)
-        }
+    @Test (expected = InvalidUserDataException) public void testPathValidationWithNonExistingFile() {
+        baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.FILE)
+    }
+
+    @Test (expected = InvalidUserDataException) public void testPathValidationForFileWithDirectory() {
+        testDir.mkdir()
+        baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.FILE)
+    }
+
+    @Test public void testWithValidFile() {
         testFile.createNewFile()
         baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.FILE)
-        testDir.mkdir()
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.FILE)
-        }
     }
 
-    void testWithDirectoryPathValidation() {
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.DIRECTORY)
-        }
+    @Test (expected = InvalidUserDataException) public void testPathValidationWithNonExistingDirectory() {
+        baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.DIRECTORY)
+    }
+
+    @Test public void testPathValidationWithValidDirectory() {
         testDir.mkdir()
         baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.DIRECTORY)
-        testFile.createNewFile()
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.DIRECTORY)
-        }
     }
 
-    void testWithExistsPathValidation() {
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.EXISTS)
-        }
-        shouldFail(InvalidUserDataException) {
-            baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.EXISTS)
-        }
+    @Test (expected = InvalidUserDataException) public void testPathValidationForDirectoryWithFile() {
+        testFile.createNewFile()
+        baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.DIRECTORY)
+    }
+
+    @Test public void testPathValidationForExistingDirAndFile() {
         testDir.mkdir()
         testFile.createNewFile()
         baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.EXISTS)
         baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.EXISTS)
     }
 
-    void testWithAbsolutePath() {
+    @Test(expected = InvalidUserDataException) public void testExistsPathValidationWithNonExistingDir() {
+            baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.EXISTS)
+    }
+
+    @Test(expected = InvalidUserDataException) public void testExistsPathValidationWithNonExistingFile() {
+            baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.EXISTS)
+    }
+
+    @Test public void testWithAbsolutePath() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile,
                 baseDirConverter.baseDir(absoluteFile.path, baseDir))
     }
 
 
-    void testWithRelativePath() {
+    @Test public void testWithRelativePath() {
         String relativeFileName = "relative"
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.baseDir(relativeFileName, baseDir))
     }

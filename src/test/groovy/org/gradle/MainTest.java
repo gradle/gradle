@@ -111,7 +111,7 @@ public class MainTest {
         Build.injectCustomFactory(null);
     }
 
-//    void testMainWithSpecifiedNonExistingProjectDirectory() {
+//    @Test public void testMainWithSpecifiedNonExistingProjectDirectory() {
 //        fileStub.demand.getCanonicalFile {new File(TEST_DIR_NAME)}
 //        fileStub.demand.isDirectory {false}
 //        buildMockFor.use {

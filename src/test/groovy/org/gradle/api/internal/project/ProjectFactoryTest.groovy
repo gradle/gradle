@@ -21,12 +21,14 @@ import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ProjectFactoryTest extends GroovyTestCase {
-    void testProjectFactory() {
+class ProjectFactoryTest {
+    @Test public void testProjectFactory() {
         DependencyManager dependencyManager = new DefaultDependencyManager()
         DependencyManagerFactory dependencyManagerFactory = [createDependencyManager: {dependencyManager}] as DependencyManagerFactory
 

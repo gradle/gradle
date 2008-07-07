@@ -18,12 +18,14 @@ package org.gradle.api.internal.dependencies
 
 import org.gradle.api.dependencies.DefaultGradleArtifact
 import org.gradle.api.internal.dependencies.ArtifactFactory
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-class ArtifactFactoryTest extends GroovyTestCase {
-    void testCreateGradleArtifact() {
+class ArtifactFactoryTest {
+    @Test public void testCreateGradleArtifact() {
         ArtifactFactory artifactFactory = new ArtifactFactory()
         String expectedUserDescription = "myjar-1.jar"
         DefaultGradleArtifact gradleArtifact = artifactFactory.createGradleArtifact(expectedUserDescription)

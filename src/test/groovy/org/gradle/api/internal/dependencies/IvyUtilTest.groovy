@@ -17,12 +17,14 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-class IvyUtilTest extends GroovyTestCase {
-    void testModuleRevisionId() {
+class IvyUtilTest {
+    @Test public void testModuleRevisionId() {
         List l = ['myorg', 'myname', 'myrev']
         ModuleRevisionId moduleRevisionId = DependenciesUtil.moduleRevisionId(*l)
         assertEquals(l[0], moduleRevisionId.organisation)

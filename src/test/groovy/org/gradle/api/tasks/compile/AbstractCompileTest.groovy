@@ -22,6 +22,10 @@ import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.gradle.api.DependencyManager
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.InvalidUserDataException
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.Test
+import org.gradle.test.util.Check;
 
 /**
  * @author Hans Dockter
@@ -44,11 +48,11 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
     abstract Compile getCompile()
 
-    void setUp() {
+    @Before public void setUp() {
         super.setUp()
     }
 
-    void testCompile() {
+    @Test public void testCompile() {
         assertNotNull(compile.options)
         assertNotNull(compile.existentDirsFilter)
         assertNotNull(compile.classpathConverter)
@@ -63,31 +67,37 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
 
 
-    void testExecuteWithUnspecifiedSourceCompatibility() {
+    @Test public void testExecuteWithUnspecifiedSourceCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.sourceCompatibility = null
-        shouldFailWithCause(InvalidUserDataException) {
-            compile.execute()
-        }
+        checkExecuteForException()
     }
 
-    void testExecuteWithUnspecifiedTargetCompatibility() {
+    @Test public void testExecuteWithUnspecifiedTargetCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.targetCompatibility = null
-        shouldFailWithCause(InvalidUserDataException) {
-            compile.execute()
-        }
+        checkExecuteForException()
     }
 
-    void testExecuteWithUnspecifiedAntCompile() {
+    @Test public void testExecuteWithUnspecifiedAntCompile() {
         setUpMocksAndAttributes(compile)
         compile.antCompile = null
-        shouldFailWithCause(InvalidUserDataException) {
-            compile.execute()
-        }
+        checkExecuteForException()
     }
 
-    void testUnmanagedClasspath() {
+    private checkExecuteForException() {
+        try {
+            compile.execute()
+        } catch (Exception e) {
+            if (!(e.cause instanceof InvalidUserDataException)) {
+                fail("Expected Exception Cause as InvalidUserDataException");
+            }
+            return;
+        }
+        fail("Expected Exception");
+    }
+
+    @Test public void testUnmanagedClasspath() {
         List list1 = ['a', new Object()]
         assert compile.unmanagedClasspath(list1 as Object[]).is(compile)
         assertEquals(list1, compile.unmanagedClasspath)
@@ -122,11 +132,23 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
     }
 
-    void testIncludes() {
+    protected ExistingDirsFilter getGroovyCompileExistingDirsFilterMock() {
+        return [findExistingDirs: {Collection srcDirs ->
+            if (srcDirs.is(compile.srcDirs)) {
+                return compile.srcDirs
+            } else if (srcDirs.is(compile.groovySourceDirs)) {
+                return compile.groovySourceDirs
+            }
+            fail('srcdirs not passed')
+
+        }] as ExistingDirsFilter
+    }
+
+    @Test public void testIncludes() {
         checkIncludesExcludes('include')
     }
 
-    void testExcludes() {
+    @Test public void testExcludes() {
         checkIncludesExcludes('exclude')
     }
 

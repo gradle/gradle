@@ -20,11 +20,16 @@ import org.gradle.initialization.RootFinder
 import org.gradle.util.HelperUtil
 import org.gradle.api.Project
 import org.gradle.StartParameter
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.AfterClass
+import org.junit.After
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class RootFinderTest extends GroovyTestCase {
+class RootFinderTest {
     static final String TEST_SETTINGS_TEXT = 'somescriptcode'
     RootFinder rootFinder
     File testDir
@@ -34,7 +39,7 @@ class RootFinderTest extends GroovyTestCase {
 
     Map expectedGradleProperties
 
-    void setUp() {
+    @Before public void setUp()  {
         rootFinder = new RootFinder()
         testDir = HelperUtil.makeNewTestDir()
         userHome = new File(testDir, 'userHome')
@@ -50,40 +55,41 @@ class RootFinderTest extends GroovyTestCase {
         expectedGradleProperties = [prop1: 'value1UserHome', prop2: 'value2', prop3: 'value3']
     }
 
-    protected void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assertEquals([:], rootFinder.gradleProperties)
     }
 
-    void testGradleSettingsInCurrentDirWithSearchUpwardsTrue() {
+    @Test public void testGradleSettingsInCurrentDirWithSearchUpwardsTrue() {
         createSettingsFile(currentDir)
         rootFinder.find(createStartParams(currentDir, true))
         checkRootFinder(TEST_SETTINGS_TEXT, currentDir)
     }
 
-    void testGradleSettingsInCurrentDirWithSearchUpwardsFalse() {
+    @Test public void testGradleSettingsInCurrentDirWithSearchUpwardsFalse() {
         createSettingsFile(currentDir)
         rootFinder.find(createStartParams(currentDir, false))
         checkRootFinder(TEST_SETTINGS_TEXT, currentDir)
     }
 
-    void testGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
+    @Test public void testGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
         createSettingsFile(rootDir)
         rootFinder.find(createStartParams(currentDir, true))
         checkRootFinder(TEST_SETTINGS_TEXT, rootDir)
     }
 
-    void testGradleSettingsInUpwardDirWithSearchUpwardsFalse() {
+    @Test public void testGradleSettingsInUpwardDirWithSearchUpwardsFalse() {
         createSettingsFile(rootDir)
         createPropertyFiles(currentDir)
         rootFinder.find(createStartParams(currentDir, false))
         checkRootFinder('', currentDir)
     }
 
-    void testNoGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
+    @Test public void testNoGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
         createPropertyFiles(currentDir)
         rootFinder.find(createStartParams(currentDir, true))
         checkRootFinder('', currentDir)

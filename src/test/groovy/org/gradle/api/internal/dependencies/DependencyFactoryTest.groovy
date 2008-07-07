@@ -23,11 +23,14 @@ import org.gradle.api.internal.dependencies.DependencyFactory
 import org.gradle.api.internal.dependencies.TestDependencyImplInteger
 import org.gradle.api.internal.dependencies.TestDependencyImplString
 import org.gradle.api.internal.project.DefaultProject
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
-* @author Hans Dockter
-*/
-class DependencyFactoryTest extends GroovyTestCase {
+ * @author Hans Dockter
+ */
+class DependencyFactoryTest {
     static final String TEST_CONFIGURATION = 'testconf'
     static final Set TEST_CONFIGURATION_SET = [TEST_CONFIGURATION]
     List testDependencyImplementations
@@ -36,36 +39,34 @@ class DependencyFactoryTest extends GroovyTestCase {
 
     DefaultProject project
 
-    void setUp() {
+    @Before public void setUp() {
         project = new DefaultProject()
         dependencyFactory = new DependencyFactory([TestDependencyImplInteger, TestDependencyImplString])
     }
 
-    void testCreateDependencyWithValidDescription() {
+    @Test public void testCreateDependencyWithValidDescription() {
         TestDependencyImplInteger dependencyImplInteger = dependencyFactory.createDependency(
                 TEST_CONFIGURATION_SET, new Integer(5), project)
         assertEquals(TEST_CONFIGURATION_SET, dependencyImplInteger.confs)
         assertEquals(new Integer(5), dependencyImplInteger.userDependencyDescription)
-        assertEquals(project, dependencyImplInteger.project)
+        assertSame(project, dependencyImplInteger.project)
         assertTrue dependencyImplInteger.initialized
 
         TestDependencyImplString dependencyImplString = dependencyFactory.createDependency(
                 TEST_CONFIGURATION_SET, 'somestring', project)
         assertEquals(TEST_CONFIGURATION_SET, dependencyImplString.confs)
         assertEquals('somestring', dependencyImplString.userDependencyDescription)
-        assertEquals(project, dependencyImplString.project)
+        assertSame(project, dependencyImplString.project)
         assertTrue dependencyImplString.initialized
     }
 
-    void testCreateDependencyWithInValidDescription() {
-        shouldFail(InvalidUserDataException) {
-            dependencyFactory.createDependency(TEST_CONFIGURATION_SET, new Point(3, 4), project)
-        }
+    @Test (expected = InvalidUserDataException) public void testCreateDependencyWithInValidDescription() {
+        dependencyFactory.createDependency(TEST_CONFIGURATION_SET, new Point(3, 4), project)
     }
 
-    void testCreateDependencyWithDependencyObject() {
+    @Test public void testCreateDependencyWithDependencyObject() {
         TestDependencyImplInteger testDependency = new TestDependencyImplInteger()
-        assert  !testDependency.confs
+        assert !testDependency.confs
         assertNull testDependency.project
 
         DefaultProject project = new DefaultProject()

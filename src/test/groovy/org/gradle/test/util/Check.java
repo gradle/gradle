@@ -13,20 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.test.util;
 
-package org.gradle.api.tasks.util
-
-import org.junit.Before
+import org.junit.Assert;
 
 /**
  * @author Hans Dockter
  */
-class TarFileSetTest extends FileSetTest {
-    Class getPatternSetType() {
-        TarFileSet
+public class Check {
+    public static void shouldFailWithCause(Class cause, Execute execute) {
+        try {
+            execute.execute();
+        } catch (Exception e) {
+            System.out.println(e.getCause().getClass());
+            System.out.println(e.getClass());
+            System.out.println(cause);
+            if (!(cause.equals(e.getCause().getClass()))) {
+                Assert.fail();
+            }
+            return;
+        }
+        Assert.fail();
     }
 
-    @Before public void setUp()  {
-        super.setUp()
+    public static interface Execute {
+        void execute();
     }
 }

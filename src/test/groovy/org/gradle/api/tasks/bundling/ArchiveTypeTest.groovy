@@ -16,11 +16,14 @@
  
 package org.gradle.api.tasks.bundling
 
+import static org.junit.Assert.*
+import org.junit.Test;
+
 /**
  * @author Hans Dockter
  */
-class ArchiveTypeTest extends GroovyTestCase {
-    void testArchiveType() {
+class ArchiveTypeTest {
+    @Test public void testArchiveType() {
         String expectedDefaultExtension = 'ext'
         Map expectedConventionMapping = [:]
         Class expectedTaskClass = TestArchiveTask

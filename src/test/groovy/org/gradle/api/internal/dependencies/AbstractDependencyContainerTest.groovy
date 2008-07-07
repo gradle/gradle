@@ -23,12 +23,15 @@ import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 // todo: remove AbstractDependencyContainerTest. prefix for the consts when the Groovy bug is fixed
-abstract class AbstractDependencyContainerTest extends GroovyTestCase {
+abstract class AbstractDependencyContainerTest {
     static final String TEST_CONFIGURATION = 'testConfig'
     static final String DEFAULT_CONFIGURATION = 'testConfig'
 
@@ -47,7 +50,7 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
 
     abstract DefaultDependencyContainer getTestObj()
 
-    void setUp() {
+    @Before public void setUp()  {
         projectRootDir = new File('path', 'root')
         project = HelperUtil.createRootProject(projectRootDir)
         project.gradleUserHome = 'gradleUserHome'
@@ -56,19 +59,19 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
         testConfs = [TEST_CONFIGURATION]
     }
 
-    void testDependencyContainerInit() {
+    @Test public void testDependencyContainerInit() {
         assert testObj.project.is(project)
         assert testObj.dependencyFactory.is(dependencyFactory)
         assertEquals([DEFAULT_CONFIGURATION], new DefaultDependencyContainer(dependencyFactory, [DEFAULT_CONFIGURATION]).defaultConfs)
     }
 
-    void testAddDepencenciesWithConfiguration() {
+    @Test public void testAddDepencenciesWithConfiguration() {
         checkAddDependencies(testConfs, {List configurations, Object[] dependencies ->
             testObj.dependencies(configurations, dependencies)
         })
     }
 
-    void testAddDepencencies() {
+    @Test public void testAddDepencencies() {
         checkAddDependencies(testDefaultConfs, {List configurations, Object[] dependencies ->
             testObj.dependencies(dependencies)
         })
@@ -96,7 +99,7 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
         }
     }
 
-    void testAddDependencyDescriptor() {
+    @Test public void testAddDependencyDescriptor() {
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
         testObj.dependencyDescriptors(dependencyDescriptor)
         assertEquals([dependencyDescriptor], testObj.dependencyDescriptors)
@@ -105,13 +108,13 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
         assertEquals([dependencyDescriptor, dependencyDescriptor2], testObj.dependencyDescriptors)
     }
 
-    void testAddDepencencyWithConfiguration() {
+    @Test public void testAddDepencencyWithConfiguration() {
         checkAddDependency(testConfs, {List configurations, String dependency, Closure cl ->
             testObj.dependency(configurations, dependency, cl)
         })
     }
 
-    void testAddDependency() {
+    @Test public void testAddDependency() {
         checkAddDependency(testDefaultConfs, {List configurations, String dependency, Closure cl  ->
             testObj.dependency(dependency, cl)
         })
@@ -137,13 +140,13 @@ abstract class AbstractDependencyContainerTest extends GroovyTestCase {
         }
     }
 
-    void testAddClientModuleWithConfigurations() {
+    @Test public void testAddClientModuleWithConfigurations() {
         checkAddClientModule(testConfs, {List configurations, String dependency, Closure configureClosure ->
             testObj.clientModule(configurations, dependency, configureClosure)
         })
     }
 
-    void testAddClientModule() {
+    @Test public void testAddClientModule() {
         checkAddClientModule(testDefaultConfs, {List configurations, String dependency, Closure configureClosure ->
             testObj.clientModule(dependency, configureClosure)
         })

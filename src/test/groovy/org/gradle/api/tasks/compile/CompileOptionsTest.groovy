@@ -16,22 +16,26 @@
 
 package org.gradle.api.tasks.compile
 
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
+
 /**
  * @author Hans Dockter
  */
-class CompileOptionsTest extends GroovyTestCase {
+class CompileOptionsTest {
     static final Map TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
     CompileOptions compileOptions
 
-    void setUp() {
+    @Before public void setUp()  {
         compileOptions = new CompileOptions()
         compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
         compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
     }
 
-    void testCompileOptions() {
+    @Test public void testCompileOptions() {
         assertTrue(compileOptions.debug)
         assertTrue(compileOptions.failOnError)
         assertTrue(compileOptions.warnings)
@@ -50,13 +54,13 @@ class CompileOptionsTest extends GroovyTestCase {
         assertNotNull(compileOptions.debugOptions)
     }
 
-    void testOptionMapForDebugAndForkOptions() {
+    @Test public void testOptionMapForDebugAndForkOptions() {
         Map optionMap = compileOptions.optionMap()
         assertEquals(optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()), TEST_DEBUG_OPTION_MAP)
         assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
     }
 
-    void testOptionMapWithNullables() {
+    @Test public void testOptionMapWithNullables() {
         Map optionMap = compileOptions.optionMap()
         Map nullables = [
                 encoding: 'encoding',
@@ -71,11 +75,11 @@ class CompileOptionsTest extends GroovyTestCase {
         nullables.keySet().each {compileOptions."$it" = "${it}Value"}
         optionMap = compileOptions.optionMap()
         nullables.each {String field, String antProperty ->
-            assertEquals("${field}Value", optionMap[antProperty])
+            assertEquals("${field}Value" as String, optionMap[antProperty])
         }
     }
 
-    void testOptionMapWithTrueFalseValues() {
+    @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
                 failOnError: 'failonerror',
                 verbose: 'verbose',
@@ -107,7 +111,7 @@ class CompileOptionsTest extends GroovyTestCase {
         }
     }
 
-    void testFork() {
+    @Test public void testFork() {
         compileOptions.fork = false
         boolean forkUseCalled = false
         compileOptions.forkOptions = [define: {Map args ->
@@ -119,7 +123,7 @@ class CompileOptionsTest extends GroovyTestCase {
         assertTrue(forkUseCalled)
     }
 
-    void testDebug() {
+    @Test public void testDebug() {
         compileOptions.debug = false
         boolean debugUseCalled = false
         compileOptions.debugOptions = [define: {Map args ->
@@ -131,7 +135,7 @@ class CompileOptionsTest extends GroovyTestCase {
         assertTrue(debugUseCalled)
     }
 
-    void testDefine() {
+    @Test public void testDefine() {
         compileOptions.debug = false
         compileOptions.compiler = null
         compileOptions.bootClasspath = 'xxxx'

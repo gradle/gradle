@@ -17,6 +17,9 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileSet
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -25,12 +28,12 @@ class AntTarTest extends AbstractAntArchiveTest {
 
     AntTar antTar
 
-    void setUp() {
+    @Before public void setUp() {
         super.setUp()
         antTar = new AntTar()
     }
 
-    void testExecute() {
+    @Test public void testExecute() {
         archiveName = 'test.tar'
         antTar.execute(new AntArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, true, testDir,
                 archiveName, new AntBuilder()), Compression.BZIP2, LongFile.WARN)
@@ -38,15 +41,13 @@ class AntTarTest extends AbstractAntArchiveTest {
         checkResourceFiles()
     }
 
-    void testExecuteWithLongFile() {
+    @Test (expected = Exception) public void testExecuteWithLongFile() {
         File veryLongFile = new File(testDir, "a" * 110)
         FileSet fileSet = new FileSet(testDir)
         fileSet.include(veryLongFile.name)
         veryLongFile.createNewFile()
-        shouldFail(Exception) {
-            antTar.execute(new AntArchiveParameter(resourceCollections << fileSet, [], [], true, testDir, archiveName,
-                    new AntBuilder()), Compression.BZIP2, LongFile.FAIL)
-        }
+        antTar.execute(new AntArchiveParameter(resourceCollections << fileSet, [], [], true, testDir, archiveName,
+                new AntBuilder()), Compression.BZIP2, LongFile.FAIL)
     }
 
 }

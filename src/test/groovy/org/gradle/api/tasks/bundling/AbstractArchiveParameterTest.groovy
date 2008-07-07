@@ -16,10 +16,14 @@
  
 package org.gradle.api.tasks.bundling
 
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
+
 /**
  * @author Hans Dockter
  */
-abstract class AbstractArchiveParameterTest extends GroovyTestCase {
+abstract class AbstractArchiveParameterTest {
     List expectedResourceCollections
     List expectedMergeFileSets
     List expectedMergeGroupFileSets
@@ -31,7 +35,7 @@ abstract class AbstractArchiveParameterTest extends GroovyTestCase {
 
     abstract createAntArchiveParameter()
 
-    void setUp() {
+    @Before public void setUp()  {
         expectedResourceCollections = []
         expectedMergeFileSets = []
         expectedMergeGroupFileSets = []
@@ -42,7 +46,7 @@ abstract class AbstractArchiveParameterTest extends GroovyTestCase {
         archiveParameter = createAntArchiveParameter()
     }
 
-    void testEquals() {
+    @Test public void testEquals() {
         AntArchiveParameter archiveParameter2 = createAntArchiveParameter()
         assert archiveParameter == archiveParameter2
 
@@ -50,12 +54,12 @@ abstract class AbstractArchiveParameterTest extends GroovyTestCase {
         assert archiveParameter != archiveParameter2
     }
 
-    void testHashCode() {
+    @Test public void testHashCode() {
         AntArchiveParameter archiveParameter2 = createAntArchiveParameter()
         assert archiveParameter.hashCode() == archiveParameter2.hashCode()
     }
 
-    void testAntArchiveParameter() {
+    @Test public void testAntArchiveParameter() {
         assert archiveParameter.resourceCollections.is(expectedResourceCollections)
         assert archiveParameter.mergeFileSets.is(expectedMergeFileSets)
         assert archiveParameter.mergeGroupFileSets.is(expectedMergeGroupFileSets)
@@ -65,7 +69,7 @@ abstract class AbstractArchiveParameterTest extends GroovyTestCase {
         assert archiveParameter.ant.is(expectedAnt)
     }
 
-    void testEmptyPolicy() {
+    @Test public void testEmptyPolicy() {
         archiveParameter.createIfEmpty = false
         assertEquals(AbstractAntArchive.EMPTY_POLICY_SKIP, archiveParameter.emptyPolicy())
         archiveParameter.createIfEmpty = true

@@ -16,24 +16,27 @@
  
 package org.gradle.api
 
+import org.junit.Test
+import static org.junit.Assert.*;
+
 /**
  * @author Hans Dockter
  */
-class AllGradleExceptionsTest extends GroovyTestCase {
+class AllGradleExceptionsTest {
     static final List EXCEPTION_CLASSES = [UnknownTaskException, UnknownProjectException, InvalidUserDataException, GradleException, CircularReferenceException]
 
-    void testNoArg() {
+    @Test public void testNoArg() {
         checkException([]) {}
     }
 
-    void testWithMessage() {
+    @Test public void testWithMessage() {
         String expectedMessage = 'somemessage'
         checkException([expectedMessage]) { GradleException exception ->
             assertEquals(expectedMessage, exception.message)
         }
     }
 
-    void testWithMessageAndCause() {
+    @Test public void testWithMessageAndCause() {
         String expectedMessage = 'somemessage'
         Throwable expectedCause = new Throwable()
         checkException([expectedMessage, expectedCause]) { GradleException exception ->
@@ -42,7 +45,7 @@ class AllGradleExceptionsTest extends GroovyTestCase {
         }
     }
 
-    void testWithCause() {
+    @Test public void testWithCause() {
         Throwable expectedCause = new Throwable()
         checkException([expectedCause]) { GradleException exception ->
             assertEquals(expectedCause, exception.cause)

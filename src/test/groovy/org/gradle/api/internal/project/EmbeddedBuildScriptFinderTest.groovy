@@ -17,30 +17,33 @@
 package org.gradle.api.internal.project
 
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class EmbeddedBuildScriptFinderTest extends GroovyTestCase {
+class EmbeddedBuildScriptFinderTest {
     EmbeddedBuildScriptFinder buildScriptFinder
 
     DefaultProject rootProject
 
     String expectedEmbeddedBuildScript
 
-    void setUp() {
+    @Before public void setUp()  {
         expectedEmbeddedBuildScript = 'somescript'
         buildScriptFinder = new EmbeddedBuildScriptFinder(expectedEmbeddedBuildScript)
     }
 
-    void testGetBuildScript() {
+    @Test public void testGetBuildScript() {
         DefaultProject rootProject = HelperUtil.createRootProject(new File('root'))
         DefaultProject childProject = rootProject.addChildProject('name')
         assertEquals(expectedEmbeddedBuildScript, buildScriptFinder.getBuildScript(rootProject))
         assertEquals(expectedEmbeddedBuildScript, buildScriptFinder.getBuildScript(childProject))
     }
 
-    void testGetBuildFileName() {
+    @Test public void testGetBuildFileName() {
         assertEquals(EmbeddedBuildScriptFinder.EMBEDDED_SCRIPT_NAME, buildScriptFinder.buildFileName)    
     }
 }

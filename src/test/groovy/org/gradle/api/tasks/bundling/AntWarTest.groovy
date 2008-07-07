@@ -18,6 +18,9 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.FileCollection
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -36,7 +39,7 @@ class AntWarTest extends AbstractAntArchiveTest {
 
     AntWar antWar
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         antWar = new AntWar()
         libFiles = []
@@ -46,7 +49,7 @@ class AntWarTest extends AbstractAntArchiveTest {
         (implicitWebXml = new File(testDir, 'web.xml')).write(IMPLICIT_WEB_XML_TEXT)
     }
 
-    void testExecute() {
+    @Test public void testExecute() {
         antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
                 archiveName, manifest,
                 createFileSetDuo(AbstractAntArchiveTest.METAINFS_KEY), new AntBuilder()),
@@ -61,7 +64,7 @@ class AntWarTest extends AbstractAntArchiveTest {
         assertEquals(EXPLICIT_WEB_XML_TEXT, new File(unzipDir, "WEB-INF/web.xml").text)
     }
 
-    void testExecuteWithImplicitWebxml() {
+    @Test public void testExecuteWithImplicitWebxml() {
         FileSet fileSet = new FileSet(testDir)
         fileSet.include(implicitWebXml.name)
         antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
@@ -78,7 +81,7 @@ class AntWarTest extends AbstractAntArchiveTest {
         assertEquals(IMPLICIT_WEB_XML_TEXT, new File(unzipDir, "WEB-INF/web.xml").text)
     }
 
-    void testExecuteWithExplicitAndImplicitWebxml() {
+    @Test public void testExecuteWithExplicitAndImplicitWebxml() {
         FileSet fileSet = new FileSet(testDir)
         fileSet.include(implicitWebXml.name)
         antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
@@ -95,7 +98,7 @@ class AntWarTest extends AbstractAntArchiveTest {
         assertEquals(EXPLICIT_WEB_XML_TEXT, new File(unzipDir, "WEB-INF/web.xml").text)
     }
 
-    void testExecuteWithNullLists() {
+    @Test public void testExecuteWithNullLists() {
         antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
                 archiveName, null,
                 null, new AntBuilder()),

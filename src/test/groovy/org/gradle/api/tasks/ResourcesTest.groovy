@@ -30,6 +30,7 @@ import org.junit.Before
 import org.jmock.lib.legacy.ClassImposteriser
 import org.jmock.Expectations
 import org.gradle.api.tasks.util.CopyInstruction
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter

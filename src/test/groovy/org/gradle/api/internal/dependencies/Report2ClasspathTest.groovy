@@ -16,11 +16,13 @@
  
 package org.gradle.api.internal.dependencies
 
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
-class Report2ClasspathTest extends GroovyTestCase {
-    void testGetClasspath() {
+class Report2ClasspathTest {
+    @Test public void testGetClasspath() {
         String conf1 = 'conf1'
         String conf2 = 'conf2'
 //        StubFor resolveReportMocker = new StubFor(ResolveReport)

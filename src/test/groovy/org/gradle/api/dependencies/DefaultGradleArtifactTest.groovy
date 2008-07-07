@@ -20,17 +20,19 @@ import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.DependencyManager
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
 * @author Hans Dockter
 */
-class DefaultGradleArtifactTest extends GroovyTestCase {
+class DefaultGradleArtifactTest {
     static final String TEST_NAME_1 = 'myfile-1'
 
     DefaultGradleArtifact defaultGradleArtifact
 
 
-    void testCreateIvyArtifact() {
+    @Test public void testCreateIvyArtifact() {
         defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME_1 + '@jar')
         ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId('group', 'name'), 'version')
         Artifact artifact = defaultGradleArtifact.createIvyArtifact(moduleRevisionId)
@@ -41,7 +43,7 @@ class DefaultGradleArtifactTest extends GroovyTestCase {
         assert !artifact.extraAttributes[DependencyManager.CLASSIFIER]
     }
 
-    void testCreateIvyArtifactWithClassifier() {
+    @Test public void testCreateIvyArtifactWithClassifier() {
         defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME_1 + ':src@jar')
         ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId('group', 'name'), 'version')
         Artifact artifact = defaultGradleArtifact.createIvyArtifact(moduleRevisionId)

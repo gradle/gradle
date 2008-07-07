@@ -434,7 +434,7 @@ class DefaultProjectTest {
     }
 
     //
-    //    void testTaskWithNonDefaultTypeAndTypeInitializer() {
+    //    @Test public void testTaskWithNonDefaultTypeAndTypeInitializer() {
     //        Closure initClosure = {}
     //        project.task(TEST_TASK_NAME, (DefaultProject.TASK_TYPE): TestTask, (DefaultProject.TASK_TYPE_INITIALIZER): initClosure)
     //        assertNotNull(project.tasks[TEST_TASK_NAME])
@@ -610,7 +610,7 @@ def scriptMethod(Closure closure) {
     }
 
     @Test (expected = MissingPropertyException)
-    void testPropertyMissingWithUnknownProperty() {
+    public void testPropertyMissingWithUnknownProperty() {
         project.unknownProperty
     }
 

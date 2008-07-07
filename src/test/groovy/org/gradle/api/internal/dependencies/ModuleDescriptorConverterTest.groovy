@@ -28,21 +28,24 @@ import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
 import org.gradle.api.internal.project.DefaultProject
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
 * @author Hans Dockter
 */
-class ModuleDescriptorConverterTest extends GroovyTestCase {
+class ModuleDescriptorConverterTest {
     ModuleDescriptorConverter moduleDescriptorConverter
     DependencyManager dependencyManager
 
-    void setUp() {
+    @Before public void setUp()  {
         moduleDescriptorConverter = new ModuleDescriptorConverter()
         dependencyManager = new DefaultDependencyManager(null, null, null, null, null, null, new File('buildResolverDir'))
         dependencyManager.project = new DefaultProject()
     }
 
-    void testConvert() {
+    @Test public void testConvert() {
         Artifact ivyArtifact = [a:{}] as Artifact
         GradleArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as GradleArtifact
         Artifact ivyArtifact2 = [b:{}] as Artifact
@@ -77,7 +80,7 @@ class ModuleDescriptorConverterTest extends GroovyTestCase {
         assertEquals(expectedArtifactsDescriptors.conf1 as HashSet, moduleDescriptor.allArtifacts as HashSet)
     }
 
-    void testConvertWithDefaultStatus() {
+    @Test public void testConvertWithDefaultStatus() {
         Artifact ivyArtifact = [a:{}] as Artifact
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
         Dependency dependency = [createDepencencyDescriptor: {dependencyDescriptor}] as Dependency

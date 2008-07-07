@@ -19,18 +19,21 @@ package org.gradle.configuration
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ProjectDependencies2TaskResolverTest extends GroovyTestCase {
+class ProjectDependencies2TaskResolverTest {
     DefaultProject root
     DefaultProject child
     DefaultTask rootTask
     DefaultTask childTask
     ProjectDependencies2TaskResolver resolver
 
-    void setUp() {
+    @Before public void setUp()  {
         resolver = new ProjectDependencies2TaskResolver()
         root = HelperUtil.createRootProject(new File('rootDir'))
         child = root.addChildProject("child")
@@ -40,7 +43,7 @@ class ProjectDependencies2TaskResolverTest extends GroovyTestCase {
         child.tasks = [(childTask.name): childTask]
     }
 
-    void testResolve() {
+    @Test public void testResolve() {
         child.dependsOn(root.path, false)
         resolver.resolve(root)
         assertEquals([rootTask.path] as Set, childTask.dependsOn)

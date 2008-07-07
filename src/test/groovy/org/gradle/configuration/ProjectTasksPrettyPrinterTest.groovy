@@ -19,12 +19,14 @@ package org.gradle.configuration
 import groovy.io.PlatformLineWriter
 import org.gradle.api.Project
 import org.gradle.api.Task
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ProjectTasksPrettyPrinterTest extends GroovyTestCase {
-    void testGetPrettyText() {
+class ProjectTasksPrettyPrinterTest {
+    @Test public void testGetPrettyText() {
         String expectedProject1String = 'project1'
         String expectedProject2String = 'project2'
         String expectedTask11String = 'task11'

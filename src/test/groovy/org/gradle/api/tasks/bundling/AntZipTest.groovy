@@ -17,6 +17,9 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileSet
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -25,12 +28,12 @@ class AntZipTest extends AbstractAntSkippableArchiveTest {
 
     AntZip antZip
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         antZip = new AntZip()
     }
 
-    void testExecute() {
+    @Test public void testExecute() {
         antZip.execute(new AntArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, true, testDir, archiveName, new AntBuilder()))
         unzipArchive()
         checkResourceFiles()

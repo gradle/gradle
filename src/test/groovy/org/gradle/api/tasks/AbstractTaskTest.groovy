@@ -23,18 +23,22 @@ import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import org.gradle.api.TaskAction
+import org.junit.Test
+import static org.junit.Assert.*
+import org.junit.Before;
 
 /**
  * @author Hans Dockter
  */
-abstract class AbstractTaskTest extends GroovyTestCase {
+abstract class AbstractTaskTest {
     public static final String TEST_TASK_NAME = 'taskname'
 
     public static final String TEST_PROJECT_NAME = '/projectTestName'
 
     DefaultProject project
 
-    void setUp() {
+    @Before
+    public void setUp() {
         project = [getPath: {AbstractTaskTest.TEST_PROJECT_NAME},
                 getProjectDir: {new File(HelperUtil.TMP_DIR_FOR_TEST)},
                 file: {path ->
@@ -43,20 +47,20 @@ abstract class AbstractTaskTest extends GroovyTestCase {
                 }] as DefaultProject
     }
 
-    abstract Task getTask()
+    public abstract Task getTask()
 
-    Task createTask(DefaultProject project, String name) {
+    public Task createTask(DefaultProject project, String name) {
         task.class.newInstance(project, name)
     }
 
-    void testTask() {
+    @Test public void testTask() {
         assertTrue(task.enabled)
         assertEquals(TEST_TASK_NAME, task.name)
-        assertEquals(project, task.project)
+        assertSame(project, task.project)
         assertNotNull(task.skipProperties)
     }
 
-    void testPath() {
+    @Test public void testPath() {
         DefaultProject rootProject = HelperUtil.createRootProject(new File('parent', 'root'))
         DefaultProject childProject = HelperUtil.createChildProject(rootProject, 'child')
         DefaultProject childchildProject = HelperUtil.createChildProject(childProject, 'childchild')
@@ -69,7 +73,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertEquals Project.PATH_SEPARATOR + "child" + Project.PATH_SEPARATOR + "childchild" + Project.PATH_SEPARATOR + TEST_TASK_NAME, task.path
     }
 
-    void testDependsOn() {
+    @Test public void testDependsOn() {
         Task dependsOnTask = createTask(project, 'somename')
         Task task = createTask(project, TEST_TASK_NAME)
         task.dependsOn(Project.PATH_SEPARATOR + 'path1')
@@ -78,23 +82,23 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertEquals([Project.PATH_SEPARATOR + 'path1', 'path2', dependsOnTask] as Set, task.dependsOn)
     }
 
-    void testDependsOnWithIllegalArguments() {
-        shouldFail(InvalidUserDataException) {
-            task.dependsOn('path1', '')
-        }
-        shouldFail(InvalidUserDataException) {
-            task.dependsOn('', 'path1')
-        }
-        shouldFail(InvalidUserDataException) {
-            task.dependsOn(null, 'path1')
-        }
+    @Test (expected = InvalidUserDataException) public void testDependsOnWithEmptySecondArgument() {
+        task.dependsOn('path1', '')
     }
 
-    void testToString() {
+    @Test (expected = InvalidUserDataException) public void testDependsOnWithEmptyFirstArgument() {
+        task.dependsOn('', 'path1')
+    }
+
+    @Test (expected = InvalidUserDataException) public void testDependsOnWithNullFirstArgument() {
+        task.dependsOn(null, 'path1')
+    }
+
+    @Test public void testToString() {
         assertEquals(task.path, task.toString())
     }
 
-    void testDoFirst() {
+    @Test public void testDoFirst() {
         TaskAction action1 = {} as TaskAction
         TaskAction action2 = {} as TaskAction
         int actionSizeBefore = task.actions.size()
@@ -105,7 +109,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertEquals(action1, task.actions[0])
     }
 
-    void testDoLast() {
+    @Test public void testDoLast() {
         TaskAction action1 = {} as TaskAction
         TaskAction action2 = {} as TaskAction
         int actionSizeBefore = task.actions.size()
@@ -116,7 +120,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertEquals(action2, task.actions[task.actions.size() - 1])
     }
 
-    void testDeleteAllActions() {
+    @Test public void testDeleteAllActions() {
         TaskAction action1 = {} as TaskAction
         TaskAction action2 = {} as TaskAction
         task.doLast(action1)
@@ -125,13 +129,11 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertEquals([], task.actions)
     }
 
-    void testAddActionWithNull() {
-        shouldFail(InvalidUserDataException) {
-            task.doLast(null)
-        }
+    @Test (expected = InvalidUserDataException) public void testAddActionWithNull() {
+        task.doLast(null)
     }
 
-    void testAddActionsWithClosures() {
+    @Test public void testAddActionsWithClosures() {
         task.actions = []
         boolean action1Called = false
         Closure action1 = {Task task -> action1Called = true}
@@ -145,7 +147,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
     }
 
 
-    void testBasicExecute() {
+    @Test public void testBasicExecute() {
         task.actions = []
         assertFalse(task.executed)
         boolean action1Called = false
@@ -160,7 +162,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertTrue(action2Called)
     }
 
-    void testConfigure() {
+    @Test public void testConfigure() {
         TaskAction action1 = {} as TaskAction
         assert task.configure {
             doFirst(action1)
@@ -168,7 +170,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertEquals(action1, task.actions[0])
     }
 
-    void testStopExecution() {
+    @Test public void testStopExecution() {
         TaskAction action1 = {throw new StopExecutionException()} as TaskAction
         boolean action2Called = false
         TaskAction action2 = {action2Called = true} as TaskAction
@@ -179,12 +181,12 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertTrue(task.executed)
     }
 
-    void testStopAction() {
+    @Test public void testStopAction() {
         task.actions = []
         TaskAction action1 = {
             throw new StopActionException()
             fail()
-        }  as TaskAction
+        } as TaskAction
         boolean action2Called = false
         TaskAction action2 = {action2Called = true} as TaskAction
         task.doFirst(action2)
@@ -194,7 +196,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assertTrue(task.executed)
     }
 
-    void testDisabled() {
+    @Test public void testDisabled() {
         task.actions = []
         TaskAction action1 = {
             fail()
@@ -205,13 +207,13 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         assert task.executed
     }
 
-    void testSkipProperties() {
+    @Test public void testSkipProperties() {
         task.skipProperties = ['prop1']
         boolean action1Called = false
         TaskAction action1 = {
             action1Called = true
             throw new StopExecutionException()
-        }  as TaskAction
+        } as TaskAction
         task.doFirst(action1)
 
         System.setProperty(task.skipProperties[0], 'true')
@@ -233,7 +235,7 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         System.properties.remove(task.skipProperties[0])
     }
 
-    void testAutoSkipProperties() {
+    @Test public void testAutoSkipProperties() {
         boolean action1Called = false
         TaskAction action1 = {
             action1Called = true
@@ -254,17 +256,17 @@ abstract class AbstractTaskTest extends GroovyTestCase {
         System.properties.remove("skip.$task.name")
     }
 
-    void testAfterDag() {
+    @Test public void testAfterDag() {
         checkConfigureEvent(task.&afterDag, task.&applyAfterDagClosures)
     }
 
-    void testLateInitialize() {
+    @Test public void testLateInitialize() {
         assert !task.lateInitialized
         checkConfigureEvent(task.&lateInitialize, task.&applyLateInitialize)
         assert task.lateInitialized
     }
 
-    void checkConfigureEvent(Closure addMethod, Closure applyMethod) {
+    private void checkConfigureEvent(Closure addMethod, Closure applyMethod) {
         TaskAction action1 = {} as TaskAction
         TaskAction action2 = {} as TaskAction
         assert addMethod {

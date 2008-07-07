@@ -18,11 +18,15 @@ package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
+
 
 /**
 * @author Hans Dockter
 */
-class CopyInstructionTest extends GroovyTestCase {
+class CopyInstructionTest {
     CopyInstruction copyInstruction
     File sourceDir
     File targetDir
@@ -32,7 +36,7 @@ class CopyInstructionTest extends GroovyTestCase {
     File f2Txt
     File f3Jpg
 
-    void setUp() {
+    @Before public void setUp()  {
         File rootDir = HelperUtil.makeNewTestDir()
         sourceDir = createDir(new File(rootDir, 'sourceDir'))
         File resourceDir11 = createDir(new File(sourceDir.absolutePath + "/org/gradle/", "package1"))
@@ -48,7 +52,7 @@ class CopyInstructionTest extends GroovyTestCase {
         copyInstruction = new CopyInstruction(sourceDir: sourceDir, targetDir: targetDir)
     }
 
-    void testCopyInstruction() {
+    @Test public void testCopyInstruction() {
         assertEquals([] as HashSet, copyInstruction.excludes)
         assertEquals([] as HashSet, copyInstruction.includes)
         assertEquals([:], copyInstruction.filters)
@@ -56,7 +60,7 @@ class CopyInstructionTest extends GroovyTestCase {
 
     }
 
-    void testInclude() {
+    @Test public void testInclude() {
         copyInstruction.includes = ["**/*.dat"]
         copyInstruction.execute()
         List files = []
@@ -65,7 +69,7 @@ class CopyInstructionTest extends GroovyTestCase {
         assertTrue(new File("${targetDir.absolutePath}/org/gradle/package1", f1Dat.name).isFile())
     }
 
-    void testExclude() {
+    @Test public void testExclude() {
         copyInstruction.excludes = ["org/gradle/package2", "**/*.txt", "org/gradle/package3", "**/*.jpg"]
         copyInstruction.execute()
         List files = []
@@ -74,7 +78,7 @@ class CopyInstructionTest extends GroovyTestCase {
         assertTrue(new File("${targetDir.absolutePath}/org/gradle/package1", f1Dat.name).isFile())
     }
 
-    void testWithoutIncludeExclude() {
+    @Test public void testWithoutIncludeExclude() {
         copyInstruction.execute()
         List files = []
         targetDir.eachFileRecurse {files << it}
@@ -84,7 +88,7 @@ class CopyInstructionTest extends GroovyTestCase {
         assertTrue(new File("${targetDir.absolutePath}/org/gradle/package3", f3Jpg.name).isFile())
     }
 
-    void testFilter() {
+    @Test public void testFilter() {
         String token1 = 'token1'
         String token2 = 'token2'
         String value1 = 'value1'
@@ -98,23 +102,23 @@ class CopyInstructionTest extends GroovyTestCase {
         assertEquals(f2Text.replace("@$token1@", value1).replace("@$token2@", value2), newText)
     }
 
-    void testExecuteConstraints() {
-        shouldFail(InvalidUserDataException) {
-            new CopyInstruction(sourceDir: new File("/dir")).execute()
-        }
-
-        shouldFail(InvalidUserDataException) {
-            new CopyInstruction(targetDir: new File("/dir")).execute()
-        }
-
-        shouldFail(InvalidUserDataException) {
-            new CopyInstruction(sourceDir: new File("/dir"), targetDir: null).execute()
-        }
-
-        shouldFail(InvalidUserDataException) {
+    @Test(expected = InvalidUserDataException) public void testExecuteWithNullSourceDir() {
             new CopyInstruction(sourceDir: null, targetDir: new File("/dir")).execute()
-        }
     }
+
+    @Test(expected = InvalidUserDataException) public void testExecuteWithMissingTargetDir() {
+            new CopyInstruction(sourceDir: new File("/dir")).execute()
+    }
+
+    @Test(expected = InvalidUserDataException) public void testExecuteWithMissingSourceDir() {
+            new CopyInstruction(targetDir: new File("/dir")).execute()
+    }
+
+    @Test(expected = InvalidUserDataException) public void testExecuteWithNullTargetDir() {
+            new CopyInstruction(sourceDir: new File("/dir"), targetDir: null).execute()
+    }
+
+
 
 
     private File createFile(File file) {

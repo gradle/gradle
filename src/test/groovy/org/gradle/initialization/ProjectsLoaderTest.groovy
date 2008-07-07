@@ -23,11 +23,15 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.ProjectsLoader
 import org.gradle.util.HelperUtil
 import org.gradle.StartParameter
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.After;
 
 /**
  * @author Hans Dockter
  */
-class ProjectsLoaderTest extends GroovyTestCase {
+class ProjectsLoaderTest {
     ProjectsLoader projectLoader
     ProjectFactory projectFactory
     BuildScriptProcessor buildScriptProcessor
@@ -39,7 +43,7 @@ class ProjectsLoaderTest extends GroovyTestCase {
     ClassLoader testClassLoader
     Map testProjectProperties
 
-    void setUp() {
+    @Before public void setUp()  {
         testClassLoader = new URLClassLoader([] as URL[])
         testProjectProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
         projectFactory = new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null, new ProjectRegistry())
@@ -53,15 +57,16 @@ class ProjectsLoaderTest extends GroovyTestCase {
     }
 
 
-    void testProjectsLoader() {
+    @Test public void testProjectsLoader() {
         assertSame(projectFactory, projectLoader.projectFactory)
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testCreateProjects() {
+    @Test public void testCreateProjects() {
         RootFinder rootFinder = new RootFinder(rootDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: testUserDir)
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
@@ -93,7 +98,7 @@ class ProjectsLoaderTest extends GroovyTestCase {
         assert rootProject.buildScriptClassLoader.is(testClassLoader)
         assertSame(testRootProjectDir, rootProject.rootDir)
         assertEquals(Project.PATH_SEPARATOR, rootProject.path)
-        assertEquals("$testRootProjectDir.name", rootProject.name)
+        assertEquals("$testRootProjectDir.name" as String, rootProject.name)
         assertEquals 1, rootProject.childProjects.size()
         assertNotNull rootProject.childProjects.parent
         assertEquals 3, rootProject.childProjects.parent.childProjects.size()
@@ -126,7 +131,7 @@ class ProjectsLoaderTest extends GroovyTestCase {
         assertNull(rootProject.childProjects.parent.additionalProperties[new ArrayList(testProjectProperties.keySet())[0]])
     }
 
-    void testCreateProjectsWithNonExistingUserAndProjectGradleAndProjectProperties() {
+    @Test public void testCreateProjectsWithNonExistingUserAndProjectGradleAndProjectProperties() {
         RootFinder rootFinder = new RootFinder(rootDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: testRootProjectDir, gradleUserHomeDir: new File('guh'))
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),

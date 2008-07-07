@@ -26,6 +26,9 @@ import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.tasks.util.AntDirective
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -45,13 +48,13 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     abstract def getAnt()
 
-    void setUp() {
+    @Before public void setUp() {
         super.setUp()
     }
 
     void checkConstructor() {
         assertFalse(archiveTask.createIfEmpty)
-        assertEquals([], archiveTask.resourceCollections)
+        assertNull(archiveTask.resourceCollections)
         assertEquals([], archiveTask.mergeFileSets)
         assertEquals([], archiveTask.mergeGroupFileSets)
         assertEquals('', archiveTask.classifier)
@@ -70,7 +73,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         dependencyManagerMock = new MockFor(DefaultDependencyManager)
     }
 
-    void testExecute() {
+    @Test public void testExecute() {
         dependencyManagerMock.demand.addArtifacts(1..1) {String configurationName, Object[] artifacts ->
             assertEquals(AbstractArchiveTaskTest.TEST_CONFIGURATION, configurationName)
             assertEquals(1, artifacts.size())
@@ -83,7 +86,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testExecuteWithEmptyClassifier() {
+    @Test public void testExecuteWithEmptyClassifier() {
         dependencyManagerMock.demand.addArtifacts(1..1) {String configurationName, Object[] artifacts ->
             assertEquals(AbstractArchiveTaskTest.TEST_CONFIGURATION, configurationName)
             assertEquals(1, artifacts.size())
@@ -98,9 +101,9 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testExecuteWithPublishFalse() {
+    @Test public void testExecuteWithPublishFalse() {
         dependencyManagerMock.demand.addArtifacts(0..0) {String configurationName, Object[] artifacts ->
-            
+
         }
         archiveTask.publish = false
         getAntMocker(true).use(ant) {
@@ -110,11 +113,9 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testExecuteWithNullDestinationDir() {
+    @Test (expected = InvalidUserDataException) public void testExecuteWithNullDestinationDir() {
         archiveTask.destinationDir = null
-        shouldFailWithCause(InvalidUserDataException) {
-            archiveTask.execute()
-        }
+        archiveTask.execute()
     }
 
     void checkArchiveParameterEqualsArchive(AntArchiveParameter archiveParameter, AbstractArchiveTask task) {
@@ -132,7 +133,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assert metaArchiveParameter.metaInfFileSets.is(task.metaInfResourceCollections)
     }
 
-    void testFileSetWithTaskBaseDir() {
+    @Test public void testFileSetWithTaskBaseDir() {
         assertEquals(archiveTask.baseDir, archiveTask.fileSet().dir)
     }
 
@@ -140,7 +141,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         ['fileSet']
     }
 
-    void testFileSetWithSpecifiedBaseDir() {
+    @Test public void testFileSetWithSpecifiedBaseDir() {
         applyToFileSetMethods {
             File specifiedBaseDir = new File('/root')
             FileSet fileSet = archiveTask."$it"(dir: specifiedBaseDir)
@@ -149,7 +150,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testFileSetWithTaskBaseDirAndConfigureClosure() {
+    @Test public void testFileSetWithTaskBaseDirAndConfigureClosure() {
         applyToFileSetMethods {
             String includePattern = 'a'
             Closure configureClosure = {
@@ -161,14 +162,14 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testFiles() {
+    @Test public void testFiles() {
         Set files = ['a' as File, 'b' as File]
         FileCollection fileCollection = archiveTask.files(files as File[])
         assertTrue(archiveTask.resourceCollections.contains(fileCollection))
         assertEquals(files, fileCollection.files)
     }
 
-    void testAntDirective() {
+    @Test public void testAntDirective() {
         Closure expectedDirective = {}
         AntDirective antDirective = archiveTask.antDirective(expectedDirective)
         assertTrue(archiveTask.resourceCollections.contains(antDirective))
@@ -182,11 +183,11 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         }
     }
 
-    void testArchivePath() {
+    @Test public void testArchivePath() {
         assertEquals(new File(archiveTask.destinationDir, archiveTask.archiveName), archiveTask.archivePath)
     }
 
-    void testMerge() {
+    @Test public void testMerge() {
         archiveTask.archiveDetector = [archiveFileSetType: {File file -> ZipFileSet }] as ArchiveDetector
         Object[] fileDescriptions = ['a.zip' as File, new File(HelperUtil.TMP_DIR_FOR_TEST, 'b.zip').absolutePath]
         assert archiveTask.merge(fileDescriptions) {
@@ -201,7 +202,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertEquals(['x'] as Set, mergeFileSets[1].includes)
     }
 
-    void testMergeWithoutClosure() {
+    @Test public void testMergeWithoutClosure() {
         archiveTask.archiveDetector = [archiveFileSetType: {File file -> ZipFileSet }] as ArchiveDetector
         assert archiveTask.merge('a.zip').is(archiveTask)
         List mergeFileSets = archiveTask.mergeFileSets
@@ -210,14 +211,12 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
     }
 
-    void testMergeWithNonArchive() {
+    @Test (expected = InvalidUserDataException) public void testMergeWithNonArchive() {
         archiveTask.archiveDetector = [archiveFileSetType: {File file -> null }] as ArchiveDetector
-        shouldFail(InvalidUserDataException) {
-            archiveTask.merge('x')
-        }
+        archiveTask.merge('x')
     }
 
-    void testMergeGroup() {
+    @Test public void testMergeGroup() {
         Object[] fileDescriptions = [new File('a'), new File('b').absolutePath]
 
         assert archiveTask.mergeGroup(HelperUtil.TMP_DIR_FOR_TEST) {

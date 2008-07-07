@@ -18,6 +18,9 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -33,24 +36,24 @@ class GroovyPluginConventionTest extends AbstractPluginConventionTest {
         [groovySrcDirNames: ['newSourceRootName']]
     }
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         project.convention.plugins.java = new JavaPluginConvention(project, [:])
         groovyConvention = new GroovyPluginConvention(project, [:])
     }
 
-    void testGroovyConvention() {
+    @Test public void testGroovyConvention() {
         assertEquals(['main/groovy'], groovyConvention.groovySrcDirNames)
         assertEquals(['test/groovy'], groovyConvention.groovyTestSrcDirNames)
         assertEquals([], groovyConvention.floatingGroovySrcDirs)
         assertEquals([], groovyConvention.floatingGroovyTestSrcDirs)
     }
 
-    void testGroovyDefaultDirs() {
+    @Test public void testGroovyDefaultDirs() {
         checkGroovyDirs(project.srcRootName)
     }
 
-    void testGroovyDynamicDirs() {
+    @Test public void testGroovyDynamicDirs() {
         project.srcRootName = 'mysrc'
         project.buildDirName = 'mybuild'
         checkGroovyDirs(project.srcRootName)

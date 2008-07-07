@@ -20,11 +20,15 @@ import groovy.mock.interceptor.MockFor
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import org.gradle.StartParameter
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.After;
 
 /**
  * @author Hans Dockter
  */
-class BuildSourceBuilderTest extends GroovyTestCase {
+class BuildSourceBuilderTest {
     BuildSourceBuilder buildSourceBuilder
     EmbeddedBuildExecuter embeddedBuildExecuter
     MockFor embeddedBuildExecuterMocker
@@ -33,7 +37,7 @@ class BuildSourceBuilderTest extends GroovyTestCase {
     File testBuildResolverDir
     StartParameter expectedStartParameter
 
-    void setUp() {
+    @Before public void setUp()  {
         File testDir = HelperUtil.makeNewTestDir()
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
@@ -51,21 +55,22 @@ class BuildSourceBuilderTest extends GroovyTestCase {
         )
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testBuildSourceBuilder() {
+    @Test public void testBuildSourceBuilder() {
         assert buildSourceBuilder.embeddedBuildExecuter.is(embeddedBuildExecuter)
     }
 
-    void testBuildArtifactFile() {
+    @Test public void testBuildArtifactFile() {
         String expectedPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
                 "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
         assertEquals(new File(expectedPath), buildSourceBuilder.buildArtifactFile(testBuildResolverDir))
     }
 
-    void testCreateDependencyWithExistingBuildSources() {
+    @Test public void testCreateDependencyWithExistingBuildSources() {
         embeddedBuildExecuterMocker.demand.execute(1..1) {File buildResolverDir, StartParameter startParameter ->
             createArtifact()
             assertEquals(testBuildResolverDir, buildResolverDir)
@@ -80,7 +85,7 @@ class BuildSourceBuilderTest extends GroovyTestCase {
         }
     }
 
-    void testCreateDependencyWithNonExistingBuildScript() {
+    @Test public void testCreateDependencyWithNonExistingBuildScript() {
         embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, String embeddedScript, StartParameter startParameter ->
             createArtifact()
             assertEquals(testBuildResolverDir, buildResolverDir)
@@ -95,20 +100,20 @@ class BuildSourceBuilderTest extends GroovyTestCase {
         }
     }
 
-    void testCreateDependencyWithNonExistingBuildSrcDir() {
+    @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
         expectedStartParameter = StartParameter.newInstance(expectedStartParameter)
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
         assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }
 
-    void testCreateDependencyWithNoArtifactProducingBuild() {
+    @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
         embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, String embeddedScript, StartParameter startParameter -> }
         embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
             assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
         }
     }
 
-    void testCreateDependencyWithEmptyTaskList() {
+    @Test public void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
         expectedStartParameter = StartParameter.newInstance(expectedStartParameter)
         expectedStartParameter.setTaskNames([])

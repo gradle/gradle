@@ -49,7 +49,7 @@ public class EmbeddedBuildExecuterTest {
     JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
-    public void setUp() {
+    public void setUp()  {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         buildMock = context.mock(Build.class);
         buildFactoryMock = context.mock(BuildFactory.class);

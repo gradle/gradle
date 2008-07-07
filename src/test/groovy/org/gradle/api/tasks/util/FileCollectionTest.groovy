@@ -16,23 +16,27 @@
  
 package org.gradle.api.tasks.util
 
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
+
 /**
  * @author Hans Dockter
  */
-class FileCollectionTest extends GroovyTestCase {
+class FileCollectionTest {
     FileCollection fileCollection
     Set testFiles
 
-    void setUp() {
+    @Before public void setUp()  {
         testFiles = [new File('/file1'), new File('/file2')]
         fileCollection = new FileCollection(testFiles)
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assertEquals(testFiles, fileCollection.files)
     }
     
-    void testAddToAntBuilder() {
+    @Test public void testAddToAntBuilder() {
         fileCollection.addToAntBuilder(new AntBuilder())
     }
 }

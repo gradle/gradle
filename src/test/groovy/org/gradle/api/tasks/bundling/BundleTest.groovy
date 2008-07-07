@@ -20,6 +20,9 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -53,7 +56,7 @@ class BundleTest extends AbstractConventionTaskTest {
 
     Task getTask() {bundle}
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         testArgs = [baseName: 'testBasename', classifier: 'testClassifier']
         testClosure = {
@@ -72,76 +75,76 @@ class BundleTest extends AbstractConventionTaskTest {
         testArchiveType = new ArchiveType('suf', [:], TestArchiveTask)
     }
 
-    void testBundle() {
+    @Test public void testBundle() {
         bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
         assertEquals([] as Set, bundle.childrenDependOn)
     }
 
-    void testJarWithDefaultValues() {
+    @Test public void testJarWithDefaultValues() {
         (Jar) checkForDefaultValues(bundle.jar(testClosure), bundle.defaultArchiveTypes.jar)
     }
 
-    void testJarWithArgs() {
+    @Test public void testJarWithArgs() {
         (Jar) checkForDefaultValues(bundle.jar(testArgs, testClosure), bundle.defaultArchiveTypes.jar, testArgs)
     }
 
-    void testZipWithDefaultValues() {
+    @Test public void testZipWithDefaultValues() {
         (Zip) checkForDefaultValues(bundle.zip(testClosure), bundle.defaultArchiveTypes.zip)
     }
 
-    void testZipWithArgs() {
+    @Test public void testZipWithArgs() {
         (Zip) checkForDefaultValues(bundle.zip(testArgs, testClosure), bundle.defaultArchiveTypes.zip, testArgs)
     }
 
-    void testWarWithDefaultValues() {
+    @Test public void testWarWithDefaultValues() {
         (War) checkForDefaultValues(bundle.war(testClosure), bundle.defaultArchiveTypes.war)
     }
 
-    void testWarWithArgs() {
+    @Test public void testWarWithArgs() {
         (War) checkForDefaultValues(bundle.war(testArgs, testClosure), bundle.defaultArchiveTypes.war, testArgs)
     }
 
-    void testTarWithDefaultValues() {
+    @Test public void testTarWithDefaultValues() {
         (Tar) checkForDefaultValues(bundle.tar(testClosure), bundle.defaultArchiveTypes.tar)
     }
 
-    void testTarWithArgs() {
+    @Test public void testTarWithArgs() {
         (Tar) checkForDefaultValues(bundle.tar(testArgs, testClosure), bundle.defaultArchiveTypes.tar, testArgs)
     }
 
-    void testTarGzWithDefaultValues() {
+    @Test public void testTarGzWithDefaultValues() {
         (Tar) checkForDefaultValues(bundle.tarGz(testClosure), bundle.defaultArchiveTypes['tar.gz'])
     }
 
-    void testTarGzWithArgs() {
+    @Test public void testTarGzWithArgs() {
         (Tar) checkForDefaultValues(bundle.tarGz(testArgs, testClosure), bundle.defaultArchiveTypes['tar.gz'], testArgs)
     }
 
-    void testTarBzip2WithDefaultValues() {
+    @Test public void testTarBzip2WithDefaultValues() {
         (Tar) checkForDefaultValues(bundle.tarBzip2(testClosure), bundle.defaultArchiveTypes['tar.bzip2'])
     }
 
-    void testTarBzip2WithArgs() {
+    @Test public void testTarBzip2WithArgs() {
         (Tar) checkForDefaultValues(bundle.tarBzip2(testArgs, testClosure), bundle.defaultArchiveTypes['tar.bzip2'], testArgs)
     }
 
-    void testCreateArchiveWithDefaultValues() {
+    @Test public void testCreateArchiveWithDefaultValues() {
         (TestArchiveTask) checkForDefaultValues(bundle.createArchive(testArchiveType, testClosure), testArchiveType)
     }
 
-    void testCreateArchiveWithCustomName() {
+    @Test public void testCreateArchiveWithCustomName() {
         TestArchiveTask testTask = bundle.createArchive(testArchiveType, testArgs, testClosure)
         checkForDefaultValues(testTask, testArchiveType, testArgs)
     }
 
-    void testChildrenDependsOn() {
+    @Test public void testChildrenDependsOn() {
         AbstractArchiveTask task1 = bundle.zip(baseName: 'zip1')
         AbstractArchiveTask task2 = bundle.zip(baseName: 'zip2')
         assertEquals(testChildrenDependsOn as Set, task1.dependsOn)
         assertEquals(testChildrenDependsOn as Set, task2.dependsOn)
     }
 
-    void testEmptyChildrenDependsOn() {
+    @Test public void testEmptyChildrenDependsOn() {
         bundle.childrenDependOn = []
         AbstractArchiveTask task1 = bundle.zip(baseName: 'zip1')
         AbstractArchiveTask task2 = bundle.zip(baseName: 'zip2')

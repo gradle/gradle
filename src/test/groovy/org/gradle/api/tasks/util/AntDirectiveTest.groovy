@@ -16,11 +16,13 @@
 
 package org.gradle.api.tasks.util
 
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
-class AntDirectiveTest extends GroovyTestCase {
-    void testInit() {
+class AntDirectiveTest {
+    @Test public void testInit() {
         AntDirective antDirective = new AntDirective()
         assert !antDirective.directive
         Closure expectedDirective = {}

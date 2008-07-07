@@ -22,6 +22,9 @@ import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -35,7 +38,7 @@ class WarTest extends AbstractArchiveTaskTest {
 
     List filesFromDepencencyManager
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         war = new War(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(war)
@@ -78,7 +81,7 @@ class WarTest extends AbstractArchiveTaskTest {
         war.antWar
     }
 
-    void testWar() {
+    @Test public void testWar() {
         assertEquals(War.WAR_EXTENSION, war.extension)
     }
 

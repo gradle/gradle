@@ -16,10 +16,14 @@
 
 package org.gradle.api.tasks.util
 
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
+
 /**
  * @author Hans Dockter
  */
-abstract class AbstractTestForPatternSet extends GroovyTestCase {
+abstract class AbstractTestForPatternSet {
     static final String TEST_PATTERN_1 = 'pattern1'
     static final String TEST_PATTERN_2 = 'pattern2'
     static final String TEST_PATTERN_3 = 'pattern3'
@@ -29,11 +33,11 @@ abstract class AbstractTestForPatternSet extends GroovyTestCase {
 
     def contextObject
 
-    void setUp() {
+    @Before public void setUp()  {
         contextObject = new Object()
     }
 
-    void testPatternSet() {
+    @Test public void testPatternSet() {
         assert patternSet.contextObject.is(contextObject)
         assertEquals([] as LinkedHashSet, patternSet.includes)
 
@@ -44,11 +48,11 @@ abstract class AbstractTestForPatternSet extends GroovyTestCase {
         assert patternSet.is(patternSet.contextObject)
     }
 
-    void testInclude() {
+    @Test public void testInclude() {
         checkIncludesExcludes(patternSet, 'include', 'includes')
     }
 
-    void testExclude() {
+    @Test public void testExclude() {
         checkIncludesExcludes(patternSet, 'exclude', 'excludes')
     }
 
@@ -69,7 +73,7 @@ abstract class AbstractTestForPatternSet extends GroovyTestCase {
         assertEquals(patternSet.excludes as String[], antPatternSet.getExcludePatterns())
     }
 
-    void testAddToAntBuilder() {
+    @Test public void testAddToAntBuilder() {
         preparePatternSetForAntBuilderTest(patternSet)
         AntBuilder antBuilder = new AntBuilder()
         patternSet.addToAntBuilder(antBuilder)

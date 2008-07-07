@@ -19,6 +19,10 @@ package org.gradle.api.tasks
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.After;
 
 /**
  * @author Hans Dockter
@@ -32,33 +36,32 @@ class DirectoryTest extends AbstractTaskTest {
         return directoryForAbstractTest
     }
 
-    void setUp() {
+    @Before public void setUp() {
         super.setUp()
         directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
         directory = new Directory(project, TASK_DIR_NAME)
         HelperUtil.makeNewTestDir()
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assertEquals(new File(project.projectDir, TASK_DIR_NAME).absoluteFile, directory.dir)
     }
 
-    void testInitWithAbsolutePathName() {
-        shouldFailWithCause(InvalidUserDataException) {
-            directory = new Directory(project, new File('nonRelative').absolutePath)
-        }
+    @Test (expected = InvalidUserDataException) public void testInitWithAbsolutePathName() {
+        directory = new Directory(project, new File('nonRelative').absolutePath)
     }
 
-    void testExecute() {
+    @Test public void testExecute() {
         directory.execute()
         assert new File(project.projectDir, TASK_DIR_NAME).isDirectory()
     }
 
-    void testWithExistingDir() {
+    @Test public void testWithExistingDir() {
         File dir = new File(project.projectDir, TASK_DIR_NAME)
         dir.mkdirs()
         // create new file to check later that dir has not been recreated 
@@ -69,16 +72,14 @@ class DirectoryTest extends AbstractTaskTest {
         assert file.isFile()
     }
 
-    void testWithExistingFile() {
+    @Test (expected = InvalidUserDataException) public void testWithExistingFile() {
         File file = new File(project.projectDir, 'testname')
         file.createNewFile()
         directory = new Directory(project, 'testname')
-        shouldFailWithCause(InvalidUserDataException) {
-            directory.execute()
-        }
+        directory.execute()
     }
 
-    void testToString() {
+    @Test public void testToString() {
         assertEquals(directory.dir.absolutePath, directory.toString())
     }
 }

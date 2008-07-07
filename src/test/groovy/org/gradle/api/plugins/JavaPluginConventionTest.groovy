@@ -19,6 +19,9 @@ package org.gradle.api.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -33,13 +36,13 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
     Map getCustomValues() {
         [srcRootName: 'newSourceRootName']
     }
-    
-    void setUp() {
+
+    @Before public void setUp() {
         super.setUp()
         convention = new JavaPluginConvention(project, [:])
     }
 
-    void testJavaConvention() {
+    @Test public void testJavaConvention() {
         assert convention.archiveTypes.is(JavaPluginConvention.DEFAULT_ARCHIVE_TYPES)
         assert convention.manifest != null
         assertEquals([], convention.metaInf)
@@ -63,11 +66,11 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(['test/resources'], convention.testResourceDirNames)
     }
 
-    void testDefaultDirs() {
+    @Test public void testDefaultDirs() {
         checkDirs(convention.srcRootName)
     }
 
-    void testDynamicDirs() {
+    @Test public void testDynamicDirs() {
         convention.srcRootName = 'mysrc'
         project.buildDirName = 'mybuild'
         checkDirs(convention.srcRootName)
@@ -75,9 +78,9 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
 
     private void checkDirs(String srcRootName) {
         convention.floatingSrcDirs << 'someSrcDir' as File
-        convention.floatingTestSrcDirs <<'someTestSrcDir' as File
-        convention.floatingResourceDirs <<'someResourceDir' as File
-        convention.floatingTestResourceDirs <<'someTestResourceDir' as File
+        convention.floatingTestSrcDirs << 'someTestSrcDir' as File
+        convention.floatingResourceDirs << 'someResourceDir' as File
+        convention.floatingTestResourceDirs << 'someTestResourceDir' as File
         assertEquals(new File(testDir, srcRootName), convention.srcRoot)
         assertEquals([new File(convention.srcRoot, convention.srcDirNames[0])] + convention.floatingSrcDirs, convention.srcDirs)
         assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])] + convention.floatingTestSrcDirs, convention.testSrcDirs)
@@ -95,24 +98,23 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
     }
 
 
-    void testMkdir() {
+    @Test public void testMkdir() {
         String expectedDirName = 'somedir'
         File dir = convention.mkdir(expectedDirName)
         assertEquals(new File(project.buildDir, expectedDirName), dir)
     }
 
-    void testMkdirWithSpecifiedBasedir() {
+    @Test public void testMkdirWithSpecifiedBasedir() {
         String expectedDirName = 'somedir'
         File dir = convention.mkdir(testDir, expectedDirName)
         assertEquals(new File(testDir, expectedDirName), dir)
     }
 
-    void testMkdirWithInvalidArguments() {
-        shouldFail(InvalidUserDataException) {
-            convention.mkdir(null)
-        }
-        shouldFail(InvalidUserDataException) {
-            convention.mkdir('')
-        }
+    @Test (expected = InvalidUserDataException) public void testMkdirWithNullArgument() {
+        convention.mkdir(null)
+    }
+
+    @Test(expected = InvalidUserDataException) public void testMkdirWithEmptyArguments() {
+        convention.mkdir('')
     }
 }

@@ -18,11 +18,14 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-abstract class AbstractPluginConventionTest extends GroovyTestCase {
+abstract class AbstractPluginConventionTest {
     File testDir
     DefaultProject project
 
@@ -30,13 +33,13 @@ abstract class AbstractPluginConventionTest extends GroovyTestCase {
 
     abstract Map getCustomValues()
 
-    void setUp() {
+    @Before public void setUp()  {
         testDir = HelperUtil.makeNewTestDir()
         project = new DefaultProject()
         project = [getProjectDir: {testDir}] as DefaultProject
     }
 
-    void testCustomValues() {
+    @Test public void testCustomValues() {
         project.convention.plugins.test1 = new TestPluginConvention1()
         project.convention.plugins.test2 = new TestPluginConvention2()
         Map testCustomValues = getCustomValues()

@@ -16,11 +16,13 @@
  
 package org.gradle.api.tasks.util
 
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
-class CopyInstructionFactoryTest extends GroovyTestCase {      
-    void testCreateCopyInstruction() {
+class CopyInstructionFactoryTest {
+    @Test public void testCreateCopyInstruction() {
         File expectedSourceDir = 'src' as File
         File expectedTargetDir = 'target' as File
         Set expectedIncludes = ['include'] as Set

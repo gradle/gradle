@@ -38,6 +38,9 @@ import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.GradleArtifact;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.dependencies.ResolverContainer;
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -59,7 +62,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         return dependencyManager
     }
 
-    void setUp() {
+    @Before public void setUp() {
         super.setUp()
         ivy = new Ivy()
         artifactFactory = new ArtifactFactory()
@@ -81,7 +84,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
 
 
-    void testInit() {
+    @Test public void testInit() {
         // assert dependencyManager.ivy.is(ivy)
         assert dependencyManager.artifactFactory.is(artifactFactory)
         assert dependencyManager.settingsConverter.is(settingsConverter)
@@ -94,7 +97,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assert dependencyManager.buildResolverHandler.buildResolverDir.is(buildResolverDir)
     }
 
-    void testAddArtifacts() {
+    @Test public void testAddArtifacts() {
         MockFor artifactFactoryMocker = new MockFor(ArtifactFactory)
         List userArtifactDescriptions = ['a', 'b', 'c', 'd']
         List gradleArtifacts = [[:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact]
@@ -112,7 +115,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
-    void testResolveTask() {
+    @Test public void testResolveTask() {
         String testTaskName = 'myTask'
         List expectedClasspath = ['a']
         checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
@@ -123,13 +126,11 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
-    void testResolveTaskwithUnmappedTasked() {
-        shouldFail(InvalidUserDataException) {
-            dependencyManager.resolveTask('unmappedTask')
-        }
+    @Test (expected = InvalidUserDataException) public void testResolveTaskwithUnmappedTasked() {
+        dependencyManager.resolveTask('unmappedTask')
     }
 
-    void testResolve() {
+    @Test public void testResolve() {
         List expectedClasspath = ['a']
         checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
             assert expectedClasspath.is(dependencyManager.resolve(TEST_CONFIG))
@@ -138,7 +139,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
-    void testAntpath() {
+    @Test public void testAntpath() {
         List expectedClasspath = ['a', 'b']
         checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
             assertEquals(expectedClasspath.join(':'), dependencyManager.antpath(TEST_CONFIG))
@@ -206,7 +207,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     // todo Implemente this test. The ResolveReport is hard to mock (no defaul constructor, no interface). 
-//    void testResolveClasspathWithUnresolvedDepencencies() {
+//    @Test public void testResolveClasspathWithUnresolvedDepencencies() {
 //        String testConfiguration = 'compile'
 //        String testTaskName = 'myTask'
 //
@@ -241,11 +242,11 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 //
 //    }
 
-    void testPublishWithoutModuleDescriptor() {
+    @Test public void testPublishWithoutModuleDescriptor() {
         checkPublish(false)
     }
 
-    void testPublishWithModuleDescriptor() {
+    @Test public void testPublishWithModuleDescriptor() {
         checkPublish(true)
     }
 
@@ -331,7 +332,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
 
 
-    void testAddConf2Tasks() {
+    @Test public void testAddConf2Tasks() {
         String testTaskName1 = 'task1'
         String testTaskName2 = 'task2'
         String testTaskName3 = 'task3'
@@ -346,23 +347,23 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assertEquals(1, dependencyManager.task2Conf.size())
     }
 
-    void testAddConf2TaskswithIllegalArgs() {
-        shouldFail(InvalidUserDataException) {
-            dependencyManager.addConf2Tasks(null, 'sometask')
-        }
-        shouldFail(InvalidUserDataException) {
-            dependencyManager.addConf2Tasks('jsjs', null)
-        }
-        shouldFail(InvalidUserDataException) {
-            dependencyManager.addConf2Tasks('jsjs', [] as String[])
-        }
+    @Test (expected = InvalidUserDataException) public void testAddConf2TasksWithNullConf() {
+        dependencyManager.addConf2Tasks(null, 'sometask')
     }
 
-    void testGetBuildResolver() {
+    @Test (expected = InvalidUserDataException) public void testAddConf2TasksWithNullTaskName() {
+        dependencyManager.addConf2Tasks('jsjs', null)
+    }
+
+    @Test (expected = InvalidUserDataException) public void testAddConf2TasksWithEmptyArgs() {
+        dependencyManager.addConf2Tasks('jsjs', [] as String[])
+    }
+
+    @Test public void testGetBuildResolver() {
         assert dependencyManager.buildResolver.is(expectedBuildResolver)
     }
 
-    void testAddFlatDirResolver() {
+    @Test public void testAddFlatDirResolver() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
         Object[] expectedDirs = ['a', 'b' as File]
@@ -380,7 +381,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
-    void testAddMavenRepo() {
+    @Test public void testAddMavenRepo() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String[] expectedJarUrls = ['http://www.somerepo.org']
         MockFor resolverContainerMocker = new MockFor(ResolverContainer)
@@ -398,7 +399,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
-    void testAddMavenStyleRepo() {
+    @Test public void testAddMavenStyleRepo() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedRoot = 'http://www.myroot.org'
         String expectedName = 'myname'
@@ -418,7 +419,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
-    void testAddConfiguration() {
+    @Test public void testAddConfiguration() {
         // todo: add test for String argument
         Configuration testConfiguration = new Configuration('someconf')
         assert dependencyManager.addConfiguration(testConfiguration).is(testObj)
@@ -426,7 +427,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
 
-    void testMethodMissingWithExistingConfiguration() {
+    @Test public void testMethodMissingWithExistingConfiguration() {
         MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
         List dependencies = [[:] as Dependency, [:] as Dependency, [:] as Dependency]
         2.times {int i ->
@@ -445,14 +446,12 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assertEquals(testObj.dependencies, dependencies[0..1])
     }
 
-    void testMethodMissingWithNonExistingConfiguration() {
-        shouldFail(MissingMethodException) {
-            testObj.'nonExistingConfigurationName'(AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
-                    AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
-        }
+    @Test (expected = MissingMethodException) public void testMethodMissingWithNonExistingConfiguration() {
+        testObj.'nonExistingConfigurationName'(AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
+                AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
     }
 
-    void testCreateModuleRevisionId() {
+    @Test public void testCreateModuleRevisionId() {
         ModuleRevisionId moduleRevisionId = dependencyManager.createModuleRevisionId()
         assertEquals(dependencyManager.project.name, moduleRevisionId.name)
         assertEquals(DependencyManager.DEFAULT_VERSION, moduleRevisionId.revision)

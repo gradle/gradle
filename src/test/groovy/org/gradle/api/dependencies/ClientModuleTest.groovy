@@ -27,6 +27,9 @@ import org.gradle.api.internal.project.DefaultProject
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
 import org.gradle.util.HelperUtil
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -50,7 +53,7 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         clientModule
     }
 
-    void setUp() {
+    @Before public void setUp() {
         super.setUp();
         clientModule = new ClientModule(dependencyFactory, parentConfs as Set, testId, testModuleRegistry)
         clientModule.project = project
@@ -62,14 +65,14 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor()
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assertEquals(clientModule.defaultConfs, [Dependency.DEFAULT_CONFIGURATION])
         assertEquals(clientModule.confs, parentConfs as Set)
         assertEquals(clientModule.id, testId)
         assertEquals(clientModule.clientModuleRegistry, testModuleRegistry)
     }
 
-    void testCreateDependencyDescriptor() {
+    @Test public void testCreateDependencyDescriptor() {
         String testDependencyUserDescription = "org.apache:test:5.0.4"
         DependencyDescriptor testDependencyDescriptor = [:] as DependencyDescriptor
         Dependency testDependency = [createDepencencyDescriptor: {testDependencyDescriptor}] as Dependency
@@ -88,7 +91,7 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
             assertEquals([(ClientModule.CLIENT_MODULE_KEY): testId], extraAttributes)
             expectedDependencyDescriptor
         }
-        
+
         DependencyDescriptor dependencyDescriptor
         dependencyDescriptorFactoryMock.use(clientModule.dependencyDescriptorFactory) {
             dependencyFactoryMocker.use(clientModule.dependencyFactory) {
@@ -102,16 +105,19 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         assert moduleDescriptor.dependencies[0].is(testDependencyDescriptor)
     }
 
-    public void testUnsupportedOperations() {
-        shouldFail(UnsupportedOperationException) {
-            clientModule.clientModule(['a'], 'a')
-        }
-        shouldFail(UnsupportedOperationException) {
-            clientModule.dependencies(['a'], 'a')
-        }
-        shouldFail(UnsupportedOperationException) {
-            clientModule.dependency(['a'], 'a')
-        }
+    @Test (expected = UnsupportedOperationException)
+    public void testUnsupportedOperationsClientModule() {
+        clientModule.clientModule(['a'], 'a')
+    }
+
+    @Test (expected = UnsupportedOperationException)
+    public void testUnsupportedOperationsDependencies() {
+        clientModule.dependencies(['a'], 'a')
+    }
+
+    @Test (expected = UnsupportedOperationException)
+    public void testUnsupportedOperationsDependency() {
+        clientModule.dependency(['a'], 'a')
     }
 
 

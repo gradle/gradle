@@ -19,11 +19,16 @@ package org.gradle.api.internal.project
 import org.gradle.api.InputStreamClassLoader
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.After;
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ScriptHandlerTest extends GroovyTestCase {
+class ScriptHandlerTest {
     static final String TEST_BUILD_FILE_NAME = 'somename.craidle'
     static final String TEST_BUILD_FILE_CACHE_NAME = 'somename_craidle'
 
@@ -41,7 +46,7 @@ class ScriptHandlerTest extends GroovyTestCase {
 
     ClassLoader classLoader
 
-    void setUp() {
+    @Before public void setUp()  {
         testProjectDir = HelperUtil.makeNewTestDir('projectdir')
         classLoader = new InputStreamClassLoader()
         InputStream inputStream = this.getClass().getResourceAsStream('/org/gradle/api/ClasspathTester.dat')
@@ -60,11 +65,12 @@ class ScriptHandlerTest extends GroovyTestCase {
         cachedFile = new File(gradleDir, "$TEST_BUILD_FILE_CACHE_NAME/${TEST_BUILD_FILE_CACHE_NAME}.class")
     }
 
-    protected void tearDown() {
+    @After
+    public void tearDown() {
         HelperUtil.deleteTestDir()
     }
 
-    void testWriteToCacheAndLoadFromCache() {
+    @Test public void testWriteToCacheAndLoadFromCache() {
         Script script = scriptHandler.writeToCache(testProject, testScriptText)
         checkCacheDestination()
         evaluateScript(script)
@@ -77,7 +83,7 @@ class ScriptHandlerTest extends GroovyTestCase {
         assert cachedFile.isFile()
     }
 
-    void testCreateScript() {
+    @Test public void testCreateScript() {
         Script script = scriptHandler.createScript(testProject, testScriptText)
         evaluateScript(script)
     }
@@ -91,17 +97,17 @@ class ScriptHandlerTest extends GroovyTestCase {
         assertEquals(testProject.path + 'mySuffix', testProject.additionalProperties['scriptProperty'])
     }
 
-    void testLoadFromCacheWithNonCacheBuildFile() {
+    @Test public void testLoadFromCacheWithNonCacheBuildFile() {
         assertNull(scriptHandler.loadFromCache(testProject, 0))
     }
 
-    void testLoadFromCacheWithStaleCache() {
+    @Test public void testLoadFromCacheWithStaleCache() {
         scriptHandler.writeToCache(testProject, testScriptText)
         cachedFile.setLastModified(0)
         assertNull(scriptHandler.loadFromCache(testProject, 100000))
     }
 
-//    void testWithException() {
+//    @Test public void testWithException() {
 //        try {
 //            testProject.buildScriptFinder = mockBuildScriptFinder('unknownProp')
 //            scriptHandler.evaluate(testProject)

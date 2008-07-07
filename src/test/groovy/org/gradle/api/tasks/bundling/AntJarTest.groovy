@@ -17,6 +17,9 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileSet
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -24,12 +27,12 @@ import org.gradle.api.tasks.util.FileSet
 class AntJarTest extends AbstractAntSkippableArchiveTest {
     AntJar antJar
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         antJar = new AntJar()
     }
 
-    void testExecute() {
+    @Test public void testExecute() {
         antJar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
                 archiveName, manifest, createFileSetDuo(AbstractAntArchiveTest.METAINFS_KEY), new AntBuilder()))
         unzipArchive()
@@ -37,14 +40,14 @@ class AntJarTest extends AbstractAntSkippableArchiveTest {
         checkMetaData()
     }
 
-    void testExecuteWithNullManifestAndNullMetaInf() {
+    @Test public void testExecuteWithNullManifestAndNullMetaInf() {
         antJar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
                 archiveName, null, null, new AntBuilder()))
         unzipArchive()
         checkResourceFiles()
     }
 
-    void testExecuteWithManifestNullFile() {
+    @Test public void testExecuteWithManifestNullFile() {
         antJar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
                 archiveName, new GradleManifest(), null, new AntBuilder()))
         unzipArchive()

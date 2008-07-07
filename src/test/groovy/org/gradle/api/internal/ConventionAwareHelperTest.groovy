@@ -13,27 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.internal
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.TestTask
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-class ConventionAwareHelperTest extends GroovyTestCase {
+class ConventionAwareHelperTest {
     ConventionAwareHelper conventionAware
 
     TestTask testTask
 
-    void setUp() {
+    @Before public void setUp() {
         testTask = new TestTask(new DefaultProject(), 'somename')
         conventionAware = new ConventionAwareHelper(testTask)
     }
 
-    void testConventionMapping() {
+    @Test public void testConventionMapping() {
         List expectedList1 = ['a']
         List expectedList2 = ['b']
         assert testTask.is(conventionAware.conventionMapping([list1: {expectedList1}]))
@@ -42,13 +45,11 @@ class ConventionAwareHelperTest extends GroovyTestCase {
         assert conventionAware.getValue('list2').is(expectedList2)
     }
 
-    void testIllegalMapping() {
-        shouldFail(InvalidUserDataException) {
-            conventionAware.conventionMapping([unknownProp: {}])
-        }
+    @Test (expected = InvalidUserDataException) public void testIllegalMapping() {
+        conventionAware.conventionMapping([unknownProp: {}])
     }
 
-    void testOverwriteProperties() {
+    @Test public void testOverwriteProperties() {
         List conventionList1 = ['a']
         conventionAware.conventionMapping([list1: {conventionList1}])
         assert conventionAware.getValue('list1').is(conventionList1)
@@ -57,7 +58,7 @@ class ConventionAwareHelperTest extends GroovyTestCase {
         assertEquals(expectedList1, conventionAware.getValue('list1'))
     }
 
-    void testCachedProperties() {
+    @Test public void testCachedProperties() {
         conventionAware.conventionMapping([list1: {['a']}])
         def value1 = conventionAware.getValue('list1')
         def value2 = conventionAware.getValue('list1')

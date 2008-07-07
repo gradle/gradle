@@ -13,47 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.tasks.util.BaseDirConverter
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ClasspathConverterTest extends GroovyTestCase {
+class ClasspathConverterTest {
     ClasspathConverter classpathConverter
 
-    void setUp() {
+    @Before public void setUp() {
         classpathConverter = new ClasspathConverter()
     }
 
-    void testCreateFileClasspath() {
+    @Test public void testCreateFileClasspath() {
         File expectedBaseDir = 'basedir' as File
         List elementNames = ['element1', 'element2', 'element3', 'element4']
         List inputClasspath = [elementNames[0], elementNames[1] as File, [elementNames[2], elementNames[3]]]
         classpathConverter.baseDirConverter = [baseDir: {String path, File baseDir, PathValidation validation ->
             assertEquals(expectedBaseDir, baseDir)
             assertEquals(PathValidation.EXISTS, validation)
-            path as File        
+            path as File
         }] as BaseDirConverter
         List fileClasspath = classpathConverter.createFileClasspath(expectedBaseDir, [inputClasspath])
-        fileClasspath.eachWithIndex { File file, int i ->
+        fileClasspath.eachWithIndex {File file, int i ->
             assertEquals(elementNames[i] as File, file)
         }
     }
 
-    void testCreateFileClasspathWithNullElement() {
-        shouldFail(InvalidUserDataException) {
-            classpathConverter.createFileClasspath(new File('basedir'), ["element1", null])
-        }
+    @Test (expected = InvalidUserDataException) public void testCreateFileClasspathWithNullElement() {
+        classpathConverter.createFileClasspath(new File('basedir'), ["element1", null])
     }
 
-    void testCreateFileClasspathWithIllegalElement() {
-        shouldFail(InvalidUserDataException) {
-            classpathConverter.createFileClasspath(new File('basedir'), [5])
-        }
+    @Test (expected = InvalidUserDataException) public void testCreateFileClasspathWithIllegalElement() {
+        classpathConverter.createFileClasspath(new File('basedir'), [5])
     }
 }

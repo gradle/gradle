@@ -16,35 +16,40 @@
  
 package org.gradle.api.tasks.testing
 
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.Test;
+
+
 /**
  * @author Hans Dockter
  */
-class FormatterOptionsTest extends GroovyTestCase {
+class FormatterOptionsTest {
     static final Map PROPS = [extension: 'extension', type: 'type', classname: 'classname']
 
     FormatterOptions formatterOptions
 
-    void setUp() {
+    @Before public void setUp()  {
         formatterOptions = new FormatterOptions()
     }
 
-    void testCompileOptions() {
+    @Test public void testCompileOptions() {
         assertNull(formatterOptions.extension)
         assertEquals('xml', formatterOptions.type)
         assertNull(formatterOptions.classname)
     }
 
-    void testOptionMap() {
+    @Test public void testOptionMap() {
         formatterOptions.type = null
         Map optionMap = formatterOptions.optionMap()
         assertEquals(0, optionMap.size())
         PROPS.keySet().each { formatterOptions."$it" = "${it}Value" }
         optionMap = formatterOptions.optionMap()
         assertEquals(3, optionMap.size())
-        PROPS.keySet().each {assertEquals("${it}Value", optionMap[PROPS[it]])}
+        PROPS.keySet().each {assertEquals("${it}Value" as String, optionMap[PROPS[it]])}
     }
 
-    void testDefine() {
+    @Test public void testDefine() {
         formatterOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
             map[prop] = "${prop}Value"
             map

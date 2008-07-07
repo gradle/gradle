@@ -19,12 +19,14 @@ package org.gradle.api.internal.dependencies
 import org.gradle.api.dependencies.ArtifactDependency
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.dependencies.ProjectDependency
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class DefaultDependencyManagerFactoryTest extends GroovyTestCase {
-    void testCreate() {
+class DefaultDependencyManagerFactoryTest {
+    @Test public void testCreate() {
         File rootDir = new File('root')
         DefaultDependencyManager dependencyManager = new DefaultDependencyManagerFactory(new File('root')).createDependencyManager()
         // todo: check when ivy management has improved

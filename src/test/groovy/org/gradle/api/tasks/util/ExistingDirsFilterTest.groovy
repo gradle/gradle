@@ -19,18 +19,20 @@ package org.gradle.api.tasks.util
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.StopActionException
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ExistingDirsFilterTest extends GroovyTestCase {
+class ExistingDirsFilterTest {
     ExistingDirsFilter testObj
     File existingDir, destDir, nonExistingDir
     List allDirs
 
 
-    void setUp() {
-        super.setUp();
+    @Before public void setUp() {
         testObj = new ExistingDirsFilter()
         File root = HelperUtil.makeNewTestDir()
         existingDir = new File(root, 'dir1')
@@ -41,34 +43,34 @@ class ExistingDirsFilterTest extends GroovyTestCase {
     }
 
 
-    void testFindExistingDirs() {
+    @Test public void testFindExistingDirs() {
         assertEquals([existingDir], testObj.findExistingDirs(allDirs))
         assertEquals([existingDir], testObj.findExistingDirs(allDirs))
     }
 
-    void testFindExistingDirsAndThrowStopActionIfNone() {
+    @Test public void testFindExistingDirsAndThrowStopActionIfNoneWithExistingDir() {
         assertEquals([existingDir], testObj.findExistingDirsAndThrowStopActionIfNone(allDirs))
-        shouldFail(StopActionException) {
-            testObj.findExistingDirsAndThrowStopActionIfNone([nonExistingDir])
-        }
-        assertEquals([existingDir], testObj.findExistingDirsAndThrowStopActionIfNone(allDirs))
-    }   
+    }
 
-    void testCheckExistenceAndThrowStopActionIfNot() {
+    @Test (expected = StopActionException) public void testFindExistingDirsAndThrowStopActionIfNone() {
+        testObj.findExistingDirsAndThrowStopActionIfNone([nonExistingDir])
+    }
+
+    @Test (expected = StopActionException) public void testCheckExistenceAndThrowStopActionIfNot() {
         testObj.checkExistenceAndThrowStopActionIfNot(existingDir)
-        shouldFail(StopActionException) {
-            testObj.checkExistenceAndThrowStopActionIfNot(nonExistingDir)
-        }
+        testObj.checkExistenceAndThrowStopActionIfNot(nonExistingDir)
     }
 
-    void testCheckDestDirAndFindExistingDirsAndThrowStopActionIfNone() {
+    @Test public void testCheckDestDirAndFindExistingDirsAndThrowStopActionIfNoneWithExistingDir() {
         assertEquals([existingDir], testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, allDirs))
-        shouldFail(StopActionException) {
-            testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, [nonExistingDir])
-        }
-        shouldFail(InvalidUserDataException) {
-            testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(null, allDirs)
-        }
+    }
+
+    @Test (expected = StopActionException) public void testCheckDestDirAndFindExistingDirsAndThrowStopActionIfNoneNonExistingDir() {
+        testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, [nonExistingDir])
+    }
+
+    @Test (expected = InvalidUserDataException) public void testCheckDestDirAndFindExistingDirsAndThrowStopActionIfNoneWithNullDestinationDir() {
+        testObj.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(null, allDirs)
     }
 
 }

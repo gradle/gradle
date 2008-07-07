@@ -17,25 +17,28 @@
 package org.gradle.util
 
 import org.gradle.api.Project
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class PathHelperTest extends GroovyTestCase {
+class PathHelperTest {
     File rootDir
 
-    void setUp() {
+    @Before public void setUp()  {
         rootDir ='/root' as File
     }
-    void testWithCurrentDirIsRootDir() {
+    @Test public void testWithCurrentDirIsRootDir() {
         File currentDir = '/root' as File
         assertEquals(Project.PATH_SEPARATOR, PathHelper.getCurrentProjectPath(rootDir, currentDir))
     }
-    void testWithCurrentDirIsChildOfRootDir() {
+    @Test public void testWithCurrentDirIsChildOfRootDir() {
         File currentDir = '/root/child' as File
         assertEquals(Project.PATH_SEPARATOR + "child", PathHelper.getCurrentProjectPath(rootDir, currentDir))
     }
-    void testWithCurrentDirIsGrandChildOfRootDir() {
+    @Test public void testWithCurrentDirIsGrandChildOfRootDir() {
        File currentDir = '/root/child/grandchild' as File
         assertEquals(Project.PATH_SEPARATOR +  'child' + Project.PATH_SEPARATOR + 'grandchild', PathHelper.getCurrentProjectPath(rootDir, currentDir))
     }

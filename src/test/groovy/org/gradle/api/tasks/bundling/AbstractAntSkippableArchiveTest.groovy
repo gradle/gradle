@@ -16,25 +16,29 @@
  
 package org.gradle.api.tasks.bundling
 
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*;
+
 /**
  * @author Hans Dockter
  */
 abstract class AbstractAntSkippableArchiveTest extends AbstractAntArchiveTest {
     File emptyDir
 
-    public void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         (emptyDir = new File(testDir, 'emptyDir')).mkdir()
     }
 
     abstract void executeWithEmptyFileList(boolean createIfEmpty)
 
-    void testWithEmptyPolicySkip() {
+    @Test public void testWithEmptyPolicySkip() {
         executeWithEmptyFileList(false)
         assertFalse(new File(testDir, archiveName).exists())
     }
 
-    void testWithEmptyPolicyCreate() {
+    @Test public void testWithEmptyPolicyCreate() {
         executeWithEmptyFileList(true)
         assertTrue(new File(testDir, archiveName).exists())
     }

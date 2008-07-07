@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import junit.framework.TestCase;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectAction;
 import org.gradle.api.internal.project.BuildScriptProcessor;
@@ -33,12 +32,13 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
-public class BuildConfigurerTest extends TestCase {
+public class BuildConfigurerTest {
     BuildConfigurer buildConfigurer;
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver;
     BuildScriptProcessor buildScriptProcessor;
@@ -52,7 +52,7 @@ public class BuildConfigurerTest extends TestCase {
     JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
-    public void setUp() {
+    public void setUp()  {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         projectDependencies2TasksResolver = context.mock(ProjectDependencies2TaskResolver.class);
         projectTasksPrettyPrinter = new ProjectTasksPrettyPrinter();

@@ -27,13 +27,16 @@ import org.gradle.api.DependencyManager
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.apache.ivy.plugins.resolver.URLResolver
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ResolverContainerTest extends GroovyTestCase {
+class ResolverContainerTest {
     static final String TEST_REPO_NAME = 'reponame'
-    static final String TEST_REPO_URL = 'http://www.gradle.org' 
+    static final String TEST_REPO_URL = 'http://www.gradle.org'
     ResolverContainer resolverContainer
 
     LocalReposCacheHandler localReposCacheHandler
@@ -55,7 +58,7 @@ class ResolverContainerTest extends GroovyTestCase {
     MockFor resolverFactoryMocker
 
 
-    void setUp() {
+    @Before public void setUp() {
         resolverContainer = new ResolverContainer(localReposCacheHandler)
         expectedUserDescription = 'somedescription'
         expectedUserDescription2 = 'somedescription2'
@@ -84,11 +87,11 @@ class ResolverContainerTest extends GroovyTestCase {
         }
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assert resolverContainer.localReposCacheHandler.is(localReposCacheHandler)
     }
 
-    void testAddResolver() {
+    @Test public void testAddResolver() {
         resolverFactoryMocker.use(resolverContainer.resolverFactory) {
             assert resolverContainer.add(expectedUserDescription).is(expectedResolver)
             assert resolverContainer[expectedName].is(expectedResolver)
@@ -97,7 +100,7 @@ class ResolverContainerTest extends GroovyTestCase {
         assertEquals([expectedResolver, expectedResolver2], resolverContainer.resolverList)
     }
 
-    void testAddResolverWithClosure() {
+    @Test public void testAddResolverWithClosure() {
         resolverFactoryMocker.use(resolverContainer.resolverFactory) {
             String expectedConfigureValue = 'testvalue'
             Closure configureClosure = {transactional = expectedConfigureValue}
@@ -107,7 +110,7 @@ class ResolverContainerTest extends GroovyTestCase {
         }
     }
 
-    void testAddBefore() {
+    @Test public void testAddBefore() {
         resolverFactoryMocker.use(resolverContainer.resolverFactory) {
             resolverContainer.add(expectedUserDescription)
             assert resolverContainer.addBefore(expectedUserDescription2, expectedName).is(expectedResolver2)
@@ -115,7 +118,7 @@ class ResolverContainerTest extends GroovyTestCase {
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolverList)
     }
 
-    void testAddAfter() {
+    @Test public void testAddAfter() {
         resolverFactoryMocker.use(resolverContainer.resolverFactory) {
             resolverContainer.add(expectedUserDescription)
             assert resolverContainer.addAfter(expectedUserDescription2, expectedName).is(expectedResolver2)
@@ -124,44 +127,31 @@ class ResolverContainerTest extends GroovyTestCase {
         assertEquals([expectedResolver, expectedResolver3, expectedResolver2], resolverContainer.resolverList)
     }
 
-    void testAddWithIllegalArgs() {
-        checkIllegalArgs('add')
+    @Test (expected = InvalidUserDataException) public void testAddWithNullUserDescription() {
+        resolverContainer.add(null)
     }
 
-    void testAddFirstWithIllegalArgs() {
-        checkIllegalArgs('addFirst')
+    @Test (expected = InvalidUserDataException) public void testAddFirstWithNullUserDescription() {
+        resolverContainer.addFirst(null)
     }
 
-    void testAddBeforeWithIllegalArgs() {
-        checkIllegalArgsForBeforeAndAfter('addBefore')
+    @Test (expected = InvalidUserDataException) public void testAddBeforeWithNullUserDescription() {
+        resolverContainer.addBefore(null, expectedName)
     }
 
-    void testAddAfterWithIllegalArgs() {
-        checkIllegalArgsForBeforeAndAfter('addAfter')
+    @Test (expected = InvalidUserDataException) public void testAddBeforeWithUnknownResolver() {
+        resolverContainer.addBefore(expectedUserDescription2, 'unknownName')
     }
 
-    private void checkIllegalArgs(String methodName) {
-        resolverFactoryMocker.use(resolverContainer.resolverFactory) {
-            shouldFail(InvalidUserDataException) {
-                resolverContainer."$methodName"(null)
-            }
-        }
+    @Test (expected = InvalidUserDataException) public void testAddAfterWithNullUserDescription() {
+        resolverContainer.addAfter(null, expectedName)
     }
 
-    private void checkIllegalArgsForBeforeAndAfter(String methodName) {
-        resolverFactoryMocker.use(resolverContainer.resolverFactory) {
-            resolverContainer.add(expectedUserDescription)
-            shouldFail(InvalidUserDataException) {
-                resolverContainer."$methodName"(null, expectedName)
-            }
-            shouldFail(InvalidUserDataException) {
-                resolverContainer."$methodName"(expectedUserDescription2, 'unknownName')
-            }
-        }
-
+    @Test (expected = InvalidUserDataException) public void testAddAfterWithUnknownResolver() {
+        resolverContainer.addBefore(expectedUserDescription2, 'unknownName')
     }
-
-    void testAddFirst() {
+    
+    @Test public void testAddFirst() {
         resolverFactoryMocker.use(resolverContainer.resolverFactory) {
             assert resolverContainer.addFirst(expectedUserDescription).is(expectedResolver)
             resolverContainer.addFirst(expectedUserDescription2)
@@ -169,7 +159,7 @@ class ResolverContainerTest extends GroovyTestCase {
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolverList)
     }
 
-    void testCreateFlatDirResolver() {
+    @Test public void testCreateFlatDirResolver() {
         MockFor resolverFactoryMocker = new MockFor(ResolverFactory)
         File[] expectedRoots = [new File('/rootFolder')]
         String expectedName = 'libs'
@@ -179,10 +169,11 @@ class ResolverContainerTest extends GroovyTestCase {
             expectedResolver
         }
         resolverFactoryMocker.use(resolverContainer.resolverFactory) {
-            assert resolverContainer.createFlatDirResolver(expectedName, expectedRoots as File[]).is(expectedResolver) 
+            assert resolverContainer.createFlatDirResolver(expectedName, expectedRoots as File[]).is(expectedResolver)
         }
     }
 
+    @Test
     public void testCreateMavenRepo() {
         String testUrl2 = 'http://www.gradle2.org'
         MockFor resolverFactoryMocker = new MockFor(ResolverFactory)

@@ -16,35 +16,39 @@
  
 package org.gradle.api.tasks.compile
 
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
+
 /**
  * @author Hans Dockter
  */
-class ForkOptionsTest extends GroovyTestCase {
+class ForkOptionsTest {
     static final Map PROPS = [executable: 'executable', memoryInitialSize: 'memoryInitialSize', memoryMaximumSize: 'memoryMaximumSize', tempDir: 'tempdir']
     
     ForkOptions forkOptions
 
-    void setUp() {
+    @Before public void setUp()  {
         forkOptions = new ForkOptions()
     }
 
-    void testCompileOptions() {
+    @Test public void testCompileOptions() {
         assertNull(forkOptions.executable)
         assertNull(forkOptions.memoryInitialSize)
         assertNull(forkOptions.memoryMaximumSize)
         assertNull(forkOptions.tempDir)
     }
 
-    void testOptionMap() {
+    @Test public void testOptionMap() {
         Map optionMap = forkOptions.optionMap()
         assertEquals(0, optionMap.size())
         PROPS.keySet().each { forkOptions."$it" = "${it}Value" }
         optionMap = forkOptions.optionMap()
         assertEquals(4, optionMap.size())
-        PROPS.keySet().each {assertEquals("${it}Value", optionMap[PROPS[it]])}
+        PROPS.keySet().each {assertEquals("${it}Value" as String, optionMap[PROPS[it]])}
     }
 
-    void testDefine() {
+    @Test public void testDefine() {
         forkOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
             map[prop] = "${prop}Value"
             map

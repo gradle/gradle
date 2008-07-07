@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.UnknownDependencyNotation
+import org.gradle.api.Project
 
 /**
 * @author Hans Dockter
@@ -29,7 +30,7 @@ class TestDependencyImplInteger implements Dependency {
     static final DependencyDescriptor DEPENDENCY_DESCRIPTOR = [:] as DependencyDescriptor
     Set confs
     Object userDependencyDescription
-    DefaultProject project
+    Project project
     boolean initialized = false
 
 
@@ -37,7 +38,7 @@ class TestDependencyImplInteger implements Dependency {
         
     }
 
-    TestDependencyImplInteger(Set confs, Object userDependencyDescription, DefaultProject project) {
+    TestDependencyImplInteger(Set confs, Object userDependencyDescription, Project project) {
         if (!(userDependencyDescription instanceof Integer)) {
             throw new UnknownDependencyNotation('somemsg')
         }

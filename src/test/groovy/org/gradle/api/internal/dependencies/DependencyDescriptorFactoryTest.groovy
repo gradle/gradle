@@ -20,11 +20,14 @@ import org.gradle.api.dependencies.ModuleDependency
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.DependencyManager
 import org.gradle.util.HelperUtil
+import org.junit.Before
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class DependencyDescriptorFactoryTest extends GroovyTestCase {
+class DependencyDescriptorFactoryTest {
     static final String TEST_CONF = "conf"
     static final Set TEST_CONF_SET = [TEST_CONF]
     static final List TEST_EXCLUDE_RULES = [HelperUtil.getTestExcludeRules()]
@@ -41,16 +44,16 @@ class DependencyDescriptorFactoryTest extends GroovyTestCase {
 
     DependencyDescriptorFactory dependencyDescriptorFactory
 
-    protected void setUp() {
+    @Before public void setUp()  {
         dependencyDescriptorFactory = new DependencyDescriptorFactory()
     }
 
-    void testCreateDependencyDescriptor() {
+    @Test public void testCreateDependencyDescriptor() {
         checkDescriptor(dependencyDescriptorFactory.createDescriptor(TEST_DESCRIPTOR, TEST_FORCE, TEST_TRANSITIVE,
                 TEST_CHANGING, TEST_CONF_SET, TEST_EXCLUDE_RULES, TEST_EXTRA_ATTRIBUTES))
     }
 
-    void testCreateDependencyDescriptorWithClassifier() {
+    @Test public void testCreateDependencyDescriptorWithClassifier() {
         checkDescriptor(dependencyDescriptorFactory.createDescriptor(TEST_DESCRIPTOR_WITH_CLASSIFIER, TEST_FORCE,
                 TEST_TRANSITIVE, TEST_CHANGING, TEST_CONF_SET, TEST_EXCLUDE_RULES, TEST_EXTRA_ATTRIBUTES),
                 [(DependencyManager.CLASSIFIER): TEST_CLASSIFIER])
@@ -64,7 +67,7 @@ class DependencyDescriptorFactoryTest extends GroovyTestCase {
         assertEquals('default', dependencyDescriptor.getDependencyConfigurations(TEST_CONF)[0])
         assert !dependencyDescriptor.getAllDependencyArtifacts()
         assertEquals(TEST_FORCE, dependencyDescriptor.force)
-        assertEquals(TEST_EXCLUDE_RULES, dependencyDescriptor.getExcludeRules(TEST_CONF))
+        assert TEST_EXCLUDE_RULES == dependencyDescriptor.getExcludeRules(TEST_CONF)
         dependencyDescriptor
     }
 

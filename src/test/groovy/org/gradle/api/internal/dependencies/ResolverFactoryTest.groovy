@@ -26,11 +26,14 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class ResolverFactoryTest extends GroovyTestCase {
+class ResolverFactoryTest {
     static final String RESOLVER_URL = 'http://a.b.c/'
     static final Map RESOLVER_MAP = [name: 'mapresolver', url: 'http://x.y.z/']
     static final IBiblioResolver TEST_RESOLVER = new IBiblioResolver()
@@ -47,23 +50,21 @@ class ResolverFactoryTest extends GroovyTestCase {
 
     ResolverFactory factory
 
-    void setUp() {
+    @Before public void setUp() {
         factory = new ResolverFactory()
     }
 
-    void testInit() {
+    @Test public void testInit() {
         assert factory.localReposCacheHandler.is(localReposCacheHandler)
     }
 
-    void testCreateResolver() {
+    @Test (expected = InvalidUserDataException) public void testCreateResolver() {
         checkMavenResolver(factory.createResolver(RESOLVER_URL), RESOLVER_URL, RESOLVER_URL)
         checkMavenResolver(factory.createResolver(RESOLVER_MAP), RESOLVER_MAP.name, RESOLVER_MAP.url)
         DependencyResolver resolver = factory.createResolver(TEST_RESOLVER)
         assert resolver.is(TEST_RESOLVER)
         def someIllegalDescription = new NullPointerException()
-        shouldFail(InvalidUserDataException) {
-            factory.createResolver(someIllegalDescription)
-        }
+        factory.createResolver(someIllegalDescription)
     }
 
     private void checkMavenResolver(DualResolver resolver, String name, String url) {
@@ -72,6 +73,7 @@ class ResolverFactoryTest extends GroovyTestCase {
         assertFalse resolver.allownomd
     }
 
+    @Test
     public void testCreateMavenRepo() {
         String testUrl2 = 'http://www.gradle2.org'
         DualResolver dualResolver = factory.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, testUrl2)
@@ -80,15 +82,15 @@ class ResolverFactoryTest extends GroovyTestCase {
         assert iBiblioResolver.m2compatible
         assertEquals(TEST_REPO_URL + '/', iBiblioResolver.root)
         assertEquals(DependencyManager.MAVEN_REPO_PATTERN, iBiblioResolver.pattern)
-        assertEquals("${TEST_REPO_NAME}_poms", iBiblioResolver.name)
+        assertEquals("${TEST_REPO_NAME}_poms" as String, iBiblioResolver.name)
         URLResolver urlResolver = dualResolver.artifactResolver
         assert urlResolver.m2compatible
         assert urlResolver.artifactPatterns.contains("$TEST_REPO_URL/$DependencyManager.MAVEN_REPO_PATTERN" as String)
         assert urlResolver.artifactPatterns.contains("$testUrl2/$DependencyManager.MAVEN_REPO_PATTERN" as String)
-        assertEquals("${TEST_REPO_NAME}_jars", urlResolver.name)
+        assertEquals("${TEST_REPO_NAME}_jars" as String, urlResolver.name)
     }
 
-    void testCreateFlatDirResolver() {
+    @Test public void testCreateFlatDirResolver() {
         factory.localReposCacheHandler = [getCacheManager: {dummyCacheManager}] as LocalReposCacheHandler
         File dir1 = new File('/rootFolder')
         File dir2 = new File('/rootFolder2')
@@ -100,8 +102,8 @@ class ResolverFactoryTest extends GroovyTestCase {
 
     private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedPatterns) {
         assertEquals(expectedName, resolver.name)
-        assertEquals(expectedPatterns, resolver.ivyPatterns)
-        assertEquals(expectedPatterns, resolver.artifactPatterns)
+        assert expectedPatterns == resolver.ivyPatterns
+        assert expectedPatterns == resolver.artifactPatterns
         assertTrue(resolver.allownomd)
         assert resolver.repositoryCacheManager == dummyCacheManager
     }

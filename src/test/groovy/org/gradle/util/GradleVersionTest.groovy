@@ -17,18 +17,20 @@
 package org.gradle.util
 
 import org.codehaus.groovy.runtime.InvokerHelper
+import static org.junit.Assert.*
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class GradleVersionTest extends GroovyTestCase {
-    void testGradleVersion() {
+class GradleVersionTest {
+    @Test public void testGradleVersion() {
         GradleVersion gradleVersion = new GradleVersion()
         assertEquals(TestConsts.VERSION, gradleVersion.version)
         assertEquals(TestConsts.BUILD_TIME, gradleVersion.buildTime)
     }
 
-    void testPrettyPrint() {
+    @Test public void testPrettyPrint() {
         String expectedText = """Gradle $TestConsts.VERSION
 Gradle buildtime: $TestConsts.BUILD_TIME
 Groovy $InvokerHelper.version

@@ -28,11 +28,15 @@ import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.dependencies.ResolverContainer
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.gradle.StartParameter
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.After
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-class DefaultSettingsTest extends GroovyTestCase {
+class DefaultSettingsTest {
     RootFinder rootFinder
     StartParameter startParameter
 
@@ -42,7 +46,7 @@ class DefaultSettingsTest extends GroovyTestCase {
     StubFor dependencyManagerMocker
     MockFor buildSourceBuilderMocker
 
-    void setUp() {
+    @Before public void setUp() {
         rootFinder = new RootFinder()
         rootFinder.rootDir = new File('/root')
         rootFinder.gradleProperties.someGradleProp = 'someValue'
@@ -57,11 +61,12 @@ class DefaultSettingsTest extends GroovyTestCase {
         buildSourceBuilderMocker = new MockFor(BuildSourceBuilder)
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         dependencyManagerMocker.expect.verify()
     }
 
-    void testSettings() {
+    @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
         assert settings.rootFinder.is(rootFinder)
         assert settings.dependencyManager.is(dependencyManager)
@@ -77,7 +82,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         assertTrue(settings.buildSrcStartParameter.recursive)
     }
 
-    void testInclude() {
+    @Test public void testInclude() {
         String[] paths1 = ['a', 'b']
         String[] paths2 = ['c', 'd']
         settings.include(paths1)
@@ -86,7 +91,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         assertEquals((paths1 as List) + (paths2 as List), settings.projectPaths)
     }
 
-    void testDependencies() {
+    @Test public void testDependencies() {
         String[] expectedDependencies = ["dep1", "dep2"]
         dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
             assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
@@ -97,7 +102,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testDependency() {
+    @Test public void testDependency() {
         String expectedId = "dep1"
         Closure expectedConfigureClosure
         dependencyManagerMocker.demand.dependency(1..1) {List confs, String id, Closure configureClosure ->
@@ -110,7 +115,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testClientModule() {
+    @Test public void testClientModule() {
         String expectedId = "dep1"
         Closure expectedConfigureClosure
         dependencyManagerMocker.demand.clientModule(1..1) {List confs, String id, Closure configureClosure ->
@@ -123,7 +128,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testAddMavenRepo() {
+    @Test public void testAddMavenRepo() {
         DualResolver expectedResolver = new DualResolver()
         String[] expectedJarRepoUrls = ['http://www.repo.org']
         dependencyManagerMocker.demand.addMavenRepo(1..1) {String[] jarRepoUrls ->
@@ -135,7 +140,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testAddMavenStyleRepo() {
+    @Test public void testAddMavenStyleRepo() {
         DualResolver expectedResolver = new DualResolver()
         String expectedName = 'somename'
         String expectedRoot = 'http://www.root.org'
@@ -151,7 +156,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testAddFlatFileResolver() {
+    @Test public void testAddFlatFileResolver() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
         File[] expectedDirs = ['a' as File]
@@ -165,7 +170,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testCreateFlatFileResolver() {
+    @Test public void testCreateFlatFileResolver() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
         File[] expectedDirs = ['a' as File]
@@ -179,7 +184,7 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testResolver() {
+    @Test public void testResolver() {
         ResolverContainer expectedResolverContainer = new ResolverContainer()
         dependencyManagerMocker.demand.getClasspathResolvers(1..1) {expectedResolverContainer}
         dependencyManagerMocker.use(dependencyManager) {
@@ -187,15 +192,15 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testCreateClassLoaderWithNullBuildSourceBuilder() {
+    @Test public void testCreateClassLoaderWithNullBuildSourceBuilder() {
         checkCreateClassLoader(null, true)
     }
 
-    void testCreateClassLoaderWithNonExistingBuildSource() {
+    @Test public void testCreateClassLoaderWithNonExistingBuildSource() {
         checkCreateClassLoader(null)
     }
 
-    void testCreateClassLoaderWithExistingBuildSource() {
+    @Test public void testCreateClassLoaderWithExistingBuildSource() {
         String testDependency = 'org.gradle:somedep:1.0'
         dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
             assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
@@ -242,12 +247,10 @@ class DefaultSettingsTest extends GroovyTestCase {
         }
     }
 
-    void testPropertyMissing() {
+    @Test (expected = MissingPropertyException) public void testPropertyMissing() {
         assert settings.rootDir.is(rootFinder.rootDir)
         assert settings.currentDir.is(startParameter.currentDir)
         assert settings.someGradleProp.is(rootFinder.gradleProperties.someGradleProp)
-        shouldFail(MissingPropertyException) {
-            settings.unknownProp
-        }
+        settings.unknownProp
     }
 }

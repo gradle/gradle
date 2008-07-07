@@ -17,6 +17,9 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -34,13 +37,13 @@ class FileSetTest extends AbstractTestForPatternSet {
         FileSet
     }
 
-    void setUp() {
+    @Before public void setUp()  {
         super.setUp()
         testDir = '/testdir' as File
         fileSet = patternSetType.newInstance(testDir, contextObject)
     }
 
-    void testFileSet() {
+    @Test public void testFileSet() {
         assert fileSet.contextObject.is(contextObject)
         assert fileSet.dir.is(testDir)
 
@@ -51,10 +54,10 @@ class FileSetTest extends AbstractTestForPatternSet {
         fileSet = new FileSet(dir: testDir)
         assert fileSet.contextObject.is(fileSet)
         assert fileSet.dir.is(testDir)
+    }
 
-        shouldFailWithCause(InvalidUserDataException) {
-            new FileSet([:])
-        }
+    @Test(expected = InvalidUserDataException) public void testFileSetWithIllegalArgument() {
+        new FileSet([:])
     }
 
     void checkPatternSetForAntBuilderTest(antPatternSet, PatternSet patternSet) {
