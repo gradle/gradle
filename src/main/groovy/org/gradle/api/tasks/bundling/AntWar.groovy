@@ -26,6 +26,9 @@ class AntWar extends AbstractAntArchive {
     void execute(AntMetaArchiveParameter parameter, List classesFileSets, List libFiles, List additionalLibFileSets,
                  List webInfFileSets, File webXml) {
         assert parameter
+        classesFileSets ?: []
+        libFiles ?: []
+        additionalLibFileSets ?: []
         Map args = [:]
         parameter.addToArgs(args)
         args.needxmlfile = 'false'

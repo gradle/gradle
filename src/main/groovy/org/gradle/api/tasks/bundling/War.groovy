@@ -34,13 +34,13 @@ class War extends Jar {
 
     AntWar antWar = new AntWar()
 
-    List classesFileSets = []
+    List classesFileSets = null
 
     String libConfiguration
 
-    List additionalLibFileSets = []
+    List additionalLibFileSets = null
 
-    List webInfFileSets = []
+    List webInfFileSets = null
 
     File webXml
 
