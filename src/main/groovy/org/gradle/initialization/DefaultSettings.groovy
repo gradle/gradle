@@ -16,7 +16,6 @@
 
 package org.gradle.initialization
 
-import org.apache.tools.ant.launch.Locator
 import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
@@ -29,7 +28,6 @@ import org.slf4j.LoggerFactory
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.gradle.StartParameter
-import java.lang.reflect.Method
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleUtil
 
