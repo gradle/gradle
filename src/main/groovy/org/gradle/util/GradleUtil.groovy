@@ -18,7 +18,6 @@ package org.gradle.util
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.apache.tools.ant.launch.Locator
 import org.apache.commons.io.FilenameUtils
 
 /**
@@ -174,8 +173,8 @@ ant.sequential {
         if (getToolsJar()) {
             loaderClasspath << getToolsJar()
         }
-        URL[] taskUrlClasspath = loaderClasspath.collect {
-            Locator.fileToURL(it as File)
+        URL[] taskUrlClasspath = loaderClasspath.collect { File file ->
+            file.toURL()
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, systemClassLoader.parent)
         newLoader.loadClass("com.sun.tools.javac.Main");
