@@ -49,6 +49,8 @@ public interface Project {
     
     File getBuildDir();
 
+    String getGradleUserHome();
+
     String getBuildFileName();
 
     Project getParent();
@@ -200,4 +202,8 @@ public interface Project {
     public void allprojects(ProjectAction action);
 
     public void applyActions(Set<Project> projects, ProjectAction action);
+
+    boolean hasProperty(String propertyName);
+
+//    Object getProperty(String propertyName);
 }
