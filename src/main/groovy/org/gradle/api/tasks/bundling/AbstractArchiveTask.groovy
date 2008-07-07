@@ -37,18 +37,18 @@ import org.gradle.util.GUtil;
  * @author Hans Dockter
  */
 public abstract class AbstractArchiveTask extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(AbstractArchiveTask)
+    private static Logger logger = LoggerFactory.getLogger(AbstractArchiveTask.class);
 
     /**
      * If you create a fileset and don't assign a directory to this fileset, the baseDir value is assigned to the dir
      * property of the fileset.
      */
-    File baseDir
+    private File baseDir
 
     /**
      * A list with all entities (e.g. filesets) which describe the files of this archive.
      */
-    List resourceCollections = null
+    private List resourceCollections = null
 
     /**
      * Controls if an archive gets created if no files would go into it.  
@@ -58,33 +58,33 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     /**
      * The dir where the created archive is placed.
      */
-    File destinationDir
+    private File destinationDir
 
     /**
      * Usually the archive name is composed out of the baseName, the version and the extension. If the custom name is set,
      * solely the customName is used as the archiveName.
      */
-    String customName
+    private String customName
 
     /**
      * The baseName of the archive.
      */
-    String baseName
+    private String baseName
 
     /**
      * The version part of the archive name
      */
-    String version
+    private String version
 
     /**
      * The extension part of the archive name
      */
-    String extension
+    private String extension
 
     /**
      * The classifier part of the archive name. Default to an empty string. Could be 'src'. 
      */
-    String classifier = ''
+    private String classifier = ''
 
     /**
      * Controlls whether the archive adds itself to the dependency configurations. Defaults to true.
@@ -94,26 +94,26 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     /**
      * The dependency configurations the archive gets added to if publish is true.
      */
-    String[] configurations
+    private String[] configurations
 
     /**
      * The dependency manager to use for adding the archive to the configurations.
      */
-    DependencyManager dependencyManager
+    private DependencyManager dependencyManager
 
     /**
      *
      */
-    List mergeFileSets = []
+    private List mergeFileSets = []
 
     /**
      *
      */
-    List mergeGroupFileSets = []
+    private List mergeGroupFileSets = []
 
     protected ArchiveDetector archiveDetector = new ArchiveDetector()
 
-    AbstractArchiveTask(Project project, String name) {
+    public AbstractArchiveTask(Project project, String name) {
         super(project, name)
         doLast(this.&generateArchive)
     }
@@ -124,7 +124,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * @param publish the value assigned to the publish property
      * @return this
      */
-    AbstractArchiveTask publish(boolean publish) {
+    public AbstractArchiveTask publish(boolean publish) {
         this.publish = publish
         this
     }
@@ -135,12 +135,12 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * @param publish the value assigned to the publish property
      * @return this
      */
-    AbstractArchiveTask configurations(String[] configurations) {
+    public AbstractArchiveTask configurations(String[] configurations) {
         this.configurations = configurations
         this
     }
 
-    void generateArchive(Task task) {
+    public void generateArchive(Task task) {
         logger.debug("Creating archive: $name")
         if (!getDestinationDir()) {
             throw new InvalidUserDataException('You mustspecify the destinationDir.')
@@ -152,13 +152,13 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         }
     }
 
-    abstract Closure createAntArchiveTask()
+    protected abstract Closure createAntArchiveTask()
 
     /**
      * Returns the archive name. If the customName is not set, the pattern for the name is:
      * [baseName]-[version].[extension]
      */
-    String getArchiveName() {
+    public String getArchiveName() {
         if (customName) { return customName }
         getBaseName() + (getVersion() ? "-${getVersion()}" : "") + (getClassifier() ? "-${getClassifier()}" : "") +
                 ".${getExtension()}"
@@ -168,11 +168,11 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * The path where the archive is constructed. The path is simply the destinationDir plus the archiveName.
      * @return a File object with the path to the archive
      */
-    File getArchivePath() {
+    public File getArchivePath() {
         new File(getDestinationDir(), getArchiveName())
     }
 
-    AntDirective antDirective(Closure directive) {
+    public AntDirective antDirective(Closure directive) {
         AntDirective antDirective = new AntDirective(directive)
         resourceCollections(antDirective)
         antDirective
@@ -183,7 +183,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * @param configureClosure configuration instructions
      * @return the added fileset
      */
-    FileSet fileSet(Closure configureClosure) {
+    public FileSet fileSet(Closure configureClosure) {
         fileSet([:], configureClosure)
     }
 
@@ -193,7 +193,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * @param configureClosure configuration instructions
      * @return the added fileset
      */
-    FileSet fileSet(Map args = [:], Closure configureClosure = null) {
+    public FileSet fileSet(Map args = [:], Closure configureClosure = null) {
         createFileSetInternal(args, FileSet, configureClosure)
     }
 
@@ -208,7 +208,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * An arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
      * basedir.
      */
-    FileCollection files(File[] files) {
+    public FileCollection files(File[] files) {
         FileCollection fileCollection = new FileCollection(files as Set)
         resourceCollections(fileCollection)
         fileCollection
@@ -217,7 +217,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     /**
      *
      */
-    AbstractArchiveTask merge(Object[] archiveFiles) {
+    public AbstractArchiveTask merge(Object[] archiveFiles) {
         Object[] flattenedArchiveFiles = archiveFiles
         Closure configureClosure = ConfigureUtil.extractClosure(flattenedArchiveFiles)
         if (configureClosure) {
@@ -239,7 +239,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     /**
      * Defines a fileset of zip-like archives
      */
-    AbstractArchiveTask mergeGroup(def dir, Closure configureClosure = null) {
+    public AbstractArchiveTask mergeGroup(def dir, Closure configureClosure = null) {
         if (!dir) { throw new InvalidUserDataException('Dir argument must not be null!') }
         FileSet fileSet = new FileSet(dir as File)
         ConfigureUtil.configure(configureClosure, fileSet)
@@ -332,7 +332,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     public void setClassifier(String classifier) {
         this.classifier = classifier;
     }
-     // todo Uncomment after refacotring to Java
+//     // todo Uncomment after refacotring to Java
 //    public boolean isPublish() {
 //        return conv(publish, "publish");
 //    }
