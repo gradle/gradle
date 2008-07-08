@@ -36,6 +36,9 @@ versionModifier = null
 
 webSrcDir = new File("$srcRoot", 'website')
 
+libDir = new File(rootDir, 'lib')
+launch4jDistName = 'launch4j-3.0.0'
+
 configureByDag {Dag dag ->
     if (dag.hasTask(':release')) {
         versionModifier = ''
@@ -50,11 +53,13 @@ configureByDag {Dag dag ->
     }
     manifest.mainAttributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString()
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
+            (Attributes.Name.MAIN_CLASS.toString()): "org.gradle.BootstrapMain"
     ])
 }
 
 dependencies {
+    addFlatDirResolver('lib', libDir)
     // todo: Improve dependency handling for xUnit jars
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
     addConfiguration('ftpAntTask')
@@ -64,6 +69,7 @@ dependencies {
             dependencies(":oro:2.0.8@jar")
         }
     }
+
     clientModule(['groovy'], ":groovy-all:1.5.5") {
         clientModule(":ant:1.7.0") {
             dependencies(":ant-junit:1.7.0@jar", ":ant-launcher:1.7.0")
@@ -97,7 +103,6 @@ dependencies {
         dependencies(':jmock-legacy:2.4.0', ':objenesis:1.0', ':cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
     }
     distLib ":junit:4.4"
-    addFlatDirResolver('lib', new File(rootDir, 'lib'))
 }
 
 resources.doLast {
@@ -154,6 +159,29 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
             new SimpleTemplateEngine().createTemplate(new File(srcDocsDir, 'distGettingStartedSkeleton.html')).make(content: gettingStartedContent).toString()
         // Set permissions (important for running integration tests against the exploded dist)
         chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
+        logger.info('Generate launch4j windows exe.')
+        createLaunch4j()
+        ant.taskdef(
+                name: "launch4j",
+                classname: "net.sf.launch4j.ant.Launch4jTask",
+                classpath: "$buildDir/$launch4jDistName/launch4j.jar:$buildDir/$launch4jDistName/lib/xstream.jar")
+        ant.launch4j() {
+            config(headerType: "console", outfile: "$explodedDistBinDir/gradle.exe",
+                    dontWrapJar: "true", jarPath: "../lib/" + gradle_jar.archiveName) {
+                jre(minVersion: "1.5.0")
+            }
+        }
+    }
+}
+
+def createLaunch4j() {
+    ant {
+        unzip(src: "$libDir/launch4j/$launch4jDistName-base.zip", dest: buildDir)
+        String os = [Os.FAMILY_WINDOWS, Os.FAMILY_MAC, Os.FAMILY_UNIX].find {String family ->
+            Os.isFamily(family)
+        }
+        unzip(src: "$libDir/launch4j/$launch4jDistName-bin-${os}.zip", dest: "$buildDir/$launch4jDistName")
+        chmod(dir: "$buildDir/$launch4jDistName/bin", perm: "ugo+rx", includes: "windres,ld") 
     }
 }
 
