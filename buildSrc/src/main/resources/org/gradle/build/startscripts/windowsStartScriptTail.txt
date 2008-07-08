@@ -1,4 +1,4 @@
-set STARTER_MAIN_CLASS=org.gradle.ToolsMain
+set STARTER_MAIN_CLASS=org.gradle.BootstrapMain
 
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar

@@ -105,7 +105,7 @@ if $cygwin ; then
 fi
 
 
-STARTER_MAIN_CLASS=org.gradle.ToolsMain
+STARTER_MAIN_CLASS=org.gradle.BootstrapMain
 
 # Start the Profiler or the JVM
 if $useprofiler ; then
