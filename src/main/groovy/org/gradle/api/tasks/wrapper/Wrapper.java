@@ -16,17 +16,18 @@
 
 package org.gradle.api.tasks.wrapper;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
-import org.gradle.api.Project;
-import org.gradle.api.TaskAction;
+import org.gradle.api.*;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.CompressUtil;
+import org.gradle.util.GradleUtil;
 import org.gradle.wrapper.Install;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.util.Properties;
 
 /**
  * The wrapper task generates scripts (for *nix and windows) which enable to build your project with Gradle, without having to install Gradle.
@@ -38,9 +39,11 @@ import java.io.IOException;
  * @author Hans Dockter
  */
 public class Wrapper extends DefaultTask {
+    
     public static final String DEFAULT_URL_ROOT = "http://dist.codehaus.org/gradle";
     public static final String WRAPPER_JAR_BASE_NAME = "gradle-wrapper";
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = "wrapper/dists";
+    public static final String DEFAULT_DISTRIBUTION_NAME = "gradle-bin";
 
     public enum PathBase { PROJECT, GRADLE_USER_HOME }
 
@@ -49,6 +52,8 @@ public class Wrapper extends DefaultTask {
     private String jarPath;
 
     private String distributionPath;
+
+    private String distributionName;
 
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
 
@@ -60,7 +65,7 @@ public class Wrapper extends DefaultTask {
 
     private PathBase zipBase = PathBase.GRADLE_USER_HOME;
 
-    private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();
+    private UnixWrapperScriptGenerator unixWrapperScriptGenerator = new UnixWrapperScriptGenerator();
 
     public Wrapper(Project project, String name) {
         super(project, name);
@@ -72,6 +77,7 @@ public class Wrapper extends DefaultTask {
         scriptDestinationPath = "";
         jarPath = "";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
+        distributionName = DEFAULT_DISTRIBUTION_NAME;
         zipPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         urlRoot = DEFAULT_URL_ROOT;
     }
@@ -84,21 +90,28 @@ public class Wrapper extends DefaultTask {
 
         File jarFileSource = new File(System.getProperty("gradle.home") + "/lib",
                 WRAPPER_JAR_BASE_NAME + "-" + new GradleVersion().getVersion() + ".jar");
+        File tmpExplodedSourceJar = GradleUtil.makeNewDir(new File(getProject().getBuildDir(), "wrapperJar"));
+        CompressUtil.unzip(jarFileSource, tmpExplodedSourceJar);
+        File propFile = new File(tmpExplodedSourceJar.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties");
+        propFile.getParentFile().mkdirs();
+        Properties wrapperProperties = new Properties();
+        wrapperProperties.put(org.gradle.wrapper.Wrapper.URL_ROOT_PROPERTY, urlRoot);
+        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_BASE_PROPERTY, distributionBase.toString());
+        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_PATH_PROPERTY, distributionPath);
+        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_NAME_PROPERTY, distributionName);
+        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_VERSION_PROPERTY, gradleVersion);
+        wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_BASE_PROPERTY, zipBase.toString());
+        wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_PATH_PROPERTY, zipPath);
         try {
-            FileUtils.copyFile(jarFileSource, jarFileDestination);
+            wrapperProperties.store(new FileOutputStream(propFile), "");
         } catch (IOException e) {
-            throw new InvalidUserDataException(e);
+            throw new UncheckedIOException(e);
         }
-        
-        wrapperScriptGenerator.generate(
-                getGradleVersion(),
-                getUrlRoot(),
-                jarPath + "/" + Install.WRAPPER_JAR,
-                distributionBase,
-                distributionPath,
-                new File(getProject().getProjectDir(), scriptDestinationPath),
-                zipBase,
-                zipPath);
+        CompressUtil.zip(tmpExplodedSourceJar, jarFileDestination);
+
+        unixWrapperScriptGenerator.generate(
+                jarPath,
+                new File(getProject().getProjectDir(), scriptDestinationPath));
     }
 
     public String getScriptDestinationPath() {
@@ -217,5 +230,13 @@ public class Wrapper extends DefaultTask {
      */
     public void setZipBase(PathBase zipBase) {
         this.zipBase = zipBase;
+    }
+
+    public String getDistributionName() {
+        return distributionName;
+    }
+
+    public void setDistributionName(String distributionName) {
+        this.distributionName = distributionName;
     }
 }

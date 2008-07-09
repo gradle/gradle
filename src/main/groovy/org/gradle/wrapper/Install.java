@@ -32,37 +32,43 @@ public class Install {
 
     private boolean alwaysDownload;
     private boolean alwaysUnpack;
+    private PathAssembler pathAssembler;
 
-    public Install(boolean alwaysDownload, boolean alwaysUnpack) {
+    public Install(boolean alwaysDownload, boolean alwaysUnpack, IDownload download, PathAssembler pathAssembler) {
         this.alwaysDownload = alwaysDownload;
         this.alwaysUnpack = alwaysUnpack;
+        this.download = download;
+        this.pathAssembler = pathAssembler;
     }
 
-    void createDist(String urlRoot, File distPath, String distName, File zipStore) throws Exception {
-        File distDir = new File(distPath, distName);
-        if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
-            return;
+    String createDist(String urlRoot, String distBase, String distPath, String distName, String distVersion, String zipBase, String zipPath) throws Exception {
+        String gradleHome = pathAssembler.gradleHome(distBase, distPath, distName, distVersion);
+        File gradleHomeFile = new File(gradleHome);
+        if (!alwaysDownload && !alwaysUnpack && gradleHomeFile.isDirectory()) {
+            return gradleHome;
         }
-        File localZipFile = new File(zipStore, distDir.getName() + ".zip");
+        File localZipFile = new File(pathAssembler.distZip(zipBase, zipPath, distName, distVersion));
         if (alwaysDownload || !localZipFile.exists()) {
             String downloadUrl = urlRoot + "/" + distName + ".zip";
             System.out.println("Downloading " + downloadUrl);
             download.download(downloadUrl, localZipFile);
         }
-        if (distDir.isDirectory()) {
-            System.out.println("Deleting directory " + distDir.getAbsolutePath());
-            deleteDir(distDir);
+        if (gradleHomeFile.isDirectory()) {
+            System.out.println("Deleting directory " + gradleHomeFile.getAbsolutePath());
+            deleteDir(gradleHomeFile);
         }
-        System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distPath.getAbsolutePath());
-        unzip(localZipFile, distPath);
+        File distDest = gradleHomeFile.getParentFile();
+        System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDest.getAbsolutePath());
+        unzip(localZipFile, distDest);
+        return gradleHome;
     }
 
     public IDownload getDownload() {
         return download;
     }
 
-    public void setDownload(IDownload download) {
-        this.download = download;
+    public PathAssembler getPathAssembler() {
+        return pathAssembler;
     }
 
     private boolean deleteDir(File dir) {
