@@ -42,7 +42,7 @@ public class WindowsExeGenerator {
         File launch4jDist = new File(buildDir, "launch4j-$version")
         logger.debug("Using base dist: " + launch4jDist);
         ant.sequential {
-            unzip(src: launch4jBaseZip, dest: new File(buildDir, "launch4j"))
+            unzip(src: launch4jBaseZip, dest: buildDir)
             String os = [Os.FAMILY_WINDOWS, Os.FAMILY_MAC, Os.FAMILY_UNIX].find {String family ->
                 Os.isFamily(family)
             }
