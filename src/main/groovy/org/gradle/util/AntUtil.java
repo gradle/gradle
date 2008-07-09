@@ -15,10 +15,7 @@
  */
 package org.gradle.util;
 
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectHelper;
-import org.apache.tools.ant.BuildLogger;
-import org.apache.tools.ant.NoBannerLogger;
+import org.apache.tools.ant.*;
 
 /**
  * @author Hans Dockter
@@ -45,5 +42,10 @@ public class AntUtil {
         project.init();
         project.getBaseDir();
         return project;
+    }
+
+    public static void execute(Task task) {
+        task.setProject(createProject());
+        task.execute();
     }
 }
