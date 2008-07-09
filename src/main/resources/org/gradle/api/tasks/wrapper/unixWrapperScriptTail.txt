@@ -67,11 +67,4 @@ fi
         -classpath "$CLASSPATH" \
         -Dtools.jar="$TOOLS_JAR" \
         $STARTER_MAIN_CLASS \
-        $URL_ROOT\
-        $DIST_PATH\
-        $DIST_NAME\
-        $ZIP_STORE
-
-chmod 775 $GRADLE
-
-. $GRADLE $QUOTED_ARGS
+        "$@"

@@ -25,7 +25,11 @@ import java.net.URLClassLoader;
  */
 public class BootstrapMainStarter {
     public void start(String[] args, String gradleHome, String version) throws Exception {
+        boolean debug = WrapperMain.isDebug();
         File gradleJar = new File(gradleHome, "lib/gradle-" + version + ".jar");
+        if (debug) {
+            System.out.println("gradleJar = " + gradleJar.getAbsolutePath());
+        }
         URLClassLoader contextClassLoader = new URLClassLoader(new URL[] { gradleJar.toURL() });
         Thread.currentThread().setContextClassLoader(contextClassLoader);
         Class mainClass = contextClassLoader.loadClass("org.gradle.BootstrapMain");

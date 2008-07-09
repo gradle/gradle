@@ -53,6 +53,7 @@ public class WrapperTest {
                   "test" + Wrapper.DISTRIBUTION_PATH_PROPERTY,
                   "test" + Wrapper.DISTRIBUTION_NAME_PROPERTY,
                   "test" + Wrapper.DISTRIBUTION_VERSION_PROPERTY,
+                  "test" + Wrapper.DISTRIBUTION_CLASSIFIER_PROPERTY,
                   "test" + Wrapper.ZIP_STORE_BASE_PROPERTY,
                   "test" + Wrapper.ZIP_STORE_PATH_PROPERTY
           ); will(returnValue(expectedGradleHome));

@@ -30,6 +30,7 @@ import org.apache.tools.ant.taskdefs.GUnzip;
 import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -39,6 +40,7 @@ import java.util.Properties;
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock.class)
 public class WrapperTest extends AbstractTaskTest {
     public static final String TEST_TEXT = "sometext";
     public static final String TEST_FILE_NAME = "somefile";
@@ -46,6 +48,7 @@ public class WrapperTest extends AbstractTaskTest {
     private String originalGradleHome;
     private Wrapper wrapper;
     private UnixWrapperScriptGenerator unixWrapperScriptGeneratorMock;
+    private WindowsExeGenerator windowsExeGenerator;
     private File testDir;
     private File sourceWrapperJar;
     private String distributionPath;
@@ -62,6 +65,7 @@ public class WrapperTest extends AbstractTaskTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         unixWrapperScriptGeneratorMock = context.mock(UnixWrapperScriptGenerator.class);
+        windowsExeGenerator = context.mock(WindowsExeGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
         wrapper.setGradleVersion("1.0");
         testDir = HelperUtil.makeNewTestDir();
@@ -78,6 +82,8 @@ public class WrapperTest extends AbstractTaskTest {
         zipPath = "myzippath";
         wrapper.setJarPath(targetWrapperJarPath);
         wrapper.setDistributionPath(distributionPath);
+        wrapper.setUnixWrapperScriptGenerator(unixWrapperScriptGeneratorMock);
+        wrapper.setWindowsExeGenerator(windowsExeGenerator);
         expectedDistributionBase = Wrapper.PathBase.PROJECT;
         expectedZipBase = Wrapper.PathBase.PROJECT;
     }
@@ -112,6 +118,7 @@ public class WrapperTest extends AbstractTaskTest {
         assertEquals("", wrapper.getScriptDestinationPath());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_NAME, wrapper.getDistributionName());
+        assertEquals(Wrapper.DEFAULT_DISTRIBUTION_CLASSIFIER, wrapper.getDistributionClassifier());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getZipPath());
         assertEquals(Wrapper.DEFAULT_URL_ROOT, wrapper.getUrlRoot());
         assertEquals(Wrapper.PathBase.GRADLE_USER_HOME, wrapper.getDistributionBase());
@@ -137,6 +144,11 @@ public class WrapperTest extends AbstractTaskTest {
                 one(unixWrapperScriptGeneratorMock).generate(
                         targetWrapperJarPath + "/" + Install.WRAPPER_JAR,
                         new File(getProject().getProjectDir(), wrapper.getScriptDestinationPath()));
+                one(windowsExeGenerator).generate(
+                        targetWrapperJarPath + "/" + Install.WRAPPER_JAR,
+                        new File(getProject().getProjectDir(), wrapper.getScriptDestinationPath()),
+                        getProject().getBuildDir(),
+                        getProject().getAnt());
             }
         });
         wrapper.execute();

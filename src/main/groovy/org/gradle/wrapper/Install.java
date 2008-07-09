@@ -41,15 +41,16 @@ public class Install {
         this.pathAssembler = pathAssembler;
     }
 
-    String createDist(String urlRoot, String distBase, String distPath, String distName, String distVersion, String zipBase, String zipPath) throws Exception {
+    String createDist(String urlRoot, String distBase, String distPath, String distName, String distVersion,
+                      String distClassifier, String zipBase, String zipPath) throws Exception {
         String gradleHome = pathAssembler.gradleHome(distBase, distPath, distName, distVersion);
         File gradleHomeFile = new File(gradleHome);
         if (!alwaysDownload && !alwaysUnpack && gradleHomeFile.isDirectory()) {
             return gradleHome;
         }
-        File localZipFile = new File(pathAssembler.distZip(zipBase, zipPath, distName, distVersion));
+        File localZipFile = new File(pathAssembler.distZip(zipBase, zipPath, distName, distVersion, distClassifier));
         if (alwaysDownload || !localZipFile.exists()) {
-            String downloadUrl = urlRoot + "/" + distName + ".zip";
+            String downloadUrl = urlRoot + "/" + distName + "-" + distVersion + "-" + distClassifier + ".zip";
             System.out.println("Downloading " + downloadUrl);
             download.download(downloadUrl, localZipFile);
         }

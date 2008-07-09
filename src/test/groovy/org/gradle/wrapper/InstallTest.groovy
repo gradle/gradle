@@ -35,6 +35,8 @@ class InstallTest {
     String testDistPath
     String testDistName
     String testDistVersion
+    String testDistClassifier
+
     String urlRoot
     IDownload downloadMock
     PathAssembler pathAssemblerMock;
@@ -44,7 +46,7 @@ class InstallTest {
     File zipStore
     File someScript
     File gradleHomeDir
-    File destFile
+    File zipDestination
 
     @Before public void setUp() {
         downloadCalled = false
@@ -55,17 +57,19 @@ class InstallTest {
         testDistPath = 'someDistPath'
         testDistName = 'gradle'
         testDistVersion = '1.0'
-        distributionDir = new File(testDir, "$testDistName-$testDistVersion")
+        testDistClassifier = 'clf'
+        distributionDir = new File(testDir, testDistPath)
+        gradleHomeDir = new File(distributionDir, "$testDistName-$testDistVersion")
         zipStore = new File(testDir, 'zips');
-        destFile = new File(zipStore, "$distributionDir.name" + ".zip")
+        zipDestination = new File(zipStore, "$testDistName-$testDistVersion-$testDistClassifier" + ".zip")
         urlRoot = 'file://./tmpTest'
         install = new Install(false, false, createDownloadMock(), createPathAssemblerMock())
     }
 
     IDownload createDownloadMock() {
         [download: {String url, File destination ->
-            assertEquals("$urlRoot/${testDistName}.zip" as String, url)
-            assertEquals(destFile.getAbsolutePath(), destination.getAbsolutePath())
+            assertEquals("$urlRoot/$testDistName-${testDistVersion}-${testDistClassifier}.zip" as String, url)
+            assertEquals(zipDestination.getAbsolutePath(), destination.getAbsolutePath())
             zip = createTestZip()
             downloadCalled = true
         }] as IDownload
@@ -77,13 +81,14 @@ class InstallTest {
             assertEquals(testDistPath, distPath)
             assertEquals(testDistName, distName)
             assertEquals(testDistVersion, distVersion)
-            distributionDir.getAbsolutePath()},
-         distZip: { String zipBase, String zipPath, String distName, String distVersion ->
+            gradleHomeDir.getAbsolutePath()},
+         distZip: { String zipBase, String zipPath, String distName, String distVersion, String distClassifier ->
             assertEquals(testZipBase, zipBase)
             assertEquals(testZipPath, zipPath)
             assertEquals(testDistName, distName)
             assertEquals(testDistVersion, distVersion)
-            destFile.getAbsolutePath()
+            assertEquals(testDistClassifier, distClassifier)
+            zipDestination.getAbsolutePath()
         }] as PathAssembler
     }
 
@@ -105,14 +110,14 @@ class InstallTest {
         someScript.write('something')
         zipStore.mkdirs()
         AntBuilder antBuilder = new AntBuilder()
-        antBuilder.zip(destfile: destFile) {
+        antBuilder.zip(destfile: zipDestination) {
             zipfileset(dir: explodedZipDir, prefix: "$testDistName-$testDistVersion")
         }
-        destFile
+        zipDestination
     }
 
     @Test public void testCreateDist() {
-        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testZipBase, testZipPath)
+        assertEquals(gradleHomeDir.absolutePath, install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath))
         assert downloadCalled
         assert distributionDir.isDirectory()
         assert someScript.exists()
@@ -120,9 +125,7 @@ class InstallTest {
 
     @Test public void testCreateDistWithExistingRoot() {
         distributionDir.mkdirs()
-        File otherFile = new File(distributionDir, 'other')
-        otherFile.createNewFile()
-        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testZipBase, testZipPath)
+        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
         assert downloadCalled
         assert gradleHomeDir.isDirectory()
         assert someScript.exists()
@@ -131,7 +134,7 @@ class InstallTest {
     @Test public void testCreateDistWithExistingDist() {
         gradleHomeDir.mkdirs()
         long lastModified = gradleHomeDir.lastModified()
-        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testZipBase, testZipPath)
+        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
         assert !downloadCalled
         assert lastModified == gradleHomeDir.lastModified()
     }
@@ -141,7 +144,7 @@ class InstallTest {
         createTestZip()
         gradleHomeDir.mkdirs()
         File testFile = new File(gradleHomeDir, 'testfile')
-        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testZipBase, testZipPath)
+        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
         assert distributionDir.isDirectory()
         assert someScript.exists()
         assert !testFile.exists()
@@ -153,7 +156,7 @@ class InstallTest {
         createTestZip()
         distributionDir.mkdirs()
         File testFile = new File(gradleHomeDir, 'testfile')
-        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testZipBase, testZipPath)
+        install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
         assert gradleHomeDir.isDirectory()
         assert someScript.exists()
         assert !testFile.exists()

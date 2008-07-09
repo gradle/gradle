@@ -37,7 +37,7 @@ versionModifier = null
 webSrcDir = new File("$srcRoot", 'website')
 
 libDir = new File(rootDir, 'lib')
-launch4jDistName = 'launch4j-3.0.0'
+launch4jVersion = '3.0.0'
 
 configureByDag {Dag dag ->
     if (dag.hasTask(':release')) {
@@ -59,10 +59,11 @@ configureByDag {Dag dag ->
 }
 
 dependencies {
-    addFlatDirResolver('lib', libDir)
+    addFlatDirResolver('lib', libDir, "$libDir/launch4j")
     // todo: Improve dependency handling for xUnit jars
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
     addConfiguration('ftpAntTask')
+    addConfiguration('launch4j')
 
     clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
         clientModule(":commons-net:1.4.1") {
@@ -103,6 +104,8 @@ dependencies {
         dependencies(':jmock-legacy:2.4.0', ':objenesis:1.0', ':cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
     }
     distLib ":junit:4.4"
+    launch4j ":launch4j-base:$launch4jVersion@zip", ":launch4j-bin-mac:$launch4jVersion@zip",
+            ":launch4j-bin-windows:$launch4jVersion@zip", ":launch4j-bin-unix:$launch4jVersion@zip" 
 }
 
 resources.doLast {
@@ -133,10 +136,14 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
     File explodedDistLibDir = mkdir(explodedDistDir, 'lib')
+    File explodedDistLaunch4jLibDir = mkdir(explodedDistLibDir, 'launch4j')
     ant {
         logger.info('Generate lib dir')
         dependencies.resolve('distLib').each {File file ->
             copy(file: file, todir: explodedDistLibDir)
+        }
+        dependencies.resolve('launch4j').each {File file ->
+            copy(file: file, todir: explodedDistLaunch4jLibDir)
         }
         jar(destfile: new File(explodedDistLibDir, "$archivesBaseName-wrapper-${version}.jar"),
                 basedir: classesDir, includes: 'org/gradle/wrapper/')
@@ -160,27 +167,33 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
         // Set permissions (important for running integration tests against the exploded dist)
         chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
         logger.info('Generate launch4j windows exe.')
-        createLaunch4j()
-        ant.taskdef(
+        String launch4jDistName = "launch4j-" + launch4jVersion
+        createLaunch4j(explodedDistLaunch4jLibDir, launch4jDistName)
+        try {
+            ant.taskdef(
                 name: "launch4j",
-                classname: "net.sf.launch4j.ant.Launch4jTask",
-                classpath: "$buildDir/$launch4jDistName/launch4j.jar:$buildDir/$launch4jDistName/lib/xstream.jar")
-        ant.launch4j() {
-            config(headerType: "console", outfile: "$explodedDistBinDir/gradle.exe",
-                    dontWrapJar: "true", jarPath: "../lib/" + gradle_jar.archiveName) {
-                jre(minVersion: "1.5.0")
+                    classname: "net.sf.launch4j.ant.Launch4jTask",
+                    classpath: "$buildDir/$launch4jDistName/launch4j.jar:$buildDir/$launch4jDistName/lib/xstream.jar")
+            ant.launch4j() {
+                config(headerType: "console", outfile: "$explodedDistBinDir/gradle.exe",
+                        dontWrapJar: "true", jarPath: "../lib/" + gradle_jar.archiveName) {
+                    jre(minVersion: "1.5.0")
+                }
             }
+        } catch (Exception e) {
+            logger.warning("The windows start exe could not be generated. Possibly you run the build on a machine with an OS which is not Linux, Mac OS X or Windows.")
+            logger.warning(e.getMessage());
         }
     }
 }
 
-def createLaunch4j() {
+def createLaunch4j(File launch4jLibDir, String launch4jDistName) {
     ant {
-        unzip(src: "$libDir/launch4j/$launch4jDistName-base.zip", dest: buildDir)
+        unzip(src: "$launch4jLibDir/launch4j-base-${launch4jVersion}.zip", dest: buildDir)
         String os = [Os.FAMILY_WINDOWS, Os.FAMILY_MAC, Os.FAMILY_UNIX].find {String family ->
             Os.isFamily(family)
         }
-        unzip(src: "$libDir/launch4j/bin-${os}.zip", dest: "$buildDir/$launch4jDistName")
+        unzip(src: "$launch4jLibDir/launch4j-bin-${os}-${launch4jVersion}.zip", dest: "$buildDir/$launch4jDistName")
         chmod(dir: "$buildDir/$launch4jDistName/bin", perm: "ugo+rx", includes: "windres,ld") 
     }
 }
@@ -357,9 +370,12 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.2'
+    gradleVersion = '0.3-080709161216+0200c'
+    distributionClassifier = 'all'
     zipBase = Wrapper.PathBase.PROJECT
     zipPath = 'wrapper'
+    jarPath = zipPath
+    urlRoot = 'file:///Users/hans/IdeaProjects/gradle/gradle-core/build/distributions'
 }
 
 

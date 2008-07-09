@@ -24,16 +24,36 @@ import java.io.File;
 public class WrapperMain {
     public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
     public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
+    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
+    public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
+    public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
+    public static final String DEBUG_PROPERTY_KEY = "gradle.bootstrap.debug";
 
     public static void main(String[] args) throws Exception {
         System.out.println(ALWAYS_UNPACK_ENV + " env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
         System.out.println(ALWAYS_DOWNLOAD_ENV + " env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
         boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
         boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
+
         new Wrapper().execute(
                 args,
-                new Install(alwaysDownload, alwaysUnpack, new Download(), new PathAssembler()),
+                new Install(alwaysDownload, alwaysUnpack, new Download(), new PathAssembler(gradleUserHome())),
                 new BootstrapMainStarter());
     }
 
+    private static String gradleUserHome() {
+        String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
+        if (gradleUserHome != null) {
+            return gradleUserHome;
+        } else if((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
+            return gradleUserHome;
+        } else {
+            return DEFAULT_GRADLE_USER_HOME;
+        }
+    }
+
+    static boolean isDebug() {
+        String prop = System.getProperty(DEBUG_PROPERTY_KEY);
+        return prop != null && !prop.toUpperCase().equals("FALSE");
+    }
 }

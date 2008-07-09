@@ -175,7 +175,6 @@ ant.sequential {
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
         Thread.currentThread().contextClassLoader = newLoader
-        println newLoader.URLs
         File toolsJar = getToolsJar()
         if (toolsJar) {
             ClasspathUtil.addUrl(newLoader, [toolsJar])

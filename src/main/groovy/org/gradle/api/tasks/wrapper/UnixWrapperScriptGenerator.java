@@ -31,19 +31,16 @@ import java.io.IOException;
  */
 public class UnixWrapperScriptGenerator {
     public static final String UNIX_NL = "\n";
-    public static final String WINDOWS_NL = "\n";
     public static final String CURRENT_DIR_UNIX = "`dirname \"$0\"`";
-    public static final String CURRENT_DIR_WINDOWS = "%DIRNAME%";
 
     public void generate(String jarPath, File scriptDestinationDir) {
         try {
             String unixWrapperScriptHead = IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptHead.txt"));
             String unixWrapperScriptTail = IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptTail.txt"));
 
-            String wrapperJarUnix = CURRENT_DIR_UNIX + "/" + jarPath;
             String fillingUnix = "" + UNIX_NL +
                     "STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + UNIX_NL +
-                    "CLASSPATH=" + wrapperJarUnix + UNIX_NL;
+                    "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + jarPath + UNIX_NL;
 
             String unixScript = unixWrapperScriptHead + fillingUnix + unixWrapperScriptTail;
 

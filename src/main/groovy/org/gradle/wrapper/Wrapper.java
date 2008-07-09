@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.net.URLClassLoader;
 import java.net.URL;
 import java.lang.reflect.Method;
@@ -35,10 +36,14 @@ public class Wrapper {
     public static final String DISTRIBUTION_VERSION_PROPERTY = "distributionVersion";
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
     public static final String DISTRIBUTION_NAME_PROPERTY = "distributionName";
-    
+    public static final String DISTRIBUTION_CLASSIFIER_PROPERTY = "distributionClassifier";
+
     public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception, InterruptedException {
         Properties wrapperProperties = new Properties();
         wrapperProperties.load(getClass().getResourceAsStream("/org/gradle/wrapper/wrapper.properties"));
+        if (WrapperMain.isDebug()) {
+            System.out.println("wrapperProperties = " + wrapperProperties);
+        }
         String version = (String) wrapperProperties.get(DISTRIBUTION_VERSION_PROPERTY);
         String gradleHome = install.createDist(
                 (String) wrapperProperties.get(URL_ROOT_PROPERTY),
@@ -46,9 +51,13 @@ public class Wrapper {
                 (String) wrapperProperties.get(DISTRIBUTION_PATH_PROPERTY),
                 (String) wrapperProperties.get(DISTRIBUTION_NAME_PROPERTY),
                 version,
+                (String) wrapperProperties.get(DISTRIBUTION_CLASSIFIER_PROPERTY),
                 (String) wrapperProperties.get(ZIP_STORE_BASE_PROPERTY),
                 (String) wrapperProperties.get(ZIP_STORE_PATH_PROPERTY)
         );
+        if (WrapperMain.isDebug()) {
+            System.out.println("args = " + Arrays.asList(args));
+        }
         bootstrapMainStarter.start(args, gradleHome, version);
     }
 }

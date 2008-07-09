@@ -22,17 +22,26 @@ public class PathAssembler {
     public static final String GRADLE_USER_HOME_STRING = "GRADLE_USER_HOME";
     public static final String PROJECT_STRING = "PROJECT";
 
-    public String gradleHome(String distBase, String distPath, String distName, String distVersion) {
-        return getBaseDir(distBase) + "/" + distPath + "/" + distName + "-" + distVersion;
+    public String gradleUserHome;
+
+    public PathAssembler() {
     }
 
-    public String distZip(String zipBase, String zipPath, String distName, String distVersion) {
-        return getBaseDir(zipBase) + "/" + zipPath + "/" + distName + "-" + distVersion + ".zip";
+    public PathAssembler(String gradleUserHome) {
+        this.gradleUserHome = gradleUserHome;
+    }
+
+    public String gradleHome(String distBase, String distPath, String distName, String distVersion) {
+        return getBaseDir(distBase) + "/" + distPath + "/" + distName + "-" + distVersion ;
+    }
+
+    public String distZip(String zipBase, String zipPath, String distName, String distVersion, String distClassifier) {
+        return getBaseDir(zipBase) + "/" + zipPath + "/" + distName + "-" + distVersion + "-" + distClassifier + ".zip";
     }
 
     private String getBaseDir(String base) {
         if (base.equals(GRADLE_USER_HOME_STRING)) {
-            return System.getProperty("gradle.user.home");
+            return gradleUserHome;
         } else if (base.equals(PROJECT_STRING)) {
             return System.getProperty("user.dir");
         } else {

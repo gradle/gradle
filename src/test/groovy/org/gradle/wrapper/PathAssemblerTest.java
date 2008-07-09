@@ -32,19 +32,21 @@ public class PathAssemblerTest {
     private String testPath;
     private String testName;
     private String testVersion;
+    private String testClassifier;
 
     @Before
     public void setUp() {
-        pathAssembler = new PathAssembler();
-        System.setProperty(Main.GRADLE_USER_HOME_PROPERTY_KEY, TEST_GRADLE_USER_HOME);
+        pathAssembler = new PathAssembler(TEST_GRADLE_USER_HOME);
         testPath = "somepath";
         testName = "somename";
         testVersion = "someversion";
+        testClassifier = "someclassifier";
     }
 
     @Test
     public void gradleHomeWithGradleUserHomeBase() {
-        String gradleHome = pathAssembler.gradleHome(Wrapper.PathBase.GRADLE_USER_HOME.toString(), testPath, testName, testVersion);
+        String gradleHome = pathAssembler.gradleHome(Wrapper.PathBase.GRADLE_USER_HOME.toString(), testPath, testName,
+                testVersion);
         assertEquals(TEST_GRADLE_USER_HOME + "/" + testPath + "/" + testName + "-" + testVersion, gradleHome);
     }
 
@@ -61,19 +63,19 @@ public class PathAssemblerTest {
 
     @Test
     public void distZipWithGradleUserHomeBase() {
-        String gradleHome = pathAssembler.distZip(Wrapper.PathBase.GRADLE_USER_HOME.toString(), testPath, testName, testVersion);
-        assertEquals(TEST_GRADLE_USER_HOME + "/" + testPath + "/" + testName + "-" + testVersion + ".zip", gradleHome);
+        String gradleHome = pathAssembler.distZip(Wrapper.PathBase.GRADLE_USER_HOME.toString(), testPath, testName, testVersion, testClassifier);
+        assertEquals(TEST_GRADLE_USER_HOME + "/" + testPath + "/" + testName + "-" + testVersion + "-" + testClassifier + ".zip", gradleHome);
     }
 
     @Test
     public void distZipWithProjectBase() {
-        String gradleHome = pathAssembler.distZip(Wrapper.PathBase.PROJECT.toString(), testPath, testName, testVersion);
-        assertEquals(currentDirPath() + "/" + testPath + "/" + testName + "-" + testVersion + ".zip", gradleHome);
+        String gradleHome = pathAssembler.distZip(Wrapper.PathBase.PROJECT.toString(), testPath, testName, testVersion, testClassifier);
+        assertEquals(currentDirPath() + "/" + testPath + "/" + testName + "-" + testVersion + "-" + testClassifier + ".zip", gradleHome);
     }
 
     @Test(expected = RuntimeException.class)
     public void distZipWithUnknownBase() {
-        pathAssembler.distZip("unknownBase", testPath, testName, testVersion);
+        pathAssembler.distZip("unknownBase", testPath, testName, testVersion, testClassifier);
     }
 
     private String currentDirPath() {
