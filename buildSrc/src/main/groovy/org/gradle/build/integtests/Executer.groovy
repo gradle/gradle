@@ -57,7 +57,7 @@ class Executer {
         List additionalEnvs = []
         if (System.getenv('JAVA_HOME')) {additionalEnvs << "JAVA_HOME=${System.getenv('JAVA_HOME')}"}
         String actualCommand
-        String windowsCommand = "cmd /c $windowsCommandSnippet ${outputOption(outputType)}" + "$buildFileSpecifier $taskNameText"
+        String windowsCommand = "cmd /c ${windowsCommandSnippet}.exe ${outputOption(outputType)}" + "$buildFileSpecifier $taskNameText"
         String unixCommand = "$unixCommandSnippet ${outputOption(outputType)}$buildFileSpecifier $taskNameText"
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             Execute execute = new Execute()
