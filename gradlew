@@ -6,6 +6,7 @@
 ##                                                                          ##
 ##############################################################################
 
+JAVA_OPTS=""
 
 warn ( ) {
     echo "${PROGNAME}: $*"
@@ -57,14 +58,8 @@ if $cygwin ; then
     [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
 fi
 
-STARTER_MAIN_CLASS=org.gradle.wrapper.InstallMain
-CLASSPATH=`dirname "$0"`//gradle-wrapper.jar
-URL_ROOT=http://dist.codehaus.org/gradle
-DIST_PATH=~/.gradle/wrapper/dists
-DIST_NAME=gradle-0.2-bin
-ZIP_STORE=`dirname "$0"`/wrapper
-GRADLE_HOME=~/.gradle/wrapper/dists/gradle-0.2
-GRADLE=~/.gradle/wrapper/dists/gradle-0.2/bin/gradle
+STARTER_MAIN_CLASS=org.gradle.wrapper.WrapperMain
+CLASSPATH=`dirname "$0"`/wrapper/gradle-wrapper.jar
 # Determine the Java command to use to start the JVM.
 if [ -z "$JAVACMD" ] ; then
     if [ -n "$JAVA_HOME" ] ; then
@@ -134,11 +129,4 @@ fi
         -classpath "$CLASSPATH" \
         -Dtools.jar="$TOOLS_JAR" \
         $STARTER_MAIN_CLASS \
-        $URL_ROOT\
-        $DIST_PATH\
-        $DIST_NAME\
-        $ZIP_STORE
-
-chmod 775 $GRADLE
-
-. $GRADLE $QUOTED_ARGS
+        "$@"
