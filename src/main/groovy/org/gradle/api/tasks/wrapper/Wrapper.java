@@ -21,6 +21,7 @@ import org.gradle.api.internal.DefaultTask;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.CompressUtil;
 import org.gradle.util.GradleUtil;
+import org.gradle.util.GUtil;
 import org.gradle.wrapper.Install;
 import org.gradle.Main;
 import org.apache.commons.io.FileUtils;
@@ -118,7 +119,7 @@ public class Wrapper extends DefaultTask {
         jarFileDestination.getParentFile().mkdirs();
         CompressUtil.zip(tmpExplodedSourceJar, jarFileDestination);
 
-        String wrapperJar = jarPath + "/" + Install.WRAPPER_JAR;
+        String wrapperJar = (GUtil.isTrue(jarPath) ? jarPath + "/" : "") + Install.WRAPPER_JAR;
         File scriptDestinationDir = new File(getProject().getProjectDir(), scriptDestinationPath);
 
         unixWrapperScriptGenerator.generate(wrapperJar, scriptDestinationDir);
