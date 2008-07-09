@@ -15,26 +15,24 @@
  */
 package org.gradle.api.internal.project;
 
+import groovy.lang.Closure;
+import groovy.lang.GString;
+import groovy.lang.Script;
+import groovy.util.AntBuilder;
 import org.gradle.api.*;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.api.tasks.Directory;
-import org.gradle.util.GradleUtil;
+import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
 import java.io.File;
 import java.lang.reflect.Constructor;
-
-import com.sun.tools.jdi.LinkedHashMap;
-import groovy.lang.Script;
-import groovy.lang.Closure;
-import groovy.lang.GString;
-import groovy.util.AntBuilder;
+import java.util.*;
 
 /**
  * @author Hans Dockter
