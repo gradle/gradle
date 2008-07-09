@@ -53,7 +53,9 @@ public class BootstrapMain {
         List jars = new ArrayList();
         File[] files = getGradleClasspath(gradleHome, bootStrapDebug);
         for (int i = 0; i < files.length; i++) {
-            jars.add(files[i].toURL());
+            if (files[i].isFile()) {
+                jars.add(files[i].toURL());
+            }
         }
         ClassLoader parentClassloader = classLoader.getParent();
         if (bootStrapDebug) {
