@@ -28,39 +28,12 @@ class StartScriptsGenerator {
         String gradleHome = 'GRADLE_HOME'
 
         String unixLibPath = "\$$gradleHome/lib/$gradleJarName"
-        String windowsLibPath = "%$gradleHome%\\lib\\$gradleJarName"
 
         def unixScript = "$unixStartScriptHead\nCLASSPATH=$unixLibPath\n$unixStartScriptTail"
-        def windowsScript = "$windowsStartScriptHead\nset CLASSPATH=$windowsLibPath\n$windowsStartScriptTail"
 
         new File(binDir, projectName).withWriter {writer ->
             writer.write(unixScript)
         }
-        new File(binDir, projectName + ".bat").withWriter {writer ->
-            writer.write(transformIntoWindowsNewLines(windowsScript))
-        }
-    }
-
-    static def String getRelativePath(File parentDir, File currentDir) {
-        String path = currentDir.name
-        while (currentDir != parentDir) {
-            currentDir = currentDir.parentFile
-            path = "$currentDir.name/" + path
-        }
-        path
-    }
-
-    static String transformIntoWindowsNewLines(String s) {
-        StringWriter writer = new StringWriter()
-        s.toCharArray().each { c ->
-            if (c == '\n') {
-                writer.write('\r')
-                writer.write('\n')
-            } else if (c != '\r') {
-                writer.write(c);
-            }
-        }
-        writer.toString()
     }
 }
 
