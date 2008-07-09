@@ -54,7 +54,6 @@ configureByDag {Dag dag ->
     manifest.mainAttributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
             (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
-            (Attributes.Name.MAIN_CLASS.toString()): "org.gradle.BootstrapMain"
     ])
 }
 
@@ -125,6 +124,16 @@ test {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere"])
 }
 
+libs {
+    jar(baseName: 'gradle-wrapper') {
+        fileSet(dir: classesDir) {
+            include 'org/gradle/wrapper/'
+        }
+        manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.WrapperMain')
+    }
+}
+gradle_jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
+
 explodedDistDir = new File(distsDir, 'exploded')
 explodedDistDocsDir = new File(explodedDistDir, 'docs')
 explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
@@ -145,10 +154,9 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
         dependencies.resolve('launch4j').each {File file ->
             copy(file: file, todir: explodedDistLaunch4jLibDir)
         }
-        jar(destfile: new File(explodedDistLibDir, "$archivesBaseName-wrapper-${version}.jar"),
-                basedir: classesDir, includes: 'org/gradle/wrapper/')
         // todo: find out why Ivy does not include the jar in the resolve
         copy(file: task('gradle_jar').archivePath, toDir: explodedDistLibDir)
+        copy(file: task('gradle-wrapper_jar').archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
         logger.info('Generate and copy samples.')
