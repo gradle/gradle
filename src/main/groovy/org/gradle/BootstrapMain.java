@@ -30,46 +30,56 @@ import java.util.List;
  */
 public class BootstrapMain {
     public static void main(String[] args) throws Exception {
+        String bootStrapDebugValue = System.getProperty("gradle.bootstrap.debug");
+        boolean bootStrapDebug = bootStrapDebugValue != null && !bootStrapDebugValue.toUpperCase().equals("FALSE");
+
         String gradleHome = System.getProperty("gradle.home");
         if (gradleHome == null) {
             gradleHome = System.getenv("GRADLE_HOME");
             if (gradleHome == null) {
                 throw new RuntimeException("The gradle home must be set either via the system property gradle.home or via the environment variable GRADLE_HOME!");
             }
+            if (bootStrapDebug) {
+                System.out.println("Gradle Home is declared by environment variable GRADLE_HOME to: " + gradleHome);
+            }                               
+            System.setProperty("gradle.home", gradleHome);
+        } else {
+            if (bootStrapDebug) {
+                System.out.println("Gradle Home is declared by system property gradle.home to: " + gradleHome);
+            }
         }
-        String bootStrapDebugValue = System.getProperty("gradle.bootstrap.debug");
-        boolean bootStrapDebug = bootStrapDebugValue != null && !bootStrapDebugValue.toUpperCase().equals("FALSE"); 
+
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
         List jars = new ArrayList();
-        File[] files = getGradleClasspath(bootStrapDebug);
+        File[] files = getGradleClasspath(gradleHome, bootStrapDebug);
         for (int i = 0; i < files.length; i++) {
             jars.add(files[i].toURL());
         }
         ClassLoader parentClassloader = classLoader.getParent();
-        System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
-        System.out.println("Adding the following files to new contex classloader: " + jars);
+        if (bootStrapDebug) {
+            System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
+            System.out.println("Adding the following files to new contex classloader: " + jars);
+        }
         ClassLoader contextClassLoader = new URLClassLoader((URL[]) jars.toArray(new URL[jars.size()]), parentClassloader);
         classLoader = contextClassLoader;
         Thread.currentThread().setContextClassLoader(contextClassLoader);
         Class mainClass = classLoader.loadClass("org.gradle.Main");
         Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
-        mainMethod.invoke(null, new Object[]
-                {
-                        args
-                }
-        );
+        mainMethod.invoke(null, new Object[] { args });
     }
 
-    private static File[] getGradleClasspath(boolean bootStrapDebug) {
-        File gradleHomeLib = new File(System.getProperty("gradle.home") + "/lib");
+    private static File[] getGradleClasspath(String gradleHome, boolean bootStrapDebug) {
+        File gradleHomeLib = new File(gradleHome + "/lib");
         if (bootStrapDebug) {
             System.out.println("Gradle Home Lib: " + gradleHomeLib.getAbsolutePath());
         }
         if (gradleHomeLib.isDirectory()) {
-            System.out.println("Gradle Home Lib is directory. Looking for files.");
+            if (bootStrapDebug) {
+                System.out.println("Gradle Home Lib is directory. Looking for files.");
+            }
             return gradleHomeLib.listFiles();
         }
-        System.out.println("Gradle Home Lib is not a directory. Returning empty list.");
+        System.out.println("WARNING: Gradle Home Lib is not a directory. Returning empty list as classpath.");
         return new File[0];
     }
 }

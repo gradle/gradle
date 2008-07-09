@@ -128,7 +128,7 @@ ant.sequential {
 """
     }
 
-    static File getToolsJar() {
+    static boolean isToolsJarInClasspath() {
         ClassLoader classLoader = Thread.currentThread().contextClassLoader.systemClassLoader
         // firstly check if the tools jar is already in the classpath
         boolean toolsJarAvailable = false;
@@ -147,8 +147,9 @@ ant.sequential {
         if (toolsJarAvailable) {
             return null;
         }
-        // couldn't find compiler - try to find tools.jar
-        // based on java.home setting
+    }
+
+    static File getToolsJar() {
         String javaHome = System.getProperty("java.home");
         File toolsJar = new File(javaHome + "/lib/tools.jar");
         if (toolsJar.exists()) {
@@ -169,16 +170,17 @@ ant.sequential {
 
     static executeIsolatedAntScript(List loaderClasspath, String filling) {
         ClassLoader oldCtx = Thread.currentThread().contextClassLoader
-        ClassLoader systemClassLoader = oldCtx.systemClassLoader
-        if (getToolsJar()) {
-            loaderClasspath << getToolsJar()
-        }
         URL[] taskUrlClasspath = loaderClasspath.collect { File file ->
             file.toURL()
         }
-        ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, systemClassLoader.parent)
-        newLoader.loadClass("com.sun.tools.javac.Main");
+        ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
         Thread.currentThread().contextClassLoader = newLoader
+        println newLoader.URLs
+        File toolsJar = getToolsJar()
+        if (toolsJar) {
+            ClasspathUtil.addUrl(newLoader, [toolsJar])
+        }
+        newLoader.loadClass("com.sun.tools.javac.Main");
         String scriptText = createIsolatedAntScript(filling)
         logger.debug("Using groovyc as: $scriptText")
         newLoader.loadClass("groovy.lang.GroovyShell").newInstance([newLoader] as Object[]).evaluate(

@@ -180,7 +180,7 @@ def createLaunch4j() {
         String os = [Os.FAMILY_WINDOWS, Os.FAMILY_MAC, Os.FAMILY_UNIX].find {String family ->
             Os.isFamily(family)
         }
-        unzip(src: "$libDir/launch4j/$launch4jDistName-bin-${os}.zip", dest: "$buildDir/$launch4jDistName")
+        unzip(src: "$libDir/launch4j/bin-${os}.zip", dest: "$buildDir/$launch4jDistName")
         chmod(dir: "$buildDir/$launch4jDistName/bin", perm: "ugo+rx", includes: "windres,ld") 
     }
 }

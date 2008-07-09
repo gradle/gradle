@@ -32,6 +32,9 @@ public class InstallMain {
      * Fourth argument: zip-store
      */
     public static void main(String[] args) throws Exception {
+        for (String arg : args) {
+            System.out.println(arg);
+        }
         if (args.length != 4) {
             throw new IllegalArgumentException("Wrong number of arguments supplied!");
         }
