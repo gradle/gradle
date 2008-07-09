@@ -15,7 +15,12 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.UncheckedIOException;
+
 import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * @author Hans Dockter
@@ -58,6 +63,10 @@ public class GUtil {
         return buffer.toString();
     }
 
+    public static String join(Object[] self, String separator) {
+        return join(Arrays.asList(self), separator);
+    }
+
     public static boolean isTrue(Object object) {
         if (object == null) {
             return false;
@@ -94,6 +103,16 @@ public class GUtil {
         map.putAll(map1);
         map.putAll(map2);
         return map;
+    }
+
+    public static Properties createProperties(File propertyFile) {
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(propertyFile));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return properties;
     }
 
 }
