@@ -50,9 +50,10 @@ class ArtifactDependency extends AbstractDependency {
         DefaultDependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor((String) groups.core, force, false, false, confs, [])
         DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(dd.dependencyRevisionId.name,
                 groups.extension, groups.extension, null, null)
-        dd.addDependencyArtifact(Dependency.DEFAULT_CONFIGURATION, artifactDescriptor)
+        dd.addDependencyArtifact("*", artifactDescriptor)
         confs.each {
             dd.addDependencyConfiguration(it, Dependency.DEFAULT_CONFIGURATION)
+            artifactDescriptor.addConfiguration(it)
         }
         dd
     }

@@ -105,6 +105,7 @@ class ArtifactDependencyTest {
         assert artifactDescriptor.name == expectedDependencyDescriptor.dependencyRevisionId.name
         assertEquals('jar', artifactDescriptor.ext)
         assertEquals('jar', artifactDescriptor.type)
+        assertEquals([TEST_CONF], artifactDescriptor.getConfigurations() as List)
     }
 
 }
