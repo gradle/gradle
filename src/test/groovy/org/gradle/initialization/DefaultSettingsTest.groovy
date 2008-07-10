@@ -242,7 +242,7 @@ class DefaultSettingsTest {
         }
 
         Set urls = createdClassLoader.URLs as HashSet
-        testFiles.collect() {File file -> file.toURL()}.each {
+        testFiles.collect() {File file -> file.toURI().toURL()}.each {
             assert urls.contains(it)
         }
     }

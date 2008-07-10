@@ -70,7 +70,7 @@ class DefaultScriptHandler implements ScriptHandler {
             return null
         }
         Clock clock = new Clock()
-        URLClassLoader urlClassLoader = new URLClassLoader([cacheDir(project, buildFileCacheName).toURL()] as URL[],
+        URLClassLoader urlClassLoader = new URLClassLoader([cacheDir(project, buildFileCacheName).toURI().toURL()] as URL[],
                 project.buildScriptClassLoader)
         Script script
         try {

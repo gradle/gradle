@@ -44,7 +44,7 @@ public class ClasspathUtil {
             method.setAccessible(true);
             for (File classpathElement : classpathElements) {
                 logger.info("Adding to classpath: " + classpathElement);
-                method.invoke(classLoader, classpathElement.toURL());
+                method.invoke(classLoader, classpathElement.toURI().toURL());
             }
         }
         catch (Throwable t) {

@@ -67,7 +67,7 @@ class GradleUtil {
         File gradleHomeLib = new File(System.properties["gradle.home"] + "/lib")
         if (gradleHomeLib.isDirectory()) {
             List list = gradleHomeLib.listFiles().findAll { File file -> !file.name.startsWith('groovy-all')}.collect { File file ->
-                file.toURL()
+                file.toURI().toURL()
             }
             return list
         }
@@ -171,7 +171,7 @@ ant.sequential {
     static executeIsolatedAntScript(List loaderClasspath, String filling) {
         ClassLoader oldCtx = Thread.currentThread().contextClassLoader
         URL[] taskUrlClasspath = loaderClasspath.collect { File file ->
-            file.toURL()
+            file.toURI().toURL()
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
         Thread.currentThread().contextClassLoader = newLoader
