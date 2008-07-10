@@ -153,6 +153,7 @@ ant.sequential {
         String javaHome = System.getProperty("java.home");
         File toolsJar = new File(javaHome + "/lib/tools.jar");
         if (toolsJar.exists()) {
+            logger.debug("Found tools jar in: " + toolsJar.getAbsolutePath())
             // Found in java.home as given
             return toolsJar;
         }
@@ -165,6 +166,7 @@ ant.sequential {
                     + "Expected to find it in " + toolsJar.getPath());
             return null;
         }
+        logger.debug("Found tools jar in: " + toolsJar.getAbsolutePath())
         return toolsJar;
     }
 
@@ -176,6 +178,7 @@ ant.sequential {
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
         Thread.currentThread().contextClassLoader = newLoader
         File toolsJar = getToolsJar()
+        logger.debug("Tools jar is: " + toolsJar)
         if (toolsJar) {
             ClasspathUtil.addUrl(newLoader, [toolsJar])
         }
