@@ -185,7 +185,7 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
             ant.launch4j() {
                 config(headerType: "console", outfile: "$explodedDistBinDir/gradle.exe",
                         dontWrapJar: "true", jarPath: "../lib/" + gradle_jar.archiveName) {
-                    jre(minVersion: "1.5.0")
+                    jre(minVersion: "1.5.0", jdkPreference: 'jdkOnly')
                 }
             }
         } catch (Exception e) {

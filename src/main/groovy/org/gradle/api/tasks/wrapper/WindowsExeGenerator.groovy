@@ -53,7 +53,7 @@ public class WindowsExeGenerator {
             launchMe() {
                 config(headerType: "console", outfile: "$scriptDestinationDir/gradlew.exe",
                         dontWrapJar: "true", jarPath: jarPath) {
-                    jre(minVersion: "1.5.0")
+                    jre(minVersion: "1.5.0", jdkPreference: 'jdkOnly')
                 }
             }
         }
