@@ -84,7 +84,7 @@ public class Build {
                 List unknownTasks = buildExecuter.unknownTasks(startParameter.getTaskNames(), startParameter.isRecursive(),
                         projectLoader.getCurrentProject());
                 if (GUtil.isTrue(unknownTasks)) {
-                    throw new UnknownTaskException("Task(s) $unknownTasks are unknown!");
+                    throw new UnknownTaskException("Task(s) " + unknownTasks + " are unknown!");
                 }
                 unknownTaskCheck = true;
             }
