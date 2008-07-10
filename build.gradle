@@ -378,7 +378,7 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = 'gradle-0.3-080710083849+0200-bin.zip'
+    gradleVersion = '0.3-080710083849+0200'
     zipBase = Wrapper.PathBase.PROJECT
     zipPath = 'wrapper'
     jarPath = zipPath
