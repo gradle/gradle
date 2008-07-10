@@ -378,12 +378,10 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 }
 
 createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.3-080709161216+0200c'
-    distributionClassifier = 'all'
+    gradleVersion = '0.3-080710012139+0200'
     zipBase = Wrapper.PathBase.PROJECT
     zipPath = 'wrapper'
     jarPath = zipPath
-    urlRoot = 'file:///Users/hans/IdeaProjects/gradle/gradle-core/build/distributions'
 }
 
 
@@ -405,11 +403,6 @@ void ftp(Map args, Closure antFileset = {}) {
     }
 }
 
-//createTask('check') {
-//    ant.taskdef(resource: 'org/apache/ivy/ant/antlib.xml')
-//    ant.cachepath(organisation: "net.sourceforge.cobertura", module: "cobertura", revision: "1.9",
-//            inline: "true", conf: "default", pathid: "cobertura.classpath")
-//}
 
 
 
