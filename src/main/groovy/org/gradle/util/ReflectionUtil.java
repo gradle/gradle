@@ -32,6 +32,7 @@ public class ReflectionUtil {
                 if (key.equals(prop.getName()))
                     return prop;
         } catch (IntrospectionException e) {
+            throw new RuntimeException(e);
         }
         return null;
     }
