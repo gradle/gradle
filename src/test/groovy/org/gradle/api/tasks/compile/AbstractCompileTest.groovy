@@ -67,34 +67,22 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
 
 
-    @Test public void testExecuteWithUnspecifiedSourceCompatibility() {
+    @Test(expected = InvalidUserDataException) public void testExecuteWithUnspecifiedSourceCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.sourceCompatibility = null
-        checkExecuteForException()
+        compile.execute()
     }
 
-    @Test public void testExecuteWithUnspecifiedTargetCompatibility() {
+    @Test(expected = InvalidUserDataException) public void testExecuteWithUnspecifiedTargetCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.targetCompatibility = null
-        checkExecuteForException()
+        compile.execute()
     }
 
-    @Test public void testExecuteWithUnspecifiedAntCompile() {
+    @Test(expected = InvalidUserDataException) public void testExecuteWithUnspecifiedAntCompile() {
         setUpMocksAndAttributes(compile)
         compile.antCompile = null
-        checkExecuteForException()
-    }
-
-    private checkExecuteForException() {
-        try {
-            compile.execute()
-        } catch (Exception e) {
-            if (!(e.cause instanceof InvalidUserDataException)) {
-                fail("Expected Exception Cause as InvalidUserDataException");
-            }
-            return;
-        }
-        fail("Expected Exception");
+        compile.execute()
     }
 
     @Test public void testUnmanagedClasspath() {

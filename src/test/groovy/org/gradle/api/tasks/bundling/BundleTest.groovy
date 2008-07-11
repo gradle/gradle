@@ -58,7 +58,7 @@ class BundleTest extends AbstractConventionTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        testArgs = [baseName: 'testBasename', classifier: 'testClassifier']
+        testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier']
         testClosure = {
             destinationDir = TEST_DESTINATION_DIR
         }
@@ -67,7 +67,6 @@ class BundleTest extends AbstractConventionTaskTest {
         bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
         bundle.childrenDependOn = testChildrenDependsOn
         bundle.dependsOn = testBundleDependsOn
-        bundle.tasksBaseName = 'testbasename'
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
@@ -153,10 +152,11 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType, Map args = [:]) {
-        String baseName = args.baseName ?: bundle.tasksBaseName
+        String taskName = (args.baseName ?: getProject().archivesTaskBaseName) + (args.appendix ? "_" + args.appendix : "")
+        String archiveBaseName = getProject().archivesBaseName + (args.appendix ? "-" + args.appendix : "")
         String classifier = args.classifier ? '_' + args.classifier  : ''
-        checkCommonStuff(archiveTask, "${baseName}${classifier}_${archiveType.defaultExtension}",
-                archiveType.conventionMapping, baseName, classifier ? classifier.substring(1) : '')
+        checkCommonStuff(archiveTask, "${taskName}${classifier}_${archiveType.defaultExtension}",
+                archiveType.conventionMapping, archiveBaseName, classifier ? classifier.substring(1) : '')
     }
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,

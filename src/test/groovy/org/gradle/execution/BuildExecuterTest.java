@@ -167,8 +167,8 @@ public class BuildExecuterTest {
     @Test
     public void testExecuteWithTransitiveTargetDependecies() {
         Task task1 = new DefaultTask(root, "task1");
-        Task task2 = new DefaultTask(root, "task2").dependsOn(new String[]{"task1"});
-        Task task3 = new DefaultTask(root, "task3").dependsOn(new String[]{"task2"});
+        Task task2 = new DefaultTask(root, "task2").dependsOn("task1");
+        Task task3 = new DefaultTask(root, "task3").dependsOn("task2");
         root.getTasks().put("task1", task1);
         root.getTasks().put("task2", task2);
         root.getTasks().put("task3", task3);
@@ -198,7 +198,7 @@ public class BuildExecuterTest {
             allowing(root).project(":unknownchild"); will(throwException(new UnknownProjectException()));
             allowing(dagMock).reset();
         }});
-        result.add(new DefaultTask(root, "compile").dependsOn(new String[]{taskName}));
+        result.add(new DefaultTask(root, "compile").dependsOn(taskName));
         buildExecuter.execute("compile", false, root, root);
     }
 
@@ -215,7 +215,7 @@ public class BuildExecuterTest {
             allowing(root).absolutePath(taskName); will(returnValue(taskName));
             allowing(dagMock).reset();
         }});
-        result.add(new DefaultTask(root, "compile").dependsOn(new String[]{taskName}));
+        result.add(new DefaultTask(root, "compile").dependsOn(taskName));
         buildExecuter.execute("compile", false, child, root);
     }
 

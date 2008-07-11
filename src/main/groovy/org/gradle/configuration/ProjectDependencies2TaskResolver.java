@@ -16,12 +16,10 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.internal.project.ProjectsTraverser;
+import org.gradle.api.Project;
+import org.gradle.api.ProjectAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.ProjectAction;
-import org.gradle.api.Project;
-import org.gradle.util.WrapUtil;
 
 /**
  * @author Hans Dockter
@@ -36,8 +34,8 @@ public class ProjectDependencies2TaskResolver {
                     logger.debug("Checking task dependencies for project: $project dependsOn: $dependsOnProject");
                     for (String taskName : project.getTasks().keySet()) {
                         if (dependsOnProject.getTasks().get(taskName) != null) {
-                            logger.debug("Setting task dependencies for task: $taskName");
-                            project.getTasks().get(taskName).dependsOn(new String[]{dependsOnProject.getTasks().get(taskName).getPath()});
+                            logger.debug("Setting task dependencies for task: " + taskName);
+                            project.getTasks().get(taskName).dependsOn(dependsOnProject.getTasks().get(taskName).getPath());
                         }
                     }
                 }

@@ -20,6 +20,8 @@ package org.gradle.api;
  * @author Hans Dockter
  */
 public class GradleException extends RuntimeException {
+    String scriptName
+
     public GradleException() {
     }
 
@@ -33,5 +35,19 @@ public class GradleException extends RuntimeException {
 
     public GradleException(Throwable cause) {
         super(cause);
+    }
+
+    public GradleException(Throwable cause, String scriptName) {
+        super(cause)
+        this.scriptName = scriptName
+    }
+
+    String getMessage() {
+        if (!scriptName) {
+            return super.getMessage();
+        }
+        List lineNumbers = cause.stackTrace.findAll {it.fileName.equals(scriptName) && it.lineNumber >= 0}.collect {it.lineNumber}
+        String lineInfo = lineNumbers ? "in line(s): ${lineNumbers.join(' ')}" : 'No line info available from stacktrace.'
+        super.getMessage() + " Buildscript=$scriptName $lineInfo"
     }
 }

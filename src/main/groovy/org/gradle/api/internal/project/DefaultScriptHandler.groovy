@@ -92,7 +92,7 @@ class DefaultScriptHandler implements ScriptHandler {
     }
 
     private String buildFileCacheName(Project project) {
-        project.buildFileName.replaceAll('\\.', '_')
+        project.getBuildFileCacheName();
     }
 
     private Script replaceMetaclass(Script script, Project project) {

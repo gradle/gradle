@@ -197,24 +197,32 @@ public abstract class AbstractTask implements Task {
                 } catch (StopActionException e) {
                     logger.debug("Action stopped by some action with message: $e.message");
                     continue;
+                    // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the grrovy2java refactoring we can remove this.
                 } catch (InvokerInvocationException e) {
                     if (e.getCause() != null) {
                         if (e.getCause() instanceof StopActionException) {
                             continue;
                         } else if (e.getCause() instanceof StopExecutionException) {
                             break;
+                        } else if (e.getCause() instanceof GradleException) {
+                            ((GradleException) e.getCause()).setScriptName(project.getBuildFileCacheName());
+                        } else {
+                            throw new GradleScriptException(e.getCause(), project.getBuildFileCacheName());
                         }
                     }
                     throw e;
+                } catch (GradleException e) {
+                    ((GradleException) e).setScriptName(project.getBuildFileCacheName());
+                    throw e;
                 } catch (Throwable t) {
-                    throw new GradleScriptException(t, project.getBuildFileName());
+                    throw new GradleScriptException(t, project.getBuildFileCacheName());
                 }
             }
         }
         executed = true;
     }
 
-    public Task dependsOn(Object[] paths) {
+    public Task dependsOn(Object... paths) {
         for (Object path : paths) {
             if (!GUtil.isTrue(path)) {
                 throw new InvalidUserDataException("A pathelement must not be empty");

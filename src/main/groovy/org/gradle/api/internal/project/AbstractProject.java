@@ -98,6 +98,8 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private DependencyManager dependencies;
 
+    private String archivesTaskBaseName;
+
     private String archivesBaseName;
 
     private String gradleUserHome;
@@ -138,6 +140,7 @@ public abstract class AbstractProject implements Project, Comparable {
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
         this.state = STATE_CREATED;
+        this.archivesTaskBaseName = Project.DEFAULT_ARCHIVES_TASK_BASE_NAME;
         this.archivesBaseName = name;
 
         if (parent == null) {
@@ -198,6 +201,10 @@ public abstract class AbstractProject implements Project, Comparable {
 
     public String getBuildFileName() {
         return buildFileName;
+    }
+
+    public String getBuildFileCacheName() {
+        return buildFileName == null ? null : buildFileName.replaceAll("\\.", "_");
     }
 
     public void setBuildFileName(String buildFileName) {
@@ -312,13 +319,14 @@ public abstract class AbstractProject implements Project, Comparable {
         this.dependencies = dependencies;
     }
 
-    public String getArchivesBaseName() {
-        return archivesBaseName;
+    public String getArchivesTaskBaseName() {
+        return archivesTaskBaseName;
     }
 
-    public void setArchivesBaseName(String archivesBaseName) {
-        this.archivesBaseName = archivesBaseName;
+    public void setArchivesTaskBaseName(String archivesTaskBaseName) {
+        this.archivesTaskBaseName = archivesTaskBaseName;
     }
+
 
     public String getBuildDirName() {
         return buildDirName;
@@ -368,6 +376,14 @@ public abstract class AbstractProject implements Project, Comparable {
         this.gradleUserHome = gradleUserHome;
     }
 
+    public String getArchivesBaseName() {
+        return archivesBaseName;
+    }
+
+    public void setArchivesBaseName(String archivesBaseName) {
+        this.archivesBaseName = archivesBaseName;
+    }
+
     public ProjectRegistry getProjectRegistry() {
         return projectRegistry;
     }
@@ -408,7 +424,7 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public static boolean isAbsolutePath(String path) {
-       if (!GUtil.isTrue(path)) {
+        if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
         return path.startsWith(Project.PATH_SEPARATOR);
@@ -477,7 +493,14 @@ public abstract class AbstractProject implements Project, Comparable {
         state = STATE_INITIALIZING;
         buildScript = buildScriptProcessor.createScript(this);
         Clock runClock = new Clock();
-        buildScript.run();
+        try {
+            buildScript.run();
+        } catch (GradleException e) {
+            ((GradleException) e).setScriptName(getBuildFileCacheName());
+            throw e;
+        } catch (Throwable t) {
+            throw new GradleScriptException(t, getBuildFileCacheName());
+        }
         logger.info("Timing: Running the build script took " + clock.getTime());
         state = STATE_INITIALIZED;
         lateInitializeTasks(tasks);
@@ -520,7 +543,7 @@ public abstract class AbstractProject implements Project, Comparable {
 
     public Project usePlugin(Class pluginClass, Map customValues) {
         if (usePluginInternal(pluginRegistry.getPlugin(pluginClass), customValues) == null) {
-            throw new InvalidUserDataException("Plugin class " + pluginClass + " can not be found!");    
+            throw new InvalidUserDataException("Plugin class " + pluginClass + " can not be found!");
         }
         return this;
     }
@@ -577,7 +600,7 @@ public abstract class AbstractProject implements Project, Comparable {
         if (dependsOnTasksArg instanceof Collection) {
             dependsOnTasks = (Object[]) ((Collection) dependsOnTasksArg).toArray(new Object[((Collection) dependsOnTasksArg).size()]);
         } else {
-            dependsOnTasks = new Object[] {dependsOnTasksArg};
+            dependsOnTasks = new Object[]{dependsOnTasksArg};
         }
         logger.debug("Adding dependencies: " + Arrays.asList(dependsOnTasks));
 

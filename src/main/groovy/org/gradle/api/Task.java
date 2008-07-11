@@ -74,7 +74,7 @@ public interface Task extends Comparable {
      * @param paths
      * @return the task object this method is applied to
      */
-    Task dependsOn(Object[] paths);
+    Task dependsOn(Object... paths);
 
     /**
      * Adds the given action closure to the beginning of the tasks action list.

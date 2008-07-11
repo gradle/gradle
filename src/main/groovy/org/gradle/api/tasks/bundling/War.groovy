@@ -28,7 +28,7 @@ import java.io.File;
  * @author Hans Dockter
  */
 class War extends Jar {
-    static final String WAR_EXTENSION = 'war'
+    public static final String WAR_EXTENSION = 'war'
 
     private static Logger logger = LoggerFactory.getLogger(Jar)
 

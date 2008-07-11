@@ -20,18 +20,16 @@ import groovy.mock.interceptor.MockFor
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.publish.PublishEngine
 import org.gradle.api.Task
+import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
-import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.util.HelperUtil
-import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.plugins.JavaPluginConvention
+import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -76,7 +74,6 @@ class UploadTest extends AbstractTaskTest {
         upload.project = HelperUtil.createRootProject(projectRootDir)
         upload.project.dependencies = new DefaultDependencyManager()
         Bundle bundle = new Bundle(upload.project, 'bundle')
-        bundle.tasksBaseName = 'basename'
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
         AbstractArchiveTask zip1 = bundle.zip(baseName: 'zip1')
         AbstractArchiveTask zip2 = bundle.zip(baseName: 'zip2')

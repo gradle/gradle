@@ -25,9 +25,6 @@ public class Check {
         try {
             execute.execute();
         } catch (Exception e) {
-            System.out.println(e.getCause().getClass());
-            System.out.println(e.getClass());
-            System.out.println(cause);
             if (!(cause.equals(e.getCause().getClass()))) {
                 Assert.fail();
             }

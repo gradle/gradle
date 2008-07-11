@@ -41,6 +41,8 @@ abstract class AbstractTaskTest {
     public void setUp() {
         project = [getPath: {AbstractTaskTest.TEST_PROJECT_NAME},
                 getProjectDir: {new File(HelperUtil.TMP_DIR_FOR_TEST)},
+                getArchivesTaskBaseName: {Project.DEFAULT_ARCHIVES_TASK_BASE_NAME},
+                getBuildFileCacheName: {"build_gradle"},
                 file: {path ->
                     (path as File).isAbsolute() ? path as File :
                         new File("$HelperUtil.TMP_DIR_FOR_TEST/$path").absoluteFile

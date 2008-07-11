@@ -26,7 +26,7 @@ import java.util.List;
 * @author Hans Dockter
 */
 public class Jar extends Zip {
-    static final String DEFAULT_EXTENSION = 'jar'
+    public static final String DEFAULT_EXTENSION = 'jar'
 
     private static Logger logger = LoggerFactory.getLogger(Jar)
 

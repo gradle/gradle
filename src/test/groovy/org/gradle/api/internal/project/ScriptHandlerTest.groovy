@@ -56,6 +56,7 @@ class ScriptHandlerTest {
                 getRootDir: {testProjectDir.parentFile},
                 getProjectDir: {testProjectDir},
                 getBuildFileName: {TEST_BUILD_FILE_NAME},
+                getBuildFileCacheName: {TEST_BUILD_FILE_CACHE_NAME},
                 getBuildScriptClassLoader: {classLoader}
         ] as DefaultProject
         scriptHandler = new DefaultScriptHandler()

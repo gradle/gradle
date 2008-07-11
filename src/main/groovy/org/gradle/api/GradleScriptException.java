@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api
+package org.gradle.api;
 
 /**
  * @author Hans Dockter
  */
-class GradleScriptException extends GradleException {
-    String scriptName
-    List lineNumbers
-
-    GradleScriptException(Throwable cause, String scriptName) {
-        super(cause)
-        this.scriptName = scriptName
-        lineNumbers = cause.stackTrace.findAll {it.fileName == scriptName && it.lineNumber >= 0}.collect {it.lineNumber}
-    }
-
-    String getMessage() {
-        String lineInfo = lineNumbers ? "in line(s): ${lineNumbers.join(' ')}" : 'No line info available from stacktrace.'
-        super.getMessage() + " Buildscript=$scriptName $lineInfo"
+public class GradleScriptException extends GradleException {
+    public GradleScriptException(Throwable cause, String scriptName) {
+        super(cause, scriptName);
     }
 }

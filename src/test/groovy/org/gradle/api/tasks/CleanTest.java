@@ -47,7 +47,8 @@ public class CleanTest extends AbstractConventionTaskTest {
 
     private ExistingDirsFilter existentDirsFilterMock;
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
         clean = new Clean(getProject(), AbstractTaskTest.TEST_TASK_NAME);
@@ -63,26 +64,27 @@ public class CleanTest extends AbstractConventionTaskTest {
         return clean;
     }
 
-    @Test public void testClean() {
+    @Test
+    public void testClean() {
         assertNull(clean.dir);
     }
 
-    @Test public void testExecute() throws IOException {
+    @Test
+    public void testExecute() throws IOException {
         clean.dir = HelperUtil.makeNewTestDir();
-        context.checking(new Expectations() {{
-            allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(clean.getDir());
-        }});
+        context.checking(new Expectations() {
+            {
+                allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(clean.getDir());
+            }
+        });
         (new File(clean.dir, "somefile")).createNewFile();
         clean.execute();
         assertFalse(clean.dir.exists());
     }
 
-    @Test public void testExecuteWithNullDir() {
-        Check.shouldFailWithCause(InvalidUserDataException.class, new Execute() {
-            public void execute() {
-                clean.execute();
-            }
-        });
+    @Test(expected = InvalidUserDataException.class)
+    public void testExecuteWithNullDir() {
+        clean.execute();
     }
 
 }

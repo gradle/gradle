@@ -21,6 +21,7 @@ import org.gradle.api.DependencyManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.StartParameter
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -35,7 +36,7 @@ class BuildSourceBuilder {
     static final BUILD_SRC_ID = "$BUILD_SRC_ORG:$BUILD_SRC_MODULE:$BUILD_SRC_REVISION"
 
     static final DEFAULT_SCRIPT = '''
-usePlugin('groovy')
+usePlugin('groovy')  
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 groovyClasspath = {org.gradle.util.GradleUtil.groovyFiles}

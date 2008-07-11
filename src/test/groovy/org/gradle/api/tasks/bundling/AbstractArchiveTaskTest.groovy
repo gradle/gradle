@@ -28,7 +28,8 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.tasks.util.AntDirective
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.api.GradleScriptException;
 
 /**
  * @author Hans Dockter

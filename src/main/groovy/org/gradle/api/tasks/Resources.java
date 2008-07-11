@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.io.File;
 
-import com.sun.org.apache.bcel.internal.generic.ARRAYLENGTH;
-
 /**
  * Copies the content of the <code>sourceDirs</code> to the <code>destinationDir</code>.
  * You can define global or local includes, excludes or filters. Global ones apply to all

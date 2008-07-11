@@ -33,6 +33,8 @@ import org.gradle.api.internal.project.BuildScriptProcessor;
 public interface Project {
     public static final String DEFAULT_PROJECT_FILE = "build.gradle";
 
+    public static final String DEFAULT_ARCHIVES_TASK_BASE_NAME = "archive";
+
     public static final String PATH_SEPARATOR = ":";
 
     public static final String DEFAULT_BUILD_DIR_NAME = "build";
@@ -52,6 +54,8 @@ public interface Project {
     String getGradleUserHome();
 
     String getBuildFileName();
+
+    String getBuildFileCacheName();
 
     Project getParent();
 
@@ -128,6 +132,10 @@ public interface Project {
     Task createTask(Map args, String name);
 
     Task createTask(Map args, String name, TaskAction action);
+
+    String getArchivesTaskBaseName();
+
+    void setArchivesTaskBaseName(String archivesBaseName);
 
     String getArchivesBaseName();
 

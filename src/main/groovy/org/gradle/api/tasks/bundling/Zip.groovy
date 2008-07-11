@@ -23,7 +23,7 @@ import org.gradle.api.tasks.util.ZipFileSet
  * @author Hans Dockter
  */
 public class Zip extends AbstractArchiveTask {
-    static final String ZIP_EXTENSION = 'zip'
+    public static final String ZIP_EXTENSION = 'zip'
 
     AntZip antZip = new AntZip()
 

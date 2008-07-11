@@ -23,7 +23,7 @@ import org.gradle.api.tasks.util.TarFileSet
  * @author Hans Dockter
  */
 public class Tar extends Zip {
-    static final String TAR_EXTENSION = 'tar'
+    public static final String TAR_EXTENSION = 'tar'
 
     Compression compression
 

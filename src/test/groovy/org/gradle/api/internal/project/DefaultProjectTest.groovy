@@ -121,7 +121,8 @@ class DefaultProjectTest {
         assert project.projectRegistry.getProject(project.path).is(project)
         assert projectRegistry.is(project.projectRegistry)
         assertEquals 'root', project.name
-        assertEquals 'root', project.archivesBaseName
+        assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
+        assertEquals project.name, project.archivesBaseName
         assertEquals([:], project.pluginApplyRegistry)
         assertEquals DefaultProject.STATE_CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
@@ -461,6 +462,11 @@ class DefaultProjectTest {
     @Test void testPath() {
         assertEquals(Project.PATH_SEPARATOR + "child1", child1.path)
         assertEquals(Project.PATH_SEPARATOR, project.path)
+    }
+
+    @Test void testGetBuildFileCacheName() {
+        project.setBuildFileName("build.gradle")
+        assertEquals("build_gradle", project.getBuildFileCacheName())
     }
 
     @Test void testGetProject() {
