@@ -717,11 +717,11 @@ public abstract class AbstractProject implements Project, Comparable {
         if (!GUtil.isTrue(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
-        final Set<Task> foundTargets = new HashSet<Task>();
+        final Set<Task> foundTasks = new HashSet<Task>();
         ProjectAction action = new ProjectAction() {
             public void execute(Project project) {
                 if (project.getTasks().get(name) != null) {
-                    foundTargets.add(project.getTasks().get(name));
+                    foundTasks.add(project.getTasks().get(name));
                 }
             }
         };
@@ -730,7 +730,7 @@ public abstract class AbstractProject implements Project, Comparable {
         } else {
             action.execute(this);
         }
-        return foundTargets;
+        return foundTasks;
     }
 
     public File file(Object path) {
