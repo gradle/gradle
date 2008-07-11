@@ -18,6 +18,7 @@ import org.gradle.api.tasks.StopExecutionException
 import org.apache.tools.ant.taskdefs.condition.Os
 
 archivesBaseName = 'gradle'
+
 usePlugin('groovy')
 
 sourceCompatibility = 1.5
@@ -125,14 +126,15 @@ test {
 }
 
 libs {
-    jar(baseName: 'gradle-wrapper') {
+    jar(appendix: 'wrapper') {
         fileSet(dir: classesDir) {
             include 'org/gradle/wrapper/'
         }
         manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.WrapperMain')
     }
 }
-gradle_jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
+
+archive_jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
 
 explodedDistDir = new File(distsDir, 'exploded')
 explodedDistDocsDir = new File(explodedDistDir, 'docs')
@@ -155,12 +157,12 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
             copy(file: file, todir: explodedDistLaunch4jLibDir)
         }
         // todo: find out why Ivy does not include the jar in the resolve
-        copy(file: task('gradle_jar').archivePath, toDir: explodedDistLibDir)
-        copy(file: task('gradle-wrapper_jar').archivePath, toDir: explodedDistLibDir)
+        copy(file: archive_jar.archivePath, toDir: explodedDistLibDir)
+        copy(file: archive_wrapper_jar.archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
         logger.info('Generate and copy samples.')
-        WrapperProjectCreator.createProject(explodedDistSamplesDir, task('gradle_bin_zip').archivePath.parentFile,
+        WrapperProjectCreator.createProject(explodedDistSamplesDir, task('archive_bin_zip').archivePath.parentFile,
                 version.toString())
         copy(toDir: explodedDistSamplesDir) {fileset(dir: new File(srcRoot, 'samples'))}
         logger.info('Copy binary sources.')
@@ -184,7 +186,7 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
                     classpath: "$buildDir/$launch4jDistName/launch4j.jar:$buildDir/$launch4jDistName/lib/xstream.jar")
             ant.launch4j() {
                 config(headerType: "console", outfile: "$explodedDistBinDir/gradle.exe",
-                        dontWrapJar: "true", jarPath: "../lib/" + gradle_jar.archiveName) {
+                        dontWrapJar: "true", jarPath: "../lib/" + archive_jar.archiveName) {
                     jre(minVersion: "1.5.0", jdkPreference: 'jdkOnly')
                 }
             }
@@ -347,7 +349,7 @@ createTask('install', dependsOn: 'integTest') {
 }
 
 void windowsInstall() {
-    ant.unzip(src: task('gradle_all_zip').archivePath, dest: gradle_installDir)
+    ant.unzip(src: task('archive_all_zip').archivePath, dest: gradle_installDir)
 }
 
 /**
@@ -358,7 +360,7 @@ void asternixInstall() {
         arg(value: '-q')
         arg(value: '-d')
         arg(value: gradle_installDir)
-        arg(value: "${task('gradle_all_zip').archivePath}")
+        arg(value: "${task('archive_all_zip').archivePath}")
     }
 }
 
