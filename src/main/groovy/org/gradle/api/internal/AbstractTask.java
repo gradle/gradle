@@ -58,6 +58,8 @@ public abstract class AbstractTask implements Task {
 
     String path = null;
 
+    boolean dagNeutral = false;
+
     public AbstractTask() {
 
     }
@@ -161,6 +163,14 @@ public abstract class AbstractTask implements Task {
 
     public String getPath() {
         return path;
+    }
+
+    public boolean isDagNeutral() {
+        return dagNeutral;
+    }
+
+    public void setDagNeutral(boolean dagNeutral) {
+        this.dagNeutral = dagNeutral;
     }
 
     public Task deleteAllActions() {

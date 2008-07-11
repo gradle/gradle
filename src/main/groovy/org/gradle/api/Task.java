@@ -117,4 +117,7 @@ public interface Task extends Comparable {
 
     Task configure(Closure configureClosure);
 
+    boolean isDagNeutral();
+
+    void setDagNeutral(boolean dagNeutral);
 }

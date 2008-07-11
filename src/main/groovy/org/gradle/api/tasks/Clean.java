@@ -41,6 +41,7 @@ public class Clean extends ConventionTask {
 
     public Clean(Project project, String name) {
         super(project, name);
+        setDagNeutral(true);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 clean(task);

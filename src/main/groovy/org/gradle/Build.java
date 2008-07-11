@@ -29,12 +29,10 @@ import org.slf4j.LoggerFactory;
 import org.gradle.api.Project;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 
 import java.util.List;
 import java.util.Map;
 import java.io.File;
-import java.net.URLClassLoader;
 
 /**
  * @author Hans Dockter
@@ -74,28 +72,37 @@ public class Build {
 
     private void runInternal(DefaultSettings settings, StartParameter startParameter) {
         ClassLoader classLoader = settings.createClassLoader();
-        boolean unknownTaskCheck = false;
-        for (String taskName : startParameter.getTaskNames()) {
+        Boolean rebuildDag = true;
+        for (int i = 0; i < startParameter.getTaskNames().size(); i++) {
+            String taskName = startParameter.getTaskNames().get(i);
             logger.info("++++ Starting build for primary task: " + taskName);
-            projectLoader.load(settings, classLoader, startParameter, startParameter.getProjectProperties(),
-                    getAllSystemProperties(), getAllEnvProperties());
-            buildConfigurer.process(projectLoader.getRootProject());
-            if (!unknownTaskCheck) {
+            if (rebuildDag) {
+                projectLoader.load(settings, classLoader, startParameter, startParameter.getProjectProperties(),
+                        getAllSystemProperties(), getAllEnvProperties());
+                buildConfigurer.process(projectLoader.getRootProject());
+            } else {
+                logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
+            }
+            if (i == 0) {
                 List unknownTasks = buildExecuter.unknownTasks(startParameter.getTaskNames(), startParameter.isRecursive(),
                         projectLoader.getCurrentProject());
                 if (GUtil.isTrue(unknownTasks)) {
                     throw new UnknownTaskException("Task(s) " + unknownTasks + " are unknown!");
                 }
-                unknownTaskCheck = true;
             }
-            buildExecuter.execute(taskName, startParameter.isRecursive(), projectLoader.getCurrentProject(),
-                    projectLoader.getRootProject());
+            boolean lastTask = isLastElement(startParameter, i);
+            rebuildDag = buildExecuter.execute(taskName, startParameter.isRecursive(), projectLoader.getCurrentProject(),
+                    projectLoader.getRootProject(), !lastTask);
         }
+    }
+
+    private boolean isLastElement(StartParameter startParameter, int i) {
+        return (i == startParameter.getTaskNames().size() - 1);
     }
 
     public String taskListNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
         StartParameter newStartParameter = StartParameter.newInstance(startParameter);
-        newStartParameter.setRecursive(false); 
+        newStartParameter.setRecursive(false);
         return taskListInternal(initWithCurrentDirAsRoot(newStartParameter), newStartParameter);
     }
 

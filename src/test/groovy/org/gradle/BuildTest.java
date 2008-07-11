@@ -143,7 +143,20 @@ public class BuildTest {
                 will(returnValue(settingsMock));
             }
         });
-        setRunExpectations();
+        setRunExpectations(true);
+        build.run(expectedStartParams);
+        checkSystemProps(expectedSystemPropertiesArgs);
+    }
+
+    @Test
+    public void testRunWithRecreateDagFalse() {
+        context.checking(new Expectations() {
+            {
+                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
+                will(returnValue(settingsMock));
+            }
+        });
+        setRunExpectations(false);
         build.run(expectedStartParams);
         checkSystemProps(expectedSystemPropertiesArgs);
     }
@@ -156,23 +169,26 @@ public class BuildTest {
                 will(returnValue(settingsMock));
             }
         });
-        setRunExpectations();
+        setRunExpectations(true);
         build.runNonRecursivelyWithCurrentDirAsRoot(expectedStartParams);
         checkSystemProps(expectedSystemPropertiesArgs);
     }
 
-    private void setRunExpectations() {
+    private void setRunExpectations(final boolean rebuildDagReturnValue) {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildConfigurerMock).process(expectedRootProject);
                 one(buildExecuterMock).unknownTasks(expectedTaskNames, expectedRecursive, expectedCurrentProject);
                 will(returnValue(new ArrayList()));
-                one(buildExecuterMock).execute((String) expectedTaskNames.get(0), expectedRecursive, expectedCurrentProject, expectedRootProject);
-                one(buildExecuterMock).execute((String) expectedTaskNames.get(1), expectedRecursive, expectedCurrentProject, expectedRootProject);
+                one(buildExecuterMock).execute((String) expectedTaskNames.get(0), expectedRecursive, expectedCurrentProject, expectedRootProject, true);
+                will(returnValue(rebuildDagReturnValue));
+                one(buildExecuterMock).execute((String) expectedTaskNames.get(1), expectedRecursive, expectedCurrentProject, expectedRootProject, false);
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
                         expectedProjectProperties, System.getProperties(), System.getenv());
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, expectedProjectProperties, System.getProperties(), System.getenv());
+                if (rebuildDagReturnValue) {
+                    one(buildConfigurerMock).process(expectedRootProject);
+                    one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, expectedProjectProperties, System.getProperties(), System.getenv());
+                }
             }
         });
     }

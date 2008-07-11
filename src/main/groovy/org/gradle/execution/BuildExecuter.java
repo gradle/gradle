@@ -35,6 +35,8 @@ public class BuildExecuter {
 
     Dag dag;
 
+    Map<String, Set<Task>> taskCache = new HashMap<String, Set<Task>>();
+
     public BuildExecuter() {
     }
 
@@ -42,13 +44,13 @@ public class BuildExecuter {
         this.dag = dag;
     }
 
-    public void execute(String taskName, boolean recursive, Project currentProject, Project rootProject) {
+    public Boolean execute(String taskName, boolean recursive, Project currentProject, Project rootProject, boolean checkForRebuildDag) {
         assert taskName != null;
         assert currentProject != null;
 
         logger.info(String.format("++ Executing: %s Recursive:%s Startproject: %s", taskName, recursive, currentProject));
 
-        Set<Task> calledTasks = currentProject.getTasksByName(taskName, recursive);
+        Set<Task> calledTasks = getTasks(taskName, currentProject, recursive);
         logger.debug("Found tasks: " + calledTasks);
         if (calledTasks.size() == 0) {           
             throw new UnknownTaskException("No tasks available for " + taskName);
@@ -68,24 +70,32 @@ public class BuildExecuter {
         clock.reset();
         dag.execute();
         logger.info("Executing the DAG took " + clock.getTime());
+        if (!checkForRebuildDag) {
+            return null;
+        }
+        for (Task calledTask : calledTasks) {
+            if (!calledTask.isDagNeutral()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public List unknownTasks(List<String> taskNames, boolean recursive, Project currentProject) {
         List<String> unknownTasks = new ArrayList<String>();
         for (String taskName : taskNames) {
-            Set<Project> allProjects = recursive ? currentProject.getAllprojects() : WrapUtil.toSet(currentProject);
-            boolean knownTask = false;
-            for (Project project : allProjects) {
-                if (project.getTasks().get(taskName) != null) {
-                    knownTask = true;
-                    break;
-                }
-            }
-            if (!knownTask) {
+            if (getTasks(taskName, currentProject, recursive).size() == 0) {
                 unknownTasks.add(taskName);
             }
         }
         return unknownTasks;
+    }
+
+    private Set<Task> getTasks(String primaryTaskName, Project currentProject, boolean recursive) {
+        if (taskCache.get(primaryTaskName) == null) {
+            taskCache.put(primaryTaskName, currentProject.getTasksByName(primaryTaskName, recursive));
+        }
+        return taskCache.get(primaryTaskName);
     }
 
     private void fillDag(Dag dag, Collection<Task> tasks, Project rootProject) {

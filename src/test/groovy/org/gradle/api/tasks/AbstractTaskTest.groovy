@@ -62,6 +62,11 @@ abstract class AbstractTaskTest {
         assertNotNull(task.skipProperties)
     }
 
+    // We do it in an own method, so that its easy to overwrite the test for task which deviate from default.
+    @Test public void testDagNeutral() {
+        assertFalse(task.isDagNeutral());    
+    }
+
     @Test public void testPath() {
         DefaultProject rootProject = HelperUtil.createRootProject(new File('parent', 'root'))
         DefaultProject childProject = HelperUtil.createChildProject(rootProject, 'child')
