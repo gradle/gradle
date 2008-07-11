@@ -79,6 +79,10 @@ public class GUtil {
         return true;
     }
 
+    public static <T> T elvis(T object, T defaultValue) {
+        return isTrue(object) ? object : defaultValue;
+    }
+
     public static Set addToSet(Set source, Collection setToAdd) {
         source.addAll(setToAdd);
         return source;
