@@ -27,6 +27,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.internal.project.ImportsReader
 import org.gradle.StartParameter
+import org.gradle.util.Clock
 
 /**
 * @author Hans Dockter
@@ -61,20 +62,26 @@ class SettingsProcessor {
     }
 
     DefaultSettings process(RootFinder rootFinder, StartParameter startParameter) {
+        Clock settingsProcessingClock = new Clock();
         initDependencyManagerFactory(rootFinder)
         DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
         try {
             String importsResult = importsReader.getImports(rootFinder.rootDir)
             String scriptText = rootFinder.settingsText + System.properties['line.separator'] + importsResult
             logger.debug("Evaluated Settings Script: " + scriptText)
+            Clock clock = new Clock();
             Script settingsScript = new GroovyShell().parse(
                     scriptText,
                     DEFAULT_SETUP_FILE)
+            logger.info("Timing: Compiling settings file took: " + clock.time)
             replaceMetaclass(settingsScript, settings)
+            clock.reset();
             settingsScript.run()
+            logger.info("Timing: Evaluating settings file took: " + clock.time)
         } catch (Throwable t) {
             throw new GradleScriptException(t, DEFAULT_SETUP_FILE)
         }
+        logger.debug("Timing: Processing settings took: " + settingsProcessingClock.time)
         if (startParameter.currentDir != rootFinder.rootDir && !isCurrentDirIncluded(settings)) {
             return createBasicSettings(rootFinder, startParameter)
         }
