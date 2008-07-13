@@ -28,6 +28,8 @@ import java.util.HashMap;
  * @author Hans Dockter
  */
 public class StartParameter {
+    ;
+    
     private String buildFileName;
     private List<String> taskNames;
     private File currentDir;
@@ -38,12 +40,12 @@ public class StartParameter {
     private File gradleUserHomeDir;
     private File defaultImportsFile;
     private File pluginPropertiesFile;
-    private boolean useCache;
+    private CacheUsage cacheUsage;
 
     public StartParameter() {
     }
 
-    public StartParameter(String buildFileName, List<String> taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, boolean useCache) {
+    public StartParameter(String buildFileName, List<String> taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
         this.buildFileName = buildFileName;
         this.taskNames = taskNames;
         this.currentDir = currentDir;
@@ -54,7 +56,7 @@ public class StartParameter {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.defaultImportsFile = defaultImportsFile;
         this.pluginPropertiesFile = pluginPropertiesFile;
-        this.useCache = useCache;
+        this.cacheUsage = cacheUsage;
     }
 
     public static StartParameter newInstance(StartParameter startParameterSrc) {
@@ -69,7 +71,7 @@ public class StartParameter {
         startParameter.gradleUserHomeDir = startParameterSrc.gradleUserHomeDir;
         startParameter.defaultImportsFile = startParameterSrc.defaultImportsFile;
         startParameter.pluginPropertiesFile = startParameterSrc.pluginPropertiesFile;
-        startParameter.useCache = startParameterSrc.useCache;
+        startParameter.cacheUsage = startParameterSrc.cacheUsage;
 
         return startParameter;
     }
@@ -162,11 +164,11 @@ public class StartParameter {
         this.pluginPropertiesFile = pluginPropertiesFile;
     }
 
-    public boolean isUseCache() {
-        return useCache;
+    public CacheUsage getCacheUsage() {
+        return cacheUsage;
     }
 
-    public void setUseCache(boolean useCache) {
-        this.useCache = useCache;
+    public void setCacheUsage(CacheUsage cacheUsage) {
+        this.cacheUsage = cacheUsage;
     }
 }

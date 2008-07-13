@@ -18,6 +18,7 @@ package org.gradle
 
 import org.junit.Before
 import org.junit.Test
+import org.gradle.CacheUsage
 
 /**
  * @author Hans Dockter
@@ -37,7 +38,7 @@ class StartParameterTest {
                 gradleUserHomeDir: new File('b'),
                 defaultImportsFile: new File('imports'),
                 pluginPropertiesFile: new File('plugin'),
-                useCache: true
+                cacheUsage: CacheUsage.ON
         )
     }
 

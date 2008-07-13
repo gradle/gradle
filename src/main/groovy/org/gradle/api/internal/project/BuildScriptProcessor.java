@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.Project;
 import org.gradle.util.GUtil;
+import org.gradle.CacheUsage;
 import org.apache.commons.io.FileUtils;
 import groovy.lang.Script;
 
@@ -38,16 +39,16 @@ public class BuildScriptProcessor {
 
     ImportsReader importsReader;
 
-    boolean useCache;
+    CacheUsage cacheUsage;
 
     public BuildScriptProcessor() {
 
     }
 
-    public BuildScriptProcessor(ImportsReader importsReader, String inMemoryScriptText, boolean useCache) {
+    public BuildScriptProcessor(ImportsReader importsReader, String inMemoryScriptText, CacheUsage cacheUsage) {
         this.importsReader = importsReader;
         this.inMemoryScriptText = inMemoryScriptText;
-        this.useCache = useCache;
+        this.cacheUsage = cacheUsage;
     }
 
     public Script createScript(Project project) {
@@ -55,8 +56,7 @@ public class BuildScriptProcessor {
         String scriptTextForNonCachedExecution = "";
         if (GUtil.isTrue(inMemoryScriptText)) {
             scriptTextForNonCachedExecution = inMemoryScriptText;
-        }
-        else if (!useCache) {
+        } else if (cacheUsage == CacheUsage.OFF) {
             if (buildFile.isFile()) {
                 try {
                     scriptTextForNonCachedExecution = FileUtils.readFileToString(buildFile);
@@ -64,7 +64,7 @@ public class BuildScriptProcessor {
                     throw new RuntimeException(e);
                 }
             } else {
-               return returnEmptyScript();
+                return returnEmptyScript();
             }
         }
         if (GUtil.isTrue(scriptTextForNonCachedExecution)) {
@@ -74,9 +74,11 @@ public class BuildScriptProcessor {
             return returnEmptyScript();
         }
 
-        Script cachedScript = scriptHandler.loadFromCache(project, buildFile.lastModified());
-        if (cachedScript != null) {
-            return cachedScript;
+        if (cacheUsage == CacheUsage.ON) {
+            Script cachedScript = scriptHandler.loadFromCache(project, buildFile.lastModified());
+            if (cachedScript != null) {
+                return cachedScript;
+            }
         }
         return scriptHandler.writeToCache(project, buildScriptWithImports(project));
     }
@@ -100,6 +102,6 @@ public class BuildScriptProcessor {
 
     private Script returnEmptyScript() {
         logger.info("No build file available. Using empty script!");
-            return new EmptyScript();
+        return new EmptyScript();
     }
 }

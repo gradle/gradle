@@ -172,7 +172,7 @@ public class Build {
                         new ProjectsLoader(
                                 new ProjectFactory(
                                         dependencyManagerFactory,
-                                        new BuildScriptProcessor(importsReader, inMemoryScriptText, startParameter.isUseCache()),
+                                        new BuildScriptProcessor(importsReader, inMemoryScriptText, startParameter.getCacheUsage()),
                                         new PluginRegistry(
                                                 startParameter.getPluginPropertiesFile()),
                                         startParameter.getBuildFileName(),

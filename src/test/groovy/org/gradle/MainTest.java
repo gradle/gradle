@@ -16,11 +16,10 @@
 
 package org.gradle;
 
-import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
 import org.hamcrest.BaseMatcher;
@@ -38,9 +37,6 @@ import org.junit.After;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
@@ -62,7 +58,7 @@ public class MainTest {
     private Map expectedSystemProperties;
     private Map expectedProjectProperties;
     private boolean expectedRecursive;
-    private boolean expectedUseCache;
+    private CacheUsage expectedCacheUsage;
     private boolean expectedSearchUpwards;
     private String expectedEmbeddedScript;
     private StartParameter actualStartParameter;
@@ -101,7 +97,7 @@ public class MainTest {
         expectedSystemProperties = new HashMap();
         expectedBuildFileName = Project.DEFAULT_PROJECT_FILE;
         expectedRecursive = true;
-        expectedUseCache = true;
+        expectedCacheUsage = CacheUsage.ON;
         expectedSearchUpwards = true;
         expectedEmbeddedScript = "somescript";
     }
@@ -163,7 +159,7 @@ public class MainTest {
         assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         assertEquals(expectedRecursive, startParameter.isRecursive());
-        assertEquals(expectedUseCache, startParameter.isUseCache());
+        assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
@@ -275,7 +271,7 @@ public class MainTest {
         expectedProjectProperties.put(prop2, valueProp2);
         checkMain(new MainCall() {
             public void execute() throws Throwable {
-                Main.main(args("-P", prop1 + "=" + valueProp1, "-S" , "-P", prop2 + "=" + valueProp2));
+                Main.main(args("-P", prop1 + "=" + valueProp1, "-S", "-P", prop2 + "=" + valueProp2));
             }
         });
     }
@@ -291,13 +287,28 @@ public class MainTest {
     }
 
     @Test
-    public void testMainWithNoCacheFlagSet() throws Throwable {
-        expectedUseCache = false;
+    public void testMainWithCacheOffFlagSet() throws Throwable {
+        expectedCacheUsage = CacheUsage.OFF;
         checkMain(new MainCall() {
             public void execute() throws Throwable {
                 Main.main(args("-Sx"));
             }
         });
+    }
+
+    @Test
+    public void testMainWithRebuildCacheFlagSet() throws Throwable {
+        expectedCacheUsage = CacheUsage.REBUILD;
+        checkMain(new MainCall() {
+            public void execute() throws Throwable {
+                Main.main(args("-Sr"));
+            }
+        });
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithMutuallyExclusiveCacheFlags() throws Throwable {
+        Main.main(new String[]{"-S", "-xr", "clean"});
     }
 
     @Test
@@ -319,17 +330,26 @@ public class MainTest {
         });
     }
 
-    @Test public void testMainWithEmbeddedScriptAndConflictingOptions() throws Throwable {
-            Main.main(new String[] {"-S", "-e", "someScript", "-u", "clean"});
-            Main.main(new String[] {"-S", "-e", "someScript", "-n", "clean"});
-            Main.main(new String[] {"-S", "-e", "someScript", "-bsomeFile", "clean"});
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithEmbeddedScriptAndConflictingNoSearchUpwardsOption() throws Throwable {
+        Main.main(new String[]{"-S", "-e", "someScript", "-u", "clean"});
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithEmbeddedScriptAndConflictingNonrecursiveOption() throws Throwable {
+        Main.main(new String[]{"-S", "-e", "someScript", "-n", "clean"});
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithEmbeddedScriptAndConflictingSpecifyBuildFileOption() throws Throwable {
+        Main.main(new String[]{"-S", "-e", "someScript", "-bsomeFile", "clean"});
     }
 
     @Test
     public void testMainWithShowTargets() throws Throwable {
         checkMain(false, true, new MainCall() {
             public void execute() throws Throwable {
-                Main.main(new String[] {"-St"});
+                Main.main(new String[]{"-St"});
             }
         });
     }
@@ -338,14 +358,14 @@ public class MainTest {
     public void testMainWithShowTargetsAndEmbeddedScript() throws Throwable {
         checkMain(true, true, new MainCall() {
             public void execute() throws Throwable {
-                Main.main(new String[] {"-S", "-e", expectedEmbeddedScript, "-t"});
+                Main.main(new String[]{"-S", "-e", expectedEmbeddedScript, "-t"});
             }
         });
     }
 
     @Test
     public void testMainWithPParameterWithoutArgument() throws Throwable {
-        Main.main(new String[] {"-S", "-p"});
+        Main.main(new String[]{"-S", "-p"});
 
         // The projectLoaderMock throws an exception, if the main method does not return prematurely (what it should do).
     }
@@ -353,14 +373,19 @@ public class MainTest {
     @Test
     public void testMainWithMissingGradleHome() throws Throwable {
         System.getProperties().remove(Main.GRADLE_HOME_PROPERTY_KEY);
-        Main.main(new String[] {"-S", "clean"});
+        try {
+            Main.main(new String[]{"-S", "clean"});
+            fail();
+        } catch (InvalidUserDataException e) {
+            // ignore
+        }
         // Tests are run in one JVM. Therefore we need to set it again.
         System.getProperties().put(Main.GRADLE_HOME_PROPERTY_KEY, TEST_GRADLE_HOME);
     }
 
-    @Test
-    public void testMainWithMissingTargets() throws Throwable {
-        Main.main(new String[] {"-S"});
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithMissingTasks() throws Throwable {
+        Main.main(new String[]{"-S"});
     }
 
     private String[] args(String... prefix) {

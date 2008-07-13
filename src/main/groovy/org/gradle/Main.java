@@ -22,6 +22,7 @@ import org.apache.tools.ant.BuildException;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.initialization.BuildSourceBuilder;
 import org.gradle.initialization.EmbeddedBuildExecuter;
 import org.gradle.util.GradleVersion;
@@ -35,7 +36,6 @@ import joptsimple.OptionSet;
 import joptsimple.OptionException;
 
 import java.util.List;
-import java.util.Arrays;
 import java.io.File;
 
 /**
@@ -73,7 +73,8 @@ public class Main {
     private static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String VERSION = "v";
-    private static final String NO_CACHING = "x";
+    private static final String CACHE_OFF = "x";
+    private static final String REBUILD_CACHE = "r";
     private static final String HELP = "h";
 
 
@@ -90,7 +91,8 @@ public class Main {
                 acceptsAll(WrapUtil.toList(NO_JVM_TERMINATION), "Don't trigger a System.exit(0) for normal termination. Used for Gradle's internal testing.");
                 acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS, "no-imports"), "Disable usage of default imports for build script files.");
                 acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), "Don't search in parent folders for a settings.gradle file.");
-                acceptsAll(WrapUtil.toList(NO_CACHING, "no-caching"), "No caching of compiled build scripts.");
+                acceptsAll(WrapUtil.toList(CACHE_OFF, "cache-off"), "No caching of compiled build scripts.");
+                acceptsAll(WrapUtil.toList(REBUILD_CACHE, "rebuild-cache"), "Rebuild the cache of compiled build scripts.");
                 acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
                 acceptsAll(WrapUtil.toList(DEBUG, "debug"), "Log in debug mode (includes normal stacktrace).");
                 acceptsAll(WrapUtil.toList(QUIET, "quiet"), "Log errors only.");
@@ -133,12 +135,12 @@ public class Main {
 
         if (options.has(VERSION)) {
             System.out.println(new GradleVersion().prettyPrint());
-            System.exit(0);
+            exitWithSuccess(options);
         }
 
         if (!GUtil.isTrue(gradleHome)) {
             logger.error("The gradle.home property is not set. Please set it and try again.");
-            exitWithSuccess(options);
+            exitWithError(options, new InvalidUserDataException());
             return;
         }
 
@@ -170,7 +172,7 @@ public class Main {
             startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
             if (!startParameter.getCurrentDir().isDirectory()) {
                 logger.error("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exists!");
-                exitWithSuccess(options);
+                exitWithError(options, new InvalidUserDataException());
                 return;
             }
         } else {
@@ -187,13 +189,24 @@ public class Main {
                 options.hasArgument(PLUGIN_PROPERTIES_FILE) ? new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)) :
                         new File(gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES));
 
-        startParameter.setUseCache(!options.has(NO_CACHING));
-
+        if (options.has(CACHE_OFF)) {
+            if (options.has(REBUILD_CACHE)) {
+                logger.error(String.format("Error: The %s option can't be used together with the %s option.",
+                        CACHE_OFF, REBUILD_CACHE));
+                exitWithError(options, new InvalidUserDataException());
+            }
+            startParameter.setCacheUsage(CacheUsage.OFF);
+        } else if (options.has(REBUILD_CACHE)) {
+            startParameter.setCacheUsage(CacheUsage.REBUILD);
+        } else {
+            startParameter.setCacheUsage(CacheUsage.ON);
+        }
+        
         if (options.has(EMBEDDED_SCRIPT)) {
             if (options.has(BUILD_FILE) || options.has(NON_RECURSIVE) || options.has(NO_SEARCH_UPWARDS)) {
                 logger.error(String.format("Error: The %s option can't be used together with the %s, %s or %s option.",
                         EMBEDDED_SCRIPT, BUILD_FILE, NON_RECURSIVE, NO_SEARCH_UPWARDS));
-                exitWithSuccess(options);
+                exitWithError(options, new InvalidUserDataException());
                 return;
             }
             embeddedBuildScript = options.argumentOf(EMBEDDED_SCRIPT);
@@ -211,7 +224,7 @@ public class Main {
             startParameter.setTaskNames(options.nonOptionArguments());
             if (!GUtil.isTrue(startParameter.getTaskNames()) && !options.has(TASKS)) {
                 logger.error(NL + "Build exits abnormally. No task names are specified!");
-                exitWithSuccess(options);
+                exitWithError(options, new InvalidUserDataException());
                 return;
             }
 
@@ -244,7 +257,7 @@ public class Main {
             logger.error(NL + "Build aborted anormally because of an internal error. Run with -d option to get additonal debug info. Please file an issue at: www.gradle.org");
             logger.error("Exception is:", e);
             finalOutput(buildTimeClock);
-            stopExecutionWithError(options, e);
+            exitWithError(options, e);
         }
         finalOutput(buildTimeClock);
         exitWithSuccess(options);
@@ -268,7 +281,7 @@ public class Main {
             logger.error("Exception: " + t);
         }
         finalOutput(buildTimeClock);
-        stopExecutionWithError(options, t);
+        exitWithError(options, t);
     }
 
     static void finalOutput(Clock buildTimeClock) {
@@ -289,7 +302,7 @@ public class Main {
         int ivyLogLevel = Message.MSG_INFO;
         if (options.has(IVY_DEBUG) && options.has(IVY_QUIET)) {
             System.out.printf("Error: For the dependency output you must either set '%s' or '%s'. Not Both!", IVY_QUIET, IVY_DEBUG);
-            stopExecutionWithError(options, new RuntimeException("Wrong Parameter"));
+            exitWithError(options, new RuntimeException("Wrong Parameter"));
         } else if (options.has(IVY_QUIET)) {
             ivyLogLevel = Message.MSG_ERR;
         } else if (options.has(IVY_DEBUG)) {
@@ -298,7 +311,7 @@ public class Main {
 
         if (options.has(DEBUG) && options.has(QUIET)) {
             System.out.printf("Error: For the loglevel you must either set '%s' or '%s'. Not Both!", QUIET, DEBUG);
-            stopExecutionWithError(options, new RuntimeException("Wrong Parameter"));
+            exitWithError(options, new RuntimeException("Wrong Parameter"));
         } else if (options.has(DEBUG)) {
             loglevel = "DEBUG";
             layout = debugLayout;
@@ -317,7 +330,7 @@ public class Main {
 
     }
 
-    private static void stopExecutionWithError(OptionSet options, Throwable e) throws Throwable {
+    private static void exitWithError(OptionSet options, Throwable e) throws Throwable {
         System.err.println("Exit with error!");
         if (!options.has(NO_JVM_TERMINATION)) {
             System.exit(1);

@@ -66,10 +66,10 @@ public class BuildExecuter {
         for (DefaultTask defaultTask : dag.getAllTasks()) {
             defaultTask.applyAfterDagClosures();
         }
-        logger.info("Creating the DAG took " + clock.getTime());
+        logger.info("Timing: Creating the DAG took " + clock.getTime());
         clock.reset();
         dag.execute();
-        logger.info("Executing the DAG took " + clock.getTime());
+        logger.info("Timing: Executing the DAG took " + clock.getTime());
         if (!checkForRebuildDag) {
             return null;
         }
