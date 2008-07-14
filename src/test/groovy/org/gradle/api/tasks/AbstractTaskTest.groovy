@@ -35,7 +35,7 @@ abstract class AbstractTaskTest {
 
     public static final String TEST_PROJECT_NAME = '/projectTestName'
 
-    DefaultProject project
+    Project project
 
     @Before
     public void setUp() {
@@ -265,12 +265,6 @@ abstract class AbstractTaskTest {
 
     @Test public void testAfterDag() {
         checkConfigureEvent(task.&afterDag, task.&applyAfterDagClosures)
-    }
-
-    @Test public void testLateInitialize() {
-        assert !task.lateInitialized
-        checkConfigureEvent(task.&lateInitialize, task.&applyLateInitialize)
-        assert task.lateInitialized
     }
 
     private void checkConfigureEvent(Closure addMethod, Closure applyMethod) {

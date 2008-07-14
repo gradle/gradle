@@ -22,11 +22,17 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.util.JUnit4GroovyMockery
+import org.junit.runner.RunWith
+import org.gradle.api.internal.project.ITaskFactory
+import org.gradle.api.Project
+import org.jmock.lib.legacy.ClassImposteriser;
 
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock)
 class BundleTest extends AbstractConventionTaskTest {
     static final File TEST_DESTINATION_DIR = new File('testdestdir')
     
@@ -54,10 +60,20 @@ class BundleTest extends AbstractConventionTaskTest {
 
     Closure testClosure
 
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
+    Task taskMock;
+
+    ITaskFactory taskFactoryMock;
+
     Task getTask() {bundle}
 
     @Before public void setUp()  {
         super.setUp()
+        context.setImposteriser(ClassImposteriser.INSTANCE)
+        taskMock = context.mock(Task)
+        taskFactoryMock = context.mock(ITaskFactory)
+        getProject().setTaskFactory(taskFactoryMock)
         testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier']
         testClosure = {
             destinationDir = TEST_DESTINATION_DIR
@@ -80,63 +96,78 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testJarWithDefaultValues() {
+        prepateProjectMock(bundle.defaultArchiveTypes.jar, [:])
         (Jar) checkForDefaultValues(bundle.jar(testClosure), bundle.defaultArchiveTypes.jar)
     }
 
     @Test public void testJarWithArgs() {
+        prepateProjectMock(bundle.defaultArchiveTypes.jar, testArgs)
         (Jar) checkForDefaultValues(bundle.jar(testArgs, testClosure), bundle.defaultArchiveTypes.jar, testArgs)
     }
 
     @Test public void testZipWithDefaultValues() {
+        prepateProjectMock(bundle.defaultArchiveTypes.zip, [:])
         (Zip) checkForDefaultValues(bundle.zip(testClosure), bundle.defaultArchiveTypes.zip)
     }
 
     @Test public void testZipWithArgs() {
+        prepateProjectMock(bundle.defaultArchiveTypes.zip, testArgs)
         (Zip) checkForDefaultValues(bundle.zip(testArgs, testClosure), bundle.defaultArchiveTypes.zip, testArgs)
     }
 
     @Test public void testWarWithDefaultValues() {
+        prepateProjectMock(bundle.defaultArchiveTypes.war, [:])
         (War) checkForDefaultValues(bundle.war(testClosure), bundle.defaultArchiveTypes.war)
     }
 
     @Test public void testWarWithArgs() {
+        prepateProjectMock(bundle.defaultArchiveTypes.war, testArgs)
         (War) checkForDefaultValues(bundle.war(testArgs, testClosure), bundle.defaultArchiveTypes.war, testArgs)
     }
 
     @Test public void testTarWithDefaultValues() {
+        prepateProjectMock(bundle.defaultArchiveTypes.tar, [:])
         (Tar) checkForDefaultValues(bundle.tar(testClosure), bundle.defaultArchiveTypes.tar)
     }
 
     @Test public void testTarWithArgs() {
+        prepateProjectMock(bundle.defaultArchiveTypes.tar, testArgs)
         (Tar) checkForDefaultValues(bundle.tar(testArgs, testClosure), bundle.defaultArchiveTypes.tar, testArgs)
     }
 
     @Test public void testTarGzWithDefaultValues() {
+        prepateProjectMock(bundle.defaultArchiveTypes['tar.gz'], [:])
         (Tar) checkForDefaultValues(bundle.tarGz(testClosure), bundle.defaultArchiveTypes['tar.gz'])
     }
 
     @Test public void testTarGzWithArgs() {
+        prepateProjectMock(bundle.defaultArchiveTypes['tar.gz'], testArgs)
         (Tar) checkForDefaultValues(bundle.tarGz(testArgs, testClosure), bundle.defaultArchiveTypes['tar.gz'], testArgs)
     }
 
     @Test public void testTarBzip2WithDefaultValues() {
+        prepateProjectMock(bundle.defaultArchiveTypes['tar.bzip2'], [:])
         (Tar) checkForDefaultValues(bundle.tarBzip2(testClosure), bundle.defaultArchiveTypes['tar.bzip2'])
     }
 
     @Test public void testTarBzip2WithArgs() {
+        prepateProjectMock(bundle.defaultArchiveTypes['tar.bzip2'], testArgs)
         (Tar) checkForDefaultValues(bundle.tarBzip2(testArgs, testClosure), bundle.defaultArchiveTypes['tar.bzip2'], testArgs)
     }
 
     @Test public void testCreateArchiveWithDefaultValues() {
+        prepateProjectMock(testArchiveType, [:])
         (TestArchiveTask) checkForDefaultValues(bundle.createArchive(testArchiveType, testClosure), testArchiveType)
     }
 
-    @Test public void testCreateArchiveWithCustomName() {
+    @Test public void testCreateArchiveWithArgs() {
+        prepateProjectMock(testArchiveType, testArgs)
         TestArchiveTask testTask = bundle.createArchive(testArchiveType, testArgs, testClosure)
         checkForDefaultValues(testTask, testArchiveType, testArgs)
     }
 
     @Test public void testChildrenDependsOn() {
+        preparForDependsOnTest();
         AbstractArchiveTask task1 = bundle.zip(baseName: 'zip1')
         AbstractArchiveTask task2 = bundle.zip(baseName: 'zip2')
         assertEquals(testChildrenDependsOn as Set, task1.dependsOn)
@@ -144,11 +175,39 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testEmptyChildrenDependsOn() {
+        preparForDependsOnTest()
         bundle.childrenDependOn = []
         AbstractArchiveTask task1 = bundle.zip(baseName: 'zip1')
         AbstractArchiveTask task2 = bundle.zip(baseName: 'zip2')
         assertEquals(testBundleDependsOn as Set, task1.dependsOn)
         assertEquals(testBundleDependsOn as Set, task2.dependsOn)
+    }
+
+    private void preparForDependsOnTest() {
+        Project projectMock = context.mock(Project)
+        bundle.setProject(projectMock)
+        context.checking {
+            allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
+            allowing(projectMock).getArchivesTaskBaseName(); will(returnValue('archive'))
+            one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip1_zip")
+            will(returnValue(Zip.newInstance(getProject(), "zip1_zip")))
+            one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip2_zip")
+            will(returnValue(Zip.newInstance(getProject(), "zip2_zip")))
+        }
+    }
+
+     private void prepateProjectMock(ArchiveType archiveType, Map args = [:]) {
+        String taskName = (args.baseName ?: getProject().archivesTaskBaseName) + (args.appendix ? "_" + args.appendix : "")
+        String classifier = args.classifier ? '_' + args.classifier  : ''
+        taskName =  "${taskName}${classifier}_${archiveType.defaultExtension}"
+        Project projectMock = context.mock(Project)
+        bundle.setProject(projectMock)
+        context.checking {
+            allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
+            allowing(projectMock).getArchivesTaskBaseName(); will(returnValue(Project.DEFAULT_ARCHIVES_TASK_BASE_NAME))
+            one(projectMock).createTask([(Task.TASK_TYPE): archiveType.getTaskClass()], taskName)
+            will(returnValue(archiveType.getTaskClass().newInstance(getProject(), taskName)))
+        }
     }
 
     private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType, Map args = [:]) {
@@ -163,7 +222,6 @@ class BundleTest extends AbstractConventionTaskTest {
                                                  Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveClassifier) {
         assertEquals(TEST_DESTINATION_DIR, archiveTask.destinationDir)
         assertEquals(conventionMapping, archiveTask.conventionMapping)
-        assertEquals(expectedArchiveTaskName, archiveTask.name)
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)

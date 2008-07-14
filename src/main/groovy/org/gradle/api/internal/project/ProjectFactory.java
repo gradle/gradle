@@ -27,17 +27,19 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public class ProjectFactory {
+public class ProjectFactory implements IProjectFactory {
     DependencyManagerFactory dependencyManagerFactory;
     BuildScriptProcessor buildScriptProcessor;
     PluginRegistry pluginRegistry;
     String buildFileName;
     ProjectRegistry projectRegistry;
+    ITaskFactory taskFactory;
 
     public ProjectFactory() {}
 
-    public ProjectFactory(DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
+    public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
                    PluginRegistry pluginRegistry, String buildFileName, ProjectRegistry projectRegistry) {
+        this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
@@ -45,9 +47,9 @@ public class ProjectFactory {
         this.projectRegistry = projectRegistry;
     }
 
-    DefaultProject createProject(String name, Project parent, File rootDir, Project rootProject, ClassLoader buildScriptClassLoader) {
-        return new DefaultProject(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, this,
-                dependencyManagerFactory.createDependencyManager(), buildScriptProcessor, pluginRegistry, projectRegistry);
+    public DefaultProject createProject(String name, Project parent, File rootDir, Project rootProject, ClassLoader buildScriptClassLoader) {
+        return new DefaultProject(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, taskFactory,
+                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry);
     }
 
 }

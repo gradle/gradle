@@ -58,9 +58,7 @@ class DefaultSettings implements Settings {
                     BuildSourceBuilder buildSourceBuilder, RootFinder rootFinder, StartParameter startParameter) {
         this.rootFinder = rootFinder
         this.startParameter = startParameter
-        this.dependencyManager = dependencyManagerFactory.createDependencyManager()
-
-        configureDependencyManager(dependencyManager)
+        this.dependencyManager = dependencyManagerFactory.createDependencyManager(createDummyProject())
         this.buildSourceBuilder = buildSourceBuilder
         dependencyManager.addConfiguration(BUILD_CONFIGURATION)
         buildSrcStartParameter = new StartParameter(
@@ -134,14 +132,13 @@ class DefaultSettings implements Settings {
         classLoader
     }
 
-    private configureDependencyManager(DependencyManager dependencyManager) {
+    private Project createDummyProject(DependencyManager dependencyManager) {
         DefaultProject dummyProjectForDepencencyManager = new DefaultProject()
         dummyProjectForDepencencyManager.group = 'org.gradle'
         dummyProjectForDepencencyManager.name = 'build'
         dummyProjectForDepencencyManager.version = 'SNAPSHOT'
         dummyProjectForDepencencyManager.gradleUserHome = startParameter.gradleUserHomeDir.canonicalPath
-        dependencyManager.project = dummyProjectForDepencencyManager
-        dependencyManager
+        dummyProjectForDepencencyManager
     }
 
     def propertyMissing(String property) {

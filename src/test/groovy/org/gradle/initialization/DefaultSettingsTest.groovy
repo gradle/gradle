@@ -52,7 +52,8 @@ class DefaultSettingsTest {
         rootFinder.gradleProperties.someGradleProp = 'someValue'
         startParameter = new StartParameter(currentDir: new File(rootFinder.rootDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         dependencyManager = new DefaultDependencyManager()
-        DependencyManagerFactory dependencyManagerFactory = [createDependencyManager: {->
+        DependencyManagerFactory dependencyManagerFactory = [createDependencyManager: {Project project ->
+            dependencyManager.setProject(project)
             dependencyManager
         }] as DependencyManagerFactory
         buildSourceBuilder = new BuildSourceBuilder(new EmbeddedBuildExecuter())
@@ -63,7 +64,7 @@ class DefaultSettingsTest {
 
     @After
     public void tearDown() {
-        dependencyManagerMocker.expect.verify()
+        if (dependencyManagerMocker) { dependencyManagerMocker.expect.verify() }
     }
 
     @Test public void testSettings() {

@@ -61,22 +61,12 @@ public class DefaultTask extends AbstractTask {
         return (Task) ConfigureUtil.configure(closure, this);
     }
 
-    public Task lateInitialize(Closure closure) {
-        lateInitalizeClosures.add(closure);
-        return this;
-    }
 
     public Task afterDag(Closure closure) {
         afterDagClosures.add(closure);
         return this;
     }
-
-    public Task applyLateInitialize() {
-        Task task = configureEvent(lateInitalizeClosures);
-        lateInitialized = true;
-        return task;
-    }
-
+   
     public Task applyAfterDagClosures() {
         return configureEvent(afterDagClosures);
     }
@@ -86,10 +76,6 @@ public class DefaultTask extends AbstractTask {
             configure(closure);
         }
         return this;
-    }
-
-    public boolean getLateInitialized() {
-        return lateInitialized;
     }
 
     public boolean getExecuted() {

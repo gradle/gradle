@@ -37,25 +37,32 @@ class HelperUtil {
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
-        return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [projectName, parent, new File(""),
-                parent, null, null, new ProjectFactory(new DefaultDependencyManagerFactory(new File('root')), null, null, null, parent.projectRegistry), new DefaultDependencyManager(), null, null, parent.projectRegistry] as Object[])
+        return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [
+                projectName,
+                parent,
+                new File(""),
+                parent,
+                null,
+                null,
+                new TaskFactory(),
+                new DefaultDependencyManagerFactory(new File('root')),
+                null,
+                null,
+                parent.projectRegistry] as Object[])
     }
 
     static DefaultProject createRootProject(File rootDir) {
         ProjectRegistry projectRegistry = new ProjectRegistry()
-        return new DefaultProject(rootDir.name,
+        TaskFactory taskFactory = new TaskFactory();
+        return new DefaultProject(
+                rootDir.name,
                 null,
                 rootDir,
                 null,
                 null,
-                null, 
-                new ProjectFactory(
-                        new DefaultDependencyManagerFactory(new File('root')),
-                        new BuildScriptProcessor(),
-                        new PluginRegistry(),
-                        'testBuildFileName',
-                        projectRegistry),
-                new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(),
+                null,
+                taskFactory,
+                new DefaultDependencyManagerFactory(new File('root')),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 projectRegistry)
@@ -69,8 +76,8 @@ class HelperUtil {
                 parentProject.rootProject,
                 parentProject.buildFileName,
                 parentProject.buildScriptClassLoader,
-                parentProject.projectFactory,
-                parentProject.dependencies,
+                parentProject.taskFactory,
+                parentProject.dependencyManagerFactory,
                 parentProject.buildScriptProcessor,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry)

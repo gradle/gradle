@@ -32,9 +32,9 @@ class DefaultProject extends AbstractProject {
     }
 
     public DefaultProject(String name, Project parent, File rootDir, Project rootProject, String buildFileName,
-                          ClassLoader buildScriptClassLoader, ProjectFactory projectFactory, DependencyManager dependencyManager,
+                          ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry) {
-        super(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, projectFactory, dependencyManager,
+        super(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
                 buildScriptProcessor, pluginRegistry, projectRegistry);
     }
 
@@ -150,4 +150,15 @@ class DefaultProject extends AbstractProject {
         }
         return task;
     }
+
+    protected AbstractProject createChildProject(String name) {
+        return new DefaultProject(name, this, rootDir, rootProject, buildFileName, buildScriptClassLoader, taskFactory,
+                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry);
+    }
+
+    public void addAfterEvaluateListener(Closure afterEvaluateListener) {
+        addAfterEvaluateListener(afterEvaluateListener as AfterEvaluateListener)
+    }
+
+
 }

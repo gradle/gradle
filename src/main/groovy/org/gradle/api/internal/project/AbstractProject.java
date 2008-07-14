@@ -27,6 +27,7 @@ import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
+import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +47,7 @@ public abstract class AbstractProject implements Project, Comparable {
 
     public static final int STATE_INITIALIZED = 2;
 
-    public static final String TASK_NAME = "name";
-
-    public static final String TASK_TYPE = "type";
-
-    public static final String TASK_DEPENDS_ON = "dependsOn";
-
-    public static final String TASK_OVERWRITE = "overwrite";
-
-    public static final String TASK_TYPE_LATE_INITIALIZER = "lateInitializer";
-
-
     private Project rootProject;
-
-    private ProjectFactory projectFactory;
 
     // This is an implementation detail of Project. Therefore we don't use IoC here.
     private ProjectsTraverser projectsTraverser = new ProjectsTraverser();
@@ -118,12 +106,18 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private ProjectRegistry projectRegistry;
 
+    private ITaskFactory taskFactory;
+
+    private DependencyManagerFactory dependencyManagerFactory;
+
+    private List<AfterEvaluateListener> afterEvaluateListeners = new ArrayList<AfterEvaluateListener>();
+
     public AbstractProject() {
         convention = new Convention(this);
     }
 
     public AbstractProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, String buildFileName,
-                           ClassLoader buildScriptClassLoader, ProjectFactory projectFactory, DependencyManager dependencyManager,
+                           ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
                            BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry) {
         assert name != null;
         assert (parent == null && rootProject == null) || (parent != null && rootProject != null);
@@ -133,9 +127,9 @@ public abstract class AbstractProject implements Project, Comparable {
         this.name = name;
         this.buildFileName = buildFileName;
         this.buildScriptClassLoader = buildScriptClassLoader;
-        this.projectFactory = projectFactory;
-        dependencyManager.setProject(this);
-        this.dependencies = dependencyManager;
+        this.taskFactory = taskFactory;
+        this.dependencyManagerFactory = dependencyManagerFactory;
+        this.dependencies = dependencyManagerFactory.createDependencyManager(this);
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
@@ -165,14 +159,6 @@ public abstract class AbstractProject implements Project, Comparable {
 
     public void setRootProject(Project rootProject) {
         this.rootProject = rootProject;
-    }
-
-    public ProjectFactory getProjectFactory() {
-        return projectFactory;
-    }
-
-    public void setProjectFactory(ProjectFactory projectFactory) {
-        this.projectFactory = projectFactory;
     }
 
     public ProjectsTraverser getProjectsTraverser() {
@@ -503,26 +489,15 @@ public abstract class AbstractProject implements Project, Comparable {
         }
         logger.info("Timing: Running the build script took " + clock.getTime());
         state = STATE_INITIALIZED;
-        lateInitializeTasks(tasks);
+        notifyAfterEvaluateListener();
         logger.info("Project= " + path + " evaluated.");
         logger.info("Timing: Project evaluation took " + clock.getTime());
         return this;
     }
 
-    private void lateInitializeTasks(Map<String, Task> tasks) {
-        while (true) {
-            Set<Task> uninitializedTasks = new HashSet();
-            for (Task task : tasks.values()) {
-                if (!task.getLateInitialized()) {
-                    uninitializedTasks.add(task);
-                }
-            }
-            if (uninitializedTasks.size() == 0) {
-                break;
-            }
-            for (Task uninitializedTask : uninitializedTasks) {
-                uninitializedTask.applyLateInitialize();
-            }
+    private void notifyAfterEvaluateListener() {
+        for (AfterEvaluateListener afterEvaluateListener : afterEvaluateListeners) {
+            afterEvaluateListener.afterEvaluate(this);
         }
     }
 
@@ -577,67 +552,16 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public Task createTask(Map args, String name, TaskAction action) {
-        if (!GUtil.isTrue(name)) {
-            throw new InvalidUserDataException("The name of the task must be set!");
-        }
-        checkTaskArgsAndCreateDefaultValues(args);
-        if (!Boolean.valueOf(args.get(TASK_OVERWRITE).toString()) && tasks.get(name) != null) {
-            throw new InvalidUserDataException("A task with this name already exists!");
-        }
-        Task task = createTaskObject((Class) args.get(TASK_TYPE), name);
-        task.setLateInitalizeClosures((List<Closure>) args.get(TASK_TYPE_LATE_INITIALIZER));
-        tasks.put(name, task);
-        Object dependsOn = args.get(TASK_DEPENDS_ON);
-        if (dependsOn instanceof String || (dependsOn instanceof GString)) {
-            String singleDependencyName = (String) dependsOn;
-            if (singleDependencyName == null) {
-                throw new InvalidUserDataException("A dependency name must not be empty!");
-            }
-            args.put(TASK_DEPENDS_ON, Collections.singletonList(singleDependencyName));
-        }
-        Object[] dependsOnTasks;
-        Object dependsOnTasksArg = args.get(TASK_DEPENDS_ON);
-        if (dependsOnTasksArg instanceof Collection) {
-            dependsOnTasks = (Object[]) ((Collection) dependsOnTasksArg).toArray(new Object[((Collection) dependsOnTasksArg).size()]);
-        } else {
-            dependsOnTasks = new Object[]{dependsOnTasksArg};
-        }
-        logger.debug("Adding dependencies: " + Arrays.asList(dependsOnTasks));
-
-        task.dependsOn(dependsOnTasks);
-
-        if (action != null) {
-            task.doFirst(action);
-        }
-        return task;
-    }
-
-    private Task createTaskObject(Class type, String name) {
-        try {
-            Constructor constructor = type.getDeclaredConstructor(Project.class, String.class);
-            return (Task) constructor.newInstance(this, name);
-        } catch (Exception e) {
-            throw new GradleException("Task creation error.", e);
-        }
-    }
-
-    private void checkTaskArgsAndCreateDefaultValues(Map args) {
-        setIfNull(args, TASK_TYPE, DefaultTask.class);
-        setIfNull(args, TASK_DEPENDS_ON, new ArrayList());
-        setIfNull(args, TASK_TYPE_LATE_INITIALIZER, new ArrayList());
-        setIfNull(args, TASK_OVERWRITE, new Boolean(false));
-    }
-
-    private void setIfNull(Map map, String key, Object defaultValue) {
-        if (map.get(key) == null) {
-            map.put(key, defaultValue);
-        }
+        tasks.put(name, taskFactory.addTask(this, tasks, args, name, action));
+        return tasks.get(name);
     }
 
     public Project addChildProject(String name) {
-        childProjects.put(name, projectFactory.createProject(name, this, rootDir, rootProject, buildScriptClassLoader));
+        childProjects.put(name, createChildProject(name));
         return childProjects.get(name);
     }
+
+    protected abstract AbstractProject createChildProject(String name);
 
     public String getRelativeFilePath() {
         return "/" + rootProject.getName() + "/" + path.substring(1).replace(Project.PATH_SEPARATOR, "/");
@@ -742,7 +666,6 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public Task dir(String path) {
-        String resultTaskName = path;
         String[] pathElements = path.split("/");
         String name = "";
         for (String pathElement : pathElements) {
@@ -757,7 +680,31 @@ public abstract class AbstractProject implements Project, Comparable {
                 createTask(map, name);
             }
         }
-        return task(resultTaskName);
+        return task(path);
     }
 
+    public ITaskFactory getTaskFactory() {
+        return taskFactory;
+    }
+
+    public void setTaskFactory(ITaskFactory taskFactory) {
+        this.taskFactory = taskFactory;
+    }
+
+    public DependencyManagerFactory getDependencyManagerFactory() {
+        return dependencyManagerFactory;
+    }
+
+    public void setDependencyManagerFactory(DependencyManagerFactory dependencyManagerFactory) {
+        this.dependencyManagerFactory = dependencyManagerFactory;
+    }
+
+    public List<AfterEvaluateListener> getAfterEvaluateListeners() {
+        return afterEvaluateListeners;
+    }
+
+    public AfterEvaluateListener addAfterEvaluateListener(AfterEvaluateListener afterEvaluateListener) {
+        afterEvaluateListeners.add(afterEvaluateListener);
+        return afterEvaluateListener;
+    }
 }

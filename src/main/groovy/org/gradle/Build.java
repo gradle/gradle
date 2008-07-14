@@ -171,6 +171,7 @@ public class Build {
                                 buildResolverDir),
                         new ProjectsLoader(
                                 new ProjectFactory(
+                                        new TaskFactory(),
                                         dependencyManagerFactory,
                                         new BuildScriptProcessor(importsReader, inMemoryScriptText, startParameter.getCacheUsage()),
                                         new PluginRegistry(

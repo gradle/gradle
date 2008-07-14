@@ -24,7 +24,7 @@ import org.gradle.api.internal.DefaultTask
 /**
  * @author Hans Dockter
  */
-class Directory extends DefaultTask {
+public class Directory extends DefaultTask {
     File dir
     
     Directory(Project project, String name) {

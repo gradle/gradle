@@ -24,7 +24,15 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface Task extends Comparable {
-    final static String AUTOSKIP_PROPERTY_PREFIX = "skip.";
+    public static final String TASK_NAME = "name";
+
+    public static final String TASK_TYPE = "type";
+
+    public static final String TASK_DEPENDS_ON = "dependsOn";
+
+    public static final String TASK_OVERWRITE = "overwrite";
+
+    public final static String AUTOSKIP_PROPERTY_PREFIX = "skip.";
             
     /**
      *
@@ -99,17 +107,7 @@ public interface Task extends Comparable {
      */
     Task deleteAllActions();
 
-    Task lateInitialize(Closure configureClosure);
-
-    Task applyLateInitialize();
-
     Task afterDag(Closure configureClosure);
-
-    boolean getLateInitialized();
-
-    List<Closure> getLateInitalizeClosures();
-
-    void setLateInitalizeClosures(List<Closure> lateInitalizeClosures);
 
     boolean getEnabled();
     

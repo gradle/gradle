@@ -22,6 +22,7 @@ import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.dependencies.ArtifactDependency
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.dependencies.ProjectDependency
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -35,8 +36,8 @@ class DefaultDependencyManagerFactory implements DependencyManagerFactory {
         this.buildResolverDir = buildResolverDir
     }
 
-    DependencyManager createDependencyManager() {
-        return new DefaultDependencyManager(
+    DependencyManager createDependencyManager(Project project) {
+        DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
                 Ivy.newInstance(),
                 new DependencyFactory([ArtifactDependency, ModuleDependency, ProjectDependency]),
                 new ArtifactFactory(),
@@ -44,5 +45,7 @@ class DefaultDependencyManagerFactory implements DependencyManagerFactory {
                 new ModuleDescriptorConverter(),
                 new Report2Classpath(),
                 buildResolverDir)
+        dependencyManager.setProject(project);
+        return dependencyManager;
     }
 }

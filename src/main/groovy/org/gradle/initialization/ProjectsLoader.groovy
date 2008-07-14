@@ -14,45 +14,45 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.initialization;
 
-import org.gradle.api.Project
-import org.gradle.api.internal.project.*
-import org.gradle.initialization.DefaultSettings
-import org.gradle.util.PathHelper
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.gradle.util.Clock
-import org.gradle.StartParameter
+import org.gradle.api.Project;
+import org.gradle.api.internal.project.*;
+import org.gradle.initialization.DefaultSettings;
+import org.gradle.util.PathHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.gradle.util.Clock;
+import org.gradle.StartParameter;
 
 /**
  * @author Hans Dockter
  */
 class ProjectsLoader {
-    private static Logger logger = LoggerFactory.getLogger(ProjectsLoader)
+    private static Logger logger = LoggerFactory.getLogger(ProjectsLoader.class);
 
-    static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = 'org.gradle.project.'
+    public static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 
-    static final String ENV_PROJECT_PROPERTIES_PREFIX = 'ORG_GRADLE_PROJECT_'
+    public static final String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
 
-    ProjectFactory projectFactory
+    IProjectFactory projectFactory;
 
-    DefaultProject rootProject
+    DefaultProject rootProject;
 
-    DefaultProject currentProject
+    DefaultProject currentProject;
 
     ProjectsLoader() {
 
     }
 
-    ProjectsLoader(ProjectFactory projectFactory) {
-        this.projectFactory = projectFactory
+    ProjectsLoader(IProjectFactory projectFactory) {
+        this.projectFactory = projectFactory;
 
     }
 
     ProjectsLoader load(DefaultSettings settings, ClassLoader buildScriptClassLoader, StartParameter startParameter,
                         Map projectProperties, Map systemProperties, Map envProperties) {
-        logger.info('++ Loading Project objects')
+        logger.info("++ Loading Project objects")
         Clock clock = new Clock()
         rootProject = createProjects(settings, buildScriptClassLoader, startParameter, projectProperties, systemProperties, envProperties)
         currentProject = rootProject.project(PathHelper.getCurrentProjectPath(rootProject.rootDir, startParameter.currentDir))
@@ -74,7 +74,7 @@ class ProjectsLoader {
         Properties userHomeProperties = new Properties()
         logger.debug("Looking for user properties from: $propertyFile")
         if (!propertyFile.isFile()) {
-            logger.debug('user property file does not exists. We continue!')
+            logger.debug("user property file does not exists. We continue!")
         } else {
             userHomeProperties.load(new FileInputStream(propertyFile))
             logger.debug("Adding user properties (if not overwritten by system project properties: $userHomeProperties")
@@ -105,7 +105,7 @@ class ProjectsLoader {
             projectProperties.load(new FileInputStream(projectPropertiesFile))
             logger.debug("Adding project properties (if not overwritten by user properties): $projectProperties")
         } else {
-            logger.debug('project property file does not exists. We continue!')
+            logger.debug("project property file does not exists. We continue!")
         }
         projectProperties.putAll(userProperties)
         projectProperties.putAll(systemProjectProperties)

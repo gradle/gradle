@@ -211,6 +211,10 @@ public interface Project {
 
     public void applyActions(Set<Project> projects, ProjectAction action);
 
+    AfterEvaluateListener addAfterEvaluateListener(AfterEvaluateListener afterEvaluateListener);
+
+    List<AfterEvaluateListener> getAfterEvaluateListeners();
+
     boolean hasProperty(String propertyName);
 
 //    Object getProperty(String propertyName);

@@ -48,10 +48,6 @@ public abstract class AbstractTask implements Task {
 
     boolean executed;
 
-    boolean lateInitialized = false;
-
-    List<Closure> lateInitalizeClosures = new ArrayList<Closure>();
-
     List afterDagClosures = new ArrayList();
 
     boolean enabled = true;
@@ -123,22 +119,6 @@ public abstract class AbstractTask implements Task {
 
     public void setExecuted(boolean executed) {
         this.executed = executed;
-    }
-
-    public boolean isLateInitialized() {
-        return lateInitialized;
-    }
-
-    public void setLateInitialized(boolean lateInitialized) {
-        this.lateInitialized = lateInitialized;
-    }
-
-    public List getLateInitalizeClosures() {
-        return lateInitalizeClosures;
-    }
-
-    public void setLateInitalizeClosures(List<Closure> lateInitalizeClosures) {
-        this.lateInitalizeClosures = lateInitalizeClosures;
     }
 
     public List getAfterDagClosures() {

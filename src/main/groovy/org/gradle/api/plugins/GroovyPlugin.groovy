@@ -23,6 +23,7 @@ import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility
+import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
@@ -49,7 +50,7 @@ class GroovyPlugin extends JavaPlugin {
             conventionMapping.groovyClasspath = {it.project.dependencies.resolve('testCompile')}
         }
 
-        project.createTask(JavaPlugin.JAVADOC, (DefaultProject.TASK_OVERWRITE): true, type: Groovydoc).configure {
+        project.createTask(JavaPlugin.JAVADOC, (Task.TASK_OVERWRITE): true, type: Groovydoc).configure {
             conventionMapping.srcDirs = {project.convention.plugins.java.srcDirs + groovyPluginConvention.groovySrcDirs}
             conventionMapping.destDir = {project.convention.plugins.java.javadocDir}
         }

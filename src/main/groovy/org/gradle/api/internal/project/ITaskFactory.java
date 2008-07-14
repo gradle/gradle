@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api;
+package org.gradle.api.internal.project;
 
-import java.io.File;
+import org.gradle.api.TaskAction;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public interface DependencyManagerFactory {
-    void setBuildResolverDir(File buildResolverDir);
-    
-    DependencyManager createDependencyManager(Project project);
+public interface ITaskFactory {
+    public Task addTask(Project project, Map tasksMap, Map args, String name, TaskAction action);
 }

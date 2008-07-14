@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectFactory
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.BuildScriptProcessor
 import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.project.TaskFactory
 
 /**
  * @author Hans Dockter
@@ -54,13 +55,8 @@ class VersionTest extends GroovyTestCase {
                 null,
                 null,
                 null,
-                new ProjectFactory(
-                        new DefaultDependencyManagerFactory(new File('root')),
-                        new BuildScriptProcessor(),
-                        new PluginRegistry(),
-                        'testBuildFileName',
-                        projectRegistry),
-                new DefaultDependencyManagerFactory(new File('root')).createDependencyManager(),
+                new TaskFactory(),
+                new DefaultDependencyManagerFactory(new File('root')),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 projectRegistry)
