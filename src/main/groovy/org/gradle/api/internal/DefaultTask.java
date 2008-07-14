@@ -19,8 +19,10 @@ package org.gradle.api.internal;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.TaskAction;
 import org.gradle.util.GroovyJavaHelper;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import groovy.lang.Closure;
@@ -37,15 +39,15 @@ public class DefaultTask extends AbstractTask {
 
     }
 
-    public DefaultTask(Project project, String name) {
-        super(project, name);
+    public DefaultTask(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
     }
 
     public Task doFirst(Closure action) {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        doFirst(GroovyJavaHelper.closureToAction(action));
+        doFirst(convertClosureToAction(action));
         return this;
     }
 
@@ -53,7 +55,7 @@ public class DefaultTask extends AbstractTask {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        doLast(GroovyJavaHelper.closureToAction(action));
+        doLast(convertClosureToAction(action));
         return this;
     }
 
@@ -80,6 +82,30 @@ public class DefaultTask extends AbstractTask {
 
     public boolean getExecuted() {
         return executed;
+    }
+
+    private TaskAction convertClosureToAction(final Closure actionClosure) {
+        if (actionClosure.getMaximumNumberOfParameters() == 0) {
+            return new TaskAction() {
+                public void execute(Task task, Dag tasksGraph) {
+                    actionClosure.call();
+                }
+            };
+        } else if (actionClosure.getMaximumNumberOfParameters() == 1) {
+            return new TaskAction() {
+                public void execute(Task task, Dag tasksGraph) {
+                    actionClosure.call(new Object[] {task});
+                }
+            };
+        } else if (actionClosure.getMaximumNumberOfParameters() == 2) {
+            return new TaskAction() {
+                public void execute(Task task, Dag tasksGraph) {
+                    actionClosure.call(new Object[] {task, tasksGraph});
+                }
+            };
+        } else {
+            throw new InvalidUserDataException("Action closure has too many arguments!");
+        }
     }
 
 }

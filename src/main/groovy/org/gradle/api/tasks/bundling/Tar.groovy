@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.util.TarFileSet
+import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
@@ -31,8 +32,8 @@ public class Tar extends Zip {
 
     AntTar antTar = new AntTar()
 
-    Tar(Project project, String name) {
-        super(project, name)
+    Tar(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         extension = TAR_EXTENSION
         compression = Compression.NONE
         longFile = LongFile.WARN

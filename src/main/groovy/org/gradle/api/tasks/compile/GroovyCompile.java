@@ -23,6 +23,7 @@ import org.gradle.util.GradleUtil;
 import org.gradle.util.GUtil;
 import org.gradle.api.Project;
 import org.gradle.api.TaskAction;
+import org.gradle.execution.Dag;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -64,11 +65,11 @@ public class GroovyCompile extends Compile {
      */
     private List groovyJavaExcludes = null;
 
-    public GroovyCompile(Project project, String name) {
-        super(project, name);
+    public GroovyCompile(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         setActions(new ArrayList<TaskAction>());
         doFirst(new TaskAction() {
-            public void execute(Task task) {
+            public void execute(Task task, Dag tasksGraph) {
                 compile(task);
             }
         });

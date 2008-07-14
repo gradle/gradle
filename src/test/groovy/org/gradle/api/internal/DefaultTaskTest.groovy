@@ -21,7 +21,8 @@ import org.gradle.api.internal.DefaultTask
 import org.gradle.api.tasks.AbstractTaskTest
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
+import org.gradle.execution.Dag;
  
 /**
  * @author Hans Dockter
@@ -31,10 +32,10 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME)
+        defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
     }
 
-    Task getTask() {
+    AbstractTask getTask() {
         defaultTask
     }
 
@@ -42,5 +43,4 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertEquals new TreeSet(), defaultTask.dependsOn
         assertEquals([], defaultTask.actions)
     }
-
 }

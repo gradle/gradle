@@ -27,7 +27,8 @@ import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import static org.junit.Assert.*
-import org.junit.Before;
+import org.junit.Before
+import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
@@ -53,13 +54,13 @@ class TestTest extends AbstractConventionTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        test = new Test(project, AbstractTaskTest.TEST_TASK_NAME)
+        test = new Test(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         test.project.rootDir = TEST_ROOT_DIR
         antJUnitMocker = new MockFor(AntJunit)
         dependencyManagerMocker = new MockFor(DependencyManager)
     }
 
-    Task getTask() {test}
+    AbstractTask getTask() {test}
 
     @Test public void testCompile() {
         assertNotNull(test.antJunit)

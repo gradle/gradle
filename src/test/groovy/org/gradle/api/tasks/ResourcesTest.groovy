@@ -30,7 +30,8 @@ import org.junit.Before
 import org.jmock.lib.legacy.ClassImposteriser
 import org.jmock.Expectations
 import org.gradle.api.tasks.util.CopyInstruction
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
+import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
@@ -51,7 +52,7 @@ class ResourcesTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        resources = new Resources(project, AbstractTaskTest.TEST_TASK_NAME)
+        resources = new Resources(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         pluginConvention = new ResourcesTestConvention()
         pluginConvention.classesDir = new File('/classes')
         project.convention.plugins.test = pluginConvention
@@ -60,7 +61,7 @@ class ResourcesTest extends AbstractTaskTest {
         resources.copyInstructionFactory = copyInstructionFactoryMock
     }
 
-    Task getTask() {resources}
+    AbstractTask getTask() {resources}
 
     @Test public void testExecute() {
         assertEquals(pluginConvention.classesDir, resources.destinationDir)

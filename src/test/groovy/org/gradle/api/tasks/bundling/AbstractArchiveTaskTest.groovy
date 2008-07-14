@@ -29,7 +29,8 @@ import org.gradle.api.tasks.util.AntDirective
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.GradleScriptException
+import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
@@ -41,7 +42,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     MockFor dependencyManagerMock
 
-    Task getTask() {
+    AbstractTask getTask() {
         archiveTask
     }
 

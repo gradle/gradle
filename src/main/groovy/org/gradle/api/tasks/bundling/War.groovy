@@ -22,7 +22,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.util.List;
-import java.io.File;
+import java.io.File
+import org.gradle.execution.Dag;
 
 /**
  * @author Hans Dockter
@@ -44,8 +45,8 @@ class War extends Jar {
 
     File webXml
 
-    War(Project project, String name) {
-        super(project, name)
+    War(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         extension = WAR_EXTENSION
     }
 

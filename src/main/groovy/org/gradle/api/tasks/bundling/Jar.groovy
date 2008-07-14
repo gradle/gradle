@@ -20,7 +20,8 @@ import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import java.util.List;
+import java.util.List
+import org.gradle.execution.Dag;
 
 /**
 * @author Hans Dockter
@@ -38,8 +39,8 @@ public class Jar extends Zip {
 
     String fileSetManifest
 
-    Jar(Project project, String name) {
-        super(project, name)
+    Jar(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         extension = DEFAULT_EXTENSION
     }   
 

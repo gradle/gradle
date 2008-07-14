@@ -16,6 +16,7 @@ import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.tasks.StopExecutionException
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.api.Task
 
 archivesBaseName = 'gradle'
 
@@ -39,24 +40,6 @@ webSrcDir = new File("$srcRoot", 'website')
 
 libDir = new File(rootDir, 'lib')
 launch4jVersion = '3.0.0'
-
-configureByDag {Dag dag ->
-    if (dag.hasTask(':release')) {
-        versionModifier = ''
-        distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
-        userguideRemoteDir += 'release'
-        javadocRemoteDir += 'release'
-    } else {
-        versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
-        distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
-        userguideRemoteDir += 'latest'
-        javadocRemoteDir += 'latest'
-    }
-    manifest.mainAttributes([
-            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
-    ])
-}
 
 dependencies {
     addFlatDirResolver('lib', libDir, "$libDir/launch4j")
@@ -105,7 +88,25 @@ dependencies {
     }
     distLib ":junit:4.4"
     launch4j ":launch4j-base:$launch4jVersion@zip", ":launch4j-bin-mac:$launch4jVersion@zip",
-            ":launch4j-bin-windows:$launch4jVersion@zip", ":launch4j-bin-unix:$launch4jVersion@zip" 
+            ":launch4j-bin-windows:$launch4jVersion@zip", ":launch4j-bin-unix:$launch4jVersion@zip"
+}
+
+init.doFirst {Task task, Dag dag ->
+    if (dag.hasTask(':release')) {
+        versionModifier = ''
+        distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
+        userguideRemoteDir += 'release'
+        javadocRemoteDir += 'release'
+    } else {
+        versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
+        distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
+        userguideRemoteDir += 'latest'
+        javadocRemoteDir += 'latest'
+    }
+    manifest.mainAttributes([
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
+    ])
 }
 
 resources.doLast {
@@ -181,7 +182,7 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
         createLaunch4j(explodedDistLaunch4jLibDir, launch4jDistName)
         try {
             ant.taskdef(
-                name: "launch4j",
+                    name: "launch4j",
                     classname: "net.sf.launch4j.ant.Launch4jTask",
                     classpath: "$buildDir/$launch4jDistName/launch4j.jar:$buildDir/$launch4jDistName/lib/xstream.jar")
             ant.launch4j() {
@@ -204,7 +205,7 @@ def createLaunch4j(File launch4jLibDir, String launch4jDistName) {
             Os.isFamily(family)
         }
         unzip(src: "$launch4jLibDir/launch4j-bin-${os}-${launch4jVersion}.zip", dest: "$buildDir/$launch4jDistName")
-        chmod(dir: "$buildDir/$launch4jDistName/bin", perm: "ugo+rx", includes: "windres,ld") 
+        chmod(dir: "$buildDir/$launch4jDistName/bin", perm: "ugo+rx", includes: "windres,ld")
     }
 }
 
@@ -212,39 +213,46 @@ zipRootFolder = "$archivesBaseName-${-> version}"
 
 dists {
     dependsOn 'explodedDist'
-    zip(classifier: 'all').afterDag {
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            exclude 'bin/*'
-        }
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
-            include 'bin/*'
-            exclude 'bin/*.*'
-        }
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            include 'bin/*.*'
-        }
-    }
-    zip(classifier: 'bin').afterDag {
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            exclude 'bin/*'
-            exclude 'src/'
-            exclude 'samples/'
-        }
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
-            include 'bin/*'
-            exclude 'bin/*.*'
-        }
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            include 'bin/*.*'
+    zip(classifier: 'all').doFirst {Task task ->
+        task.configure {
+            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+                exclude 'bin/*'
+            }
+            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
+                include 'bin/*'
+                exclude 'bin/*.*'
+            }
+            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+                include 'bin/*.*'
+            }
         }
     }
-    zip(classifier: 'src').afterDag {
-        destinationDir = distsDir
-        zipFileSet(dir: projectDir, prefix: archiveName, fileMode: '775') {
-            include 'gradlew'
+    zip(classifier: 'bin').doFirst {Task task ->
+        task.configure {
+            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+                exclude 'bin/*'
+                exclude 'src/'
+                exclude 'samples/'
+            }
+            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
+                include 'bin/*'
+                exclude 'bin/*.*'
+            }
+            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+                include 'bin/*.*'
+            }
         }
-        zipFileSet(dir: projectDir, prefix: archiveName) {
-            include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
+    }
+    
+    zip(classifier: 'src').doFirst { Task task ->
+        task.configure {
+            destinationDir = distsDir
+            zipFileSet(dir: projectDir, prefix: archiveName, fileMode: '775') {
+                include 'gradlew'
+            }
+            zipFileSet(dir: projectDir, prefix: archiveName) {
+                include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
+            }
         }
     }
 }

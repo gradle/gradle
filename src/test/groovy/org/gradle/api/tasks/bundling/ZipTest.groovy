@@ -33,7 +33,7 @@ class ZipTest extends AbstractArchiveTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        zip = new Zip(project, AbstractTaskTest.TEST_TASK_NAME)
+        zip = new Zip(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         configure(zip)
         antZipMocker = new MockFor(AntZip)
     }
@@ -56,7 +56,7 @@ class ZipTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testZip() {
-        zip = new Zip(project, AbstractTaskTest.TEST_TASK_NAME)
+        zip = new Zip(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         assertEquals(Zip.ZIP_EXTENSION, zip.extension)
         checkConstructor()
     }

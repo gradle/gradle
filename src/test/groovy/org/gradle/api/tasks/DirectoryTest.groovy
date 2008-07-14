@@ -22,7 +22,8 @@ import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.After;
+import org.junit.After
+import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
@@ -32,14 +33,14 @@ class DirectoryTest extends AbstractTaskTest {
     Directory directoryForAbstractTest
     Directory directory
 
-    public Task getTask() {
+    public AbstractTask getTask() {
         return directoryForAbstractTest
     }
 
     @Before public void setUp() {
         super.setUp()
-        directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
-        directory = new Directory(project, TASK_DIR_NAME)
+        directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        directory = new Directory(project, TASK_DIR_NAME, getTasksGraph())
         HelperUtil.makeNewTestDir()
     }
 
@@ -53,7 +54,7 @@ class DirectoryTest extends AbstractTaskTest {
     }
 
     @Test (expected = InvalidUserDataException) public void testInitWithAbsolutePathName() {
-        directory = new Directory(project, new File('nonRelative').absolutePath)
+        directory = new Directory(project, new File('nonRelative').absolutePath, null)
     }
 
     @Test public void testExecute() {
@@ -75,7 +76,7 @@ class DirectoryTest extends AbstractTaskTest {
     @Test (expected = InvalidUserDataException) public void testWithExistingFile() {
         File file = new File(project.projectDir, 'testname')
         file.createNewFile()
-        directory = new Directory(project, 'testname')
+        directory = new Directory(project, 'testname', null)
         directory.execute()
     }
 

@@ -28,6 +28,9 @@ import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
+import org.gradle.api.TaskAction
+import org.gradle.api.Task
+import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
@@ -121,7 +124,9 @@ class HelperUtil {
         new MyScript()        
     }
 
-
+    static Closure createTaskActionClosure() {
+        return { Task task, Dag dag -> }
+}
 }
 
 class MyScript extends Script {

@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.DefaultTask
+import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
@@ -27,8 +28,8 @@ import org.gradle.api.internal.DefaultTask
 public class Directory extends DefaultTask {
     File dir
     
-    Directory(Project project, String name) {
-        super(project, name)
+    Directory(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
         doFirst(this.&mkdir)
         dir = project.file(name)

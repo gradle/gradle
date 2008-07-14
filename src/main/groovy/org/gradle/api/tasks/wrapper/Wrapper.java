@@ -24,6 +24,7 @@ import org.gradle.util.GradleUtil;
 import org.gradle.util.GUtil;
 import org.gradle.wrapper.Install;
 import org.gradle.Main;
+import org.gradle.execution.Dag;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -74,10 +75,10 @@ public class Wrapper extends DefaultTask {
 
     private WindowsExeGenerator windowsExeGenerator = new WindowsExeGenerator();
 
-    public Wrapper(Project project, String name) {
-        super(project, name);
+    public Wrapper(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task) {
+            public void execute(Task task, Dag tasksGraph) {
                 generate(task);
             }
         });

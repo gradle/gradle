@@ -33,7 +33,7 @@ class JarTest extends AbstractArchiveTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        jar = new Jar(project, AbstractTaskTest.TEST_TASK_NAME)
+        jar = new Jar(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         configure(jar)
         jar.manifest = new GradleManifest()
         jar.metaInfResourceCollections = [new FileSet()]

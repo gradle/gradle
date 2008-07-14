@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.*;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.util.GUtil;
+import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,13 @@ import groovy.lang.GString;
 public class TaskFactory implements ITaskFactory {
     private static Logger logger = LoggerFactory.getLogger(TaskFactory.class);
 
-    public Task addTask(Project project, Map tasksMap, Map args, String name, TaskAction action) {
+    private Dag tasksGraph;
+
+    public TaskFactory(Dag tasksGraph) {
+        this.tasksGraph = tasksGraph;
+    }
+
+    public Task createTask(Project project, Map tasksMap, Map args, String name) {
         if (!GUtil.isTrue(name)) {
             throw new InvalidUserDataException("The name of the task must be set!");
         }
@@ -60,17 +67,14 @@ public class TaskFactory implements ITaskFactory {
         logger.debug("Adding dependencies: " + Arrays.asList(dependsOnTasks));
 
         task.dependsOn(dependsOnTasks);
-
-        if (action != null) {
-            task.doFirst(action);
-        }
+        
         return task;
     }
 
     private Task createTaskObject(Project project, Class type, String name) {
         try {
-            Constructor constructor = type.getDeclaredConstructor(Project.class, String.class);
-            return (Task) constructor.newInstance(project, name);
+            Constructor constructor = type.getDeclaredConstructor(Project.class, String.class, Dag.class);
+            return (Task) constructor.newInstance(project, name, tasksGraph);
         } catch (Exception e) {
             throw new GradleException("Task creation error.", e);
         }
@@ -86,5 +90,13 @@ public class TaskFactory implements ITaskFactory {
         if (map.get(key) == null) {
             map.put(key, defaultValue);
         }
+    }
+
+    public Dag getTasksGraph() {
+        return tasksGraph;
+    }
+
+    public void setTasksGraph(Dag tasksGraph) {
+        this.tasksGraph = tasksGraph;
     }
 }

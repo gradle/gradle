@@ -30,6 +30,7 @@ import org.gradle.util.HelperUtil
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.gradle.api.internal.AbstractTask
 
 /**
  * @author Hans Dockter
@@ -47,7 +48,7 @@ class UploadTest extends AbstractTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        upload = new Upload(project, AbstractTaskTest.TEST_TASK_NAME)
+        upload = new Upload(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         (projectRootDir = new File(HelperUtil.makeNewTestDir(), 'root')).mkdir()
         dependenciesMocker = new MockFor(DefaultDependencyManager)
         ivyMocker = new MockFor(Ivy)
@@ -55,7 +56,7 @@ class UploadTest extends AbstractTaskTest {
         moduleDescriptorConverterMocker = new MockFor(ModuleDescriptorConverter)
     }
 
-    Task getTask() {
+    AbstractTask getTask() {
         upload
     }
 
@@ -73,7 +74,7 @@ class UploadTest extends AbstractTaskTest {
         upload.configurations = expectedConfigurations
         upload.project = HelperUtil.createRootProject(projectRootDir)
         upload.project.dependencies = new DefaultDependencyManager()
-        Bundle bundle = new Bundle(upload.project, 'bundle')
+        Bundle bundle = new Bundle(upload.project, 'bundle', getTasksGraph())
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
         AbstractArchiveTask zip1 = bundle.zip(baseName: 'zip1')
         AbstractArchiveTask zip2 = bundle.zip(baseName: 'zip2')

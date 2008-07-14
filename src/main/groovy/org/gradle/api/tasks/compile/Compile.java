@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.*;
 import org.gradle.util.GUtil;
+import org.gradle.execution.Dag;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -86,10 +87,10 @@ public class Compile extends ConventionTask {
 
     protected ClasspathConverter classpathConverter = new ClasspathConverter();
 
-    public Compile(Project project, String name) {
-        super(project, name);
+    public Compile(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task) {
+            public void execute(Task task, Dag tasksGraph) {
                 compile(task);
             }
         });

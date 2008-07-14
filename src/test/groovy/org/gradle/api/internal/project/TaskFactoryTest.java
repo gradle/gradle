@@ -26,6 +26,7 @@ import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.TaskAction;
 import org.gradle.api.Task;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.execution.Dag;
 
 import java.util.*;
 
@@ -46,11 +47,13 @@ public class TaskFactoryTest {
 
     private Map tasks;
 
+    private Dag testTaskGraph;
+
     @Before public void setUp() {
-        taskFactory = new TaskFactory();
+        taskFactory = new TaskFactory(testTaskGraph);
         testProject = new DefaultProject();
         testAction = new TaskAction() {
-            public void execute(Task task) {
+            public void execute(Task task, Dag tasksGraph) {
                 ;
             }
         };
@@ -58,49 +61,42 @@ public class TaskFactoryTest {
         tasks = new HashMap();
     }
 
-    @Test public void testCreateTask() {
-        assertEquals(0, checkTask(taskFactory.addTask(testProject, tasks, empyArgMap, TEST_TASK_NAME, null)).getActions().size());
+    @Test public void testInit() {
+        assertSame(testTaskGraph, taskFactory.getTasksGraph());
     }
 
-    @Test public void testCreateTaskWithActions() {
-        assertEquals(WrapUtil.toList(testAction), checkTask(taskFactory.addTask(testProject, tasks, empyArgMap, TEST_TASK_NAME, testAction)).getActions());
+    @Test public void testCreateTask() {
+        assertEquals(0, checkTask(taskFactory.createTask(testProject, tasks, empyArgMap, TEST_TASK_NAME)).getActions().size());
     }
 
     @Test public void testCreateTaskWithDependencies() {
         List testDependsOn = WrapUtil.toList("/path1");
-        Task task = checkTask(taskFactory.addTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn), TEST_TASK_NAME, null));
+        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn), TEST_TASK_NAME));
         assertEquals(new HashSet(testDependsOn),task.getDependsOn());
         assert task.getActions().size() == 0;
     }
 
     @Test public void testCreateTaskWithSingleDependency() {
         String testDependsOn = "/path1";
-        Task task = checkTask(taskFactory.addTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn), TEST_TASK_NAME, null));
+        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn), TEST_TASK_NAME));
         assertEquals(WrapUtil.toSet(testDependsOn), task.getDependsOn());
         assert task.getActions().size() == 0;
     }
 
-    @Test public void testCreateTaskWithActionAndDependencies() {
-        List testDependsOn = WrapUtil.toList("/path1", "path2", "path2/path3");
-        Task task = checkTask(taskFactory.addTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn), TEST_TASK_NAME, testAction));
-        assertEquals(new HashSet(testDependsOn), task.getDependsOn());
-        assertEquals(WrapUtil.toList(testAction), task.getActions());
-    }
-
     @Test (expected = InvalidUserDataException.class) public void testCreateDefaultTaskWithSameNameAsExistingTask() {
         tasks.put(TEST_TASK_NAME, new DefaultTask());
-        taskFactory.addTask(testProject, tasks, empyArgMap, TEST_TASK_NAME, null);
+        taskFactory.createTask(testProject, tasks, empyArgMap, TEST_TASK_NAME);
     }
 
     @Test public void testCreateDefaultTaskWithSameNameAsExistingTaskAndOverwriteTrue() {
         Task oldTask = new DefaultTask();
         tasks.put(TEST_TASK_NAME, oldTask);
-        Task task = taskFactory.addTask(testProject, tasks, WrapUtil.toMap("overwrite", true), TEST_TASK_NAME, null);
+        Task task = taskFactory.createTask(testProject, tasks, WrapUtil.toMap("overwrite", true), TEST_TASK_NAME);
         Assert.assertNotSame(oldTask, task);
     }
 
     @Test public void testCreateTaskWithNonDefaultType() {
-        Task task = checkTask(taskFactory.addTask(testProject, tasks, WrapUtil.toMap(Task.TASK_TYPE, TestTask.class), TEST_TASK_NAME, null));
+        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap(Task.TASK_TYPE, TestTask.class), TEST_TASK_NAME));
         assertEquals(TestTask.class, task.getClass());
     }
 

@@ -105,16 +105,12 @@ class DefaultProject extends AbstractProject {
         project.additionalProperties[name] = value
     }
 
-    public void configureByDag(Closure configureByDag) {
-        setConfigureByDag(configureByDag as DagAction)
-    }
-
     public Task createTask(String name, Closure action) {
         return createTask(new HashMap(), name, action);
     }
 
     public Task createTask(Map args, String name, Closure action) {
-        return createTask(args, name, action as TaskAction)
+        return createTask(args, name).doFirst(action);
     }
 
     public AntBuilder ant(Closure configureClosure) {

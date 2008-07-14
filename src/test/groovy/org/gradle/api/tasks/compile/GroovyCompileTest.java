@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
@@ -53,7 +54,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        testObj = new GroovyCompile(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        testObj = new GroovyCompile(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
         testObj.getProject().setRootDir(AbstractCompileTest.TEST_ROOT_DIR);
         antJavacCompileMock = context.mock(AntJavac.class);
         antGroovycCompileMock = context.mock(AntGroovyc.class);
@@ -61,7 +62,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         testObj.antCompile = antJavacCompileMock;
     }
 
-    public Task getTask() {
+    public AbstractTask getTask() {
         return testObj;
     }
 

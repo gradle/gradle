@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -51,7 +52,7 @@ public class CleanTest extends AbstractConventionTaskTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        clean = new Clean(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        clean = new Clean(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
         existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
     }
 
@@ -60,7 +61,7 @@ public class CleanTest extends AbstractConventionTaskTest {
         HelperUtil.deleteTestDir();
     }
 
-    public Task getTask() {
+    public AbstractTask getTask() {
         return clean;
     }
 

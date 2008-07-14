@@ -161,6 +161,7 @@ public class Build {
             public Build newInstance(String inMemoryScriptText, File buildResolverDir) {
                 DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
                 ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
+                Dag tasksGraph = new Dag();
                 return new Build(
                         new RootFinder(),
                         new SettingsProcessor(
@@ -171,7 +172,7 @@ public class Build {
                                 buildResolverDir),
                         new ProjectsLoader(
                                 new ProjectFactory(
-                                        new TaskFactory(),
+                                        new TaskFactory(tasksGraph),
                                         dependencyManagerFactory,
                                         new BuildScriptProcessor(importsReader, inMemoryScriptText, startParameter.getCacheUsage()),
                                         new PluginRegistry(
@@ -183,8 +184,8 @@ public class Build {
                         new BuildConfigurer(
                                 new ProjectDependencies2TaskResolver(),
                                 new ProjectTasksPrettyPrinter()),
-                        new BuildExecuter(
-                                new Dag()));
+                        new BuildExecuter(tasksGraph
+                                ));
             }
         };
     }

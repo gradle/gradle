@@ -17,13 +17,14 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
+import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
  */
 class TestArchiveTask extends AbstractArchiveTask {
-    TestArchiveTask(Project project, String name) {
-        super(project, name)
+    TestArchiveTask(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph)
     }
 
     public Closure createAntArchiveTask() {

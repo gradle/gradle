@@ -22,10 +22,6 @@ import org.gradle.api.TaskAction
  * @author Hans Dockter
  */
 class GroovyJavaHelper {
-    static TaskAction closureToAction(Closure closure) {
-        closure as TaskAction
-    }
-
     static Closure createNoArgsClosure(Object returnValue) {
         {->  returnValue }
     }
@@ -37,4 +33,5 @@ class GroovyJavaHelper {
     static Closure createExecuteClosure(Object executable) {
         { -> executable.execute() }
     }
+
 }

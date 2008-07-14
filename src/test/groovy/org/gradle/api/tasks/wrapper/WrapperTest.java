@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.wrapper;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.*;
 import org.gradle.Main;
@@ -63,7 +64,7 @@ public class WrapperTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
         unixWrapperScriptGeneratorMock = context.mock(UnixWrapperScriptGenerator.class);
         windowsExeGenerator = context.mock(WindowsExeGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
@@ -107,13 +108,13 @@ public class WrapperTest extends AbstractTaskTest {
         }
     }
 
-    public Task getTask() {
+    public AbstractTask getTask() {
         return wrapper;
     }
 
     @Test
     public void testWrapper() {
-        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
         assertEquals("", wrapper.getJarPath());
         assertEquals("", wrapper.getScriptDestinationPath());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());

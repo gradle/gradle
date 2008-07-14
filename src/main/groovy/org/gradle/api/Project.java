@@ -195,8 +195,6 @@ public interface Project {
     int depthCompare(Project otherProject);
     int getDepth();
 
-    DagAction getConfigureByDag();
-
     Map<String, Task> getTasks();
 
     Map getPluginApplyRegistry();

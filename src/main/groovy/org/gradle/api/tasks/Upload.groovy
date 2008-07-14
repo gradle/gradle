@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.Project
 import org.gradle.api.internal.DefaultTask
+import org.gradle.execution.Dag
 
 /**
  * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
@@ -58,8 +59,8 @@ class Upload extends DefaultTask {
      */
     Set bundles = []
 
-    Upload(Project project, String name) {
-        super(project, name)
+    Upload(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         doFirst(this.&upload);
     }
 

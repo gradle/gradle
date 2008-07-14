@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.CopyInstructionFactory;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.GUtil;
+import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,10 +100,10 @@ public class Resources extends ConventionTask {
 
     ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
-    public Resources(Project project, String name) {
-        super(project, name);
+    public Resources(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         doLast(new TaskAction() {
-            public void execute(Task task) {
+            public void execute(Task task, Dag tasksGraph) {
                 copyResources(task);
             }
         });

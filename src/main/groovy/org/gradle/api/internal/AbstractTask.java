@@ -19,6 +19,7 @@ import org.gradle.api.*;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.util.GUtil;
+import org.gradle.execution.Dag;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
@@ -37,6 +38,8 @@ public abstract class AbstractTask implements Task {
     AntBuilder ant = new AntBuilder();
 
     Project project;
+
+    Dag tasksGraph;
 
     String name;
 
@@ -60,11 +63,12 @@ public abstract class AbstractTask implements Task {
 
     }
 
-    public AbstractTask(Project project, String name) {
+    public AbstractTask(Project project, String name, Dag tasksGraph) {
         assert project != null;
         assert name != null;
         this.project = project;
         this.name = name;
+        this.tasksGraph = tasksGraph;
         String separator = project == (project.getRootProject()) ? "" : Project.PATH_SEPARATOR;
         path = project.getPath() + separator + name;
     }
@@ -97,11 +101,11 @@ public abstract class AbstractTask implements Task {
         this.actions = actions;
     }
 
-    public List getSkipProperties() {
+    public List<String> getSkipProperties() {
         return skipProperties;
     }
 
-    public void setSkipProperties(List skipProperties) {
+    public void setSkipProperties(List<String> skipProperties) {
         this.skipProperties = skipProperties;
     }
 
@@ -153,6 +157,14 @@ public abstract class AbstractTask implements Task {
         this.dagNeutral = dagNeutral;
     }
 
+    public Dag getTasksGraph() {
+        return tasksGraph;
+    }
+
+    public void setTasksGraph(Dag tasksGraph) {
+        this.tasksGraph = tasksGraph;
+    }
+
     public Task deleteAllActions() {
         actions = new ArrayList<TaskAction>();
         return this;
@@ -180,7 +192,7 @@ public abstract class AbstractTask implements Task {
             for (TaskAction action : actions) {
                 logger.debug("Executing Action:");
                 try {
-                    action.execute(this);
+                    action.execute(this, getTasksGraph());
                 } catch (StopExecutionException e) {
                     logger.info("Execution stopped by some action with message: $e.message");
                     break;

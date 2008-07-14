@@ -16,6 +16,9 @@
 package org.gradle.test.util;
 
 import org.junit.Assert;
+import org.gradle.api.TaskAction;
+import org.gradle.api.Task;
+import org.gradle.execution.Dag;
 
 /**
  * @author Hans Dockter
@@ -35,5 +38,13 @@ public class Check {
 
     public static interface Execute {
         void execute();
+    }
+
+    public static TaskAction createTaskAction() {
+        return new TaskAction() {
+            public void execute(Task task, Dag tasksGraph) {
+                
+            }
+        };
     }
 }

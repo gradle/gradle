@@ -31,7 +31,8 @@ import org.gradle.util.ConfigureUtil
 
 import java.io.File;
 import java.util.List
-import org.gradle.util.GUtil;
+import org.gradle.util.GUtil
+import org.gradle.execution.Dag;
 
 /**
  * @author Hans Dockter
@@ -113,8 +114,8 @@ public abstract class AbstractArchiveTask extends ConventionTask {
 
     protected ArchiveDetector archiveDetector = new ArchiveDetector()
 
-    public AbstractArchiveTask(Project project, String name) {
-        super(project, name)
+    public AbstractArchiveTask(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         doLast(this.&generateArchive)
     }
 

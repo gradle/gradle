@@ -15,9 +15,11 @@
  */
 package org.gradle.api;
 
+import org.gradle.execution.Dag;
+
 /**
  * @author Hans Dockter
  */
 public interface TaskAction {
-    void execute(Task task);
+    void execute(Task task, Dag tasksGraph);
 }

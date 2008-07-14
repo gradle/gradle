@@ -23,6 +23,7 @@ import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.Project
+import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
@@ -40,8 +41,8 @@ class Javadoc extends ConventionTask {
 
     AntJavadoc antJavadoc = new AntJavadoc()
 
-    Javadoc(Project project, String name) {
-        super(project, name)
+    Javadoc(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         doFirst(this.&generate)
     }
 

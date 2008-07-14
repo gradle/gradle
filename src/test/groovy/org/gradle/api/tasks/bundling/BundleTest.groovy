@@ -27,7 +27,8 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.junit.runner.RunWith
 import org.gradle.api.internal.project.ITaskFactory
 import org.gradle.api.Project
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.jmock.lib.legacy.ClassImposteriser
+import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
@@ -66,7 +67,7 @@ class BundleTest extends AbstractConventionTaskTest {
 
     ITaskFactory taskFactoryMock;
 
-    Task getTask() {bundle}
+    AbstractTask getTask() {bundle}
 
     @Before public void setUp()  {
         super.setUp()
@@ -80,7 +81,7 @@ class BundleTest extends AbstractConventionTaskTest {
         }
         testChildrenDependsOn = ['othertaskpath', 'othertaskpath2']
         testBundleDependsOn = ['othertaskpath10', 'othertaskpath11']
-        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
+        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         bundle.childrenDependOn = testChildrenDependsOn
         bundle.dependsOn = testBundleDependsOn
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
@@ -91,7 +92,7 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testBundle() {
-        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
+        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         assertEquals([] as Set, bundle.childrenDependOn)
     }
 
@@ -190,9 +191,9 @@ class BundleTest extends AbstractConventionTaskTest {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
             allowing(projectMock).getArchivesTaskBaseName(); will(returnValue('archive'))
             one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip1_zip")
-            will(returnValue(Zip.newInstance(getProject(), "zip1_zip")))
+            will(returnValue(Zip.newInstance(getProject(), "zip1_zip", null)))
             one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip2_zip")
-            will(returnValue(Zip.newInstance(getProject(), "zip2_zip")))
+            will(returnValue(Zip.newInstance(getProject(), "zip2_zip", null)))
         }
     }
 
@@ -206,7 +207,7 @@ class BundleTest extends AbstractConventionTaskTest {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
             allowing(projectMock).getArchivesTaskBaseName(); will(returnValue(Project.DEFAULT_ARCHIVES_TASK_BASE_NAME))
             one(projectMock).createTask([(Task.TASK_TYPE): archiveType.getTaskClass()], taskName)
-            will(returnValue(archiveType.getTaskClass().newInstance(getProject(), taskName)))
+            will(returnValue(archiveType.getTaskClass().newInstance(getProject(), taskName, getTasksGraph())))
         }
     }
 

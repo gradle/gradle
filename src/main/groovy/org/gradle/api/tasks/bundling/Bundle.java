@@ -22,6 +22,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Resources;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +44,8 @@ public class Bundle extends ConventionTask {
 
     private List<String> archiveNames = new ArrayList<String>();
 
-    public Bundle(Project project, String name) {
-        super(project, name);
+    public Bundle(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
     }
 
     public AbstractArchiveTask createArchive(ArchiveType type, Closure configureClosure) {

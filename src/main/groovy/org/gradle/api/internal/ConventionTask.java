@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.execution.Dag;
 
 import java.util.Map;
 
@@ -27,8 +28,8 @@ import java.util.Map;
 public abstract class ConventionTask extends DefaultTask implements IConventionAware {
     private ConventionAwareHelper conventionAwareHelper;
     
-    public ConventionTask(Project project, String name) {
-        super(project, name);
+    public ConventionTask(Project project, String name, Dag tasksGraph) {
+        super(project, name, tasksGraph);
         conventionAwareHelper = new ConventionAwareHelper(this);
         conventionAwareHelper.setConvention(project.getConvention());
     }

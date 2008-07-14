@@ -58,14 +58,6 @@ public class BuildExecuter {
         Clock clock = new Clock();
         dag.reset();
         fillDag(this.dag, calledTasks, rootProject);
-        for (Project project : dag.getProjects()) {
-            if (project.getConfigureByDag() != null) {
-                project.getConfigureByDag().execute(dag);
-            }
-        }
-        for (DefaultTask defaultTask : dag.getAllTasks()) {
-            defaultTask.applyAfterDagClosures();
-        }
         logger.info("Timing: Creating the DAG took " + clock.getTime());
         clock.reset();
         dag.execute();

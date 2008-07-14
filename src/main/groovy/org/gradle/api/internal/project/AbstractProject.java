@@ -15,24 +15,19 @@
  */
 package org.gradle.api.internal.project;
 
-import groovy.lang.Closure;
-import groovy.lang.GString;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.gradle.api.*;
-import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
-import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 /**
@@ -95,8 +90,6 @@ public abstract class AbstractProject implements Project, Comparable {
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 
     private Convention convention;
-
-    private DagAction configureByDag = null;
 
     private Map pluginApplyRegistry = new LinkedHashMap();
 
@@ -330,14 +323,6 @@ public abstract class AbstractProject implements Project, Comparable {
         this.convention = convention;
     }
 
-    public DagAction getConfigureByDag() {
-        return configureByDag;
-    }
-
-    public void setConfigureByDag(DagAction configureByDag) {
-        this.configureByDag = configureByDag;
-    }
-
     public Map getPluginApplyRegistry() {
         return pluginApplyRegistry;
     }
@@ -552,7 +537,10 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public Task createTask(Map args, String name, TaskAction action) {
-        tasks.put(name, taskFactory.addTask(this, tasks, args, name, action));
+        tasks.put(name, taskFactory.createTask(this, tasks, args, name));
+        if (action != null) {
+             tasks.get(name).doFirst(action);
+        }
         return tasks.get(name);
     }
 

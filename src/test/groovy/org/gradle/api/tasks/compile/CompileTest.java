@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Task;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.GUtil;
 import org.jmock.Mockery;
@@ -43,13 +44,13 @@ public class CompileTest extends AbstractCompileTest {
     @Before public void setUp()  {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        compile = new Compile(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        compile = new Compile(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
         compile.getProject().setRootDir(AbstractCompileTest.TEST_ROOT_DIR);
         antCompileMock = context.mock(AntJavac.class);
         compile.antCompile = antCompileMock;
     }
            
-    public Task getTask() {
+    public AbstractTask getTask() {
         return compile;
     }
 
