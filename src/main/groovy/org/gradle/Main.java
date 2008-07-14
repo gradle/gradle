@@ -124,6 +124,7 @@ public class Main {
 
         if (options.has(HELP)) {
             parser.printHelpOn(System.out);
+            exitWithSuccess(options);
         }
 
         configureLogger(options);
