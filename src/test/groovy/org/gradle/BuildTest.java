@@ -162,6 +162,22 @@ public class BuildTest {
     }
 
     @Test
+    public void testRunWithDefaultTasks() {
+        context.checking(new Expectations() {
+            {
+                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
+                will(returnValue(settingsMock));
+            }
+        });
+        expectedStartParams.setTaskNames(new ArrayList<String>());
+        expectedTaskNames = WrapUtil.toList("c", "d");
+        expectedCurrentProject.setDefaultTasks(expectedTaskNames);
+        setRunExpectations(false);
+        build.run(expectedStartParams);
+        checkSystemProps(expectedSystemPropertiesArgs);
+    }
+
+    @Test
     public void testRunWithEmbeddedScript() {
         context.checking(new Expectations() {
             {

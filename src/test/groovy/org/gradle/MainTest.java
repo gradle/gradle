@@ -297,6 +297,16 @@ public class MainTest {
     }
 
     @Test
+    public void testMainWithNoTasks() throws Throwable {
+        expectedTaskNames = new ArrayList();
+        checkMain(new MainCall() {
+            public void execute() throws Throwable {
+                Main.main(args("-S"));
+            }
+        });
+    }
+
+    @Test
     public void testMainWithRebuildCacheFlagSet() throws Throwable {
         expectedCacheUsage = CacheUsage.REBUILD;
         checkMain(new MainCall() {
@@ -346,7 +356,7 @@ public class MainTest {
     }
 
     @Test
-    public void testMainWithShowTargets() throws Throwable {
+    public void testMainWithShowTasks() throws Throwable {
         checkMain(false, true, new MainCall() {
             public void execute() throws Throwable {
                 Main.main(new String[]{"-St"});
@@ -355,7 +365,7 @@ public class MainTest {
     }
 
     @Test
-    public void testMainWithShowTargetsAndEmbeddedScript() throws Throwable {
+    public void testMainWithShowTasksAndEmbeddedScript() throws Throwable {
         checkMain(true, true, new MainCall() {
             public void execute() throws Throwable {
                 Main.main(new String[]{"-S", "-e", expectedEmbeddedScript, "-t"});
@@ -381,11 +391,6 @@ public class MainTest {
         }
         // Tests are run in one JVM. Therefore we need to set it again.
         System.getProperties().put(Main.GRADLE_HOME_PROPERTY_KEY, TEST_GRADLE_HOME);
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testMainWithMissingTasks() throws Throwable {
-        Main.main(new String[]{"-S"});
     }
 
     private String[] args(String... prefix) {

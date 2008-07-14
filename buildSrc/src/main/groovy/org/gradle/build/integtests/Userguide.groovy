@@ -116,6 +116,7 @@ class Userguide {
                 run('tutorial', 'autoskipDepends', '-Dskip.autoskip depends'),
                 run('tutorial', 'configByDag', 'release'),
                 run('tutorial', 'count', 'count'),
+                run('tutorial', 'defaultTasks', ''),
                 run('tutorial', 'directoryTask', 'otherResources'),
                 run('tutorial', 'disableTask', 'disableMe'),
                 run('tutorial', 'dynamic', 'task_1'),

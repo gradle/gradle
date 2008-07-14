@@ -44,9 +44,6 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private Project rootProject;
 
-    // This is an implementation detail of Project. Therefore we don't use IoC here.
-    private ProjectsTraverser projectsTraverser = new ProjectsTraverser();
-
     private BuildScriptProcessor buildScriptProcessor;
 
     private ClassLoader buildScriptClassLoader;
@@ -66,6 +63,8 @@ public abstract class AbstractProject implements Project, Comparable {
     private Map<String, AbstractProject> childProjects = new HashMap<String, AbstractProject>();
 
     private Map<String, Task> tasks = new HashMap<String, Task>();
+
+    private List<String> defaultTasks = new ArrayList<String>();
 
     private Set dependsOnProjects = new HashSet();
 
@@ -154,14 +153,6 @@ public abstract class AbstractProject implements Project, Comparable {
         this.rootProject = rootProject;
     }
 
-    public ProjectsTraverser getProjectsTraverser() {
-        return projectsTraverser;
-    }
-
-    public void setProjectsTraverser(ProjectsTraverser projectsTraverser) {
-        this.projectsTraverser = projectsTraverser;
-    }
-
     public BuildScriptProcessor getBuildScriptProcessor() {
         return buildScriptProcessor;
     }
@@ -244,6 +235,14 @@ public abstract class AbstractProject implements Project, Comparable {
 
     public void setTasks(Map tasks) {
         this.tasks = tasks;
+    }
+
+    public List<String> getDefaultTasks() {
+        return defaultTasks;
+    }
+
+    public void setDefaultTasks(List<String> defaultTasks) {
+        this.defaultTasks = defaultTasks;
     }
 
     public Set getDependsOnProjects() {
@@ -524,6 +523,19 @@ public abstract class AbstractProject implements Project, Comparable {
         return tasks.get(name);
     }
 
+    public void defaultTasks(String... defaultTasks) {
+        if (defaultTasks == null) {
+            throw new InvalidUserDataException("Default tasks must not be null!");
+        }
+        this.defaultTasks = new ArrayList<String>();
+        for (String defaultTask : defaultTasks) {
+            if (defaultTask == null) {
+                throw new InvalidUserDataException("Default tasks must not be null!");
+            }
+            this.defaultTasks.add(defaultTask);
+        }
+    }
+
     public Task createTask(String name) {
         return createTask(new HashMap(), name, null);
     }
@@ -539,7 +551,7 @@ public abstract class AbstractProject implements Project, Comparable {
     public Task createTask(Map args, String name, TaskAction action) {
         tasks.put(name, taskFactory.createTask(this, tasks, args, name));
         if (action != null) {
-             tasks.get(name).doFirst(action);
+            tasks.get(name).doFirst(action);
         }
         return tasks.get(name);
     }

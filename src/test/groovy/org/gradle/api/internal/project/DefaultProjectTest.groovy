@@ -59,7 +59,7 @@ class DefaultProjectTest {
 
     static final File TEST_ROOT = new File("root")
 
-   Task testTask;
+    Task testTask;
 
     DefaultProject project, child1, child2, childchild
 
@@ -126,6 +126,7 @@ class DefaultProjectTest {
         assertSame buildScriptProcessor, project.buildScriptProcessor
         assertNotNull(project.ant)
         assertNotNull(project.convention)
+        assertEquals([], project.getDefaultTasks())
         assert project.getTaskFactory().is(taskFactoryMock);
         assert project.dependencyManagerFactory.is(dependencyManagerFactoryMock)
         assert project.dependencies.is(dependencyManagerMock)
@@ -152,7 +153,7 @@ class DefaultProjectTest {
 
     @Test public void testAddAndGetAfterEvaluateListenerWithClosure() {
         Object testValue = null
-        Closure afterEvaluateListener1 = { Project project -> testValue = new Object() } 
+        Closure afterEvaluateListener1 = {Project project -> testValue = new Object() }
         project.addAfterEvaluateListener(afterEvaluateListener1)
         assertEquals(1, project.getAfterEvaluateListeners().size())
         project.getAfterEvaluateListeners()[0].afterEvaluate(project)
@@ -162,12 +163,12 @@ class DefaultProjectTest {
     @Test void testEvaluate() {
         boolean afterEvaluate1Called = false;
         boolean afterEvaluate2Called = false;
-        Closure afterEvaluate1 = { Project project ->
+        Closure afterEvaluate1 = {Project project ->
             afterEvaluate1Called = true
         }
-        Closure afterEvaluate2 = { Project project ->
+        Closure afterEvaluate2 = {Project project ->
             afterEvaluate2Called = true
-        } 
+        }
         project.addAfterEvaluateListener(afterEvaluate1)
         project.addAfterEvaluateListener(afterEvaluate2)
         BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
@@ -348,6 +349,21 @@ class DefaultProjectTest {
         checkProject(project.childProjects.child2, project, 'child2')
     }
 
+    @Test public void testDefaultTasks() {
+        project.defaultTasks("a", "b");
+        assertEquals(["a", "b"], project.getDefaultTasks())
+        project.defaultTasks("c");
+        assertEquals(["c"], project.getDefaultTasks())
+    }
+
+    @Test (expected = InvalidUserDataException) public void testDefaultTasksWithNull() {
+        project.defaultTasks(null);
+    }
+
+    @Test (expected = InvalidUserDataException) public void testDefaultTasksWithSingleNullValue() {
+        project.defaultTasks("a", null);
+    }
+
     @Test public void testCreateTaskWithName() {
         context.checking {
             one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
@@ -358,7 +374,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndArgs() {
         Map testArgs = [a: 'b']
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, testArgs, TEST_TASK_NAME);will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME));
     }
@@ -366,18 +382,18 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndAction() {
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME);will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
         }
-        assertSame(testTask,  project.createTask(TEST_TASK_NAME, testAction));
+        assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
         assertSame(testAction, testTask.getActions()[0])
     }
 
     @Test public void testCreateTaskWithNameAndClosureAction() {
         Closure testAction = {}
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME);will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
         }
-        assertSame(testTask,  project.createTask(TEST_TASK_NAME, testAction));
+        assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
         assertEquals(1, testTask.getActions().size())
     }
 
@@ -385,7 +401,7 @@ class DefaultProjectTest {
         Map testArgs = [a: 'b']
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, testArgs, TEST_TASK_NAME);will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
         assertSame(testAction, testTask.getActions()[0])
@@ -539,7 +555,7 @@ class DefaultProjectTest {
 
     private List addTestTaskToAllProjects(String name) {
         List tasks = []
-        project.allprojects.each { Project project ->
+        project.allprojects.each {Project project ->
             project.tasks[name] = new DefaultTask(project, name, null)
             tasks << project.tasks[name]
         }
@@ -709,7 +725,7 @@ def scriptMethod(Closure closure) {
         project.dir('dir1/dir4');
     }
 
-    @Test(expected = InvalidUserDataException) public void testDirWithConflictingNonDirTask() {
+    @Test (expected = InvalidUserDataException) public void testDirWithConflictingNonDirTask() {
         Task confictingTask = new DefaultTask(project, 'dir1', null)
         project.tasks.dir1 = confictingTask
         Task dirTask14 = new Directory(project, 'dir1/dir4', null)

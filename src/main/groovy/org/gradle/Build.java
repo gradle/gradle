@@ -27,6 +27,7 @@ import org.gradle.initialization.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.util.GUtil;
 
@@ -73,9 +74,9 @@ public class Build {
     private void runInternal(DefaultSettings settings, StartParameter startParameter) {
         ClassLoader classLoader = settings.createClassLoader();
         Boolean rebuildDag = true;
-        for (int i = 0; i < startParameter.getTaskNames().size(); i++) {
-            String taskName = startParameter.getTaskNames().get(i);
-            logger.info("++++ Starting build for primary task: " + taskName);
+        List<String> taskNames = startParameter.getTaskNames();
+        int i = 0;
+        do {
             if (rebuildDag) {
                 projectLoader.load(settings, classLoader, startParameter, startParameter.getProjectProperties(),
                         getAllSystemProperties(), getAllEnvProperties());
@@ -84,20 +85,29 @@ public class Build {
                 logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
             }
             if (i == 0) {
-                List unknownTasks = buildExecuter.unknownTasks(startParameter.getTaskNames(), startParameter.isRecursive(),
+                if (taskNames.size() == 0) {
+                    taskNames = projectLoader.getCurrentProject().getDefaultTasks();
+                }
+                if (!GUtil.isTrue(taskNames)) {
+                    throw new InvalidUserDataException("No task names have been specified and the project has not defined any default tasks!");
+                }
+                List unknownTasks = buildExecuter.unknownTasks(taskNames, startParameter.isRecursive(),
                         projectLoader.getCurrentProject());
                 if (GUtil.isTrue(unknownTasks)) {
                     throw new UnknownTaskException("Task(s) " + unknownTasks + " are unknown!");
                 }
             }
-            boolean lastTask = isLastElement(startParameter, i);
+            String taskName = taskNames.get(i);
+            logger.info("++++ Starting build for primary task: " + taskName);
+            boolean lastTask = isLastElement(taskNames, i);
             rebuildDag = buildExecuter.execute(taskName, startParameter.isRecursive(), projectLoader.getCurrentProject(),
                     projectLoader.getRootProject(), !lastTask);
-        }
+        } while (++i < taskNames.size());
     }
 
-    private boolean isLastElement(StartParameter startParameter, int i) {
-        return (i == startParameter.getTaskNames().size() - 1);
+
+    private boolean isLastElement(List<String> taskNames, int i) {
+        return (i == taskNames.size() - 1);
     }
 
     public String taskListNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
@@ -185,7 +195,7 @@ public class Build {
                                 new ProjectDependencies2TaskResolver(),
                                 new ProjectTasksPrettyPrinter()),
                         new BuildExecuter(tasksGraph
-                                ));
+                        ));
             }
         };
     }

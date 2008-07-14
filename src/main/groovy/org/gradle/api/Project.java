@@ -143,6 +143,10 @@ public interface Project {
 
     String getPath();
 
+    List<String> getDefaultTasks();
+
+    void setDefaultTasks(List<String> defaultTasks);
+
     void dependsOn(String path);
 
     void dependsOn(String path, boolean evaluateDependsOnProject);

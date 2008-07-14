@@ -222,11 +222,6 @@ public class Main {
 
         try {
             startParameter.setTaskNames(options.nonOptionArguments());
-            if (!GUtil.isTrue(startParameter.getTaskNames()) && !options.has(TASKS)) {
-                logger.error(NL + "Build exits abnormally. No task names are specified!");
-                exitWithError(options, new InvalidUserDataException());
-                return;
-            }
 
             Build.BuildFactory buildFactory = Build.newInstanceFactory(startParameter);
             Build build = (Build) buildFactory.newInstance(embeddedBuildScript, null);
