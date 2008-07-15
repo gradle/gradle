@@ -30,8 +30,6 @@ import org.gradle.api.Project
 class DefaultScriptHandler implements ScriptHandler {
     static Logger logger = LoggerFactory.getLogger(DefaultScriptHandler)
 
-    static final String GRADLE_DIR_NAME = '.gradle'
-
     Script createScript(Project project, String scriptText) {
         logger.debug("Parsing Script:\n{}", scriptText)
         Clock clock = new Clock()
@@ -84,7 +82,7 @@ class DefaultScriptHandler implements ScriptHandler {
     }
 
     private File cacheDir(Project project, String buildCacheFileName) {
-        new File(project.projectDir, "$GRADLE_DIR_NAME/$buildCacheFileName")
+        new File(project.projectDir, "$Project.TMP_DIR_NAME/$buildCacheFileName")
     }
 
     private File cacheFile(Project project, String buildCacheFileName) {

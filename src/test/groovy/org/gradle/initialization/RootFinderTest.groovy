@@ -24,7 +24,8 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.AfterClass
 import org.junit.After
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.api.Settings;
 
 /**
  * @author Hans Dockter
@@ -96,7 +97,7 @@ class RootFinderTest {
     }
 
     private void createSettingsFile(File dir) {
-        File file = new File(dir, SettingsProcessor.DEFAULT_SETUP_FILE)
+        File file = new File(dir, Settings.DEFAULT_SETTINGS_FILE)
         file.write(TEST_SETTINGS_TEXT)
         file.deleteOnExit()
         createPropertyFiles(dir)

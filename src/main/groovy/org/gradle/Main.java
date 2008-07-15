@@ -23,6 +23,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Settings;
 import org.gradle.initialization.BuildSourceBuilder;
 import org.gradle.initialization.EmbeddedBuildExecuter;
 import org.gradle.util.GradleVersion;
@@ -60,6 +61,7 @@ public class Main {
     private static final String PROJECT_DIR = "p";
     private static final String PLUGIN_PROPERTIES_FILE = "l";
     private static final String BUILD_FILE = "b";
+    private static final String SETTINGS_FILE = "c";
     private static final String TASKS = "t";
     private static final String DEBUG = "d";
     private static final String IVY_QUIET = "i";
@@ -104,6 +106,7 @@ public class Main {
                 acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start dir for Gradle. Defaults to current dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settingsfile"), "Specifies the settings file name. Defaults to settings.gradle.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(BUILD_FILE, "buildfile"), "Specifies the build file name (also for subprojects). Defaults to build.gradle.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(SYSTEM_PROP, "systemprop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PROJECT_PROP, "projectprop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
@@ -185,6 +188,8 @@ public class Main {
                         new File(options.argumentOf(GRADLE_USER_HOME)) : new File(DEFAULT_GRADLE_USER_HOME));
 
         startParameter.setBuildFileName(options.hasArgument(BUILD_FILE) ? options.argumentOf(BUILD_FILE) : Project.DEFAULT_PROJECT_FILE);
+
+        startParameter.setSettingsFileName(options.hasArgument(SETTINGS_FILE) ? options.argumentOf(SETTINGS_FILE) : Settings.DEFAULT_SETTINGS_FILE);
 
         startParameter.setPluginPropertiesFile(
                 options.hasArgument(PLUGIN_PROPERTIES_FILE) ? new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)) :

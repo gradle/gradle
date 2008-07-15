@@ -30,6 +30,7 @@ import java.util.HashMap;
 public class StartParameter {
     ;
     
+    private String settingsFileName;
     private String buildFileName;
     private List<String> taskNames;
     private File currentDir;
@@ -45,7 +46,8 @@ public class StartParameter {
     public StartParameter() {
     }
 
-    public StartParameter(String buildFileName, List<String> taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
+    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
+        this.settingsFileName = settingsFileName;
         this.buildFileName = buildFileName;
         this.taskNames = taskNames;
         this.currentDir = currentDir;
@@ -61,6 +63,7 @@ public class StartParameter {
 
     public static StartParameter newInstance(StartParameter startParameterSrc) {
         StartParameter startParameter = new StartParameter();
+        startParameter.settingsFileName = startParameterSrc.settingsFileName;
         startParameter.buildFileName = startParameterSrc.buildFileName;
         startParameter.taskNames = startParameterSrc.taskNames;
         startParameter.currentDir = startParameterSrc.currentDir;
@@ -170,5 +173,13 @@ public class StartParameter {
 
     public void setCacheUsage(CacheUsage cacheUsage) {
         this.cacheUsage = cacheUsage;
+    }
+
+    public String getSettingsFileName() {
+        return settingsFileName;
+    }
+
+    public void setSettingsFileName(String settingsFileName) {
+        this.settingsFileName = settingsFileName;
     }
 }

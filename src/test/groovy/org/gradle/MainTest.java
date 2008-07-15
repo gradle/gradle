@@ -18,6 +18,7 @@ package org.gradle;
 
 import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Settings;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -50,6 +51,7 @@ public class MainTest {
     private final static String TEST_GRADLE_HOME = "roadToNowhere";
 
     private String expectedBuildFileName;
+    private String expectedSettingsFileName;
     private File expectedGradleUserHome;
     private File expectedGradleImportsFile;
     private File expectedPluginPropertiesFile;
@@ -95,6 +97,7 @@ public class MainTest {
         expectedProjectDir = new File("").getCanonicalFile();
         expectedProjectProperties = new HashMap();
         expectedSystemProperties = new HashMap();
+        expectedSettingsFileName = Settings.DEFAULT_SETTINGS_FILE;
         expectedBuildFileName = Project.DEFAULT_PROJECT_FILE;
         expectedRecursive = true;
         expectedCacheUsage = CacheUsage.ON;
@@ -156,6 +159,8 @@ public class MainTest {
     }
 
     private void checkStartParameter(StartParameter startParameter, boolean emptyTasks) {
+        assertEquals(expectedBuildFileName, startParameter.getBuildFileName());
+        assertEquals(expectedSettingsFileName, startParameter.getSettingsFileName());
         assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         assertEquals(expectedRecursive, startParameter.isRecursive());
@@ -242,6 +247,16 @@ public class MainTest {
         checkMain(new MainCall() {
             public void execute() throws Throwable {
                 Main.main(args("-S", "-b", expectedBuildFileName));
+            }
+        });
+    }
+
+    @Test
+    public void testMainWithSpecifiedSettingsFileName() throws Throwable {
+        expectedSettingsFileName = "somesettings";
+        checkMain(new MainCall() {
+            public void execute() throws Throwable {
+                Main.main(args("-S", "-c", expectedSettingsFileName));
             }
         });
     }

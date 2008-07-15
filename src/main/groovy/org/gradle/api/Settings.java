@@ -29,6 +29,8 @@ import groovy.lang.Closure;
  * @author Hans Dockter
  */
 public interface Settings {
+    final static String DEFAULT_SETTINGS_FILE = "settings.gradle";
+            
     /**
      * The paths to the project which should take part in this build additional to the project containing the
      * settings file, which takes always in part in the build.

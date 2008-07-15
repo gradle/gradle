@@ -23,7 +23,8 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.After;
 import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.api.Project;
 
 /**
  * @author Hans Dockter
@@ -61,7 +62,7 @@ class ScriptHandlerTest {
         ] as DefaultProject
         scriptHandler = new DefaultScriptHandler()
         projectMethodCalled = false
-        gradleDir = new File(testProjectDir, DefaultScriptHandler.GRADLE_DIR_NAME)
+        gradleDir = new File(testProjectDir, Project.TMP_DIR_NAME)
         cacheDir = new File(gradleDir, TEST_BUILD_FILE_CACHE_NAME)
         cachedFile = new File(gradleDir, "$TEST_BUILD_FILE_CACHE_NAME/${TEST_BUILD_FILE_CACHE_NAME}.class")
     }

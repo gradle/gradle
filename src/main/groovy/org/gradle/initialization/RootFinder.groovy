@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
+import org.gradle.api.Settings
 
 /**
  * @author Hans Dockter
@@ -34,7 +35,7 @@ class RootFinder {
         // Damn, there is no do while in Groovy yet. We need an ugly work around.
         while (searchDir && !settingsFile) {
             searchDir.eachFile {
-                if (it.name.equals(SettingsProcessor.DEFAULT_SETUP_FILE)) {
+                if (it.name.equals(Settings.DEFAULT_SETTINGS_FILE)) {
                     settingsFile = it
                 }
             }

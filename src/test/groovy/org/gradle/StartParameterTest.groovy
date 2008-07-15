@@ -28,6 +28,7 @@ class StartParameterTest {
 
     @Before public void setUp()  {
         testObj = new StartParameter(
+                settingsFileName: 'settingsfile',
                 buildFileName: 'buildfile',
                 taskNames: ['a'],
                 currentDir: new File('a'),

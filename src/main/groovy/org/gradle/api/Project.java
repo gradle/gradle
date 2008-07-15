@@ -43,6 +43,8 @@ public interface Project {
 
     public static final String SYSTEM_PROP_PREFIX = "systemProp";
 
+    public static final String TMP_DIR_NAME = ".gradle";
+
     Project getRootProject();
 
     File getRootDir();
