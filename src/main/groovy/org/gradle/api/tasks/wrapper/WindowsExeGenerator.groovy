@@ -32,15 +32,15 @@ public class WindowsExeGenerator {
 
     public void generate(String jarPath,  File scriptDestinationDir, File buildDir, AntBuilder ant) {
         File libDir = new File(System.getProperty(Main.GRADLE_HOME_PROPERTY_KEY), "/lib");
-        logger.debug("Using lib dir: " + libDir);
+        logger.debug("Using lib dir: {}", libDir);
         File launch4jBaseZip = new File(libDir, "launch4j").listFiles().find { File file -> file.name.startsWith("launch4j-base") };
-        logger.debug("Using base zip: " + launch4jBaseZip);
+        logger.debug("Using base zip: {}", launch4jBaseZip);
         Matcher matcher = (launch4jBaseZip.getName() =~ VERSION_PATTERN)
         matcher.matches()
         String version = matcher.group(1)
-        logger.debug("Determined launch4j version to: " + version);
+        logger.debug("Determined launch4j version to: {}", version);
         File launch4jDist = new File(buildDir, "launch4j-$version")
-        logger.debug("Using base dist: " + launch4jDist);
+        logger.debug("Using base dist: {}", launch4jDist);
         ant.sequential {
             unzip(src: launch4jBaseZip, dest: buildDir)
             String os = [Os.FAMILY_WINDOWS, Os.FAMILY_MAC, Os.FAMILY_UNIX].find {String family ->

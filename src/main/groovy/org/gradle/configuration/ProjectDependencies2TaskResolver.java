@@ -31,10 +31,10 @@ public class ProjectDependencies2TaskResolver {
         ProjectAction projectAction = new ProjectAction() {
             public void execute(Project project) {
                 for (Project dependsOnProject : project.getDependsOnProjects()) {
-                    logger.debug("Checking task dependencies for project: $project dependsOn: $dependsOnProject");
+                    logger.debug("Checking task dependencies for project: {} dependsOn: {}", project, dependsOnProject);
                     for (String taskName : project.getTasks().keySet()) {
                         if (dependsOnProject.getTasks().get(taskName) != null) {
-                            logger.debug("Setting task dependencies for task: " + taskName);
+                            logger.debug("Setting task dependencies for task: {}", taskName);
                             project.getTasks().get(taskName).dependsOn(dependsOnProject.getTasks().get(taskName).getPath());
                         }
                     }

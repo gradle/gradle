@@ -68,16 +68,16 @@ class ProjectsLoader {
         Map systemAndEnvProjectProperties = getSystemProjectProperties(systemProperties) +
         getEnvProjectProperties(envProperties)
         if (systemAndEnvProjectProperties) {
-            logger.debug("Added system and env project properties: " + systemAndEnvProjectProperties)
+            logger.debug("Added system and env project properties: {}", systemAndEnvProjectProperties)
         }
         File propertyFile = new File(startParameter.gradleUserHomeDir, Project.GRADLE_PROPERTIES)
         Properties userHomeProperties = new Properties()
-        logger.debug("Looking for user properties from: $propertyFile")
+        logger.debug("Looking for user properties from: {}", propertyFile)
         if (!propertyFile.isFile()) {
             logger.debug("user property file does not exists. We continue!")
         } else {
             userHomeProperties.load(new FileInputStream(propertyFile))
-            logger.debug("Adding user properties (if not overwritten by system project properties: $userHomeProperties")
+            logger.debug("Adding user properties (if not overwritten by system project properties: {}", userHomeProperties)
         }
         logger.debug("Looking for system project properties")
         DefaultProject rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null,
@@ -100,10 +100,10 @@ class ProjectsLoader {
     private addPropertiesToProject(File gradleUserHomeDir, Map userProperties, Map systemProjectProperties, Project project) {
         Properties projectProperties = new Properties()
         File projectPropertiesFile = new File(project.projectDir, Project.GRADLE_PROPERTIES)
-        logger.debug("Looking for project properties from: $projectPropertiesFile")
+        logger.debug("Looking for project properties from: {}", projectPropertiesFile)
         if (projectPropertiesFile.isFile()) {
             projectProperties.load(new FileInputStream(projectPropertiesFile))
-            logger.debug("Adding project properties (if not overwritten by user properties): $projectProperties")
+            logger.debug("Adding project properties (if not overwritten by user properties): {}", projectProperties)
         } else {
             logger.debug("project property file does not exists. We continue!")
         }

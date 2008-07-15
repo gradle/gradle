@@ -142,7 +142,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public void generateArchive(Task task) {
-        logger.debug("Creating archive: $name")
+        logger.debug("Creating archive: {}", name)
         if (!getDestinationDir()) {
             throw new InvalidUserDataException('You mustspecify the destinationDir.')
         }

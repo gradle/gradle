@@ -75,7 +75,7 @@ class Upload extends DefaultTask {
             }
         }
         List allConfigurations = configurations + (bundleConfigurations as List)
-        logger.debug("Associated bundles: $bundles")
+        logger.debug("Associated bundles: {}", bundles)
         logger.info("Publishing configurations: $allConfigurations")
         task.project.dependencies.publish(allConfigurations, uploadResolvers, uploadModuleDescriptor)
     }

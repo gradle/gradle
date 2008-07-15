@@ -118,7 +118,7 @@ class DefaultSettings implements Settings {
             dependency = buildSourceBuilder.createDependency(dependencyManager.buildResolverDir,
                     startParameter)
         }
-        logger.debug("Build src dependency: $dependency")
+        logger.debug("Build src dependency: {}", dependency)
         if (dependency) {
             dependencyManager.dependencies([BUILD_CONFIGURATION], dependency)
         } else {
@@ -127,7 +127,7 @@ class DefaultSettings implements Settings {
         List additionalClasspath = dependencyManager.resolve(BUILD_CONFIGURATION)
         File toolsJar = GradleUtil.getToolsJar()
         if (toolsJar) { additionalClasspath.add(toolsJar) }
-        logger.debug("Adding to classpath: " + additionalClasspath)
+        logger.debug("Adding to classpath: {}", additionalClasspath)
         ClasspathUtil.addUrl(classLoader, additionalClasspath)
         classLoader
     }

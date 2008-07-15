@@ -46,7 +46,7 @@ public class PluginRegistry {
         if (!pluginProperties.isFile()) {
             return;
         }
-        logger.debug("Checking file= " + pluginProperties);
+        logger.debug("Checking file= {}", pluginProperties);
         properties = new Properties();
         try {
             properties.load(new FileInputStream(pluginProperties));

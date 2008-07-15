@@ -39,7 +39,7 @@ class BuildScriptFinder {
 
     String getBuildScript(DefaultProject project) {
         File projectFile = new File(project.projectDir, buildFileName)
-        logger.debug("Evaluating project=$project.path Looking for build file=$projectFile.canonicalFile")
+        logger.debug("Evaluating project={} Looking for build file={}", project.path, projectFile.canonicalFile)
         if (projectFile.isFile()) {
             logger.debug("Project file found, reading text.")
             String scriptText = projectFile.text

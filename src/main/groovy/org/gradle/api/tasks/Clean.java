@@ -55,7 +55,7 @@ public class Clean extends ConventionTask {
             throw new InvalidUserDataException("The dir property must be specified!");
         }
         existingDirsFilter.checkExistenceAndThrowStopActionIfNot(getDir());
-        logger.debug("Deleting dir: " + getDir());
+        logger.debug("Deleting dir: {}", getDir());
 
         try {
             FileUtils.deleteDirectory(getDir());

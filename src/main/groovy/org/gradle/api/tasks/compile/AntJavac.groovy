@@ -53,7 +53,7 @@ class AntJavac {
     private void createAntClassPath(AntBuilder ant, List classpath) {
         ant.path(id: CLASSPATH_ID) {
             classpath.each {
-                logger.debug("Add $it to Ant classpath!")
+                logger.debug("Add {} to Ant classpath!", it)
                 pathelement(location: it)
             }
         }

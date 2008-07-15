@@ -51,7 +51,7 @@ public class BuildExecuter {
         logger.info(String.format("++ Executing: %s Recursive:%s Startproject: %s", taskName, recursive, currentProject));
 
         Set<Task> calledTasks = getTasks(taskName, currentProject, recursive);
-        logger.debug("Found tasks: " + calledTasks);
+        logger.debug("Found tasks: {}", calledTasks);
         if (calledTasks.size() == 0) {           
             throw new UnknownTaskException("No tasks available for " + taskName);
         }
@@ -95,16 +95,16 @@ public class BuildExecuter {
             Set<Task> dependsOnTasks = findDependsOnTasks(task, rootProject);
             dag.addTask(task, dependsOnTasks);
             if (dependsOnTasks.size() > 0) {
-                logger.debug("Found dependsOn tasks for " + task + ": " + dependsOnTasks);
+                logger.debug("Found dependsOn tasks for {}: {}", task, dependsOnTasks);
                 fillDag(dag, dependsOnTasks, rootProject);
             } else {
-                logger.debug("Found no dependsOn tasks for " + task);
+                logger.debug("Found no dependsOn tasks for {}", task);
             }
         }
     }
 
     private Set<Task> findDependsOnTasks(Task task, Project rootProject) {
-        logger.debug("Find dependsOn tasks for " + task);
+        logger.debug("Find dependsOn tasks for {}", task);
         Set<Task> dependsOnTasks = new HashSet<Task>();
         for (Object taskDescriptor : task.getDependsOn()) {
             String absolutePath = absolutePath(task.getProject(), taskDescriptor);

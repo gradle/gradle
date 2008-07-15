@@ -232,7 +232,7 @@ public class Dag {
     }
 
     public void addTask(Task task, Set<Task> dependsOnTasks) {
-        logger.debug(String.format("Add task: %s DependsOnTasks: %s", task, dependsOnTasks));
+        logger.debug("Add task: {} DependsOnTasks: {}", task, dependsOnTasks);
         addVertex(task);
         for (Task dependsOnTask : dependsOnTasks) {
             if (!addEdge(task, dependsOnTask)) {

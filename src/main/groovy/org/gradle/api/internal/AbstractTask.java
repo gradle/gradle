@@ -171,7 +171,7 @@ public abstract class AbstractTask implements Task {
     }
 
     public void execute() {
-        logger.debug("Executing Task: " + path);
+        logger.debug("Executing Task: {}", path);
         if (!enabled) {
             logger.info("Skipping execution as task is disabled.");
             executed = true;
@@ -194,10 +194,10 @@ public abstract class AbstractTask implements Task {
                 try {
                     action.execute(this, getTasksGraph());
                 } catch (StopExecutionException e) {
-                    logger.info("Execution stopped by some action with message: $e.message");
+                    logger.info("Execution stopped by some action with message: {}", e.getMessage());
                     break;
                 } catch (StopActionException e) {
-                    logger.debug("Action stopped by some action with message: $e.message");
+                    logger.debug("Action stopped by some action with message: {}", e.getMessage());
                     continue;
                     // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the grrovy2java refactoring we can remove this.
                 } catch (InvokerInvocationException e) {

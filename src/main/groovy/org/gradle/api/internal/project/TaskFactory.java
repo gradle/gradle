@@ -64,7 +64,9 @@ public class TaskFactory implements ITaskFactory {
         } else {
             dependsOnTasks = new Object[]{dependsOnTasksArg};
         }
-        logger.debug("Adding dependencies: " + Arrays.asList(dependsOnTasks));
+        if (logger.isDebugEnabled()) {
+            logger.debug("Adding dependencies: " + Arrays.asList(dependsOnTasks));
+        }
 
         task.dependsOn(dependsOnTasks);
         

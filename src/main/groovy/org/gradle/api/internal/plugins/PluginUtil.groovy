@@ -38,7 +38,7 @@ class PluginUtil {
                 newPluginConvention."$key" = value
                 return
             } catch (MissingPropertyException ) {
-                logger.debug("Property $key is not found in new plugin convention object of type: ${newPluginConvention.getClass()}")
+                logger.debug("Property {} is not found in new plugin convention object of type: ", newPluginConvention.getClass())
             }
             convention."$key" = value
         }

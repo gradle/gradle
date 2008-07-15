@@ -59,7 +59,7 @@ class BuildConfigurer {
 
         process(rootProject)
 
-        logger.debug("Finding tasks for project: $currentProject Recursive:$recursive")
+        logger.debug("Finding tasks for project: {} Recursive:{}", currentProject, recursive)
         Map tasks = currentProject.getAllTasks(recursive)
         projectTasksPrettyPrinter.getPrettyText(tasks)
     }

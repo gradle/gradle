@@ -135,12 +135,12 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         resolveOptions.outputReport = false
         Clock ivyClock = new Clock()
         ResolveReport resolveReport = ivy.resolve(moduleDescriptor, resolveOptions)
-        logger.debug("Timing: Ivy resolve took " + clock.time)
+        logger.debug("Timing: Ivy resolve took {}", clock.time)
         if (resolveReport.hasError() && failForMissingDependencies) {
             throw new GradleException("Not all dependencies could be resolved!")
         }
         resolveCache[conf] = report2Classpath.getClasspath(conf, resolveReport)
-        logger.debug("Timing: Complete resolve took " + clock.time)
+        logger.debug("Timing: Complete resolve took {}", clock.time)
         resolveCache[conf]
     }
 
@@ -226,7 +226,7 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
         }
         (artifacts as List).flatten().each {
             GradleArtifact gradleArtifact = artifactFactory.createGradleArtifact(it)
-            logger.debug("Adding $gradleArtifact to configuration=$configurationName")
+            logger.debug("Adding {} to configuration={}", gradleArtifact, configurationName)
             this.artifacts[configurationName] << gradleArtifact
         }
     }

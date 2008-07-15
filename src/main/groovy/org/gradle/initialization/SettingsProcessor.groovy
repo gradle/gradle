@@ -68,20 +68,20 @@ class SettingsProcessor {
         try {
             String importsResult = importsReader.getImports(rootFinder.rootDir)
             String scriptText = rootFinder.settingsText + System.properties['line.separator'] + importsResult
-            logger.debug("Evaluated Settings Script: " + scriptText)
+            logger.debug("Evaluated Settings Script: {}", scriptText)
             Clock clock = new Clock();
             Script settingsScript = new GroovyShell().parse(
                     scriptText,
                     DEFAULT_SETUP_FILE)
-            logger.info("Timing: Compiling settings file took: " + clock.time)
+            logger.info("Timing: Compiling settings file took: {}", clock.time)
             replaceMetaclass(settingsScript, settings)
             clock.reset();
             settingsScript.run()
-            logger.info("Timing: Evaluating settings file took: " + clock.time)
+            logger.info("Timing: Evaluating settings file took: {}", clock.time)
         } catch (Throwable t) {
             throw new GradleScriptException(t, DEFAULT_SETUP_FILE)
         }
-        logger.debug("Timing: Processing settings took: " + settingsProcessingClock.time)
+        logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.time)
         if (startParameter.currentDir != rootFinder.rootDir && !isCurrentDirIncluded(settings)) {
             return createBasicSettings(rootFinder, startParameter)
         }
@@ -92,7 +92,7 @@ class SettingsProcessor {
         File buildResolverDir = this.buildResolverDir ?: new File(rootFinder.rootDir, DependencyManager.BUILD_RESOLVER_NAME)
         GradleUtil.deleteDir(buildResolverDir)
         dependencyManagerFactory.buildResolverDir = buildResolverDir
-        logger.debug("Set build resolver dir to: $dependencyManagerFactory.buildResolverDir")
+        logger.debug("Set build resolver dir to: {}", dependencyManagerFactory.buildResolverDir)
 
     }
 
@@ -104,14 +104,14 @@ class SettingsProcessor {
     private void replaceMetaclass(Script script, DefaultSettings settings) {
         ExpandoMetaClass settingsScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
         settingsScriptExpandoMetaclass.methodMissing = {String name, args ->
-            logger.debug("Method $name not found in script! Delegating to settings.")
+            logger.debug("Method {} not found in script! Delegating to settings.", name)
             settings.invokeMethod(name, args)
         }
         settingsScriptExpandoMetaclass.propertyMissing = {String name ->
             if (name == 'out') {
                 return System.out
             }
-            logger.debug("Property $name not found in script! Delegating to settings.")
+            logger.debug("Property {} not found in script! Delegating to settings.", name)
             settings."$name"
         }
         settingsScriptExpandoMetaclass.initialize()

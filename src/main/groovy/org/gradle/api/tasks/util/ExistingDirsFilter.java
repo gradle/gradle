@@ -44,7 +44,7 @@ public class ExistingDirsFilter {
     }
 
     public List<File> findExistingDirsAndLogExitMessage(Collection dirFiles) {
-        logger.debug("Looking for existing folders: " + dirFiles);
+        logger.debug("Looking for existing folders: {}", dirFiles);
         List result = findExistingDirs(dirFiles);
         if (result.size() == 0) {
             logger.debug("No existing directories to work on. We don't do anything here.");

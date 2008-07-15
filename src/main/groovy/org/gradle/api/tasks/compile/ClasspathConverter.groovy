@@ -32,7 +32,7 @@ class ClasspathConverter {
     
     List createFileClasspath(File baseDir, List args) {
         List flattenedArgs = args ? args.flatten() : []
-        logger.debug("Create additional classpath from " + flattenedArgs);
+        logger.debug("Create additional classpath from {}", flattenedArgs);
         List classpath = []
         flattenedArgs.each {classpathElement ->
             if (!classpathElement) {
@@ -46,7 +46,7 @@ class ClasspathConverter {
                 default: throw new InvalidUserDataException ("Illegal classpathelement " + classpathElement.getClass())
             }
         }
-        logger.debug("Created path as: $classpath")
+        logger.debug("Created path as: {}", classpath)
         classpath
     }
 }

@@ -57,7 +57,7 @@ class ModuleDescriptorConverter {
     void addArtifacts(DefaultModuleDescriptor moduleDescriptor, DefaultDependencyManager dependencyManager) {
         dependencyManager.artifacts.each {String configuration, List artifacts ->
             artifacts.each {GradleArtifact gradleArtifact ->
-                logger.debug("Add gradleArtifact: $gradleArtifact to configuration=$configuration")
+                logger.debug("Add gradleArtifact: {} to configuration={}", gradleArtifact, configuration)
                 moduleDescriptor.addArtifact(configuration, gradleArtifact.createIvyArtifact(dependencyManager.createModuleRevisionId()))
             }
         }

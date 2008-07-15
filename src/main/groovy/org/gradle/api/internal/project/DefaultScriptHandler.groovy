@@ -33,13 +33,13 @@ class DefaultScriptHandler implements ScriptHandler {
     static final String GRADLE_DIR_NAME = '.gradle'
 
     Script createScript(Project project, String scriptText) {
-        logger.debug("Parsing Script:\n$scriptText")
+        logger.debug("Parsing Script:\n{}", scriptText)
         Clock clock = new Clock()
         CompilerConfiguration configuration = createBaseCompilerConfiguration()
         GroovyShell groovyShell = new GroovyShell(project.buildScriptClassLoader, new Binding(), configuration)
         Script script = groovyShell.parse(scriptText, project.buildFileName)
         replaceMetaclass(script, project)
-        logger.debug("Timing: Creating script took: " + clock.time)
+        logger.debug("Timing: Creating script took: {}", clock.time)
         script
     }
 
@@ -98,18 +98,18 @@ class DefaultScriptHandler implements ScriptHandler {
     private Script replaceMetaclass(Script script, Project project) {
         ExpandoMetaClass projectScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
         projectScriptExpandoMetaclass.methodMissing = {String name, args ->
-            logger.debug("Project: $project.path Method $name not found in script! Delegating to project.")
+            logger.debug("Project: {} Method {} not found in script! Delegating to project.", project.path, name)
             project.invokeMethod(name, args)
         }
         projectScriptExpandoMetaclass.propertyMissing = {String name ->
             if (name == 'out') {
                 return System.out
             }
-            logger.debug("Project: $project.path Property $name not found in script! Delegating to project.")
+             logger.debug("Project: {} Method {} not found in script! Delegating to project.", project.path, name)
             project."$name"
         }
         projectScriptExpandoMetaclass.setProperty = {String name, value ->
-            logger.debug("Project: $project.path Property $name set a project property.")
+            logger.debug("Project: {} Property {} set a project property.", project.path, name)
             project."$name" = value
         }
         projectScriptExpandoMetaclass.initialize()

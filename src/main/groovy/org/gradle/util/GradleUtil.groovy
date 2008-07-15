@@ -102,7 +102,7 @@ class GradleUtil {
 
     static setAntLogging(AntBuilder ant) {
         int logLevel = getAntLogLevel()
-        logger.debug("Set ant loglevel to $logLevel")
+        logger.debug("Set ant loglevel to {}", logLevel)
         ant.project.getBuildListeners()[0].setMessageOutputLevel(logLevel)
     }
 
@@ -153,7 +153,7 @@ ant.sequential {
         String javaHome = System.getProperty("java.home");
         File toolsJar = new File(javaHome + "/lib/tools.jar");
         if (toolsJar.exists()) {
-            logger.debug("Found tools jar in: " + toolsJar.getAbsolutePath())
+            logger.debug("Found tools jar in: {}", toolsJar.getAbsolutePath())
             // Found in java.home as given
             return toolsJar;
         }
@@ -166,7 +166,7 @@ ant.sequential {
                     + "Expected to find it in " + toolsJar.getPath());
             return null;
         }
-        logger.debug("Found tools jar in: " + toolsJar.getAbsolutePath())
+        logger.debug("Found tools jar in: {}", toolsJar.getAbsolutePath())
         return toolsJar;
     }
 
@@ -178,13 +178,13 @@ ant.sequential {
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
         Thread.currentThread().contextClassLoader = newLoader
         File toolsJar = getToolsJar()
-        logger.debug("Tools jar is: " + toolsJar)
+        logger.debug("Tools jar is: {}", toolsJar)
         if (toolsJar) {
             ClasspathUtil.addUrl(newLoader, [toolsJar])
         }
         newLoader.loadClass("com.sun.tools.javac.Main");
         String scriptText = createIsolatedAntScript(filling)
-        logger.debug("Using groovyc as: $scriptText")
+        logger.debug("Using groovyc as: {}", scriptText)
         newLoader.loadClass("groovy.lang.GroovyShell").newInstance([newLoader] as Object[]).evaluate(
                 scriptText)
         Thread.currentThread().contextClassLoader = oldCtx
