@@ -48,7 +48,7 @@ class ArtifactDependency extends AbstractDependency {
     DependencyDescriptor createDepencencyDescriptor() {
         Map groups = DependenciesUtil.splitExtension(userDependencyDescription)
         DefaultDependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor((String) groups.core, force, false, false, confs, [])
-        DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(dd.dependencyRevisionId.name,
+        DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(dd, dd.dependencyRevisionId.name,
                 groups.extension, groups.extension, null, null)
         dd.addDependencyArtifact("*", artifactDescriptor)
         confs.each {

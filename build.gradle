@@ -76,7 +76,7 @@ dependencies {
             ":commons-lang:2.3@jar",
             ":webdavlib:2.0",
             ":logback-classic:0.9.8",
-            ":ivy:2.0.0.beta2_20080305165542@jar"
+            ":ivy:2.0.0.rc1_20080716132100_r677238@jar"
     runtime ":ant-launcher:1.7.0",
             ":ant-nodeps:1.7.0",
             ":junit:4.4"
