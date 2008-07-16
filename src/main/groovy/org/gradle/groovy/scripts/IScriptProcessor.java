@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
+
+import java.io.File;
+
+import org.gradle.CacheUsage;
 
 /**
  * @author Hans Dockter
  */
-public class EmptyScript extends Script{
-    public Object run() {
-        return null;
-    }
+public interface IScriptProcessor {
+    Script createScriptFromFile(File cacheDir, File buildFile, String scriptAttachement,
+                        CacheUsage cacheUsage, ClassLoader classLoader, Class scriptBaseClass);
+
+    Script createScriptFromText(String inMemoryScriptText, String scriptAttachement,
+                        String scriptName, ClassLoader classLoader, Class scriptBaseClass);
 }

@@ -45,6 +45,8 @@ public interface Project {
 
     public static final String TMP_DIR_NAME = ".gradle";
 
+    public static final String CACHE_DIR_NAME = TMP_DIR_NAME + "/cache";
+
     Project getRootProject();
 
     File getRootDir();

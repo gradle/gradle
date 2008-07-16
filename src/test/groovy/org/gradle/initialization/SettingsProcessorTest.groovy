@@ -30,7 +30,14 @@ import org.gradle.StartParameter
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.After
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.groovy.scripts.IScriptProcessor
+import org.gradle.util.GFileUtils
+import org.gradle.groovy.scripts.ISettingsScriptMetaData
+import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.api.Project
+import org.gradle.groovy.scripts.EmptyScript
 
 /**
  * @author Hans Dockter
@@ -45,12 +52,21 @@ class SettingsProcessorTest {
     BuildSourceBuilder buildSourceBuilder
     StartParameter expectedStartParameter
     File buildResolverDir
+    File settingsFileDir
+
+    IScriptProcessor scriptProcessorMock
+    ISettingsScriptMetaData settingsScriptMetaData
 
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
 
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     @Before public void setUp()  {
-        buildResolverDir = HelperUtil.makeNewTestDir()
+        scriptProcessorMock = context.mock(IScriptProcessor)
+        settingsScriptMetaData = context.mock(ISettingsScriptMetaData)
+        buildResolverDir = HelperUtil.makeNewTestDir('buildResolver')
+        settingsFileDir = HelperUtil.makeNewTestDir('settingsDir')
         expectedSettings = new DefaultSettings()
         expectedStartParameter = new StartParameter()
         expectedRootFinder = new RootFinder()
@@ -58,9 +74,8 @@ class SettingsProcessorTest {
         settingsFactory = new SettingsFactory()
         dependencyManagerFactory = new DefaultDependencyManagerFactory(new File('root'))
         buildSourceBuilder = new BuildSourceBuilder()
-        settingsProcessor = new SettingsProcessor(importsReader, settingsFactory, dependencyManagerFactory, buildSourceBuilder,
+        settingsProcessor = new SettingsProcessor(settingsScriptMetaData, scriptProcessorMock, importsReader, settingsFactory, dependencyManagerFactory, buildSourceBuilder,
                 buildResolverDir)
-
         settingsFactoryMocker = new MockFor(SettingsFactory)
     }
 
@@ -70,6 +85,8 @@ class SettingsProcessorTest {
     }
 
     @Test public void testSettingsProcessor() {
+        assertSame(settingsScriptMetaData, settingsProcessor.settingsScriptMetaData)
+        assertSame(scriptProcessorMock, settingsProcessor.scriptProcessor)
         assert settingsProcessor.importsReader.is(importsReader)
         assert settingsProcessor.settingsFactory.is(settingsFactory)
         assert settingsProcessor.dependencyManagerFactory.is(dependencyManagerFactory)
@@ -102,31 +119,24 @@ class SettingsProcessorTest {
 
     @Test public void testProcessWithCurrentDirAsSubproject() {
         File currentDir = new File(TEST_ROOT_DIR, 'currentDir')
-        List includePaths = ['currentDir', 'path2']
-        DefaultSettings settings = runCUT(TEST_ROOT_DIR, currentDir, includePaths, buildResolverDir)
-        assertEquals(includePaths, settings.projectPaths)
+        assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, currentDir, ['currentDir', 'path2'], buildResolverDir))
     }
 
     @Test public void testProcessWithCurrentDirNoSubproject() {
         File currentDir = new File(TEST_ROOT_DIR, 'currentDir')
-        DefaultSettings settings = runCUT(TEST_ROOT_DIR, currentDir, ['path1', 'path2'], buildResolverDir) {
+        assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, currentDir, ['path1', 'path2'], buildResolverDir) {
             prepareSettingsFactoryMocker(currentDir, currentDir)
-        }
-        assertEquals([], settings.projectPaths)
+        })
     }
 
     @Test public void testProcessWithCurrentDirAsRootDir() {
-        List includePaths = ['path1', 'path2']
-        DefaultSettings settings = runCUT(TEST_ROOT_DIR, TEST_ROOT_DIR, includePaths, buildResolverDir)
-        assertEquals(includePaths, settings.projectPaths)
+        assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, TEST_ROOT_DIR, ['path1', 'path2'], buildResolverDir))
     }
 
     @Test public void testProcessWithNullBuildResolver() {
         settingsProcessor.buildResolverDir = null
-        List includePaths = ['path1', 'path2']
-        DefaultSettings settings = runCUT(TEST_ROOT_DIR, TEST_ROOT_DIR, includePaths,
-                new File(TEST_ROOT_DIR, DependencyManager.BUILD_RESOLVER_NAME))
-        assertEquals(includePaths, settings.projectPaths)
+        assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, TEST_ROOT_DIR, ['path1', 'path2'],
+                new File(TEST_ROOT_DIR, DependencyManager.BUILD_RESOLVER_NAME)))
     }
 
     private void prepareSettingsFactoryMocker(File expectedRootDir, File expectedCurrentDir) {
@@ -138,7 +148,6 @@ class SettingsProcessorTest {
             assert buildSourceBuilder.is(settingsProcessor.buildSourceBuilder)
             assert rootFinder.is(expectedRootFinder)
             assertEquals(expectedStartParameter, startParameter)
-            expectedSettings.projectPaths = []
             expectedSettings
         }
 
@@ -146,24 +155,31 @@ class SettingsProcessorTest {
 
     private DefaultSettings runCUT(File rootDir, File currentDir, List includePaths, File expectedBuildResolverRoot,
                                    Closure customSettingsFactoryPreparation = {}) {
-        ImportsReader mockImportsReader = [getImports: {File importsRootDir ->
-            assertEquals(rootDir, importsRootDir)
-            '''import org.gradle.api.*
-'''
-        }] as ImportsReader
-        settingsProcessor.importsReader = mockImportsReader
-        String expectedSettingsText = """CircularReferenceException exception // check autoimport
+        String expectedScriptAttachement = "expectedScriptAttachement"
 
-include \"${includePaths[0]}\", \"${includePaths[1]}\"
-"""
+        Script expectedScript = new EmptyScript();
+
+        ImportsReader mockImportsReader = [getImports: {File importsRootDir -> expectedScriptAttachement }] as ImportsReader
+        settingsProcessor.setImportsReader(mockImportsReader)
+            
         boolean expectedSearchUpwards = false
 
+        File settingsFile = new File(settingsFileDir, 'settingsfile')
         expectedRootFinder.rootDir = rootDir
-        expectedRootFinder.settingsText = expectedSettingsText
+        String expectedSettingsText = "somesettings"
+        GFileUtils.writeStringToFile(settingsFile, expectedSettingsText)
+        expectedRootFinder.settingsFile = settingsFile
         expectedStartParameter = createStartParameter(currentDir)
-
+        expectedSettings.setProjectPaths(includePaths)
         prepareSettingsFactoryMocker(rootDir, currentDir)
         customSettingsFactoryPreparation()
+
+        context.checking {
+            one(scriptProcessorMock).createScriptFromFile(new File(rootDir, Project.CACHE_DIR_NAME), settingsFile, expectedScriptAttachement, expectedStartParameter.cacheUsage,
+                Thread.currentThread().contextClassLoader, Script.class);
+            will(returnValue(expectedScript))
+            one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
+        }
 
         DefaultSettings settings
         settingsFactoryMocker.use(settingsProcessor.settingsFactory) {

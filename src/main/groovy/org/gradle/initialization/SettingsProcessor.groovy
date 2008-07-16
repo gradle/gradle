@@ -29,6 +29,10 @@ import org.gradle.api.internal.project.ImportsReader
 import org.gradle.StartParameter
 import org.gradle.util.Clock
 import org.gradle.api.Settings
+import org.gradle.groovy.scripts.IScriptProcessor
+import org.gradle.util.ConfigureUtil
+import org.gradle.groovy.scripts.ISettingsScriptMetaData
+import org.gradle.api.internal.project.ProjectScript
 
 /**
 * @author Hans Dockter
@@ -46,13 +50,19 @@ class SettingsProcessor {
 
     File buildResolverDir
 
+    IScriptProcessor scriptProcessor
+
+    ISettingsScriptMetaData settingsScriptMetaData
+
     SettingsProcessor() {
 
     }
 
-    SettingsProcessor(ImportsReader importsReader, SettingsFactory settingsFactory,
-                      DependencyManagerFactory dependencyManagerFactory,
+    SettingsProcessor(ISettingsScriptMetaData settingsScriptMetaData, IScriptProcessor scriptProcessor, ImportsReader importsReader,
+                      SettingsFactory settingsFactory, DependencyManagerFactory dependencyManagerFactory,
                       BuildSourceBuilder buildSourceBuilder, File buildResolverDir) {
+        this.settingsScriptMetaData = settingsScriptMetaData
+        this.scriptProcessor = scriptProcessor
         this.importsReader = importsReader
         this.settingsFactory = settingsFactory
         this.dependencyManagerFactory = dependencyManagerFactory
@@ -66,15 +76,15 @@ class SettingsProcessor {
         DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
         try {
             String importsResult = importsReader.getImports(rootFinder.rootDir)
-            String scriptText = rootFinder.settingsText + System.properties['line.separator'] + importsResult
-            logger.debug("Evaluated Settings Script: {}", scriptText)
+            Script settingsScript = scriptProcessor.createScriptFromFile(
+                    cacheDir(rootFinder.rootDir),
+                    rootFinder.settingsFile,
+                    importsResult,
+                    startParameter.getCacheUsage(),
+                    Thread.currentThread().contextClassLoader,
+                    Script.class)
+            settingsScriptMetaData.applyMetaData(settingsScript, settings)
             Clock clock = new Clock();
-            Script settingsScript = new GroovyShell().parse(
-                    scriptText,
-                    Settings.DEFAULT_SETTINGS_FILE)
-            logger.info("Timing: Compiling settings file took: {}", clock.time)
-            replaceMetaclass(settingsScript, settings)
-            clock.reset();
             settingsScript.run()
             logger.info("Timing: Evaluating settings file took: {}", clock.time)
         } catch (Throwable t) {
@@ -85,6 +95,10 @@ class SettingsProcessor {
             return createBasicSettings(rootFinder, startParameter)
         }
         settings
+    }
+
+    private File cacheDir(File rootDir) {
+        return new File(rootDir, Project.CACHE_DIR_NAME);
     }
 
     private def initDependencyManagerFactory(RootFinder rootFinder) {
@@ -100,22 +114,7 @@ class SettingsProcessor {
         return settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
     }
 
-    private void replaceMetaclass(Script script, DefaultSettings settings) {
-        ExpandoMetaClass settingsScriptExpandoMetaclass = new ExpandoMetaClass(script.class, false)
-        settingsScriptExpandoMetaclass.methodMissing = {String name, args ->
-            logger.debug("Method {} not found in script! Delegating to settings.", name)
-            settings.invokeMethod(name, args)
-        }
-        settingsScriptExpandoMetaclass.propertyMissing = {String name ->
-            if (name == 'out') {
-                return System.out
-            }
-            logger.debug("Property {} not found in script! Delegating to settings.", name)
-            settings."$name"
-        }
-        settingsScriptExpandoMetaclass.initialize()
-        script.metaClass = settingsScriptExpandoMetaclass
-    }
+    
 
     private boolean isCurrentDirIncluded(DefaultSettings settings) {
         settings.projectPaths.collect {Project.PATH_SEPARATOR + "$it" as String}.contains(

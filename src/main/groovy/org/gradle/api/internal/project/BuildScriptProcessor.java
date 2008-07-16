@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.project;
 
+import groovy.lang.Script;
+import org.gradle.CacheUsage;
+import org.gradle.util.GradleUtil;
+import org.gradle.util.GUtil;
+import org.gradle.api.Project;
+import org.gradle.groovy.scripts.IProjectScriptMetaData;
+import org.gradle.groovy.scripts.IScriptProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.Project;
-import org.gradle.util.GUtil;
-import org.gradle.CacheUsage;
-import org.apache.commons.io.FileUtils;
-import groovy.lang.Script;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author Hans Dockter
@@ -35,73 +36,71 @@ public class BuildScriptProcessor {
 
     String inMemoryScriptText;
 
-    ScriptHandler scriptHandler = new DefaultScriptHandler();
-
     ImportsReader importsReader;
 
     CacheUsage cacheUsage;
+
+    IScriptProcessor scriptProcessor;
+
+    IProjectScriptMetaData projectScriptMetaData;
 
     public BuildScriptProcessor() {
 
     }
 
-    public BuildScriptProcessor(ImportsReader importsReader, String inMemoryScriptText, CacheUsage cacheUsage) {
+    public BuildScriptProcessor(IScriptProcessor scriptProcessor, IProjectScriptMetaData projectScriptMetaData,
+                                ImportsReader importsReader, String inMemoryScriptText, CacheUsage cacheUsage) {
+        this.scriptProcessor = scriptProcessor;
+        this.projectScriptMetaData = projectScriptMetaData;
         this.importsReader = importsReader;
         this.inMemoryScriptText = inMemoryScriptText;
         this.cacheUsage = cacheUsage;
     }
 
-    public Script createScript(Project project) {
-        File buildFile = buildFile(project);
-        String scriptTextForNonCachedExecution = "";
+    public Script createScript(AbstractProject project) {
+        String imports = importsReader.getImports(project.getRootDir());
+        Script projectScript;
         if (GUtil.isTrue(inMemoryScriptText)) {
-            scriptTextForNonCachedExecution = inMemoryScriptText;
-        } else if (cacheUsage == CacheUsage.OFF) {
-            if (buildFile.isFile()) {
-                try {
-                    scriptTextForNonCachedExecution = FileUtils.readFileToString(buildFile);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                return returnEmptyScript();
-            }
+            projectScript = scriptProcessor.createScriptFromText(inMemoryScriptText, imports, project.getBuildFileCacheName(),
+                    project.getBuildScriptClassLoader(), ProjectScript.class);
+        } else {
+            projectScript = scriptProcessor.createScriptFromFile(
+                    cacheDir(project),
+                    buildFile(project),
+                    imports,
+                    cacheUsage,
+                    project.getBuildScriptClassLoader(),
+                    ProjectScript.class);
         }
-        if (GUtil.isTrue(scriptTextForNonCachedExecution)) {
-            return scriptHandler.createScript(project, buildScriptWithImports(project, scriptTextForNonCachedExecution));
-        }
-        if (!buildFile.isFile()) {
-            return returnEmptyScript();
-        }
-
-        if (cacheUsage == CacheUsage.ON) {
-            Script cachedScript = scriptHandler.loadFromCache(project, buildFile.lastModified());
-            if (cachedScript != null) {
-                return cachedScript;
-            }
-        }
-        return scriptHandler.writeToCache(project, buildScriptWithImports(project));
+        projectScriptMetaData.applyMetaData(projectScript, project);
+        return projectScript;
     }
 
     private File buildFile(Project project) {
         return new File(project.getProjectDir(), project.getBuildFileName());
     }
 
-    private String buildScriptWithImports(Project project) {
-        try {
-            return buildScriptWithImports(project, FileUtils.readFileToString(buildFile(project)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private File cacheDir(Project project) {
+        return new File(project.getProjectDir(), Project.CACHE_DIR_NAME);
     }
 
-    private String buildScriptWithImports(Project project, String scriptText) {
-        String importsResult = importsReader.getImports(project.getRootDir());
-        return scriptText + System.getProperty("line.separator") + importsResult;
+    public IProjectScriptMetaData getProjectScriptMetaData() {
+        return projectScriptMetaData;
     }
 
-    private Script returnEmptyScript() {
-        logger.info("No build file available. Using empty script!");
-        return new EmptyScript();
+    public IScriptProcessor getScriptProcessor() {
+        return scriptProcessor;
+    }
+
+    public CacheUsage getCacheUsage() {
+        return cacheUsage;
+    }
+
+    public ImportsReader getImportsReader() {
+        return importsReader;
+    }
+
+    public String getInMemoryScriptText() {
+        return inMemoryScriptText;
     }
 }

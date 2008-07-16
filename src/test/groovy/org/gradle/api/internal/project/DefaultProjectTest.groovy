@@ -44,6 +44,7 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.runner.RunWith
 import org.gradle.util.WrapUtil
+import org.gradle.groovy.scripts.EmptyScript
 
 /**
  * @author Hans Dockter

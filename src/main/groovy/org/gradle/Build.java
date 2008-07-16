@@ -30,6 +30,7 @@ import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.util.GUtil;
+import org.gradle.groovy.scripts.*;
 
 import java.util.List;
 import java.util.Map;
@@ -171,10 +172,13 @@ public class Build {
             public Build newInstance(String inMemoryScriptText, File buildResolverDir) {
                 DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
                 ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
+                DefaultScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler());
                 Dag tasksGraph = new Dag();
                 return new Build(
                         new RootFinder(),
                         new SettingsProcessor(
+                                new DefaultSettingsScriptMetaData(),
+                                scriptProcessor,
                                 importsReader,
                                 new SettingsFactory(),
                                 dependencyManagerFactory,
@@ -184,7 +188,12 @@ public class Build {
                                 new ProjectFactory(
                                         new TaskFactory(tasksGraph),
                                         dependencyManagerFactory,
-                                        new BuildScriptProcessor(importsReader, inMemoryScriptText, startParameter.getCacheUsage()),
+                                        new BuildScriptProcessor(
+                                                scriptProcessor, 
+                                                new DefaultProjectScriptMetaData(),
+                                                importsReader,
+                                                inMemoryScriptText,
+                                                startParameter.getCacheUsage()),
                                         new PluginRegistry(
                                                 startParameter.getPluginPropertiesFile()),
                                         startParameter.getBuildFileName(),

@@ -24,6 +24,7 @@ import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
+import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,7 +175,7 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public String getBuildFileCacheName() {
-        return buildFileName == null ? null : buildFileName.replaceAll("\\.", "_");
+        return ConfigureUtil.dot2underscore(buildFileName);
     }
 
     public void setBuildFileName(String buildFileName) {
