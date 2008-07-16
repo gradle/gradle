@@ -42,7 +42,8 @@ import groovy.lang.Script;
 public class DefaultScriptHandlerTest {
 
     static final String TEST_SCRIPT_NAME = "somename_craidle";
-    static final String TEST_TEXT_FOR_SCRIPT_CREATED_FILE = "sometext";
+    static final String TEST_EXPECTED_SYSTEMPROP_VALUE = "somevalue";
+    static final String TEST_EXPECTED_SYSTEMPROP_KEY = "somekey";
 
     DefaultScriptHandler scriptHandler;
 
@@ -55,7 +56,6 @@ public class DefaultScriptHandlerTest {
     File cachedFile;
 
     String testScript;
-    File testScriptCreatedFile;
 
     InputStreamClassLoader classLoader;
 
@@ -73,14 +73,14 @@ public class DefaultScriptHandlerTest {
         cacheDir = new File(testProjectDir, Project.CACHE_DIR_NAME);
         scriptCacheDir = new File(cacheDir, TEST_SCRIPT_NAME);
         cachedFile = new File(scriptCacheDir, TEST_SCRIPT_NAME + ".class");
-        testScriptCreatedFile = new File(testProjectDir, "testscriptfile");
-        testScript = "new File('" + testScriptCreatedFile.getAbsolutePath() + "').write('" + TEST_TEXT_FOR_SCRIPT_CREATED_FILE + "')";
+        testScript = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE + "')";
         expectedScriptClass = TestBaseScript.class;
     }
 
     @After
     public void tearDown() {
-//        HelperUtil.deleteTestDir();
+        HelperUtil.deleteTestDir();
+        System.getProperties().remove(TEST_EXPECTED_SYSTEMPROP_KEY);
     }
     
     @Test
@@ -104,8 +104,7 @@ public class DefaultScriptHandlerTest {
     private void evaluateScript(Script script) {
         assertTrue(expectedScriptClass.isInstance(script));
         script.run();
-        assertEquals(TEST_TEXT_FOR_SCRIPT_CREATED_FILE, GFileUtils.readFileToString(testScriptCreatedFile));
-        testScriptCreatedFile.delete();
+        assertEquals(TEST_EXPECTED_SYSTEMPROP_VALUE, System.getProperty(TEST_EXPECTED_SYSTEMPROP_KEY));
     }
 
     @Test public void testLoadFromCacheWithNonCachedBuildFile() {
@@ -127,7 +126,6 @@ public class DefaultScriptHandlerTest {
     }
 
     public abstract static class TestBaseScript extends Script {
-        
     }
 }
 
