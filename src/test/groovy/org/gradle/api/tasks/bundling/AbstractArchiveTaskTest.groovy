@@ -191,7 +191,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     @Test public void testMerge() {
         archiveTask.archiveDetector = [archiveFileSetType: {File file -> ZipFileSet }] as ArchiveDetector
-        Object[] fileDescriptions = ['a.zip' as File, new File(HelperUtil.TMP_DIR_FOR_TEST, 'b.zip').absolutePath]
+        List fileDescriptions = ['a.zip' as File, new File(HelperUtil.TMP_DIR_FOR_TEST, 'b.zip').absolutePath]
         assert archiveTask.merge(fileDescriptions) {
             include('x')
         }.is(archiveTask)
@@ -211,6 +211,10 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertEquals(1, mergeFileSets.size())
         assert mergeFileSets[0] instanceof ZipFileSet
         assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
+    }
+
+    @Test public void testMergeWithListArguments() {
+        
     }
 
     @Test (expected = InvalidUserDataException) public void testMergeWithNonArchive() {

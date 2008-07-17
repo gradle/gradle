@@ -219,14 +219,14 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      *
      */
     public AbstractArchiveTask merge(Object[] archiveFiles) {
-        Object[] flattenedArchiveFiles = archiveFiles
-        Closure configureClosure = ConfigureUtil.extractClosure(flattenedArchiveFiles)
+        List flattenedArchiveFiles
+        Closure configureClosure = ConfigureUtil.extractClosure(archiveFiles)
         if (configureClosure) {
-            flattenedArchiveFiles = flattenedArchiveFiles[0..archiveFiles.length - 2]
-            if (flattenedArchiveFiles.length == 1 && flattenedArchiveFiles instanceof Object[]) {
-                flattenedArchiveFiles = flattenedArchiveFiles[0].collect {it}
-            }
+            flattenedArchiveFiles = archiveFiles[0..archiveFiles.length - 2]
+        } else {
+            flattenedArchiveFiles = archiveFiles
         }
+        flattenedArchiveFiles = flattenedArchiveFiles.flatten()
         GradleUtil.fileList(flattenedArchiveFiles).collect { project.file(it) }.each {
             Class fileSetType = archiveDetector.archiveFileSetType(it)
             if (!fileSetType) { throw new InvalidUserDataException("File $it is not a valid archive or has no valid extension.") }

@@ -26,7 +26,7 @@ import org.apache.commons.io.FilenameUtils
 class GradleUtil {
     private static Logger logger = LoggerFactory.getLogger(GradleUtil)
 
-    static def List fileList(Object[] fileDescriptions) {
+    static def List fileList(List fileDescriptions) {
         fileDescriptions.collect { new File(it.toString()) }
     }
 
