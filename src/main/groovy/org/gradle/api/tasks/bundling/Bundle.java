@@ -76,7 +76,7 @@ public class Bundle extends ConventionTask {
 
     private void setTaskDependsOn(AbstractArchiveTask task, Set<Object> childrenDependOn) {
         if (GUtil.isTrue(childrenDependOn)) {
-            task.setDependsOn(childrenDependOn);
+            task.dependsOn((Object[]) childrenDependOn.toArray(new Object[childrenDependOn.size()]));
         } else {
             Set taskDependsOn = new HashSet();
             for (Object dependsOnPath : getDependsOn()) {
@@ -84,7 +84,7 @@ public class Bundle extends ConventionTask {
                     taskDependsOn.add(dependsOnPath);
                 }
             }
-            task.setDependsOn(taskDependsOn);
+            task.dependsOn((Object[]) taskDependsOn.toArray(new Object[taskDependsOn.size()]));
         }
     }
 
