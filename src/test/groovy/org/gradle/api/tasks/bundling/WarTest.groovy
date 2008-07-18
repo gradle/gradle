@@ -30,13 +30,15 @@ import org.junit.Test;
  * @author Hans Dockter
  */
 class WarTest extends AbstractArchiveTaskTest {
-    static final String TEST_LIB_CONFIGURATION = 'testLibConf'
+    static final List TEST_LIB_CONFIGURATIONS = ['testLibConf1', 'testLibConf2'] 
 
     War war
     
     MockFor antWarMocker
 
-    List filesFromDepencencyManager
+    Map filesFromDepencencyManager
+
+    List dependencyManagerMockCheckList
 
     @Before public void setUp()  {
         super.setUp()
@@ -48,12 +50,13 @@ class WarTest extends AbstractArchiveTaskTest {
         war.webXml = 'myweb.xml' as File
         war.classesFileSets = [new FileSet()]
         war.additionalLibFileSets = [new FileSet()]
-        war.libConfiguration = TEST_LIB_CONFIGURATION
+        war.libConfigurations = TEST_LIB_CONFIGURATIONS
+        dependencyManagerMockCheckList = new ArrayList(TEST_LIB_CONFIGURATIONS)
         antWarMocker = new MockFor(AntWar)
-        filesFromDepencencyManager = ['/file1' as File]
-        dependencyManagerMock.demand.resolve(0..1000) { String configuration ->
-            assertEquals(TEST_LIB_CONFIGURATION, configuration)
-            filesFromDepencencyManager
+        filesFromDepencencyManager = [testLibConf1: ['/file1' as File], testLibConf2: ['/file2' as File]]
+        dependencyManagerMock.demand.resolve(2..2) { String configuration ->
+            dependencyManagerMockCheckList = dependencyManagerMockCheckList - configuration
+            filesFromDepencencyManager[configuration]
         }
     }
 
@@ -69,7 +72,7 @@ class WarTest extends AbstractArchiveTaskTest {
                 checkMetaArchiveParameterEqualsArchive(metaArchiveParameter, war)
                 assert classesFileSets.is(war.classesFileSets)
                 assert additionalLibFileSets.is(war.additionalLibFileSets)
-                assertEquals(filesFromDepencencyManager, dependencyLibFiles)
+                assertEquals(new ArrayList(filesFromDepencencyManager.values()).flatten(), dependencyLibFiles)
                 assertEquals(webXml, war.webXml)
                 assert webInfFileSets.is(war.webInfFileSets)
             }

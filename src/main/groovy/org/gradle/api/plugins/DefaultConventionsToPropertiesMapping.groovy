@@ -79,7 +79,7 @@ class DefaultConventionsToPropertiesMapping {
     // todo Does it really makes sense to add a war to the dists configuration ?
     public final static Map WAR = JAR.subMap(JAR.keySet() - 'baseDir') + [
             configurations: {[JavaPlugin.DISTS] as String[]},
-            libConfiguration: {JavaPlugin.RUNTIME},
+            libConfigurations: {[JavaPlugin.RUNTIME]},
             webInfFileSets: {[new FileSet(it.plugins.java.webAppDir)]},
             classesFileSets: {[new FileSet(it.plugins.java.classesDir)]}
     ]

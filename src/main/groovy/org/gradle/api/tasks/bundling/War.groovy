@@ -37,7 +37,7 @@ class War extends Jar {
 
     List classesFileSets = null
 
-    String libConfiguration
+    List libConfigurations
 
     List additionalLibFileSets = null
 
@@ -52,7 +52,10 @@ class War extends Jar {
 
     Closure createAntArchiveTask() {
         {->
-            List files = getLibConfiguration() ? dependencyManager.resolve(getLibConfiguration()) : []
+            List files = []
+            getLibConfigurations().each { String configuration ->
+                files.addAll(dependencyManager.resolve(configuration))
+            }
             antWar.execute(new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
                     getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant),
                     getClassesFileSets(), files, getAdditionalLibFileSets(), getWebInfFileSets(), getWebXml())
@@ -75,12 +78,12 @@ class War extends Jar {
         this.classesFileSets = classesFileSets;
     }
 
-    public String getLibConfiguration() {
-        return conv(libConfiguration, "libConfiguration");
+    public List getLibConfigurations() {
+        return conv(libConfigurations, "libConfigurations");
     }
 
-    public void setLibConfiguration(String libConfiguration) {
-        this.libConfiguration = libConfiguration;
+    public void setLibConfigurations(List libConfigurations) {
+        this.libConfigurations = libConfigurations;
     }
 
     public List getAdditionalLibFileSets() {
