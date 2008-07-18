@@ -67,7 +67,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.baseName = 'testbasename'
         archiveTask.version = '1.0'
         archiveTask.classifier = 'src'
-        archiveTask.destinationDir = new File('/destinationDir')
+        archiveTask.destinationDir = new File(testDir, 'destinationDir')
         archiveTask.resourceCollections = [new FileSet(testDir)]
         archiveTask.baseDir = testDir
         archiveTask.configurations = [TEST_CONFIGURATION]
@@ -86,6 +86,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
                 archiveTask.execute()
             }
         }
+        assertTrue(archiveTask.destinationDir.isDirectory())
     }
 
     @Test public void testExecuteWithEmptyClassifier() {

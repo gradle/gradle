@@ -146,6 +146,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         if (!getDestinationDir()) {
             throw new InvalidUserDataException('You mustspecify the destinationDir.')
         }
+        getDestinationDir().mkdirs()
         createAntArchiveTask().call()
         if (publish) {
             String classifierSnippet = classifier ? ':' + classifier : ''
