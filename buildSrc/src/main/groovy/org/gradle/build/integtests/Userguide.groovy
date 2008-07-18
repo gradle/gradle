@@ -135,7 +135,10 @@ class Userguide {
                 run('tutorial', 'replaceTask', 'resources'),
                 run('tutorial', 'skipProperties', '-DmySkipProperty skipMe'),
                 run('tutorial', 'stopExecutionException', 'myTask'),
-                run('tutorial', 'upper', 'upper')
+                run('tutorial', 'upper', 'upper'),
+                run('tutorial', 'zip', 'init'),
+                run('tutorial', 'zipWithCustomName', 'init'),
+                run('tutorial', 'zipWithArguments', 'init')
 
         ]
     }
