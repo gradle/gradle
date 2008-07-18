@@ -43,8 +43,15 @@ class FileSet extends PatternSet {
     }
 
     FileSet(Map args) {
-        super(args)
-        if (!dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
+        super(transformToFile(args))
+        if (!args.dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
+
+    }
+
+    private static Map transformToFile(Map args) {
+        Map newArgs = new HashMap(args)
+        newArgs.dir = new File(newArgs.dir.toString())
+        newArgs
     }
 
     def addToAntBuilder(node, String childNodeName) {

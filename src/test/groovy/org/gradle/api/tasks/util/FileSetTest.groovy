@@ -45,19 +45,24 @@ class FileSetTest extends AbstractTestForPatternSet {
 
     @Test public void testFileSet() {
         assert fileSet.contextObject.is(contextObject)
-        assert fileSet.dir.is(testDir)
+        assertEquals(testDir, fileSet.dir)
 
         fileSet = new FileSet(testDir)
         assert fileSet.contextObject.is(fileSet)
-        assert fileSet.dir.is(testDir)
+        assertEquals(testDir, fileSet.dir)
 
         fileSet = new FileSet(dir: testDir)
         assert fileSet.contextObject.is(fileSet)
-        assert fileSet.dir.is(testDir)
+        assertEquals(testDir, fileSet.dir)
     }
 
     @Test(expected = InvalidUserDataException) public void testFileSetWithIllegalArgument() {
         new FileSet([:])
+    }
+
+    @Test public void testFileSetWithDirAsString() {
+        FileSet fileSet = new FileSet(dir: 'dirname')
+        assertEquals(new File('dirname'), fileSet.dir);
     }
 
     void checkPatternSetForAntBuilderTest(antPatternSet, PatternSet patternSet) {
