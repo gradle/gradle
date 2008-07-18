@@ -46,7 +46,12 @@ public class GradleException extends RuntimeException {
         if (!scriptName) {
             return super.getMessage();
         }
-        List lineNumbers = cause.stackTrace.findAll {it.fileName.equals(scriptName) && it.lineNumber >= 0}.collect {it.lineNumber}
+        List lineNumbers = []
+        Throwable currentException = this
+        while (currentException != null) {
+            lineNumbers.addAll(currentException.stackTrace.findAll {it.fileName.equals(scriptName) && it.lineNumber >= 0}.collect {it.lineNumber})
+            currentException = currentException.cause
+        }
         String lineInfo = lineNumbers ? "in line(s): ${lineNumbers.join(' ')}" : 'No line info available from stacktrace.'
         super.getMessage() + " Buildscript=$scriptName $lineInfo"
     }
