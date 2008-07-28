@@ -43,7 +43,7 @@ public class Zip extends AbstractArchiveTask {
     }
 
     ZipFileSet zipFileSet(Map args = [:], Closure configureClosure = null) {
-        createFileSetInternal(args, ZipFileSet, configureClosure)
+        addFileSetInternal(args, ZipFileSet, configureClosure)
     }
 
     public AntZip getAntZip() {

@@ -88,4 +88,35 @@ class WarTest extends AbstractArchiveTaskTest {
         assertEquals(War.WAR_EXTENSION, war.extension)
     }
 
+    @Test public void testLibConfigurations() {
+        war.libConfigurations = null
+        war.libConfigurations('a')
+        assertEquals(['a'], war.libConfigurations)
+        war.libConfigurations('b', 'c')
+        assertEquals(['a', 'b', 'c'], war.libConfigurations)
+    }
+
+    @Test public void testWebInfFileSet() {
+        checkAddFileSet("webInfFileSet", "webInfFileSets")
+    }
+
+    @Test public void testClassesFileSet() {
+        checkAddFileSet("classesFileSet", "classesFileSets")
+    }
+
+    @Test public void testAditionalLibFileSet() {
+        checkAddFileSet("additionalLibFileSet", "additionalLibFileSets")
+    }
+
+    private void checkAddFileSet(String methodName, String propertyName) {
+        war."$propertyName" = null
+        war."$methodName"(dir: 'x') {
+            include 'a'
+        }
+        war."$methodName"(dir: 'y')
+        assertEquals(new File('x'), war."$propertyName"[0].dir)
+        assertEquals(['a'] as Set, war."$propertyName"[0].includes)
+        assertEquals(new File('y'), war."$propertyName"[1].dir)
+    }
+
 }

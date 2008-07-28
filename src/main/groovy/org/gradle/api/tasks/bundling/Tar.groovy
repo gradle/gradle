@@ -55,7 +55,7 @@ public class Tar extends Zip {
     }
 
     TarFileSet tarFileSet(Map args = [:], Closure configureClosure = null) {
-        createFileSetInternal(args, TarFileSet, configureClosure)
+        addFileSetInternal(args, TarFileSet, configureClosure)
     }
 
     public Compression getCompression() {

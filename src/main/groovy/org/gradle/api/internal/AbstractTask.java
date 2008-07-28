@@ -51,8 +51,6 @@ public abstract class AbstractTask implements Task {
 
     boolean executed;
 
-    List afterDagClosures = new ArrayList();
-
     boolean enabled = true;
 
     String path = null;
@@ -123,14 +121,6 @@ public abstract class AbstractTask implements Task {
 
     public void setExecuted(boolean executed) {
         this.executed = executed;
-    }
-
-    public List getAfterDagClosures() {
-        return afterDagClosures;
-    }
-
-    public void setAfterDagClosures(List afterDagClosures) {
-        this.afterDagClosures = afterDagClosures;
     }
 
     public boolean isEnabled() {

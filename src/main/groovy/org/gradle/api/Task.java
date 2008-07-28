@@ -107,8 +107,6 @@ public interface Task extends Comparable {
      */
     Task deleteAllActions();
 
-    Task afterDag(Closure configureClosure);
-
     boolean getEnabled();
     
     void setEnabled(boolean enabled);

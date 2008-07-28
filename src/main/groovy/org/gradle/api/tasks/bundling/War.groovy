@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory
 
 import java.util.List;
 import java.io.File
-import org.gradle.execution.Dag;
+import org.gradle.execution.Dag
+import org.gradle.api.tasks.util.FileSet
+import org.gradle.util.GUtil;
 
 /**
  * @author Hans Dockter
@@ -37,7 +39,7 @@ class War extends Jar {
 
     List classesFileSets = null
 
-    List libConfigurations
+    List libConfigurations = null
 
     List additionalLibFileSets = null
 
@@ -60,6 +62,38 @@ class War extends Jar {
                     getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant),
                     getClassesFileSets(), files, getAdditionalLibFileSets(), getWebInfFileSets(), getWebXml())
         }
+    }
+
+    /**
+     * Adds a fileset to the list of webinf fileset's.
+     * @param args key-value pairs for setting field values of the created fileset. 
+     * @param configureClosure (optional) closure which is applied against the newly created fileset.
+     */
+    FileSet webInfFileSet(Map args, Closure configureClosure = null) {
+        webInfFileSets = GUtil.chooseCollection(webInfFileSets, getWebInfFileSets())
+        FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
+        webInfFileSets << fileSet
+        fileSet
+    }
+
+    FileSet classesFileSet(Map args, Closure configureClosure = null) {
+        classesFileSets = GUtil.chooseCollection(classesFileSets, getClassesFileSets())
+        FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
+        classesFileSets << fileSet
+        fileSet
+    }
+
+    FileSet additionalLibFileSet(Map args, Closure configureClosure = null) {
+        additionalLibFileSets = GUtil.chooseCollection(additionalLibFileSets, getAdditionalLibFileSets())
+        FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
+        additionalLibFileSets << fileSet
+        fileSet
+    }
+
+    War libConfigurations(String... libConfigurations) {
+        this.libConfigurations = GUtil.chooseCollection(this.libConfigurations, getLibConfigurations())
+        this.libConfigurations.addAll(libConfigurations as List)
+        this
     }
 
     public AntWar getAntWar() {

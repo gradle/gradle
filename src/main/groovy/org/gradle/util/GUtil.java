@@ -119,4 +119,16 @@ public class GUtil {
         return properties;
     }
 
+    public static Collection chooseCollection(Collection taskCollection, Collection conventionCollection) {
+        if (taskCollection != null) {
+            return taskCollection;
+        }
+        if (conventionCollection != null) {
+            taskCollection = conventionCollection;
+        } else {
+            taskCollection = new ArrayList();
+        }
+        return taskCollection;
+    }
+
 }

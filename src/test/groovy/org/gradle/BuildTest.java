@@ -49,7 +49,7 @@ import java.util.ArrayList;
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
-public class BuildTest {
+public class  BuildTest {
     private ProjectsLoader projectsLoaderMock;
     private RootFinder rootFinderMock;
     private SettingsProcessor settingsProcessorMock;

@@ -63,16 +63,6 @@ public class DefaultTask extends AbstractTask {
         return (Task) ConfigureUtil.configure(closure, this);
     }
 
-
-    public Task afterDag(Closure closure) {
-        afterDagClosures.add(closure);
-        return this;
-    }
-   
-    public Task applyAfterDagClosures() {
-        return configureEvent(afterDagClosures);
-    }
-
     private Task configureEvent(List<Closure> closures) {
         for (Closure closure : closures) {
             configure(closure);

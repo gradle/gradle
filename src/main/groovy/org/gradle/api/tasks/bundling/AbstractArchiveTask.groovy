@@ -196,13 +196,19 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * @return the added fileset
      */
     public FileSet fileSet(Map args = [:], Closure configureClosure = null) {
-        createFileSetInternal(args, FileSet, configureClosure)
+        addFileSetInternal(args, FileSet, configureClosure)
+    }
+
+    protected def addFileSetInternal(Map args, Class type, Closure configureClosure) {
+        def fileSet = createFileSetInternal(args, type, configureClosure)
+        resourceCollections(fileSet)
+        fileSet
     }
 
     protected def createFileSetInternal(Map args, Class type, Closure configureClosure) {
         args.dir = args.dir ?: getBaseDir()
         def fileSet = type.newInstance(args)
-        resourceCollections(ConfigureUtil.configure(configureClosure, fileSet))
+        ConfigureUtil.configure(configureClosure, fileSet)
         fileSet
     }
 
@@ -250,14 +256,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public AbstractArchiveTask resourceCollections(Object... elements) {
-        if (resourceCollections == null) {
-            List conventionCollection = getResourceCollections();
-            if (conventionCollection != null) {
-                resourceCollections = conventionCollection;
-            } else {
-                resourceCollections = new ArrayList();
-            }
-        }
+        resourceCollections = GUtil.chooseCollection(resourceCollections, getResourceCollections())
         GUtil.flatten(Arrays.asList(elements), resourceCollections);
         return this;
     }
