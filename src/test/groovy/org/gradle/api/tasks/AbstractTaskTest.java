@@ -31,6 +31,7 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.test.util.Check;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
+import org.codehaus.groovy.runtime.InvokerInvocationException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -170,8 +171,9 @@ public abstract class AbstractTaskTest {
         getTask().doLast(null);
     }
 
-    @Test public void testAddActionsWithClosures() {
-        GroovyTaskTestHelper.checkAddActionsWithClosures(getTask()); 
+    @Test
+    public void testAddActionsWithClosures() {
+        GroovyTaskTestHelper.checkAddActionsWithClosures(getTask());
     }
 
 
@@ -198,26 +200,66 @@ public abstract class AbstractTaskTest {
         assertTrue(actionsCalled.get(1));
     }
 
-    @Test public void testConfigure() {
+    @Test
+    public void testConfigure() {
         getTask().setActions(new ArrayList());
         GroovyTaskTestHelper.checkConfigure(getTask());
     }
 
     @Test
+    public void testActionWithThrowable() {
+        getTask().doFirst(createExceptionAction(new RuntimeException()));
+        checkException(GradleScriptException.class);
+    }
+
+    @Test
+    public void testActionWithGradleEception() {
+        getTask().doFirst(createExceptionAction(new GradleException("x")));
+        checkException(GradleException.class);
+    }
+
+    @Test
+    public void testActionWithInvokerInvocationExceptionAndWrappedThrowable() {
+        getTask().doFirst(createExceptionAction(new InvokerInvocationException(new RuntimeException("x"))));
+        checkException(GradleScriptException.class);
+    }
+
+    @Test
+    public void testActionWithInvokerInvocationExceptionAndWrappedGradleException() {
+        getTask().doFirst(createExceptionAction(new InvokerInvocationException(new GradleException("x"))));
+        checkException(GradleException.class);
+    }
+
+    private void checkException(Class exceptionType) {
+        try {
+            getTask().execute();
+            fail();
+        } catch (Exception e) {
+            assertEquals(exceptionType, e.getClass());
+            GradleException gradleException = (GradleException) e;
+            assertEquals(getProject().getBuildFileCacheName(), gradleException.getScriptName());
+        }
+    }
+
+    @Test
     public void testStopExecution() {
+        checkStopExecution(new StopExecutionException());
+    }
+
+    @Test
+    public void testStopExecutionWrappedInInvokerInvocationException() {
+        checkStopExecution(new InvokerInvocationException(new StopExecutionException()));
+    }
+
+    private void checkStopExecution(RuntimeException actionException) {
         final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
-        TaskAction action1 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
-                throw new StopExecutionException();
-            }
-        };
         TaskAction action2 = new TaskAction() {
             public void execute(Task task, Dag tasksGraph) {
                 actionsCalled.set(1, true);
             }
         };
         getTask().doFirst(action2);
-        getTask().doFirst(action1);
+        getTask().doFirst(createExceptionAction(actionException));
         getTask().execute();
         assertFalse(actionsCalled.get(1));
         assertTrue(getTask().isExecuted());
@@ -225,23 +267,35 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testStopAction() {
+        checkStopAction(new StopActionException());
+    }
+
+    @Test
+    public void testStopActionWrappedInInvokerInvocationException() {
+        checkStopAction(new InvokerInvocationException(new StopActionException()));
+    }
+
+    private void checkStopAction(RuntimeException actionException) {
         getTask().setActions(new ArrayList());
         final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
-        TaskAction action1 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
-                throw new StopActionException();
-            }
-        };
         TaskAction action2 = new TaskAction() {
             public void execute(Task task, Dag tasksGraph) {
                 actionsCalled.set(1, true);
             }
         };
         getTask().doFirst(action2);
-        getTask().doFirst(action1);
+        getTask().doFirst(createExceptionAction(actionException));
         getTask().execute();
         assertTrue(actionsCalled.get(1));
         assertTrue(getTask().isExecuted());
+    }
+
+    private TaskAction createExceptionAction(final RuntimeException e) {
+        return new TaskAction() {
+            public void execute(Task task, Dag tasksGraph) {
+                throw e;
+            }
+        };
     }
 
     @Test

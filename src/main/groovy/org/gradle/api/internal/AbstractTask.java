@@ -189,7 +189,7 @@ public abstract class AbstractTask implements Task {
                 } catch (StopActionException e) {
                     logger.debug("Action stopped by some action with message: {}", e.getMessage());
                     continue;
-                    // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the grrovy2java refactoring we can remove this.
+                    // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the Groovy bug is fixed we can remove this.
                 } catch (InvokerInvocationException e) {
                     if (e.getCause() != null) {
                         if (e.getCause() instanceof StopActionException) {
@@ -197,7 +197,9 @@ public abstract class AbstractTask implements Task {
                         } else if (e.getCause() instanceof StopExecutionException) {
                             break;
                         } else if (e.getCause() instanceof GradleException) {
-                            ((GradleException) e.getCause()).setScriptName(project.getBuildFileCacheName());
+                            GradleException gradleException = (GradleException) e.getCause();
+                            gradleException.setScriptName(project.getBuildFileCacheName());
+                            throw gradleException;
                         } else {
                             throw new GradleScriptException(e.getCause(), project.getBuildFileCacheName());
                         }
