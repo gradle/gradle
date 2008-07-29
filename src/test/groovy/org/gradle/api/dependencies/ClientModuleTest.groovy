@@ -16,24 +16,23 @@
 
 package org.gradle.api.dependencies
 
-import groovy.mock.interceptor.MockFor
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.dependencies.AbstractDependencyContainerTest
 import org.gradle.api.internal.dependencies.DefaultDependencyContainer
-import org.gradle.api.internal.dependencies.DependencyFactory
-import org.gradle.api.internal.dependencies.DependenciesUtil
-import org.gradle.api.internal.project.DefaultProject
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
 import org.gradle.util.HelperUtil
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock)
 class ClientModuleTest extends AbstractDependencyContainerTest {
     ClientModule clientModule
 
@@ -41,11 +40,9 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
 
     Map testModuleRegistry = [a: 'a']
 
-    MockFor dependencyFactoryMocker
-
     List parentConfs = ['parentConf']
 
-    MockFor dependencyDescriptorFactoryMock
+    DependencyDescriptorFactory dependencyDescriptorFactoryMock
 
     DefaultDependencyDescriptor expectedDependencyDescriptor
 
@@ -55,13 +52,13 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
 
     @Before public void setUp() {
         super.setUp();
+        context.setImposteriser(ClassImposteriser.INSTANCE)
+        dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory)
         clientModule = new ClientModule(dependencyFactory, parentConfs as Set, testId, testModuleRegistry)
         clientModule.project = project
-        dependencyFactoryMocker = new MockFor(DependencyFactory)
         testDefaultConfs = clientModule.defaultConfs
         testConfs = clientModule.defaultConfs
-        dependencyDescriptorFactoryMock = new MockFor(DependencyDescriptorFactory)
-        clientModule.dependencyDescriptorFactory = [:] as DependencyDescriptorFactory
+        clientModule.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock)
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor()
     }
 
@@ -76,29 +73,18 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         String testDependencyUserDescription = "org.apache:test:5.0.4"
         DependencyDescriptor testDependencyDescriptor = [:] as DependencyDescriptor
         Dependency testDependency = [createDepencencyDescriptor: {testDependencyDescriptor}] as Dependency
-        dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependency, DefaultProject project ->
-            assertEquals(testDependencyUserDescription, userDependency)
-            testDependency
-        }
-        dependencyDescriptorFactoryMock.demand.createDescriptor(1..1) {String descriptor, boolean force, boolean transitive,
-                                                                       boolean changing, Set confs, List excludeRules, Map extraAttributes ->
-            assertEquals(testId, descriptor)
-            assert !force
-            assert transitive
-            assert changing
-            assertEquals(clientModule.confs, confs)
-            assertEquals([], excludeRules)
-            assertEquals([(ClientModule.CLIENT_MODULE_KEY): testId], extraAttributes)
-            expectedDependencyDescriptor
+
+        context.checking {
+            one(dependencyFactory).createDependency(new HashSet(clientModule.defaultConfs), testDependencyUserDescription, project);
+            will(returnValue(testDependency))
+            one(dependencyDescriptorFactoryMock).createDescriptor(testId, false, true, true, clientModule.confs,
+                    [], [(ClientModule.CLIENT_MODULE_KEY): testId]); will(returnValue(expectedDependencyDescriptor))
         }
 
         DependencyDescriptor dependencyDescriptor
-        dependencyDescriptorFactoryMock.use(clientModule.dependencyDescriptorFactory) {
-            dependencyFactoryMocker.use(clientModule.dependencyFactory) {
-                clientModule.dependencies(testDependencyUserDescription)
-                assert clientModule.createDepencencyDescriptor().is(expectedDependencyDescriptor)
-            }
-        }
+        println clientModule.dependencyFactory.getClass()
+        clientModule.dependencies(testDependencyUserDescription)
+        assert clientModule.createDepencencyDescriptor().is(expectedDependencyDescriptor)
         ModuleDescriptor moduleDescriptor = testModuleRegistry[testId]
         assert moduleDescriptor
         assert moduleDescriptor.moduleRevisionId == expectedDependencyDescriptor.dependencyRevisionId

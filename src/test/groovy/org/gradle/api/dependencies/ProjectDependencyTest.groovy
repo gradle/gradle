@@ -20,18 +20,17 @@ import java.awt.Point
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.DependencyManager
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.UnknownDependencyNotation
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.UnknownDependencyNotation
 import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.api.DependencyManager
-import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
@@ -95,29 +94,25 @@ class ProjectDependencyTest {
 
     @Test public void testInitialize() {
         JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-        JUnit4GroovyMockery context2 = new JUnit4GroovyMockery()
-        Project project = context.mock(Project)
-        DependencyManager dependencyManager = context.mock(DependencyManager)
+        Project project = context.mock(Project, "project")
+        DependencyManager dependencyManager = context.mock(DependencyManager, "dependencyManager")
         Task task = context.mock(Task)
         Map tasks4conf = [:]
-        Project dependencyProject = context2.mock(Project)
-        DependencyManager dependencyProjectDependencyManager = context2.mock(DependencyManager)
-        Task expectedArtifactProductionTask = context2.mock(Task)
+        Project dependencyProject = context.mock(Project, "dependencyProject")
+        DependencyManager dependencyProjectDependencyManager = context.mock(DependencyManager, "dependencyProjectDependencyManager")
+        Task expectedArtifactProductionTask = context.mock(Task, "artifactProductionTask")
         String expectedArtifactProductionTaskName = "artifactTask"
         String expectedArtifactProductionTaskPath = "artifactTaskPath"
 
         projectDependency.project = project
         projectDependency.userDependencyDescription = dependencyProject
-        tasks4conf[TEST_CONF] = [TEST_CONF]
+        tasks4conf[TEST_CONF] = [TEST_CONF] as Set
 
         context.checking {
             allowing(project).getDependencies(); will(returnValue(dependencyManager))
             allowing(dependencyManager).getTasks4Conf(); will(returnValue(tasks4conf))
             allowing(project).task(TEST_CONF); will(returnValue(task))
             one(task).dependsOn(expectedArtifactProductionTaskPath)
-        }
-
-        context2.checking {
             one(dependencyProject).evaluate()
             allowing(dependencyProject).getDependencies(); will(returnValue(dependencyProjectDependencyManager))
             allowing(dependencyProjectDependencyManager).getArtifactProductionTaskName(); will(
@@ -126,7 +121,6 @@ class ProjectDependencyTest {
             allowing(expectedArtifactProductionTask).getPath(); will(returnValue(expectedArtifactProductionTaskPath))
 
         }
-
         projectDependency.initialize()
     }
 }

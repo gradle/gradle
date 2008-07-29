@@ -17,13 +17,11 @@
 package org.gradle.api.dependencies
 
 import org.apache.ivy.core.module.descriptor.*
-import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.dependencies.DefaultDependencyContainer
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
 import org.gradle.api.internal.dependencies.DependencyFactory
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
-
 
 /**
  * @author Hans Dockter
@@ -79,7 +77,7 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
         // do nothing
     }
 
-    void dependencies(List confs, Object[] dependencies) {
+    void dependencies(List confs, Object... dependencies) {
         if (confs != defaultConfs) {
             throw new UnsupportedOperationException("You can assign confs " + confs + " to dependencies in a client module.")
         }

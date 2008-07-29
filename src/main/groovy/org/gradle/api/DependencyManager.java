@@ -17,18 +17,17 @@
 package org.gradle.api;
 
 import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.apache.ivy.plugins.resolver.IBiblioResolver;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DualResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.dependencies.DependencyContainer;
 import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-
-import groovy.lang.Closure;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -96,7 +95,7 @@ public interface DependencyManager extends DependencyContainer {
 
     void setArtifactProductionTaskName(String name);
 
-    Map getConfs4Task();
+    Map<String, Set<String>> getConfs4Task();
     
     /**
      * A map where the key is the name of the configuration and the value is the name of a task. This is needed
@@ -105,7 +104,7 @@ public interface DependencyManager extends DependencyContainer {
      * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
      * the mapping can be specified via this map.
      */
-    Map getTasks4Conf();
+    Map<String, Set<String>> getTasks4Conf();
 
     /**
      * A configuration can be assigned to one or more tasks. One usage of this mapping is that for example the
@@ -133,7 +132,7 @@ public interface DependencyManager extends DependencyContainer {
      * @param configurationName
      * @param artifacts
      */
-    void addArtifacts(String configurationName, Object[] artifacts);
+    void addArtifacts(String configurationName, Object... artifacts);
 
     /**
      * Adds an <code>org.apache.ivy.core.module.descriptor.Configuration</code> You would use this method if
@@ -202,15 +201,19 @@ public interface DependencyManager extends DependencyContainer {
 
     void setFailForMissingDependencies(boolean failForMissingDependencies);
 
-    boolean getFailForMissingDependencies();
+    boolean isFailForMissingDependencies();
 
-    FileSystemResolver addFlatDirResolver(String name, Object[] dirs);
+    FileSystemResolver addFlatDirResolver(String name, Object... dirs);
 
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed
      *                    if only the pom is in the MavenRepo repository (e.g. jta).
      */
-    DualResolver addMavenRepo(String[] jarRepoUrls);
+    DualResolver addMavenRepo(String... jarRepoUrls);
 
-    DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
+    DualResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls);
+
+    void publish(List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor);
+
+    ModuleRevisionId createModuleRevisionId();
 }

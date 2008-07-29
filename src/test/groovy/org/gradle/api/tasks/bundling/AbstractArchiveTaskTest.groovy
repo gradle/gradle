@@ -17,20 +17,19 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
+import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Task
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.tasks.util.FileSet
-import org.gradle.util.HelperUtil
-import org.gradle.api.tasks.util.FileCollection
-import org.gradle.api.tasks.util.ZipFileSet
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.tasks.util.AntDirective
+import org.gradle.api.tasks.util.FileCollection
+import org.gradle.api.tasks.util.FileSet
+import org.gradle.api.tasks.util.ZipFileSet
+import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.GradleScriptException
-import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
@@ -41,6 +40,8 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     abstract AbstractArchiveTask getArchiveTask()
 
     MockFor dependencyManagerMock
+
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     AbstractTask getTask() {
         archiveTask
@@ -71,48 +72,39 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.resourceCollections = [new FileSet(testDir)]
         archiveTask.baseDir = testDir
         archiveTask.configurations = [TEST_CONFIGURATION]
-        archiveTask.dependencyManager = [:] as DefaultDependencyManager
-        dependencyManagerMock = new MockFor(DefaultDependencyManager)
+        archiveTask.dependencyManager = context.mock(DependencyManager)
+        dependencyManagerMock = new MockFor(DependencyManager)
     }
 
     @Test public void testExecute() {
-        dependencyManagerMock.demand.addArtifacts(1..1) {String configurationName, Object[] artifacts ->
-            assertEquals(AbstractArchiveTaskTest.TEST_CONFIGURATION, configurationName)
-            assertEquals(1, artifacts.size())
-            assertEquals("$archiveTask.baseName:${archiveTask.classifier}@$archiveTask.extension", artifacts[0])
+        context.checking {
+            one(archiveTask.dependencyManager).addArtifacts(AbstractArchiveTaskTest.TEST_CONFIGURATION,
+                    ["$archiveTask.baseName:${archiveTask.classifier}@$archiveTask.extension"] as Object[])
         }
+
         getAntMocker(true).use(ant) {
-            dependencyManagerMock.use(archiveTask.dependencyManager) {
-                archiveTask.execute()
-            }
+            archiveTask.execute()
         }
         assertTrue(archiveTask.destinationDir.isDirectory())
     }
 
     @Test public void testExecuteWithEmptyClassifier() {
-        dependencyManagerMock.demand.addArtifacts(1..1) {String configurationName, Object[] artifacts ->
-            assertEquals(AbstractArchiveTaskTest.TEST_CONFIGURATION, configurationName)
-            assertEquals(1, artifacts.size())
-            assertEquals("${archiveTask.baseName}@$archiveTask.extension", artifacts[0])
+        context.checking {
+            one(archiveTask.dependencyManager).addArtifacts(AbstractArchiveTaskTest.TEST_CONFIGURATION,
+                    ["${archiveTask.baseName}@$archiveTask.extension"] as Object[])
         }
+
         archiveTask.classifier = ''
         getAntMocker(true).use(ant) {
-            DefaultDependencyManager dm = archiveTask.dependencyManager
-            dependencyManagerMock.use(archiveTask.dependencyManager) {
-                archiveTask.execute()
-            }
+            DependencyManager dm = archiveTask.dependencyManager
+            archiveTask.execute()
         }
     }
 
     @Test public void testExecuteWithPublishFalse() {
-        dependencyManagerMock.demand.addArtifacts(0..0) {String configurationName, Object[] artifacts ->
-
-        }
         archiveTask.publish = false
         getAntMocker(true).use(ant) {
-            dependencyManagerMock.use(archiveTask.dependencyManager) {
-                archiveTask.execute()
-            }
+            archiveTask.execute()
         }
     }
 
@@ -215,7 +207,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testMergeWithListArguments() {
-        
+
     }
 
     @Test (expected = InvalidUserDataException) public void testMergeWithNonArchive() {

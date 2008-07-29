@@ -19,38 +19,40 @@ package org.gradle.api.tasks
 import groovy.mock.interceptor.MockFor
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.publish.PublishEngine
-import org.gradle.api.Task
-import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
+import org.gradle.api.DependencyManager
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
+import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.internal.AbstractTask
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock)
 class UploadTest extends AbstractTaskTest {
     static final String RESOLVER_NAME_1 = 'resolver1'
     static final String RESOLVER_NAME_2 = 'resolver2'
 
     Upload upload
     File projectRootDir
-    MockFor dependenciesMocker
     MockFor ivyMocker
     MockFor publishEngineMocker
     MockFor moduleDescriptorConverterMocker
 
-    @Before public void setUp()  {
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
+    @Before public void setUp() {
         super.setUp()
         upload = new Upload(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         (projectRootDir = new File(HelperUtil.makeNewTestDir(), 'root')).mkdir()
-        dependenciesMocker = new MockFor(DefaultDependencyManager)
         ivyMocker = new MockFor(Ivy)
         publishEngineMocker = new MockFor(PublishEngine)
         moduleDescriptorConverterMocker = new MockFor(ModuleDescriptorConverter)
@@ -68,12 +70,13 @@ class UploadTest extends AbstractTaskTest {
     }
 
     @Test public void testUploading() {
+        DependencyManager dependencyManagerMock = context.mock(DependencyManager)
         upload.uploadResolvers.add([name: RESOLVER_NAME_1, url: 'http://www.url1.com'])
         upload.uploadResolvers.add([name: RESOLVER_NAME_2, url: 'http://www.url2.com'])
         List expectedConfigurations = ['conf1']
         upload.configurations = expectedConfigurations
         upload.project = HelperUtil.createRootProject(projectRootDir)
-        upload.project.dependencies = new DefaultDependencyManager()
+        ((AbstractProject) upload.project).setDependencies(dependencyManagerMock)
         Bundle bundle = new Bundle(upload.project, 'bundle', getTasksGraph())
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
         AbstractArchiveTask zip1 = bundle.zip(baseName: 'zip1')
@@ -84,13 +87,14 @@ class UploadTest extends AbstractTaskTest {
         zip2.publish = false
         zip3.configurations('zip', 'zip3')
         upload.bundles = [bundle]
-        dependenciesMocker.demand.publish(1..1) {List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor ->
-            assertEquals(expectedConfigurations + ['zip', 'zip1', 'zip3'] as Set, configurations as Set)
-            assert resolvers.is(upload.uploadResolvers)
-            assert !uploadModuleDescriptor
+        context.checking {
+            one(dependencyManagerMock).publish(
+                    expectedConfigurations + ['zip1', 'zip', 'zip3'],
+                    upload.uploadResolvers,
+                    false
+            )
         }
-        dependenciesMocker.use(upload.project.dependencies) {
-            upload.execute()
-        }
+
+        upload.execute()
     }
 }

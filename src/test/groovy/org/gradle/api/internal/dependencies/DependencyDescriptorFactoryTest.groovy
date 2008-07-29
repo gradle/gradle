@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.dependencies
 
-import org.gradle.api.dependencies.ModuleDependency
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.DependencyManager
 import org.gradle.util.HelperUtil
+import static org.junit.Assert.assertEquals
 import org.junit.Before
-import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -60,7 +60,7 @@ class DependencyDescriptorFactoryTest {
     }
     
     private DependencyDescriptor checkDescriptor(DependencyDescriptor dependencyDescriptor, Map extraAttributes = [:]) {
-        assertEquals(DependenciesUtil.moduleRevisionId(TEST_ORG, TEST_NAME, TEST_VERSION, extraAttributes + TEST_EXTRA_ATTRIBUTES), dependencyDescriptor.dependencyRevisionId)
+        assertEquals(ModuleRevisionId.newInstance(TEST_ORG, TEST_NAME, TEST_VERSION, extraAttributes + TEST_EXTRA_ATTRIBUTES), dependencyDescriptor.dependencyRevisionId)
         assert TEST_TRANSITIVE == dependencyDescriptor.isTransitive()
         assert TEST_CHANGING == dependencyDescriptor.isChanging()
         assertEquals(1, dependencyDescriptor.getDependencyConfigurations(TEST_CONF).size())

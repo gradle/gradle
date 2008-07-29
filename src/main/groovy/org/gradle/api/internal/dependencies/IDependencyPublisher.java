@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.dependencies.ResolverContainer;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.publish.PublishOptions;
 import org.apache.ivy.core.publish.PublishEngine;
+import org.gradle.api.dependencies.ResolverContainer;
 
-import java.util.List;
 import java.io.File;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -32,5 +31,6 @@ public interface IDependencyPublisher {
                             ModuleDescriptor moduleDescriptor,
                             boolean uploadModuleDescriptor,
                             File ivyFile,
-                            DefaultDependencyManager dependencyManager);
+                            BaseDependencyManager dependencyManager,
+                            PublishEngine publishEngine);
 }

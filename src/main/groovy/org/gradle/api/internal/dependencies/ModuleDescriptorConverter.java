@@ -17,14 +17,13 @@
 package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.module.descriptor.*;
+import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.GradleArtifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.DependencyManager;
 
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -35,7 +34,7 @@ public class ModuleDescriptorConverter {
     ModuleDescriptorConverter() {
     }
 
-    ModuleDescriptor convert(DefaultDependencyManager dependencyManager) {
+    ModuleDescriptor convert(BaseDependencyManager dependencyManager) {
         String status = DependencyManager.DEFAULT_STATUS;
         if (dependencyManager.getProject().hasProperty("status")) {
             status = (String) dependencyManager.getProject().property("status");
@@ -50,7 +49,7 @@ public class ModuleDescriptorConverter {
         return moduleDescriptor;
     }
 
-    void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, DefaultDependencyManager dependencyManager) {
+    void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
         for (Dependency dependency : dependencyManager.getDependencies()) {
             moduleDescriptor.addDependency(dependency.createDepencencyDescriptor());
         }
@@ -59,7 +58,7 @@ public class ModuleDescriptorConverter {
         }
     }
 
-    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, DefaultDependencyManager dependencyManager) {
+    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
         for (String conf : dependencyManager.getArtifacts().keySet()) {
             List<GradleArtifact> gradleArtifacts = dependencyManager.getArtifacts().get(conf);
             for (GradleArtifact gradleArtifact : gradleArtifacts) {

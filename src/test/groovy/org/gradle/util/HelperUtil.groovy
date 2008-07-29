@@ -16,21 +16,18 @@
 
 package org.gradle.util
 
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
-import org.gradle.api.internal.project.*
-import org.gradle.util.GradleUtil
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
-import org.gradle.api.internal.dependencies.DependenciesUtil
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
-import org.gradle.api.TaskAction
+import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.Task
+import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
+import org.gradle.api.internal.project.*
 import org.gradle.execution.Dag
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -117,7 +114,7 @@ class HelperUtil {
     }
 
     static DefaultDependencyDescriptor getTestDescriptor() {
-        new DefaultDependencyDescriptor(DependenciesUtil.moduleRevisionId('org', 'name', 'rev'), false)
+        new DefaultDependencyDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), false)
     }
 
     static Script createTestScript() {

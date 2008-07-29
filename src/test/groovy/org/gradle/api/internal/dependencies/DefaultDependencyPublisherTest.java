@@ -15,26 +15,27 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.junit.Test;
-import org.junit.Before;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.core.publish.PublishOptions;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.gradle.util.WrapUtil;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
-import org.gradle.api.dependencies.ResolverContainer;
+import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -58,7 +59,7 @@ public class DefaultDependencyPublisherTest {
     @Before
     public void setUp() {
         publishEngineMock = context.mock(PublishEngine.class);
-        dependencyPublisher = new DefaultDependencyPublisher(publishEngineMock);
+        dependencyPublisher = new DefaultDependencyPublisher();
         dependencyManager = new DefaultDependencyManager();
         dependencyManager.setAbsoluteArtifactPatterns(WrapUtil.toList("absolutePattern"));
         dependencyManager.setArtifactParentDirs(WrapUtil.toList(new File("a"), new File("b")));
@@ -67,7 +68,7 @@ public class DefaultDependencyPublisherTest {
         expectedResolverContainer = new ResolverContainer(null);
         expectedResolverContainer.add(new FileSystemResolver(), null);
         expectedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(
-                DependenciesUtil.moduleRevisionId("org", "name", "1.0", new HashMap()));
+                ModuleRevisionId.newInstance("org", "name", "1.0", new HashMap()));
         expectedIvyFile = new File(HelperUtil.makeNewTestDir(), "ivy.xml");
         expectedSrcArtifactPatterns = new ArrayList<String>();
         expectedSrcArtifactPatterns.addAll(dependencyManager.getAbsoluteArtifactPatterns());
@@ -89,7 +90,7 @@ public class DefaultDependencyPublisherTest {
                   with(reflectionEquals(publishOptions)));
         }});
         dependencyPublisher.publish(expectedConfs, expectedResolverContainer, expectedModuleDescriptor,
-                true, expectedIvyFile, dependencyManager);
+                true, expectedIvyFile, dependencyManager, publishEngineMock);
     }
 
     @Test
@@ -105,7 +106,7 @@ public class DefaultDependencyPublisherTest {
                   with(reflectionEquals(publishOptions)));
         }});
         dependencyPublisher.publish(expectedConfs, expectedResolverContainer, expectedModuleDescriptor,
-                false, expectedIvyFile, dependencyManager);
+                false, expectedIvyFile, dependencyManager, publishEngineMock);
     }
 
 }

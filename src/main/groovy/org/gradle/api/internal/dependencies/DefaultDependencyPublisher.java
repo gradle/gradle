@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -34,18 +34,13 @@ import java.util.ArrayList;
 public class DefaultDependencyPublisher implements IDependencyPublisher {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyPublisher.class);
 
-    private PublishEngine publishEngine;
-
-    public DefaultDependencyPublisher(PublishEngine publishEngine) {
-        this.publishEngine = publishEngine;
-    }
-
     public void publish(List<String> configurations,
                                    ResolverContainer resolvers,
                                    ModuleDescriptor moduleDescriptor,
                                    boolean uploadModuleDescriptor,
                                    File ivyFile,
-                                   DefaultDependencyManager dependencyManager) {
+                                   BaseDependencyManager dependencyManager,
+                                   PublishEngine publishEngine) {
         PublishOptions publishOptions = new PublishOptions();
         if (uploadModuleDescriptor) {
             try {
@@ -57,11 +52,11 @@ public class DefaultDependencyPublisher implements IDependencyPublisher {
         }
         publish(configurations, resolvers, moduleDescriptor,
                 absoluteArtifactPatterns(dependencyManager.getAbsoluteArtifactPatterns(), dependencyManager.getDefaultArtifactPattern(), dependencyManager.getArtifactParentDirs()),
-                publishOptions);
+                publishOptions, publishEngine);
     }
 
     private void publish(List configurations, ResolverContainer resolvers, ModuleDescriptor moduleDescriptor,
-                                    List<String> artifactPatterns, PublishOptions publishOptions) {
+                                    List<String> artifactPatterns, PublishOptions publishOptions, PublishEngine publishEngine) {
         publishOptions.setOverwrite(true);
         publishOptions.setConfs((String[]) configurations.toArray(new String[configurations.size()]));
         try {

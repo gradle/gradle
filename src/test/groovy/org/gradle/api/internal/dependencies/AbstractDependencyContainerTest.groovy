@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencies;
+package org.gradle.api.internal.dependencies
 
-import groovy.mock.interceptor.MockFor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.dependencies.ClientModule
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
+import org.junit.runner.RunWith;
 
 /**
  * @author Hans Dockter
  */
 // todo: remove AbstractDependencyContainerTest. prefix for the consts when the Groovy bug is fixed
-abstract class AbstractDependencyContainerTest {
+@RunWith (org.jmock.integration.junit4.JMock)
+public abstract class AbstractDependencyContainerTest {
     static final String TEST_CONFIGURATION = 'testConfig'
     static final String DEFAULT_CONFIGURATION = 'testConfig'
 
@@ -48,13 +51,16 @@ abstract class AbstractDependencyContainerTest {
     protected List testDefaultConfs
     protected List testConfs
 
-    abstract DefaultDependencyContainer getTestObj()
+    public abstract DefaultDependencyContainer getTestObj()
 
-    @Before public void setUp()  {
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
+    @Before public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         projectRootDir = new File('path', 'root')
         project = HelperUtil.createRootProject(projectRootDir)
         project.gradleUserHome = 'gradleUserHome'
-        dependencyFactory = new DependencyFactory()
+        dependencyFactory = context.mock(DependencyFactory)
         testDefaultConfs = [DEFAULT_CONFIGURATION]
         testConfs = [TEST_CONFIGURATION]
     }
@@ -78,25 +84,21 @@ abstract class AbstractDependencyContainerTest {
     }
 
     private void checkAddDependencies(List expectedConfigurations, Closure addDependencyMethod) {
-        MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
         List dependencies = [[:] as Dependency, [:] as Dependency, [:] as Dependency, [:] as Dependency]
-        4.times {int i ->
-            dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependency, DefaultProject project ->
-                assertEquals(expectedConfigurations as Set, confs)
-                assert userDependency.is(AbstractDependencyContainerTest.TEST_DEPENDENCIES[i])
-                assert project.is(this.project)
-                dependencies[i]
+        context.checking {
+            4.times {int i ->
+                one(dependencyFactory).createDependency(expectedConfigurations as Set,
+                        AbstractDependencyContainerTest.TEST_DEPENDENCIES[i],
+                        project); will(returnValue(dependencies[i]));
             }
         }
-        dependencyFactoryMocker.use(dependencyFactory) {
-            testObj.dependencies(expectedConfigurations,
-                    AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
-                    AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
-            assertEquals(dependencies[0..1], testObj.dependencies)
-            addDependencyMethod(expectedConfigurations,
-                    [AbstractDependencyContainerTest.TEST_DEPENDENCY_3, AbstractDependencyContainerTest.TEST_DEPENDENCY_4])
-            assertEquals(dependencies[0..3], testObj.dependencies)
-        }
+        testObj.dependencies(expectedConfigurations,
+                AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
+                AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
+        assertEquals(dependencies[0..1], testObj.dependencies)
+        addDependencyMethod(expectedConfigurations,
+                [AbstractDependencyContainerTest.TEST_DEPENDENCY_3, AbstractDependencyContainerTest.TEST_DEPENDENCY_4])
+        assertEquals(dependencies[0..3], testObj.dependencies)
     }
 
     @Test public void testAddDependencyDescriptor() {
@@ -115,29 +117,27 @@ abstract class AbstractDependencyContainerTest {
     }
 
     @Test public void testAddDependency() {
-        checkAddDependency(testDefaultConfs, {List configurations, String dependency, Closure cl  ->
+        checkAddDependency(testDefaultConfs, {List configurations, String dependency, Closure cl ->
             testObj.dependency(dependency, cl)
         })
     }
 
     private void checkAddDependency(List expectedConfs, Closure addDependencyMethod) {
-        MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
         String expectedId = 'someid'
 
         ModuleDependency testModuleDependency = new ModuleDependency('org:name:1.0')
-        dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependencyDescriptor, DefaultProject project ->
-            assertEquals(expectedConfs as Set, confs)
-            assert userDependencyDescriptor.is(expectedId)
-            testModuleDependency
+
+        context.checking {
+            one(dependencyFactory).createDependency(expectedConfs as Set,
+                    expectedId,
+                    project); will(returnValue(testModuleDependency));
         }
-        dependencyFactoryMocker.use(dependencyFactory) {
-            ModuleDependency moduleDependency = addDependencyMethod(expectedConfs, expectedId) {
-                exclude([:])
-            }
-            assert moduleDependency.is(testModuleDependency)
-            assert moduleDependency.is(testObj.dependencies[0])
-            assert moduleDependency.excludeRules
+        ModuleDependency moduleDependency = addDependencyMethod(expectedConfs, expectedId) {
+            exclude([:])
         }
+        assert moduleDependency.is(testModuleDependency)
+        assert moduleDependency.is(testObj.dependencies[0])
+        assert moduleDependency.excludeRules
     }
 
     @Test public void testAddClientModuleWithConfigurations() {

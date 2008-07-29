@@ -17,14 +17,11 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.DependencyManager
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.FileCollection
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -38,8 +35,6 @@ class WarTest extends AbstractArchiveTaskTest {
 
     Map filesFromDepencencyManager
 
-    List dependencyManagerMockCheckList
-
     @Before public void setUp()  {
         super.setUp()
         war = new War(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
@@ -51,12 +46,11 @@ class WarTest extends AbstractArchiveTaskTest {
         war.classesFileSets = [new FileSet()]
         war.additionalLibFileSets = [new FileSet()]
         war.libConfigurations = TEST_LIB_CONFIGURATIONS
-        dependencyManagerMockCheckList = new ArrayList(TEST_LIB_CONFIGURATIONS)
         antWarMocker = new MockFor(AntWar)
         filesFromDepencencyManager = [testLibConf1: ['/file1' as File], testLibConf2: ['/file2' as File]]
-        dependencyManagerMock.demand.resolve(2..2) { String configuration ->
-            dependencyManagerMockCheckList = dependencyManagerMockCheckList - configuration
-            filesFromDepencencyManager[configuration]
+        getContext().checking {
+            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[0]); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[0]]))
+            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[1]); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[1]]))
         }
     }
 

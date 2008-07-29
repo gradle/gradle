@@ -15,32 +15,29 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.junit.Test;
-import org.junit.Before;
-import static org.junit.Assert.assertSame;
-import org.junit.runner.RunWith;
-import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.report.ConfigurationResolveReport;
+import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.core.publish.PublishOptions;
-import org.apache.ivy.Ivy;
+import org.apache.ivy.core.settings.IvySettings;
+import org.gradle.api.GradleException;
+import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
+import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
-import org.gradle.util.WrapUtil;
+import static org.junit.Assert.assertSame;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.GradleException;
-
-import java.util.HashMap;
-import java.util.List;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -72,7 +69,7 @@ public class DefaultDependencyResolverTest {
         expectedSettings = new IvySettings();
         expectedClasspath = WrapUtil.toList(new File(""));
         expectedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(
-                DependenciesUtil.moduleRevisionId("org", "name", "1.0", new HashMap()));
+                ModuleRevisionId.newInstance("org", "name", "1.0", new HashMap()));
         expectedResolveReport = new ResolveReport(expectedModuleDescriptor);
         expectedResolveOptions = new ResolveOptions();
         expectedResolveOptions.setConfs(WrapUtil.toArray(TEST_CONF));

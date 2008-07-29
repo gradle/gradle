@@ -17,20 +17,20 @@
 package org.gradle.api.dependencies
 
 import java.awt.Point
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.project.DefaultProject
-import groovy.mock.interceptor.MockFor
-import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
-import org.gradle.util.HelperUtil
 import org.gradle.api.UnknownDependencyNotation
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -48,14 +48,17 @@ class ArtifactDependencyTest {
     static final String TEST_DESCRIPTOR = "$TEST_MODULE_DESCRIPTOR@$TEST_TYPE"
     ArtifactDependency artifactDependency
 
-    MockFor dependencyDescriptorFactoryMock
+    DependencyDescriptorFactory dependencyDescriptorFactoryMock
 
     DefaultDependencyDescriptor expectedDependencyDescriptor
 
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     @Before public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         artifactDependency = new ArtifactDependency(TEST_CONF_SET, TEST_DESCRIPTOR, TEST_PROJECT)
-        dependencyDescriptorFactoryMock = new MockFor(DependencyDescriptorFactory)
-        artifactDependency.dependencyDescriptorFactory = [:] as DependencyDescriptorFactory
+        dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory)
+        artifactDependency.dependencyDescriptorFactory = dependencyDescriptorFactoryMock
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor()
     }
 
@@ -88,19 +91,11 @@ class ArtifactDependencyTest {
 
 
     @Test public void testCreateDependencyDescriptor() {
-        dependencyDescriptorFactoryMock.demand.createDescriptor(1..1) {String descriptor, boolean force, boolean transitive,
-                                                                       boolean changing, Set confs, List excludeRules ->
-            assertEquals(TEST_MODULE_DESCRIPTOR, descriptor)
-            assertEquals(artifactDependency.force, force)
-            assert !transitive
-            assert !changing
-            assertEquals(TEST_CONF_SET, confs)
-            assertEquals([], excludeRules)
-            expectedDependencyDescriptor
+        context.checking {
+            one(dependencyDescriptorFactoryMock).createDescriptor(TEST_MODULE_DESCRIPTOR, artifactDependency.force,
+                    false, false, TEST_CONF_SET, []); will(returnValue(expectedDependencyDescriptor))
         }
-        dependencyDescriptorFactoryMock.use(artifactDependency.dependencyDescriptorFactory) {
-            assert expectedDependencyDescriptor.is(artifactDependency.createDepencencyDescriptor())
-        }
+        assert expectedDependencyDescriptor.is(artifactDependency.createDepencencyDescriptor())
         DependencyArtifactDescriptor artifactDescriptor = expectedDependencyDescriptor.getAllDependencyArtifacts()[0]
         assert artifactDescriptor.name == expectedDependencyDescriptor.dependencyRevisionId.name
         assertEquals('jar', artifactDescriptor.ext)

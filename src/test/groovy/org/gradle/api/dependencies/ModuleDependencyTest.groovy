@@ -18,19 +18,17 @@ package org.gradle.api.dependencies
 
 import java.awt.Point
 import org.apache.ivy.core.IvyPatternHelper
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.dependencies.DependenciesUtil
-import org.gradle.api.DependencyManager
-import groovy.mock.interceptor.MockFor
-import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.gradle.api.UnknownDependencyNotation
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -40,13 +38,19 @@ class ModuleDependencyTest {
     static final DefaultProject TEST_PROJECT = new DefaultProject()
     static final String TEST_DESCRIPTOR = "junit:junit:4.4"
 
-    MockFor dependencyDescriptorFactoryMock
+    DependencyDescriptorFactory dependencyDescriptorFactoryMock
     ModuleDependency moduleDependency
 
+    DefaultDependencyDescriptor expectedDependencyDescriptor
+
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     @Before public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
+        dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory)
         moduleDependency = new ModuleDependency(TEST_CONF_SET, TEST_DESCRIPTOR, TEST_PROJECT)
-        dependencyDescriptorFactoryMock = new MockFor(DependencyDescriptorFactory)
-        moduleDependency.dependencyDescriptorFactory = [:] as DependencyDescriptorFactory
+        moduleDependency.dependencyDescriptorFactory = dependencyDescriptorFactoryMock
+        expectedDependencyDescriptor = HelperUtil.getTestDescriptor()
     }
 
     @Test public void testModuleDependency() {
@@ -77,18 +81,11 @@ class ModuleDependencyTest {
     }
 
     @Test public void testCreateDependencyDescriptor() {
-        dependencyDescriptorFactoryMock.demand.createDescriptor(1..1) {String descriptor, boolean force, boolean transitive,
-                                                                       boolean changing, Set confs, List excludeRules ->
-            assertEquals(TEST_DESCRIPTOR, descriptor)
-            assertEquals(moduleDependency.force, force)
-            assert transitive
-            assert !changing
-            assertEquals(TEST_CONF_SET, confs)
-            assert excludeRules.is(moduleDependency.excludeRules)
+        context.checking {
+            one(dependencyDescriptorFactoryMock).createDescriptor(TEST_DESCRIPTOR, moduleDependency.force,
+                    true, false, TEST_CONF_SET, moduleDependency.excludeRules); will(returnValue(expectedDependencyDescriptor))
         }
-        dependencyDescriptorFactoryMock.use(moduleDependency.dependencyDescriptorFactory) {
-            moduleDependency.createDepencencyDescriptor()
-        }
+        assertSame(expectedDependencyDescriptor, moduleDependency.createDepencencyDescriptor())
     }
 
     @Test public void testExclude() {

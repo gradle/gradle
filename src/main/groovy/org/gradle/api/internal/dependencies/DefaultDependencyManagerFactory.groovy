@@ -16,16 +16,12 @@
 
 package org.gradle.api.internal.dependencies
 
-import org.apache.ivy.Ivy
 import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
+import org.gradle.api.Project
 import org.gradle.api.dependencies.ArtifactDependency
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.dependencies.ProjectDependency
-import org.gradle.api.Project
-import org.apache.ivy.core.publish.PublishEngine
-import org.apache.ivy.core.settings.IvySettings
-import org.apache.ivy.core.event.EventManager
 
 /**
  * @author Hans Dockter
@@ -47,7 +43,7 @@ class DefaultDependencyManagerFactory implements DependencyManagerFactory {
                 new SettingsConverter(),
                 new ModuleDescriptorConverter(),
                 new DefaultDependencyResolver(new Report2Classpath()),
-                new DefaultDependencyPublisher(new PublishEngine(new IvySettings(), new EventManager())),
+                new DefaultDependencyPublisher(),
                 buildResolverDir)
         dependencyManager.setProject(project);
         return dependencyManager;

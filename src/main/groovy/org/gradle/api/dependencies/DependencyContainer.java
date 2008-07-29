@@ -16,12 +16,11 @@
 
 package org.gradle.api.dependencies;
 
+import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Project;
 
 import java.util.List;
-
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
@@ -66,14 +65,14 @@ public interface DependencyContainer {
      * @param confs
      * @param dependencies
      */
-    void dependencies(List confs, Object[] dependencies);
+    void dependencies(List confs, Object... dependencies);
 
     /**
      * Adds dependencies to the defaultConfs
      *
      * @param dependencies
      */
-    void dependencies(Object[] dependencies);
+    void dependencies(Object... dependencies);
 
     /**
      * Add instances of type <code>org.apache.ivy.core.module.descriptor.DependencyDescriptor</code>. Those
@@ -82,7 +81,7 @@ public interface DependencyContainer {
      *
      * @param dependencyDescriptors
      */
-    void dependencyDescriptors(DependencyDescriptor[] dependencyDescriptors);
+    void dependencyDescriptors(DependencyDescriptor... dependencyDescriptors);
 
     /**
      * Adds a module dependency to the given confs. The configureClosure configures this moduleDependency.

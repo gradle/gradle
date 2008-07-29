@@ -23,9 +23,9 @@ import org.gradle.api.internal.dependencies.DependencyFactory
 import org.gradle.api.internal.dependencies.TestDependencyImplInteger
 import org.gradle.api.internal.dependencies.TestDependencyImplString
 import org.gradle.api.internal.project.DefaultProject
-import org.junit.Before
 import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Before
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -47,10 +47,11 @@ class DependencyFactoryTest {
     @Test public void testCreateDependencyWithValidDescription() {
         TestDependencyImplInteger dependencyImplInteger = dependencyFactory.createDependency(
                 TEST_CONFIGURATION_SET, new Integer(5), project)
+        println 'UUUUUUU'
         assertEquals(TEST_CONFIGURATION_SET, dependencyImplInteger.confs)
         assertEquals(new Integer(5), dependencyImplInteger.userDependencyDescription)
         assertSame(project, dependencyImplInteger.project)
-        assertTrue dependencyImplInteger.initialized
+        assertTrue dependencyImplInteger.getInitialized()
 
         TestDependencyImplString dependencyImplString = dependencyFactory.createDependency(
                 TEST_CONFIGURATION_SET, 'somestring', project)

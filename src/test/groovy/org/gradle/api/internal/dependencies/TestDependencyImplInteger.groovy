@@ -17,11 +17,9 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.dependencies.Dependency
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.UnknownDependencyNotation
 import org.gradle.api.Project
+import org.gradle.api.UnknownDependencyNotation
+import org.gradle.api.dependencies.Dependency
 
 /**
 * @author Hans Dockter
@@ -52,6 +50,7 @@ class TestDependencyImplInteger implements Dependency {
     }
 
     public void initialize() {
+        println 'XXXXXXXXXX'
         initialized = true
     }
 }

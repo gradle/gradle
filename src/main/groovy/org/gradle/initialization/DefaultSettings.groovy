@@ -16,6 +16,9 @@
 
 package org.gradle.initialization
 
+import org.apache.ivy.plugins.resolver.DualResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.gradle.StartParameter
 import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
@@ -23,21 +26,18 @@ import org.gradle.api.Settings
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaPlugin
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.apache.ivy.plugins.resolver.DualResolver
-import org.gradle.StartParameter
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleUtil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
  */
 class DefaultSettings implements Settings {
     private static Logger logger = LoggerFactory.getLogger(DefaultSettings)
-    static final String BUILD_CONFIGURATION = 'build'
-    static final String DEFAULT_BUILD_SRC_DIR = 'buildSrc'
+    public static final String BUILD_CONFIGURATION = 'build'
+    public static final String DEFAULT_BUILD_SRC_DIR = 'buildSrc'
 
     DependencyManager dependencyManager
     BuildSourceBuilder buildSourceBuilder
@@ -88,11 +88,6 @@ class DefaultSettings implements Settings {
 
     ResolverContainer getResolvers() {
         dependencyManager.classpathResolvers
-    }
-
-
-    FileSystemResolver createFlatDirResolver(String name, Object[] dirs) {
-        dependencyManager.createFlatDirResolver(name, dirs)
     }
 
     FileSystemResolver addFlatDirResolver(String name, Object[] dirs) {

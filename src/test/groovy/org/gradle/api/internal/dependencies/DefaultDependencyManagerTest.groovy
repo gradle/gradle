@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.dependencies
 
-import groovy.mock.interceptor.MockFor
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.settings.IvySettings
+import org.apache.ivy.plugins.resolver.DualResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
@@ -29,16 +29,18 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
  */
+@RunWith (org.jmock.integration.junit4.JMock)
 public class DefaultDependencyManagerTest extends AbstractDependencyContainerTest {
     static final String TEST_CONFIG = 'testConfig';
 
@@ -72,7 +74,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         expectedSettings = new IvySettings();
         expectedIvy = new Ivy();
         ivyFactoryMock = context.mock(IIvyFactory)
-        artifactFactory = new ArtifactFactory()
+        artifactFactory = context.mock(ArtifactFactory)
         dependencyResolverMock = context.mock(IDependencyResolver)
         dependencyPublisherMock = context.mock(IDependencyPublisher)
         settingsConverter = context.mock(SettingsConverter)
@@ -108,21 +110,18 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testAddArtifacts() {
-        MockFor artifactFactoryMocker = new MockFor(ArtifactFactory)
         List userArtifactDescriptions = ['a', 'b', 'c', 'd']
         List gradleArtifacts = [[:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact]
-        4.times {int i ->
-            artifactFactoryMocker.demand.createGradleArtifact(1..1) {Object userArtifactDescription ->
-                assert userArtifactDescription.is(userArtifactDescriptions[i])
-                gradleArtifacts[i]
+        context.checking {
+            4.times {int i ->
+                one(artifactFactory).createGradleArtifact(userArtifactDescriptions[i]); will(returnValue(gradleArtifacts[i]))
             }
         }
-        artifactFactoryMocker.use(artifactFactory) {
-            testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, userArtifactDescriptions[0], userArtifactDescriptions[1])
-            assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1]]], testObj.artifacts)
-            testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, [userArtifactDescriptions[2], userArtifactDescriptions[3]])
-            assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1], gradleArtifacts[2], gradleArtifacts[3]]], testObj.artifacts)
-        }
+
+        testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, userArtifactDescriptions[0], userArtifactDescriptions[1])
+        assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1]]], testObj.artifacts)
+        testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, [userArtifactDescriptions[2], userArtifactDescriptions[3]])
+        assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1], gradleArtifacts[2], gradleArtifacts[3]]], testObj.artifacts)
     }
 
     @Test public void testResolveTask() {
@@ -180,9 +179,18 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         boolean expectedUploadModuleDescriptor = false
         File expectedIvyFile = new File(project.getBuildDir(), "ivy.xml")
         context.checking {
+            allowing(settingsConverter).convert(
+                    dependencyManager.classpathResolvers.resolverList,
+                    [],
+                    new File(project.getGradleUserHome()),
+                    dependencyManager.getBuildResolver(),
+                    dependencyManager.getClientModuleRegistry(),
+                    dependencyManager.getChainConfigurer());
+            will(returnValue(expectedSettings))
+            allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
             allowing(moduleDescriptorConverter).convert(dependencyManager); will(returnValue(expectedModuleDescriptor))
             one(dependencyPublisherMock).publish(expectedConfigs, expectedResolvers, expectedModuleDescriptor,
-                    expectedUploadModuleDescriptor, expectedIvyFile, dependencyManager);
+                    expectedUploadModuleDescriptor, expectedIvyFile, dependencyManager, expectedIvy.getPublishEngine());
         }
         dependencyManager.publish(expectedConfigs, expectedResolvers, expectedUploadModuleDescriptor)
     }
@@ -251,56 +259,44 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
         Object[] expectedDirs = ['a', 'b' as File]
-        MockFor resolverContainerMocker = new MockFor(ResolverContainer)
-        resolverContainerMocker.demand.createFlatDirResolver(1..1) {String name, File[] dirs ->
-            assertEquals(expectedName, name)
-            assertArrayEquals(expectedDirs.collect {new File(it.toString())} as File[], dirs)
-            expectedResolver
+        ResolverContainer resolverContainerMock = context.mock(ResolverContainer)
+        dependencyManager.setClasspathResolvers(resolverContainerMock)
+        context.checking {
+            one(resolverContainerMock).createFlatDirResolver(expectedName, ['a' as File, 'b' as File] as File[]); will(returnValue(expectedResolver))
+            one(resolverContainerMock).add(expectedResolver); will(returnValue(expectedResolver))
         }
-        resolverContainerMocker.demand.add(1..1) {description ->
-            assert description.is(expectedResolver)
-        }
-        resolverContainerMocker.use(dependencyManager.classpathResolvers) {
-            dependencyManager.addFlatDirResolver(expectedName, expectedDirs)
-        }
+        dependencyManager.addFlatDirResolver(expectedName, expectedDirs)
     }
 
     @Test public void testAddMavenRepo() {
-        FileSystemResolver expectedResolver = new FileSystemResolver()
+        DualResolver expectedResolver = new DualResolver()
         String[] expectedJarUrls = ['http://www.somerepo.org']
-        MockFor resolverContainerMocker = new MockFor(ResolverContainer)
-        resolverContainerMocker.demand.createMavenRepoResolver(1..1) {String name, String root, String[] jarRepoUrls ->
-            assertEquals(DependencyManager.DEFAULT_MAVEN_REPO_NAME, name)
-            assertEquals(DependencyManager.MAVEN_REPO_URL, root)
-            assertArrayEquals(expectedJarUrls, jarRepoUrls)
-            expectedResolver
+
+        ResolverContainer resolverContainerMock = context.mock(ResolverContainer)
+        dependencyManager.setClasspathResolvers(resolverContainerMock)
+        context.checking {
+            one(resolverContainerMock).createMavenRepoResolver(DependencyManager.DEFAULT_MAVEN_REPO_NAME,
+                    DependencyManager.MAVEN_REPO_URL, expectedJarUrls);
+            will(returnValue(expectedResolver))
+            one(resolverContainerMock).add(expectedResolver); will(returnValue(expectedResolver))
         }
-        resolverContainerMocker.demand.add(1..1) {description ->
-            assert description.is(expectedResolver)
-        }
-        resolverContainerMocker.use(dependencyManager.classpathResolvers) {
-            dependencyManager.addMavenRepo(expectedJarUrls)
-        }
+        dependencyManager.addMavenRepo(expectedJarUrls)
     }
 
     @Test public void testAddMavenStyleRepo() {
-        FileSystemResolver expectedResolver = new FileSystemResolver()
+        DualResolver expectedResolver = new DualResolver()
         String expectedRoot = 'http://www.myroot.org'
         String expectedName = 'myname'
         String[] expectedJarUrls = ['http://www.somerepo.org']
-        MockFor resolverContainerMocker = new MockFor(ResolverContainer)
-        resolverContainerMocker.demand.createMavenRepoResolver(1..1) {String name, String root, String[] jarRepoUrls ->
-            assertEquals(expectedName, name)
-            assertEquals(expectedRoot, root)
-            assertArrayEquals(expectedJarUrls, jarRepoUrls)
-            expectedResolver
+
+        ResolverContainer resolverContainerMock = context.mock(ResolverContainer)
+        dependencyManager.setClasspathResolvers(resolverContainerMock)
+        context.checking {
+            one(resolverContainerMock).createMavenRepoResolver(expectedName, expectedRoot, expectedJarUrls);
+            will(returnValue(expectedResolver))
+            one(resolverContainerMock).add(expectedResolver); will(returnValue(expectedResolver))
         }
-        resolverContainerMocker.demand.add(1..1) {description ->
-            assert description.is(expectedResolver)
-        }
-        resolverContainerMocker.use(dependencyManager.classpathResolvers) {
-            dependencyManager.addMavenStyleRepo(expectedName, expectedRoot, expectedJarUrls)
-        }
+        dependencyManager.addMavenStyleRepo(expectedName, expectedRoot, expectedJarUrls)
     }
 
     @Test public void testAddConfiguration() {
@@ -312,21 +308,23 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
 
     @Test public void testMethodMissingWithExistingConfiguration() {
-        MockFor dependencyFactoryMocker = new MockFor(DependencyFactory)
+        dependencyManager.addConfiguration(AbstractDependencyContainerTest.TEST_CONFIGURATION)
+        DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory)
+        dependencyManager.setDependencyFactory(dependencyFactoryMock)
         List dependencies = [[:] as Dependency, [:] as Dependency, [:] as Dependency]
-        2.times {int i ->
-            dependencyFactoryMocker.demand.createDependency(1..1) {Set confs, Object userDependency, DefaultProject project ->
-                assertEquals([AbstractDependencyContainerTest.TEST_CONFIGURATION] as Set, confs)
-                assert userDependency.is(AbstractDependencyContainerTest.TEST_DEPENDENCIES[i])
-                assert project.is(this.project)
-                dependencies[i]
+        context.checking {
+            2.times {int i ->
+                one(dependencyFactoryMock).createDependency(
+                        [AbstractDependencyContainerTest.TEST_CONFIGURATION] as Set,
+                        AbstractDependencyContainerTest.TEST_DEPENDENCIES[i],
+                        this.project
+                ); will(returnValue(dependencies[i]))
             }
         }
-        dependencyFactoryMocker.use(dependencyFactory) {
-            testObj.dependencies([AbstractDependencyContainerTest.TEST_CONFIGURATION],
-                    AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
-                    AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
-        }
+
+        testObj."$AbstractDependencyContainerTest.TEST_CONFIGURATION"(
+                AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
+                AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
         assertEquals(testObj.dependencies, dependencies[0..1])
     }
 

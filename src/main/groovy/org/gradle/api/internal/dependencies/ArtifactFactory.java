@@ -14,16 +14,16 @@
  * limitations under the License.
  */
  
-package org.gradle.api.internal.dependencies
+package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.dependencies.DefaultGradleArtifact
-import org.gradle.api.dependencies.GradleArtifact
+import org.gradle.api.dependencies.DefaultGradleArtifact;
+import org.gradle.api.dependencies.GradleArtifact;
 
 /**
  * @author Hans Dockter
  */
-class ArtifactFactory {
+public class ArtifactFactory {
     GradleArtifact createGradleArtifact(String userArtifactDescription) {
-        new DefaultGradleArtifact(userArtifactDescription)    
+        return new DefaultGradleArtifact(userArtifactDescription);    
     }
 }

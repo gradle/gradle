@@ -17,8 +17,8 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import static org.junit.Assert.assertEquals
 import org.junit.Test
-import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -26,7 +26,7 @@ import static org.junit.Assert.*;
 class IvyUtilTest {
     @Test public void testModuleRevisionId() {
         List l = ['myorg', 'myname', 'myrev']
-        ModuleRevisionId moduleRevisionId = DependenciesUtil.moduleRevisionId(*l)
+        ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(*l)
         assertEquals(l[0], moduleRevisionId.organisation)
         assertEquals(l[1], moduleRevisionId.name)
         assertEquals(l[2], moduleRevisionId.revision)
