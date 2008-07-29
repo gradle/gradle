@@ -53,7 +53,7 @@ public interface DependencyContainer {
     /**
      * A list of Gradle Dependency objects.
      */
-    List getDependencies();
+    List<Dependency> getDependencies();
 
     /**
      * A list for passing directly instances of Ivy DependencyDescriptor objects.

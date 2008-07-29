@@ -17,16 +17,11 @@
 package org.gradle.api.dependencies
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.InvalidUserDataException
-import org.gradle.util.GradleUtil
-import org.gradle.api.internal.dependencies.ResolverFactory
-import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.gradle.api.DependencyManager
 import org.gradle.api.internal.dependencies.LocalReposCacheHandler
-import org.apache.ivy.plugins.resolver.IBiblioResolver
-import org.apache.ivy.plugins.resolver.URLResolver
-import org.apache.ivy.plugins.resolver.DualResolver
+import org.gradle.api.internal.dependencies.ResolverFactory
 import org.gradle.util.ConfigureUtil
 
 /**

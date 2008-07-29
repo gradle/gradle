@@ -38,6 +38,12 @@ class DefaultProject extends AbstractProject {
                 buildScriptProcessor, pluginRegistry, projectRegistry);
     }
 
+    def property(String name) {
+        if (this.metaClass.hasProperty(this, name)) {
+            return this.metaClass.getProperty(this, name)
+        }
+        return propertyMissing(name);
+    }
     
     def propertyMissing(String name) {
         if (additionalProperties.keySet().contains(name)) {

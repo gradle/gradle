@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencies;
+package org.gradle.api.internal.dependencies
 
-import groovy.mock.interceptor.MockFor;
-import groovy.mock.interceptor.StubFor;
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.publish.PublishEngine;
-import org.apache.ivy.core.publish.PublishOptions;
-import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.GradleArtifact;
-import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.dependencies.ResolverContainer;
+import groovy.mock.interceptor.MockFor
+import org.apache.ivy.Ivy
+import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.core.settings.IvySettings
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.RepositoryResolver
+import org.gradle.api.DependencyManager
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.dependencies.Dependency
+import org.gradle.api.dependencies.GradleArtifact
+import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -51,12 +45,20 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     DefaultDependencyManager dependencyManager
     SettingsConverter settingsConverter
     ModuleDescriptorConverter moduleDescriptorConverter
-    Report2Classpath report2Classpath
-    Ivy ivy
+    IDependencyResolver dependencyResolverMock
+    IDependencyPublisher dependencyPublisherMock
+    IIvyFactory ivyFactoryMock
     File buildResolverDir
     ArtifactFactory artifactFactory
     BuildResolverHandler mockSpecialResolverHandler
     RepositoryResolver expectedBuildResolver
+
+    List expectedClasspath
+    ModuleDescriptor expectedModuleDescriptor
+    IvySettings expectedSettings
+    Ivy expectedIvy
+
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
     public DefaultDependencyContainer getTestObj() {
         return dependencyManager
@@ -64,14 +66,20 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
     @Before public void setUp() {
         super.setUp()
-        ivy = new Ivy()
+        context.setImposteriser(ClassImposteriser.INSTANCE)
+        expectedClasspath = ['a']
+        expectedModuleDescriptor = {} as ModuleDescriptor
+        expectedSettings = new IvySettings();
+        expectedIvy = new Ivy();
+        ivyFactoryMock = context.mock(IIvyFactory)
         artifactFactory = new ArtifactFactory()
-        report2Classpath = new Report2Classpath()
-        settingsConverter = [:] as SettingsConverter
+        dependencyResolverMock = context.mock(IDependencyResolver)
+        dependencyPublisherMock = context.mock(IDependencyPublisher)
+        settingsConverter = context.mock(SettingsConverter)
         buildResolverDir = new File('buildResolverDir')
-        moduleDescriptorConverter = new ModuleDescriptorConverter()
-        dependencyManager = new DefaultDependencyManager(ivy, dependencyFactory, artifactFactory, settingsConverter,
-                moduleDescriptorConverter, report2Classpath, buildResolverDir)
+        moduleDescriptorConverter = context.mock(ModuleDescriptorConverter)
+        dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, artifactFactory, settingsConverter,
+                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir)
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
@@ -82,19 +90,21 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         dependencyManager.buildResolverHandler = mockSpecialResolverHandler
     }
 
-
-
     @Test public void testInit() {
-        // assert dependencyManager.ivy.is(ivy)
+        assert dependencyManager.ivyFactory.is(ivyFactoryMock)
         assert dependencyManager.artifactFactory.is(artifactFactory)
         assert dependencyManager.settingsConverter.is(settingsConverter)
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
-        assert dependencyManager.report2Classpath.is(report2Classpath)
+        assert dependencyManager.dependencyResolver.is(dependencyResolverMock)
+        assert dependencyManager.dependencyPublisher.is(dependencyPublisherMock)
         assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.classpathResolvers
         assert dependencyManager.failForMissingDependencies
         assert dependencyManager.localReposCacheHandler.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.buildResolverHandler.buildResolverDir.is(buildResolverDir)
+        assertEquals([], dependencyManager.getAbsoluteArtifactPatterns())
+        assertEquals([], dependencyManager.getArtifactParentDirs())
+        assertEquals(DependencyManager.DEFAULT_ARTIFACT_PATTERN, dependencyManager.defaultArtifactPattern)
     }
 
     @Test public void testAddArtifacts() {
@@ -116,14 +126,19 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testResolveTask() {
+        String testConf2 = "testConf2"
+        dependencyManager.addConfiguration(testConf2)
         String testTaskName = 'myTask'
-        List expectedClasspath = ['a']
-        checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
-            dependencyManager.addConf2Tasks(TEST_CONFIG, testTaskName)
-            assert expectedClasspath.is(dependencyManager.resolveTask(testTaskName))
-            // check cache (we get an exception by the mock if the cache does not work
-            assert expectedClasspath.is(dependencyManager.resolveTask(testTaskName))
+        dependencyManager.linkConfWithTask(TEST_CONFIG, testTaskName)
+        dependencyManager.linkConfWithTask(testConf2, testTaskName)
+        List expectedClasspath2 = ['b']
+        prepareMocks();
+        context.checking {
+            one(dependencyResolverMock).resolve(testConf2, expectedIvy, expectedModuleDescriptor,
+                    dependencyManager.failForMissingDependencies);
+            will(returnValue(expectedClasspath2))
         }
+        assertEquals((expectedClasspath + expectedClasspath2) as Set, dependencyManager.resolveTask(testTaskName) as Set)
     }
 
     @Test (expected = InvalidUserDataException) public void testResolveTaskwithUnmappedTasked() {
@@ -131,236 +146,105 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testResolve() {
-        List expectedClasspath = ['a']
-        checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
-            assert expectedClasspath.is(dependencyManager.resolve(TEST_CONFIG))
-            // check cache (we get an exception by the mock if the cache does not work
-            assert expectedClasspath.is(dependencyManager.resolve(TEST_CONFIG))
-        }
+        prepareMocks();
+        assertSame(expectedClasspath, dependencyManager.resolve(TEST_CONFIG))
     }
 
     @Test public void testAntpath() {
-        List expectedClasspath = ['a', 'b']
-        checkResolveClasspath(expectedClasspath) {DependencyManager dependencyManager1 ->
-            assertEquals(expectedClasspath.join(':'), dependencyManager.antpath(TEST_CONFIG))
-            // check cache (we get an exception by the mock if the cache does not work
-            dependencyManager.antpath(TEST_CONFIG)
+        expectedClasspath = ['a', 'b']
+        prepareMocks();
+        assertEquals(expectedClasspath.join(':'), dependencyManager.antpath(TEST_CONFIG))
+    }
+
+    private void prepareMocks() {
+        context.checking {
+            allowing(settingsConverter).convert(
+                    dependencyManager.classpathResolvers.resolverList,
+                    [],
+                    new File(project.getGradleUserHome()),
+                    dependencyManager.getBuildResolver(),
+                    dependencyManager.getClientModuleRegistry(),
+                    dependencyManager.getChainConfigurer());
+            will(returnValue(expectedSettings))
+            allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
+            allowing(moduleDescriptorConverter).convert(dependencyManager); will(returnValue(expectedModuleDescriptor))
+            one(dependencyResolverMock).resolve(TEST_CONFIG, expectedIvy, expectedModuleDescriptor,
+                    dependencyManager.failForMissingDependencies);
+            will(returnValue(expectedClasspath))
         }
     }
 
-    void checkResolveClasspath(List expectedClasspath, Closure test) {
-        ResolveReport resolveReport = new ResolveReport(new DefaultModuleDescriptor(
-                new ModuleRevisionId(new ModuleId('org', 'name'), '1.4'), 'status', null))
-        IvySettings expectedSettings = [:] as IvySettings
-        MockFor settingsConverterMocker = new MockFor(SettingsConverter)
-        settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
-                                                      File gradleUserHome, RepositoryResolver buildResolver,
-                                                      Map clientModuleDescriptorRegistry, Closure clientModuleChainConfigurer ->
-            assertEquals(gradleUserHome, new File(project.gradleUserHome))
-            assertEquals(dependencyManager.buildResolver, buildResolver)
-            assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
-            assertEquals([], otherResolvers)
-            assertEquals(dependencyManager.clientModuleRegistry, clientModuleDescriptorRegistry)
-            assert clientModuleChainConfigurer.is(dependencyManager.chainConfigurer)
-            expectedSettings
+    @Test public void testPublish() {
+        List expectedConfigs = [TEST_CONFIG]
+        ResolverContainer expectedResolvers = new ResolverContainer(null);
+        boolean expectedUploadModuleDescriptor = false
+        File expectedIvyFile = new File(project.getBuildDir(), "ivy.xml")
+        context.checking {
+            allowing(moduleDescriptorConverter).convert(dependencyManager); will(returnValue(expectedModuleDescriptor))
+            one(dependencyPublisherMock).publish(expectedConfigs, expectedResolvers, expectedModuleDescriptor,
+                    expectedUploadModuleDescriptor, expectedIvyFile, dependencyManager);
         }
-
-        ModuleDescriptor expectedModuleDescriptor = [:] as ModuleDescriptor
-        MockFor moduleDescriptorConverterMocker = new MockFor(ModuleDescriptorConverter)
-        moduleDescriptorConverterMocker.demand.convert(1..1) {DefaultDependencyManager dependencyManager ->
-            assert dependencyManager.is(this.dependencyManager)
-            expectedModuleDescriptor
-        }
-
-        MockFor ivyMocker = new MockFor(Ivy)
-        //        ivyMocker.demand.setSettings(1..1) {IvySettings ivySettings ->
-        //            assert expectedSettings.is(ivySettings)
-        //        }
-        ivyMocker.demand.newInstance(1..1) {IvySettings ivySettings ->
-            assert expectedSettings.is(ivySettings)
-            new Ivy()
-        }
-        ivyMocker.demand.resolve(1..1) {ModuleDescriptor moduleDescriptor, ResolveOptions resolveOptions ->
-            assert moduleDescriptor.is(expectedModuleDescriptor)
-            assertEquals([TEST_CONFIG], resolveOptions.getConfs() as List)
-            resolveReport
-        }
-        MockFor report2classpathMocker = new MockFor(Report2Classpath)
-        report2classpathMocker.demand.getClasspath(1..1) {String configurationName, ResolveReport report ->
-            assertEquals TEST_CONFIG, configurationName
-            assert resolveReport.is(report)
-            expectedClasspath
-        }
-        moduleDescriptorConverterMocker.use(moduleDescriptorConverter) {
-            ivyMocker.use() {
-                settingsConverterMocker.use(settingsConverter) {
-                    report2classpathMocker.use(report2Classpath) {
-                        dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
-                                settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
-                        dependencyManager.project = project
-                        dependencyManager.buildResolverHandler = mockSpecialResolverHandler
-                        test(dependencyManager)
-                    }
-                }
-            }
-        }
+        dependencyManager.publish(expectedConfigs, expectedResolvers, expectedUploadModuleDescriptor)
     }
 
-    // todo Implemente this test. The ResolveReport is hard to mock (no defaul constructor, no interface). 
-//    @Test public void testResolveClasspathWithUnresolvedDepencencies() {
-//        String testConfiguration = 'compile'
-//        String testTaskName = 'myTask'
-//
-//        ResolveReport resolveReport = new ResolveReport(new DefaultModuleDescriptor(
-//                new ModuleRevisionId(new ModuleId('org', 'name'), '1.4'), 'status', null))
-//
-//        IvySettings expectedSettings = [:] as IvySettings
-//
-//        MockFor ivyMocker = new MockFor(Ivy)
-//        //        ivyMocker.demand.setSettings(1..1) {IvySettings ivySettings ->
-//        //            assert expectedSettings.is(ivySettings)
-//        //        }
-//        ivyMocker.demand.newInstance(1..1) {IvySettings ivySettings ->
-//            assert expectedSettings.is(ivySettings)
-//            new Ivy()
-//        }
-//        ivyMocker.demand.resolve(1..1) {ModuleDescriptor moduleDescriptor, ResolveOptions resolveOptions ->
-//            assert moduleDescriptor.is(expectedModuleDescriptor)
-//            assertEquals([testConfiguration], resolveOptions.getConfs() as List)
-//            resolveReport
-//        }
-//        ivyMocker.use() {
-//            dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
-//                    settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
-//            dependencyManager.buildResolverHandler = mockSpecialResolverHandler
-//            dependencyManager.addConf2Tasks(testConfiguration, testTaskName)
-//            dependencyManager.project = project
-//            shouldFail(GradleException) {
-//                dependencyManager.resolveClasspath(testTaskName)
-//            }
-//        }
-//
-//    }
-
-    @Test public void testPublishWithoutModuleDescriptor() {
-        checkPublish(false)
-    }
-
-    @Test public void testPublishWithModuleDescriptor() {
-        checkPublish(true)
-    }
-
-    void checkPublish(boolean uploadModuleDescriptor) {
-        PublishEngine publishEngine
-        List expectedArtifactPatterns = ['a', 'b']
-        final String RESOLVER_NAME_1 = 'resolver1'
-        final String RESOLVER_NAME_2 = 'resolver2'
-        List expectedConfigurations = ['conf1']
-        ResolverContainer uploadResolvers = new ResolverContainer()
-        uploadResolvers.add([name: RESOLVER_NAME_1, url: 'http://www.url1.com'])
-        uploadResolvers.add([name: RESOLVER_NAME_2, url: 'http://www.url2.com'])
-        File expectedIvyFile = new File(project.buildDir, 'ivy.xml')
-
-        boolean toIvyFileCalled = false
-        ModuleDescriptor expectedModuleDescriptor = [toIvyFile: {File file ->
-            assertEquals(expectedIvyFile, file)
-            toIvyFileCalled = true
-        }] as ModuleDescriptor
-
-
-        MockFor moduleDescriptorConverterMocker = new MockFor(ModuleDescriptorConverter)
-        moduleDescriptorConverterMocker.demand.convert(1..1) {DefaultDependencyManager dependencyManager ->
-            assert dependencyManager.is(this.dependencyManager)
-            expectedModuleDescriptor
-        }
-
-        IvySettings expectedSettings = [:] as IvySettings
-        MockFor settingsConverterMocker = new MockFor(SettingsConverter)
-        settingsConverterMocker.demand.convert(1..1) {Collection classpathResolvers, Collection otherResolvers,
-                                                      File gradleUserHome, RepositoryResolver buildResolver,
-                                                      Map clientModuleDescriptorRegistry, Closure clientModuleChainConfigurer ->
-            assertEquals(gradleUserHome, new File(project.gradleUserHome))
-            assertEquals(dependencyManager.buildResolver, buildResolver)
-            assertEquals(dependencyManager.classpathResolvers.resolverList, classpathResolvers)
-            assertEquals(uploadResolvers.resolverList, otherResolvers)
-            assertEquals(dependencyManager.clientModuleRegistry, clientModuleDescriptorRegistry)
-            assert clientModuleChainConfigurer.is(dependencyManager.chainConfigurer)
-            expectedSettings
-        }
-
-        StubFor ivyMocker = new StubFor(Ivy)
-
-        ivyMocker.demand.newInstance() {IvySettings ivySettings ->
-            assert expectedSettings.is(ivySettings)
-            new Ivy()
-        }
-        ivyMocker.demand.getPublishEngine(2..2) {publishEngine}
-
-        MockFor publishEngineMocker = new MockFor(PublishEngine)
-        Set calledResolvers = []
-        publishEngineMocker.demand.publish(2..2) {ModuleDescriptor moduleDescriptor, Collection srcArtifactPattern,
-                                                  DependencyResolver resolver, PublishOptions publishOptions ->
-            assert moduleDescriptor.is(expectedModuleDescriptor)
-            assertEquals(expectedArtifactPatterns.collect {new File(projectRootDir, it).absolutePath}, srcArtifactPattern)
-            calledResolvers << resolver
-            assert publishOptions.overwrite
-            if (uploadModuleDescriptor) {
-                assertEquals(expectedIvyFile.absolutePath, publishOptions.srcIvyPattern)
-            } else {
-                assert !publishOptions.srcIvyPattern
-            }
-        }
-
-        moduleDescriptorConverterMocker.use(moduleDescriptorConverter) {
-            ivyMocker.use() {
-                settingsConverterMocker.use(settingsConverter) {
-                    publishEngineMocker.use() {
-                        publishEngine = new PublishEngine(null, null)
-                        dependencyManager = new DefaultDependencyManager(new Ivy(), [:] as DependencyFactory, new ArtifactFactory(),
-                                settingsConverter, moduleDescriptorConverter, report2Classpath, buildResolverDir)
-                        dependencyManager.buildResolverHandler = mockSpecialResolverHandler
-                        dependencyManager.artifactPatterns = expectedArtifactPatterns
-                        dependencyManager.project = project
-                        dependencyManager.publish(expectedConfigurations, uploadResolvers, uploadModuleDescriptor)
-                    }
-                }
-            }
-        }
-        assertEquals(uploadResolvers.resolverList as Set, calledResolvers)
-        if (uploadModuleDescriptor) {assert toIvyFileCalled}
-    }
-
-
-
-    @Test public void testAddConf2Tasks() {
+    @Test public void linkConfWithTask() {
+        String testConf2 = 'testConf2'
         String testTaskName1 = 'task1'
         String testTaskName2 = 'task2'
-        String testTaskName3 = 'task3'
-        dependencyManager.addConf2Tasks(TEST_CONFIG, testTaskName1, testTaskName2)
-        assertEquals([testTaskName1, testTaskName2] as Set, dependencyManager.conf2Tasks[TEST_CONFIG])
-        assertEquals(TEST_CONFIG, dependencyManager.task2Conf[testTaskName1])
-        assertEquals(TEST_CONFIG, dependencyManager.task2Conf[testTaskName2])
-
-        dependencyManager.addConf2Tasks(TEST_CONFIG, testTaskName3)
-        assertEquals([testTaskName3] as Set, dependencyManager.conf2Tasks[TEST_CONFIG])
-        assertEquals(TEST_CONFIG, dependencyManager.task2Conf[testTaskName3])
-        assertEquals(1, dependencyManager.task2Conf.size())
+        dependencyManager.addConfiguration(testConf2)
+        dependencyManager.linkConfWithTask(TEST_CONFIG, testTaskName1)
+        dependencyManager.linkConfWithTask(TEST_CONFIG, testTaskName2)
+        dependencyManager.linkConfWithTask(testConf2, testTaskName1)
+        assertEquals([TEST_CONFIG, testConf2] as Set, dependencyManager.confs4Task[testTaskName1])
+        assertEquals([TEST_CONFIG] as Set, dependencyManager.confs4Task[testTaskName2])
+        assertEquals([testTaskName1, testTaskName2] as Set, dependencyManager.tasks4Conf[TEST_CONFIG])
+        assertEquals([testTaskName1] as Set, dependencyManager.tasks4Conf[testConf2])
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddConf2TasksWithNullConf() {
-        dependencyManager.addConf2Tasks(null, 'sometask')
+    @Test public void unlinkConfWithTask() {
+        String testConf2 = 'testConf2'
+        String testTaskName1 = 'task1'
+        String testTaskName2 = 'task2'
+        dependencyManager.addConfiguration(testConf2)
+        dependencyManager.linkConfWithTask(TEST_CONFIG, testTaskName1)
+        dependencyManager.linkConfWithTask(TEST_CONFIG, testTaskName2)
+        dependencyManager.linkConfWithTask(testConf2, testTaskName1)
+
+        dependencyManager.unlinkConfWithTask(TEST_CONFIG, testTaskName2)
+        dependencyManager.unlinkConfWithTask(testConf2, testTaskName1)
+        assertEquals([testTaskName1] as Set, dependencyManager.tasks4Conf[TEST_CONFIG])
+        assertEquals([] as Set, dependencyManager.tasks4Conf[testConf2])
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddConf2TasksWithNullTaskName() {
-        dependencyManager.addConf2Tasks('jsjs', null)
+    @Test (expected = InvalidUserDataException)
+    public void unlinkConfWithTaskWithUnlinkedTask() {
+        String testTaskName1 = 'task1'
+        String testTaskName2 = 'task2'
+        dependencyManager.linkConfWithTask(TEST_CONFIG, testTaskName1)
+        dependencyManager.unlinkConfWithTask(TEST_CONFIG, testTaskName2)
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddConf2TasksWithEmptyArgs() {
-        dependencyManager.addConf2Tasks('jsjs', [] as String[])
+    @Test (expected = InvalidUserDataException)
+    public void unlinkConfWithTaskWithUnlinkedConf() {
+        String testTaskName1 = 'task1'
+        dependencyManager.linkConfWithTask(TEST_CONFIG, testTaskName1)
+        dependencyManager.unlinkConfWithTask('unlinkedConf', testTaskName1)
     }
 
-    @Test public void testGetBuildResolver() {
-        assert dependencyManager.buildResolver.is(expectedBuildResolver)
+    @Test (expected = InvalidUserDataException) public void testlinkConfWithTaskWithNullConf() {
+        dependencyManager.linkConfWithTask(null, 'sometask')
+    }
+
+    @Test (expected = InvalidUserDataException) public void testlinkConfWithTaskWithNullTask() {
+        dependencyManager.linkConfWithTask(TEST_CONFIG, null)
+    }
+
+    @Test (expected = InvalidUserDataException) public void testlinkConfWithTaskWithEmptyConf() {
+        dependencyManager.linkConfWithTask('', 'sometask')
+    }
+
+    @Test (expected = InvalidUserDataException) public void testlinkConfWithTaskWithEmptyTask() {
+        dependencyManager.linkConfWithTask(TEST_CONFIG, '')
     }
 
     @Test public void testAddFlatDirResolver() {

@@ -99,7 +99,7 @@ class ProjectDependencyTest {
         Project project = context.mock(Project)
         DependencyManager dependencyManager = context.mock(DependencyManager)
         Task task = context.mock(Task)
-        Map conf2Tasks = [:]
+        Map tasks4conf = [:]
         Project dependencyProject = context2.mock(Project)
         DependencyManager dependencyProjectDependencyManager = context2.mock(DependencyManager)
         Task expectedArtifactProductionTask = context2.mock(Task)
@@ -108,11 +108,11 @@ class ProjectDependencyTest {
 
         projectDependency.project = project
         projectDependency.userDependencyDescription = dependencyProject
-        conf2Tasks[TEST_CONF] = [TEST_CONF]
+        tasks4conf[TEST_CONF] = [TEST_CONF]
 
         context.checking {
             allowing(project).getDependencies(); will(returnValue(dependencyManager))
-            allowing(dependencyManager).getConf2Tasks(); will(returnValue(conf2Tasks))
+            allowing(dependencyManager).getTasks4Conf(); will(returnValue(tasks4conf))
             allowing(project).task(TEST_CONF); will(returnValue(task))
             one(task).dependsOn(expectedArtifactProductionTaskPath)
         }

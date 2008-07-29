@@ -17,24 +17,19 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.Ivy
+import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.core.publish.PublishOptions
-import org.apache.ivy.core.report.ResolveReport
-import org.apache.ivy.core.resolve.ResolveOptions
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
-import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.dependencies.ResolverContainer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.util.Clock
 
 /**
  * @author Hans Dockter
@@ -45,32 +40,38 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     /**
      * A map where the key is the name of the configuration and the values are Ivy configuration objects.
      */
-    Map configurations = [:]
+    Map<String, Configuration> configurations = [:]
 
     /**
      * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
      */
-    Map artifacts = [:]
+    Map<String, List<GradleArtifact>> artifacts = [:]
 
     /**
      * A list for passing directly instances of Ivy Artifact objects.
      */
-    Map artifactDescriptors = [:]
+    Map<String, List<Artifact>> artifactDescriptors = [:]
 
     /**
      * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
      */
-    List artifactPatterns = []
+    List<String> absoluteArtifactPatterns = []
+
+    List<File> artifactParentDirs = []
+
+    String defaultArtifactPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN
 
     ArtifactFactory artifactFactory
 
-    Ivy ivy
+    IIvyFactory ivyFactory
 
     SettingsConverter settingsConverter
 
     ModuleDescriptorConverter moduleDescriptorConverter
 
-    Report2Classpath report2Classpath
+    IDependencyResolver dependencyResolver
+
+    IDependencyPublisher dependencyPublisher
 
     LocalReposCacheHandler localReposCacheHandler = new LocalReposCacheHandler()
 
@@ -91,8 +92,8 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
      * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
      * the mapping can be specified via this map.
      */
-    Map conf2Tasks = [:]
-    Map task2Conf = [:]
+    Map confs4Task = [:]
+    Map tasks4Conf = [:]
 
     /**
      * All the classpath resolvers are contained in an Ivy chain resolver. With this closure you can configure the
@@ -108,48 +109,36 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
 
     }
 
-    DefaultDependencyManager(Ivy ivy, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
+    DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
                              SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
-                             Report2Classpath report2Classpath, File buildResolverDir) {
+                             IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
+                             File buildResolverDir) {
         super(dependencyFactory, [])
         assert buildResolverDir
-        this.ivy = ivy
+        this.ivyFactory = ivyFactory
         this.artifactFactory = artifactFactory
         this.settingsConverter = settingsConverter
         this.moduleDescriptorConverter = moduleDescriptorConverter
-        this.report2Classpath = report2Classpath
+        this.dependencyResolver = dependencyResolver
+        this.dependencyPublisher = dependencyPublisher
         this.localReposCacheHandler.buildResolverDir = buildResolverDir
         this.buildResolverHandler.buildResolverDir = buildResolverDir
     }
 
     List resolve(String conf) {
-        Clock clock = new Clock()
-        if (resolveCache.keySet().contains(conf)) {
-            return resolveCache[conf]
-        }
-        ivy = getIvy()
-        //        ivy.configure(new File('/Users/hans/IdeaProjects/gradle/gradle-core/ivysettings.xml'))
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(this)
-        ResolveOptions resolveOptions = new ResolveOptions()
-        resolveOptions.setConfs([conf] as String[])
-        resolveOptions.outputReport = false
-        Clock ivyClock = new Clock()
-        ResolveReport resolveReport = ivy.resolve(moduleDescriptor, resolveOptions)
-        logger.debug("Timing: Ivy resolve took {}", clock.time)
-        if (resolveReport.hasError() && failForMissingDependencies) {
-            throw new GradleException("Not all dependencies could be resolved!")
-        }
-        resolveCache[conf] = report2Classpath.getClasspath(conf, resolveReport)
-        logger.debug("Timing: Complete resolve took {}", clock.time)
-        resolveCache[conf]
+        return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this),
+                failForMissingDependencies);
     }
 
     List resolveTask(String taskName) {
-        String conf = task2Conf[taskName]
-        if (!conf) {
+        Set confs = confs4Task[taskName]
+        if (!confs) {
             throw new InvalidUserDataException("Task $taskName is not mapped to any conf!")
         }
-        resolve(conf)
+        confs.inject([]) {List allPaths, String conf ->
+            allPaths.addAll(resolve(conf))
+            allPaths
+        }
     }
 
     String antpath(String conf) {
@@ -157,26 +146,13 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     }
 
     void publish(List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor) {
-        PublishOptions publishOptions = new PublishOptions()
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(this)
-        if (uploadModuleDescriptor) {
-            File ivyFile = new File(project.buildDir, 'ivy.xml')
-            moduleDescriptor.toIvyFile(ivyFile)
-            publishOptions.srcIvyPattern = ivyFile.absolutePath
-        }
-        publishToResolvers(configurations, resolvers, moduleDescriptor, publishOptions)
-    }
-
-    private void publishToResolvers(List configurations, ResolverContainer resolvers, ModuleDescriptor moduleDescriptor,
-                                    PublishOptions publishOptions) {
-        publishOptions.setOverwrite(true)
-        publishOptions.confs = configurations
-        Ivy ivy = ivy(resolvers.resolverList)
-        resolvers.resolverList.each {resolver ->
-            logger.info("Publishing to Resolver $resolver")
-            ivy.publishEngine.publish(moduleDescriptor,
-                    artifactPatterns.collect {pattern -> project.file(pattern).absolutePath}, resolver, publishOptions)
-        }
+        dependencyPublisher.publish(
+                configurations,
+                resolvers,
+                moduleDescriptorConverter.convert(this),
+                uploadModuleDescriptor,
+                new File(getProject().getBuildDir(), "ivy.xml"),
+                this);
     }
 
     ModuleRevisionId createModuleRevisionId() {
@@ -196,28 +172,29 @@ class DefaultDependencyManager extends DefaultDependencyContainer implements Dep
     }
 
     Ivy ivy(List resolvers) {
-        ivy = ivy.newInstance(settingsConverter.convert(classpathResolvers.resolverList,
+        return ivyFactory.createIvy(settingsConverter.convert(classpathResolvers.resolverList,
                 resolvers,
                 new File(project.gradleUserHome), buildResolver, clientModuleRegistry, chainConfigurer))
     }
 
-    void addConf2Tasks(String conf, String[] tasks) {
-        if (!conf || !tasks) {throw new InvalidUserDataException('Conf and tasks must be specified!')}
-        removeTaskForOldConfMapping(conf)
-        conf2Tasks[conf] = tasks as Set
-        tasks.each {task2Conf[it] = conf}
+    DependencyManager linkConfWithTask(String conf, String task) {
+        if (!conf || !task) {throw new InvalidUserDataException('Conf and tasks must be specified!')}
+        if (!tasks4Conf[conf]) { tasks4Conf[conf] = [] as Set }
+        if (!confs4Task[task]) { confs4Task[task] = [] as Set }
+        tasks4Conf[conf] << task
+        confs4Task[task] << conf
+        this
     }
 
-    private void removeTaskForOldConfMapping(String conf) {
-        if (conf2Tasks[conf]) {
-            List task2Remove = []
-            task2Conf.each {key, value ->
-                if (value == conf) {
-                    task2Remove << key
-                }
-            }
-            task2Remove.each {task2Conf.remove(it)}
+    DependencyManager unlinkConfWithTask(String conf, String task) {
+        if (!conf || !task) {throw new InvalidUserDataException('Conf and tasks must be specified!')}
+        if (!tasks4Conf[conf] || !tasks4Conf[conf].contains(task)) {
+            throw new InvalidUserDataException("Can not unlink Conf= $conf and Task=$task because they are not linked!");
         }
+        tasks4Conf[conf].remove(task)
+        assert confs4Task[task]
+        confs4Task[task].remove(conf)
+        this
     }
 
     void addArtifacts(String configurationName, Object[] artifacts) {

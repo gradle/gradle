@@ -23,6 +23,9 @@ import org.gradle.api.dependencies.ArtifactDependency
 import org.gradle.api.dependencies.ModuleDependency
 import org.gradle.api.dependencies.ProjectDependency
 import org.gradle.api.Project
+import org.apache.ivy.core.publish.PublishEngine
+import org.apache.ivy.core.settings.IvySettings
+import org.apache.ivy.core.event.EventManager
 
 /**
  * @author Hans Dockter
@@ -38,12 +41,13 @@ class DefaultDependencyManagerFactory implements DependencyManagerFactory {
 
     DependencyManager createDependencyManager(Project project) {
         DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
-                Ivy.newInstance(),
+                new DefaultIvyFactory(),
                 new DependencyFactory([ArtifactDependency, ModuleDependency, ProjectDependency]),
                 new ArtifactFactory(),
                 new SettingsConverter(),
                 new ModuleDescriptorConverter(),
-                new Report2Classpath(),
+                new DefaultDependencyResolver(new Report2Classpath()),
+                new DefaultDependencyPublisher(new PublishEngine(new IvySettings(), new EventManager())),
                 buildResolverDir)
         dependencyManager.setProject(project);
         return dependencyManager;

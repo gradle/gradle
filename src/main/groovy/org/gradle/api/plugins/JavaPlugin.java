@@ -134,12 +134,12 @@ public class JavaPlugin implements Plugin {
         dependencies.addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, new String[]{RUNTIME, LIBS}, true, null));
         dependencies.addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null));
         dependencies.setArtifactProductionTaskName(UPLOAD_LIBS);
-        dependencies.getArtifactPatterns().add(project.getBuildDir().getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
-        dependencies.getArtifactPatterns().add(javaPluginConvention.getDistsDir() + "/[artifact]-[revision](-[classifier]).[ext]");
-        dependencies.addConf2Tasks(COMPILE, new String[]{COMPILE});
-        dependencies.addConf2Tasks(RUNTIME, new String[]{TEST});
-        dependencies.addConf2Tasks(TEST_COMPILE, new String[]{TEST_COMPILE});
-        dependencies.addConf2Tasks(TEST_RUNTIME, new String[]{TEST});
+        dependencies.getArtifactParentDirs().add(project.getBuildDir());
+        dependencies.getArtifactParentDirs().add(javaPluginConvention.getDistsDir());
+        dependencies.linkConfWithTask(COMPILE, COMPILE);
+        dependencies.linkConfWithTask(RUNTIME, TEST);
+        dependencies.linkConfWithTask(TEST_COMPILE, TEST_COMPILE);
+        dependencies.linkConfWithTask(TEST_RUNTIME, TEST);
 
     }
 

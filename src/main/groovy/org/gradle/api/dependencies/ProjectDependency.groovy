@@ -59,7 +59,7 @@ class ProjectDependency extends AbstractDependency {
 
     void initialize() {
         confs.each {String conf ->
-            (project.dependencies.conf2Tasks[conf]).each {taskName ->
+            (project.dependencies.tasks4Conf[conf]).each {taskName ->
                 dependencyProject.evaluate()
                 project.task(taskName).dependsOn dependencyProject.task(dependencyProject.dependencies.artifactProductionTaskName).path
             }

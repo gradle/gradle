@@ -26,6 +26,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.dependencies.DependencyContainer
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.dependencies.Dependency
 
 /**
  * @author Hans Dockter
@@ -38,9 +39,9 @@ class DefaultDependencyContainer implements DependencyContainer {
 
     List defaultConfs = []
 
-    List dependencies = []
+    List<Dependency> dependencies = []
 
-    List dependencyDescriptors = []
+    List<DependencyDescriptor> dependencyDescriptors = []
 
     DependencyFactory dependencyFactory
 

@@ -35,7 +35,8 @@ class DefaultDependencyManagerFactoryTest {
         assertNotNull(dependencyManager.artifactFactory)
         assertNotNull(dependencyManager.settingsConverter)
         assertNotNull(dependencyManager.moduleDescriptorConverter)
-        assertNotNull(dependencyManager.report2Classpath)
+        assertNotNull(dependencyManager.dependencyPublisher)
+        assertNotNull(dependencyManager.dependencyResolver)
         assertEquals([ArtifactDependency, ModuleDependency, ProjectDependency], dependencyManager.dependencyFactory.dependencyImplementations)
         assertEquals(rootDir, dependencyManager.buildResolverDir)
     }

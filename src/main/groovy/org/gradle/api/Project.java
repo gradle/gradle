@@ -223,5 +223,5 @@ public interface Project {
 
     boolean hasProperty(String propertyName);
 
-//    Object getProperty(String propertyName);
+    Object property(String propertyName);
 }

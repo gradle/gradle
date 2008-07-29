@@ -41,7 +41,7 @@ class ModuleDescriptorConverterTest {
 
     @Before public void setUp()  {
         moduleDescriptorConverter = new ModuleDescriptorConverter()
-        dependencyManager = new DefaultDependencyManager(null, null, null, null, null, null, new File('buildResolverDir'))
+        dependencyManager = new DefaultDependencyManager(null, null, null, null, null, null, null, new File('buildResolverDir'))
         dependencyManager.project = new DefaultProject()
     }
 

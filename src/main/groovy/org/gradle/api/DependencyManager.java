@@ -36,6 +36,8 @@ import groovy.lang.Closure;
 public interface DependencyManager extends DependencyContainer {
     public static final String DEFAULT_MAVEN_REPO_NAME = "MavenRepo";
 
+    public static String DEFAULT_ARTIFACT_PATTERN = "/[artifact]-[revision](-[classifier]).[ext]";
+
     public static final String MAVEN_REPO_URL = "http://repo1.maven.org/maven2/";
 
     public static final String BUILD_RESOLVER_NAME = "build-resolver";
@@ -53,10 +55,10 @@ public interface DependencyManager extends DependencyContainer {
     public static final String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
 
     public static final String FLAT_DIR_RESOLVER_PATTERN = "[artifact]-[revision](-[classifier]).[ext]";
-
     public static final String DEFAULT_STATUS = "integration";
     public static final String DEFAULT_GROUP = "unspecified";
     public static final String DEFAULT_VERSION = "unspecified";
+
     public static final String CLASSIFIER = "classifier";
 
 
@@ -78,7 +80,13 @@ public interface DependencyManager extends DependencyContainer {
     /**
      * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
      */
-    List getArtifactPatterns();
+    List<String> getAbsoluteArtifactPatterns();
+
+    List<File> getArtifactParentDirs();
+
+    String getDefaultArtifactPattern();
+
+    void setDefaultArtifactPattern(String defaultArtifactPattern);
 
     /**
      * The name of the task which produces the artifacts of this project. This is needed by other projects,
@@ -88,6 +96,8 @@ public interface DependencyManager extends DependencyContainer {
 
     void setArtifactProductionTaskName(String name);
 
+    Map getConfs4Task();
+    
     /**
      * A map where the key is the name of the configuration and the value is the name of a task. This is needed
      * to deal with project dependencies. In case of a project dependency, we need to establish a dependsOn relationship,
@@ -95,7 +105,7 @@ public interface DependencyManager extends DependencyContainer {
      * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
      * the mapping can be specified via this map.
      */
-    Map getConf2Tasks();
+    Map getTasks4Conf();
 
     /**
      * A configuration can be assigned to one or more tasks. One usage of this mapping is that for example the
@@ -107,13 +117,13 @@ public interface DependencyManager extends DependencyContainer {
      * testCompile conf. With this knowledge we create a dependsOn relation ship between the testCompile task and the
      * task of the other project that produces the jar. This way a compile does not trigger the build of the other project,
      * but a testCompile does.
-     * If a mapping between a task and a conf is not specified an implicit mapping is assumed which looks for a task
-     * with the same name as the conf. But for example for the test task you have to specify an explicit mapping.
      *
      * @param conf  the name of the conf
-     * @param tasks the name of the tasks
+     * @param task the name of the task
      */
-    void addConf2Tasks(String conf, String[] tasks);
+    DependencyManager linkConfWithTask(String conf, String task);
+
+    DependencyManager unlinkConfWithTask(String conf, String task);
 
     /**
      * Adds artifacts for the given confs. An artifact is normally a library produced by the project. Usually this
