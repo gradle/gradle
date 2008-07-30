@@ -33,7 +33,7 @@ class AntJunit {
 
     static final String FAILURES_OR_ERRORS_PROPERTY = 'org.gradle.api.tasks.testing.failuresOrErrors'
 
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, List includes, List excludes, JunitOptions junitOptions, AntBuilder ant) {
+    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, File testReportDir, List includes, List excludes, JunitOptions junitOptions, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)
         createAntClassPath(ant, classPath + GradleUtil.antJunitJarFiles)
         Map otherArgs = [
@@ -65,6 +65,10 @@ class AntJunit {
             classpath() {
                 path(refid: CLASSPATH_ID)
             }
+        }
+        ant.junitreport(todir: testResultsDir.absolutePath) {
+            fileset(dir: testResultsDir.absolutePath, includes: '*.xml')
+            report(todir: testReportDir.absolutePath)
         }
     }
 

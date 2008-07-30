@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.bundling.GradleManifest
+import org.gradle.api.tasks.util.FileSet
 
 /**
  * @author Hans Dockter
@@ -56,6 +56,7 @@ class DefaultConventionsToPropertiesMapping {
     public final static Map TEST = [
             testClassesDir: {it.plugins.java.testClassesDir},
             testResultsDir: {it.plugins.java.testResultsDir},
+            testReportDir: {it.plugins.java.testReportDir},
 //            // Order of dirs is important because of classpath!
 //            unmanagedClasspath: {[it.plugins.java.classesDir]},
             dependencyManager: {it.project.dependencies}

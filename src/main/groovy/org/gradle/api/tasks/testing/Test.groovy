@@ -16,18 +16,13 @@
 
 package org.gradle.api.tasks.testing
 
-import org.gradle.api.DependencyManager
-import org.gradle.api.GradleException
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Task
+import org.gradle.api.*
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.util.ExistingDirsFilter
+import org.gradle.execution.Dag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.Project
-import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
@@ -44,6 +39,11 @@ class Test extends ConventionTask {
      * The directory where the test results are put. Right now only the xml format of the test results is supported.
      */
     File testResultsDir = null
+
+    /**
+     * The directory to generate the test report into.
+     */
+    File testReportDir = null
 
     /**
      * This task delegates to Ants Junit task for the execution of the tests. This options contain most of the options
@@ -97,7 +97,7 @@ class Test extends ConventionTask {
         List classpath = classpathConverter.createFileClasspath(
                 project.rootDir, [getTestClassesDir()] + getUnmanagedClasspath()) + getDependencyManager().resolveTask(name)
 
-        antJunit.execute(getTestClassesDir(), classpath, getTestResultsDir(), includes, excludes, options, project.ant)
+        antJunit.execute(getTestClassesDir(), classpath, getTestResultsDir(), getTestReportDir(), includes, excludes, options, project.ant)
         if (stopAtFailuresOrErrors && project.ant.project.getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY)) {
             throw new GradleException("There were failing tests!")
         }
@@ -135,6 +135,10 @@ class Test extends ConventionTask {
 
     public void setTestResultsDir(File testResultsDir) {
         this.testResultsDir = testResultsDir;
+    }
+
+    public File getTestReportDir() {
+        return conv(testReportDir, "testReportDir");
     }
 
     public JunitOptions getOptions() {

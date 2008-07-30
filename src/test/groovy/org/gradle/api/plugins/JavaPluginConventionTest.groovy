@@ -17,11 +17,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -60,6 +58,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals('javadoc', convention.javadocDirName)
         assertEquals('test-results', convention.testResultsDirName)
         assertEquals('reports', convention.reportsDirName)
+        assertEquals('tests', convention.testReportDirName)
         assertEquals(['main/java'], convention.srcDirNames)
         assertEquals(['test/java'], convention.testSrcDirNames)
         assertEquals(['main/resources'], convention.resourceDirNames)
@@ -95,8 +94,8 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(new File(project.buildDir, convention.javadocDirName), convention.javadocDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(project.buildDir, convention.reportsDirName), convention.reportsDir)
+        assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
     }
-
 
     @Test public void testMkdir() {
         String expectedDirName = 'somedir'

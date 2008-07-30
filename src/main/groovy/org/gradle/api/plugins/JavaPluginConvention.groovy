@@ -46,6 +46,7 @@ class JavaPluginConvention {
     String testResultsDirName
     String reportsDirName
     String webAppDirName
+    String testReportDirName
     List srcDirNames = []
     List resourceDirNames = []
     List testSrcDirNames = []
@@ -75,6 +76,7 @@ class JavaPluginConvention {
         javadocDirName = 'javadoc'
         reportsDirName = 'reports'
         testResultsDirName = 'test-results'
+        testReportDirName = 'tests'
         srcDirNames << 'main/java'
         resourceDirNames << 'main/resources'
         testSrcDirNames << 'test/java'
@@ -141,6 +143,10 @@ class JavaPluginConvention {
 
     File getTestResultsDir() {
         new File(project.buildDir, testResultsDirName)
+    }
+
+    File getTestReportDir() {
+        new File(reportsDir, testReportDirName)
     }
 
     File getReportsDir() {
