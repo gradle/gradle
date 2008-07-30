@@ -213,7 +213,7 @@ public interface DependencyManager extends DependencyContainer {
 
     DualResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls);
 
-    void publish(List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor);
+    void publish(List<String> configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor);
 
     ModuleRevisionId createModuleRevisionId();
 }
