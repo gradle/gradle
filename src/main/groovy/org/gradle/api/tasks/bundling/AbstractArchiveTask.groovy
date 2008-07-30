@@ -21,18 +21,15 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.util.AntDirective
+import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.execution.Dag
+import org.gradle.util.ConfigureUtil
+import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.tasks.util.FileCollection
-import org.gradle.api.tasks.util.AntDirective
-import org.gradle.util.ConfigureUtil
-
-import java.io.File;
-import java.util.List
-import org.gradle.util.GUtil
-import org.gradle.execution.Dag;
 
 /**
  * @author Hans Dockter
@@ -136,7 +133,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * @param publish the value assigned to the publish property
      * @return this
      */
-    public AbstractArchiveTask configurations(String[] configurations) {
+    public AbstractArchiveTask configurations(String... configurations) {
         this.configurations = configurations
         this
     }
