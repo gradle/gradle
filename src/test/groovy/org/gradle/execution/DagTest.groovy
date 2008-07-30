@@ -32,9 +32,9 @@ import org.gradle.api.Project
 import org.gradle.api.internal.DefaultTask
 import org.gradle.execution.Dag
 import org.gradle.util.HelperUtil
-import org.junit.Before
 import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Before
+import org.junit.Test
 
 class DagTest {
     private static final Object A = "A";
@@ -180,11 +180,19 @@ class DagTest {
         Set dependsOnTasks1 = [createTask(child, 'child', executedIdList, 4),
                 createTask(root, 'longlonglonglongchild', executedIdList, 3)]
         dag.addTask(dummyTask0, dependsOnTasks0)
-        println dag.sources
-        println dag.sinks
         dag.addTask(dummyTask1, dependsOnTasks1)
-        dag.execute()
+        assertFalse(dag.execute())
         assertEquals([0, 1, 2, 3, 4, 5], executedIdList)
+    }
+
+    @Test public void testExecuteWithDagNeutral() {
+        Project child = root.addChildProject('child')
+        List executedIdList = []
+        DefaultTask dummyTask0 = createTask(root, 'a', executedIdList, 2)
+        dag.addTask(dummyTask0, [] as Set)
+        dummyTask0.dagNeutral = true
+        assertTrue(dag.execute())
+        assertEquals([2], executedIdList)
     }
 
     private DefaultTask createTask(Project project, String name, List executedIdList, int executedId) {

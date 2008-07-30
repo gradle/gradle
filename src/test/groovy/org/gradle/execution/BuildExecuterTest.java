@@ -84,24 +84,16 @@ public class BuildExecuterTest {
         child.getTasks().put(childTest.getName(), childTest);
         child.getTasks().put(childOther.getName(), childOther);
 
-        setDagMockExpectations(WrapUtil.toSet(root, child), WrapUtil.toSet(rootCompile, rootTest, childCompile, childTest, childOther));
+        setDagMockExpectations(WrapUtil.toSet(root, child), WrapUtil.toSet(rootCompile, rootTest, childCompile, childTest, childOther), false);
 
-        assertTrue(buildExecuter.execute(WrapUtil.toList(rootTest, childTest), root, true));
-    }
-
-    @Test public void testExecuteWithRebuildDagFalse() {
-        final Task rootCompile = new DefaultTask(root, "compile", dagMock);
-        root.getTasks().put(rootCompile.getName(), rootCompile);
-        setDagMockExpectations(WrapUtil.<Project>toSet(root), WrapUtil.toSet(rootCompile));
-        assertNull(buildExecuter.execute(WrapUtil.toList(rootCompile), root, false));
+        assertTrue(buildExecuter.execute(WrapUtil.toList(rootTest, childTest), root));
     }
 
     @Test public void testExecuteWithRebuildDagAndDagNeutralTask() {
         final Task rootCompile = new DefaultTask(root, "compile", dagMock);
-        rootCompile.setDagNeutral(true);
         root.getTasks().put(rootCompile.getName(), rootCompile);
-        setDagMockExpectations(WrapUtil.<Project>toSet(root), WrapUtil.toSet(rootCompile));
-        assertFalse(buildExecuter.execute(WrapUtil.toList(rootCompile), root, true));
+        setDagMockExpectations(WrapUtil.<Project>toSet(root), WrapUtil.toSet(rootCompile), true);
+        assertFalse(buildExecuter.execute(WrapUtil.toList(rootCompile), root));
     }
 
     public static class CollectDagTasksAction implements Action {
@@ -122,7 +114,7 @@ public class BuildExecuterTest {
         }
     }
 
-    private void setDagMockExpectations(final Set<Project> projects, final Set<Task> tasks) {
+    private void setDagMockExpectations(final Set<Project> projects, final Set<Task> tasks, final boolean dagNeutralExecution) {
         context.checking(new Expectations() {
             {
                 one(dagMock).reset();
@@ -132,7 +124,7 @@ public class BuildExecuterTest {
                 will(returnValue(projects));
                 allowing(dagMock).getAllTasks();
                 will(returnValue(tasks));
-                one(dagMock).execute();
+                one(dagMock).execute(); will(returnValue(dagNeutralExecution));
             }
         });
     }
@@ -146,9 +138,9 @@ public class BuildExecuterTest {
         root.getTasks().put("task2", task2);
         root.getTasks().put("task3", task3);
         setDagMockExpectations(WrapUtil.toSet(root, child),
-                WrapUtil.toSet(task1, task2, task3));
+                WrapUtil.toSet(task1, task2, task3), false);
 
-        buildExecuter.execute(WrapUtil.toList(task3), root, true);
+        buildExecuter.execute(WrapUtil.toList(task3), root);
 
         assertEquals(WrapUtil.toSet(task2), collectDagTasksAction.tasksMap.get(task3));
         assertEquals(WrapUtil.toSet(task1), collectDagTasksAction.tasksMap.get(task2));
@@ -172,7 +164,7 @@ public class BuildExecuterTest {
         Task compileTask = new DefaultTask(root, "compile", dagMock);
         compileTask.dependsOn(taskName);
 
-        buildExecuter.execute(WrapUtil.toList(compileTask), root, true);
+        buildExecuter.execute(WrapUtil.toList(compileTask), root);
     }
 
     @Test(expected = UnknownTaskException.class)
@@ -191,6 +183,6 @@ public class BuildExecuterTest {
         Task compileTask = new DefaultTask(root, "compile", dagMock);
         compileTask.dependsOn(taskName);
 
-        buildExecuter.execute(WrapUtil.toList(compileTask), root, true);
+        buildExecuter.execute(WrapUtil.toList(compileTask), root);
     }
 }

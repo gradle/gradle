@@ -154,7 +154,7 @@ public class  BuildTest {
     }
 
     @Test
-    public void testRunWithRecreateDagFalse() {
+    public void testRunWithRebuildDagFalse() {
         context.checking(new Expectations() {
             {
                 one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
@@ -200,9 +200,10 @@ public class  BuildTest {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject, true);
+                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
                 will(returnValue(rebuildDagReturnValue));
-                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject, false);
+                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
+                will(returnValue(rebuildDagReturnValue));
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
                         expectedProjectProperties, System.getProperties(), System.getenv());
                 if (rebuildDagReturnValue) {

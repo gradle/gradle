@@ -18,29 +18,16 @@ package org.gradle;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
-import org.gradle.api.internal.project.BuildScriptProcessor;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.internal.project.TaskFactory;
+import org.gradle.api.internal.project.*;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
-import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.Dag;
-import org.gradle.execution.NameResolvingTaskSelector;
-import org.gradle.execution.ProjectDefaultsTaskSelector;
-import org.gradle.execution.TaskSelector;
+import org.gradle.execution.*;
 import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
 import org.gradle.groovy.scripts.DefaultScriptHandler;
 import org.gradle.groovy.scripts.DefaultScriptProcessor;
 import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
-import org.gradle.initialization.DefaultSettings;
-import org.gradle.initialization.ProjectsLoader;
-import org.gradle.initialization.RootFinder;
-import org.gradle.initialization.SettingsFactory;
-import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +88,7 @@ public class Build {
             selector.select(projectLoader.getCurrentProject());
             logger.info(String.format("++++ Starting build for %s.", selector.getDescription()));
             logger.debug(String.format("Selected for execution: %s.", selector.getTasks()));
-            rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject(), selector.hasNext());
+            rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject());
         }
     }
 

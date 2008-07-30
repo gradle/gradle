@@ -241,18 +241,23 @@ public class Dag {
         }
     }
 
-    public void execute() {
-        execute(new TreeSet(getSources()));
+    public boolean execute() {
+        return execute(new TreeSet(getSources()));
     }
 
-    private void execute(Set<DefaultTask> tasks) {
+    private boolean execute(Set<DefaultTask> tasks) {
+        boolean dagNeutral = true;
         for (DefaultTask task : tasks) {
-            execute(new TreeSet(getChildren(task)));
+            dagNeutral = execute(new TreeSet(getChildren(task)));
             if (!task.getExecuted()) {
                 logger.info("Executing: " + task);
                 task.execute();
+                if (dagNeutral) {
+                    dagNeutral = task.isDagNeutral();
+                }
             }
         }
+        return dagNeutral;
     }
 
     public boolean hasTask(String path) {

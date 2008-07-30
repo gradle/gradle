@@ -21,6 +21,10 @@ import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -37,7 +41,7 @@ public class BuildExecuter {
         this.dag = dag;
     }
 
-    public Boolean execute(Iterable<Task> tasks, Project rootProject, boolean checkForRebuildDag) {
+    public boolean execute(Iterable<Task> tasks, Project rootProject) {
         assert tasks != null;
         assert rootProject != null;
 
@@ -46,17 +50,9 @@ public class BuildExecuter {
         fillDag(this.dag, tasks, rootProject);
         logger.info("Timing: Creating the DAG took " + clock.getTime());
         clock.reset();
-        dag.execute();
+        boolean dagNeutral = dag.execute();
         logger.info("Timing: Executing the DAG took " + clock.getTime());
-        if (!checkForRebuildDag) {
-            return null;
-        }
-        for (Task calledTask : tasks) {
-            if (!calledTask.isDagNeutral()) {
-                return true;
-            }
-        }
-        return false;
+        return !dagNeutral;
     }
 
     private void fillDag(Dag dag, Iterable<Task> tasks, Project rootProject) {
