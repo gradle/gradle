@@ -17,16 +17,15 @@ package org.gradle.api.plugins
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.tasks.bundling.*
-import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.internal.plugins.PluginUtil
+import org.gradle.api.tasks.bundling.*
 
 /**
  * @author Hans Dockter
  */
 // todo Think about moving the mkdir method to the project.
 class JavaPluginConvention {
-    static final Map DEFAULT_ARCHIVE_TYPES = [
+    public static final Map DEFAULT_ARCHIVE_TYPES = [
             jar: new ArchiveType("jar", DefaultConventionsToPropertiesMapping.JAR, Jar),
             zip: new ArchiveType("zip", DefaultConventionsToPropertiesMapping.ZIP, Zip),
             war: new ArchiveType("war", DefaultConventionsToPropertiesMapping.WAR, War),
