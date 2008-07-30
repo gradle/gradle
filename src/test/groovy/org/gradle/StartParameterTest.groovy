@@ -16,9 +16,9 @@
  
 package org.gradle
 
+import org.gradle.CacheUsage
 import org.junit.Before
 import org.junit.Test
-import org.gradle.CacheUsage
 
 /**
  * @author Hans Dockter
@@ -32,7 +32,6 @@ class StartParameterTest {
                 buildFileName: 'buildfile',
                 taskNames: ['a'],
                 currentDir: new File('a'),
-                recursive: true,
                 searchUpwards: true,
                 projectProperties: [a: 'a'],
                 systemPropertiesArgs: [b: 'b'],

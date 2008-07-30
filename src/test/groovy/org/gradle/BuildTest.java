@@ -16,34 +16,35 @@
 
 package org.gradle;
 
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.DefaultSettings;
 import org.gradle.initialization.ProjectsLoader;
+import org.gradle.initialization.RootFinder;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.api.Project;
-import org.gradle.api.UnknownTaskException;
-import org.gradle.initialization.RootFinder;
-import org.junit.runner.RunWith;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.net.URLClassLoader;
 import java.net.URL;
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -59,17 +60,15 @@ public class  BuildTest {
     private DefaultProject expectedRootProject;
     private DefaultProject expectedCurrentProject;
     private URLClassLoader expectedClassLoader;
-    private boolean expectedRecursive;
     private DefaultSettings settingsMock;
     private boolean expectedSearchUpwards;
     private Map expectedProjectProperties;
     private Map expectedSystemPropertiesArgs;
-    private List expectedTaskNames;
+    private List<String> expectedTaskNames;
+    private List<Iterable<Task>> expectedTasks;
     private StartParameter expectedStartParams;
 
     private Map testGradleProperties = new HashMap();
-
-    private Build.BuildFactory testBuildFactory;
 
     private Build build;
 
@@ -92,8 +91,6 @@ public class  BuildTest {
 
         testGradleProperties = WrapUtil.toMap(Project.SYSTEM_PROP_PREFIX + ".prop1", "value1");
         testGradleProperties.put("prop2", "value2");
-        expectedTaskNames = WrapUtil.toList("a", "b");
-        expectedRecursive = false;
         expectedSearchUpwards = false;
         expectedClassLoader = new URLClassLoader(new URL[0]);
         expectedProjectProperties = WrapUtil.toMap("prop", "value");
@@ -102,18 +99,18 @@ public class  BuildTest {
         expectedCurrentDir = new File("currentDir");
         expectedGradleUserHomeDir = new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir");
 
+        expectedRootProject = HelperUtil.createRootProject(new File("dir1"));
+        expectedCurrentProject = HelperUtil.createRootProject(new File("dir2"));
+
+        expectTasks("a", "b");
+        
         expectedStartParams = new StartParameter();
         expectedStartParams.setTaskNames(expectedTaskNames);
         expectedStartParams.setCurrentDir(expectedCurrentDir);
-        expectedStartParams.setRecursive(expectedRecursive);
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(expectedGradleUserHomeDir);
         expectedStartParams.setSystemPropertiesArgs(expectedSystemPropertiesArgs);
         expectedStartParams.setProjectProperties(expectedProjectProperties);
-
-        expectedRootProject = HelperUtil.createRootProject(new File("dir1"));
-        expectedCurrentProject = HelperUtil.createRootProject(new File("dir2"));
-
 
         context.checking(new Expectations() {
             {
@@ -128,6 +125,14 @@ public class  BuildTest {
                 will(returnValue(expectedCurrentProject));
             }
         });
+    }
+
+    private void expectTasks(String... tasks) {
+        expectedTaskNames = WrapUtil.toList(tasks);
+        expectedTasks = new ArrayList<Iterable<Task>>();
+        for (String task : tasks) {
+            expectedTasks.add(WrapUtil.toSortedSet(expectedCurrentProject.createTask(task)));
+        }
     }
 
     @After
@@ -172,6 +177,7 @@ public class  BuildTest {
         expectedStartParams.setTaskNames(new ArrayList<String>());
         expectedTaskNames = WrapUtil.toList("c", "d");
         expectedCurrentProject.setDefaultTasks(expectedTaskNames);
+        expectTasks("c", "d");
         setRunExpectations(false);
         build.run(expectedStartParams);
         checkSystemProps(expectedSystemPropertiesArgs);
@@ -194,11 +200,9 @@ public class  BuildTest {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).unknownTasks(expectedTaskNames, expectedRecursive, expectedCurrentProject);
-                will(returnValue(new ArrayList()));
-                one(buildExecuterMock).execute((String) expectedTaskNames.get(0), expectedRecursive, expectedCurrentProject, expectedRootProject, true);
+                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject, true);
                 will(returnValue(rebuildDagReturnValue));
-                one(buildExecuterMock).execute((String) expectedTaskNames.get(1), expectedRecursive, expectedCurrentProject, expectedRootProject, false);
+                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject, false);
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
                         expectedProjectProperties, System.getProperties(), System.getenv());
                 if (rebuildDagReturnValue) {
@@ -212,6 +216,7 @@ public class  BuildTest {
 
     @Test(expected = UnknownTaskException.class)
     public void testRunWithUnknownTask() {
+        expectedStartParams.setTaskNames(WrapUtil.toList("unknown"));
         context.checking(new Expectations() {
             {
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
@@ -219,8 +224,6 @@ public class  BuildTest {
                 one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).unknownTasks(expectedTaskNames, expectedRecursive, expectedCurrentProject);
-                will(returnValue(WrapUtil.toList("a")));
             }
         });
         build.run(expectedStartParams);
@@ -261,7 +264,7 @@ public class  BuildTest {
     private void setTaskExpectations() {
         context.checking(new Expectations() {
             {
-                one(buildConfigurerMock).taskList(expectedRootProject, expectedRecursive, expectedCurrentProject);
+                one(buildConfigurerMock).taskList(expectedRootProject, true, expectedCurrentProject);
             }
         });
     }

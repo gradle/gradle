@@ -16,25 +16,37 @@
 
 package org.gradle;
 
-import org.gradle.api.UnknownTaskException;
+import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.BuildScriptProcessor;
+import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.configuration.BuildConfigurer;
+import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.Dag;
-import org.gradle.initialization.*;
+import org.gradle.execution.NameResolvingTaskSelector;
+import org.gradle.execution.ProjectDefaultsTaskSelector;
+import org.gradle.execution.TaskSelector;
+import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
+import org.gradle.groovy.scripts.DefaultScriptHandler;
+import org.gradle.groovy.scripts.DefaultScriptProcessor;
+import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
+import org.gradle.initialization.DefaultSettings;
+import org.gradle.initialization.ProjectsLoader;
+import org.gradle.initialization.RootFinder;
+import org.gradle.initialization.SettingsFactory;
+import org.gradle.initialization.SettingsProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.Project;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.configuration.ProjectDependencies2TaskResolver;
-import org.gradle.util.GUtil;
-import org.gradle.groovy.scripts.*;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -63,7 +75,6 @@ public class Build {
     }
 
     public void runNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
-        startParameter.setRecursive(false);
         runInternal(initWithCurrentDirAsRoot(startParameter), startParameter);
     }
 
@@ -76,8 +87,10 @@ public class Build {
         ClassLoader classLoader = settings.createClassLoader();
         Boolean rebuildDag = true;
         List<String> taskNames = startParameter.getTaskNames();
-        int i = 0;
-        do {
+        TaskSelector selector = taskNames.size() == 0
+                ? new ProjectDefaultsTaskSelector()
+                : new NameResolvingTaskSelector(taskNames);
+        while (selector.hasNext()) {
             if (rebuildDag) {
                 projectLoader.load(settings, classLoader, startParameter, startParameter.getProjectProperties(),
                         getAllSystemProperties(), getAllEnvProperties());
@@ -85,35 +98,15 @@ public class Build {
             } else {
                 logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
             }
-            if (i == 0) {
-                if (taskNames.size() == 0) {
-                    taskNames = projectLoader.getCurrentProject().getDefaultTasks();
-                }
-                if (!GUtil.isTrue(taskNames)) {
-                    throw new InvalidUserDataException("No task names have been specified and the project has not defined any default tasks!");
-                }
-                List unknownTasks = buildExecuter.unknownTasks(taskNames, startParameter.isRecursive(),
-                        projectLoader.getCurrentProject());
-                if (GUtil.isTrue(unknownTasks)) {
-                    throw new UnknownTaskException("Task(s) " + unknownTasks + " are unknown!");
-                }
-            }
-            String taskName = taskNames.get(i);
-            logger.info("++++ Starting build for primary task: " + taskName);
-            boolean lastTask = isLastElement(taskNames, i);
-            rebuildDag = buildExecuter.execute(taskName, startParameter.isRecursive(), projectLoader.getCurrentProject(),
-                    projectLoader.getRootProject(), !lastTask);
-        } while (++i < taskNames.size());
-    }
-
-
-    private boolean isLastElement(List<String> taskNames, int i) {
-        return (i == taskNames.size() - 1);
+            selector.select(projectLoader.getCurrentProject());
+            logger.info(String.format("++++ Starting build for %s.", selector.getDescription()));
+            logger.debug(String.format("Selected for execution: %s.", selector.getTasks()));
+            rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject(), selector.hasNext());
+        }
     }
 
     public String taskListNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
         StartParameter newStartParameter = StartParameter.newInstance(startParameter);
-        newStartParameter.setRecursive(false);
         return taskListInternal(initWithCurrentDirAsRoot(newStartParameter), newStartParameter);
     }
 
@@ -124,7 +117,7 @@ public class Build {
     private String taskListInternal(DefaultSettings settings, StartParameter startParameter) {
         projectLoader.load(settings, settings.createClassLoader(), startParameter, startParameter.getProjectProperties(),
                 getAllSystemProperties(), getAllEnvProperties());
-        return buildConfigurer.taskList(projectLoader.getRootProject(), startParameter.isRecursive(), projectLoader.getCurrentProject());
+        return buildConfigurer.taskList(projectLoader.getRootProject(), true, projectLoader.getCurrentProject());
     }
 
     private DefaultSettings init(StartParameter startParameter) {

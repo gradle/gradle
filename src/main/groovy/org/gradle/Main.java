@@ -16,28 +16,28 @@
 package org.gradle;
 
 import ch.qos.logback.classic.Level;
+import joptsimple.OptionException;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
 import org.apache.ivy.util.DefaultMessageLogger;
 import org.apache.ivy.util.Message;
 import org.apache.tools.ant.BuildException;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.Settings;
 import org.gradle.initialization.BuildSourceBuilder;
 import org.gradle.initialization.EmbeddedBuildExecuter;
-import org.gradle.util.GradleVersion;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionException;
 
-import java.util.List;
 import java.io.File;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -54,7 +54,6 @@ public class Main {
     public final static String IMPORTS_FILE_NAME = "gradle-imports";
     public final static String NL = System.getProperty("line.separator");
 
-    private static final String NON_RECURSIVE = "n";
     private static final String NO_JVM_TERMINATION = "S";
     private static final String BOOTSTRAP_DEBUG_INFO = "B";
     private static final String NO_SEARCH_UPWARDS = "u";
@@ -89,7 +88,6 @@ public class Main {
 
         OptionParser parser = new OptionParser() {
             {
-                acceptsAll(WrapUtil.toList(NON_RECURSIVE, "non-recursive"), "Do not execute primary tasks of childprojects.");
                 acceptsAll(WrapUtil.toList(NO_JVM_TERMINATION), "Don't trigger a System.exit(0) for normal termination. Used for Gradle's internal testing.");
                 acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS, "no-imports"), "Disable usage of default imports for build script files.");
                 acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), "Don't search in parent folders for a settings.gradle file.");
@@ -169,7 +167,6 @@ public class Main {
             }
         }
 
-        startParameter.setRecursive(!options.has(NON_RECURSIVE));
         startParameter.setSearchUpwards(!options.has(NO_SEARCH_UPWARDS));
 
         if (options.has(PROJECT_DIR)) {
@@ -209,9 +206,9 @@ public class Main {
         }
         
         if (options.has(EMBEDDED_SCRIPT)) {
-            if (options.has(BUILD_FILE) || options.has(NON_RECURSIVE) || options.has(NO_SEARCH_UPWARDS)) {
-                logger.error(String.format("Error: The %s option can't be used together with the %s, %s or %s option.",
-                        EMBEDDED_SCRIPT, BUILD_FILE, NON_RECURSIVE, NO_SEARCH_UPWARDS));
+            if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS)) {
+                logger.error(String.format("Error: The %s option can't be used together with the %s or %s option.",
+                        EMBEDDED_SCRIPT, BUILD_FILE, NO_SEARCH_UPWARDS));
                 exitWithError(options, new InvalidUserDataException());
                 return;
             }
@@ -221,7 +218,6 @@ public class Main {
         logger.debug("gradle.home= " + gradleHome);
         logger.debug("Project dir: " + startParameter.getCurrentDir());
         logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
-        logger.info("Recursive: " + startParameter.isRecursive());
         logger.info("Buildfilename: " + startParameter.getBuildFileName());
         logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
         logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());

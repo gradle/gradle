@@ -16,16 +16,11 @@
 
 package org.gradle.execution;
 
+import org.gradle.api.*;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.internal.project.DefaultProject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.gradle.api.*;
 import org.gradle.util.Clock;
-import org.gradle.util.WrapUtil;
-import org.gradle.api.internal.project.AbstractProject;
-
-import java.util.*;
+import org.slf4j.Logger;
 
 /**
  * @author Hans Dockter
@@ -35,8 +30,6 @@ public class BuildExecuter {
 
     Dag dag;
 
-    Map<String, Set<Task>> taskCache = new HashMap<String, Set<Task>>();
-
     public BuildExecuter() {
     }
 
@@ -44,20 +37,13 @@ public class BuildExecuter {
         this.dag = dag;
     }
 
-    public Boolean execute(String taskName, boolean recursive, Project currentProject, Project rootProject, boolean checkForRebuildDag) {
-        assert taskName != null;
-        assert currentProject != null;
+    public Boolean execute(Iterable<Task> tasks, Project rootProject, boolean checkForRebuildDag) {
+        assert tasks != null;
+        assert rootProject != null;
 
-        logger.info(String.format("++ Executing: %s Recursive:%s Startproject: %s", taskName, recursive, currentProject));
-
-        Set<Task> calledTasks = getTasks(taskName, currentProject, recursive);
-        logger.debug("Found tasks: {}", calledTasks);
-        if (calledTasks.size() == 0) {           
-            throw new UnknownTaskException("No tasks available for " + taskName);
-        }
         Clock clock = new Clock();
         dag.reset();
-        fillDag(this.dag, calledTasks, rootProject);
+        fillDag(this.dag, tasks, rootProject);
         logger.info("Timing: Creating the DAG took " + clock.getTime());
         clock.reset();
         dag.execute();
@@ -65,7 +51,7 @@ public class BuildExecuter {
         if (!checkForRebuildDag) {
             return null;
         }
-        for (Task calledTask : calledTasks) {
+        for (Task calledTask : tasks) {
             if (!calledTask.isDagNeutral()) {
                 return true;
             }
@@ -73,24 +59,7 @@ public class BuildExecuter {
         return false;
     }
 
-    public List unknownTasks(List<String> taskNames, boolean recursive, Project currentProject) {
-        List<String> unknownTasks = new ArrayList<String>();
-        for (String taskName : taskNames) {
-            if (getTasks(taskName, currentProject, recursive).size() == 0) {
-                unknownTasks.add(taskName);
-            }
-        }
-        return unknownTasks;
-    }
-
-    private Set<Task> getTasks(String primaryTaskName, Project currentProject, boolean recursive) {
-        if (taskCache.get(primaryTaskName) == null) {
-            taskCache.put(primaryTaskName, currentProject.getTasksByName(primaryTaskName, recursive));
-        }
-        return taskCache.get(primaryTaskName);
-    }
-
-    private void fillDag(Dag dag, Collection<Task> tasks, Project rootProject) {
+    private void fillDag(Dag dag, Iterable<Task> tasks, Project rootProject) {
         for (Task task : tasks) {
             Set<Task> dependsOnTasks = findDependsOnTasks(task, rootProject);
             dag.addTask(task, dependsOnTasks);

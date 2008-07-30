@@ -16,24 +16,23 @@
 
 package org.gradle;
 
-import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.Settings;
 import org.gradle.initialization.SettingsProcessor;
+import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.After;
 import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.is;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.Before;
-import org.junit.After;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,8 +44,6 @@ import java.util.*;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class MainTest {
-    private final static String TEST_DIR_NAME = "/testdir";
-
     // This property has to be also set as system property gradle.home when running this test
     private final static String TEST_GRADLE_HOME = "roadToNowhere";
 
@@ -59,7 +56,6 @@ public class MainTest {
     private List expectedTaskNames = WrapUtil.toList("clean", "compile");
     private Map expectedSystemProperties;
     private Map expectedProjectProperties;
-    private boolean expectedRecursive;
     private CacheUsage expectedCacheUsage;
     private boolean expectedSearchUpwards;
     private String expectedEmbeddedScript;
@@ -99,7 +95,6 @@ public class MainTest {
         expectedSystemProperties = new HashMap();
         expectedSettingsFileName = Settings.DEFAULT_SETTINGS_FILE;
         expectedBuildFileName = Project.DEFAULT_PROJECT_FILE;
-        expectedRecursive = true;
         expectedCacheUsage = CacheUsage.ON;
         expectedSearchUpwards = true;
         expectedEmbeddedScript = "somescript";
@@ -163,7 +158,6 @@ public class MainTest {
         assertEquals(expectedSettingsFileName, startParameter.getSettingsFileName());
         assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
-        assertEquals(expectedRecursive, startParameter.isRecursive());
         assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
@@ -185,7 +179,6 @@ public class MainTest {
                     if (noTasks) {
                         one(buildMock).taskListNonRecursivelyWithCurrentDirAsRoot(with(new StartParameterMatcher(true)));
                     } else {
-                        ;
                         one(buildMock).runNonRecursivelyWithCurrentDirAsRoot(with(new StartParameterMatcher(false)));
                     }
                 } else {
@@ -292,16 +285,6 @@ public class MainTest {
     }
 
     @Test
-    public void testMainWithNonRecursiveFlagSet() throws Throwable {
-        expectedRecursive = false;
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-Sn"));
-            }
-        });
-    }
-
-    @Test
     public void testMainWithCacheOffFlagSet() throws Throwable {
         expectedCacheUsage = CacheUsage.OFF;
         checkMain(new MainCall() {
@@ -361,11 +344,6 @@ public class MainTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void testMainWithEmbeddedScriptAndConflictingNonrecursiveOption() throws Throwable {
-        Main.main(new String[]{"-S", "-e", "someScript", "-n", "clean"});
-    }
-
-    @Test(expected = InvalidUserDataException.class)
     public void testMainWithEmbeddedScriptAndConflictingSpecifyBuildFileOption() throws Throwable {
         Main.main(new String[]{"-S", "-e", "someScript", "-bsomeFile", "clean"});
     }
@@ -411,7 +389,7 @@ public class MainTest {
     private String[] args(String... prefix) {
         List<String> allArgs = new ArrayList<String>(expectedTaskNames);
         allArgs.addAll(0, Arrays.asList(prefix));
-        return (String[]) allArgs.toArray(new String[allArgs.size()]);
+        return allArgs.toArray(new String[allArgs.size()]);
     }
 
     //    @Test void testMainWithException() {

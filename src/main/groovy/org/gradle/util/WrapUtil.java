@@ -15,19 +15,7 @@
  */
 package org.gradle.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Common methods to wrap objects in generic collections.
@@ -84,6 +72,15 @@ public class WrapUtil {
      */
     public static <K, V> Map<K, V> toMap(K key, V value) {
         Map<K, V> map = new HashMap<K, V>();
+        map.put(key, value);
+        return map;
+    }
+
+    /**
+     * Wraps the given key and value in a mutable sorted map.
+     */
+    public static <K, V> SortedMap<K, V> toSortedMap(K key, V value) {
+        SortedMap<K, V> map = new TreeMap<K,V>();
         map.put(key, value);
         return map;
     }

@@ -20,21 +20,18 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 /**
  * @author Hans Dockter
  */
 public class StartParameter {
-    ;
-    
     private String settingsFileName;
     private String buildFileName;
     private List<String> taskNames;
     private File currentDir;
-    private boolean recursive;
     private boolean searchUpwards;
     private Map projectProperties = new HashMap();
     private Map systemPropertiesArgs = new HashMap();
@@ -46,12 +43,11 @@ public class StartParameter {
     public StartParameter() {
     }
 
-    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir, boolean recursive, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
+    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
         this.settingsFileName = settingsFileName;
         this.buildFileName = buildFileName;
         this.taskNames = taskNames;
         this.currentDir = currentDir;
-        this.recursive = recursive;
         this.searchUpwards = searchUpwards;
         this.projectProperties = projectProperties;
         this.systemPropertiesArgs = systemPropertiesArgs;
@@ -67,7 +63,6 @@ public class StartParameter {
         startParameter.buildFileName = startParameterSrc.buildFileName;
         startParameter.taskNames = startParameterSrc.taskNames;
         startParameter.currentDir = startParameterSrc.currentDir;
-        startParameter.recursive = startParameterSrc.recursive;
         startParameter.searchUpwards = startParameterSrc.searchUpwards;
         startParameter.projectProperties = startParameterSrc.projectProperties;
         startParameter.systemPropertiesArgs = startParameterSrc.systemPropertiesArgs;
@@ -109,14 +104,6 @@ public class StartParameter {
 
     public void setCurrentDir(File currentDir) {
         this.currentDir = currentDir;
-    }
-
-    public boolean isRecursive() {
-        return recursive;
-    }
-
-    public void setRecursive(boolean recursive) {
-        this.recursive = recursive;
     }
 
     public boolean isSearchUpwards() {

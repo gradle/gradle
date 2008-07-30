@@ -16,24 +16,18 @@
 
 package org.gradle.initialization;
 
-import groovy.mock.interceptor.MockFor;
 import org.gradle.Build;
-import org.gradle.api.internal.project.BuildScriptFinder;
-import org.gradle.api.internal.project.EmbeddedBuildScriptFinder;
-import org.gradle.StartParameter;
 import org.gradle.Build.BuildFactory;
-import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.StartParameter;
 import org.gradle.util.WrapUtil;
-import org.junit.runner.RunWith;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
-import org.junit.Test;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -68,7 +62,6 @@ public class EmbeddedBuildExecuterTest {
     @Test
     public void testExecute() {
         final StartParameter localExpectedStartParameter = StartParameter.newInstance(expectedStartParameter);
-        localExpectedStartParameter.setRecursive(true);
         localExpectedStartParameter.setSearchUpwards(true);
         context.checking(new Expectations() {
             {
