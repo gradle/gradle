@@ -17,15 +17,11 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
-import org.gradle.api.tasks.util.FileCollection
+import org.gradle.api.tasks.util.FileSet
+import org.gradle.execution.Dag
+import org.gradle.util.GUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import java.util.List;
-import java.io.File
-import org.gradle.execution.Dag
-import org.gradle.api.tasks.util.FileSet
-import org.gradle.util.GUtil;
 
 /**
  * @author Hans Dockter
@@ -40,6 +36,8 @@ class War extends Jar {
     List classesFileSets = null
 
     List libConfigurations = null
+
+    List libExcludeConfigurations = null
 
     List additionalLibFileSets = null
 
@@ -57,6 +55,9 @@ class War extends Jar {
             List files = []
             getLibConfigurations().each { String configuration ->
                 files.addAll(dependencyManager.resolve(configuration))
+            }
+            getLibExcludeConfigurations().each { String configuration ->
+                files.removeAll(dependencyManager.resolve(configuration))
             }
             antWar.execute(new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
                     getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant),
@@ -96,6 +97,12 @@ class War extends Jar {
         this
     }
 
+    War libExcludeConfigurations(String... libExcludeConfigurations) {
+        this.libExcludeConfigurations = GUtil.chooseCollection(this.libExcludeConfigurations, getLibExcludeConfigurations())
+        this.libExcludeConfigurations.addAll(libExcludeConfigurations as List)
+        this
+    }
+
     public AntWar getAntWar() {
         return antWar;
     }
@@ -114,6 +121,14 @@ class War extends Jar {
 
     public List getLibConfigurations() {
         return conv(libConfigurations, "libConfigurations");
+    }
+
+    public void setLibExcludeConfigurations(List libExcludeConfigurations) {
+        this.libExcludeConfigurations = libExcludeConfigurations;
+    }
+
+    public List getLibExcludeConfigurations() {
+        return conv(libExcludeConfigurations, "libExcludeConfigurations");
     }
 
     public void setLibConfigurations(List libConfigurations) {
