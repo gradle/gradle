@@ -105,7 +105,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assert dependencyManager.localReposCacheHandler.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.buildResolverHandler.buildResolverDir.is(buildResolverDir)
         assertEquals([], dependencyManager.getAbsoluteArtifactPatterns())
-        assertEquals([], dependencyManager.getArtifactParentDirs())
+        assertEquals([] as Set, dependencyManager.getArtifactParentDirs())
         assertEquals(DependencyManager.DEFAULT_ARTIFACT_PATTERN, dependencyManager.defaultArtifactPattern)
     }
 

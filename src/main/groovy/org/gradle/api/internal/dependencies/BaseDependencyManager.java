@@ -62,7 +62,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
      */
     List<String> absoluteArtifactPatterns = new ArrayList<String>();
 
-    List<File> artifactParentDirs = new ArrayList<File>();
+    Set<File> artifactParentDirs = new HashSet<File>();
 
     String defaultArtifactPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN;
 
@@ -298,11 +298,11 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         this.absoluteArtifactPatterns = absoluteArtifactPatterns;
     }
 
-    public List<File> getArtifactParentDirs() {
+    public Set<File> getArtifactParentDirs() {
         return artifactParentDirs;
     }
 
-    public void setArtifactParentDirs(List<File> artifactParentDirs) {
+    public void setArtifactParentDirs(Set<File> artifactParentDirs) {
         this.artifactParentDirs = artifactParentDirs;
     }
 

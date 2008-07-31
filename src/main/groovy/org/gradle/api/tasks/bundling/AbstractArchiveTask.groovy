@@ -148,6 +148,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         if (publish) {
             String classifierSnippet = classifier ? ':' + classifier : ''
             getConfigurations().each {getDependencyManager().addArtifacts(it, "${getBaseName()}${classifierSnippet}@${getExtension()}")}
+            getDependencyManager().getArtifactParentDirs() << destinationDir
         }
     }
 

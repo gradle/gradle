@@ -41,6 +41,8 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     MockFor dependencyManagerMock
 
+    Set testArchiveParentDirs;
+
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     AbstractTask getTask() {
@@ -74,6 +76,10 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.configurations = [TEST_CONFIGURATION]
         archiveTask.dependencyManager = context.mock(DependencyManager)
         dependencyManagerMock = new MockFor(DependencyManager)
+        testArchiveParentDirs = new LinkedHashSet()
+        context.checking {
+            allowing(archiveTask.dependencyManager).getArtifactParentDirs(); will(returnValue(testArchiveParentDirs))
+        }
     }
 
     @Test public void testExecute() {
@@ -86,6 +92,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
             archiveTask.execute()
         }
         assertTrue(archiveTask.destinationDir.isDirectory())
+        assertTrue(testArchiveParentDirs.contains(archiveTask.destinationDir))
     }
 
     @Test public void testExecuteWithEmptyClassifier() {
@@ -99,6 +106,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
             DependencyManager dm = archiveTask.dependencyManager
             archiveTask.execute()
         }
+        assertTrue(testArchiveParentDirs.contains(archiveTask.destinationDir))
     }
 
     @Test public void testExecuteWithPublishFalse() {
@@ -106,6 +114,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         getAntMocker(true).use(ant) {
             archiveTask.execute()
         }
+        assertFalse(testArchiveParentDirs.contains(archiveTask.destinationDir))
     }
 
     @Test (expected = InvalidUserDataException) public void testExecuteWithNullDestinationDir() {

@@ -62,7 +62,7 @@ public class DefaultDependencyPublisherTest {
         dependencyPublisher = new DefaultDependencyPublisher();
         dependencyManager = new DefaultDependencyManager();
         dependencyManager.setAbsoluteArtifactPatterns(WrapUtil.toList("absolutePattern"));
-        dependencyManager.setArtifactParentDirs(WrapUtil.toList(new File("a"), new File("b")));
+        dependencyManager.setArtifactParentDirs(WrapUtil.toSet(new File("a"), new File("b")));
         dependencyManager.setDefaultArtifactPattern(TEST_DEFAULT_PATTERN);
         expectedConfs = WrapUtil.toList("conf1");
         expectedResolverContainer = new ResolverContainer(null);

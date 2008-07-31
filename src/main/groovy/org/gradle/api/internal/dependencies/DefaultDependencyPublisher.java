@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -71,7 +72,7 @@ public class DefaultDependencyPublisher implements IDependencyPublisher {
         }
     }
 
-    private List<String> absoluteArtifactPatterns(List<String> absoluteArtifactPatterns, String relativeArtifactPattern, List<File> artifactParentDirs) {
+    private List<String> absoluteArtifactPatterns(List<String> absoluteArtifactPatterns, String relativeArtifactPattern, Set<File> artifactParentDirs) {
         List<String> allArtifactPatterns = new ArrayList<String>(absoluteArtifactPatterns);
         for (File parentDir : artifactParentDirs) {
             allArtifactPatterns.add(new File(parentDir, relativeArtifactPattern).getAbsolutePath());

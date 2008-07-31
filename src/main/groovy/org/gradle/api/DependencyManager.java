@@ -81,7 +81,7 @@ public interface DependencyManager extends DependencyContainer {
      */
     List<String> getAbsoluteArtifactPatterns();
 
-    List<File> getArtifactParentDirs();
+    Set<File> getArtifactParentDirs();
 
     String getDefaultArtifactPattern();
 
