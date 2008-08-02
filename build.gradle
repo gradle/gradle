@@ -141,10 +141,11 @@ archive_jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
 explodedDistDir = new File(distsDir, 'exploded')
 explodedDistDocsDir = new File(explodedDistDir, 'docs')
 explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
+explodedDistGroovydocsDir = new File(explodedDistDocsDir, 'groovydoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
 explodedDistUserguideOutputDir = new File(explodedDistSamplesDir, 'userguideOutput')
 
-createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc']) {
+createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc', 'groovydoc']) {
     [explodedDistDir, explodedDistSamplesDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
@@ -258,7 +259,14 @@ dists {
     }
 }
 
-javadoc.destinationDir = explodedDistJavadocsDir
+groovydoc.destinationDir = explodedDistGroovydocsDir
+
+javadoc {
+    destinationDir = explodedDistJavadocsDir
+    include 'org/gradle/api/*'
+    exclude 'org/gradle/api/*Exception.java', '**/*Notation.java'
+}
+
 createTask('uploadJavadoc', dependsOn: 'javadoc') {
     ftp(action: 'mkdir', remotedir: javadocRemoteDir)
     ftp(action: 'delete', remotedir: javadocRemoteDir) {
