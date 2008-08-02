@@ -16,11 +16,15 @@
  
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
-import org.junit.Test;
+import static org.hamcrest.Matchers.*;
+import org.junit.Test
+import org.gradle.api.Project
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.javadoc.Groovydoc
+import org.gradle.api.tasks.compile.GroovyCompile
 
 /**
  * @author Hans Dockter
@@ -29,8 +33,30 @@ class GroovyPluginTest {
     @Test public void testApply() {
         // todo Make test stronger
         // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
-        DefaultProject project = HelperUtil.createRootProject(new File('path', 'root'))
+        Project project = HelperUtil.createRootProject(new File('path', 'root'))
         GroovyPlugin groovyPlugin = new GroovyPlugin()
         groovyPlugin.apply(project, new PluginRegistry())
+
+        def task = project.tasks[JavaPlugin.COMPILE]
+        assertThat(task, instanceOf(GroovyCompile.class))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
+        assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+
+        task = project.tasks[JavaPlugin.TEST_COMPILE]
+        assertThat(task, instanceOf(GroovyCompile.class))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.testSrcDirs as Object[]))
+        assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovyTestSrcDirs as Object[]))
+
+        task = project.tasks[JavaPlugin.JAVADOC]
+        assertThat(task, instanceOf(Javadoc.class))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+        assertThat(task.excludes, hasItem('**/*.groovy'))
+
+        task = project.tasks[GroovyPlugin.GROOVYDOC]
+        assertThat(task, instanceOf(Groovydoc.class))
+        assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
+        assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.srcDirs as Object[])))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
     }
 }

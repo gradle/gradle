@@ -16,9 +16,8 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*;
 import org.junit.Before
 import org.junit.Test;
 
@@ -27,6 +26,7 @@ import org.junit.Test;
  */
 class GroovyPluginConventionTest extends AbstractPluginConventionTest {
     private GroovyPluginConvention groovyConvention
+    private JavaPluginConvention javaConvention
 
     Class getType() {
         GroovyPluginConvention
@@ -38,7 +38,8 @@ class GroovyPluginConventionTest extends AbstractPluginConventionTest {
 
     @Before public void setUp()  {
         super.setUp()
-        project.convention.plugins.java = new JavaPluginConvention(project, [:])
+        javaConvention = new JavaPluginConvention(project, [:])
+        project.convention.plugins.java = javaConvention
         groovyConvention = new GroovyPluginConvention(project, [:])
     }
 
@@ -59,6 +60,13 @@ class GroovyPluginConventionTest extends AbstractPluginConventionTest {
         checkGroovyDirs(project.srcRootName)
     }
 
+    @Test public void testGroovyDocDirUsesJavaConventionToDetermineDocsDir() {
+        assertThat(groovyConvention.groovydocDir, equalTo(new File(javaConvention.docsDir, "groovydoc")))
+
+        groovyConvention.groovydocDirName = "other-dir"
+        assertThat(groovyConvention.groovydocDir, equalTo(new File(javaConvention.docsDir, "other-dir")))
+    }
+    
     private void checkGroovyDirs(String srcRootName) {
         groovyConvention.floatingGroovySrcDirs << 'someGroovySrcDir' as File
         groovyConvention.floatingGroovyTestSrcDirs <<'someGroovyTestSrcDir' as File

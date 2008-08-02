@@ -138,7 +138,7 @@ class JavaPluginConvention {
     }
 
     File getJavadocDir() {
-        new File(project.buildDir, javadocDirName)
+        new File(docsDir, javadocDirName)
     }
 
     File getTestResultsDir() {

@@ -17,19 +17,18 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility
-import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
  * todo: put convention mapping into constants
  */
 class GroovyPlugin extends JavaPlugin {
+    public static final String GROOVYDOC = "groovydoc"
     static final String GROOVY = 'groovy'
 
     void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
@@ -50,9 +49,14 @@ class GroovyPlugin extends JavaPlugin {
             conventionMapping.groovyClasspath = {it.project.dependencies.resolve('testCompile')}
         }
 
-        project.createTask(JavaPlugin.JAVADOC, (Task.TASK_OVERWRITE): true, type: Groovydoc).configure {
-            conventionMapping.srcDirs = {project.convention.plugins.java.srcDirs + groovyPluginConvention.groovySrcDirs}
-            conventionMapping.destDir = {project.convention.plugins.java.javadocDir}
+        project.task(JavaPlugin.JAVADOC).configure {
+            conventionMapping.srcDirs = {it.plugins.java.srcDirs + groovyPluginConvention.groovySrcDirs}
+            exclude '**/*.groovy'
+        }
+
+        project.createTask(GROOVYDOC, type: Groovydoc).configure {
+            conventionMapping.srcDirs = {groovyPluginConvention.groovySrcDirs}
+            conventionMapping.destinationDir = {groovyPluginConvention.groovydocDir}
         }
 
         project.dependencies {

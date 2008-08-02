@@ -91,12 +91,30 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(new File(project.buildDir, convention.testClassesDirName), convention.testClassesDir)
         assertEquals(new File(project.buildDir, convention.distsDirName), convention.distsDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
-        assertEquals(new File(project.buildDir, convention.javadocDirName), convention.javadocDir)
+        assertEquals(new File(convention.docsDir, convention.javadocDirName), convention.javadocDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(project.buildDir, convention.reportsDirName), convention.reportsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
     }
 
+    @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {
+        assertEquals(new File(project.buildDir, 'reports/tests'), convention.testReportDir)
+
+        convention.reportsDirName = 'other-reports-dir'
+        convention.testReportDirName = 'other-test-dir'
+
+        assertEquals(new File(project.buildDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)
+    }
+
+    @Test public void testJavadocDirIsCalculatedRelativeToDocsDir() {
+        assertEquals(new File(project.buildDir, 'docs/javadoc'), convention.javadocDir)
+
+        convention.docsDirName = 'other-docs-dir'
+        convention.javadocDirName = 'other-javadoc-dir'
+
+        assertEquals(new File(project.buildDir, 'other-docs-dir/other-javadoc-dir'), convention.javadocDir)
+    }
+    
     @Test public void testMkdir() {
         String expectedDirName = 'somedir'
         File dir = convention.mkdir(expectedDirName)

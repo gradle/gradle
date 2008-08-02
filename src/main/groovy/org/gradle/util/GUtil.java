@@ -26,6 +26,10 @@ import java.io.IOException;
  * @author Hans Dockter
  */
 public class GUtil {
+    public static List flatten(Object[] elements, List addTo) {
+        return flatten(Arrays.asList(elements), addTo);
+    }
+    
     public static List flatten(Collection elements, List addTo) {
         Iterator iter = elements.iterator();
         while (iter.hasNext()) {

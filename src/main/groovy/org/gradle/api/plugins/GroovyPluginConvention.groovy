@@ -28,6 +28,7 @@ class GroovyPluginConvention {
     List groovyTestSrcDirNames = []
     List floatingGroovySrcDirs = []
     List floatingGroovyTestSrcDirs = []
+    String groovydocDirName
 
     Closure groovyClasspath
 
@@ -35,16 +36,23 @@ class GroovyPluginConvention {
         this.project = project
         groovySrcDirNames << 'main/groovy'
         groovyTestSrcDirNames << 'test/groovy'
+        groovydocDirName = 'groovydoc'
         PluginUtil.applyCustomValues(project.convention, this, customValues)
     }
 
     List getGroovySrcDirs() {
-        groovySrcDirNames.collect {new File(project.convention.plugins.java.srcRoot, it)} + floatingGroovySrcDirs
+        groovySrcDirNames.collect {new File(javaConvention.srcRoot, it)} + floatingGroovySrcDirs
     }
 
     List getGroovyTestSrcDirs() {
-        groovyTestSrcDirNames.collect {new File(project.convention.plugins.java.srcRoot, it)} + floatingGroovyTestSrcDirs
+        groovyTestSrcDirNames.collect {new File(javaConvention.srcRoot, it)} + floatingGroovyTestSrcDirs
     }
 
+    File getGroovydocDir() {
+        return new File(javaConvention.docsDir, groovydocDirName)
+    }
     
+    private JavaPluginConvention getJavaConvention() {
+        project.convention.plugins.java
+    }
 }

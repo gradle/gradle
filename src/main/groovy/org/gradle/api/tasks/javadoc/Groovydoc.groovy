@@ -18,7 +18,6 @@ package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.gradle.util.GradleUtil
 import org.gradle.api.Project

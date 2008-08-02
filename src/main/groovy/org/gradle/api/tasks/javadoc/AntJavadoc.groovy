@@ -20,11 +20,20 @@ package org.gradle.api.tasks.javadoc
  * @author Hans Dockter
  */
 class AntJavadoc {
-    void execute(List sourceDirs, File destDir, String maxMemory, AntBuilder ant) {
+    void execute(List<File> sourceDirs, File destDir, String maxMemory, List<String> includes, List<String> excludes, AntBuilder ant) {
         Map otherArgs = [:]
         if (maxMemory) {otherArgs.maxmemory = maxMemory}
         ant.javadoc([destdir: destDir] + otherArgs) {
-            sourceDirs.each {fileset(dir: it)}
+            sourceDirs.each {
+                fileset(dir: it) {
+                    includes.each {
+                        include(name: it)
+                    }
+                    excludes.each {
+                        exclude(name: it)
+                    }
+                }
+            }
         }
     }
 }
