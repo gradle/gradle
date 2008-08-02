@@ -390,14 +390,21 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
     svn.release()
 }
 
-createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.3-080714185907+0200'
-    zipBase = Wrapper.PathBase.PROJECT
-    zipPath = 'wrapper'
-    jarPath = zipPath
+createTask('wrapper', type: Wrapper, dependsOn: ['init', 'archive_bin_zip']).doFirst { task ->
+    task.configure {
+        gradleVersion = version
+        zipBase = Wrapper.PathBase.PROJECT
+        zipPath = 'wrapper'
+        jarPath = zipPath 
+    }
 }
 
+wrapper.doLast {
+    def binDistZip = project.archive_bin_zip.archivePath
+    ant.copy(file: binDistZip, toDir: 'wrapper')
+}
 
+createTask('rebuildWrapper', dependsOn: ['clean', 'wrapper'])
 
 void ftp(Map args, Closure antFileset = {}) {
     ant {
