@@ -26,6 +26,8 @@ import java.io.File;
 import groovy.lang.Closure;
 
 /**
+ * <p><code>Settings</code> declares the configuration required to configure and execute a {@link Project}.</p> 
+ *
  * @author Hans Dockter
  */
 public interface Settings {

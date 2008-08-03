@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * <p>A <code>DependencyManager</code> represents the set of dependencies and artifacts for a project.</p>
+ *
  * @author Hans Dockter
  */
 public interface DependencyManager extends DependencyContainer {

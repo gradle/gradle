@@ -20,6 +20,9 @@ import org.gradle.api.internal.project.PluginRegistry;
 import java.util.Map;
 
 /**
+ * <p>A <code>Plugin</code> represents an extension to Gradle, which you can use to add behaviour your {@link
+ * Project}.</p>
+ *
  * @author Hans Dockter
  */
 public interface Plugin {

@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * <p>A <code>Task</code> represents an single step of a build, such as compiling classes or generating javadoc.</p>
+ *
  * @author Hans Dockter
  */
 public interface Task extends Comparable {
