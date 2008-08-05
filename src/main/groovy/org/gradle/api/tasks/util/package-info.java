@@ -15,6 +15,6 @@
  */
 
 /**
- * Gradle's {@link org.gradle.api.Project} API, which is available from your build scripts.
+ * Utility classes used by the standard task implementations.
  */
-package org.gradle.api;
+package org.gradle.api.tasks.util;

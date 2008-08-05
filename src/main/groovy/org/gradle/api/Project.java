@@ -30,20 +30,28 @@ import org.gradle.api.internal.project.BuildScriptProcessor;
 
 /**
  * <p>A <code>Project</code> represents a buildable thing, such as a java war or command-line application.  This
- * interface is the main API you use to interact with Gradle from your build script. Using <code>Project</code>, you can
- * programmatically access all Gradle's features.</p>
+ * interface is the main API you use to interact with Gradle from your build script. From a <code>Project</code>, you
+ * can programmatically access all Gradle's features.</p>
  *
- * <p>When your Gradle project's build script is evaluated, a <code>Project</code> instance is created, and the script
- * is executed against it.  Any property or method which your script uses which is not defined in the script is
- * delegated through to the associated <code>Project</code> object.  This means, that you can use any of the methods and
- * properties on the <code>Project</code> interface directly in your script.</p>
+ * <h3>Lifecycle</h3>
  *
- * <p>For example:
- * <pre>
- * createTask('some-task')  // Delegates to Project.createTask()
- * buildDir = file('build-dir') // Delegates to Project.file() and Project.setProperty()
- * </pre>
- * </p>
+ * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>build.gradle</code> script. During
+ * build initialisation, Gradle assembles a <code>Project</code> object for each project which is to participate in the
+ * build, as follows:</p>
+ *
+ * <ul>
+ *
+ * <li>Create a {@link Settings} instance for the project</li>
+ *
+ * <li>Evaluate the <code>settings.gradle</code> script, if present, against the {@link Settings} object to configure
+ * it.</li>
+ *
+ * <li>Use the configured {@link Settings} object to create a <code>Project</code> instance.</li>
+ *
+ * <li>Finally, execute the <code>build.gradle</code> script against the <code>Project</code> object to configure
+ * it.</p>
+ *
+ * </ul>
  *
  * <h3>Tasks</h3>
  *
@@ -52,23 +60,88 @@ import org.gradle.api.internal.project.BuildScriptProcessor;
  * {@link #createTask(String)} methods.  You can locate existing tasks using one of the {@link #task(String)}
  * methods.</p>
  *
- * <p>Each task in a project is treated as a dynamic property, so that you can reference the task in your build script
- * using its name. See {@link #property(String)} for more details. For example:
- * <pre>
- * createTask('compile')
- * println compile.name
- * </pre>
- * </p>
- *
  * <h3>Dependencies</h3>
  *
  * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
- * produces a number of artifacts, which other projects can use.</p>
+ * produces a number of artifacts, which other projects can use.  You use the {@link DependencyManager} returned by
+ * {@link #getDependencies()} method to manage the dependencies and artifacts of the project.</p>
  *
  * <h3>Multi-project Builds</h3>
  *
- * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a path which uniquely identifies it
- * in the hierarchy.</p>
+ * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
+ * uniquely identifies it in the hierarchy.</p>
+ *
+ * <h3>Using a Project from the Build Script</h3>
+ *
+ * <p>Gradle executes the project's build script against the <code>Project</code> instance to configure the project. Any
+ * property or method which your script uses which is not defined in the script is delegated through to the associated
+ * <code>Project</code> object.  This means, that you can use any of the methods and properties on the
+ * <code>Project</code> interface directly in your script.</p>
+ *
+ * <p>For example:
+ * <pre>
+ * createTask('some-task')  // Delegates to Project.createTask()
+ * reportDir = file('reports') // Delegates to Project.file() and Project.setProperty()
+ * </pre>
+ * </p>
+ *
+ * <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can make the
+ * script more explicit and clearer in some cases.</p>
+ *
+ * <a name="properties"/> <h4>Properties</h4>
+ *
+ * <p>A project has 5 property 'scopes', which it searches for properties:</p>
+ *
+ * <ul>
+ *
+ * <li>The <code>Project</code> object itself. This scope includes any property getters and setters declared by the
+ * <code>Project</code> implementation class.  For example, {@link #getRootProject()} is accessable as the
+ * <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
+ * of the corresponding getter or setter method.</li>
+ *
+ * <li>The <em>additional</em> properties of the project.  Each project maintains a map of additional properties, which
+ * can contain any arbitrary name -> value pair.  The properties of this scope are readable and writable.</li>
+ *
+ * <li>The <em>convention</em> properties added to the project by each {@link Plugin} applied to the project. A {@link
+ * Plugin} can add properties and method to a project through the project's {@link Convention} object.  The properties
+ * of this scope may be readable or writable, depending on the convention objects.</li>
+ *
+ * <li>The tasks of the project.  A task is accessable as by using its name as the task name.  The properties of this
+ * scope are read-only. For example, a task called <code>compile</code> is accessable as the <code>compile</code>
+ * property.</li>
+ *
+ * <li>The additional properties and convention properties of the project's parent project. The properties of this scope
+ * are read-only.</li>
+ *
+ * </ul>
+ *
+ * <p>When reading a property, the project searches the above scopes in order, and returns the value from the first
+ * scope it finds the property in.  See {@link #property(String)} for more details.</p>
+ *
+ * <p>When writing a property, the project searched the above scopes in order, and sets the property in the first scope
+ * it finds the property in.  If not found, the project adds the property to its map of additional properties. See
+ * {@link #setProperty(String, Object)} for more details.</p>
+ *
+ * <h4>Methods</h4>
+ *
+ * <p>A project has 5 method 'scopes', which it searches for methods:</p>
+ *
+ * <ul>
+ *
+ * <li>The <code>Project</code> object itself.</li>
+ *
+ * <li>The build script.  The project searches for a matching method declared in the build script.</li>
+ *
+ * <li>The <em>convention</em> methods added to the project by each {@link Plugin} applied to the project. A {@link
+ * Plugin} can add properties and method to a project through the project's {@link Convention} object.</li>
+ *
+ * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
+ * taking a single closure parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
+ * associated task with the provided closure.</li>
+ *
+ * <li>The parent project.</li>
+ *
+ * </ul>
  *
  * @author Hans Dockter
  */
@@ -160,7 +233,7 @@ public interface Project {
      * @return A map from child project name to child project. Returns an empty map if this this project does not have
      *         any children.
      */
-    Map getChildProjects();
+    Map<String, Project> getChildProjects();
 
     /**
      * <p>Returns the set of projects which this project depends on.</p>
@@ -211,7 +284,7 @@ public interface Project {
      *
      * @return The set of projects.
      */
-    Set getAllprojects();
+    Set<Project> getAllprojects();
 
     /**
      * <p>Returns the set containing the subprojects of this project.</p>
@@ -220,7 +293,7 @@ public interface Project {
      *
      * @return The set of projects.  Returns an empty set if this project has no subprojects.
      */
-    Set getSubprojects();
+    Set<Project> getSubprojects();
 
     /**
      * <p>Applies a {@link Plugin} to this project.</p>
@@ -244,7 +317,7 @@ public interface Project {
      * <p>Returns the {@link Task} from the project which has the same name the name argument. If no such task exists,
      * an exception is thrown.</p>
      *
-     * <p>You can call this method in your build script using the task name. See {@link #property(String)} for more
+     * <p>You can call this method in your build script using the task name. See <a href="#properties">here</a> for more
      * details.</p>
      *
      * @param name the name of the task to be returned
@@ -272,7 +345,7 @@ public interface Project {
      * calling {@link #createTask(java.util.Map, String)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build script.  See {@link #property(String)} for more details</p>
+     * reference the task by name in your build script.  See <a href="#properties">here</a> for more details</p>
      *
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *
@@ -288,7 +361,7 @@ public interface Project {
      * to calling {@link #createTask(java.util.Map, String, TaskAction)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build script.  See {@link #property(String)} for more details</p>
+     * reference the task by name in your build script.  See <a href="#properties">here</a> for more details</p>
      *
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *
@@ -318,7 +391,7 @@ public interface Project {
      * </table>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build script.  See {@link #property(String)} for more details</p>
+     * reference the task by name in your build script.  See <a href="#properties">here</a> for more details</p>
      *
      * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
      * to true, an exception is thrown.</p>
@@ -328,7 +401,7 @@ public interface Project {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
-    Task createTask(Map args, String name) throws InvalidUserDataException;
+    Task createTask(Map<String, ?> args, String name) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
@@ -337,7 +410,7 @@ public interface Project {
      * available options.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build script.  See {@link #property(String)} for more details</p>
+     * reference the task by name in your build script.  See <a href="#properties">here</a> for more details</p>
      *
      * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
      * to true, an exception is thrown.</p>
@@ -348,7 +421,7 @@ public interface Project {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
-    Task createTask(Map args, String name, TaskAction action) throws InvalidUserDataException;
+    Task createTask(Map<String, ?> args, String name, TaskAction action) throws InvalidUserDataException;
 
     String getArchivesTaskBaseName();
 
@@ -358,17 +431,53 @@ public interface Project {
 
     void setArchivesBaseName(String archivesBaseName);
 
+    /**
+     * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
+     *
+     * @return The path. Never returns null.
+     */
     String getPath();
 
+    /**
+     * <p>Returns the names of the default tasks of this project. These are used when no tasks names are provided when
+     * starting the build.</p>
+     *
+     * @return The default task names. Returns an empty list if this project has no default tasks.
+     */
     List<String> getDefaultTasks();
 
+    /**
+     * <p>Sets the names of the default tasks of this project. These are used when no tasks names are provided when
+     * starting the build.</p>
+     *
+     * @param defaultTasks The default task names.
+     */
     void setDefaultTasks(List<String> defaultTasks);
 
-    void dependsOn(String path);
+    /**
+     * <p>Declares that this project has an execution dependency on the project with the given path.</p>
+     *
+     * @param path The path of the project which this project depends on.
+     * @throws UnknownProjectException If no project with the given path exists.
+     */
+    void dependsOn(String path) throws UnknownProjectException;
 
-    void dependsOn(String path, boolean evaluateDependsOnProject);
+    /**
+     * <p>Declares that this project has an execution dependency on the project with the given path.</p>
+     *
+     * @param path The path of the project which this project depends on.
+     * @param evaluateDependsOnProject If true, adds an evaluation dependency.
+     * @throws UnknownProjectException If no project with the given path exists.
+     */
+    void dependsOn(String path, boolean evaluateDependsOnProject) throws UnknownProjectException;
 
-    Project evaluationDependsOn(String path);
+    /**
+     * <p>Declares that this project has an evaulation dependency on the project with the given path.</p>
+     *
+     * @param path The path of the project which this project depends on.
+     * @throws UnknownProjectException If no project with the given path exists.
+     */
+    Project evaluationDependsOn(String path) throws UnknownProjectException;
 
     /**
      * <p>Declares that all child projects of this project have an execution dependency on this project.</p>
@@ -420,38 +529,62 @@ public interface Project {
     Project project(String path, Closure configureClosure);
 
     /**
-     * <p>Returns a map of the tasks contained in this project.</p>
+     * <p>Returns a map of the tasks contained in this project, and optionally its subprojects.</p>
      *
      * @param recursive If true, returns the tasks of this project and its subprojects.  If false, returns the tasks of
      * just this project.
      * @return A map from project to a set of tasks.
      */
-    SortedMap getAllTasks(boolean recursive);
+    SortedMap<Project, Set<Task>> getAllTasks(boolean recursive);
 
+    /**
+     * Retusn the set of tasks with the given nme contained in this project, and optionally its subprojects.</p>
+     *
+     * @param name The name of the task to locate.
+     * @param recursive If true, returns the tasks of this project and its subprojects. If false, returns the tasks of
+     * just this project.
+     * @return The set of tasks. Returns an empty set if no such tasks exist in this project.
+     */
     Set<Task> getTasksByName(String name, boolean recursive);
 
+    /**
+     * <p>The directory containing the project build script.</p>
+     *
+     * <p>You can access this property in your build script using <code>projectDir</code></p>
+     *
+     * @return The project directory. Never returns null.
+     */
     File getProjectDir();
 
     /**
-     * @param path An object which toString method value is interpreted as a relative path to the project dir
+     * <p>Resolves a file path relative to the project directory of this project.</p>
+     *
+     * @param path An object which toString method value is interpreted as a relative path to the project directory.
+     * @return The resolved file.
      */
     File file(Object path);
 
     /**
-     * Returns a file which gets validated according to the validation type passed to the method. Possible validations
-     * are: NONE, EXISTS, IS_FILE, IS_DIRECTORY
+     * <p>Resolves a file path relative to the project directory of this project and validates it using the given
+     * scheme. See {@link PathValidation} for the list of possible validations.</p>
      *
-     * @param path An object which toString method value is interpreted as a relative path to the project dir
-     * @return a File, which path is the absolute path of the project directory plus the relative path of the method
-     *         argument
+     * @param path An object which toString method value is interpreted as a relative path to the project directory.
+     * @return The resolved file.
+     * @throws InvalidUserDataException When the file does not meet the given validation constraint.
      */
-    File file(Object path, PathValidation validation);
+    File file(Object path, PathValidation validation) throws InvalidUserDataException;
 
+    /**
+     * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
+     *
+     * @param path The path to convert.
+     * @return The absolute path.
+     */
     String absolutePath(String path);
 
     /**
      * <p>Returns the <code>AntBuilder</code> for this project. You can use this in your build script to execute ant
-     * tasks</p>
+     * tasks.</p>
      *
      * <p>You can access this property in your build script using <code>ant</code></p>
      *
@@ -472,8 +605,8 @@ public interface Project {
      * <p>Return the {@link Convention} for this project.</p>
      *
      * <p>You can access this property in your build script using <code>convention</code>. You can also can also access
-     * the properties of the convention object as if they were properties of this project. See {@link
-     * #setProperty(String, Object)} and {@link #property(String)} for more details.</p>
+     * the properties and methods of the convention object as if they were properties and methods of this project. See
+     * <a href="#properties">here</a> for more details</p>
      *
      * @return The <code>Convention</code>. Never returns null.
      */
@@ -485,6 +618,11 @@ public interface Project {
 
     int getDepth();
 
+    /**
+     * <p>Returns the tasks of this project.</p>
+     *
+     * @return A map from task name to {@link Task} object. Returns an empty map when this project has no tasks.
+     */
     Map<String, Task> getTasks();
 
     Map getPluginApplyRegistry();
@@ -518,8 +656,8 @@ public interface Project {
     List<AfterEvaluateListener> getAfterEvaluateListeners();
 
     /**
-     * <p>Determines if this project has the given property. See {@link #property(String)} for details of the properties
-     * which are available for a project.</p>
+     * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the
+     * properties which are available for a project.</p>
      *
      * @param propertyName The name of the property to locate.
      * @return True if this project has the given property, false otherwise.
@@ -537,6 +675,8 @@ public interface Project {
      * property.</li>
      *
      * <li>If this project has an additional property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has a task with the given name, return the task.</li>
      *
      * <li>Search up through this project's ancestor projects for a convention property or additional property with the
      * given name.</li>

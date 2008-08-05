@@ -15,6 +15,6 @@
  */
 
 /**
- * Gradle's {@link org.gradle.api.Project} API, which is available from your build scripts.
+ * Classes for declaring and using artifact dependencies.
  */
-package org.gradle.api;
+package org.gradle.api.dependencies;

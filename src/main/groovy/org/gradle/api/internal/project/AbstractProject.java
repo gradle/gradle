@@ -61,7 +61,7 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private String name;
 
-    private Map<String, AbstractProject> childProjects = new HashMap<String, AbstractProject>();
+    private Map<String, Project> childProjects = new HashMap<String, Project>();
 
     private Map<String, Task> tasks = new HashMap<String, Task>();
 
@@ -222,7 +222,7 @@ public abstract class AbstractProject implements Project, Comparable {
         this.name = name;
     }
 
-    public Map getChildProjects() {
+    public Map<String, Project> getChildProjects() {
         return childProjects;
     }
 
@@ -419,11 +419,11 @@ public abstract class AbstractProject implements Project, Comparable {
         return projectRegistry.getProject(absolutePath);
     }
 
-    public Set getAllprojects() {
+    public Set<Project> getAllprojects() {
         return projectRegistry.getAllProjects(this.path);
     }
 
-    public Set getSubprojects() {
+    public Set<Project> getSubprojects() {
         return projectRegistry.getSubProjects(this.path);
     }
 
@@ -541,7 +541,7 @@ public abstract class AbstractProject implements Project, Comparable {
         return createTask(new HashMap(), name, null);
     }
 
-    public Task createTask(Map args, String name) {
+    public Task createTask(Map<String, ?> args, String name) {
         return createTask(args, name, null);
     }
 
@@ -602,7 +602,7 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public Project childrenDependOnMe() {
-        for (AbstractProject project : childProjects.values()) {
+        for (Project project : childProjects.values()) {
             project.dependsOn(this.path, false);
         }
         return this;
@@ -613,8 +613,8 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public Project dependsOnChildren(boolean evaluateDependsOnProject) {
-        for (AbstractProject project : childProjects.values()) {
-            dependsOn(project.path, evaluateDependsOnProject);
+        for (Project project : childProjects.values()) {
+            dependsOn(project.getPath(), evaluateDependsOnProject);
         }
         return this;
     }
@@ -623,11 +623,11 @@ public abstract class AbstractProject implements Project, Comparable {
         return path;
     }
 
-    public SortedMap getAllTasks(boolean recursive) {
-        final SortedMap<Project, Set> foundTargets = new TreeMap<Project, Set>();
+    public SortedMap<Project, Set<Task>> getAllTasks(boolean recursive) {
+        final SortedMap<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
         ProjectAction action = new ProjectAction() {
             public void execute(Project project) {
-                foundTargets.put(project, new TreeSet(project.getTasks().values()));
+                foundTargets.put(project, new TreeSet<Task>(project.getTasks().values()));
             }
         };
         if (recursive) {

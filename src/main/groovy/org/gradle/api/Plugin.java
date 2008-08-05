@@ -21,7 +21,7 @@ import java.util.Map;
 
 /**
  * <p>A <code>Plugin</code> represents an extension to Gradle, which you can use to add behaviour your {@link
- * Project}.</p>
+ * org.gradle.api.Project}.</p>
  *
  * @author Hans Dockter
  */

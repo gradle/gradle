@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * <p>A <code>DependencyManager</code> represents the set of dependencies and artifacts for a project.</p>
+ * <p>A <code>DependencyManager</code> represents the set of dependencies and artifacts for a {@link
+ * org.gradle.api.Project}.</p>
  *
  * @author Hans Dockter
  */
@@ -98,7 +99,7 @@ public interface DependencyManager extends DependencyContainer {
     void setArtifactProductionTaskName(String name);
 
     Map<String, Set<String>> getConfs4Task();
-    
+
     /**
      * A map where the key is the name of the configuration and the value is the name of a task. This is needed
      * to deal with project dependencies. In case of a project dependency, we need to establish a dependsOn relationship,

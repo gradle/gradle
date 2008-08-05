@@ -15,6 +15,6 @@
  */
 
 /**
- * Gradle's {@link org.gradle.api.Project} API, which is available from your build scripts.
+ * The unit testing {@link org.gradle.api.Task}s.
  */
-package org.gradle.api;
+package org.gradle.api.tasks.testing;

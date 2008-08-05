@@ -15,6 +15,6 @@
  */
 
 /**
- * Gradle's {@link org.gradle.api.Project} API, which is available from your build scripts.
+ * The Gradle wrapper {@link org.gradle.api.Task}.
  */
-package org.gradle.api;
+package org.gradle.api.tasks.wrapper;

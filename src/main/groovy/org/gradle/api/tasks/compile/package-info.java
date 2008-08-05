@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * Gradle's {@link org.gradle.api.Project} API, which is available from your build scripts.
+ * The compilation {@link org.gradle.api.Task}s.
  */
-package org.gradle.api;
+package org.gradle.api.tasks.compile;
