@@ -262,8 +262,10 @@ dists {
 groovydoc.destinationDir = explodedDistGroovydocsDir
 
 javadoc {
+    title = "Gradle API $version"
     destinationDir = explodedDistJavadocsDir
-    include 'org/gradle/api/*'
+    include 'org/gradle/api/**'
+    exclude 'org/gradle/api/internal/**'
     exclude 'org/gradle/api/*Exception.java', '**/*Notation.java'
 }
 

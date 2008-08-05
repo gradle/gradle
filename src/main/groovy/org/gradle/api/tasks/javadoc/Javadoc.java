@@ -36,6 +36,8 @@ public class Javadoc extends ConventionTask {
 
     File destinationDir;
 
+    String title;
+
     String maxMemory;
 
     List<String> includes = new ArrayList<String>();
@@ -57,7 +59,7 @@ public class Javadoc extends ConventionTask {
 
     private void generate() {
         List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs());
-        antJavadoc.execute(existingSourceDirs, getDestinationDir(), getMaxMemory(), getIncludes(), getExcludes(), getProject().getAnt());
+        antJavadoc.execute(existingSourceDirs, getDestinationDir(), getTitle(), getMaxMemory(), getIncludes(), getExcludes(), getProject().getAnt());
     }
 
     public List<File> getSrcDirs() {
@@ -82,6 +84,14 @@ public class Javadoc extends ConventionTask {
 
     public void setMaxMemory(String maxMemory) {
         this.maxMemory = maxMemory;
+    }
+
+    public String getTitle() {
+        return (String) conv(title, "title");
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public Javadoc include(String... includes) {

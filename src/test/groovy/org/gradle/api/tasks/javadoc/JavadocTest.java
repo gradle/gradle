@@ -56,19 +56,37 @@ public class JavadocTest extends AbstractConventionTaskTest {
         return task;
     }
 
-    @Test public void execution() {
+    @Test public void defaultExecution() {
+        final List<File> srcDirs = WrapUtil.toList(new File("srcdir"));
+        final File destDir = new File("destdir");
+
+        task.setDestinationDir(destDir);
+        task.setSrcDirs(srcDirs);
+
+        context.checking(new Expectations() {{
+            one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
+            will(returnValue(srcDirs));
+
+            one(antJavadoc).execute(srcDirs, destDir, null, null, EMPTY_LIST, EMPTY_LIST, getProject().getAnt());
+        }});
+
+        task.execute();
+    }
+
+    @Test public void executionWithOptionalAtributes() {
         final List<File> srcDirs = WrapUtil.toList(new File("srcdir"));
         final File destDir = new File("destdir");
 
         task.setDestinationDir(destDir);
         task.setSrcDirs(srcDirs);
         task.setMaxMemory("max-memory");
+        task.setTitle("title");
 
         context.checking(new Expectations() {{
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
 
-            one(antJavadoc).execute(srcDirs, destDir, "max-memory", EMPTY_LIST, EMPTY_LIST, getProject().getAnt());
+            one(antJavadoc).execute(srcDirs, destDir, "title", "max-memory", EMPTY_LIST, EMPTY_LIST, getProject().getAnt());
         }});
 
         task.execute();
@@ -87,7 +105,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
 
-            one(antJavadoc).execute(srcDirs, destDir, null, WrapUtil.toList("include"), WrapUtil.toList("exclude"), getProject().getAnt());
+            one(antJavadoc).execute(srcDirs, destDir, null, null, WrapUtil.toList("include"), WrapUtil.toList("exclude"), getProject().getAnt());
         }});
 
         task.execute();
