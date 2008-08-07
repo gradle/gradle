@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -141,7 +142,17 @@ public class Build {
     }
 
     private Map getAllEnvProperties() {
-        return System.getenv();
+        // The reason why we have an try-catch block here is for JDK 1.4 compatibility. We use the retrotranslator to produce
+        // a 1.4 compatible version. But the retrotranslator is not capable of translating System.getenv to 1.4.
+        // The System.getenv call is only available in 1.5. In fact 1.4 does not offer any API to read
+        // environment variables. Therefore this call leads to an exception when used with 1.4. We ignore the exception in this
+        // case and simply return an empty hashmap.
+        try {
+            return System.getenv();
+        } catch (Throwable e) {
+            logger.debug("The System.getenv() call has lead to an exception. Probably you are running on Java 1.4.", e);
+            return new HashMap();
+        }
     }
 
     public static BuildFactory newInstanceFactory(final StartParameter startParameter) {

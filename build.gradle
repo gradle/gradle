@@ -46,6 +46,7 @@ dependencies {
     // todo: Improve dependency handling for xUnit jars
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
     addConfiguration('ftpAntTask')
+    addConfiguration('retrotranslatorAntTask')
     addConfiguration('launch4j')
 
     clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
@@ -53,6 +54,8 @@ dependencies {
             dependencies(":oro:2.0.8@jar")
         }
     }
+
+    retrotranslatorAntTask ':retrotranslator-runtime:1.2.7', ':retrotranslator-transformer:1.2.7', ':backport-util-concurrent:3.1'
 
     clientModule(['groovy'], ":groovy-all:1.5.5") {
         clientModule(":ant:1.7.0") {
@@ -144,12 +147,13 @@ explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
 explodedDistGroovydocsDir = new File(explodedDistDocsDir, 'groovydoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
 explodedDistUserguideOutputDir = new File(explodedDistSamplesDir, 'userguideOutput')
+explodedDistLibDir = new File(explodedDistDir, 'lib')
 
 createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc', 'groovydoc']) {
-    [explodedDistDir, explodedDistSamplesDir]*.mkdirs()
+    [explodedDistDir, explodedDistSamplesDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
-    File explodedDistLibDir = mkdir(explodedDistDir, 'lib')
+
     File explodedDistLaunch4jLibDir = mkdir(explodedDistLibDir, 'launch4j')
     ant {
         logger.info('Generate lib dir')
@@ -213,21 +217,84 @@ def createLaunch4j(File launch4jLibDir, String launch4jDistName) {
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
+distsRetroLibsFolder = new File(distsDir, 'retroLibs')
+
+createTask('retroTranslateLibs', dependsOn: 'explodedDist') {
+    distsRetroLibsFolder.mkdirs()
+    ant {
+        taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
+                classpath: dependencies.antpath('retrotranslatorAntTask'))
+        List libFiles = explodedDistLibDir.listFiles()
+        File logbackCore = libFiles.find { it.name.startsWith('logback-core') }
+        File logbackClassic = libFiles.find { it.name.startsWith('logback-classic') }
+        File gradle = libFiles.find { it.name.startsWith('gradle-') && !it.name.startsWith('gradle-wrapper') }
+        File gradleWrapper = libFiles.find { it.name.startsWith('gradle-wrapper')}
+        List retroFiles = [logbackCore, logbackClassic, gradle, gradleWrapper]
+        String libExcludes = retroFiles.join(',')
+        retroFiles.each {File file ->
+            retroExe(file) {
+                fileset(dir: distsRetroLibsFolder)
+                fileset(dir: libDir, excludes: libExcludes)
+                fileset(dir: gradle_retroLibsDir)
+            }
+        }
+    }
+}.configure {
+    enabled = hasProperty('gradle_retroLibsDir')
+    skipProperties << 'skip.archive_all-jdk14_zip'
+}
+
+void retroExe(File file, Closure fileSet) {
+    ant {
+        retrotranslator(target: "1.4", destjar: new File(distsRetroLibsFolder, file.name), smart: true, verify: false, failonwarning: false) {
+            jarfileset(dir: explodedDistLibDir, includes: file.name)
+            classpath() {
+                fileset(dir: gradle_retroLibsDir)
+                fileSet.delegate = delegate
+                fileSet()
+            }
+        }
+    }
+}
+
 dists {
     dependsOn 'explodedDist'
+    Closure binFileSets = {task ->
+        delegate = task
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
+            include 'bin/*'
+            exclude 'bin/*.*'
+        }
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+            include 'bin/*.*'
+        }
+    }
     zip(classifier: 'all').doFirst {Task task ->
         task.configure {
             zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
                 exclude 'bin/*'
             }
-            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
-                include 'bin/*'
-                exclude 'bin/*.*'
-            }
-            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-                include 'bin/*.*'
-            }
+            binFileSets(delegate)
         }
+    }
+    zip(classifier: 'all-jdk14').doFirst {Task task ->
+        task.configure {
+            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+                exclude 'bin/*'
+                exclude 'lib/gradle*.jar'
+                exclude 'lib/logback*.jar'
+            }
+            zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
+            dependencies.resolve('retrotranslatorAntTask').each { File file ->
+                zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
+                    include file.name
+                }
+            }
+            binFileSets(delegate)
+        }
+    }.configure {
+        dependsOn 'retroTranslateLibs'
+        enabled = hasProperty('gradle_retroLibsDir')
     }
     zip(classifier: 'bin').doFirst {Task task ->
         task.configure {
@@ -236,17 +303,11 @@ dists {
                 exclude 'src/'
                 exclude 'samples/'
             }
-            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
-                include 'bin/*'
-                exclude 'bin/*.*'
-            }
-            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-                include 'bin/*.*'
-            }
+            binFileSets(delegate)
         }
     }
-    
-    zip(classifier: 'src').doFirst { Task task ->
+
+    zip(classifier: 'src').doFirst {Task task ->
         task.configure {
             destinationDir = distsDir
             zipFileSet(dir: projectDir, prefix: archiveName, fileMode: '775') {
@@ -274,7 +335,7 @@ createTask('uploadJavadoc', dependsOn: 'javadoc') {
     ftp(action: 'delete', remotedir: javadocRemoteDir) {
         fileset() {include(name: '**/*.html')}
     }
-    // todo: Ant ftp hangs sometimes. We might switch to platform ftp. 
+    // todo: Ant ftp hangs sometimes. We might switch to platform ftp.
     // The passive = true is an attempt to improve this. Yet it sometimes takes
     ftp(action: 'send', remotedir: javadocRemoteDir, passive: true) {
         fileset(dir: javadoc.destinationDir)
@@ -283,10 +344,13 @@ createTask('uploadJavadoc', dependsOn: 'javadoc') {
 
 userguideDir = dir("$buildDir.name/$docsDir.name/userguide")
 
-createTask('userguide', dependsOn: [userguideDir]) {
-    File userguideSrc = new File(srcDocsDir, 'userguide')
+createTask('userguideVersion', dependsOn: [userguideDir, init]) {
     File userguideData = mkdir(userguideDir.dir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
+}
+
+createTask('userguide', dependsOn: [userguideDir, 'userguideVersion']) {
+    File userguideSrc = new File(srcDocsDir, 'userguide')
     ant {
         if (!isLatexInstalled()) {
             throw new StopExecutionException('Latex is not installed. We skip the userguide!')
@@ -405,7 +469,7 @@ createTask('wrapper', type: Wrapper, dependsOn: ['init', 'archive_bin_zip']).doF
         gradleVersion = version
         zipBase = Wrapper.PathBase.PROJECT
         zipPath = 'wrapper'
-        jarPath = zipPath 
+        jarPath = zipPath
     }
 }
 
@@ -420,7 +484,7 @@ void ftp(Map args, Closure antFileset = {}) {
     ant {
         taskdef(name: 'ftp',
                 classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: dependencies.resolve('ftpAntTask').join(':'))
+                classpath: dependencies.antpath('ftpAntTask'))
         Map ftpArgs = args + [
                 server: 'www.gradle.org',
                 userid: websiteFtpUserName,
