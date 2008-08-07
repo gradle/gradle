@@ -73,6 +73,10 @@ With the \texttt{gradle.properties} files you can also set system properties. If
 \VerbatimInput[frame=single,label=gradle.properties]{../../samples/userguide/properties/gradle.properties}
 \codeGradleFile[properties - ]{../../samples/userguide/properties/build.gradle}
 \outputInputGradle[properties]{../../samples/userguideOutput/properties.out}
+\subsection{Checking for Project Properties} % (fold)
+\label{sub:checking_for_project_properties}
+You can access a project property in your build script simply by using it name as you would use a variable. In case this property does not exists, an exception is thrown and the build fails. If your build script relies on optional properties the user might set for example in a gradle.properties file, you need to check for existence before you can access them. You can do this by using the method \texttt{hasProperty('propertyName')} which returns \texttt{true} or \texttt{false}.
+% subsection checking_for_project_properties (end)
 % section gradle_properties_and_system_properties (end)
 % chapter the_this_and_that_tutorial (end)
 
