@@ -88,6 +88,9 @@ systemProp.http.proxyPassword=password
 We could not find a good overview for all possible proxy settings. The best we can offer are the constants in a file from the ant project. Here a \href{http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&pathrev=556977}{link} to the svn view. If anyone knows a better overview please let us know via the mailing list.  
 % section accessing_the_web_via_a_proxy (end)
 
-
+\section{Caching} % (fold)
+\label{sec:caching}
+To improve the responsiveness Gradle caches the compiled build script by default. The first time you run a build for a project, Gradle creates a \texttt{.gradle} directory in which it puts the compiled build script. The next time you run this build, Gradle uses the compiled build script, if the timestamp of the compiled script is newer than the timestamp of the actual build script. Otherwise the build script gets compiled and the new version is stored in the cache. If you run Gradle with the \texttt{-x} option, any existing cache is ignored and the build script is compiled and executed on the fly. If you run Gradle with the \texttt{-r} option, the build script is always compiled and stored in the cache. That way you can always rebuild the cache if for example the timestamps for some reasons don't reflect that the build script needs to be recomiled. 
+% section caching (end)
 
 
