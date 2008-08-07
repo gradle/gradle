@@ -16,14 +16,13 @@
 
 package org.gradle.api;
 
-import org.gradle.api.dependencies.ResolverContainer;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.apache.ivy.plugins.resolver.DualResolver;
-
-import java.util.List;
-import java.io.File;
-
 import groovy.lang.Closure;
+import org.apache.ivy.plugins.resolver.DualResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.gradle.api.dependencies.ResolverContainer;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * <p><code>Settings</code> declares the configuration required to configure and execute a {@link
@@ -78,6 +77,13 @@ public interface Settings {
     ResolverContainer getResolvers();
 
     FileSystemResolver addFlatDirResolver(String name, Object[] dirs);
+
+    /**
+     * Returns the root dir of the build project.
+     * 
+     * @return A file describing the root dir.
+     */
+    File getRootDir();
 
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed

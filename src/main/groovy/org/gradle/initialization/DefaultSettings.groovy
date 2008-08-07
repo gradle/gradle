@@ -145,4 +145,10 @@ class DefaultSettings implements Settings {
         }
         throw new MissingPropertyException(property, DefaultSettings)
     }
+
+    public File getRootDir() {
+        return rootFinder.rootDir; 
+    }
+
+
 }

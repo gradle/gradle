@@ -237,4 +237,8 @@ class DefaultSettingsTest {
         assert settings.someGradleProp.is(rootFinder.gradleProperties.someGradleProp)
         settings.unknownProp
     }
+
+    @Test public void testGetRootDir() {
+        assertEquals(rootFinder.rootDir, settings.rootDir);
+    }
 }
