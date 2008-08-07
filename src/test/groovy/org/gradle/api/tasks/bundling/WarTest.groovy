@@ -108,15 +108,15 @@ class WarTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testWebInfFileSet() {
-        checkAddFileSet("webInfFileSet", "webInfFileSets")
+        checkAddFileSet("webInf", "webInfFileSets")
     }
 
     @Test public void testClassesFileSet() {
-        checkAddFileSet("classesFileSet", "classesFileSets")
+        checkAddFileSet("classes", "classesFileSets")
     }
 
     @Test public void testAditionalLibFileSet() {
-        checkAddFileSet("additionalLibFileSet", "additionalLibFileSets")
+        checkAddFileSet("additionalLibs", "additionalLibFileSets")
     }
 
     private void checkAddFileSet(String methodName, String propertyName) {

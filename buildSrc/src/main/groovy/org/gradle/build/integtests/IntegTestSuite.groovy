@@ -24,6 +24,7 @@ class IntegTestSuite {
         WrapperProject.execute(distDirPath, samplesDirPath)
         JavaProject.execute(distDirPath, samplesDirPath)
         GroovyProject.execute(distDirPath, samplesDirPath)
+        WebProject.execute(distDirPath, samplesDirPath)
         WaterProject.execute(distDirPath, samplesDirPath)
         org.gradle.build.integtests.Version.execute(distDirPath)
         Userguide.execute(distDirPath, samplesDirPath, userguideOutputDir)

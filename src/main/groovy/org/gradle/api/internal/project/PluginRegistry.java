@@ -16,17 +16,17 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Plugin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.gradle.api.Project;
 import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
-import java.util.HashMap;
-import java.util.Map;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -55,7 +55,7 @@ public class PluginRegistry {
         }
     }
 
-    Plugin getPlugin(String pluginId) {
+    public Plugin getPlugin(String pluginId) {
         if (!GUtil.isTrue(properties.get(pluginId))) {
         return null;
     }
@@ -66,7 +66,7 @@ public class PluginRegistry {
         }
     }
 
-    Plugin getPlugin(Class pluginClass) {
+    public Plugin getPlugin(Class pluginClass) {
         if (plugins.get(pluginClass) == null) {
             try {
                 plugins.put(pluginClass, pluginClass.newInstance());
@@ -77,7 +77,7 @@ public class PluginRegistry {
         return (Plugin) plugins.get(pluginClass);
     }
 
-    void apply(Class pluginClass, Project project, PluginRegistry pluginRegistry, Map customValues) {
+    public void apply(Class pluginClass, Project project, PluginRegistry pluginRegistry, Map customValues) {
         if (project.getPluginApplyRegistry().get(pluginClass) == null) {
             getPlugin(pluginClass).apply(project, pluginRegistry, customValues);
             project.getPluginApplyRegistry().put(pluginClass, new Object());

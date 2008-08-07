@@ -23,6 +23,7 @@ import org.gradle.util.GUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+
 /**
  * @author Hans Dockter
  */
@@ -70,21 +71,21 @@ class War extends Jar {
      * @param args key-value pairs for setting field values of the created fileset. 
      * @param configureClosure (optional) closure which is applied against the newly created fileset.
      */
-    FileSet webInfFileSet(Map args, Closure configureClosure = null) {
+    FileSet webInf(Map args, Closure configureClosure = null) {
         webInfFileSets = GUtil.chooseCollection(webInfFileSets, getWebInfFileSets())
         FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
         webInfFileSets << fileSet
         fileSet
     }
 
-    FileSet classesFileSet(Map args, Closure configureClosure = null) {
+    FileSet classes(Map args, Closure configureClosure = null) {
         classesFileSets = GUtil.chooseCollection(classesFileSets, getClassesFileSets())
         FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
         classesFileSets << fileSet
         fileSet
     }
 
-    FileSet additionalLibFileSet(Map args, Closure configureClosure = null) {
+    FileSet additionalLibs(Map args, Closure configureClosure = null) {
         additionalLibFileSets = GUtil.chooseCollection(additionalLibFileSets, getAdditionalLibFileSets())
         FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
         additionalLibFileSets << fileSet

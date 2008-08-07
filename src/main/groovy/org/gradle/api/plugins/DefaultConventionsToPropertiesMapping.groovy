@@ -77,13 +77,14 @@ class DefaultConventionsToPropertiesMapping {
             manifest: {new GradleManifest(it.plugins.java.manifest.manifest)},
             metaInfResourceCollections: {it.plugins.java.metaInf}
     ]
-    // todo Does it really makes sense to add a war to the dists configuration ?
+
     public final static Map WAR = JAR.subMap(JAR.keySet() - 'baseDir') + [
-            configurations: {[JavaPlugin.DISTS] as String[]},
             libConfigurations: {[JavaPlugin.RUNTIME]},
-            webInfFileSets: {[new FileSet(it.plugins.java.webAppDir)]},
+            libExcludeConfigurations: {[WarPlugin.PROVIDED_RUNTIME]},
+            resourceCollections: {[new FileSet(it.plugins.java.webAppDir)]},
             classesFileSets: {[new FileSet(it.plugins.java.classesDir)]}
     ]
+    
     public final static Map LIB = [
             defaultArchiveTypes: {it.plugins.java.archiveTypes}
     ]
