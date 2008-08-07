@@ -18,6 +18,18 @@ import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.execution.Dag
 import org.gradle.util.GradleVersion
 
+/**
+ * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
+ * setting certain properties. Those properties can be set in the gradle.properties file in the the gradle user home. The
+ * following properties can be set:
+ *
+ * Uploading distributions to Gradle's release and snapshot repository at codehaus: codehausUserName, codehausUserPassword
+ * Uploading the userguide and the javadoc to Gradle's website: websiteFtpUserName, websiteFtpUserPassword
+ * Using the build to create a new distribution and install it on the local machine: gradle_installDir, gradle_installDirName
+ * Creating a JDK-1.4 compatible distribtution with retro-translator: gradle_retroLibsDir (This dir shoud contain rt.jar, jce.jar and jsse.jar from
+ * a JDK 1.4).
+ */
+
 archivesBaseName = 'gradle'
 
 usePlugin('groovy')
