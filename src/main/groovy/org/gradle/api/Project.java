@@ -697,9 +697,9 @@ public interface Project {
      */
     Set<Class> getAppliedPlugins();
 
-    public Project evaluate();
+    Project evaluate();
 
-    public BuildScriptProcessor getBuildScriptProcessor();
+    BuildScriptProcessor getBuildScriptProcessor();
 
     /**
      * <p>Executes the given {@link ProjectAction} against the subprojects of this project.</p>
