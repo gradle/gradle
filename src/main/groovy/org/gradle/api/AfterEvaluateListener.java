@@ -16,8 +16,18 @@
 package org.gradle.api;
 
 /**
+ * A listener to be registered with a project. Its prupose is to inform about the execution of the build script
+ * belonging to the project.
+ *
  * @author Hans Dockter
+ *
+ * @see org.gradle.api.Project#addAfterEvaluateListener(AfterEvaluateListener) 
  */
 public interface AfterEvaluateListener {
+    /**
+     * This method is called by the Project observable after its build script has been run.
+     *
+     * @param project An instance of the project where the AfterEvaluateListener is registered.
+     */
     void afterEvaluate(Project project);
 }

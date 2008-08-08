@@ -16,35 +16,25 @@
 
 package org.gradle.api.internal.project
 
-import groovy.mock.interceptor.MockFor
-import groovy.mock.interceptor.StubFor
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
 import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
+import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginTest
 import org.gradle.api.tasks.Directory
 import org.gradle.api.tasks.util.BaseDirConverter
-import org.gradle.util.HelperUtil
-import org.gradle.util.TestTask
-import org.gradle.api.plugins.Convention
-import org.junit.Test
-import org.junit.Before
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
-import static org.junit.Assert.assertNull
-import static org.junit.Assert.assertNotNull
-import static org.junit.Assert.assertTrue
-import static org.junit.Assert.assertFalse
-import org.jmock.Mockery
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.lib.legacy.ClassImposteriser
-import org.junit.runner.RunWith
-import org.gradle.util.WrapUtil
 import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.WrapUtil
+import static org.hamcrest.Matchers.lessThan
+import org.jmock.Mockery
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
@@ -136,7 +126,7 @@ class DefaultProjectTest {
         assert projectRegistry.is(project.projectRegistry)
         assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
         assertEquals project.name, project.archivesBaseName
-        assertEquals([:], project.pluginApplyRegistry)
+        assertEquals([] as Set, project.appliedPlugins)
         assertEquals DefaultProject.STATE_CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
@@ -747,6 +737,26 @@ def scriptMethod(Closure closure) {
         project.ant(configureClosure)
         assertEquals(Closure.OWNER_FIRST, configureClosure.@resolveStrategy)
         assertTrue(project.ant.collectorTarget.children[0].realThing instanceof FileSet)
+    }
+
+    @Test void testCompareTo() {
+        assertThat(project, lessThan(child1)) 
+        assertThat(child1, lessThan(child2))
+        assertThat(child1, lessThan(childchild))
+        assertThat(child2, lessThan(childchild)) 
+    }
+
+    @Test void testDepthCompare() {
+        assertTrue(project.depthCompare(child1) < 0)
+        assertTrue(child1.depthCompare(project) > 0)
+        assertTrue(child1.depthCompare(child2) == 0)
+    }
+
+    @Test void testDepth() {
+        assertTrue(project.depth == 0)
+        assertTrue(child1.depth == 1)
+        assertTrue(child2.depth == 1)
+        assertTrue(childchild.depth == 2)
     }
 
     @Test void testSubprojects() {

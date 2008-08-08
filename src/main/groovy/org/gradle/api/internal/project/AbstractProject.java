@@ -22,9 +22,9 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.util.Clock;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
-import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +91,7 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private Convention convention;
 
-    private Map pluginApplyRegistry = new LinkedHashMap();
+    private Set<Class> appliedPlugins = new HashSet();
 
     private String path = null;
 
@@ -323,12 +323,12 @@ public abstract class AbstractProject implements Project, Comparable {
         this.convention = convention;
     }
 
-    public Map getPluginApplyRegistry() {
-        return pluginApplyRegistry;
+    public Set<Class> getAppliedPlugins() {
+        return appliedPlugins;
     }
 
-    public void setPluginApplyRegistry(Map pluginApplyRegistry) {
-        this.pluginApplyRegistry = pluginApplyRegistry;
+    public void setAppliedPlugins(Set<Class> appliedPlugins) {
+        this.appliedPlugins = appliedPlugins;
     }
 
     public String getPath() {

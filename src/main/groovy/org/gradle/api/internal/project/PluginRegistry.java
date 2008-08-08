@@ -78,9 +78,9 @@ public class PluginRegistry {
     }
 
     public void apply(Class pluginClass, Project project, PluginRegistry pluginRegistry, Map customValues) {
-        if (project.getPluginApplyRegistry().get(pluginClass) == null) {
+        if (!project.getAppliedPlugins().contains(pluginClass)) {
             getPlugin(pluginClass).apply(project, pluginRegistry, customValues);
-            project.getPluginApplyRegistry().put(pluginClass, new Object());
+            project.getAppliedPlugins().add(pluginClass);
         }
     }
 
