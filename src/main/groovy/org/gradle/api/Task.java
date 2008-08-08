@@ -109,13 +109,59 @@ public interface Task extends Comparable {
      */
     Task deleteAllActions();
 
+    /**
+     * Returns if this task is enabled or not.
+     *
+     * @return
+     * @see #setEnabled(boolean)
+     */
     boolean getEnabled();
-    
+
+    /**
+     * Set the enabled state of a task. If a task is disabled none of the task actions are executed. Disabling a task
+     * does not prevent the execution of the task's this task depends on.
+     *
+     * @param enabled The enabled state of this task (true or false)
+     */
     void setEnabled(boolean enabled);
 
+    /**
+     * Applies the statements of the closure against this task object.
+     *
+     * @param configureClosure The closure to be applied (can be null).
+     * @return This task
+     */
     Task configure(Closure configureClosure);
 
+    /**
+     * Returns whether this task is dag neutral or not.
+     *
+     * @see #setDagNeutral(boolean)
+     */
     boolean isDagNeutral();
 
+    /**
+     * Set's the dag neutral state of the task. The concept of dag neutrality is important to improve the performance,
+     * when two primary tasks are executed as part of one build (e.g. <code>gradle clean install</code>). Gradle
+     * guarantees that executing two tasks at once has the same behavior than executing them one after another. If the
+     * execution of the first task changes the state of the task execution graph (e.g. if a task action changes a
+     * project property), Gradle needs to rebuild the task execution graph before the execution of the second task.
+     * If the first task plus all its dependent tasks declare themselves as dag neutral, Gradle does not rebuild the
+     * graph.
+     *
+     * @param dagNeutral
+     */
     void setDagNeutral(boolean dagNeutral);
+
+    /**
+     * Returns the list of skip properties. The returned list can be used to add further skip properties.
+     * If a system property with the same key as one of the skip properties is
+     * set to a value different than <i>false</i>, none of the task actions are executed. It has the same effect
+     * as disabling the task. Therefore when starting gradle it is enough to say <code>gradle -Dskip.test</code> to
+     * skip a task. You may, but don't need to assign a value.
+     *
+     * @return List of skip properties. Returns empty list when no skip properties are assigned.
+     */
+    List<String> getSkipProperties();
 }
+
