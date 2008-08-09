@@ -110,7 +110,7 @@ class TestTest extends AbstractConventionTaskTest {
             ant.project.setProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY, 'somevalue')
         }
         antJUnitMocker.use(test.antJunit) {
-            shouldFailWithCause(GradleException) {
+            shouldFailWithCause(GradleException, "There were failing tests. See the report at ${TEST_TEST_REPORT_DIR}.") {
                 test.execute()
             }
         }
@@ -134,7 +134,7 @@ class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test public void testExecuteWithUnspecifiedCompiledTestsDir() {
         setUpMocks(test)
         test.testClassesDir = null
-        shouldFailWithCause(InvalidUserDataException) {
+        shouldFailWithCause(InvalidUserDataException, "The testClassesDir property is not set, testing can't be triggered!") {
             test.execute()
         }
     }
@@ -142,7 +142,7 @@ class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test public void testExecuteWithUnspecifiedTestResultsDir() {
         setUpMocks(test)
         test.testResultsDir = null
-        shouldFailWithCause(InvalidUserDataException) {
+        shouldFailWithCause(InvalidUserDataException, "The testResultsDir property is not set, testing can't be triggered!") {
             test.execute()
         }
     }
@@ -215,13 +215,13 @@ class TestTest extends AbstractConventionTaskTest {
         }] as ExistingDirsFilter
     }
 
-    private shouldFailWithCause(Class exceptionClass, Closure closure) {
+    private shouldFailWithCause(Class exceptionClass, String message, Closure closure) {
         try {
             closure.call()
             fail()
         } catch (Throwable t) {
             assertThat(exceptionClass.isInstance(t), Matchers.equalTo(true))
+            assertThat(t.getMessage(), Matchers.equalTo(message))
         }
     }
-
 }

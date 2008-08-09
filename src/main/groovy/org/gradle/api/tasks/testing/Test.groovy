@@ -99,7 +99,7 @@ class Test extends ConventionTask {
 
         antJunit.execute(getTestClassesDir(), classpath, getTestResultsDir(), getTestReportDir(), includes, excludes, options, project.ant)
         if (stopAtFailuresOrErrors && project.ant.project.getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY)) {
-            throw new GradleException("There were failing tests!")
+            throw new GradleException('There were failing tests. See the report at ' + getTestReportDir() + '.')
         }
     }
 
