@@ -17,27 +17,26 @@
 package org.gradle.initialization
 
 import groovy.mock.interceptor.MockFor
-import groovy.mock.interceptor.StubFor
+import org.gradle.StartParameter
 import org.gradle.api.DependencyManager
 import org.gradle.api.DependencyManagerFactory
+import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
+import org.gradle.api.internal.project.ImportsReader
+import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.groovy.scripts.IScriptProcessor
+import org.gradle.groovy.scripts.ISettingsScriptMetaData
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.RootFinder
 import org.gradle.initialization.SettingsProcessor
-import org.gradle.util.HelperUtil
-import org.gradle.api.internal.project.ImportsReader
-import org.gradle.StartParameter
-import static org.junit.Assert.*
-import org.junit.Before
-import org.junit.After
-import org.junit.Test
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.groovy.scripts.IScriptProcessor
 import org.gradle.util.GFileUtils
-import org.gradle.groovy.scripts.ISettingsScriptMetaData
-import org.gradle.groovy.scripts.EmptyScript
-import org.gradle.api.Project
-import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.junit.After
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
+import org.junit.Before
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -136,7 +135,7 @@ class SettingsProcessorTest {
     @Test public void testProcessWithNullBuildResolver() {
         settingsProcessor.buildResolverDir = null
         assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, TEST_ROOT_DIR, ['path1', 'path2'],
-                new File(TEST_ROOT_DIR, DependencyManager.BUILD_RESOLVER_NAME)))
+                new File(TEST_ROOT_DIR, Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME)))
     }
 
     private void prepareSettingsFactoryMocker(File expectedRootDir, File expectedCurrentDir) {

@@ -16,23 +16,17 @@
 
 package org.gradle.initialization
 
-import org.gradle.api.DependencyManager
-import org.gradle.api.DependencyManagerFactory
-import org.gradle.api.GradleScriptException
-import org.gradle.api.Project
+import org.gradle.StartParameter
+import org.gradle.api.*
+import org.gradle.api.internal.project.ImportsReader
+import org.gradle.groovy.scripts.IScriptProcessor
+import org.gradle.groovy.scripts.ISettingsScriptMetaData
 import org.gradle.initialization.DefaultSettings
+import org.gradle.util.Clock
 import org.gradle.util.GradleUtil
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.internal.project.ImportsReader
-import org.gradle.StartParameter
-import org.gradle.util.Clock
-import org.gradle.api.Settings
-import org.gradle.groovy.scripts.IScriptProcessor
-import org.gradle.util.ConfigureUtil
-import org.gradle.groovy.scripts.ISettingsScriptMetaData
-import org.gradle.api.internal.project.ProjectScript
 
 /**
 * @author Hans Dockter
@@ -102,7 +96,8 @@ class SettingsProcessor {
     }
 
     private def initDependencyManagerFactory(RootFinder rootFinder) {
-        File buildResolverDir = this.buildResolverDir ?: new File(rootFinder.rootDir, DependencyManager.BUILD_RESOLVER_NAME)
+        File buildResolverDir = this.buildResolverDir ?: new File(rootFinder.rootDir, Project.TMP_DIR_NAME + "/" +
+                DependencyManager.BUILD_RESOLVER_NAME)
         GradleUtil.deleteDir(buildResolverDir)
         dependencyManagerFactory.buildResolverDir = buildResolverDir
         logger.debug("Set build resolver dir to: {}", dependencyManagerFactory.buildResolverDir)
