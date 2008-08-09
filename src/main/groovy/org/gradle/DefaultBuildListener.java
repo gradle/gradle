@@ -18,6 +18,8 @@ package org.gradle;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -25,7 +27,13 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DefaultBuildListener implements BuildListener {
+    private static Logger logger = LoggerFactory.getLogger(DefaultBuildListener.class);
+
     public void buildFinished(File rootDir) {
-        GFileUtils.deleteDirectory(new File(rootDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME));
+        try {
+            GFileUtils.deleteDirectory(new File(rootDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME));
+        } catch (Exception e) {
+            logger.debug("Can't delete the build-resolver dir. We continue.", e);
+        }
     }
 }
