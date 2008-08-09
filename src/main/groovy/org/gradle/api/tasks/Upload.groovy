@@ -16,18 +16,15 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.ConventionTask
 import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.DefaultTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Bundle
+import org.gradle.execution.Dag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.Project
-import org.gradle.api.internal.DefaultTask
-import org.gradle.execution.Dag
 
 /**
  * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
@@ -67,8 +64,7 @@ class Upload extends DefaultTask {
     private void upload(Task task) {
         Set bundleConfigurations = []
         bundles.each { Bundle bundle ->
-            bundle.archiveNames.each {
-                AbstractArchiveTask archiveTask = project.task(it)
+            bundle.archiveTasks.each { AbstractArchiveTask archiveTask ->
                 if (archiveTask.publish) {
                     bundleConfigurations.addAll(archiveTask.configurations as List)
                 }

@@ -16,19 +16,19 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.AbstractTask
+import org.gradle.api.internal.project.ITaskFactory
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
-import static org.junit.Assert.*
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.gradle.util.JUnit4GroovyMockery
 import org.junit.runner.RunWith
-import org.gradle.api.internal.project.ITaskFactory
-import org.gradle.api.Project
-import org.jmock.lib.legacy.ClassImposteriser
-import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
@@ -80,7 +80,7 @@ class BundleTest extends AbstractConventionTaskTest {
             destinationDir = TEST_DESTINATION_DIR
         }
         testChildrenDependsOn = ['othertaskpath', 'othertaskpath2']
-        testBundleDependsOn = ['othertaskpath10', 'othertaskpath11']
+        testBundleDependsOn = ['othertaskpath10', "othertaskpath11"]
         bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         bundle.childrenDependOn = testChildrenDependsOn
         bundle.dependsOn = testBundleDependsOn
@@ -227,7 +227,7 @@ class BundleTest extends AbstractConventionTaskTest {
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
-        assert bundle.archiveNames.contains(archiveTask.name)
+        assert bundle.archiveTasks.contains(archiveTask)
         archiveTask
     }
 

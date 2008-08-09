@@ -20,9 +20,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Resources;
+import org.gradle.execution.Dag;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public class Bundle extends ConventionTask {
 
     private Map<String, ArchiveType> defaultArchiveTypes;
 
-    private List<String> archiveNames = new ArrayList<String>();
+    private List<AbstractArchiveTask> archiveTasks = new ArrayList<AbstractArchiveTask>();
 
     public Bundle(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
@@ -67,7 +67,7 @@ public class Bundle extends ConventionTask {
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
         setTaskDependsOn(archiveTask, getChildrenDependOn());
         this.dependsOn(taskName);
-        archiveNames.add(archiveTask.getName());
+        archiveTasks.add(archiveTask);
         if (configureClosure != null) {
             archiveTask.configure(configureClosure);
         }
@@ -78,14 +78,28 @@ public class Bundle extends ConventionTask {
         if (GUtil.isTrue(childrenDependOn)) {
             task.dependsOn((Object[]) childrenDependOn.toArray(new Object[childrenDependOn.size()]));
         } else {
-            Set taskDependsOn = new HashSet();
-            for (Object dependsOnPath : getDependsOn()) {
-                if (!archiveNames.contains(dependsOnPath)) {
-                    taskDependsOn.add(dependsOnPath);
-                }
-            }
-            task.dependsOn((Object[]) taskDependsOn.toArray(new Object[taskDependsOn.size()]));
+            createDependsOnForNonArchiveParentTasks(task);
         }
+    }
+
+    private void createDependsOnForNonArchiveParentTasks(AbstractArchiveTask task) {
+        Set taskDependsOn = new HashSet();
+        for (Object dependsOn : getDependsOn()) {
+            if (!isChildArchive(dependsOn)) {
+                taskDependsOn.add(dependsOn);
+            }
+        }
+        task.dependsOn((Object[]) taskDependsOn.toArray(new Object[taskDependsOn.size()]));
+    }
+
+    private boolean isChildArchive(Object dependsOn) {
+        String dependsOnPath = dependsOn.toString();
+        for (AbstractArchiveTask archiveTask : archiveTasks) {
+            if (archiveTask.getName().equals(dependsOnPath)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Jar jar() {
@@ -204,11 +218,14 @@ public class Bundle extends ConventionTask {
         this.defaultArchiveTypes = defaultArchiveTypes;
     }
 
-    public List<String> getArchiveNames() {
-        return archiveNames;
+    /**
+     * Returns a list of the archive tasks belonging to this bundle.
+     */
+    public List<AbstractArchiveTask> getArchiveTasks() {
+        return archiveTasks;
     }
 
-    public void setArchiveNames(List<String> archiveNames) {
-        this.archiveNames = archiveNames;
+    protected void setArchiveTasks(List<AbstractArchiveTask> archiveTasks) {
+        this.archiveTasks = archiveTasks;
     }
 }
