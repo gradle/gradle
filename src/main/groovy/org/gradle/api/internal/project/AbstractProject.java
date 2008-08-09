@@ -67,13 +67,13 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private List<String> defaultTasks = new ArrayList<String>();
 
-    private Set dependsOnProjects = new HashSet();
+    private Set<Project> dependsOnProjects = new HashSet<Project>();
 
-    private Map additionalProperties = new LinkedHashMap();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     private int state;
 
-    private List plugins = new ArrayList();
+    private List<Plugin> plugins = new ArrayList<Plugin>();
 
     private BaseDirConverter baseDirConverter = new BaseDirConverter();
 
@@ -91,7 +91,7 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private Convention convention;
 
-    private Set<Class> appliedPlugins = new HashSet();
+    private Set<Class> appliedPlugins = new HashSet<Class>();
 
     private String path = null;
 
@@ -226,15 +226,15 @@ public abstract class AbstractProject implements Project, Comparable {
         return childProjects;
     }
 
-    public void setChildProjects(Map childProjects) {
+    public void setChildProjects(Map<String, Project> childProjects) {
         this.childProjects = childProjects;
     }
 
-    public Map getTasks() {
+    public Map<String, Task> getTasks() {
         return tasks;
     }
 
-    public void setTasks(Map tasks) {
+    public void setTasks(Map<String, Task> tasks) {
         this.tasks = tasks;
     }
 
@@ -246,19 +246,19 @@ public abstract class AbstractProject implements Project, Comparable {
         this.defaultTasks = defaultTasks;
     }
 
-    public Set getDependsOnProjects() {
+    public Set<Project> getDependsOnProjects() {
         return dependsOnProjects;
     }
 
-    public void setDependsOnProjects(Set dependsOnProjects) {
+    public void setDependsOnProjects(Set<Project> dependsOnProjects) {
         this.dependsOnProjects = dependsOnProjects;
     }
 
-    public Map getAdditionalProperties() {
+    public Map<String, Object> getAdditionalProperties() {
         return additionalProperties;
     }
 
-    public void setAdditionalProperties(Map additionalProperties) {
+    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
         this.additionalProperties = additionalProperties;
     }
 
@@ -270,11 +270,11 @@ public abstract class AbstractProject implements Project, Comparable {
         this.state = state;
     }
 
-    public List getPlugins() {
+    public List<Plugin> getPlugins() {
         return plugins;
     }
 
-    public void setPlugins(List plugins) {
+    public void setPlugins(List<Plugin> plugins) {
         this.plugins = plugins;
     }
 
@@ -305,7 +305,6 @@ public abstract class AbstractProject implements Project, Comparable {
     public void setArchivesTaskBaseName(String archivesTaskBaseName) {
         this.archivesTaskBaseName = archivesTaskBaseName;
     }
-
 
     public String getBuildDirName() {
         return buildDirName;
@@ -373,7 +372,7 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public int depthCompare(Project otherProject) {
-        return new Integer(getDepth()).compareTo(new Integer(otherProject.getDepth()));
+        return new Integer(getDepth()).compareTo(otherProject.getDepth());
     }
 
     public int compareTo(Object other) {
@@ -463,11 +462,10 @@ public abstract class AbstractProject implements Project, Comparable {
         Clock clock = new Clock();
         state = STATE_INITIALIZING;
         buildScript = buildScriptProcessor.createScript(this);
-        Clock runClock = new Clock();
         try {
             buildScript.run();
         } catch (GradleException e) {
-            ((GradleException) e).setScriptName(getBuildFileCacheName());
+            e.setScriptName(getBuildFileCacheName());
             throw e;
         } catch (Throwable t) {
             throw new GradleScriptException(t, getBuildFileCacheName());
@@ -497,11 +495,11 @@ public abstract class AbstractProject implements Project, Comparable {
         return this;
     }
 
-    public Project usePlugin(Class pluginClass) {
+    public Project usePlugin(Class<? extends Plugin> pluginClass) {
         return usePlugin(pluginClass, new HashMap());
     }
 
-    public Project usePlugin(Class pluginClass, Map customValues) {
+    public Project usePlugin(Class<? extends Plugin> pluginClass, Map customValues) {
         if (usePluginInternal(pluginRegistry.getPlugin(pluginClass), customValues) == null) {
             throw new InvalidUserDataException("Plugin class " + pluginClass + " can not be found!");
         }
@@ -538,15 +536,15 @@ public abstract class AbstractProject implements Project, Comparable {
     }
 
     public Task createTask(String name) {
-        return createTask(new HashMap(), name, null);
+        return createTask(new HashMap<String, Object>(), name, (TaskAction) null);
     }
 
     public Task createTask(Map<String, ?> args, String name) {
-        return createTask(args, name, null);
+        return createTask(args, name, (TaskAction) null);
     }
 
     public Task createTask(String name, TaskAction action) {
-        return createTask(new HashMap(), name, action);
+        return createTask(new HashMap<String, Object>(), name, action);
     }
 
     public Task createTask(Map args, String name, TaskAction action) {
@@ -676,7 +674,7 @@ public abstract class AbstractProject implements Project, Comparable {
                     throw new InvalidUserDataException("A non directory task with this name already exsists.");
                 }
             } else {
-                HashMap map = new HashMap();
+                HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put("type", Directory.class);
                 createTask(map, name);
             }

@@ -27,7 +27,6 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import java.util.*;
 
 import groovy.util.AntBuilder;
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
@@ -45,7 +44,7 @@ public abstract class AbstractTask implements Task {
 
     List<TaskAction> actions = new ArrayList<TaskAction>();
 
-    List skipProperties = new ArrayList();
+    List<String> skipProperties = new ArrayList<String>();
 
     Set dependsOn = new HashSet();
 
@@ -91,11 +90,11 @@ public abstract class AbstractTask implements Task {
         this.name = name;
     }
 
-    public List getActions() {
+    public List<TaskAction> getActions() {
         return actions;
     }
 
-    public void setActions(List actions) {
+    public void setActions(List<TaskAction> actions) {
         this.actions = actions;
     }
 
@@ -206,7 +205,7 @@ public abstract class AbstractTask implements Task {
                     }
                     throw e;
                 } catch (GradleException e) {
-                    ((GradleException) e).setScriptName(project.getBuildFileCacheName());
+                    e.setScriptName(project.getBuildFileCacheName());
                     throw e;
                 } catch (Throwable t) {
                     throw new GradleScriptException(t, project.getBuildFileCacheName());

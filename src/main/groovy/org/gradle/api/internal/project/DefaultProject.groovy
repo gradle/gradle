@@ -128,14 +128,14 @@ class DefaultProject extends AbstractProject {
     }
 
     public void subprojects(Closure configureClosure) {
-        configureProjects(getSubprojects() as List, configureClosure);
+        configureProjects(getSubprojects(), configureClosure);
     }
 
     public void allprojects(Closure configureClosure) {
-        configureProjects(getAllprojects() as List, configureClosure);
+        configureProjects(getAllprojects(), configureClosure);
     }
 
-    public void configureProjects(List<Project> projects, Closure configureClosure) {
+    public void configureProjects(Iterable<Project> projects, Closure configureClosure) {
         for (Project project : projects) {
             ConfigureUtil.configure(configureClosure, project);
         }
