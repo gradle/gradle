@@ -32,8 +32,7 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,6 +55,7 @@ public class  BuildTest {
     private SettingsProcessor settingsProcessorMock;
     private BuildConfigurer buildConfigurerMock;
     private File expectedCurrentDir;
+    private File expectedRootDir;
     private File expectedGradleUserHomeDir;
     private DefaultProject expectedRootProject;
     private DefaultProject expectedCurrentProject;
@@ -67,6 +67,7 @@ public class  BuildTest {
     private List<String> expectedTaskNames;
     private List<Iterable<Task>> expectedTasks;
     private StartParameter expectedStartParams;
+    private BuildListener buildListenerMock;
 
     private Map testGradleProperties = new HashMap();
 
@@ -86,9 +87,9 @@ public class  BuildTest {
         settingsProcessorMock = context.mock(SettingsProcessor.class);
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
+        buildListenerMock = context.mock(BuildListener.class);
         build = new Build(rootFinderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
-
         testGradleProperties = WrapUtil.toMap(Project.SYSTEM_PROP_PREFIX + ".prop1", "value1");
         testGradleProperties.put("prop2", "value2");
         expectedSearchUpwards = false;
@@ -96,11 +97,12 @@ public class  BuildTest {
         expectedProjectProperties = WrapUtil.toMap("prop", "value");
         expectedSystemPropertiesArgs = WrapUtil.toMap("systemProp", "systemPropValue");
 
-        expectedCurrentDir = new File("currentDir");
+        expectedRootDir = new File("rootDir");
+        expectedCurrentDir = new File(expectedRootDir, "currentDir");
         expectedGradleUserHomeDir = new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir");
 
-        expectedRootProject = HelperUtil.createRootProject(new File("dir1"));
-        expectedCurrentProject = HelperUtil.createRootProject(new File("dir2"));
+        expectedRootProject = HelperUtil.createRootProject(expectedRootDir);
+        expectedCurrentProject = HelperUtil.createRootProject(expectedCurrentDir);
 
         expectTasks("a", "b");
         
@@ -117,6 +119,7 @@ public class  BuildTest {
                 allowing(rootFinderMock).find(with(any(StartParameter.class)));
                 allowing(rootFinderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
+                allowing(rootFinderMock).getRootDir(); will(returnValue(expectedRootDir));
                 allowing(settingsMock).createClassLoader();
                 will(returnValue(expectedClassLoader));
                 allowing(projectsLoaderMock).getRootProject();
@@ -125,6 +128,7 @@ public class  BuildTest {
                 will(returnValue(expectedCurrentProject));
             }
         });
+        build.addBuildListener(buildListenerMock);
     }
 
     private void expectTasks(String... tasks) {
@@ -138,6 +142,26 @@ public class  BuildTest {
     @After
     public void tearDown() {
         HelperUtil.deleteTestDir();
+    }
+
+    @Test
+    public void testInit() {
+        build = new Build(rootFinderMock, settingsProcessorMock, projectsLoaderMock,
+                buildConfigurerMock, buildExecuterMock);
+        assertSame(rootFinderMock, build.getRootFinder());
+        assertSame(settingsProcessorMock, build.getSettingsProcessor());
+        assertSame(projectsLoaderMock, build.getProjectLoader());
+        assertSame(buildConfigurerMock, build.getBuildConfigurer());
+        assertSame(buildExecuterMock, build.getBuildExecuter());
+        assertEquals(new ArrayList(), build.getBuildListeners());
+    }
+
+    @Test
+    public void testAddAndGetBuildListeners() {
+        assertEquals(WrapUtil.toList(buildListenerMock), build.getBuildListeners());
+        BuildListener buildListenerMock2 = context.mock(BuildListener.class, "buildListener2");
+        build.addBuildListener(buildListenerMock2);
+        assertEquals(WrapUtil.toList(buildListenerMock, buildListenerMock2), build.getBuildListeners());
     }
 
     @Test
@@ -210,6 +234,7 @@ public class  BuildTest {
                     one(buildConfigurerMock).process(expectedRootProject);
                     one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, expectedProjectProperties, System.getProperties(), System.getenv());
                 }
+                one(buildListenerMock).buildFinished(expectedRootDir);
             }
         });
     }
@@ -225,6 +250,7 @@ public class  BuildTest {
                 one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
+                one(buildListenerMock).buildFinished(expectedRootDir);
             }
         });
         build.run(expectedStartParams);

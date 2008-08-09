@@ -28,10 +28,12 @@ import org.gradle.groovy.scripts.DefaultScriptHandler;
 import org.gradle.groovy.scripts.DefaultScriptProcessor;
 import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
 import org.gradle.initialization.*;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +51,8 @@ public class Build {
     private ProjectsLoader projectLoader;
     private BuildConfigurer buildConfigurer;
     private BuildExecuter buildExecuter;
+
+    private List<BuildListener> buildListeners = new ArrayList<BuildListener>();
 
     public Build() {
     }
@@ -72,24 +76,30 @@ public class Build {
     }
 
     private void runInternal(DefaultSettings settings, StartParameter startParameter) {
-        ClassLoader classLoader = settings.createClassLoader();
-        Boolean rebuildDag = true;
-        List<String> taskNames = startParameter.getTaskNames();
-        TaskSelector selector = taskNames.size() == 0
-                ? new ProjectDefaultsTaskSelector()
-                : new NameResolvingTaskSelector(taskNames);
-        while (selector.hasNext()) {
-            if (rebuildDag) {
-                projectLoader.load(settings, classLoader, startParameter, startParameter.getProjectProperties(),
-                        getAllSystemProperties(), getAllEnvProperties());
-                buildConfigurer.process(projectLoader.getRootProject());
-            } else {
-                logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
+        try {
+            ClassLoader classLoader = settings.createClassLoader();
+            Boolean rebuildDag = true;
+            List<String> taskNames = startParameter.getTaskNames();
+            TaskSelector selector = taskNames.size() == 0
+                    ? new ProjectDefaultsTaskSelector()
+                    : new NameResolvingTaskSelector(taskNames);
+            while (selector.hasNext()) {
+                if (rebuildDag) {
+                    projectLoader.load(settings, classLoader, startParameter, startParameter.getProjectProperties(),
+                            getAllSystemProperties(), getAllEnvProperties());
+                    buildConfigurer.process(projectLoader.getRootProject());
+                } else {
+                    logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
+                }
+                selector.select(projectLoader.getCurrentProject());
+                logger.info(String.format("++++ Starting build for %s.", selector.getDescription()));
+                logger.debug(String.format("Selected for execution: %s.", selector.getTasks()));
+                rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject());
             }
-            selector.select(projectLoader.getCurrentProject());
-            logger.info(String.format("++++ Starting build for %s.", selector.getDescription()));
-            logger.debug(String.format("Selected for execution: %s.", selector.getTasks()));
-            rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject());
+        } finally {
+            for (BuildListener buildListener : buildListeners) {
+                buildListener.buildFinished(rootFinder.getRootDir());
+            }
         }
     }
 
@@ -165,7 +175,7 @@ public class Build {
                 ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
                 DefaultScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler());
                 Dag tasksGraph = new Dag();
-                return new Build(
+                Build build =  new Build(
                         new RootFinder(),
                         new SettingsProcessor(
                                 new DefaultSettingsScriptMetaData(),
@@ -180,7 +190,7 @@ public class Build {
                                         new TaskFactory(tasksGraph),
                                         dependencyManagerFactory,
                                         new BuildScriptProcessor(
-                                                scriptProcessor, 
+                                                scriptProcessor,
                                                 new DefaultProjectScriptMetaData(),
                                                 importsReader,
                                                 inMemoryScriptText,
@@ -196,6 +206,10 @@ public class Build {
                                 new ProjectTasksPrettyPrinter()),
                         new BuildExecuter(tasksGraph
                         ));
+                if (buildResolverDir == null) {
+                    build.addBuildListener(new DefaultBuildListener());
+                }
+                return build;
             }
         };
     }
@@ -251,5 +265,25 @@ public class Build {
 
     public void setBuildExecuter(BuildExecuter buildExecuter) {
         this.buildExecuter = buildExecuter;
+    }
+
+    public List<BuildListener> getBuildListeners() {
+        return buildListeners;
+    }
+
+    protected void setBuildListeners(List<BuildListener> buildListeners) {
+        this.buildListeners = buildListeners;
+    }
+
+    public void addBuildListener(BuildListener buildListener) {
+        buildListeners.add(buildListener);
+    }
+
+    // In a future release Gradle will have a listener framework. Then this class will be replaced by a standard
+    // listener class.
+    public static class Cleaner {
+        public void clean(File buildResolverDir) {
+            GFileUtils.deleteDirectory(buildResolverDir);
+        }
     }
 }
