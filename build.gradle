@@ -161,7 +161,7 @@ explodedDistSamplesDir = new File(explodedDistDir, 'samples')
 explodedDistUserguideOutputDir = new File(explodedDistSamplesDir, 'userguideOutput')
 explodedDistLibDir = new File(explodedDistDir, 'lib')
 
-createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc', 'groovydoc']) {
+createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
     [explodedDistDir, explodedDistSamplesDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
@@ -215,6 +215,8 @@ createTask('explodedDist', dependsOn: ['libs', 'userguide', 'javadoc', 'groovydo
         }
     }
 }
+
+createTask('explodedDist', dependsOn: ['userguide'])
 
 def createLaunch4j(File launch4jLibDir, String launch4jDistName) {
     ant {
@@ -361,7 +363,7 @@ createTask('userguideVersion', dependsOn: [userguideDir, init]) {
     new File(userguideData, 'version.tex').write(version.toString())
 }
 
-createTask('userguide', dependsOn: [userguideDir, 'userguideVersion']) {
+createTask('userguide', dependsOn: [userguideDir, 'userguideVersion', 'explodedDistBase']) {
     File userguideSrc = new File(srcDocsDir, 'userguide')
     ant {
         if (!isLatexInstalled()) {
