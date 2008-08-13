@@ -33,6 +33,8 @@ class GroovyProject {
 
         File groovyProjectDir = new File(samplesDirName, GROOVY_PROJECT_NAME)
         File testProjectDir = new File(groovyProjectDir, TEST_PROJECT_NAME)
+
+        // Build libs
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
         mainFiles.each { JavaProject.checkExistence(testProjectDir, packagePrefix, it + ".class")}
         excludedFiles.each { JavaProject.checkExistence(testProjectDir, false, packagePrefix, it + ".class")}
@@ -47,6 +49,11 @@ class GroovyProject {
         ant.unjar(src: "$testProjectDir/build/$TEST_PROJECT_NAME-1.0.jar", dest: unjarPath)
         assert new File("$unjarPath/META-INF/MANIFEST.MF").text.contains('myprop: myvalue')
         assert new File("$unjarPath/META-INF/myfile").isFile()
+
+        // Build docs
+        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'javadoc', 'groovydoc'], [], '', Executer.DEBUG)
+        JavaProject.checkExistence(testProjectDir, 'build/docs/javadoc/index.html')
+        JavaProject.checkExistence(testProjectDir, 'build/docs/groovydoc/index.html')
 
         // This test is also important for test cleanup
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)

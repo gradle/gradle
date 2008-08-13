@@ -25,24 +25,47 @@ class JavaProject {
     static final String API_NAME = 'api'
     static final String WEBAPP_1_NAME = 'webapp1'
     static final String SERVICES_NAME = 'services'
+    static final String WEBAPP_1_PATH = "$SERVICES_NAME/$WEBAPP_1_NAME" as String
 
     static void execute(String gradleHome, String samplesDirName) {
         List projects = [SHARED_NAME, API_NAME, WEBAPP_1_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
-
         File javaprojectDir = new File(samplesDirName, 'javaproject')
+
+        // Build and test projects
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'test'], [], '', Executer.DEBUG)
+
+        // Check classes and resources
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
+
+        // Check test classes and resources
         checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
         checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
         checkExistence(javaprojectDir, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
-        checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME" as String, packagePrefix, WEBAPP_1_NAME, 'TestTest.class')
+        checkExistence(javaprojectDir, WEBAPP_1_PATH, packagePrefix, WEBAPP_1_NAME, 'TestTest.class')
 
+        // Check test results and report
+        checkExistence(javaprojectDir, SHARED_NAME, 'build/test-results/TEST-org.gradle.shared.PersonTest.xml')
+        checkExistence(javaprojectDir, SHARED_NAME, 'build/test-results/TESTS-TestSuites.xml')
+        checkExistence(javaprojectDir, SHARED_NAME, 'build/reports/tests/index.html')
+        checkExistence(javaprojectDir, WEBAPP_1_PATH, 'build/test-results/TEST-org.gradle.webapp1.TestTestTest.xml')
+        checkExistence(javaprojectDir, WEBAPP_1_PATH, 'build/test-results/TESTS-TestSuites.xml')
+        checkExistence(javaprojectDir, WEBAPP_1_PATH, 'build/reports/tests/index.html')
+
+        // Javdoc build
+        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'javadoc'], [], '', Executer.DEBUG)
+        checkExistence(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
+        checkExistence(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
+        checkExistence(javaprojectDir, WEBAPP_1_PATH, 'build/docs/javadoc/index.html')
+        
+        // Partial build using current directory
         Executer.execute(gradleHome, new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME").absolutePath,
                 ['clean', 'libs'], [], '', Executer.DEBUG)
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
+
+        // Partial build using task path
         Executer.execute(gradleHome, javaprojectDir.absolutePath,
                 ['clean', "$SHARED_NAME:compile"], [], '', Executer.DEBUG)
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
@@ -51,7 +74,6 @@ class JavaProject {
         // This test is also important for test cleanup
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
         projects.each {assert !(new File(samplesDirName, "$it/build").exists())}
-
     }
 
     private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {
