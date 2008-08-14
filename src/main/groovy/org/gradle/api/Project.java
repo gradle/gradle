@@ -28,26 +28,27 @@ import java.util.Set;
 import java.util.SortedMap;
 
 /**
- * <p>A <code>Project</code> represents a buildable thing, such as a java war or command-line application.  This
- * interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>, you can
- * programmatically access all Gradle's features.</p>
+ * This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>, you
+ * can programmatically access all Gradle's features.</p>
  *
  * <h3>Lifecycle</h3>
  *
- * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>build.gradle</code> script. During
+ * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>build.gradle</code> file. During
  * build initialisation, Gradle assembles a <code>Project</code> object for each project which is to participate in the
  * build, as follows:</p>
  *
  * <ul>
  *
- * <li>Create a {@link Settings} instance for the project</li>
+ * <li>Create a {@link Settings} instance for the build.</li>
  *
  * <li>Evaluate the <code>settings.gradle</code> script, if present, against the {@link Settings} object to configure
  * it.</li>
  *
- * <li>Use the configured {@link Settings} object to create a <code>Project</code> instance.</li>
+ * <li>Use the configured {@link Settings} object to create the hierarchy of <code>Project</code> instances.</li>
  *
- * <li>Finally, evaluate the <code>Project</code> by executing the <code>build.gradle</code> script against it.</p>
+ * <li>Finally, evaluate each <code>Project</code> by executing its <code>build.gradle</code> file, if present, against
+ * the project. The project are evaulated in breadth-wise order, such that a project is evaulated before its child
+ * projects. This order can be overridden by adding an evaluation dependency.</p>
  *
  * </ul>
  *
@@ -143,7 +144,7 @@ import java.util.SortedMap;
  *
  * @author Hans Dockter
  */
-public interface Project {
+public interface Project extends Comparable<Project> {
     /**
      * The default project build file name.
      */
@@ -360,8 +361,8 @@ public interface Project {
     Project usePlugin(Class<? extends Plugin> pluginClass);
 
     /**
-     * <p>Returns the {@link Task} from the project which has the same name the name argument. If no such task exists,
-     * an exception is thrown.</p>
+     * <p>Returns the {@link Task} from the project which has the given name. If no such task exists, an exception is
+     * thrown.</p>
      *
      * <p>You can call this method in your build file using the task name. See <a href="#properties">here</a> for more
      * details.</p>
@@ -373,9 +374,9 @@ public interface Project {
     Task task(String name) throws InvalidUserDataException;
 
     /**
-     * <p>Returns the {@link Task} from this project which has the same name the name argument. Before the task is
-     * returned, the given closure is passed to the task's {@link Task#configure(groovy.lang.Closure)} method. If no
-     * such task exists, an exception is thrown.</p>
+     * <p>Returns the {@link Task} from this project which has the given name. Before the task is returned, the given
+     * closure is passed to the task's {@link Task#configure(groovy.lang.Closure)} method. If no such task exists, an
+     * exception is thrown.</p>
      *
      * <p>You can call this method in your build file using the task name followed by a code block.</p>
      *
@@ -593,6 +594,7 @@ public interface Project {
      * <p>Declares that this project has an evaulation dependency on the project with the given path.</p>
      *
      * @param path The path of the project which this project depends on.
+     * @return The project which this project depends on.
      * @throws UnknownProjectException If no project with the given path exists.
      */
     Project evaluationDependsOn(String path) throws UnknownProjectException;
@@ -791,7 +793,7 @@ public interface Project {
      * @return A set with class objects of plugins applied against this project. Returns an empty set if no plugins have
      *         been applied.
      */
-    Set<Class> getAppliedPlugins();
+    Set<Class<? extends Plugin>> getAppliedPlugins();
 
     Project evaluate();
 

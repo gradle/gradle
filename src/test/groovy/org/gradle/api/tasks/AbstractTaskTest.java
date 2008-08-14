@@ -53,8 +53,6 @@ public abstract class AbstractTaskTest {
 
     private Dag tasksGraph;
 
-    private JUnit4Mockery context = new JUnit4Mockery();
-
 
     @Before
     public void setUp() {
@@ -168,7 +166,7 @@ public abstract class AbstractTaskTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void testAddActionWithNull() {
-        getTask().doLast(null);
+        getTask().doLast((Closure) null);
     }
 
     @Test

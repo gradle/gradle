@@ -34,7 +34,7 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractProject implements Project, Comparable {
+public abstract class AbstractProject implements Project {
     private static Logger logger = LoggerFactory.getLogger(AbstractProject.class);
 
     public static final int STATE_CREATED = 0;
@@ -91,7 +91,7 @@ public abstract class AbstractProject implements Project, Comparable {
 
     private Convention convention;
 
-    private Set<Class> appliedPlugins = new HashSet<Class>();
+    private Set<Class<? extends Plugin>> appliedPlugins = new HashSet<Class<? extends Plugin>>();
 
     private String path = null;
 
@@ -322,11 +322,11 @@ public abstract class AbstractProject implements Project, Comparable {
         this.convention = convention;
     }
 
-    public Set<Class> getAppliedPlugins() {
+    public Set<Class<? extends Plugin>> getAppliedPlugins() {
         return appliedPlugins;
     }
 
-    public void setAppliedPlugins(Set<Class> appliedPlugins) {
+    public void setAppliedPlugins(Set<Class<? extends Plugin>> appliedPlugins) {
         this.appliedPlugins = appliedPlugins;
     }
 
@@ -375,11 +375,10 @@ public abstract class AbstractProject implements Project, Comparable {
         return new Integer(getDepth()).compareTo(otherProject.getDepth());
     }
 
-    public int compareTo(Object other) {
-        AbstractProject otherProject = (AbstractProject) other;
+    public int compareTo(Project otherProject) {
         int depthCompare = depthCompare(otherProject);
         if (depthCompare == 0) {
-            return path.compareTo(otherProject.path);
+            return path.compareTo(otherProject.getPath());
         } else {
             return depthCompare;
         }

@@ -50,7 +50,7 @@ class DefaultSettings implements Settings {
 
     StartParameter buildSrcStartParameter
 
-    List projectPaths = []
+    List<String> projectPaths = []
 
     DefaultSettings() {}
 

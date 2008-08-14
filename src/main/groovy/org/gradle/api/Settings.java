@@ -25,38 +25,60 @@ import java.io.File;
 import java.util.List;
 
 /**
- * <p><code>Settings</code> declares the configuration required to configure and execute a {@link
- * org.gradle.api.Project}.</p>
+ * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
+ * org.gradle.api.Project} instances which are to particpate in a build.</p>
+ *
+ * <p>There is a one-to-one correspondence between a <code>Settings</code> instance and a <code>settings.gradle</code>
+ * settings file. Before Gradle assembles the projects for a build, it creates a <code>Settings</code> instance and
+ * executes the settings file against it.</p>
+ *
+ * <h3>Assembling a Multi-Project Build</h3>
+ *
+ * <p>One of the purposes of the <code>Settings</code> object is to allow you to declare the projects which are to be
+ * included in the build. You add projects to the build using the {@link #include(String[])} method.</p>
+ *
+ * <h3>Defining the Build Classpath</h3>
+ *
+ * <p>Using the <code>Settings</code> object, you can define the classpath which will be used to load the build files,
+ * and all objects used by them. This includes the non-standard plugins which the build files will use.</p>
+ *
+ * <h3>Using Settings from the Settings File</h3>
  *
  * @author Hans Dockter
  */
 public interface Settings {
+    /**
+     * <p>The default name for the settings file.</p>
+     */
     final static String DEFAULT_SETTINGS_FILE = "settings.gradle";
 
     /**
-     * The paths to the project which should take part in this build additional to the project containing the
-     * settings file, which takes always in part in the build.
+     * <p>The paths to the project which should take part in this build additional to the project containing the
+     * settings file, which takes always in part in the build.</p>
      *
-     * A project path in the settings file is slightly different from a project path you use in your build scripts.
-     * A settings project path is always relative to the directory containing the settings file.
+     * <p>A project path in the settings file is slightly different from a project path you use in your build file. A
+     * settings project path is always relative to the directory containing the settings file.</p>
      *
      * @return a list with project paths in the order they have been added.
      */
-    List getProjectPaths();
+    List<String> getProjectPaths();
 
     /**
-     * Adds project paths of projects which should take part in this build, additional to the project containing the
-     * settings file, which takes always in part in the build.
+     * <p>Adds paths of projects which should take part in this build, additional to the project containing the settings
+     * file, which takes always in part in the build.</p>
      *
-     * A project path in the settings file is slightly different from a project path you use in your build scripts.
-     * A settings project path is always relative to the directory containing the settings file.
+     * <p>A project path in the settings file is slightly different from a project path you use in your build file. A
+     * settings project path is always relative to the directory containing the settings file.</p>
      *
      * @param projectPaths the project paths to add
      */
     void include(String[] projectPaths);
 
     /**
-     * @return the dependency manager instance responsible for managing the dependencies for the users build script classpath.
+     * <p>Returns the {@link DependencyManager} which manages the classpath to use for the build files.</p>
+     *
+     * @return the dependency manager instance responsible for managing the dependencies for the users build script
+     *         classpath.
      */
     DependencyManager getDependencyManager();
 
@@ -80,7 +102,7 @@ public interface Settings {
 
     /**
      * Returns the root dir of the build project.
-     * 
+     *
      * @return A file describing the root dir.
      */
     File getRootDir();

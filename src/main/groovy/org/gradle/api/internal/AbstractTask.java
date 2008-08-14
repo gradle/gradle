@@ -250,9 +250,8 @@ public abstract class AbstractTask implements Task {
         return path.hashCode();
     }
 
-    public int compareTo(Object other) {
-        AbstractTask otherTask = (AbstractTask) other;
-        int depthCompare = project.depthCompare(otherTask.project);
+    public int compareTo(Task otherTask) {
+        int depthCompare = project.compareTo(otherTask.getProject());
         if (depthCompare == 0) {
             return getPath().compareTo(otherTask.getPath());
         } else {

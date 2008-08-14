@@ -16,17 +16,17 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.util.AntBuilder;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * <p>A <code>Task</code> represents an single step of a build, such as compiling classes or generating javadoc.</p>
+ * <p>A <code>Task</code> represents a single step of a build, such as compiling classes or generating javadoc.</p>
  *
- * <p>A <code>Task</code> is made up of a sequence of {@link org.gradle.api.TaskAction} objects. When the task is
- * executed, each of the actions is executed in turn, by calling {@link TaskAction#execute(Task,
- * org.gradle.execution.Dag)}.  You can add actions to a task by calling {@link #doFirst(TaskAction)} or {@link
- * #doLast(TaskAction)}.</p>
+ * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
+ * actions is executed in turn, by calling {@link TaskAction#execute(Task, org.gradle.execution.Dag)}.  You can add
+ * actions to a task by calling {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
  *
  * <p>A task belongs to a {@link Project}. You can use the various methods on {@link Project} to create and lookup task
  * instances.</p>
@@ -35,13 +35,15 @@ import java.util.Set;
  *
  * <p>A task may have dependencies on other tasks. Gradle ensures that tasks are executed in dependency order, so that
  * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
- * #dependsOn(Object[])}.</p>
+ * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}</p>
  *
- * <h3>Using a Task in the Build Script</h3>
+ * <h3>Using a Task in the Build File</h3>
+ *
+ * <p>A task generally provides no special build file behaviour, and can be used as a regular script object.</p>
  *
  * @author Hans Dockter
  */
-public interface Task extends Comparable {
+public interface Task extends Comparable<Task> {
     public static final String TASK_NAME = "name";
 
     public static final String TASK_TYPE = "type";
@@ -73,6 +75,13 @@ public interface Task extends Comparable {
      * @return The task actions in the order they are executed. Returns an empty list if this task has no actions.
      */
     List<TaskAction> getActions();
+
+    /**
+     * <p>Sets the sequence of {@link org.gradle.api.TaskAction} objects which will be executed by this task.</p>
+     *
+     * @param actions The actions.
+     */
+    void setActions(List<TaskAction> actions);
 
     /**
      * <p>Returns the paths of the tasks which this task depends on.</p>
@@ -107,7 +116,7 @@ public interface Task extends Comparable {
      * <p>Adds the given task paths to the dependsOn task paths of this task. If the task path is a relative path (which
      * means just a name of a task), the path is interpreted as relative to the path of the project belonging to this
      * task. If the given path is absolute, the given path is used as is. That way you can directly refer to tasks of
-     * other projects in a multiproject build. Although the reccomended way of establishing cross project dependencies,
+     * other projects in a multi-project build. Although the recommended way of establishing cross project dependencies,
      * is via the {@link Project#dependsOn(String)} method of the task's {@link Project}.</p>
      *
      * @param paths The paths of the tasks to add dependencies to.
@@ -124,12 +133,32 @@ public interface Task extends Comparable {
     Task doFirst(TaskAction action);
 
     /**
+     * <p>Adds the given closure to the beginning of this task's action list. If the closure takes 1 parameter, it is
+     * passed this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link
+     * org.gradle.execution.Dag} for the currently executing build.</p>
+     *
+     * @param action The action closure to execute.
+     * @return This task.
+     */
+    Task doFirst(Closure action);
+
+    /**
      * <p>Adds the given {@link TaskAction} to the end of this task's action list.</p>
      *
      * @param action The action to add.
      * @return the task object this method is applied to
      */
     Task doLast(TaskAction action);
+
+    /**
+     * <p>Adds the given closure to the end of this task's action list. If the closure takes 1 parameter, it is passed
+     * this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link
+     * org.gradle.execution.Dag} for the currently executing build.</p>
+     *
+     * @param action The action closure to execute.
+     * @return This task.
+     */
+    Task doLast(Closure action);
 
     /**
      * <p>Removes all the actions of this task.</p>
@@ -189,5 +218,12 @@ public interface Task extends Comparable {
      * @return List of skip properties. Returns empty list when no skip properties are assigned.
      */
     List<String> getSkipProperties();
+
+    /**
+     * <p>Returns the <code>AntBuilder</code> for this task.  You can use this to execute ant tasks.</p>
+     *
+     * @return The <code>AntBuilder</code>
+     */
+    AntBuilder getAnt();
 }
 
