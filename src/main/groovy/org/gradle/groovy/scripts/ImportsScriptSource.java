@@ -15,35 +15,45 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 
-public class StringScriptSource implements ScriptSource {
-    private final String description;
-    private final String content;
+public class ImportsScriptSource implements ScriptSource {
+    private final ScriptSource source;
+    private final ImportsReader importsReader;
+    private final File rootDir;
 
-    public StringScriptSource(String description, String content) {
-        this.description = description;
-        this.content = content;
+    public ImportsScriptSource(ScriptSource source, ImportsReader importsReader, File rootDir) {
+        this.source = source;
+        this.importsReader = importsReader;
+        this.rootDir = rootDir;
+    }
+
+    public ScriptSource getSource() {
+        return source;
     }
 
     public String getText() {
-        if (!GUtil.isTrue(content)) {
+        String text = source.getText();
+        if (!GUtil.isTrue(text)) {
             return null;
         }
-        return content;
+
+        String imports = importsReader.getImports(rootDir);
+        return imports + '\n' + text;
     }
 
     public String getClassName() {
-        return "script";
+        return source.getClassName();
     }
 
     public File getSourceFile() {
-        return null;
+        return source.getSourceFile();
     }
 
     public String getDescription() {
-        return description;
+        return source.getDescription();
     }
 }

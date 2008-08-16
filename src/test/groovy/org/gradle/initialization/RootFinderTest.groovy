@@ -16,16 +16,18 @@
 
 package org.gradle.initialization
 
+import org.gradle.StartParameter
+import org.gradle.api.Project
+import org.gradle.api.Settings
+import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.RootFinder
 import org.gradle.util.HelperUtil
-import org.gradle.api.Project
-import org.gradle.StartParameter
+import org.gradle.util.ReflectionEqualsMatcher
+import org.junit.After
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.AfterClass
-import org.junit.After
 import org.junit.Test
-import org.gradle.api.Settings;
 
 /**
  * @author Hans Dockter
@@ -68,32 +70,32 @@ class RootFinderTest {
     @Test public void testGradleSettingsInCurrentDirWithSearchUpwardsTrue() {
         createSettingsFile(currentDir)
         rootFinder.find(createStartParams(currentDir, true))
-        checkRootFinder(TEST_SETTINGS_TEXT, currentDir)
+        checkRootFinder(currentDir)
     }
 
     @Test public void testGradleSettingsInCurrentDirWithSearchUpwardsFalse() {
         createSettingsFile(currentDir)
         rootFinder.find(createStartParams(currentDir, false))
-        checkRootFinder(TEST_SETTINGS_TEXT, currentDir)
+        checkRootFinder(currentDir)
     }
 
     @Test public void testGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
         createSettingsFile(rootDir)
         rootFinder.find(createStartParams(currentDir, true))
-        checkRootFinder(TEST_SETTINGS_TEXT, rootDir)
+        checkRootFinder(rootDir)
     }
 
     @Test public void testGradleSettingsInUpwardDirWithSearchUpwardsFalse() {
         createSettingsFile(rootDir)
         createPropertyFiles(currentDir)
         rootFinder.find(createStartParams(currentDir, false))
-        checkRootFinder('', currentDir)
+        checkRootFinder(currentDir)
     }
 
     @Test public void testNoGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
         createPropertyFiles(currentDir)
         rootFinder.find(createStartParams(currentDir, true))
-        checkRootFinder('', currentDir)
+        checkRootFinder(currentDir)
     }
 
     private void createSettingsFile(File dir) {
@@ -113,10 +115,14 @@ class RootFinderTest {
         createProps(rootDir, prop1: 'value1RootDir', prop3: 'value3')
     }
 
-    private checkRootFinder(String expectedSettingsText, File expectedRootDir) {
-        assertEquals(expectedSettingsText, rootFinder.settingsText)
+    private checkRootFinder(File expectedRootDir) {
+        File expectedSettingsFile = new File(expectedRootDir, Settings.DEFAULT_SETTINGS_FILE)
+        ScriptSource expectedSettingsScript = new FileScriptSource("settings file", rootFinder.settingsFile)
+
         assertEquals(expectedGradleProperties, rootFinder.gradleProperties)
         assertEquals(expectedRootDir, rootFinder.rootDir)
+        assertEquals(expectedSettingsFile, rootFinder.settingsFile)
+        assertThat(rootFinder.settingsScript, ReflectionEqualsMatcher.reflectionEquals(expectedSettingsScript))
     }
 
     private StartParameter createStartParams(File currentDir, boolean searchUpwards) {

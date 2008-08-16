@@ -70,10 +70,15 @@ public class DefaultScriptProcessorTest {
         testClassLoader = new URLClassLoader(new URL[0]);
         testScriptFileDir = HelperUtil.makeNewTestDir("projectdir");
         testScriptFile = new File(testScriptFileDir, TEST_BUILD_FILE_NAME);
-        testCacheDir = new File(testScriptFileDir, Project.CACHE_DIR_NAME);
+        testCacheDir = new File(new File(testScriptFileDir, Project.CACHE_DIR_NAME), TEST_BUILD_FILE_NAME);
         expectedScript = HelperUtil.createTestScript();
         scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock, CacheUsage.ON);
         source = context.mock(ScriptSource.class);
+
+        context.checking(new Expectations(){{
+            allowing(source).getDescription();
+            will(returnValue("[script source]"));
+        }});
     }
 
     @After

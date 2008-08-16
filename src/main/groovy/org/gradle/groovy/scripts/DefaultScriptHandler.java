@@ -57,13 +57,12 @@ public class DefaultScriptHandler implements IScriptHandler {
         return script;
     }
 
-    public Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File cacheDirParent, Class scriptBaseClass) {
+    public Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class scriptBaseClass) {
         Clock clock = new Clock();
-        File cacheDir = new File(cacheDirParent, scriptName);
-        GFileUtils.deleteDirectory(cacheDir);
-        cacheDir.mkdirs();
+        GFileUtils.deleteDirectory(scriptCacheDir);
+        scriptCacheDir.mkdirs();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
-        configuration.setTargetDirectory(cacheDir);
+        configuration.setTargetDirectory(scriptCacheDir);
         CompilationUnit unit = new CompilationUnit(configuration, null, new GroovyClassLoader(classLoader));
         unit.addSource(scriptName, new ByteArrayInputStream(scriptText.getBytes()));
         try {
@@ -71,8 +70,8 @@ public class DefaultScriptHandler implements IScriptHandler {
         } catch (CompilationFailedException e) {
             throw new GradleScriptException(e, scriptName);
         }
-        logger.info("Timing: Writing script to cache at {} took: {}", cacheDir.getAbsolutePath(), clock.getTime());
-        return loadFromCache(0, classLoader, scriptName, cacheDirParent);
+        logger.info("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
+        return loadFromCache(0, classLoader, scriptName, scriptCacheDir);
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class scriptBaseClass) {
@@ -81,14 +80,14 @@ public class DefaultScriptHandler implements IScriptHandler {
         return configuration;
     }
 
-    public Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File cacheDirParent) {
-        if (cacheFile(cacheDirParent, scriptName).lastModified() < lastModified) {
+    public Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File scriptCacheDir) {
+        if (scriptCacheDir.lastModified() < lastModified) {
             return null;
         }
         Clock clock = new Clock();
         Script script;
         try {
-            URLClassLoader urlClassLoader = new URLClassLoader(WrapUtil.toArray(new File(cacheDirParent, scriptName).toURI().toURL()),
+            URLClassLoader urlClassLoader = new URLClassLoader(WrapUtil.toArray(scriptCacheDir.toURI().toURL()),
                     classLoader);
             script = (Script) urlClassLoader.loadClass(scriptName).newInstance();
         } catch (ClassNotFoundException e) {

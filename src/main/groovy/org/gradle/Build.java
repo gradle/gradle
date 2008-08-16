@@ -118,17 +118,14 @@ public class Build {
     private DefaultSettings init(StartParameter startParameter) {
         rootFinder.find(startParameter);
         setSystemProperties(startParameter.getSystemPropertiesArgs(), rootFinder);
-        DefaultSettings settings = settingsProcessor.process(rootFinder, startParameter);
-        return settings;
+        return settingsProcessor.process(rootFinder, startParameter);
     }
 
     private DefaultSettings initWithCurrentDirAsRoot(StartParameter startParameter) {
-        StartParameter startParameterArg = StartParameter.newInstance(startParameter);
-        startParameterArg.setSearchUpwards(false);
+        startParameter.setSearchUpwards(false);
         rootFinder.find(startParameter);
         setSystemProperties(startParameter.getSystemPropertiesArgs(), rootFinder);
-        DefaultSettings settings = settingsProcessor.createBasicSettings(rootFinder, startParameter);
-        return settings;
+        return settingsProcessor.createBasicSettings(rootFinder, startParameter);
     }
 
     private void setSystemProperties(Map properties, RootFinder rootFinder) {

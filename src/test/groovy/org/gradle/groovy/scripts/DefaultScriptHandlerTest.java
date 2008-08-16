@@ -15,26 +15,19 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.api.InputStreamClassLoader;
-import org.gradle.api.Project;
+import groovy.lang.Script;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.InputStreamClassLoader;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.GFileUtils;
-import org.junit.Before;
 import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
-
-import groovy.lang.Script;
+import java.io.InputStream;
 
 /**
  * @author Hans Dockter
@@ -51,7 +44,6 @@ public class DefaultScriptHandlerTest {
 
     File testProjectDir;
 
-    File cacheDir;
     File scriptCacheDir;
     File cachedFile;
 
@@ -61,8 +53,6 @@ public class DefaultScriptHandlerTest {
 
     Class expectedScriptClass;
 
-
-
     @Before
     public void setUp() throws IOException, ClassNotFoundException {
         testProjectDir = HelperUtil.makeNewTestDir("projectdir");
@@ -70,8 +60,7 @@ public class DefaultScriptHandlerTest {
         InputStream inputStream = this.getClass().getResourceAsStream("/org/gradle/api/ClasspathTester.dat");
         classLoader.loadClass("org.gradle.api.ClasspathTester", inputStream);
         scriptHandler = new DefaultScriptHandler();
-        cacheDir = new File(testProjectDir, Project.CACHE_DIR_NAME);
-        scriptCacheDir = new File(cacheDir, TEST_SCRIPT_NAME);
+        scriptCacheDir = new File(testProjectDir, "cache");
         cachedFile = new File(scriptCacheDir, TEST_SCRIPT_NAME + ".class");
         testScript = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE + "')";
         expectedScriptClass = TestBaseScript.class;
@@ -85,15 +74,15 @@ public class DefaultScriptHandlerTest {
     
     @Test
     public void testWriteToCacheAndLoadFromCache() {
-        Script script = scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, cacheDir, expectedScriptClass);
+        Script script = scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
         checkCacheDestination();
         evaluateScript(script);
-        evaluateScript(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, cacheDir));
+        evaluateScript(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
     }
 
     private void checkCacheDestination() {
-        assert scriptCacheDir.isDirectory();
-        assert cachedFile.isFile();
+        assertTrue(scriptCacheDir.isDirectory());
+        assertTrue(cachedFile.isFile());
     }
 
     @Test public void testCreateScript() {
@@ -110,17 +99,17 @@ public class DefaultScriptHandlerTest {
     }
 
     @Test public void testLoadFromCacheWithNonCachedBuildFile() {
-        assertNull(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, cacheDir));
+        assertNull(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
     }
 
     @Test public void testLoadFromCacheWithStaleCache() {
-        scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, cacheDir, expectedScriptClass);
-        cachedFile.setLastModified(0);
-        assertNull(scriptHandler.loadFromCache(100000, classLoader, TEST_SCRIPT_NAME, cacheDir));
+        scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
+        scriptCacheDir.setLastModified(0);
+        assertNull(scriptHandler.loadFromCache(100000, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
     }
 
     @Test(expected = GradleScriptException.class) public void testWriteToCacheWithException() {
-        Script script = scriptHandler.writeToCache("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, cacheDir, expectedScriptClass);
+        Script script = scriptHandler.writeToCache("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
     }
 
     @Test(expected = GradleScriptException.class) public void testCreateScriptWithException() {

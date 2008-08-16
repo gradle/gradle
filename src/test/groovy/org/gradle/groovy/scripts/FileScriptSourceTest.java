@@ -1,37 +1,41 @@
+/*
+ * Copyright 2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gradle.groovy.scripts;
 
-import org.junit.Test;
-import org.junit.Assert;
-import org.junit.After;
-import org.junit.Before;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import org.junit.runner.RunWith;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.gradle.util.HelperUtil;
-import org.gradle.api.internal.project.ImportsReader;
 import org.apache.commons.io.FileUtils;
+import org.gradle.util.HelperUtil;
+import static org.hamcrest.Matchers.*;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-@RunWith(org.jmock.integration.junit4.JMock.class)
 public class FileScriptSourceTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private ImportsReader importsReader;
     private File testDir;
     private File scriptFile;
     private FileScriptSource source;
 
     @Before
     public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        importsReader = context.mock(ImportsReader.class);
         testDir = HelperUtil.makeNewTestDir();
         scriptFile = new File(testDir, "build.script");
-        source = new FileScriptSource("<file-type>", scriptFile, importsReader);
+        source = new FileScriptSource("<file-type>", scriptFile);
     }
 
     @After
@@ -40,15 +44,9 @@ public class FileScriptSourceTest {
     }
     
     @Test
-    public void loadsScriptFileContentAndPrependsImports() throws IOException {
+    public void loadsScriptFileContentWhenFileExists() throws IOException {
         FileUtils.writeStringToFile(scriptFile, "<content>");
-
-        context.checking(new Expectations(){{
-            one(importsReader).getImports(testDir);
-            will(returnValue("<imports>"));
-        }});
-
-        assertThat(source.getText(), equalTo("<imports>\n<content>"));
+        assertThat(source.getText(), equalTo("<content>"));
     }
 
     @Test
@@ -65,10 +63,10 @@ public class FileScriptSourceTest {
     public void encodesScriptFileBaseNameToClassName() {
         assertThat(source.getClassName(), equalTo("build_script"));
 
-        source = new FileScriptSource("<file-type>", new File(testDir, "name with-some^reserved\nchars"), importsReader);
+        source = new FileScriptSource("<file-type>", new File(testDir, "name with-some^reserved\nchars"));
         assertThat(source.getClassName(), equalTo("name_with_some_reserved_chars"));
 
-        source = new FileScriptSource("<file-type>", new File(testDir, "123"), importsReader);
+        source = new FileScriptSource("<file-type>", new File(testDir, "123"));
         assertThat(source.getClassName(), equalTo("_123"));
     }
 }

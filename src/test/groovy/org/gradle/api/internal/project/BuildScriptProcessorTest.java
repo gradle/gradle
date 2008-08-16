@@ -17,14 +17,16 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Script;
+import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.IProjectScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
+import org.gradle.groovy.scripts.ImportsScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.ReflectionEqualsMatcher;
-import static org.gradle.util.ReflectionEqualsMatcher.*;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -100,18 +102,20 @@ public class BuildScriptProcessorTest {
 
     @Test
     public void testCreateScriptWithInMemoryTextNotSet() {
-        final ScriptSource expectedScriptSource = new FileScriptSource("build file", testBuildScriptFile, importsReaderMock);
+        final ScriptSource expectedScriptSource = new FileScriptSource("build file", testBuildScriptFile);
 
         context.checking(new Expectations() {
             {
                 allowing(testProject).getBuildScriptClassLoader();
                 will(returnValue(expectedClassloader));
+                allowing(testProject).getRootDir();
+                will(returnValue(testProjectDir));
                 allowing(testProject).getProjectDir();
                 will(returnValue(testProjectDir));
                 allowing(testProject).getBuildFileName();
                 will(returnValue(TEST_BUILD_FILE_NAME));
                 one(scriptProcessorMock).createScript(
-                        with(reflectionEquals(expectedScriptSource)),
+                        with(new ScriptSourceMatcher(expectedScriptSource)),
                         with(same(expectedClassloader)),
                         with(equal(ProjectScript.class)));
                 will(returnValue(expectedScript));
@@ -126,7 +130,7 @@ public class BuildScriptProcessorTest {
         buildScriptProcessor = new BuildScriptProcessor(scriptProcessorMock, projectScriptMetaDataMock,
                 importsReaderMock, TEST_SCRIPT_TEXT);
         final File rootDir = testProjectDir.getParentFile();
-        final ScriptSource expectedScriptSource = new StringScriptSource("embedded build script", TEST_SCRIPT_TEXT, rootDir, importsReaderMock);
+        final ScriptSource expectedScriptSource = new StringScriptSource("embedded build script", TEST_SCRIPT_TEXT);
 
         context.checking(new Expectations() {
             {
@@ -135,7 +139,7 @@ public class BuildScriptProcessorTest {
                 allowing(testProject).getBuildScriptClassLoader();
                 will(returnValue(expectedClassloader));
                 one(scriptProcessorMock).createScript(
-                        with(reflectionEquals(expectedScriptSource)),
+                        with(new ScriptSourceMatcher(expectedScriptSource)),
                         with(same(expectedClassloader)),
                         with(equal(ProjectScript.class)));
                 will(returnValue(expectedScript));
@@ -143,5 +147,25 @@ public class BuildScriptProcessorTest {
             }
         });
         buildScriptProcessor.createScript(testProject);
+    }
+
+    private static class ScriptSourceMatcher extends BaseMatcher<ScriptSource> {
+        private final ScriptSource expected;
+
+        private ScriptSourceMatcher(ScriptSource expected) {
+            this.expected = expected;
+        }
+
+        public void describeTo(Description description) {
+            description.appendText("expected script source");
+        }
+
+        public boolean matches(Object o) {
+            if (!ImportsScriptSource.class.isInstance(o)) {
+                return false;
+            }
+            ImportsScriptSource source = (ImportsScriptSource) o;
+            return ReflectionEqualsMatcher.reflectionEquals(expected).matches(source.getSource());
+        }
     }
 }

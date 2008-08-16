@@ -17,13 +17,13 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Script;
-import org.gradle.CacheUsage;
 import org.gradle.api.Project;
 import org.gradle.groovy.scripts.IProjectScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.groovy.scripts.ImportsScriptSource;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -53,14 +53,14 @@ public class BuildScriptProcessor {
     }
 
     public Script createScript(AbstractProject project) {
-        Script projectScript;
+        ScriptSource source;
         if (GUtil.isTrue(inMemoryScriptText)) {
-            ScriptSource source = new StringScriptSource("embedded build script", inMemoryScriptText, project.getRootDir(), importsReader);
-            projectScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
+            source = new StringScriptSource("embedded build script", inMemoryScriptText);
         } else {
-            ScriptSource source = new FileScriptSource("build file", buildFile(project), importsReader);
-            projectScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
+            source = new FileScriptSource("build file", buildFile(project));
         }
+        source = new ImportsScriptSource(source, importsReader, project.getRootDir());
+        Script projectScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
         projectScriptMetaData.applyMetaData(projectScript, project);
         return projectScript;
     }

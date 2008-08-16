@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 
@@ -49,7 +50,8 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
         String text = source.getText();
         if (!GUtil.isTrue(text)) {
-            return returnEmptyScript();
+            logger.info(String.format("%s is not available. Using an empty script!", StringUtils.capitalize(source.getDescription())));
+            return new EmptyScript();
         }
 
         return scriptHandler.createScript(text, classLoader, source.getClassName(), scriptBaseClass);
@@ -58,23 +60,19 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
         File sourceFile = source.getSourceFile();
         File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
-        String cacheFileName = source.getClassName();
+        File scriptCacheDir = new File(cacheDir, sourceFile.getName());
+        String scriptClassName = source.getClassName();
         if (cacheUsage == CacheUsage.ON) {
-            Script cachedScript = scriptHandler.loadFromCache(sourceFile.lastModified(), classLoader, cacheFileName, cacheDir);
+            Script cachedScript = scriptHandler.loadFromCache(sourceFile.lastModified(), classLoader, scriptClassName, scriptCacheDir);
             if (cachedScript != null) {
                 return cachedScript;
             }
         }
-        return scriptHandler.writeToCache(source.getText(), classLoader, cacheFileName, cacheDir, scriptBaseClass);
+        return scriptHandler.writeToCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
     }
 
     private boolean isCacheable(File sourceFile) {
         return cacheUsage != CacheUsage.OFF && sourceFile != null && sourceFile.isFile();
-    }
-
-    private Script returnEmptyScript() {
-        logger.info("No build file available. Using empty script!");
-        return new EmptyScript();
     }
 
     public IScriptHandler getScriptHandler() {

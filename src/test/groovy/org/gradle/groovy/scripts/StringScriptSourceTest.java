@@ -1,8 +1,22 @@
+/*
+ * Copyright 2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gradle.groovy.scripts;
 
 import org.junit.Test;
 import org.junit.Before;
-import org.junit.Assert;
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 import org.junit.runner.RunWith;
@@ -14,34 +28,17 @@ import org.gradle.util.HelperUtil;
 
 import java.io.File;
 
-@RunWith(org.jmock.integration.junit4.JMock.class)
 public class StringScriptSourceTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private ImportsReader importsReader;
-    private File rootDir = HelperUtil.getTestDir();
-    private StringScriptSource source;
-
-    @Before
-    public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        importsReader = context.mock(ImportsReader.class);
-        source = new StringScriptSource("<description>", "<content>", rootDir, importsReader);
-    }
+    private final StringScriptSource source = new StringScriptSource("<description>", "<content>");
 
     @Test
-    public void prependsScriptContentWithImports() {
-        context.checking(new Expectations(){{
-            one(importsReader).getImports(rootDir);
-            will(returnValue("<imports>"));
-        }});
-
-        assertThat(source.getText(), equalTo("<imports>\n<content>"));
+    public void usesProvidedContent() {
+        assertThat(source.getText(), equalTo("<content>"));
     }
 
     @Test
     public void hasNoContentWhenScriptContentIsEmpty() {
-        StringScriptSource source = new StringScriptSource("<description>", "", rootDir, importsReader);
-
+        StringScriptSource source = new StringScriptSource("<description>", "");
         assertThat(source.getText(), nullValue());
     }
 

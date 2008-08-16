@@ -26,21 +26,19 @@ import org.gradle.api.internal.project.ImportsReader
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.IScriptProcessor
 import org.gradle.groovy.scripts.ISettingsScriptMetaData
+import org.gradle.groovy.scripts.ImportsScriptSource
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.RootFinder
 import org.gradle.initialization.SettingsProcessor
-import org.gradle.util.GFileUtils
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import org.junit.After
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
-import org.junit.Before
-import org.junit.Test
-import org.gradle.groovy.scripts.FileScriptSource
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ReflectionEqualsMatcher
 import org.hamcrest.Matchers
+import org.junit.After
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -164,17 +162,15 @@ class SettingsProcessorTest {
 
         ImportsReader mockImportsReader = [getImports: {File importsRootDir -> expectedScriptAttachement }] as ImportsReader
         settingsProcessor.setImportsReader(mockImportsReader)
-            
-        File settingsFile = new File(settingsFileDir, 'settingsfile')
+
+        ScriptSource settingsScript = context.mock(ScriptSource.class)
         expectedRootFinder.rootDir = rootDir
-        String expectedSettingsText = "somesettings"
-        GFileUtils.writeStringToFile(settingsFile, expectedSettingsText)
-        expectedRootFinder.settingsFile = settingsFile
+        expectedRootFinder.settingsScript = settingsScript
         expectedStartParameter = createStartParameter(currentDir)
         expectedSettings.setProjectPaths(includePaths)
         prepareSettingsFactoryMocker(rootDir, currentDir)
         customSettingsFactoryPreparation()
-        ScriptSource expectedScriptSource = new FileScriptSource("settings file", settingsFile, mockImportsReader);
+        ScriptSource expectedScriptSource = new ImportsScriptSource(settingsScript, mockImportsReader, rootDir);
 
         context.checking {
             one(scriptProcessorMock).createScript(

@@ -19,14 +19,16 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.Settings
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.FileScriptSource
 
 /**
  * @author Hans Dockter
  */
 class RootFinder {
     File rootDir
-    File settingsFile = null
-    String settingsText
+    File settingsFile
+    ScriptSource settingsScript
     Map<String, String> gradleProperties = [:]
 
     void find(StartParameter startParameter) {
@@ -42,13 +44,12 @@ class RootFinder {
             searchDir = startParameter.searchUpwards ? searchDir.parentFile : null
         }
         if (!settingsFile) {
-            settingsText = ''
             rootDir = startParameter.currentDir
             settingsFile = new File(rootDir, Settings.DEFAULT_SETTINGS_FILE)
         } else {
-            settingsText = settingsFile.text
             rootDir = settingsFile.parentFile
         }
+        settingsScript = new FileScriptSource("settings file", settingsFile)
         addGradleProperties(rootDir, startParameter)
     }
 
