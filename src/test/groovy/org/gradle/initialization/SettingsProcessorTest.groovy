@@ -37,6 +37,10 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
+import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.util.ReflectionEqualsMatcher
+import org.hamcrest.Matchers
 
 /**
  * @author Hans Dockter
@@ -161,8 +165,6 @@ class SettingsProcessorTest {
         ImportsReader mockImportsReader = [getImports: {File importsRootDir -> expectedScriptAttachement }] as ImportsReader
         settingsProcessor.setImportsReader(mockImportsReader)
             
-        boolean expectedSearchUpwards = false
-
         File settingsFile = new File(settingsFileDir, 'settingsfile')
         expectedRootFinder.rootDir = rootDir
         String expectedSettingsText = "somesettings"
@@ -172,10 +174,13 @@ class SettingsProcessorTest {
         expectedSettings.setProjectPaths(includePaths)
         prepareSettingsFactoryMocker(rootDir, currentDir)
         customSettingsFactoryPreparation()
+        ScriptSource expectedScriptSource = new FileScriptSource("settings file", settingsFile, mockImportsReader);
 
         context.checking {
-            one(scriptProcessorMock).createScriptFromFile(new File(rootDir, Project.CACHE_DIR_NAME), settingsFile, expectedScriptAttachement, expectedStartParameter.cacheUsage,
-                Thread.currentThread().contextClassLoader, Script.class);
+            one(scriptProcessorMock).createScript(
+                    withParam(ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource)),
+                    withParam(Matchers.sameInstance(Thread.currentThread().contextClassLoader)),
+                    withParam(Matchers.equalTo(Script.class)))
             will(returnValue(expectedScript))
             one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
         }

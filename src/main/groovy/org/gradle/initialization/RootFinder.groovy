@@ -44,6 +44,7 @@ class RootFinder {
         if (!settingsFile) {
             settingsText = ''
             rootDir = startParameter.currentDir
+            settingsFile = new File(rootDir, Settings.DEFAULT_SETTINGS_FILE)
         } else {
             settingsText = settingsFile.text
             rootDir = settingsFile.parentFile

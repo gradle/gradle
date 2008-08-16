@@ -16,10 +16,9 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
-import org.gradle.groovy.scripts.EmptyScript;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.CacheUsage;
+import org.gradle.api.Project;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,41 +30,46 @@ import java.io.File;
 public class DefaultScriptProcessor implements IScriptProcessor {
     private static Logger logger = LoggerFactory.getLogger(DefaultScriptProcessor.class);
 
-    private IScriptHandler scriptHandler;
+    private final IScriptHandler scriptHandler;
+    private final CacheUsage cacheUsage;
 
-    public DefaultScriptProcessor(IScriptHandler scriptHandler) {
+    public DefaultScriptProcessor(IScriptHandler scriptHandler, CacheUsage cacheUsage) {
         this.scriptHandler = scriptHandler;
+        this.cacheUsage = cacheUsage;
     }
 
-    public Script createScriptFromFile(File cacheDir, File buildFile, String scriptAttachement,
-                               CacheUsage cacheUsage, ClassLoader classLoader, Class scriptBaseClass) {
-        if (buildFile == null || !buildFile.isFile()) {
+    public Script createScript(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
+        File sourceFile = source.getSourceFile();
+        if (isCacheable(sourceFile)) {
+            return loadViaCache(source, classLoader, scriptBaseClass);
+        }
+        return loadWithoutCache(source, classLoader, scriptBaseClass);
+    }
+
+    private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
+        String text = source.getText();
+        if (!GUtil.isTrue(text)) {
             return returnEmptyScript();
         }
-        String cacheFileName = ConfigureUtil.dot2underscore(buildFile.getName());
-        if (cacheUsage == CacheUsage.OFF) {
-            return scriptHandler.createScript(concatenate(GFileUtils.readFileToString(buildFile), scriptAttachement), classLoader,
-                    cacheFileName, scriptBaseClass);
-        }
 
+        return scriptHandler.createScript(text, classLoader, source.getClassName(), scriptBaseClass);
+    }
+
+    private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
+        File sourceFile = source.getSourceFile();
+        File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
+        String cacheFileName = source.getClassName();
         if (cacheUsage == CacheUsage.ON) {
-            Script cachedScript = scriptHandler.loadFromCache(buildFile.lastModified(), classLoader, cacheFileName, cacheDir);
+            Script cachedScript = scriptHandler.loadFromCache(sourceFile.lastModified(), classLoader, cacheFileName, cacheDir);
             if (cachedScript != null) {
                 return cachedScript;
             }
         }
-        return scriptHandler.writeToCache(
-                concatenate(GFileUtils.readFileToString(buildFile), scriptAttachement), 
-                classLoader,
-                cacheFileName,
-                cacheDir,
-                scriptBaseClass);
+        return scriptHandler.writeToCache(source.getText(), classLoader, cacheFileName, cacheDir, scriptBaseClass);
     }
 
-    public Script createScriptFromText(String scriptText, String scriptAttachement,
-                               String scriptName, ClassLoader classLoader, Class scriptBaseClass) {
-        return scriptHandler.createScript(concatenate(scriptText, scriptAttachement), classLoader,
-                    scriptName, scriptBaseClass);
+    private boolean isCacheable(File sourceFile) {
+        return cacheUsage != CacheUsage.OFF && sourceFile != null && sourceFile.isFile();
     }
 
     private Script returnEmptyScript() {
@@ -76,13 +80,4 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     public IScriptHandler getScriptHandler() {
         return scriptHandler;
     }
-
-    public void setScriptHandler(IScriptHandler scriptHandler) {
-        this.scriptHandler = scriptHandler;
-    }
-
-    private String concatenate(String part1, String part2) {
-        return part1 + System.getProperty("line.separator") + part2; 
-    }
-
 }

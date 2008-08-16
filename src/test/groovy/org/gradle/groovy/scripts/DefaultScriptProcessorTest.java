@@ -17,23 +17,23 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
-import org.gradle.util.HelperUtil;
-import org.junit.runner.RunWith;
-import org.jmock.Mockery;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
-import org.gradle.CacheUsage;
-import org.junit.After;
-import org.junit.Test;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 import org.apache.commons.io.FileUtils;
+import org.gradle.CacheUsage;
+import org.gradle.api.Project;
+import org.gradle.util.HelperUtil;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLClassLoader;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * @author Hans Dockter
@@ -62,19 +62,18 @@ public class DefaultScriptProcessorTest {
 
     Class expectedScriptBaseClass = Script.class;
 
+    ScriptSource source;
+
     @Before
     public void setUp() {
         scriptHandlerMock = context.mock(IScriptHandler.class);
         testClassLoader = new URLClassLoader(new URL[0]);
         testScriptFileDir = HelperUtil.makeNewTestDir("projectdir");
         testScriptFile = new File(testScriptFileDir, TEST_BUILD_FILE_NAME);
-        testCacheDir = new File("scriptCacheDir");
+        testCacheDir = new File(testScriptFileDir, Project.CACHE_DIR_NAME);
         expectedScript = HelperUtil.createTestScript();
-        context.checking(new Expectations() {
-            {
-            }
-        });
-        scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock);
+        scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock, CacheUsage.ON);
+        source = context.mock(ScriptSource.class);
     }
 
     @After
@@ -88,24 +87,73 @@ public class DefaultScriptProcessorTest {
     }
 
     @Test
-    public void testWithNonExistingBuildFile() {
-        assertTrue(scriptProcessor.createScriptFromFile(testCacheDir, testScriptFile, "", CacheUsage.ON, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
+    public void testWithNonExistingSourceFileAndNoText() {
+        context.checking(new Expectations(){{
+            allowing(source).getSourceFile();
+            will(returnValue(testScriptFile));
+            allowing(source).getText();
+            will(returnValue(null));
+        }});
+
+        assertTrue(scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
     }
 
     @Test
-    public void testWithNullBuildFile() {
-        assertTrue(scriptProcessor.createScriptFromFile(testCacheDir, null, "", CacheUsage.ON, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
+    public void testWithNoSourceFileAndNoText() {
+        context.checking(new Expectations(){{
+            allowing(source).getSourceFile();
+            will(returnValue(null));
+            allowing(source).getText();
+            will(returnValue(null));
+        }});
+
+        assertTrue(scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
     }
 
     @Test
-    public void testWithNonCachedExistingBuildFile() {
+    public void testWithNoSouceFileAndNonEmptyText() {
+        context.checking(new Expectations() {
+            {
+                allowing(source).getSourceFile();
+                will(returnValue(null));
+
+                allowing(source).getText();
+                will(returnValue(TEST_SCRIPT_TEXT));
+
+                allowing(source).getClassName();
+                will(returnValue(TEST_SCRIPT_NAME));
+
+                one(scriptHandlerMock).createScript(
+                        TEST_SCRIPT_TEXT,
+                        testClassLoader,
+                        TEST_SCRIPT_NAME,
+                        expectedScriptBaseClass);
+                will(returnValue(expectedScript));
+            }
+        });
+
+        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+    }
+
+    @Test
+    public void testWithNonCachedExistingSourceFile() {
         createBuildScriptFile();
         context.checking(new Expectations() {
             {
+                allowing(source).getSourceFile();
+                will(returnValue(testScriptFile));
+
+                allowing(source).getText();
+                will(returnValue(TEST_SCRIPT_TEXT));
+
+                allowing(source).getClassName();
+                will(returnValue(TEST_SCRIPT_NAME));
+
                 one(scriptHandlerMock).loadFromCache(testScriptFile.lastModified(), testClassLoader, TEST_SCRIPT_NAME, testCacheDir);
                 will(returnValue(null));
+
                 one(scriptHandlerMock).writeToCache(
-                        TEST_SCRIPT_TEXT + System.getProperty("line.separator") + TEST_SCRIPT_ATACHEMENT,
+                        TEST_SCRIPT_TEXT,
                         testClassLoader,
                         TEST_SCRIPT_NAME,
                         testCacheDir,
@@ -114,22 +162,26 @@ public class DefaultScriptProcessorTest {
                 will(returnValue(expectedScript));
             }
         });
-        assertSame(expectedScript, scriptProcessor.createScriptFromFile(testCacheDir, testScriptFile, TEST_SCRIPT_ATACHEMENT,
-                CacheUsage.ON, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
     }
 
     @Test
-    public void testWithExistingCachedBuildFile() {
+    public void testWithExistingCachedSourceFile() {
         createBuildScriptFile();
         context.checking(new Expectations() {
             {
+                allowing(source).getSourceFile();
+                will(returnValue(testScriptFile));
+
+                allowing(source).getClassName();
+                will(returnValue(TEST_SCRIPT_NAME));
+
                 one(scriptHandlerMock).loadFromCache(testScriptFile.lastModified(), testClassLoader, TEST_SCRIPT_NAME, testCacheDir);
                 will(returnValue(expectedScript));
             }
         });
 
-        assertSame(expectedScript, scriptProcessor.createScriptFromFile(testCacheDir, testScriptFile, TEST_SCRIPT_ATACHEMENT,
-                CacheUsage.ON, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
     }
 
     @Test
@@ -137,8 +189,17 @@ public class DefaultScriptProcessorTest {
         createBuildScriptFile();
         context.checking(new Expectations() {
             {
+                allowing(source).getSourceFile();
+                will(returnValue(testScriptFile));
+
+                allowing(source).getText();
+                will(returnValue(TEST_SCRIPT_TEXT));
+
+                allowing(source).getClassName();
+                will(returnValue(TEST_SCRIPT_NAME));
+
                 one(scriptHandlerMock).writeToCache(
-                        TEST_SCRIPT_TEXT + System.getProperty("line.separator") + TEST_SCRIPT_ATACHEMENT,
+                        TEST_SCRIPT_TEXT,
                         testClassLoader,
                         TEST_SCRIPT_NAME,
                         testCacheDir,
@@ -147,46 +208,51 @@ public class DefaultScriptProcessorTest {
             }
         });
 
-        assertSame(expectedScript, scriptProcessor.createScriptFromFile(testCacheDir, testScriptFile, TEST_SCRIPT_ATACHEMENT,
-                CacheUsage.REBUILD, testClassLoader, expectedScriptBaseClass));
+        scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock, CacheUsage.REBUILD);
+        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
     }
 
     @Test
-    public void testWithInMemoryScriptText() {
-        context.checking(new Expectations() {
-            {
-                one(scriptHandlerMock).createScript(
-                        TEST_IN_MEMORY_SCRIPT_TEXT + System.getProperty("line.separator") + TEST_SCRIPT_ATACHEMENT,
-                        testClassLoader,
-                        TEST_SCRIPT_NAME,
-                        expectedScriptBaseClass);
-                will(returnValue(expectedScript));
-            }
-        });
-        assertSame(expectedScript, scriptProcessor.createScriptFromText(TEST_IN_MEMORY_SCRIPT_TEXT, TEST_SCRIPT_ATACHEMENT,
-                TEST_SCRIPT_NAME, testClassLoader, expectedScriptBaseClass));
-    }
-
-    @Test
-    public void testWithExistingBuildFileAndCacheOff() {
+    public void testWithExistingSourceFileAndCacheOff() {
         createBuildScriptFile();
         context.checking(new Expectations() {
             {
+                allowing(source).getSourceFile();
+                will(returnValue(testScriptFile));
+
+                allowing(source).getText();
+                will(returnValue(TEST_SCRIPT_TEXT));
+
+                allowing(source).getClassName();
+                will(returnValue(TEST_SCRIPT_NAME));
+
                 one(scriptHandlerMock).createScript(
-                        TEST_SCRIPT_TEXT + System.getProperty("line.separator") + TEST_SCRIPT_ATACHEMENT,
+                        TEST_SCRIPT_TEXT,
                         testClassLoader,
                         TEST_SCRIPT_NAME,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
         });
-        assertSame(expectedScript, scriptProcessor.createScriptFromFile(testCacheDir, testScriptFile, TEST_SCRIPT_ATACHEMENT,
-                CacheUsage.OFF, testClassLoader, expectedScriptBaseClass));
+
+        scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock, CacheUsage.OFF);
+        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
     }
 
     @Test
-    public void testWithNonExistingBuildFileAndCacheOff() {
-        assertTrue(scriptProcessor.createScriptFromFile(testCacheDir, testScriptFile, "", CacheUsage.OFF, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
+    public void testWithNonExistingSourceFileAndCacheOff() {
+        context.checking(new Expectations() {
+            {
+                allowing(source).getSourceFile();
+                will(returnValue(testScriptFile));
+
+                allowing(source).getText();
+                will(returnValue(""));
+            }
+        });
+
+        scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock, CacheUsage.OFF);
+        assertTrue(scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
     }
 
     private void createBuildScriptFile() {

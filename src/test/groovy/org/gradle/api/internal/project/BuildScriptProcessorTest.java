@@ -17,25 +17,27 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Script;
-import org.gradle.util.HelperUtil;
-import org.junit.runner.RunWith;
-import org.jmock.Mockery;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.gradle.api.Project;
-import org.gradle.CacheUsage;
-import org.gradle.groovy.scripts.IScriptProcessor;
 import org.gradle.groovy.scripts.IProjectScriptMetaData;
+import org.gradle.groovy.scripts.IScriptProcessor;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.ReflectionEqualsMatcher;
+import static org.gradle.util.ReflectionEqualsMatcher.*;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertNull;
+import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.net.URLClassLoader;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * @author Hans Dockter
@@ -43,9 +45,7 @@ import java.net.URL;
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BuildScriptProcessorTest {
     static final String TEST_BUILD_FILE_NAME = "mybuild.craidle";
-    static final String TEST_BUILD_FILE_SCRIPT_NAME = "mybuild_craidle";
     static final String TEST_SCRIPT_TEXT = "sometext";
-    static final String TEST_IMPORTS = "import org.gradle.api.*";
 
     BuildScriptProcessor buildScriptProcessor;
 
@@ -65,7 +65,6 @@ public class BuildScriptProcessorTest {
     IProjectScriptMetaData projectScriptMetaDataMock;
 
     Mockery context = new JUnit4Mockery();
-    private CacheUsage expectedCacheUsage;
 
     @Before
     public void setUp() {
@@ -82,9 +81,8 @@ public class BuildScriptProcessorTest {
                 return null; 
             }
         };
-        expectedCacheUsage = CacheUsage.ON;
         buildScriptProcessor = new BuildScriptProcessor(scriptProcessorMock, projectScriptMetaDataMock,
-                importsReaderMock, null, expectedCacheUsage);
+                importsReaderMock, null);
     }
 
     @After
@@ -97,33 +95,27 @@ public class BuildScriptProcessorTest {
         assertSame(scriptProcessorMock, buildScriptProcessor.getScriptProcessor());
         assertSame(projectScriptMetaDataMock, buildScriptProcessor.getProjectScriptMetaData());
         assertSame(importsReaderMock, buildScriptProcessor.getImportsReader());
-        assertSame(expectedCacheUsage, buildScriptProcessor.getCacheUsage());
         assertNull(buildScriptProcessor.getInMemoryScriptText());
     }
 
     @Test
     public void testCreateScriptWithInMemoryTextNotSet() {
+        final ScriptSource expectedScriptSource = new FileScriptSource("build file", testBuildScriptFile, importsReaderMock);
+
         context.checking(new Expectations() {
             {
-                allowing(testProject).getRootDir();
-                will(returnValue(testProjectDir.getParentFile()));
                 allowing(testProject).getBuildScriptClassLoader();
                 will(returnValue(expectedClassloader));
                 allowing(testProject).getProjectDir();
                 will(returnValue(testProjectDir));
                 allowing(testProject).getBuildFileName();
                 will(returnValue(TEST_BUILD_FILE_NAME));
-                allowing(importsReaderMock).getImports(testProjectDir.getParentFile());
-                will(returnValue(TEST_IMPORTS));
-                one(scriptProcessorMock).createScriptFromFile(
-                        new File(testProjectDir, Project.CACHE_DIR_NAME),
-                        testBuildScriptFile,
-                        TEST_IMPORTS,
-                        CacheUsage.ON,
-                        expectedClassloader,
-                        ProjectScript.class);
+                one(scriptProcessorMock).createScript(
+                        with(reflectionEquals(expectedScriptSource)),
+                        with(same(expectedClassloader)),
+                        with(equal(ProjectScript.class)));
                 will(returnValue(expectedScript));
-                one(projectScriptMetaDataMock).applyMetaData((ProjectScript) expectedScript, testProject);
+                one(projectScriptMetaDataMock).applyMetaData(expectedScript, testProject);
             }
         });
         buildScriptProcessor.createScript(testProject);
@@ -132,25 +124,22 @@ public class BuildScriptProcessorTest {
     @Test
     public void testCreateScriptWithInMemoryTextSet() {
         buildScriptProcessor = new BuildScriptProcessor(scriptProcessorMock, projectScriptMetaDataMock,
-                importsReaderMock, TEST_SCRIPT_TEXT, expectedCacheUsage);
+                importsReaderMock, TEST_SCRIPT_TEXT);
+        final File rootDir = testProjectDir.getParentFile();
+        final ScriptSource expectedScriptSource = new StringScriptSource("embedded build script", TEST_SCRIPT_TEXT, rootDir, importsReaderMock);
+
         context.checking(new Expectations() {
             {
                 allowing(testProject).getRootDir();
-                will(returnValue(testProjectDir.getParentFile()));
+                will(returnValue(rootDir));
                 allowing(testProject).getBuildScriptClassLoader();
                 will(returnValue(expectedClassloader));
-                allowing(testProject).getBuildFileCacheName();
-                will(returnValue(TEST_BUILD_FILE_SCRIPT_NAME));
-                allowing(importsReaderMock).getImports(testProjectDir.getParentFile());
-                will(returnValue(TEST_IMPORTS));
-                one(scriptProcessorMock).createScriptFromText(
-                        TEST_SCRIPT_TEXT,
-                        TEST_IMPORTS,
-                        TEST_BUILD_FILE_SCRIPT_NAME,
-                        expectedClassloader,
-                        ProjectScript.class);
+                one(scriptProcessorMock).createScript(
+                        with(reflectionEquals(expectedScriptSource)),
+                        with(same(expectedClassloader)),
+                        with(equal(ProjectScript.class)));
                 will(returnValue(expectedScript));
-                one(projectScriptMetaDataMock).applyMetaData((ProjectScript) expectedScript, testProject);
+                one(projectScriptMetaDataMock).applyMetaData(expectedScript, testProject);
             }
         });
         buildScriptProcessor.createScript(testProject);

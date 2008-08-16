@@ -18,13 +18,13 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Script;
 import org.gradle.CacheUsage;
-import org.gradle.util.GradleUtil;
-import org.gradle.util.GUtil;
 import org.gradle.api.Project;
 import org.gradle.groovy.scripts.IProjectScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -32,13 +32,9 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class BuildScriptProcessor {
-    private static Logger logger = LoggerFactory.getLogger(BuildScriptProcessor.class);
-
     String inMemoryScriptText;
 
     ImportsReader importsReader;
-
-    CacheUsage cacheUsage;
 
     IScriptProcessor scriptProcessor;
 
@@ -49,28 +45,21 @@ public class BuildScriptProcessor {
     }
 
     public BuildScriptProcessor(IScriptProcessor scriptProcessor, IProjectScriptMetaData projectScriptMetaData,
-                                ImportsReader importsReader, String inMemoryScriptText, CacheUsage cacheUsage) {
+                                ImportsReader importsReader, String inMemoryScriptText) {
         this.scriptProcessor = scriptProcessor;
         this.projectScriptMetaData = projectScriptMetaData;
         this.importsReader = importsReader;
         this.inMemoryScriptText = inMemoryScriptText;
-        this.cacheUsage = cacheUsage;
     }
 
     public Script createScript(AbstractProject project) {
-        String imports = importsReader.getImports(project.getRootDir());
         Script projectScript;
         if (GUtil.isTrue(inMemoryScriptText)) {
-            projectScript = scriptProcessor.createScriptFromText(inMemoryScriptText, imports, project.getBuildFileCacheName(),
-                    project.getBuildScriptClassLoader(), ProjectScript.class);
+            ScriptSource source = new StringScriptSource("embedded build script", inMemoryScriptText, project.getRootDir(), importsReader);
+            projectScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
         } else {
-            projectScript = scriptProcessor.createScriptFromFile(
-                    cacheDir(project),
-                    buildFile(project),
-                    imports,
-                    cacheUsage,
-                    project.getBuildScriptClassLoader(),
-                    ProjectScript.class);
+            ScriptSource source = new FileScriptSource("build file", buildFile(project), importsReader);
+            projectScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
         }
         projectScriptMetaData.applyMetaData(projectScript, project);
         return projectScript;
@@ -80,20 +69,12 @@ public class BuildScriptProcessor {
         return new File(project.getProjectDir(), project.getBuildFileName());
     }
 
-    private File cacheDir(Project project) {
-        return new File(project.getProjectDir(), Project.CACHE_DIR_NAME);
-    }
-
     public IProjectScriptMetaData getProjectScriptMetaData() {
         return projectScriptMetaData;
     }
 
     public IScriptProcessor getScriptProcessor() {
         return scriptProcessor;
-    }
-
-    public CacheUsage getCacheUsage() {
-        return cacheUsage;
     }
 
     public ImportsReader getImportsReader() {

@@ -22,12 +22,14 @@ import java.io.File;
 import org.gradle.CacheUsage;
 
 /**
+ * Loads scripts from text source into a {@link Script} object.
+ *
  * @author Hans Dockter
  */
 public interface IScriptProcessor {
-    Script createScriptFromFile(File cacheDir, File buildFile, String scriptAttachement,
-                        CacheUsage cacheUsage, ClassLoader classLoader, Class scriptBaseClass);
 
-    Script createScriptFromText(String inMemoryScriptText, String scriptAttachement,
-                        String scriptName, ClassLoader classLoader, Class scriptBaseClass);
+    /**
+     * Loads a script from the given source, creating a class with the given base class and ClassLoader.
+     */
+    Script createScript(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass);
 }

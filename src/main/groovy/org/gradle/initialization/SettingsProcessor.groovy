@@ -27,6 +27,8 @@ import org.gradle.util.GradleUtil
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.FileScriptSource
 
 /**
 * @author Hans Dockter
@@ -69,12 +71,9 @@ class SettingsProcessor {
         initDependencyManagerFactory(rootFinder)
         DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
         try {
-            String importsResult = importsReader.getImports(rootFinder.rootDir)
-            Script settingsScript = scriptProcessor.createScriptFromFile(
-                    cacheDir(rootFinder.rootDir),
-                    rootFinder.settingsFile,
-                    importsResult,
-                    startParameter.getCacheUsage(),
+            ScriptSource source = new FileScriptSource("settings file", rootFinder.settingsFile, importsReader)
+            Script settingsScript = scriptProcessor.createScript(
+                    source,
                     Thread.currentThread().contextClassLoader,
                     Script.class)
             settingsScriptMetaData.applyMetaData(settingsScript, settings)
@@ -89,10 +88,6 @@ class SettingsProcessor {
             return createBasicSettings(rootFinder, startParameter)
         }
         settings
-    }
-
-    private File cacheDir(File rootDir) {
-        return new File(rootDir, Project.CACHE_DIR_NAME);
     }
 
     private def initDependencyManagerFactory(RootFinder rootFinder) {

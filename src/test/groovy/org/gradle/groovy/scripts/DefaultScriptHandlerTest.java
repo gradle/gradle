@@ -103,6 +103,8 @@ public class DefaultScriptHandlerTest {
 
     private void evaluateScript(Script script) {
         assertTrue(expectedScriptClass.isInstance(script));
+        assertEquals(script.getClass().getSimpleName(), TEST_SCRIPT_NAME);
+        System.setProperty(TEST_EXPECTED_SYSTEMPROP_KEY, "not the expected value");
         script.run();
         assertEquals(TEST_EXPECTED_SYSTEMPROP_VALUE, System.getProperty(TEST_EXPECTED_SYSTEMPROP_KEY));
     }

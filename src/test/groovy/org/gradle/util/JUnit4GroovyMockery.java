@@ -22,12 +22,17 @@ package org.gradle.util;
 import groovy.lang.Closure;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.hamcrest.Matcher;
 
 public class JUnit4GroovyMockery extends JUnit4Mockery {
     class ClosureExpectations extends Expectations {
         void closureInit(Closure cl, Object delegate) {
             cl.setDelegate(delegate);
             cl.call();
+        }
+
+        <T> void withParam(Matcher<T> matcher) {
+            this.with(matcher);
         }
     }
 

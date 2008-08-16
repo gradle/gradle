@@ -23,10 +23,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
 import org.gradle.execution.*;
-import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
-import org.gradle.groovy.scripts.DefaultScriptHandler;
-import org.gradle.groovy.scripts.DefaultScriptProcessor;
-import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
+import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
@@ -173,7 +170,7 @@ public class Build {
             public Build newInstance(String inMemoryScriptText, File buildResolverDir) {
                 DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
                 ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
-                DefaultScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler());
+                IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(), startParameter.getCacheUsage());
                 Dag tasksGraph = new Dag();
                 Build build =  new Build(
                         new RootFinder(),
@@ -193,8 +190,8 @@ public class Build {
                                                 scriptProcessor,
                                                 new DefaultProjectScriptMetaData(),
                                                 importsReader,
-                                                inMemoryScriptText,
-                                                startParameter.getCacheUsage()),
+                                                inMemoryScriptText
+                                        ),
                                         new PluginRegistry(
                                                 startParameter.getPluginPropertiesFile()),
                                         startParameter.getBuildFileName(),
