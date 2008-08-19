@@ -19,8 +19,10 @@ package org.gradle.api.dependencies;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Project;
+import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -29,13 +31,16 @@ import java.util.Set;
 public class ProjectDependency extends AbstractDependency {
     private String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION;
 
+    private Project project;
+
     public ProjectDependency(Project dependencyProject, String dependencyConfiguration) {
-        super(null, dependencyProject, null);
+        this(null, dependencyProject, null);
         this.dependencyConfiguration = dependencyConfiguration;
     }
 
     public ProjectDependency(Set confs, Object userDependencyDescription, Project project) {
-        super(confs, userDependencyDescription, project);
+        super(confs, userDependencyDescription);
+        this.project = project;
     }
 
     public boolean isValidDescription(Object userDependencyDescription) {
@@ -65,7 +70,8 @@ public class ProjectDependency extends AbstractDependency {
 
     public void initialize() {
         for (String conf : getConfs()) {
-            for (String taskName : getProject().getDependencies().getTasks4Conf().get(conf)) {
+            Set<String> tasks = GUtil.elvis(getProject().getDependencies().getTasks4Conf().get(conf), new HashSet<String>()); 
+            for (String taskName : tasks) {
                  getDependencyProject().evaluate();
                     getProject().task(taskName).dependsOn(getDependencyProject().task(getDependencyProject().getDependencies().getArtifactProductionTaskName()).getPath());
             }
@@ -78,5 +84,13 @@ public class ProjectDependency extends AbstractDependency {
 
     public void setDependencyConfiguration(String dependencyConfiguration) {
         this.dependencyConfiguration = dependencyConfiguration;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 }

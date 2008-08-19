@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.dependencies.DependencyContainer;
+import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
@@ -219,4 +220,6 @@ public interface DependencyManager extends DependencyContainer {
     void publish(List<String> configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor);
 
     ModuleRevisionId createModuleRevisionId();
+
+    ExcludeRuleContainer getExcludeRules();
 }

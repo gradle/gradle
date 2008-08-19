@@ -17,10 +17,10 @@ package org.gradle.util;
 
 import org.gradle.api.UncheckedIOException;
 
-import java.util.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -133,6 +133,15 @@ public class GUtil {
             taskCollection = new ArrayList();
         }
         return taskCollection;
+    }
+
+    public static Map map(Object... objects) {
+        Map map = new HashMap();
+        assert objects.length % 2 == 0;
+        for (int i = 0; i < objects.length; i += 2) {
+            map.put(objects[i], objects[i + 1]);
+        }
+        return map;
     }
 
 }

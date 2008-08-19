@@ -27,6 +27,7 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.GradleArtifact;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.util.GUtil;
@@ -108,6 +109,8 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     boolean failForMissingDependencies = true;
 
+    private ExcludeRuleContainer excludeRules;
+
     public BaseDependencyManager() {
 
     }
@@ -115,7 +118,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
     public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
                                  SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                                  IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                                 File buildResolverDir) {
+                                 File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(dependencyFactory, new ArrayList());
         assert buildResolverDir != null;
         this.ivyFactory = ivyFactory;
@@ -126,6 +129,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         this.dependencyPublisher = dependencyPublisher;
         this.localReposCacheHandler.setBuildResolverDir(buildResolverDir);
         this.buildResolverHandler.setBuildResolverDir(buildResolverDir);
+        this.excludeRules = excludeRuleContainer;
     }
 
     public List resolve(String conf) {
@@ -416,5 +420,13 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     public void setChainConfigurer(Closure chainConfigurer) {
         this.chainConfigurer = chainConfigurer;
+    }
+
+    public ExcludeRuleContainer getExcludeRules() {
+        return excludeRules;
+    }
+
+    public void setExcludeRules(ExcludeRuleContainer excludeRules) {
+        this.excludeRules = excludeRules;
     }
 }

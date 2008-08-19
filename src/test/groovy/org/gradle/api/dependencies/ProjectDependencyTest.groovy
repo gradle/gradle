@@ -35,9 +35,7 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-class ProjectDependencyTest {
-    static final String TEST_CONF = "conf"
-    static final Set TEST_CONF_SET = [TEST_CONF]
+class ProjectDependencyTest extends AbstractDependencyTest {
     static final String TEST_DEPENDENCY_CONF = "depconf"
 
     ProjectDependency projectDependency
@@ -45,6 +43,14 @@ class ProjectDependencyTest {
     DefaultProject dependencyProject
     ModuleRevisionId dependencyProjectModuleRevisionId
     String dependencyProjectArtifactProductionTaskName
+
+    protected AbstractDependency getDependency() {
+        return projectDependency
+    }
+
+    protected Object getUserDescription() {
+        return dependencyProject;
+    }
 
     @Before public void setUp() {
         project = HelperUtil.createRootProject(new File('root'))

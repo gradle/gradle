@@ -17,20 +17,12 @@
 package org.gradle.api.dependencies;
 
 import groovy.lang.GString;
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.DependenciesUtil;
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,16 +32,16 @@ import java.util.Set;
 public class ModuleDependency extends AbstractDependency {
     private boolean force = false;
 
-    private List excludeRules = new ArrayList();
-
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory();
 
-    public ModuleDependency(Object userDependencyDescription) {
-        super(null, userDependencyDescription, null);
-    }
+    private ExcludeRuleContainer excludeRules;
 
-    public ModuleDependency(Set confs, Object userDependencyDescription, Project project) {
-        super(confs, userDependencyDescription, project);
+    public ModuleDependency(Set confs, Object userDependencyDescription, ExcludeRuleContainer excludeRuleContainer) {
+        super(confs, userDependencyDescription);
+        if (excludeRuleContainer == null) {
+            throw new InvalidUserDataException("ExcludeRuleContainer must not be null!");
+        }
+        excludeRules = excludeRuleContainer;
     }
 
     public boolean isValidDescription(Object userDependencyDescription) {
@@ -66,17 +58,11 @@ public class ModuleDependency extends AbstractDependency {
 
     public DependencyDescriptor createDepencencyDescriptor() {
         return dependencyDescriptorFactory.createDescriptor(getUserDependencyDescription().toString(), force, true, false, getConfs(),
-                excludeRules);
+                excludeRules.getRules());
     }
 
     public ModuleDependency exclude(Map<String, String> args) {
-        String org = GUtil.elvis(args.get("org"), PatternMatcher.ANY_EXPRESSION);
-        String module = GUtil.elvis(args.get("module"), PatternMatcher.ANY_EXPRESSION);
-        excludeRules.add(new DefaultExcludeRule(new ArtifactId(
-                new ModuleId(org, module), PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
-                ExactPatternMatcher.INSTANCE, null));
+        excludeRules.add(args);
         return this;
     }
 
@@ -93,19 +79,19 @@ public class ModuleDependency extends AbstractDependency {
         this.force = force;
     }
 
-    public List getExcludeRules() {
-        return excludeRules;
-    }
-
-    public void setExcludeRules(List excludeRules) {
-        this.excludeRules = excludeRules;
-    }
-
     public DependencyDescriptorFactory getDependencyDescriptorFactory() {
         return dependencyDescriptorFactory;
     }
 
     public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    }
+
+    public ExcludeRuleContainer getExcludeRules() {
+        return excludeRules;
+    }
+
+    public void setExcludeRules(ExcludeRuleContainer excludeRules) {
+        this.excludeRules = excludeRules;
     }
 }

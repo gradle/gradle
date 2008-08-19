@@ -17,9 +17,10 @@
 package org.gradle.api.internal.dependencies
 
 import org.gradle.api.DependencyManager
+import org.gradle.api.dependencies.ExcludeRuleContainer
 import org.gradle.util.WrapUtil
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
@@ -34,9 +35,9 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
                              SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                              IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                             File buildResolverDir) {
+                             File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(ivyFactory, dependencyFactory, artifactFactory, settingsConverter, moduleDescriptorConverter,
-                dependencyResolver, dependencyPublisher, buildResolverDir);
+                dependencyResolver, dependencyPublisher, buildResolverDir, excludeRuleContainer);
         assert buildResolverDir != null;
         this.ivyFactory = ivyFactory;
         this.artifactFactory = artifactFactory;

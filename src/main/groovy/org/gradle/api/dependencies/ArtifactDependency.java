@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DependenciesUtil;
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.WrapUtil;
@@ -38,8 +37,8 @@ public class ArtifactDependency extends AbstractDependency {
 
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory();
 
-    public ArtifactDependency(Set confs, Object userDependencyDescription, Project project) {
-        super(confs, userDependencyDescription, project);
+    public ArtifactDependency(Set confs, Object userDependencyDescription) {
+        super(confs, userDependencyDescription);
     }
 
     public boolean isValidDescription(Object userDependencyDescription) {
@@ -67,5 +66,17 @@ public class ArtifactDependency extends AbstractDependency {
             artifactDescriptor.addConfiguration(conf);
         }
         return dd;
+    }
+
+    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
+        return dependencyDescriptorFactory;
+    }
+
+    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    }
+
+    public boolean isForce() {
+        return force;
     }
 }

@@ -27,6 +27,7 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
+import org.gradle.api.dependencies.ExcludeRuleContainer
 import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.util.JUnit4GroovyMockery
@@ -60,6 +61,8 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     IvySettings expectedSettings
     Ivy expectedIvy
 
+    ExcludeRuleContainer testExcludeRuleContainer;
+
     JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
     public DefaultDependencyContainer getTestObj() {
@@ -77,11 +80,12 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         artifactFactory = context.mock(ArtifactFactory)
         dependencyResolverMock = context.mock(IDependencyResolver)
         dependencyPublisherMock = context.mock(IDependencyPublisher)
+        testExcludeRuleContainer = new DefaultExcludeRuleContainer()
         settingsConverter = context.mock(SettingsConverter)
         buildResolverDir = new File('buildResolverDir')
         moduleDescriptorConverter = context.mock(ModuleDescriptorConverter)
         dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, artifactFactory, settingsConverter,
-                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir)
+                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir, testExcludeRuleContainer)
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
@@ -99,6 +103,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
         assert dependencyManager.dependencyResolver.is(dependencyResolverMock)
         assert dependencyManager.dependencyPublisher.is(dependencyPublisherMock)
+        assert dependencyManager.excludeRules.is(testExcludeRuleContainer)
         assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.classpathResolvers
         assert dependencyManager.failForMissingDependencies

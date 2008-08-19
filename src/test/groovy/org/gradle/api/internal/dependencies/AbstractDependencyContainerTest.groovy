@@ -27,7 +27,7 @@ import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith;
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
@@ -125,7 +125,7 @@ public abstract class AbstractDependencyContainerTest {
     private void checkAddDependency(List expectedConfs, Closure addDependencyMethod) {
         String expectedId = 'someid'
 
-        ModuleDependency testModuleDependency = new ModuleDependency('org:name:1.0')
+        ModuleDependency testModuleDependency = new ModuleDependency(null, 'org:name:1.0', new DefaultExcludeRuleContainer())
 
         context.checking {
             one(dependencyFactory).createDependency(expectedConfs as Set,

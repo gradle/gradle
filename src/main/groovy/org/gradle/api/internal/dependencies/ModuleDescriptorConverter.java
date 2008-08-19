@@ -46,10 +46,17 @@ public class ModuleDescriptorConverter {
         }
         addDependencyDescriptors(moduleDescriptor, dependencyManager);
         addArtifacts(moduleDescriptor, dependencyManager);
+        addExcludes(moduleDescriptor, dependencyManager);
         return moduleDescriptor;
     }
 
-    void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
+    private void addExcludes(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
+        for (ExcludeRule excludeRule : dependencyManager.getExcludeRules().getRules()) {
+            moduleDescriptor.addExcludeRule(excludeRule);
+        }
+    }
+
+    private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
         for (Dependency dependency : dependencyManager.getDependencies()) {
             moduleDescriptor.addDependency(dependency.createDepencencyDescriptor());
         }
@@ -58,7 +65,7 @@ public class ModuleDescriptorConverter {
         }
     }
 
-    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
+    private void addArtifacts(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
         for (String conf : dependencyManager.getArtifacts().keySet()) {
             List<GradleArtifact> gradleArtifacts = dependencyManager.getArtifacts().get(conf);
             for (GradleArtifact gradleArtifact : gradleArtifacts) {

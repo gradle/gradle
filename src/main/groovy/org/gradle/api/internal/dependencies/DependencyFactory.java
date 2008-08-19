@@ -22,49 +22,44 @@ import org.gradle.api.Project;
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.dependencies.Dependency;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DependencyFactory {
-    List<Class> dependencyImplementations;
+    private Set<IDependencyImplementationFactory> dependencyFactories;
 
-    DependencyFactory(List<Class> dependencyImplementations) {
-        this.dependencyImplementations = dependencyImplementations;
+    DependencyFactory(Set<IDependencyImplementationFactory> dependencyFactories) {
+        this.dependencyFactories = dependencyFactories;
     }
 
     Dependency createDependency(Set confs, Object userDependencyDescription, Project project) {
         Dependency dependency = null;
-
-        if (userDependencyDescription instanceof Dependency) {
-            dependency = (Dependency) userDependencyDescription;
-            dependency.setProject(project);
-            dependency.setConfs(confs);
-        } else {
-            for (Class dependencyType : dependencyImplementations) {
-                try {
-                    Constructor constructor = dependencyType.getDeclaredConstructor(Set.class, Object.class, Project.class);
-                    dependency = (Dependency) constructor.newInstance(confs, userDependencyDescription, project);
-                }
-                catch (InvocationTargetException e) {
-                    if (e.getCause() != null && !(e.getCause() instanceof UnknownDependencyNotation)) {
-                        throw new GradleException(e);
-                    }
-                }
-                catch (Exception e) {
-                    throw new GradleException("Dependency creation error.", e);
-                }
+        for (IDependencyImplementationFactory factory : dependencyFactories) {
+            try {
+                dependency = factory.createDependency(confs, userDependencyDescription, project);
+                break;
+            }
+            catch (UnknownDependencyNotation e) {
+                // ignore
+            }
+            catch (Exception e) {
+                throw new GradleException("Dependency creation error.", e);
             }
         }
+
         if (dependency == null) {
             throw new InvalidUserDataException("The dependency notation: " + userDependencyDescription + " is invalid!");
         }
-        dependency.initialize();
         return dependency;
     }
 
+    public Set<IDependencyImplementationFactory> getDependencyFactories() {
+        return dependencyFactories;
+    }
+
+    public void setDependencyFactories(Set<IDependencyImplementationFactory> dependencyFactories) {
+        this.dependencyFactories = dependencyFactories;
+    }
 }

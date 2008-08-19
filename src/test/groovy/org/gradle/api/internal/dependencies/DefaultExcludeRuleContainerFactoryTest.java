@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.api.internal.dependencies;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultBuildListener implements BuildListener {
-    private static Logger logger = LoggerFactory.getLogger(DefaultBuildListener.class);
-
-    public void buildFinished(File rootDir) {
-        try {
-            //GFileUtils.deleteDirectory(new File(rootDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME));
-        } catch (Exception e) {
-            logger.debug("Can't delete the build-resolver dir. We continue.", e);
-        }
+public class DefaultExcludeRuleContainerFactoryTest {
+    @Test
+    public void testCreateExcludeRuleContainer() {
+        DefaultExcludeRuleContainerFactory defaultExcludeRuleContainerFactory = new DefaultExcludeRuleContainerFactory();
+        assertThat(defaultExcludeRuleContainerFactory.createExcludeRuleContainer(),
+                instanceOf(DefaultExcludeRuleContainer.class));
     }
 }

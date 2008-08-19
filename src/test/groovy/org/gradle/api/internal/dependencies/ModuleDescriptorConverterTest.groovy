@@ -16,39 +16,52 @@
 
 package org.gradle.api.internal.dependencies
 
-import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.descriptor.*
+import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.api.DependencyManager
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
 import org.gradle.api.internal.project.DefaultProject
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class ModuleDescriptorConverterTest {
     ModuleDescriptorConverter moduleDescriptorConverter
     DependencyManager dependencyManager
+    ExcludeRule testExcludeRule1;
+    ExcludeRule testExcludeRule2;
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
         moduleDescriptorConverter = new ModuleDescriptorConverter()
-        dependencyManager = new DefaultDependencyManager(null, null, null, null, null, null, null, new File('buildResolverDir'))
+        dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, new File('buildResolverDir'),
+                new DefaultExcludeRuleContainer())
         dependencyManager.project = new DefaultProject()
+        createTestExcludeRules()
+    }
+
+    private void createTestExcludeRules() {
+        testExcludeRule1 = new DefaultExcludeRule(new ArtifactId(
+                ModuleId.newInstance("org", "name"), "name", "type", "ext"),
+                ExactPatternMatcher.INSTANCE,
+                [:])
+        testExcludeRule2 = new DefaultExcludeRule(new ArtifactId(
+                ModuleId.newInstance("org2", "name2"), "name", "type", "ext"),
+                ExactPatternMatcher.INSTANCE,
+                [:])
     }
 
     @Test public void testConvert() {
-        Artifact ivyArtifact = [a:{}] as Artifact
+        Artifact ivyArtifact = [a: {}] as Artifact
         GradleArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as GradleArtifact
-        Artifact ivyArtifact2 = [b:{}] as Artifact
+        Artifact ivyArtifact2 = [b: {}] as Artifact
 
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
         Dependency dependency = [createDepencencyDescriptor: {dependencyDescriptor}] as Dependency
@@ -65,23 +78,26 @@ class ModuleDescriptorConverterTest {
         dependencyManager.project.status = 'release'
         dependencyManager.configurations = [conf1: new Configuration('conf1'), conf2: new Configuration('conf2')]
 
-        List expectedDepencencyDescriptors = [dependencyDescriptor, dependencyDescriptor2] 
+        dependencyManager.excludeRules.setRules([testExcludeRule1, testExcludeRule2])
+
+        List expectedDepencencyDescriptors = [dependencyDescriptor, dependencyDescriptor2]
         Map expectedArtifactsDescriptors = [conf1: [ivyArtifact, ivyArtifact2]]
 
         ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId(dependencyManager.project.group,
                 dependencyManager.project.name), dependencyManager.project.version)
 
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager)
-        
+
         assertEquals(moduleRevisionId, moduleDescriptor.moduleRevisionId)
         assertEquals(dependencyManager.project.status, moduleDescriptor.status)
         assertEquals(expectedDepencencyDescriptors as HashSet, moduleDescriptor.dependencies as HashSet)
         assertEquals(dependencyManager.configurations.values() as HashSet, moduleDescriptor.configurations as HashSet)
         assertEquals(expectedArtifactsDescriptors.conf1 as HashSet, moduleDescriptor.allArtifacts as HashSet)
+        assertEquals([testExcludeRule1, testExcludeRule2], moduleDescriptor.getAllExcludeRules() as List)
     }
 
     @Test public void testConvertWithDefaultStatus() {
-        Artifact ivyArtifact = [a:{}] as Artifact
+        Artifact ivyArtifact = [a: {}] as Artifact
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
         Dependency dependency = [createDepencencyDescriptor: {dependencyDescriptor}] as Dependency
         GradleArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as GradleArtifact
@@ -96,4 +112,6 @@ class ModuleDescriptorConverterTest {
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager)
         assertEquals(DependencyManager.DEFAULT_STATUS, moduleDescriptor.status)
     }
+
+
 }

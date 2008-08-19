@@ -16,9 +16,6 @@
  
 package org.gradle.api.dependencies;
 
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.Project;
 import org.gradle.api.UnknownDependencyNotation;
 
 import java.util.HashSet;
@@ -32,25 +29,18 @@ public abstract class AbstractDependency implements Dependency {
 
     private Object userDependencyDescription;
 
-    private Project project;
-
-    public AbstractDependency(Set confs, Object userDependencyDescription, Project project) {
+    public AbstractDependency(Set confs, Object userDependencyDescription) {
         boolean valid = true;
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
             throw new UnknownDependencyNotation("Description " + userDependencyDescription + " not valid!");
         }
         this.confs = confs;
         this.userDependencyDescription = userDependencyDescription;
-        this.project = project;
     }
 
     public abstract boolean isValidDescription(Object userDependencyDescription);
 
     public abstract Class[] userDepencencyDescriptionType();
-
-    public ModuleRevisionId createModuleRevisionId(String org, String name, String version) {
-        return new ModuleRevisionId(new ModuleId(org, name), null, version);
-    }
 
     private boolean isValidType(Object userDependencyDescription) {
         for (Class clazz : userDepencencyDescriptionType()) {
@@ -77,13 +67,5 @@ public abstract class AbstractDependency implements Dependency {
 
     public void setUserDependencyDescription(Object userDependencyDescription) {
         this.userDependencyDescription = userDependencyDescription;
-    }
-
-    public Project getProject() {
-        return project;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
     }
 }
