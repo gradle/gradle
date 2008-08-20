@@ -16,12 +16,12 @@
 
 package org.gradle.wrapper
 
+import org.gradle.api.tasks.wrapper.Wrapper.PathBase
 import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
-import org.junit.Before
 import org.junit.After
+import static org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
-import org.gradle.api.tasks.wrapper.Wrapper.PathBase;
 
 /**
  * @author Hans Dockter
@@ -94,7 +94,7 @@ class InstallTest {
 
     @After
     public void tearDown() {
-        //HelperUtil.deleteTestDir()
+        HelperUtil.deleteTestDir()
     }
 
     @Test public void testInit() {
