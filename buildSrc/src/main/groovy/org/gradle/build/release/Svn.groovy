@@ -18,19 +18,19 @@ package org.gradle.build.release
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.tigris.subversion.javahl.Revision
 import org.tigris.subversion.javahl.Status
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
+import org.tmatesoft.svn.core.internal.util.SVNPathUtil
 import org.tmatesoft.svn.core.javahl.SVNClientImpl
 import org.tmatesoft.svn.core.wc.SVNClientManager
 import org.tmatesoft.svn.core.wc.SVNRevision
 import org.tmatesoft.svn.core.wc.SVNStatusClient
 import org.tmatesoft.svn.core.wc.SVNWCUtil
-import org.tmatesoft.svn.core.internal.util.SVNPathUtil
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
@@ -55,6 +55,8 @@ class Svn {
                     SVNWCUtil.createDefaultOptions(true), project.codehausUserName, project.codehausUserPassword)
             statusClient = clientManager.getStatusClient()
             javaHlClient = SVNClientImpl.newInstance()
+            javaHlClient.username(project.codehausUserName)
+            javaHlClient.password(project.codehausUserPassword)
             throwExceptionIfNoSvnProject()
         } catch (Throwable e) {
             logger.info("""Can't access svn working copy. Maybe this is not an svn project or the codehausUserName/password property is not set.
