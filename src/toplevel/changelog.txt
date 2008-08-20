@@ -1,39 +1,49 @@
-Release Notes - Gradle - Version 0.2
+Release Notes - Gradle - Version 0.3
 
+** Sub-task
+    * [GRADLE-166] - Add junit reporting
 
 ** Bug
-    * [GRADLE-57] - The gradle.bat has *nix line separators when build on *nix.
-    * [GRADLE-60] - Not all linenumbers are read from the stacktrace in case of an GradleScriptException
-    * [GRADLE-88] - Adding to the manifest within an archive adds also to the base manifest used by all archives.
-    * [GRADLE-90] - usePlugin(Class) is missing from org.grade.api.Project
-    * [GRADLE-93] - The gradle default cache (.gradle/cache) is not always used for downloading dependencies. Sometimes .ivy2/cache is used.
-    * [GRADLE-94] - An artifact dependency is not recognized if the user description is of type GString.
-    * [GRADLE-109] - Resolve from flatDirResolver takes very long if there are other remote resolvers in the chain.
+    * [GRADLE-64] - Windows Start script returns 0 also in the case of an error
+    * [GRADLE-124] - gradle.bat reports "No modern compiler."
+    * [GRADLE-130] - setting dependsOn in the configure closure of a bundle archive method is overwritten by the bundle.
+    * [GRADLE-131] - Destination directory should be created by the archive task if it does not exists.
+    * [GRADLE-132] - Gradle wrapper does not remove old zip when upgrading to new version
+    * [GRADLE-134] - Can't add depedencies to be used by Gradle's default dependencies
+    * [GRADLE-136] - Declaring a classpath project dependencies does not trigger an evaluate of the depends-on project
+    * [GRADLE-137] - Child dependsOn settings of bunldes are not properly established.
+    * [GRADLE-139] - web.xml from webapp folder is not added to the war.
+    * [GRADLE-152] - Zip dependencies are not resolved
+    * [GRADLE-164] - Artifact dependency unresolved when custom destinationDir is used.
+    * [GRADLE-167] - npe if tests failed
 
 ** Improvement
-    * [GRADLE-31] - Split the tutorial creator into single files
-    * [GRADLE-36] - Add additional modifier for archive names (e.g. src)
-    * [GRADLE-59] - Allow classifiers to be added to a dependency notation (e.g. testng-5.8-jdk14)
-    * [GRADLE-62] - Move website from gradle-core trunk to an own top level folder in svn
-    * [GRADLE-72] - report the actual JRE version (1.6.0_5) , not the version of the hotspot VM. (10.0)
-    * [GRADLE-83] - Split the distribution into a pure binary and binary+src+samples.
-    * [GRADLE-89] - Compile task should offer includes/excludes functionality for the files in the srcDirs
-    * [GRADLE-91] - Allow to add URL's to the MavenRepo resolver for retrieving jars.
-    * [GRADLE-95] - Allow string descriptions of paths for DependencyManager.addFlatDirResolver arguments.
-    * [GRADLE-98] - Bundle Gradle with ant-nodeps
-    * [GRADLE-101] - Setting a skip property is enough to skip the task. Only setting it to false or not setting it does not skip a task.
-    * [GRADLE-102] - Add debug timing information to log
-    * [GRADLE-103] - Improve default archive usability by not using late creation via type and by introducing a war plugin.
-    * [GRADLE-104] - Use only one convention object which can be dynamically enhanced by any plugin and which preserves a plugin namespace.
-    * [GRADLE-105] - Add disable/enable flag to task
-    * [GRADLE-107] - Add an optional parameter to the usePlugin method, to overwrite default values of the plugin convention object before the plugin manipulates the project.
-    * [GRADLE-110] - Make gradle properties conveniently accessible to settings.gradle
-    * [GRADLE-111] - Make the internal chain resolver properties configurable
-    * [GRADLE-113] - Rename gradlefile to build.gradle and gradlesettings to settings.gradle
-    * [GRADLE-115] - Make userguide generation independent of the execution of the integration tests (rely on the expected out files only).
+    * [GRADLE-38] - Refactor for ConventionTasks the mechanisms how convention values are used.
+    * [GRADLE-117] - Cache the compiled build scripts.
+    * [GRADLE-122] - Make the install target of the Gradle build work on windows.
+    * [GRADLE-125] - dir property of fileset method should be optionally of type String
+    * [GRADLE-127] - Add Project. hasProperty coverage to userguide.
+    * [GRADLE-129] - Provide actions access to dag
+    * [GRADLE-135] - Migrate from commons-cli to JOpt simple for command line processing.
+    * [GRADLE-138] - Add method to add to a webInf/classes/additionalLib FileSet of a War task.
+    * [GRADLE-140] - Offer a possibility to not to bundle certain compile and runtime dependencies in a war.
+    * [GRADLE-142] - Change the default naming schema for archives.
+    * [GRADLE-143] - Introduce a flag that allows a task to declare that it does not modify the project tree.
+    * [GRADLE-147] - Make the wrapper task configurable to where the gradle-wrapper jar and the distribution should be located.
+    * [GRADLE-151] - Offer rootDir accessor in settings.gradle
+    * [GRADLE-153] - Enable easy setting of jvm opts in the start and wrapper scripts.
+    * [GRADLE-156] - Add afterEvaluateListener
+    * [GRADLE-157] - Make the name of settings.gradle customizable
+    * [GRADLE-165] - Allow a fully qualified task path to be specified on the command-line
+    * [GRADLE-168] - Improve javadoc generation for groovy projects
+    * [GRADLE-169] - Remove build resolver dir after the build is finished.
+    * [GRADLE-170] - Allow n:n mapping between tasks and configurations
+    * [GRADLE-172] - Create a distinct JDK 1.4 compatible Gradle distribution
+    * [GRADLE-173] - Add excludeConfigurations to War task
+    * [GRADLE-176] - A Bundle should offer a propery for its archive tasks instead of the archive tasks names
+    * [GRADLE-177] - Change the location of the build-resolver dir from the top level root-project to the tmp dir of the root-project.
 
 ** New Feature
-    * [GRADLE-96] - Add merge functionality for archives
-    * [GRADLE-99] - Provide build-in Proxy support (also via gradle user home properties)
-    * [GRADLE-100] - Set a default for the bundle childrenDependsOn property
-    * [GRADLE-108] - Set system props via the gradle.properties files
+    * [GRADLE-146] - Allow the definition of default tasks
+    * [GRADLE-155] - global exclude of transitive deps
+    * [GRADLE-161] - Allow to assign multiple lib configurations for a war task.
