@@ -331,6 +331,7 @@ public class MainTest {
 
     @Test
     public void testMainWithEmbeddedScript() throws Throwable {
+        expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
         checkMain(true, false, new MainCall() {
             public void execute() throws Throwable {
                 Main.main(args("-S", "-e", expectedEmbeddedScript));
@@ -359,6 +360,7 @@ public class MainTest {
 
     @Test
     public void testMainWithShowTasksAndEmbeddedScript() throws Throwable {
+        expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
         checkMain(true, true, new MainCall() {
             public void execute() throws Throwable {
                 Main.main(new String[]{"-S", "-e", expectedEmbeddedScript, "-t"});

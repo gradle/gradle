@@ -27,7 +27,10 @@ import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.execution.Dag
+import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
+
+
 
 /**
  * @author Hans Dockter
@@ -54,7 +57,7 @@ class HelperUtil {
     static DefaultProject createRootProject(File rootDir) {
         ProjectRegistry projectRegistry = new ProjectRegistry()
         TaskFactory taskFactory = new TaskFactory();
-        return new DefaultProject(
+        DefaultProject project = new DefaultProject(
                 rootDir.name,
                 null,
                 rootDir,
@@ -66,6 +69,8 @@ class HelperUtil {
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 projectRegistry)
+        project.setBuildScript(new EmptyScript());
+        return project;
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name) {

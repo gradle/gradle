@@ -15,18 +15,11 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.Project;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
-import org.junit.Before;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import org.junit.runner.RunWith;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.util.HelperUtil;
-
-import java.io.File;
 
 public class StringScriptSourceTest {
     private final StringScriptSource source = new StringScriptSource("<description>", "<content>");
@@ -49,7 +42,7 @@ public class StringScriptSourceTest {
 
     @Test
     public void hasHardcodedClassName() {
-        assertThat(source.getClassName(), equalTo("script"));
+        assertThat(source.getClassName(), equalTo(Project.EMBEDDED_SCRIPT_ID));
     }
 
     @Test

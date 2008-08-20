@@ -31,6 +31,7 @@ import static org.junit.Assert.*
 import org.junit.Before
 
 
+
 /**
  * @author Hans Dockter
  */
@@ -221,7 +222,7 @@ class TestTest extends AbstractConventionTaskTest {
             fail()
         } catch (Throwable t) {
             assertThat(exceptionClass.isInstance(t), Matchers.equalTo(true))
-            assertThat(t.getMessage(), Matchers.equalTo(message))
+            assertThat(t.getMessage(), Matchers.containsString(message))
         }
     }
 }

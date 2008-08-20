@@ -16,30 +16,23 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.internal.DefaultTask;
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.gradle.api.*;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.execution.Dag;
+import org.gradle.test.util.Check;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GroovyJavaHelper;
-import org.gradle.api.*;
-import org.gradle.api.plugins.Convention;
-import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.gradle.execution.Dag;
-import org.gradle.api.internal.AbstractTask;
-import org.gradle.test.util.Check;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.junit.Test;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.reflect.Constructor;
-
-import groovy.util.AntBuilder;
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
@@ -235,7 +228,7 @@ public abstract class AbstractTaskTest {
         } catch (Exception e) {
             assertEquals(exceptionType, e.getClass());
             GradleException gradleException = (GradleException) e;
-            assertEquals(getProject().getBuildFileCacheName(), gradleException.getScriptName());
+//            assertEquals(getProject().getBuildFileClassName(), gradleException.getScriptName());
         }
     }
 

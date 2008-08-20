@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.integtests;
 
 import org.apache.commons.io.FileUtils;
+import org.gradle.CacheUsage;
+import org.gradle.StartParameter;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 
 import java.io.File;
@@ -39,6 +42,7 @@ public class AbstractIntegrationTest {
     }
 
     protected File getTestBuildFile(String name) {
+        System.out.println("name = " + name);
         URL resource = getClass().getResource("testProjects/" + name);
         assertThat(resource, notNullValue());
         assertThat(resource.getProtocol(), equalTo("file"));

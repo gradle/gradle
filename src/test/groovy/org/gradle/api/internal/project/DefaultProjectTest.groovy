@@ -36,6 +36,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
+
+
 /**
  * @author Hans Dockter
  * todo: test for relativeFilePath
@@ -466,8 +468,9 @@ class DefaultProjectTest {
     }
 
     @Test void testGetBuildFileCacheName() {
-        project.setBuildFileName("build.gradle")
-        assertEquals("build_gradle", project.getBuildFileCacheName())
+        EmptyScript testScript = new EmptyScript();
+        project.setBuildScript(testScript)
+        assertEquals(testScript.getClass().getName(), project.getBuildFileClassName())
     }
 
     @Test void testGetProject() {
