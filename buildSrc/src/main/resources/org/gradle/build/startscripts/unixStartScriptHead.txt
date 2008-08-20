@@ -6,6 +6,9 @@
 ##                                                                          ##
 ##############################################################################
 
+# Uncomment this line to set JVM_OPTS
+# GRADLE_OPTS="$GRADLE_OPTS -Xmx512"
+
 GRADLE_APP_NAME=Gradle
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.

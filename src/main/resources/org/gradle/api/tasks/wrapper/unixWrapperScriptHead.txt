@@ -6,7 +6,8 @@
 ##                                                                          ##
 ##############################################################################
 
-JAVA_OPTS=""
+# Uncomment this line to set JVM_OPTS 
+# GRADLE_OPTS="$GRADLE_OPTS -Xmx512"
 
 warn ( ) {
     echo "${PROGNAME}: $*"
