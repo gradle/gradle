@@ -1,6 +1,7 @@
 <h2>Prerequisites</h2>
 Gradle requires a Java JDK and a JAVA_HOME environment variable pointing to the JDK. Gradle ships with its own Groovy
-library. Therefore no Groovy needs to be installed. Any existing Groovy installation is ignored by Gradle.
+library. Therefore no Groovy needs to be installed. Any existing Groovy installation is ignored by Gradle. The standard
+Gradle distribution require a JDK 1.5 or higher. Beginning with 0.3 we also provide a distinct JDK 1.4 compatible distribution.
 <h2>Unpacking</h2>
 The Gradle distribution comes only as zip. Additional to the binaries it is shipped with:
 <ul>
@@ -15,18 +16,31 @@ some zip front ends for Mac OS X don't restore the file permissions properly.
 
 <h2>Environment variables</h2>
 For running Gradle, the GRADLE_HOME environment variable needs to point to the root directory of your Gradle installation.
+Then add <code>GRADLE_HOME/bin</code> to your path.
 
-<h2>Testing your installation</h2>
+<h2>Running and testing your installation</h2>
+You run Gradle via the <code>gradle</code> command.
 To check if Gradle is properly installed just type <pre>gradle -v</pre> and you should get an output like:
 <pre>
-    Modern compiler found.
-    Gradle 0.2-080409092233+0200
-    Gradle buildtime: Wednesday, April 9, 2008 9:22:33 AM CEST
-    Groovy 1.5.5-SNAPSHOT
+    Gradle 0.3-080820065915+0200
+    Gradle buildtime: Wednesday, August 20, 2008 6:59:15 AM CEST
+    Groovy 1.5.5
+    Java 1.5.0_13
     JVM 1.5.0_13-121
     JVM Vendor: "Apple Computer, Inc."
     OS Name: Mac OS X
 </pre>
+<h2>JVM Options</h2>
+<p>Un*x users can set JVM options for running Gradle by either defining an environment variable GRADLE_OPTS, or by setting the GRADLE_OPTS
+variable at the beginning of the <code>gradle</code> script.</p>
+
+<p>Windows users can set JVM options by adding a <code>gradle.l4j.ini</code> text file into the same directory where
+<code>gradle.exe</code> is located. Such a file might look like this:
+<pre>
+    -Dsomevar="%SOMEVAR%"
+    -Xms512m
+</pre>
+</p>
 <h2>Getting Help</h2>
 You might check the userguide at <em>GRADLE_HOME</em><code>/docs/userguide</code>. Typing <code>gradle -h</code> prints
 the command line help. Typing <code>gradle -t</code> shows all the tasks of a gradle build.
