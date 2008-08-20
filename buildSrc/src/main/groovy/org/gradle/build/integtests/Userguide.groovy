@@ -16,9 +16,9 @@
 
 package org.gradle.build.integtests
 
+import groovy.io.PlatformLineWriter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import groovy.io.PlatformLineWriter
 
 /**
  * @author Hans Dockter
@@ -100,6 +100,7 @@ class Userguide {
                 runMp('tropicalWithProperties/water/bluewhale', 'SubBuild', 'hello'),
                 runMp('partialTasks/water', 'PartialTasks', 'distanceToIceberg'),
 //                runMp('partialTasks/water', 'PartialTasksNotQuiet', 'distanceToIceberg', Executer.INFO),
+                runMp('partialTasks/water/tropicalFish', 'AbsoluteTaskPaths', ':hello :krill:hello hello'),
                 runMp('dependencies/firstMessages/messages', 'FirstMessages', 'action'),
                 runMp('dependencies/messagesHack/messages', 'MessagesHack', 'action'),
                 runMp('dependencies/messagesHack/messages/consumer', 'MessagesHackBroken', 'action'),
