@@ -1,0 +1,4 @@
+
+createTask('broken') {
+    throw new RuntimeException('failure')
+}
