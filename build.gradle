@@ -481,9 +481,9 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 createTask('wrapper', type: Wrapper, dependsOn: ['init', 'archive_bin_zip']).doFirst { task ->
     task.configure {
         gradleVersion = version
-        zipBase = Wrapper.PathBase.PROJECT
-        zipPath = 'wrapper'
-        jarPath = zipPath
+        archiveBase = Wrapper.PathBase.PROJECT
+        archivePath = 'wrapper'
+        jarPath = archivePath
     }
 }
 

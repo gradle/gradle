@@ -16,23 +16,21 @@
 
 package org.gradle.api.tasks.wrapper;
 
-import org.gradle.api.Task;
+import org.apache.commons.io.FileUtils;
+import org.apache.tools.ant.taskdefs.Jar;
+import org.gradle.Main;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.*;
-import org.gradle.Main;
 import org.gradle.wrapper.Install;
-import org.jmock.Mockery;
 import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.apache.commons.io.FileUtils;
-import org.apache.tools.ant.taskdefs.Jar;
-import org.apache.tools.ant.taskdefs.GUnzip;
-import org.junit.Before;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,12 +116,12 @@ public class WrapperTest extends AbstractTaskTest {
         assertEquals("", wrapper.getJarPath());
         assertEquals("", wrapper.getScriptDestinationPath());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());
-        assertEquals(Wrapper.DEFAULT_DISTRIBUTION_NAME, wrapper.getDistributionName());
-        assertEquals(Wrapper.DEFAULT_DISTRIBUTION_CLASSIFIER, wrapper.getDistributionClassifier());
-        assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getZipPath());
+        assertEquals(Wrapper.DEFAULT_ARCHIVE_NAME, wrapper.getArchiveName());
+        assertEquals(Wrapper.DEFAULT_ARCHIVE_CLASSIFIER, wrapper.getArchiveClassifier());
+        assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getArchivePath());
         assertEquals(Wrapper.DEFAULT_URL_ROOT, wrapper.getUrlRoot());
         assertEquals(Wrapper.PathBase.GRADLE_USER_HOME, wrapper.getDistributionBase());
-        assertEquals(Wrapper.PathBase.GRADLE_USER_HOME, wrapper.getZipBase());
+        assertEquals(Wrapper.PathBase.GRADLE_USER_HOME, wrapper.getArchiveBase());
     }
 
     @Test
