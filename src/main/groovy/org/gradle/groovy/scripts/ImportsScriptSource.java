@@ -42,7 +42,7 @@ public class ImportsScriptSource implements ScriptSource {
         }
 
         String imports = importsReader.getImports(rootDir);
-        return imports + '\n' + text;
+        return text + '\n' + imports;
     }
 
     public String getClassName() {
