@@ -20,8 +20,6 @@ package org.gradle.build.startscripts
  */
 class StartScriptsGenerator {
     static void generate(String gradleJarName, File binDir, String projectName) {
-        String windowsStartScriptHead = StartScriptsGenerator.getResourceAsStream('windowsStartScriptHead.txt').text
-        String windowsStartScriptTail = StartScriptsGenerator.getResourceAsStream('windowsStartScriptTail.txt').text
         String unixStartScriptHead = StartScriptsGenerator.getResourceAsStream('unixStartScriptHead.txt').text
         String unixStartScriptTail = StartScriptsGenerator.getResourceAsStream('unixStartScriptTail.txt').text
 
