@@ -184,7 +184,8 @@ public class Main {
                 options.hasArgument(GRADLE_USER_HOME) ?
                         new File(options.argumentOf(GRADLE_USER_HOME)) : new File(DEFAULT_GRADLE_USER_HOME));
 
-        startParameter.setBuildFileName(options.hasArgument(BUILD_FILE) ? options.argumentOf(BUILD_FILE) : Project.DEFAULT_PROJECT_FILE);
+        startParameter.setBuildFileName(options.hasArgument(BUILD_FILE) ? options.argumentOf(BUILD_FILE) :
+                (options.has(EMBEDDED_SCRIPT) ? Project.EMBEDDED_SCRIPT_ID : Project.DEFAULT_PROJECT_FILE));
 
         startParameter.setSettingsFileName(options.hasArgument(SETTINGS_FILE) ? options.argumentOf(SETTINGS_FILE) : Settings.DEFAULT_SETTINGS_FILE);
 

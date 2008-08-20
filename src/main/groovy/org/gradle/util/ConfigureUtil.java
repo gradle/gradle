@@ -42,8 +42,4 @@ public class ConfigureUtil {
         configureClosure.call();
         return delegate;
     }
-
-    public static String dot2underscore(String name) {
-        return name == null ? null : name.replaceAll("\\.", "_");
-    }
 }

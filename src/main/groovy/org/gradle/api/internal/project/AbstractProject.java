@@ -22,7 +22,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.util.Clock;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
 import org.slf4j.Logger;
@@ -174,8 +173,8 @@ public abstract class AbstractProject implements Project {
         return buildFileName;
     }
 
-    public String getBuildFileCacheName() {
-        return ConfigureUtil.dot2underscore(buildFileName);
+    public String getBuildFileClassName() {
+        return getBuildScript().getClass().getName();
     }
 
     public void setBuildFileName(String buildFileName) {
@@ -464,10 +463,10 @@ public abstract class AbstractProject implements Project {
         try {
             buildScript.run();
         } catch (GradleException e) {
-            e.setScriptName(getBuildFileCacheName());
+            e.setScriptName(getBuildFileClassName());
             throw e;
         } catch (Throwable t) {
-            throw new GradleScriptException(t, getBuildFileCacheName());
+            throw new GradleScriptException(t, getBuildFileClassName());
         }
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = STATE_INITIALIZED;

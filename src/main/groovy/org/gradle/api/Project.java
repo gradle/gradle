@@ -150,6 +150,8 @@ public interface Project extends Comparable<Project> {
      */
     public static final String DEFAULT_PROJECT_FILE = "build.gradle";
 
+    public static final String EMBEDDED_SCRIPT_ID = "embedded_script";
+
     public static final String DEFAULT_ARCHIVES_TASK_BASE_NAME = "archive";
 
     /**
@@ -219,23 +221,28 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Returns the name of the build file Gradle tries to apply against this project object. The default is <code>
-     * build.gradle</code>. The return value is independent on whether the project has a buildfile or not.</p>
+     * build.gradle</code>. If an embedded script is provided the build file name is {@link #EMBEDDED_SCRIPT_ID}.</p>
      *
      * <p>You can access this property in your build file using <code>buildFileName</code></p>
      *
      * @return Current build file name. Never returns null.
+     *
+     * @see #getBuildFileClassName() 
      */
     String getBuildFileName();
 
     /**
-     * <p>Returns the name of the cached build file corresponding to the build file Gradle tries to apply against this
-     * project object. The default is <code>build_gradle</code>. The cached build file name is the same as the build
-     * file name, except that dots are replaced with underscores. This transformation is necessary, as class names are
-     * not allowed to have any dots. The return value is independent on whether the project has a buildfile or not.</p>
+     * <p>Returns the name of the classname the build file compiles to. They might be the same but not necessarily. If the
+     * build file name contains characters which are illegal for a class name, they are replaced in the build file name
+     * with underscores. In case of an embedded build script, the build file name and the build file class name is
+     * equlas to {@link #EMBEDDED_SCRIPT_ID}. In case there is no build file provided for a project, Gradle injects
+     * en empty embedded script which obeys to the same naming convention as described above.</p>
      *
-     * @return Current build file cache name. Never returns null.
+     * @return Current build file class name. Never returns null.
+     *
+     * @see #getBuildFileName() 
      */
-    String getBuildFileCacheName();
+    String getBuildFileClassName();
 
     /**
      * <p>Returns the parent project of this project, if any.</p>

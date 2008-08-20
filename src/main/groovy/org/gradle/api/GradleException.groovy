@@ -53,6 +53,6 @@ public class GradleException extends RuntimeException {
             currentException = currentException.cause
         }
         String lineInfo = lineNumbers ? "in line(s): ${lineNumbers.join(' ')}" : 'No line info available from stacktrace.'
-        super.getMessage() + " Buildscript=$scriptName $lineInfo"
+        " Buildscript=$scriptName $lineInfo" + System.getProperty("line.separator") + super.getMessage() 
     }
 }

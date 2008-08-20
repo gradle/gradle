@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.Project;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getClassName() {
-        return "script";
+        return Project.EMBEDDED_SCRIPT_ID;
     }
 
     public File getSourceFile() {

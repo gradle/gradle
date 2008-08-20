@@ -15,18 +15,20 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.*;
-import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.tasks.StopActionException;
-import org.gradle.util.GUtil;
-import org.gradle.execution.Dag;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
-
-import java.util.*;
-
 import groovy.util.AntBuilder;
+import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.gradle.api.*;
+import org.gradle.api.tasks.StopActionException;
+import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.execution.Dag;
+import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -197,18 +199,18 @@ public abstract class AbstractTask implements Task {
                             break;
                         } else if (e.getCause() instanceof GradleException) {
                             GradleException gradleException = (GradleException) e.getCause();
-                            gradleException.setScriptName(project.getBuildFileCacheName());
+                            gradleException.setScriptName(project.getBuildFileClassName());
                             throw gradleException;
                         } else {
-                            throw new GradleScriptException(e.getCause(), project.getBuildFileCacheName());
+                            throw new GradleScriptException(e.getCause(), project.getBuildFileClassName());
                         }
                     }
                     throw e;
                 } catch (GradleException e) {
-                    e.setScriptName(project.getBuildFileCacheName());
+                    e.setScriptName(project.getBuildFileClassName());
                     throw e;
                 } catch (Throwable t) {
-                    throw new GradleScriptException(t, project.getBuildFileCacheName());
+                    throw new GradleScriptException(t, project.getBuildFileClassName());
                 }
             }
         }
