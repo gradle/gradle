@@ -67,6 +67,14 @@ Gradle scales in how you can organize your build logic. The first level of organ
 \outputInputTutorial{../../samples/userguideOutput/antChecksumWithMethod.out}
 Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See Chapter \ref{cha:organizing_build_logic}. 
 
+\section{Default Tasks} % (fold)
+\label{sec:default_tasks}
+Gradle allows you to define one ore more default tasks for your build. 
+\codeInput{../../samples/userguide/tutorial/defaultTasks.gradle}
+\outputInputTutorial{../../samples/userguideOutput/defaultTasks.out}
+This is equivalent to running \texttt{gradle clean run}. In a multi-project build every subproject can have its own specific default tasks. If a subproject does not specify default tasks, the default tasks of the parent project are used (if defined).
+% section default_tasks (end)
+
 \section{Configure By DAG}
 As we describe in full detail later (See chapter \ref{cha:the_build_lifecycle}) Gradle has a configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should be executed. Gradle offers you a hook to make use of this information. A usecase for this would be to check if the release task is part of the tasks to be executed. Depending on this you can assign different values to some variables.
 \codeInput{../../samples/userguide/tutorial/configByDag.gradle}

@@ -80,6 +80,7 @@ dependencies {
 	}
 }
 \end{Verbatim}
+The \texttt{exclude} method simply delegates to \texttt{excludeRules.add()}. In subsection \ref{globalExcludes} you will find further details on exclude handling.
 % subsection module_dependencies (end)
 
 \subsection{Client Module Dependencies} % (fold)
@@ -109,6 +110,29 @@ dependencies {
 \end{Verbatim}
 Multi-project builds are discussed in chapter \ref{cha:multi_project_builds}.
 % subsection project_dependencies (end)
+
+\subsection{Global Excludes} % (fold)
+\label{sub:global_excludes}
+You can exclude a transitive dependency for all your dependencies via global excludes.
+\begin{Verbatim}
+dependencies {
+    excludeRules.add(org: 'junit', module: 'junit')
+}
+\end{Verbatim}
+You can either specify only the organization (group) or only the module name. Gradle delegates to Ivy's exclude handling
+for this. Ivy has a very powerful exclude handling including regex patterns. To make full use of this you can create an Ivy exclude rule by your self and add it to the exclude rules.
+\begin{Verbatim}
+dependencies {
+    excludeRules.getRules().add(new DefaultExcludeRule(new ArtifactId(
+          new ModuleId('someorg', 'somemodule'), 
+		  PatternMatcher.ANY_EXPRESSION,
+          PatternMatcher.ANY_EXPRESSION,
+          PatternMatcher.ANY_EXPRESSION),
+          ExactPatternMatcher.INSTANCE, null));
+}
+\end{Verbatim}
+See the Ivy documentation for more details. 
+% subsection global_excludes (end)
 
 \subsection{Ivy dependencies} % (fold)
 \label{sub:ivy_dependencies}

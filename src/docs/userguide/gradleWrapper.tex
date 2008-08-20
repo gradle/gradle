@@ -1,7 +1,7 @@
 %!TEX root = master.tex
 \chapter{The Gradle Wrapper} % (fold)
 \label{cha:the_gradle_wrapper}
-Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An example are continuous integration server where Gradle is not installed and you have no admin rights for the machine. Or what if you provide an open source project and you want to make it as easy as possible for your users to build it.
+Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An example are continuous integration server where Gradle is not installed and where you have no admin rights for the machine. Or what if you provide an open source project and you want to make it as easy as possible for your users to build it?
 
 There is a simple and good news. Gradle provides a solution for this. It ships with a \emph{Wrapper} task.\footnote{If you download the gradle source distribution or check out Gradle from SVN, you can build Gradle via the gradle wrapper.}\footnote{Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See \url{http://gradle.org/ci-server.html}} You can create such a task in your build script.
 \begin{Verbatim}
@@ -9,24 +9,33 @@ createTask('wrapper', type: Wrapper).configure {
     gradleVersion = '0.1'
 }	
 \end{Verbatim}
-This task is usually explicitly executed (for example after a switch to a new version of Gradle). After such an execution you find the following new or updated files in your project folder.
+You usually explicitly execute this task (for example after a switch to a new version of Gradle). After such an execution you find the following new or updated files in your project folder (if the default configuration is used).
 \begin{Verbatim}
 project-root
-  - gradle-wrapper
-     - gradle-wrapper.jar
-  - gradlew
+  - gradle-wrapper.jar
+  - gradlew.exe
   - gradlew.bat
 \end{Verbatim}
 \noindent
-All these files should be submitted to your version control system. The \texttt{gradlew} commands can be used \emph{exactly} the same way as the \texttt{gradle} commands. If you run Gradle with \texttt{gradlew}, Gradle looks if the directory \texttt{\emph{project-root}/gradle-wrapper/gradle-dist/gradle-0.1} exists. If it exists, the \texttt{gradle} command of this distribution is called with all the arguments passed to the \texttt{gradlew} command.
-If the distribution directory does not exists, Gradle looks if the file \texttt{\emph{project-root}/gradle-wrapper/gradle-dist/gradle-0.1.zip} does exists. If so, the zip is unpacked and \texttt{gradle} is called. If the distribution zip does not exists, Gradle tries to download it. You can specify the download url root via the \texttt{urlRoot} property of the Wrapper task. If you don't specify it, Gradle uses \texttt{http://dist.codehaus.org/gradle} as its value. 
+All these files should be submitted to your version control system. The \texttt{gradlew} commands can be used \emph{exactly} the same way as the \texttt{gradle} commands. 
 
-If you don't want any download to happen when your project is build via \texttt{gradlew}, simply add the Gradle distribution zip to your version control at the location described above. If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
+\section{Configuration} % (fold)
+\label{sec:configuration}
+If you run Gradle with \texttt{gradlew}, Gradle checks if a Gradle distribution for the wrapper is available. If not it tries to download it, otherwise it delegates to the \texttt{gradle} command of this distribution with all the arguments passed originally to the \texttt{gradlew} command.
+
+You can specify the download URL of the wrapper distribution. You can also specify where the wrapper should be stored and unpacked (either within the project or
+within the gradle user home dir). If the wrapper is run and there is local archive of the wrapper distribution Gradle tries to download it and stores it at the specified place. If there is no unpacked wrapper distribution Gradle unpacks the local archive of the wrapper distribution at the specified place. 
+
+All the configuration options have defaults except the version of the wrapper distribution. If you don't want any download to happen when your project is build via \texttt{gradlew}, simply add the Gradle distribution zip to your version control at the location specified by your wrapper configuration. 
+
+For the details on how to configure the wrapper, see \href{\API tasks/wrapper/Wrapper.html}{Wrapper API}
+
+If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
+% section configuration (end)
 
 \section{Unix file permissions} % (fold)
 \label{sec:unix_file_permissions}
 The Wrapper task adds appropriate file permissions to allow the execution for the gradlew *NIX command. Subversion preserves this file permission. We are not sure how other version control systems deal with this. What should always work is to execute \texttt{sh gradlew}. 
-
 % section unix_file_permissions (end)
 
 \section{Environment variable} % (fold)
