@@ -17,11 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.api.DependencyManager
-import org.gradle.api.DependencyManagerFactory
-import org.gradle.api.GradleScriptException
-import org.gradle.api.Project
-import org.gradle.api.Settings
+import org.gradle.api.*
 import org.gradle.api.internal.project.ImportsReader
 import org.gradle.groovy.scripts.IScriptProcessor
 import org.gradle.groovy.scripts.ISettingsScriptMetaData
@@ -83,7 +79,7 @@ class SettingsProcessor {
             settingsScriptMetaData.applyMetaData(settingsScript, settings)
             Clock clock = new Clock();
             settingsScript.run()
-            logger.info("Timing: Evaluating settings file took: {}", clock.time)
+            logger.debug("Timing: Evaluating settings file took: {}", clock.time)
         } catch (Throwable t) {
             throw new GradleScriptException(t, Settings.DEFAULT_SETTINGS_FILE)
         }

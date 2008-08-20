@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization
 
-import org.gradle.api.Project;
-import org.gradle.api.internal.project.*;
-import org.gradle.initialization.DefaultSettings;
-import org.gradle.util.PathHelper;
-import org.slf4j.Logger;
+import org.gradle.StartParameter
+import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.IProjectFactory
+import org.gradle.initialization.DefaultSettings
+import org.gradle.util.Clock
+import org.gradle.util.PathHelper
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory;
-import org.gradle.util.Clock;
-import org.gradle.StartParameter;
 
 /**
  * @author Hans Dockter
@@ -56,7 +57,7 @@ class ProjectsLoader {
         Clock clock = new Clock()
         rootProject = createProjects(settings, buildScriptClassLoader, startParameter, projectProperties, systemProperties, envProperties)
         currentProject = rootProject.project(PathHelper.getCurrentProjectPath(rootProject.rootDir, startParameter.currentDir))
-        logger.info("Timing: Loading projects took: " + clock.time)
+        logger.debug("Timing: Loading projects took: " + clock.time)
         this
     }
 

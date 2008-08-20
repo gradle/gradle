@@ -15,26 +15,24 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-import groovy.lang.GroovyShell;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
-
-import java.io.File;
-import java.io.ByteArrayInputStream;
-import java.net.URLClassLoader;
-
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.gradle.api.GradleException;
+import org.gradle.api.GradleScriptException;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
-import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilationFailedException;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.net.URLClassLoader;
 
 /**
  * @author Hans Dockter
@@ -70,7 +68,7 @@ public class DefaultScriptHandler implements IScriptHandler {
         } catch (CompilationFailedException e) {
             throw new GradleScriptException(e, scriptName);
         }
-        logger.info("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
+        logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
         return loadFromCache(0, classLoader, scriptName, scriptCacheDir);
     }
 
@@ -96,7 +94,7 @@ public class DefaultScriptHandler implements IScriptHandler {
         } catch (Exception e) {
             throw new GradleException(e);
         }
-        logger.info("Timing: Loading script from cache took: {}", clock.getTime());
+        logger.debug("Timing: Loading script from cache took: {}", clock.getTime());
         return script;
     }
 

@@ -48,10 +48,10 @@ public class BuildExecuter {
         Clock clock = new Clock();
         dag.reset();
         fillDag(this.dag, tasks, rootProject);
-        logger.info("Timing: Creating the DAG took " + clock.getTime());
+        logger.debug("Timing: Creating the DAG took " + clock.getTime());
         clock.reset();
         boolean dagNeutral = dag.execute();
-        logger.info("Timing: Executing the DAG took " + clock.getTime());
+        logger.debug("Timing: Executing the DAG took " + clock.getTime());
         return !dagNeutral;
     }
 

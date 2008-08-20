@@ -469,11 +469,11 @@ public abstract class AbstractProject implements Project {
         } catch (Throwable t) {
             throw new GradleScriptException(t, getBuildFileCacheName());
         }
-        logger.info("Timing: Running the build script took " + clock.getTime());
+        logger.debug("Timing: Running the build script took " + clock.getTime());
         state = STATE_INITIALIZED;
         notifyAfterEvaluateListener();
         logger.info("Project= " + path + " evaluated.");
-        logger.info("Timing: Project evaluation took " + clock.getTime());
+        logger.debug("Timing: Project evaluation took " + clock.getTime());
         return this;
     }
 

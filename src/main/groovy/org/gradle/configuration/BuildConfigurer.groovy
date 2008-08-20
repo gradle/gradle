@@ -17,11 +17,11 @@
 package org.gradle.configuration
 
 import org.gradle.api.Project
+import org.gradle.api.ProjectAction
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.Clock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.util.Clock
-import org.gradle.api.ProjectAction
 
 /**
  * @author Hans Dockter
@@ -50,7 +50,7 @@ class BuildConfigurer {
         Clock clock = new Clock()
         rootProject.allprojects(projectEvaluateAction)
         projectDependencies2TasksResolver.resolve(rootProject)
-        logger.info("Timing: Configuring projects took " + clock.time)
+        logger.debug("Timing: Configuring projects took " + clock.time)
     }
 
     String taskList(Project rootProject, boolean recursive, Project currentProject) {
