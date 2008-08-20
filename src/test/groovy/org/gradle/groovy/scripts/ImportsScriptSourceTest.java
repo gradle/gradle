@@ -15,16 +15,16 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.junit.Test;
-import org.junit.Assert;
-import org.junit.Before;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import org.junit.runner.RunWith;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.gradle.api.internal.project.ImportsReader;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 
@@ -55,7 +55,7 @@ public class ImportsScriptSourceTest {
             }
         });
 
-        assertThat(source.getText(), equalTo("<imports>\n<content>"));
+        assertThat(source.getText(), equalTo("<content>\n<imports>"));
     }
 
     @Test
