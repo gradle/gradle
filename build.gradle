@@ -111,13 +111,13 @@ init.doFirst {Task task, Dag dag ->
     if (dag.hasTask(':release')) {
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
-        userguideRemoteDir += 'release'
-        javadocRemoteDir += 'release'
+        userguideRemoteDir += version
+        javadocRemoteDir += version
     } else {
         versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
         userguideRemoteDir += 'latest'
-        javadocRemoteDir += 'latest'
+        javadocRemoteDir += "latest"
     }
     manifest.mainAttributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
@@ -344,14 +344,14 @@ javadoc {
     exclude 'org/gradle/api/*Exception.java', '**/*Notation.java'
 }
 
-createTask('uploadJavadoc', dependsOn: 'javadoc') {
+createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
     ftp(action: 'mkdir', remotedir: javadocRemoteDir)
     ftp(action: 'delete', remotedir: javadocRemoteDir) {
-        fileset() {include(name: '**/*.html')}
+        fileset() {include(name: '**/*')}
     }
     // todo: Ant ftp hangs sometimes. We might switch to platform ftp.
     // The passive = true is an attempt to improve this. Yet it sometimes takes
-    ftp(action: 'send', remotedir: javadocRemoteDir, passive: true) {
+    ftp(action: 'send', remotedir: javadocRemoteDir, passive: true, binary: "no") {
         fileset(dir: javadoc.destinationDir)
     }
 }
@@ -361,6 +361,7 @@ userguideDir = dir("$buildDir.name/$docsDir.name/userguide")
 createTask('userguideVersion', dependsOn: [userguideDir, init]) {
     File userguideData = mkdir(userguideDir.dir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
+    new File(userguideData, 'javadocDir.tex').write('\\def \\JAVADOCDIR {' + javadocRemoteDir + '}')
 }
 
 createTask('userguide', dependsOn: [userguideDir, 'userguideVersion', 'explodedDistBase']) {
@@ -413,7 +414,7 @@ void cleanLatex(File dir) {
     }
 }
 
-createTask('uploadUserguide', dependsOn: 'userguide') {
+createTask('uploadUserguide', dependsOn: ['userguide', 'init']) {
     ftp(action: 'mkdir', remotedir: userguideRemoteDir)
     ftp(action: 'delete', remotedir: userguideRemoteDir) {
         fileset() {
