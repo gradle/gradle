@@ -6,7 +6,8 @@
 ##                                                                          ##
 ##############################################################################
 
-JAVA_OPTS=""
+# Uncomment this line to set JVM_OPTS 
+# GRADLE_OPTS="$GRADLE_OPTS -Xmx512"
 
 warn ( ) {
     echo "${PROGNAME}: $*"
@@ -125,7 +126,7 @@ if $cygwin ; then
     esac
 fi
 
-"$JAVACMD" $JAVA_OPTS \
+"$JAVACMD" $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dtools.jar="$TOOLS_JAR" \
         $STARTER_MAIN_CLASS \
