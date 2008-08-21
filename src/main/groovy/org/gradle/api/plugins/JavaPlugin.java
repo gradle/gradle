@@ -33,8 +33,8 @@ import org.gradle.api.tasks.util.FileSet;
 import org.gradle.execution.Dag;
 import org.gradle.util.GUtil;
 import org.gradle.util.GroovyJavaHelper;
+import org.gradle.util.WrapUtil;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +110,7 @@ public class JavaPlugin implements Plugin {
         libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
         Jar jar = libsBundle.jar();
         jar.conventionMapping(GUtil.map("resourceCollections",
-                GroovyJavaHelper.createConventionClosure(Collections.singletonList(new FileSet(javaConvention.getClassesDir())))));
+                GroovyJavaHelper.createConventionClosure(WrapUtil.toList(new FileSet(javaConvention.getClassesDir())))));
 
         Upload libsUpload = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_LIBS);
         libsUpload.getBundles().add(project.task(LIBS));
