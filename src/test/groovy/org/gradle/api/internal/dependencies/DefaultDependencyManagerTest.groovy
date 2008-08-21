@@ -154,6 +154,14 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assertSame(expectedClasspath, dependencyManager.resolve(TEST_CONFIG))
     }
 
+    @Test public void testResolveWithArgs() {
+        prepareMocks(false);
+        context.checking {
+            allowing(moduleDescriptorConverter).convert(dependencyManager, false); will(returnValue(expectedModuleDescriptor))
+        }
+        assertSame(expectedClasspath, dependencyManager.resolve(TEST_CONFIG, false, false))
+    }
+
     @Test public void testAntpath() {
         expectedClasspath = ['a', 'b']
         prepareMocks();
@@ -161,6 +169,13 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     private void prepareMocks() {
+        prepareMocks(dependencyManager.failForMissingDependencies)
+        context.checking {
+            allowing(moduleDescriptorConverter).convert(dependencyManager, true); will(returnValue(expectedModuleDescriptor))
+        }
+    }
+
+    private void prepareMocks(boolean failForMissingDependencies) {
         context.checking {
             allowing(settingsConverter).convert(
                     dependencyManager.classpathResolvers.resolverList,
@@ -171,9 +186,8 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
                     dependencyManager.getChainConfigurer());
             will(returnValue(expectedSettings))
             allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
-            allowing(moduleDescriptorConverter).convert(dependencyManager); will(returnValue(expectedModuleDescriptor))
             one(dependencyResolverMock).resolve(TEST_CONFIG, expectedIvy, expectedModuleDescriptor,
-                    dependencyManager.failForMissingDependencies);
+                    failForMissingDependencies);
             will(returnValue(expectedClasspath))
         }
     }
@@ -193,7 +207,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
                     dependencyManager.getChainConfigurer());
             will(returnValue(expectedSettings))
             allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
-            allowing(moduleDescriptorConverter).convert(dependencyManager); will(returnValue(expectedModuleDescriptor))
+            allowing(moduleDescriptorConverter).convert(dependencyManager, true); will(returnValue(expectedModuleDescriptor))
             one(dependencyPublisherMock).publish(expectedConfigs, expectedResolvers, expectedModuleDescriptor,
                     expectedUploadModuleDescriptor, expectedIvyFile, dependencyManager, expectedIvy.getPublishEngine());
         }

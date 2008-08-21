@@ -132,9 +132,14 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         this.excludeRules = excludeRuleContainer;
     }
 
-    public List resolve(String conf) {
-        return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this),
+    public List resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies) {
+        return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this, false),
                 failForMissingDependencies);
+    }
+
+    public List resolve(String conf) {
+        return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this, true),
+                this.failForMissingDependencies);
     }
 
     public List resolveTask(String taskName) {
@@ -157,7 +162,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         dependencyPublisher.publish(
                 configurations,
                 resolvers,
-                moduleDescriptorConverter.convert(this),
+                moduleDescriptorConverter.convert(this, true),
                 uploadModuleDescriptor,
                 new File(getProject().getBuildDir(), "ivy.xml"),
                 this,

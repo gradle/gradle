@@ -64,7 +64,6 @@ public interface DependencyManager extends DependencyContainer {
 
     public static final String CLASSIFIER = "classifier";
 
-
     /**
      * A map where the key is the name of the configuration and the values are Ivy configuration objects.
      */
@@ -157,11 +156,25 @@ public interface DependencyManager extends DependencyContainer {
 
     /**
      * Returns a list of file objects, denoting the path to the classpath elements belonging to this configuration.
+     * If a dependency can't be resolved an exception is thrown. Resolves also project dependencies.
      *
      * @param conf
-     * @return
+     * @return A list of file objects
+     * @throws GradleException If not all dependencies can be resolved
+     * @see #resolve(String, boolean, boolean) 
      */
     List resolve(String conf);
+
+    /**
+     * Returns a list of file objects, denoting the path to the classpath elements belonging to this configuration.
+     *
+     * @param conf
+     * @param failForMissingDependencies If this method should throw an exception in case a dependency of the configuration can't be resolved
+     * @param includeProjectDependencies Whether project dependencies should be resolved as well.
+     * @return A list of file objects
+     * @throws GradleException If not all dependencies can be resolved
+     */
+    List resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies);
 
     /**
      * Returns a list of file objects, denoting the path to the classpath elements belonging to this task. Not all tasks

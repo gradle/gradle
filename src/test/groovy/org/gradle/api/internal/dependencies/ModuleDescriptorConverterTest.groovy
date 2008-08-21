@@ -24,8 +24,11 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.api.DependencyManager
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
+import org.gradle.api.dependencies.ProjectDependency
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -39,7 +42,10 @@ class ModuleDescriptorConverterTest {
     ExcludeRule testExcludeRule1;
     ExcludeRule testExcludeRule2;
 
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     @Before public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         moduleDescriptorConverter = new ModuleDescriptorConverter()
         dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, new File('buildResolverDir'),
                 new DefaultExcludeRuleContainer())
@@ -64,7 +70,10 @@ class ModuleDescriptorConverterTest {
         Artifact ivyArtifact2 = [b: {}] as Artifact
 
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
-        Dependency dependency = [createDepencencyDescriptor: {dependencyDescriptor}] as Dependency
+        ProjectDependency dependency = context.mock(ProjectDependency)
+        context.checking {
+            allowing(dependency).createDepencencyDescriptor(); will(returnValue(dependencyDescriptor))    
+        }
         DependencyDescriptor dependencyDescriptor2 = [:] as DependencyDescriptor
 
         dependencyManager.dependencies = [dependency]
@@ -86,7 +95,7 @@ class ModuleDescriptorConverterTest {
         ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId(dependencyManager.project.group,
                 dependencyManager.project.name), dependencyManager.project.version)
 
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager)
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager, true)
 
         assertEquals(moduleRevisionId, moduleDescriptor.moduleRevisionId)
         assertEquals(dependencyManager.project.status, moduleDescriptor.status)
@@ -94,6 +103,8 @@ class ModuleDescriptorConverterTest {
         assertEquals(dependencyManager.configurations.values() as HashSet, moduleDescriptor.configurations as HashSet)
         assertEquals(expectedArtifactsDescriptors.conf1 as HashSet, moduleDescriptor.allArtifacts as HashSet)
         assertEquals([testExcludeRule1, testExcludeRule2], moduleDescriptor.getAllExcludeRules() as List)
+
+        assertEquals([dependencyDescriptor2] as Set, moduleDescriptorConverter.convert(dependencyManager, false).dependencies as HashSet)
     }
 
     @Test public void testConvertWithDefaultStatus() {
@@ -109,7 +120,7 @@ class ModuleDescriptorConverterTest {
         dependencyManager.project.version = '1.1'
         dependencyManager.configurations = [conf1: new Configuration('conf1'), conf2: new Configuration('conf2')]
 
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager)
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager, true)
         assertEquals(DependencyManager.DEFAULT_STATUS, moduleDescriptor.status)
     }
 

@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.GradleArtifact;
+import org.gradle.api.dependencies.ProjectDependency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +32,10 @@ import java.util.List;
 public class ModuleDescriptorConverter {
     private static Logger logger = LoggerFactory.getLogger(ModuleDescriptorConverter.class);
 
-    ModuleDescriptorConverter() {
+    public ModuleDescriptorConverter() {
     }
 
-    ModuleDescriptor convert(BaseDependencyManager dependencyManager) {
+    public ModuleDescriptor convert(BaseDependencyManager dependencyManager, boolean includeProjectDependencies) {
         String status = DependencyManager.DEFAULT_STATUS;
         if (dependencyManager.getProject().hasProperty("status")) {
             status = (String) dependencyManager.getProject().property("status");
@@ -44,7 +45,7 @@ public class ModuleDescriptorConverter {
         for (Configuration configuration : dependencyManager.getConfigurations().values()) {
             moduleDescriptor.addConfiguration(configuration);
         }
-        addDependencyDescriptors(moduleDescriptor, dependencyManager);
+        addDependencyDescriptors(moduleDescriptor, dependencyManager, includeProjectDependencies);
         addArtifacts(moduleDescriptor, dependencyManager);
         addExcludes(moduleDescriptor, dependencyManager);
         return moduleDescriptor;
@@ -56,9 +57,12 @@ public class ModuleDescriptorConverter {
         }
     }
 
-    private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
+    private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager,
+                                          boolean includeProjectDependencies) {
         for (Dependency dependency : dependencyManager.getDependencies()) {
-            moduleDescriptor.addDependency(dependency.createDepencencyDescriptor());
+            if (includeProjectDependencies || !(dependency instanceof ProjectDependency)) {
+                moduleDescriptor.addDependency(dependency.createDepencencyDescriptor());
+            }
         }
         for (DependencyDescriptor dependencyDescriptor : dependencyManager.getDependencyDescriptors()) {
             moduleDescriptor.addDependency(dependencyDescriptor);
