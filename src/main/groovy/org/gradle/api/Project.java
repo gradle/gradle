@@ -183,9 +183,8 @@ public interface Project extends Comparable<Project> {
     Project getRootProject();
 
     /**
-     * <p>Returns the root directory of this project. The root directory is the directory which all relative file names
-     * are interpreted against. The default value for the root directory is the directory containing the project's build
-     * script.</p>
+     * <p>Returns the root directory of this project. The root directory is the directory containing the root
+     * project.</p>
      *
      * <p>You can access this property in your build file using <code>rootDir</code></p>
      *
@@ -226,21 +225,19 @@ public interface Project extends Comparable<Project> {
      * <p>You can access this property in your build file using <code>buildFileName</code></p>
      *
      * @return Current build file name. Never returns null.
-     *
-     * @see #getBuildFileClassName() 
+     * @see #getBuildFileClassName()
      */
     String getBuildFileName();
 
     /**
-     * <p>Returns the name of the classname the build file compiles to. They might be the same but not necessarily. If the
-     * build file name contains characters which are illegal for a class name, they are replaced in the build file name
-     * with underscores. In case of an embedded build script, the build file name and the build file class name is
-     * equlas to {@link #EMBEDDED_SCRIPT_ID}. In case there is no build file provided for a project, Gradle injects
-     * en empty embedded script which obeys to the same naming convention as described above.</p>
+     * <p>Returns the name of the classname the build file compiles to. They might be the same but not necessarily. If
+     * the build file name contains characters which are illegal for a class name, they are replaced in the build file
+     * name with underscores. In case of an embedded build script, the build file name and the build file class name are
+     * equal to {@link #EMBEDDED_SCRIPT_ID}. In case there is no build file provided for a project, Gradle injects an
+     * empty embedded script which obeys to the same naming convention as described above.</p>
      *
      * @return Current build file class name. Never returns null.
-     *
-     * @see #getBuildFileName() 
+     * @see #getBuildFileName()
      */
     String getBuildFileClassName();
 
