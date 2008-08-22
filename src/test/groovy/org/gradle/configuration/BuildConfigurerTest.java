@@ -19,12 +19,12 @@ package org.gradle.configuration;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectAction;
 import org.gradle.api.internal.project.BuildScriptProcessor;
-import org.gradle.api.internal.project.ProjectsTraverser;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -43,7 +42,7 @@ public class BuildConfigurerTest {
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver;
     BuildScriptProcessor buildScriptProcessor;
     ProjectTasksPrettyPrinter projectTasksPrettyPrinter;
-    Project rootProject;
+    ProjectInternal rootProject;
     boolean evaluatedCalled;
     boolean resolveCalled;
     SortedMap expectedTasksMap;
@@ -61,7 +60,7 @@ public class BuildConfigurerTest {
         resolveCalled = false;
         expectedTasksMap = new TreeMap();
         rootProject = HelperUtil.createRootProject(new File("root"));
-        rootProject = context.mock(Project.class);
+        rootProject = context.mock(ProjectInternal.class);
     }
 
     private void createExpectations() {

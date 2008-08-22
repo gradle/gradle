@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
 
-import org.gradle.execution.Dag;
+package org.gradle.api.internal.dependencies;
+
+import org.gradle.api.DependencyManager;
+import org.gradle.api.Project;
+
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-public interface DagAction {
-     void execute(Dag dag);
+public interface DependencyManagerFactory {
+    void setBuildResolverDir(File buildResolverDir);
+
+    File getBuildResolverDir();
+
+    DependencyManager createDependencyManager(Project project);
 }

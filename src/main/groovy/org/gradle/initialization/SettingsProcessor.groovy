@@ -17,7 +17,11 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.api.*
+import org.gradle.api.DependencyManager
+import org.gradle.api.GradleScriptException
+import org.gradle.api.Project
+import org.gradle.api.Settings
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.internal.project.ImportsReader
 import org.gradle.groovy.scripts.IScriptProcessor
 import org.gradle.groovy.scripts.ISettingsScriptMetaData
@@ -29,6 +33,7 @@ import org.gradle.util.GradleUtil
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
 
 /**
 * @author Hans Dockter

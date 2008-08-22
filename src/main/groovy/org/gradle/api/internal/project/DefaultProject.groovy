@@ -16,11 +16,16 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.*
+import org.gradle.api.AfterEvaluateListener
+import org.gradle.api.DependencyManager
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.groovy.scripts.ScriptSource
+
 
 /**
  * @author Hans Dockter

@@ -19,6 +19,7 @@ package org.gradle.api.dependencies;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -72,8 +73,8 @@ public class ProjectDependency extends AbstractDependency {
         for (String conf : getConfs()) {
             Set<String> tasks = GUtil.elvis(getProject().getDependencies().getTasks4Conf().get(conf), new HashSet<String>()); 
             for (String taskName : tasks) {
-                 getDependencyProject().evaluate();
-                    getProject().task(taskName).dependsOn(getDependencyProject().task(getDependencyProject().getDependencies().getArtifactProductionTaskName()).getPath());
+                ((ProjectInternal) getDependencyProject()).evaluate();
+                getProject().task(taskName).dependsOn(getDependencyProject().task(getDependencyProject().getDependencies().getArtifactProductionTaskName()).getPath());
             }
         }
     }

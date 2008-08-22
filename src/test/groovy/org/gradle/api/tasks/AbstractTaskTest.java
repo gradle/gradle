@@ -21,6 +21,8 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.execution.Dag;
 import org.gradle.test.util.Check;
 import org.gradle.util.HelperUtil;
@@ -42,7 +44,7 @@ public abstract class AbstractTaskTest {
 
     public static final String TEST_PROJECT_NAME = "/projectTestName";
 
-    private Project project;
+    private AbstractProject project;
 
     private Dag tasksGraph;
 
@@ -372,11 +374,11 @@ public abstract class AbstractTaskTest {
 //        assert task.actions[1].is(action2)
 //    }
 
-    public Project getProject() {
+    public AbstractProject getProject() {
         return project;
     }
 
-    public void setProject(Project project) {
+    public void setProject(AbstractProject project) {
         this.project = project;
     }
 

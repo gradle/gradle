@@ -31,6 +31,7 @@ import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.gradle.api.internal.project.ProjectInternal
 
 /**
  * @author Hans Dockter
@@ -104,7 +105,7 @@ class ProjectDependencyTest extends AbstractDependencyTest {
         DependencyManager dependencyManager = context.mock(DependencyManager, "dependencyManager")
         Task task = context.mock(Task)
         Map tasks4conf = [:]
-        Project dependencyProject = context.mock(Project, "dependencyProject")
+        Project dependencyProject = context.mock(ProjectInternal, "dependencyProject")
         DependencyManager dependencyProjectDependencyManager = context.mock(DependencyManager, "dependencyProjectDependencyManager")
         Task expectedArtifactProductionTask = context.mock(Task, "artifactProductionTask")
         String expectedArtifactProductionTaskName = "artifactTask"

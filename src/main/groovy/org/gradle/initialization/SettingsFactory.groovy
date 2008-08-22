@@ -16,9 +16,9 @@
 
 package org.gradle.initialization
 
-import org.gradle.api.DependencyManagerFactory
-import org.gradle.api.Settings
 import org.gradle.StartParameter
+import org.gradle.api.Settings
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
 
 /**
  * @author Hans Dockter

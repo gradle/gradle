@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.DependencyManagerFactory;
 import org.gradle.api.Project;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.groovy.scripts.FileScriptSource;
 
 import java.io.File;
 

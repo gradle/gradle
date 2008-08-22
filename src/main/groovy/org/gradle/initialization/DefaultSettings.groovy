@@ -20,10 +20,10 @@ import org.apache.ivy.plugins.resolver.DualResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.StartParameter
 import org.gradle.api.DependencyManager
-import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.Settings
 import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.ClasspathUtil

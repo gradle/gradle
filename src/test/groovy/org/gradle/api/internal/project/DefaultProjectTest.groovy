@@ -36,6 +36,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
 
 
 

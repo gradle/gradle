@@ -17,7 +17,6 @@
 package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.DependencyManager;
-import org.gradle.api.DependencyManagerFactory;
 import org.gradle.api.Project;
 import org.gradle.util.WrapUtil;
 

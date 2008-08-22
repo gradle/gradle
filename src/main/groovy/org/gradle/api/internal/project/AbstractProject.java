@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.gradle.api.*;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
@@ -34,7 +35,7 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractProject implements Project {
+public abstract class AbstractProject implements ProjectInternal {
     private static Logger logger = LoggerFactory.getLogger(AbstractProject.class);
 
     public static final int STATE_CREATED = 0;

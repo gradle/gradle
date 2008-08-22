@@ -19,9 +19,9 @@ package org.gradle.initialization
 import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
 import org.gradle.api.DependencyManager
-import org.gradle.api.DependencyManagerFactory
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.internal.project.ImportsReader
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.IScriptProcessor

@@ -18,7 +18,6 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
-import org.gradle.api.internal.project.BuildScriptProcessor;
 import org.gradle.api.plugins.Convention;
 
 import java.io.File;
@@ -191,13 +190,6 @@ public interface Project extends Comparable<Project> {
      * @return The root directory. Never returns null.
      */
     File getRootDir();
-
-    /**
-     * <p>Sets the root directory of this project.</p>
-     *
-     * <p>You can set this property in your build file using <code>rootDir = nnn</code></p>
-     */
-    void setRootDir(File rootDir);
 
     /**
      * <p>Returns the build directory of this project.  The build directory is the directory which all artifacts are
@@ -798,10 +790,6 @@ public interface Project extends Comparable<Project> {
      *         been applied.
      */
     Set<Class<? extends Plugin>> getAppliedPlugins();
-
-    Project evaluate();
-
-    BuildScriptProcessor getBuildScriptProcessor();
 
     /**
      * <p>Executes the given {@link ProjectAction} against the subprojects of this project.</p>
