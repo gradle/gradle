@@ -43,7 +43,7 @@ public class BuildScriptProcessor {
         this.importsReader = importsReader;
     }
 
-    public Script createScript(AbstractProject project) {
+    public Script createScript(ProjectInternal project) {
         ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader, project.getRootDir());
         Script projectScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
         projectScriptMetaData.applyMetaData(projectScript, project);

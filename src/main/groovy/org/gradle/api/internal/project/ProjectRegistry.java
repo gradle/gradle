@@ -27,7 +27,7 @@ public class ProjectRegistry {
 
     private Map<String, Set<Project>> subProjects = new HashMap<String, Set<Project>>();
 
-    public void addProject(AbstractProject project) {
+    public void addProject(Project project) {
         projects.put(project.getPath(), project);
         subProjects.put(project.getPath(), new TreeSet());
         Project loopProject = project.getParent();

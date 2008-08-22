@@ -9,4 +9,6 @@ public interface ProjectInternal extends Project {
     BuildScriptProcessor getBuildScriptProcessor();
 
     ScriptSource getBuildScriptSource();
+
+    ClassLoader getBuildScriptClassLoader();
 }
