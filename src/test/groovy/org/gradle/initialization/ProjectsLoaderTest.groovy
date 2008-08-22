@@ -94,7 +94,7 @@ class ProjectsLoaderTest {
 
         projectLoader.load(settings, testClassLoader, startParameter, testProjectProperties, testSystemProps, testEnvProps)
 
-        DefaultProject rootProject = projectLoader.rootProject
+        ProjectInternal rootProject = projectLoader.rootProject
         assert rootProject.buildScriptClassLoader.is(testClassLoader)
         assertSame(testRootProjectDir, rootProject.rootDir)
         assertEquals(Project.PATH_SEPARATOR, rootProject.path)
@@ -140,7 +140,7 @@ class ProjectsLoaderTest {
         startParameter.gradleUserHomeDir = new File('nonexistingGradleHome')
         projectLoader.load(settings, testClassLoader, startParameter, [:], [:], [:])
 
-        DefaultProject rootProject = projectLoader.rootProject
+        ProjectInternal rootProject = projectLoader.rootProject
 
         checkUserProperties(startParameter.gradleUserHomeDir, [:], [], rootProject)
     }

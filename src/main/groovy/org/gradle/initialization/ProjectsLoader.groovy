@@ -18,13 +18,13 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.initialization.DefaultSettings
 import org.gradle.util.Clock
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactory
+import org.gradle.api.internal.project.ProjectInternal;
 
 /**
  * @author Hans Dockter
@@ -38,9 +38,9 @@ class ProjectsLoader {
 
     IProjectFactory projectFactory;
 
-    DefaultProject rootProject;
+    ProjectInternal rootProject;
 
-    DefaultProject currentProject;
+    ProjectInternal currentProject;
 
     ProjectsLoader() {
 
@@ -61,7 +61,7 @@ class ProjectsLoader {
     }
 
     // todo Why are the projectProperties passed only to the root project and the userHomeProperties passed to every Project
-    private DefaultProject createProjects(DefaultSettings settings, ClassLoader buildScriptClassLoader,
+    private ProjectInternal createProjects(DefaultSettings settings, ClassLoader buildScriptClassLoader,
                                           StartParameter startParameter, Map projectProperties, Map systemProperties, Map envProperties) {
         assert projectProperties != null
         logger.debug("Creating the projects and evaluating the project files!")
@@ -80,12 +80,12 @@ class ProjectsLoader {
             logger.debug("Adding user properties (if not overwritten by system project properties: {}", userHomeProperties)
         }
         logger.debug("Looking for system project properties")
-        DefaultProject rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null,
+        ProjectInternal rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null,
                 settings.rootFinder.rootDir, buildScriptClassLoader)
         addPropertiesToProject(startParameter.gradleUserHomeDir, userHomeProperties + projectProperties, systemAndEnvProjectProperties, rootProject)
         settings.projectPaths.each {
             List folders = it.split(Project.PATH_SEPARATOR)
-            DefaultProject parent = rootProject
+            ProjectInternal parent = rootProject
             folders.each {name ->
                 if (!parent.childProjects[name]) {
                     parent.childProjects[name] = parent.addChildProject(name)

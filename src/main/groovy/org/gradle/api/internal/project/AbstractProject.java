@@ -581,7 +581,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return childProjects.get(name);
     }
 
-    protected AbstractProject createChildProject(String name) {
+    protected ProjectInternal createChildProject(String name) {
         return projectFactory.createProject(name, this, rootDir, buildScriptClassLoader);
     }
 

@@ -25,7 +25,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownDependencyNotation
 import org.gradle.api.internal.dependencies.DefaultDependencyManager
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.*
@@ -40,8 +39,8 @@ class ProjectDependencyTest extends AbstractDependencyTest {
     static final String TEST_DEPENDENCY_CONF = "depconf"
 
     ProjectDependency projectDependency
-    DefaultProject project
-    DefaultProject dependencyProject
+    Project project
+    Project dependencyProject
     ModuleRevisionId dependencyProjectModuleRevisionId
     String dependencyProjectArtifactProductionTaskName
 

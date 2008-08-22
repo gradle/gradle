@@ -16,7 +16,7 @@
  
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.Project
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.util.HelperUtil
 import org.junit.Test
@@ -28,7 +28,7 @@ class WarPluginTest {
     @Test public void testApply() {
         // todo Make test stronger
         // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
-        DefaultProject project = HelperUtil.createRootProject(new File('path', 'root'))
+        Project project = HelperUtil.createRootProject(new File('path', 'root'))
         WarPlugin warPlugin = new WarPlugin()
         warPlugin.apply(project, new PluginRegistry(), [:])
     }

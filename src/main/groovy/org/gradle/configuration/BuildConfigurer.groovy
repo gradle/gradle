@@ -18,10 +18,10 @@ package org.gradle.configuration
 
 import org.gradle.api.Project
 import org.gradle.api.ProjectAction
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.Clock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.internal.project.ProjectInternal
 
 /**
  * @author Hans Dockter
@@ -40,7 +40,7 @@ class BuildConfigurer {
     BuildConfigurer(ProjectDependencies2TaskResolver projectDependencies2TasksResolver, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
         this.projectDependencies2TasksResolver = projectDependencies2TasksResolver
         this.projectTasksPrettyPrinter = projectTasksPrettyPrinter
-        projectEvaluateAction = {DefaultProject project ->
+        projectEvaluateAction = {ProjectInternal project ->
             project.evaluate()
         } as ProjectAction
     }

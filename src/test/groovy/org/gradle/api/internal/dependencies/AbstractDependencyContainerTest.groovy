@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.dependencies.ClientModule
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.ModuleDependency
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
@@ -28,6 +27,7 @@ import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -45,7 +45,7 @@ public abstract class AbstractDependencyContainerTest {
     static final List TEST_DEPENDENCIES = [TEST_DEPENDENCY_1, TEST_DEPENDENCY_2, TEST_DEPENDENCY_3, TEST_DEPENDENCY_4]
 
     protected DependencyFactory dependencyFactory
-    protected DefaultProject project
+    protected Project project
     protected File projectRootDir
 
     protected List testDefaultConfs

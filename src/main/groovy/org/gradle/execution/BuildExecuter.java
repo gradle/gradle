@@ -18,7 +18,7 @@ package org.gradle.execution;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.DefaultTask;
-import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +74,7 @@ public class BuildExecuter {
         for (Object taskDescriptor : task.getDependsOn()) {
             String absolutePath = absolutePath(task.getProject(), taskDescriptor);
             Path path = new Path(absolutePath);
-            DefaultProject project = (DefaultProject) getProjectFromTaskPath(path, rootProject);
+            ProjectInternal project = (ProjectInternal) getProjectFromTaskPath(path, rootProject);
             DefaultTask dependsOnTask = (DefaultTask) project.getTasks().get(path.taskName);
             if (dependsOnTask == null)
                 throw new UnknownTaskException("Task with path " + taskDescriptor + " could not be found.");

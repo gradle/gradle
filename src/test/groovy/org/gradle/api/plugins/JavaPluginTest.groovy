@@ -16,10 +16,9 @@
  
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.Project
 import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -28,7 +27,7 @@ class JavaPluginTest {
     @Test public void testApply() {
         // todo Make test stronger
         // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
-        DefaultProject project = HelperUtil.createRootProject(new File('path', 'root'))
+        Project project = HelperUtil.createRootProject(new File('path', 'root'))
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.apply(project, null)
     }
