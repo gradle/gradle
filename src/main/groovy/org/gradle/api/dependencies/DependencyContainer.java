@@ -26,7 +26,6 @@ import java.util.List;
  * @author Hans Dockter
  */
 public interface DependencyContainer {
-
     /**
      * Returns the default confs for this dependecy container.
      *
@@ -50,9 +49,18 @@ public interface DependencyContainer {
     void setProject(Project project);
     
     /**
-     * A list of Gradle Dependency objects.
+     * A list of all Gradle Dependency objectss.
+     *
+     * @see #getDependencies(Filter) 
      */
     List<Dependency> getDependencies();
+
+    /**
+     * A list of Gradle Project Dependency based on the given {@link Filter}
+     *
+     * @see #getDependencies()
+     */
+    List<Dependency> getDependencies(Filter filter);
 
     /**
      * A list for passing directly instances of Ivy DependencyDescriptor objects.

@@ -19,10 +19,7 @@ package org.gradle.api.internal.dependencies;
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.ClientModule;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.DependencyContainer;
-import org.gradle.api.dependencies.ModuleDependency;
+import org.gradle.api.dependencies.*;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -108,6 +105,16 @@ public class DefaultDependencyContainer implements DependencyContainer {
 
     public ClientModule clientModule(String artifact, Closure configureClosure) {
         return clientModule(defaultConfs, artifact, configureClosure);
+    }
+
+    public List<Dependency> getDependencies(Filter filter) {
+        List<Dependency> result = new ArrayList<Dependency>();
+        for (Dependency dependency : getDependencies()) {
+            if (filter.includeDependency(dependency)) {
+                result.add(dependency);
+            }
+        }
+        return result;
     }
 
     // todo Do we really need this method?

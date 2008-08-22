@@ -17,9 +17,8 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.dependencies.ClientModule
-import org.gradle.api.dependencies.Dependency
-import org.gradle.api.dependencies.ModuleDependency
+import org.gradle.api.Project
+import org.gradle.api.dependencies.*
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
@@ -27,7 +26,6 @@ import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -43,6 +41,9 @@ public abstract class AbstractDependencyContainerTest {
     static final String TEST_DEPENDENCY_3 = 'spring:spring:2.0.0'
     static final String TEST_DEPENDENCY_4 = 'spring:spring-mock:2.1'
     static final List TEST_DEPENDENCIES = [TEST_DEPENDENCY_1, TEST_DEPENDENCY_2, TEST_DEPENDENCY_3, TEST_DEPENDENCY_4]
+
+    protected ModuleDependency filterTestLibDependency;
+    protected ProjectDependency filterTestProjectDependency;
 
     protected DependencyFactory dependencyFactory
     protected Project project
@@ -63,6 +64,8 @@ public abstract class AbstractDependencyContainerTest {
         dependencyFactory = context.mock(DependencyFactory)
         testDefaultConfs = [DEFAULT_CONFIGURATION]
         testConfs = [TEST_CONFIGURATION]
+        filterTestLibDependency = context.mock(ModuleDependency)
+        filterTestProjectDependency = context.mock(ProjectDependency)
     }
 
     @Test public void testDependencyContainerInit() {
@@ -120,6 +123,26 @@ public abstract class AbstractDependencyContainerTest {
         checkAddDependency(testDefaultConfs, {List configurations, String dependency, Closure cl ->
             testObj.dependency(dependency, cl)
         })
+    }
+
+    @Test public void testGetDependenciesWithLibsFilter() {
+        addFilterTestDependencies()
+        assertEquals([filterTestLibDependency], testObj.getDependencies(Filter.LIBS_ONLY))
+    }
+
+    @Test public void testGetDependenciesWithProjectFilter() {
+        addFilterTestDependencies()
+        assertEquals([filterTestProjectDependency], testObj.getDependencies(Filter.PROJECTS_ONLY))
+    }
+
+    @Test public void testGetDependenciesWithNoFilter() {
+        addFilterTestDependencies()
+        assertEquals([filterTestProjectDependency, filterTestLibDependency] as Set, testObj.getDependencies(Filter.NONE) as Set)
+    }
+
+    private void addFilterTestDependencies() {
+        testObj.getDependencies().add(filterTestLibDependency)
+        testObj.getDependencies().add(filterTestProjectDependency)
     }
 
     private void checkAddDependency(List expectedConfs, Closure addDependencyMethod) {
