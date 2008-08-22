@@ -17,23 +17,15 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Script;
-import org.gradle.api.Project;
 import org.gradle.groovy.scripts.IProjectScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.FileScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.ImportsScriptSource;
-import org.gradle.util.GUtil;
-
-import java.io.File;
+import org.gradle.groovy.scripts.ScriptSource;
 
 /**
  * @author Hans Dockter
  */
 public class BuildScriptProcessor {
-    String inMemoryScriptText;
-
     ImportsReader importsReader;
 
     IScriptProcessor scriptProcessor;
@@ -45,28 +37,17 @@ public class BuildScriptProcessor {
     }
 
     public BuildScriptProcessor(IScriptProcessor scriptProcessor, IProjectScriptMetaData projectScriptMetaData,
-                                ImportsReader importsReader, String inMemoryScriptText) {
+                                ImportsReader importsReader) {
         this.scriptProcessor = scriptProcessor;
         this.projectScriptMetaData = projectScriptMetaData;
         this.importsReader = importsReader;
-        this.inMemoryScriptText = inMemoryScriptText;
     }
 
     public Script createScript(AbstractProject project) {
-        ScriptSource source;
-        if (GUtil.isTrue(inMemoryScriptText)) {
-            source = new StringScriptSource("embedded build script", inMemoryScriptText);
-        } else {
-            source = new FileScriptSource("build file", buildFile(project));
-        }
-        source = new ImportsScriptSource(source, importsReader, project.getRootDir());
+        ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader, project.getRootDir());
         Script projectScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
         projectScriptMetaData.applyMetaData(projectScript, project);
         return projectScript;
-    }
-
-    private File buildFile(Project project) {
-        return new File(project.getProjectDir(), project.getBuildFileName());
     }
 
     public IProjectScriptMetaData getProjectScriptMetaData() {
@@ -79,9 +60,5 @@ public class BuildScriptProcessor {
 
     public ImportsReader getImportsReader() {
         return importsReader;
-    }
-
-    public String getInMemoryScriptText() {
-        return inMemoryScriptText;
     }
 }

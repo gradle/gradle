@@ -20,8 +20,10 @@ import org.gradle.api.Project;
 import java.io.File;
 
 /**
+ * Creates a {@link Project} implementation.
+ *
  * @author Hans Dockter
  */
 public interface IProjectFactory {
-    DefaultProject createProject(String name, Project parent, File rootDir, Project rootProject, ClassLoader buildScriptClassLoader);
+    DefaultProject createProject(String name, Project parent, File rootDir, ClassLoader buildScriptClassLoader);
 }

@@ -35,6 +35,7 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.groovy.scripts.ScriptSource
 
 
 
@@ -67,6 +68,8 @@ class DefaultProjectTest {
 
     Script testScript
 
+    ScriptSource script;
+
     ITaskFactory taskFactoryMock;
 
     DependencyManagerFactory dependencyManagerFactoryMock;
@@ -81,6 +84,7 @@ class DefaultProjectTest {
         taskFactoryMock = context.mock(ITaskFactory.class);
         dependencyManagerMock = context.mock(DependencyManager)
         dependencyManagerFactoryMock = [createDependencyManager: {Project project -> dependencyManagerMock}] as DependencyManagerFactory
+        script = context.mock(ScriptSource.class)
 
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
@@ -88,8 +92,11 @@ class DefaultProjectTest {
         pluginRegistry = new PluginRegistry(new File('somepath'))
         projectRegistry = new ProjectRegistry()
         buildScriptProcessor = new BuildScriptProcessor()
-        project = new DefaultProject('root', null, rootDir, null, TEST_BUILD_FILE_NAME, buildScriptClassLoader,
-                taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry);
+        ProjectFactory factory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor,
+                pluginRegistry, TEST_BUILD_FILE_NAME, projectRegistry, null)
+        project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
+                taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
+                factory);
         child1 = project.addChildProject("child1")
         childchild = child1.addChildProject("childchild")
         child2 = project.addChildProject("child2")

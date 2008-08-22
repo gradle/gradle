@@ -16,61 +16,115 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.DependencyManager;
 import org.gradle.api.DependencyManagerFactory;
 import org.gradle.api.Project;
-import org.gradle.api.internal.dependencies.DefaultDependencyManager;
+import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.HelperUtil;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.gradle.util.ReflectionEqualsMatcher;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.net.URLClassLoader;
-import java.net.URL;
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * @author Hans Dockter
  */
 public class ProjectFactoryTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final ClassLoader buildScriptClassLoader = new URLClassLoader(new URL[0]);
+    private final File rootDir = new File("/root");
+    private DependencyManagerFactory dependencyManagerFactoryMock;
+    private ITaskFactory taskFactoryMock;
+    private DefaultProject rootProject;
+    private Project parentProject;
+    private BuildScriptProcessor buildScriptProcessor;
+    private PluginRegistry pluginRegistry;
+    private ProjectRegistry projectRegistry;
 
-    @Test public void testProjectFactory() {
-        final DependencyManagerFactory dependencyManagerFactoryMock = context.mock(DependencyManagerFactory.class);
-        DependencyManager dependencyManagerMock = context.mock(DependencyManager.class);
+    @Before
+    public void setUp() throws Exception {
+        context.setImposteriser(ClassImposteriser.INSTANCE);
+        dependencyManagerFactoryMock = context.mock(DependencyManagerFactory.class);
+        taskFactoryMock = context.mock(ITaskFactory.class);
+        buildScriptProcessor = context.mock(BuildScriptProcessor.class);
+        pluginRegistry = context.mock(PluginRegistry.class);
+
+        rootProject = HelperUtil.createRootProject(rootDir);
+        parentProject = HelperUtil.createChildProject(rootProject, "parent");
+        projectRegistry = rootProject.getProjectRegistry();
+
         context.checking(new Expectations() {{
           allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
         }});
+    }
 
-        ITaskFactory taskFactoryMock = context.mock(ITaskFactory.class);
+    @Test
+    public void testConstructsRootProjectWithBuildFile() {
+        ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
+                "build.gradle", projectRegistry, null);
 
-        String expectedName = "somename";
-        String expectedBuildFileName = "build.gradle";
-        File rootDir = new File("/root");
-        DefaultProject rootProject = HelperUtil.createRootProject(rootDir);
-        Project parentProject = rootProject.addChildProject("parent");
-        BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor();
-        PluginRegistry expectedPluginRegistry = new PluginRegistry();
+        DefaultProject project = projectFactory.createProject("somename", null, rootDir, buildScriptClassLoader);
 
-        ProjectRegistry expectedProjectRegistry = rootProject.getProjectRegistry();
-        ClassLoader expectedBuildScriptClassLoader = new URLClassLoader(new URL[0]);
+        assertEquals("somename", project.getName());
+        assertEquals("build.gradle", project.getBuildFileName());
+        assertNull(project.getParent());
+        assertSame(rootDir, project.getRootDir());
+        assertSame(project, project.getRootProject());
+        checkProjectResources(project);
 
-        ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, expectedPluginRegistry,
-                expectedBuildFileName, expectedProjectRegistry);
-        DefaultProject project = projectFactory.createProject(expectedName, parentProject, rootDir, rootProject, expectedBuildScriptClassLoader);
+        ScriptSource expectedScriptSource = new FileScriptSource("build file", new File(rootDir, "build.gradle"));
+        assertThat(project.getBuildScriptSource(), ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource));
+    }
 
-        assertEquals(expectedName, project.getName());
-        assertEquals(expectedBuildFileName, project.getBuildFileName());
+    @Test public void testConstructsProjectWithBuildFile() {
+        ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
+                "build.gradle", projectRegistry, null);
+
+        DefaultProject project = projectFactory.createProject("somename", parentProject, rootDir, buildScriptClassLoader);
+
+        assertEquals("somename", project.getName());
+        assertEquals("build.gradle", project.getBuildFileName());
         assertSame(parentProject, project.getParent());
         assertSame(rootDir, project.getRootDir());
         assertSame(rootProject, project.getRootProject());
-        assertSame(taskFactoryMock, project.getTaskFactory());
-        assertSame(expectedBuildScriptClassLoader, project.getBuildScriptClassLoader());
-        assertSame(dependencyManagerFactoryMock, project.getDependencyManagerFactory());
-        assertSame(buildScriptProcessor, project.getBuildScriptProcessor());
-        assertSame(expectedPluginRegistry, project.getPluginRegistry());
-        assertSame(expectedProjectRegistry, project.getProjectRegistry());
+        checkProjectResources(project);
+
+        ScriptSource expectedScriptSource = new FileScriptSource("build file", new File(rootDir, "parent/somename/build.gradle"));
+        assertThat(project.getBuildScriptSource(), ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource));
     }
 
+    @Test
+    public void testConstructsRootProjectWithEmbeddedBuildScript() {
+        ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
+                "build.gradle", projectRegistry, "<content>");
+
+        DefaultProject project = projectFactory.createProject("somename", null, rootDir, buildScriptClassLoader);
+
+        assertEquals("somename", project.getName());
+        assertEquals("build.gradle", project.getBuildFileName());
+        assertSame(rootDir, project.getRootDir());
+        assertNull(project.getParent());
+        assertSame(project, project.getRootProject());
+        checkProjectResources(project);
+
+        ScriptSource expectedScriptSource = new StringScriptSource("embedded build file", "<content>");
+        assertThat(project.getBuildScriptSource(), ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource));
+    }
+
+    private void checkProjectResources(DefaultProject project) {
+        assertSame(taskFactoryMock, project.getTaskFactory());
+        assertSame(buildScriptClassLoader, project.getBuildScriptClassLoader());
+        assertSame(dependencyManagerFactoryMock, project.getDependencyManagerFactory());
+        assertSame(buildScriptProcessor, project.getBuildScriptProcessor());
+        assertSame(pluginRegistry, project.getPluginRegistry());
+        assertSame(projectRegistry, project.getProjectRegistry());
+    }
 }

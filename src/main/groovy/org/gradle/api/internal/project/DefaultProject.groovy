@@ -20,6 +20,7 @@ import org.gradle.api.*
 import org.gradle.util.ConfigureUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -31,11 +32,12 @@ class DefaultProject extends AbstractProject {
         super();
     }
 
-    public DefaultProject(String name, Project parent, File rootDir, Project rootProject, String buildFileName,
+    public DefaultProject(String name, Project parent, File rootDir, String buildFileName, ScriptSource scriptSource,
                           ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
-                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry) {
-        super(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
-                buildScriptProcessor, pluginRegistry, projectRegistry);
+                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry,
+                          IProjectFactory projectFactory) {
+        super(name, parent, rootDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
+                buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory);
     }
 
     def property(String name) {
@@ -151,11 +153,6 @@ class DefaultProject extends AbstractProject {
             task.configure(configureClosure);
         }
         return task;
-    }
-
-    protected AbstractProject createChildProject(String name) {
-        return new DefaultProject(name, this, rootDir, rootProject, buildFileName, buildScriptClassLoader, taskFactory,
-                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry);
     }
 
     public void addAfterEvaluateListener(Closure afterEvaluateListener) {

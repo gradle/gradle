@@ -48,7 +48,6 @@ class ProjectsLoader {
 
     ProjectsLoader(IProjectFactory projectFactory) {
         this.projectFactory = projectFactory;
-
     }
 
     ProjectsLoader load(DefaultSettings settings, ClassLoader buildScriptClassLoader, StartParameter startParameter,
@@ -82,7 +81,7 @@ class ProjectsLoader {
         }
         logger.debug("Looking for system project properties")
         DefaultProject rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null,
-                settings.rootFinder.rootDir, null, buildScriptClassLoader)
+                settings.rootFinder.rootDir, buildScriptClassLoader)
         addPropertiesToProject(startParameter.gradleUserHomeDir, userHomeProperties + projectProperties, systemAndEnvProjectProperties, rootProject)
         settings.projectPaths.each {
             List folders = it.split(Project.PATH_SEPARATOR)

@@ -24,6 +24,7 @@ import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +52,8 @@ public abstract class AbstractProject implements Project {
     private String buildFileName;
 
     private Script buildScript;
+
+    private ScriptSource buildScriptSource;
 
     private PluginRegistry pluginRegistry;
 
@@ -104,16 +107,18 @@ public abstract class AbstractProject implements Project {
 
     private List<AfterEvaluateListener> afterEvaluateListeners = new ArrayList<AfterEvaluateListener>();
 
+    private IProjectFactory projectFactory;
+
     public AbstractProject() {
         convention = new Convention(this);
     }
 
-    public AbstractProject(String name, DefaultProject parent, File rootDir, DefaultProject rootProject, String buildFileName,
+    public AbstractProject(String name, Project parent, File rootDir, String buildFileName, ScriptSource buildScriptSource,
                            ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
-                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry) {
+                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry,
+                           IProjectFactory projectFactory) {
         assert name != null;
-        assert (parent == null && rootProject == null) || (parent != null && rootProject != null);
-        this.rootProject = rootProject != null ? rootProject : this;
+        this.rootProject = parent != null ? parent.getRootProject() : this;
         this.rootDir = rootDir;
         this.parent = parent;
         this.name = name;
@@ -128,11 +133,13 @@ public abstract class AbstractProject implements Project {
         this.state = STATE_CREATED;
         this.archivesTaskBaseName = Project.DEFAULT_ARCHIVES_TASK_BASE_NAME;
         this.archivesBaseName = name;
+        this.projectFactory = projectFactory;
+        this.buildScriptSource = buildScriptSource;
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
         } else {
-            path = parent == rootProject ? Project.PATH_SEPARATOR + name : parent.getPath() + Project.PATH_SEPARATOR + name;
+            path = parent.absolutePath(name);
         }
 
         if (parent != null) {
@@ -140,7 +147,6 @@ public abstract class AbstractProject implements Project {
         }
 
         projectRegistry.addProject(this);
-
 
         convention = new Convention(this);
     }
@@ -189,12 +195,28 @@ public abstract class AbstractProject implements Project {
         this.buildScript = buildScript;
     }
 
+    public ScriptSource getBuildScriptSource() {
+        return buildScriptSource;
+    }
+
+    public void setBuildScriptSource(ScriptSource buildScriptSource) {
+        this.buildScriptSource = buildScriptSource;
+    }
+
     public PluginRegistry getPluginRegistry() {
         return pluginRegistry;
     }
 
     public void setPluginRegistry(PluginRegistry pluginRegistry) {
         this.pluginRegistry = pluginRegistry;
+    }
+
+    public IProjectFactory getProjectFactory() {
+        return projectFactory;
+    }
+
+    public void setProjectFactory(IProjectFactory projectFactory) {
+        this.projectFactory = projectFactory;
     }
 
     public File getRootDir() {
@@ -558,7 +580,9 @@ public abstract class AbstractProject implements Project {
         return childProjects.get(name);
     }
 
-    protected abstract AbstractProject createChildProject(String name);
+    protected AbstractProject createChildProject(String name) {
+        return projectFactory.createProject(name, this, rootDir, buildScriptClassLoader);
+    }
 
     public String getRelativeFilePath() {
         return "/" + rootProject.getName() + "/" + path.substring(1).replace(Project.PATH_SEPARATOR, "/");

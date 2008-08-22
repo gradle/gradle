@@ -17,16 +17,12 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Script;
-import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.IProjectScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
 import org.gradle.groovy.scripts.ImportsScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.ReflectionEqualsMatcher;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -58,6 +54,8 @@ public class BuildScriptProcessorTest {
 
     ImportsReader importsReaderMock;
 
+    ScriptSource scriptSource;
+
     Script expectedScript;
 
     ClassLoader expectedClassloader;
@@ -78,13 +76,14 @@ public class BuildScriptProcessorTest {
         scriptProcessorMock = context.mock(IScriptProcessor.class);
         expectedClassloader = new URLClassLoader(new URL[0]);
         projectScriptMetaDataMock = context.mock(IProjectScriptMetaData.class);
+        scriptSource = context.mock(ScriptSource.class);
         expectedScript = new ProjectScript() {
             public Object run() {
                 return null; 
             }
         };
         buildScriptProcessor = new BuildScriptProcessor(scriptProcessorMock, projectScriptMetaDataMock,
-                importsReaderMock, null);
+                importsReaderMock);
     }
 
     @After
@@ -97,25 +96,22 @@ public class BuildScriptProcessorTest {
         assertSame(scriptProcessorMock, buildScriptProcessor.getScriptProcessor());
         assertSame(projectScriptMetaDataMock, buildScriptProcessor.getProjectScriptMetaData());
         assertSame(importsReaderMock, buildScriptProcessor.getImportsReader());
-        assertNull(buildScriptProcessor.getInMemoryScriptText());
     }
 
     @Test
-    public void testCreateScriptWithInMemoryTextNotSet() {
-        final ScriptSource expectedScriptSource = new FileScriptSource("build file", testBuildScriptFile);
+    public void testCreatesScriptUsingProjectsBuildScriptSource() {
+        final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReaderMock, testProjectDir);
 
         context.checking(new Expectations() {
             {
+                allowing(testProject).getBuildScriptSource();
+                will(returnValue(scriptSource));
                 allowing(testProject).getBuildScriptClassLoader();
                 will(returnValue(expectedClassloader));
                 allowing(testProject).getRootDir();
                 will(returnValue(testProjectDir));
-                allowing(testProject).getProjectDir();
-                will(returnValue(testProjectDir));
-                allowing(testProject).getBuildFileName();
-                will(returnValue(TEST_BUILD_FILE_NAME));
                 one(scriptProcessorMock).createScript(
-                        with(new ScriptSourceMatcher(expectedScriptSource)),
+                        with(ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource)),
                         with(same(expectedClassloader)),
                         with(equal(ProjectScript.class)));
                 will(returnValue(expectedScript));
@@ -123,49 +119,5 @@ public class BuildScriptProcessorTest {
             }
         });
         buildScriptProcessor.createScript(testProject);
-    }
-
-    @Test
-    public void testCreateScriptWithInMemoryTextSet() {
-        buildScriptProcessor = new BuildScriptProcessor(scriptProcessorMock, projectScriptMetaDataMock,
-                importsReaderMock, TEST_SCRIPT_TEXT);
-        final File rootDir = testProjectDir.getParentFile();
-        final ScriptSource expectedScriptSource = new StringScriptSource("embedded build script", TEST_SCRIPT_TEXT);
-
-        context.checking(new Expectations() {
-            {
-                allowing(testProject).getRootDir();
-                will(returnValue(rootDir));
-                allowing(testProject).getBuildScriptClassLoader();
-                will(returnValue(expectedClassloader));
-                one(scriptProcessorMock).createScript(
-                        with(new ScriptSourceMatcher(expectedScriptSource)),
-                        with(same(expectedClassloader)),
-                        with(equal(ProjectScript.class)));
-                will(returnValue(expectedScript));
-                one(projectScriptMetaDataMock).applyMetaData(expectedScript, testProject);
-            }
-        });
-        buildScriptProcessor.createScript(testProject);
-    }
-
-    private static class ScriptSourceMatcher extends BaseMatcher<ScriptSource> {
-        private final ScriptSource expected;
-
-        private ScriptSourceMatcher(ScriptSource expected) {
-            this.expected = expected;
-        }
-
-        public void describeTo(Description description) {
-            description.appendText("expected script source");
-        }
-
-        public boolean matches(Object o) {
-            if (!ImportsScriptSource.class.isInstance(o)) {
-                return false;
-            }
-            ImportsScriptSource source = (ImportsScriptSource) o;
-            return ReflectionEqualsMatcher.reflectionEquals(expected).matches(source.getSource());
-        }
     }
 }

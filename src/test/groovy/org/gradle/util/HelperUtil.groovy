@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.*
 import org.gradle.execution.Dag
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
+import org.gradle.groovy.scripts.StringScriptSource
 
 
 
@@ -44,32 +45,29 @@ class HelperUtil {
                 projectName,
                 parent,
                 new File(""),
-                parent,
-                null,
+                "build.gradle",
+                new StringScriptSource("test build file", null),
                 null,
                 new TaskFactory(),
                 new DefaultDependencyManagerFactory(new File('root')),
                 null,
                 null,
-                parent.projectRegistry] as Object[])
+                parent.projectRegistry,
+                null] as Object[])
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        ProjectRegistry projectRegistry = new ProjectRegistry()
-        TaskFactory taskFactory = new TaskFactory();
-        DefaultProject project = new DefaultProject(
-                rootDir.name,
-                null,
-                rootDir,
-                null,
-                null,
-                null,
-                taskFactory,
+        IProjectFactory projectFactory = new ProjectFactory(
+                new TaskFactory(),
                 new DefaultDependencyManagerFactory(new File('root')),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
-                projectRegistry)
-        project.setBuildScript(new EmptyScript());
+                "build.gradle",
+                new ProjectRegistry(),
+                "// an empty build script")
+
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
+        project.setBuildScript(new EmptyScript())
         return project;
     }
 
@@ -78,14 +76,15 @@ class HelperUtil {
                 name,
                 parentProject,
                 parentProject.rootDir,
-                parentProject.rootProject,
                 parentProject.buildFileName,
+                new StringScriptSource("test build file", null),
                 parentProject.buildScriptClassLoader,
                 parentProject.taskFactory,
                 parentProject.dependencyManagerFactory,
                 parentProject.buildScriptProcessor,
                 parentProject.pluginRegistry,
-                parentProject.projectRegistry)
+                parentProject.projectRegistry,
+                parentProject.projectFactory)
     }
 
     static def pureStringTransform(def collection) {

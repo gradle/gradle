@@ -17,10 +17,10 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.DependencyManagerFactory;
-import org.gradle.api.internal.project.BuildScriptProcessor;
-import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.Project;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.groovy.scripts.FileScriptSource;
 
 import java.io.File;
 
@@ -33,23 +33,35 @@ public class ProjectFactory implements IProjectFactory {
     PluginRegistry pluginRegistry;
     String buildFileName;
     ProjectRegistry projectRegistry;
+    String embeddedScript;
     ITaskFactory taskFactory;
 
-    public ProjectFactory() {}
+    public ProjectFactory() {
+    }
 
     public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
-                   PluginRegistry pluginRegistry, String buildFileName, ProjectRegistry projectRegistry) {
+                          PluginRegistry pluginRegistry, String buildFileName, ProjectRegistry projectRegistry, String embeddedScript) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
         this.buildFileName = buildFileName;
         this.projectRegistry = projectRegistry;
+        this.embeddedScript = embeddedScript;
     }
 
-    public DefaultProject createProject(String name, Project parent, File rootDir, Project rootProject, ClassLoader buildScriptClassLoader) {
-        return new DefaultProject(name, parent, rootDir, rootProject, buildFileName, buildScriptClassLoader, taskFactory,
-                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry);
+    public DefaultProject createProject(String name, Project parent, File rootDir, ClassLoader buildScriptClassLoader) {
+        ScriptSource source;
+        if (embeddedScript != null) {
+            source = new StringScriptSource("embedded build file", embeddedScript);
+        } else if (parent == null) {
+            source = new FileScriptSource("build file", new File(rootDir, buildFileName));
+        } else {
+            File projectDir = new File(parent.getProjectDir(), name);
+            source = new FileScriptSource("build file", new File(projectDir, buildFileName));
+        }
+        return new DefaultProject(name, parent, rootDir, buildFileName, source, buildScriptClassLoader, taskFactory,
+                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this);
     }
 
 }

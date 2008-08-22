@@ -186,13 +186,13 @@ public class Build {
                                         new BuildScriptProcessor(
                                                 scriptProcessor,
                                                 new DefaultProjectScriptMetaData(),
-                                                importsReader,
-                                                inMemoryScriptText
+                                                importsReader
                                         ),
                                         new PluginRegistry(
                                                 startParameter.getPluginPropertiesFile()),
                                         startParameter.getBuildFileName(),
-                                        new ProjectRegistry())
+                                        new ProjectRegistry(),
+                                        inMemoryScriptText)
 
                         ),
                         new BuildConfigurer(
