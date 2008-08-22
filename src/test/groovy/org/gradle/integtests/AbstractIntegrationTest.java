@@ -15,13 +15,17 @@
  */
 package org.gradle.integtests;
 
+import junit.framework.AssertionFailedError;
 import org.apache.commons.io.FileUtils;
+import org.gradle.Build;
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
+import org.gradle.api.Project;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import org.junit.Before;
 
 import java.io.File;
@@ -62,16 +66,7 @@ public class AbstractIntegrationTest {
         return destFile;
     }
 
-    protected StartParameter startParameter(File gradleFile, String... tasks) {
-        StartParameter parameter = startParameter(tasks);
-        parameter.setCurrentDir(gradleFile.getParentFile());
-        parameter.setBuildFileName(gradleFile.getName());
-
-
-        return parameter;
-    }
-
-    protected StartParameter startParameter(String... tasks) {
+    protected StartParameter startParameter() {
         StartParameter parameter = new StartParameter();
 
         // TODO: should not have to set these
@@ -83,7 +78,61 @@ public class AbstractIntegrationTest {
         parameter.setCacheUsage(CacheUsage.ON);
         parameter.setCurrentDir(testDir);
 
-        parameter.setTaskNames(Arrays.asList(tasks));
         return parameter;
+    }
+
+    public static class GradleExecution {
+        protected final StartParameter parameter;
+        private final String script;
+
+        public GradleExecution(StartParameter parameter, String script) {
+            this.parameter = parameter;
+            this.script = script;
+        }
+
+        public GradleExecution runTasks(String... names) {
+            parameter.setTaskNames(Arrays.asList(names));
+            if (script == null) {
+                Build.newInstanceFactory(parameter).newInstance(null, null).run(parameter);
+            } else {
+                Build.newInstanceFactory(parameter).newInstance(script, null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
+            }
+            return this;
+        }
+
+        public GradleExecutionFailure runTasksAndExpectFailure(String... names) {
+            try {
+                runTasks(names);
+                fail();
+            } catch (GradleException e) {
+                return new GradleExecutionFailure(e);
+            }
+            throw new AssertionFailedError();
+        }
+    }
+
+    public static class GradleExecutionFailure {
+        private final GradleException failure;
+
+        public GradleExecutionFailure(GradleException failure) {
+            this.failure = failure;
+        }
+
+        public void assertHasLineNumber(int lineNumber) {
+            assertThat(failure.getMessage(), Matchers.containsString(String.format("line(s): %d", lineNumber)));
+        }
+    }
+
+    protected GradleExecution usingBuildFile(File file) {
+        StartParameter parameter = startParameter();
+        parameter.setCurrentDir(file.getParentFile());
+        parameter.setBuildFileName(file.getName());
+        return new GradleExecution(parameter, null);
+    }
+
+    protected GradleExecution usingBuildScript(String script) {
+        StartParameter parameter = startParameter();
+        parameter.setBuildFileName(Project.EMBEDDED_SCRIPT_ID);
+        return new GradleExecution(parameter, script);
     }
 }

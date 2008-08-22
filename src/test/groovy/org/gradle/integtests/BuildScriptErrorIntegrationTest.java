@@ -15,35 +15,31 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.Build;
-import org.gradle.StartParameter;
-import org.gradle.api.GradleScriptException;
-import org.gradle.api.Project;
-import org.hamcrest.Matchers;
-import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.Ignore;
+
+import java.io.File;
 
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void lineNumberOutputForCompileError() {
-        checkLineInfo("createTakk('do-stuff')", startParameter());
+    public void reportsProjectEvaulationFailsWithGroovyException() {
+        GradleExecutionFailure failure = usingBuildScript("createTakk('do-stuff')").runTasksAndExpectFailure();
+
+        failure.assertHasLineNumber(1);
     }
 
     @Ignore
-    public void lineNumberOutputForRuntimeError() {
+    public void reportsTaskActionExecutionFailsWithError() {
         // todo We need to figure when the Groovy compile provided line info and when not. I can't easily produce a runtime
         // error with line info information although I know there are runtime errors with line info. 
-        String script = "createTask('do-stuff') { 1 / 0 }";
-        checkLineInfo(script, startParameter("do-stuff"));
+        GradleExecutionFailure failure = usingBuildScript("createTask('do-stuff')\n{ 1 / 0 }").runTasksAndExpectFailure("do-stuff");
+        failure.assertHasLineNumber(2);
     }
 
-    private void checkLineInfo(String script, StartParameter parameter) {
-        parameter.setBuildFileName(Project.EMBEDDED_SCRIPT_ID);
-        try {
-            Build.newInstanceFactory(parameter).newInstance(script, null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
-        } catch (GradleScriptException e) {
-            assertThat(e.getMessage(), Matchers.containsString("line(s): 1"));
-        }
+    @Test
+    public void reportsTaskActionExecutionFailsWithRuntimeException() {
+        File gradleFile = getTestBuildFile("task-action-execution-failure.gradle");
+        GradleExecutionFailure failure = usingBuildFile(gradleFile).runTasksAndExpectFailure("broken");
+        failure.assertHasLineNumber(3);
     }
 }

@@ -29,20 +29,15 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         File buildFile2 = getTestBuildFile("similarly_named_build_gradle");
         assertEquals(buildFile1.getParentFile(), buildFile2.getParentFile());
 
-        StartParameter parameter = startParameter(buildFile1, "build");
-        Build.newInstanceFactory(parameter).newInstance(null, null).run(parameter);
+        usingBuildFile(buildFile1).runTasks("build");
 
-        parameter = startParameter(buildFile2, "other-build");
-        Build.newInstanceFactory(parameter).newInstance(null, null).run(parameter);
+        usingBuildFile(buildFile2).runTasks("other-build");
 
-        parameter = startParameter(buildFile1, "build");
-        Build.newInstanceFactory(parameter).newInstance(null, null).run(parameter);
+        usingBuildFile(buildFile1).runTasks("build");
     }
 
     @Test
     public void canProvideAnEmbeddedBuildFile() {
-        StartParameter parameter = startParameter("do-stuff");
-        String script = "Task task = createTask('do-stuff')";
-        Build.newInstanceFactory(parameter).newInstance(script, null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
+        usingBuildScript("Task task = createTask('do-stuff')").runTasks("do-stuff");
     }
 }
