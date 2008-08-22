@@ -341,7 +341,6 @@ javadoc {
     destinationDir = explodedDistJavadocsDir
     include 'org/gradle/api/**'
     exclude 'org/gradle/api/internal/**'
-    exclude 'org/gradle/api/*Exception.java', '**/*Notation.java'
 }
 
 createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {

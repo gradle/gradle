@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api
+
+package org.gradle.api.tasks;
 
 /**
+ * <p>A <code>StopExecutionException</code> is thrown by a {@link org.gradle.api.TaskAction} or task action closure to
+ * stop execution of the current task and start execution of the next task. This allows, for example, precondition
+ * actions to be added to a task which abort execution of the task if the preconditions are not met.</p>
+ *
+ * <p>Note that throwing this exception does not fail the execution of the task or the build.</p>
+ *
  * @author Hans Dockter
  */
-class UnknownTaskException extends GradleException {
-    UnknownTaskException() {
+public class StopExecutionException extends RuntimeException {
+
+    public StopExecutionException() {
+        super();
     }
 
-    UnknownTaskException(String message) {
+    public StopExecutionException(String message) {
         super(message);
     }
-                        
-    UnknownTaskException(String message, Throwable cause) {
-        super(message, cause);
-    }
 
-    UnknownTaskException(Throwable cause) {
-        super(cause);
-    }
 }

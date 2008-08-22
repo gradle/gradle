@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api
+
+package org.gradle.api;
 
 /**
- * This exception is thrown if circular references exists between tasks, the project evaluation order or the
- * project dependsOn order.
- * 
+ * <p>A <code>CircularReferenceException</code> is thrown if circular references exists between tasks, the project
+ * evaluation order or the project dependsOn order.</p>
+ *
  * @author Hans Dockter
  */
 public class CircularReferenceException extends GradleException {

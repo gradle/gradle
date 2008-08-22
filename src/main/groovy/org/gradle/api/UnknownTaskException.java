@@ -14,19 +14,26 @@
  * limitations under the License.
  */
  
-package org.gradle.api.tasks
+package org.gradle.api;
 
 /**
+ * <p>An <code>UnknownTaskException</code> is thrown when a task referenced by path cannot be found.</p>
+ *
  * @author Hans Dockter
  */
-class StopExecutionException extends RuntimeException {
-
-    StopExecutionException() {
-        super()
+public class UnknownTaskException extends GradleException {
+    public UnknownTaskException() {
     }
 
-    StopExecutionException(String message) {
-        super(message)
+    public UnknownTaskException(String message) {
+        super(message);
+    }
+                        
+    public UnknownTaskException(String message, Throwable cause) {
+        super(message, cause);
     }
 
+    public UnknownTaskException(Throwable cause) {
+        super(cause);
+    }
 }

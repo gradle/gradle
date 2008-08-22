@@ -37,6 +37,8 @@ import java.util.Set;
  * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
  * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}</p>
  *
+ * <h3>Exceptions</h3>
+ * 
  * <h3>Using a Task in the Build File</h3>
  *
  * <p>A task generally provides no special build file behaviour, and can be used as a regular script object.</p>

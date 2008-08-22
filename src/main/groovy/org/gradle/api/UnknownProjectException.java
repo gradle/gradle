@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api
+
+package org.gradle.api;
 
 /**
+ * <p>An <code>UnknownProjectException</code> is thrown when a project referenced by path cannot be found.</p>
+ *
  * @author Hans Dockter
  */
-class UnknownProjectException extends GradleException {
-    UnknownProjectException() {
+public class UnknownProjectException extends GradleException {
+    public UnknownProjectException() {
     }
 
-    UnknownProjectException(String message) {
+    public UnknownProjectException(String message) {
         super(message);
     }
 
-    UnknownProjectException(String message, Throwable cause) {
+    public UnknownProjectException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    UnknownProjectException(Throwable cause) {
+    public UnknownProjectException(Throwable cause) {
         super(cause);
     }
-
 }
