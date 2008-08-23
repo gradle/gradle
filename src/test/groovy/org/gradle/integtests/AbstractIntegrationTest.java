@@ -24,6 +24,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.util.HelperUtil;
 import org.hamcrest.Matchers;
+import org.hamcrest.Matcher;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -40,13 +42,16 @@ public class AbstractIntegrationTest {
 
     @Before
     public void setupTestDir() throws IOException {
-        testDir = HelperUtil.makeNewTestDir();
+        testDir = HelperUtil.makeNewTestDir().getCanonicalFile();
         defaultImportFile = new File(testDir, "default-imports");
         FileUtils.writeStringToFile(defaultImportFile, "import org.gradle.api.*");
     }
 
+    public File getTestDir() {
+        return testDir;
+    }
+
     protected File getTestBuildFile(String name) {
-        System.out.println("name = " + name);
         URL resource = getClass().getResource("testProjects/" + name);
         assertThat(resource, notNullValue());
         assertThat(resource.getProtocol(), equalTo("file"));
@@ -119,7 +124,11 @@ public class AbstractIntegrationTest {
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            assertThat(failure.getMessage(), Matchers.containsString(String.format("line(s): %d", lineNumber)));
+            assertThat(failure.getMessage(), containsString(String.format("line(s): %d", lineNumber)));
+        }
+
+        public void assertHasDescription(String description) {
+            assertThat(failure.getMessage(), containsString(description));
         }
     }
 

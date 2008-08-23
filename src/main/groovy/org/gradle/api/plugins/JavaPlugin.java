@@ -101,10 +101,9 @@ public class JavaPlugin implements Plugin {
             public void execute(Task task, Dag tasksGraph) {
                 Test test = (Test) task;
                 List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().task(TEST_COMPILE)).getUnmanagedClasspath();
-                test.unmanagedClasspath((Object[]) unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
+                test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
             }
         });
-
 
         Bundle libsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", TEST), LIBS);
         libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
@@ -138,6 +137,7 @@ public class JavaPlugin implements Plugin {
         dependencies.getArtifactParentDirs().add(project.getBuildDir());
         dependencies.getArtifactParentDirs().add(javaPluginConvention.getDistsDir());
         dependencies.linkConfWithTask(COMPILE, COMPILE);
+        dependencies.linkConfWithTask(COMPILE, JAVADOC);
         dependencies.linkConfWithTask(RUNTIME, TEST);
         dependencies.linkConfWithTask(TEST_COMPILE, TEST_COMPILE);
         dependencies.linkConfWithTask(TEST_RUNTIME, TEST);

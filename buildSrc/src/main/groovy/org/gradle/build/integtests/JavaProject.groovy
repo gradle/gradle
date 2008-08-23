@@ -16,9 +16,11 @@
 
 package org.gradle.build.integtests
 
+import static org.junit.Assert.*
+
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class JavaProject {
     static final String JAVA_PROJECT_NAME = 'javaproject'
     static final String SHARED_NAME = 'shared'
@@ -57,9 +59,11 @@ class JavaProject {
         // Javdoc build
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'javadoc'], [], '', Executer.DEBUG)
         checkExistence(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
+        assertTrue(fileText(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').contains("These are the shared classes."))
         checkExistence(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
+        assertTrue(fileText(javaprojectDir, API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').contains("These are the API classes"))
         checkExistence(javaprojectDir, WEBAPP_1_PATH, 'build/docs/javadoc/index.html')
-        
+
         // Partial build using current directory
         Executer.execute(gradleHome, new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME").absolutePath,
                 ['clean', 'libs'], [], '', Executer.DEBUG)
@@ -108,5 +112,7 @@ class JavaProject {
         execute(args[0], args[1])
     }
 
-    
+    static String fileText(File baseDir, String[] path) {
+        new File(baseDir, path.join('/')).text
+    }
 }

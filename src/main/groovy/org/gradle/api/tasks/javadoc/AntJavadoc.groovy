@@ -20,14 +20,14 @@ package org.gradle.api.tasks.javadoc
  * @author Hans Dockter
  */
 class AntJavadoc {
-    void execute(List<File> sourceDirs, File destDir, String windowTitle, String maxMemory, List<String> includes, List<String> excludes, AntBuilder ant) {
+    void execute(List<File> sourceDirs, File destDir, List<File> classpathFiles, String windowTitle, String maxMemory, List<String> includes, List<String> excludes, AntBuilder ant) {
         Map otherArgs = [:]
         if (maxMemory) {otherArgs.maxmemory = maxMemory}
         if (windowTitle) {
             otherArgs.windowtitle = windowTitle
             otherArgs.doctitle = "<p>$windowTitle</p>"
         }
-        ant.javadoc([destdir: destDir] + otherArgs) {
+        ant.javadoc([destdir: destDir, failonerror: true] + otherArgs) {
             sourceDirs.each {
                 fileset(dir: it) {
                     includes.each {
@@ -36,7 +36,13 @@ class AntJavadoc {
                     excludes.each {
                         exclude(name: it)
                     }
+                    // This looks wrong. However, javadoc fails when package.html files are included explicitly. Javadoc
+                    // will include them in the documentation even if they are not included. So, exclude them.
+                    exclude(name: '**/package.html')
                 }
+            }
+            classpathFiles.each {
+                classpath(location: it)
             }
         }
     }
