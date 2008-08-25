@@ -16,14 +16,10 @@
 
 package org.gradle.build.release
 
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.GradleUtil
-import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectFactory
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
-import org.gradle.api.internal.project.BuildScriptProcessor
-import org.gradle.api.internal.project.PluginRegistry
-import org.gradle.api.internal.project.TaskFactory
+import org.gradle.api.internal.project.*
+import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -39,7 +35,7 @@ class VersionTest extends GroovyTestCase {
         testDir = GradleUtil.makeNewDir(new File('tmpTest'))
         File rootDir = new File(testDir, 'root')
         rootDir.mkdir()
-        project = createTestProject(rootDir);
+        project = createRootProject(rootDir);
         project.previousMajor = '1'
         project.previousMinor = '2'
         project.previousRevision = '3'
@@ -47,19 +43,19 @@ class VersionTest extends GroovyTestCase {
         version = new Version(svn, project, false)
     }
 
-    private createTestProject(File rootDir) {
-        ProjectRegistry projectRegistry = new ProjectRegistry()
-        return new DefaultProject(rootDir.name,
-                null,
-                rootDir,
-                null,
-                null,
-                null,
+    DefaultProject createRootProject(File rootDir) {
+        IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
                 new DefaultDependencyManagerFactory(new File('root')),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
-                projectRegistry)
+                "build.gradle",
+                new ProjectRegistry(),
+                "// an empty build script")
+
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
+        project.setBuildScript(new EmptyScript())
+        return project;
     }
 
     void tearDown() {
@@ -126,4 +122,6 @@ class VersionTest extends GroovyTestCase {
         assertEquals('2', properties.previousMinor)
         assertEquals('4', properties.previousRevision)
     }
+
+
 }
