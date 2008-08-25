@@ -19,8 +19,17 @@ import org.gradle.api.Task;
 import org.gradle.api.plugins.Convention;
 
 /**
+ * A ConventionValue can be assigned to a {@link org.gradle.api.internal.IConventionAware} task. If a property
+ * of such an object is not set internally, a ConventionValue is used to calculate the value for the property.
+ *
  * @author Hans Dockter
  */
 public interface ConventionValue {
+    /**
+     * Returns some object.
+     * 
+     * @param convention The convention object belonging to the task's project
+     * @param task The convention aware task  
+     */
     Object getValue(Convention convention, Task task);
 }
