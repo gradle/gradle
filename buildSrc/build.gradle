@@ -1,7 +1,7 @@
-import org.gradle.api.DependencyManager
 import org.apache.ivy.core.install.InstallOptions
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.gradle.api.DependencyManager
 
 usePlugin('groovy')
 
@@ -29,7 +29,7 @@ uploadLibs.doLast {
     installOptions.overwrite = true
     installOptions.validate = false
     def ivy = dependencies.ivy
-    DefaultModuleDescriptor moduleDescriptor = dependencies.moduleDescriptorConverter.convert(dependencies)
+    DefaultModuleDescriptor moduleDescriptor = dependencies.moduleDescriptorConverter.convert(dependencies, true)
     moduleDescriptor.dependencies.each { DependencyDescriptor dependencyDescriptor ->
         ivy.install(dependencyDescriptor.dependencyRevisionId, 'lib', DependencyManager.BUILD_RESOLVER_NAME, installOptions)
     }
