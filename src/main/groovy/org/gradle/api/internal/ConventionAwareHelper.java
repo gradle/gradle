@@ -17,14 +17,14 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ReflectionUtil;
 
-import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
-
-import groovy.lang.GroovyObject;
-import groovy.lang.Closure;
+import java.util.Map;
 
 /**
  * I would love to have this as a mixin. But Groovy does not support them yet.
@@ -32,24 +32,24 @@ import groovy.lang.Closure;
  * @author Hans Dockter
  */
 public class ConventionAwareHelper {
-    private Object convention;
+    private Convention convention;
 
-    private Object source;
+    private Task source;
 
-    private Map conventionMapping = new HashMap();
-    private Map conventionMappingCache = new HashMap();
+    private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
+    private Map<String, Object> conventionMappingCache = new HashMap<String, Object>();
 
-    public ConventionAwareHelper(Object source) {
+    public ConventionAwareHelper(Task source) {
         this.source = source;
     }
 
-    public Object convention(Object convention, Map conventionMapping) {
+    public Task convention(Convention convention, Map<String, ConventionValue> conventionMapping) {
         this.convention = convention;
         this.conventionMapping = conventionMapping;
         return source;
     }
 
-    public Object conventionMapping(Map mapping) {
+    public Object conventionMapping(Map<String, ConventionValue> mapping) {
         Iterator keySetIterator = mapping.keySet().iterator();
         while (keySetIterator.hasNext()) {
             String propertyName = (String) keySetIterator.next();
@@ -61,23 +61,16 @@ public class ConventionAwareHelper {
         return source;
     }
 
-    public Object getValue(String propertyName) {
+    public Object getConventionValue(String propertyName) {
         Object value = ReflectionUtil.getProperty(source, propertyName);
-        if (value == null && conventionMapping.keySet().contains(propertyName)) {
-            if (!conventionMappingCache.keySet().contains(propertyName)) {
-                Object conventionValue = ((Closure) conventionMapping.get(propertyName)).call(new Object[] {convention});
-                conventionMappingCache.put(propertyName, conventionValue);
-            }
-            value = conventionMappingCache.get(propertyName);
-        }
-        return value;
+        return getConventionValue(value, propertyName);
     }
 
     public Object getConventionValue(Object internalValue, String propertyName) {
         Object returnValue = internalValue;
         if (internalValue == null && conventionMapping.keySet().contains(propertyName)) {
             if (!conventionMappingCache.keySet().contains(propertyName)) {
-                Object conventionValue = ((Closure) conventionMapping.get(propertyName)).call(new Object[] {convention});
+                Object conventionValue = conventionMapping.get(propertyName).getValue(convention, source);
                 conventionMappingCache.put(propertyName, conventionValue);
             }
             returnValue = conventionMappingCache.get(propertyName);
@@ -85,19 +78,19 @@ public class ConventionAwareHelper {
         return returnValue;
     }
 
-    public Object getConvention() {
+    public Convention getConvention() {
         return convention;
     }
 
-    public void setConvention(Object convention) {
+    public void setConvention(Convention convention) {
         this.convention = convention;
     }
 
-    public Object getSource() {
+    public Task getSource() {
         return source;
     }
 
-    public void setSource(GroovyObject source) {
+    public void setSource(Task source) {
         this.source = source;
     }
 

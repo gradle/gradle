@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.util
+package org.gradle.api.tasks;
 
-import org.gradle.api.TaskAction
+import org.gradle.api.Task;
+import org.gradle.api.plugins.Convention;
 
 /**
  * @author Hans Dockter
  */
-class GroovyJavaHelper {
-    static Closure createNoArgsClosure(Object returnValue) {
-        {->  returnValue }
-    }
-
-    static Closure createConventionClosure(Object returnValue) {
-        {Convention ->  returnValue }
-    }
-
-    static Closure createExecuteClosure(Object executable) {
-        { -> executable.execute() }
-    }
-
+public interface ConventionValue {
+    Object getValue(Convention convention, Task task);
 }

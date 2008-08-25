@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.util.GroovyJavaHelper;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.execution.Dag;
+import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import groovy.lang.Closure;
 
 import java.util.List;
 

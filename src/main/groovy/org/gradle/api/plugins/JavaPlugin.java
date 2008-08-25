@@ -22,6 +22,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Resources;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.Bundle;
@@ -32,7 +33,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.execution.Dag;
 import org.gradle.util.GUtil;
-import org.gradle.util.GroovyJavaHelper;
 import org.gradle.util.WrapUtil;
 
 import java.util.HashMap;
@@ -71,8 +71,6 @@ public class JavaPlugin implements Plugin {
 
         configureDependencyManager(project, javaConvention);
 
-        project.setProperty("status", "integration");
-
         project.createTask(INIT);
 
         ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
@@ -87,14 +85,52 @@ public class JavaPlugin implements Plugin {
         configureCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", RESOURCES), COMPILE),
                 DefaultConventionsToPropertiesMapping.COMPILE);
 
-        ConventionTask testResources = (ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", COMPILE), TEST_RESOURCES);
-        testResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
-        testResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
+        configureTestResources(project);
 
         configureTestCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", TEST_RESOURCES), TEST_COMPILE),
                 (Compile) project.task(COMPILE),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE);
 
+        configureTest(project);
+
+        configureLibs(project, javaConvention);
+
+        configureUploadLibs(project);
+
+        Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", UPLOAD_LIBS), DISTS);
+        distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
+
+        Upload distsUpload = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", DISTS), UPLOAD_DISTS);
+        distsUpload.getConfigurations().add(DISTS);
+
+    }
+    
+    private void configureTestResources(Project project) {
+        ConventionTask testResources = (ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", COMPILE), TEST_RESOURCES);
+        testResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
+        testResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
+    }
+
+    private void configureUploadLibs(Project project) {
+        Upload uploadLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_LIBS);
+        uploadLibs.getBundles().add(project.task(LIBS));
+        uploadLibs.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
+        uploadLibs.setUploadModuleDescriptor(true);
+    }
+
+    private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
+        Bundle libsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", TEST), LIBS);
+        libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
+        Jar jar = libsBundle.jar();
+        jar.conventionMapping(WrapUtil.<String, ConventionValue>toMap("resourceCollections",
+                new ConventionValue() {
+                    public Object getValue(Convention convention, Task task) {
+                        return WrapUtil.toList(new FileSet(javaConvention.getClassesDir()));
+                    }
+                }));
+    }
+
+    private void configureTest(Project project) {
         final Test test = (Test) project.createTask(GUtil.map("type", Test.class, "dependsOn", TEST_COMPILE), TEST);
         test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
         test.doFirst(new TaskAction() {
@@ -104,26 +140,10 @@ public class JavaPlugin implements Plugin {
                 test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
             }
         });
-
-        Bundle libsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", TEST), LIBS);
-        libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
-        Jar jar = libsBundle.jar();
-        jar.conventionMapping(GUtil.map("resourceCollections",
-                GroovyJavaHelper.createConventionClosure(WrapUtil.toList(new FileSet(javaConvention.getClassesDir())))));
-
-        Upload libsUpload = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_LIBS);
-        libsUpload.getBundles().add(project.task(LIBS));
-        libsUpload.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
-        libsUpload.setUploadModuleDescriptor(true);
-
-        Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", UPLOAD_LIBS), DISTS);
-        distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
-
-        Upload distsUpload = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", DISTS), UPLOAD_DISTS);
-        distsUpload.getConfigurations().add(DISTS);
     }
 
     void configureDependencyManager(Project project, JavaPluginConvention javaPluginConvention) {
+        project.setProperty("status", "integration");
         DependencyManager dependencies = project.getDependencies();
         dependencies.addConfiguration(
                 new Configuration(JavaPlugin.COMPILE, Visibility.PRIVATE, null, null, false, null));

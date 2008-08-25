@@ -30,8 +30,6 @@ class GroovyPluginConvention {
     List floatingGroovyTestSrcDirs = []
     String groovydocDirName
 
-    Closure groovyClasspath
-
     GroovyPluginConvention(Project project, Map customValues) {
         this.project = project
         groovySrcDirNames << 'main/groovy'

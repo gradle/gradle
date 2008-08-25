@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal;
 
-import org.jmock.Mockery;
 import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -60,7 +60,7 @@ public class ConventionTestHelper  {
 
     public void checkProperty(IConventionAware conventionAware) {
         context.checking(new Expectations() {{
-            one(conventionAwareHelperMock).getValue(expectedPropertyName); will(returnValue(expectedProperty));
+            one(conventionAwareHelperMock).getConventionValue(expectedPropertyName); will(returnValue(expectedProperty));
         }});
         assert conventionAware.conv(null, expectedPropertyName) == expectedProperty;
         context.assertIsSatisfied();
@@ -69,7 +69,7 @@ public class ConventionTestHelper  {
     public void checkSetGetConventionMapping(IConventionAware conventionAware) {
         context.checking(new Expectations() {{
             one(conventionAwareHelperMock).setConventionMapping(expectedConventionMapping); will(returnValue(expectedProperty));
-            one(conventionAwareHelperMock).getValue("conventionMapping"); will(returnValue(expectedConventionMapping));
+            one(conventionAwareHelperMock).getConventionValue("conventionMapping"); will(returnValue(expectedConventionMapping));
         }});
         conventionAware.setConventionMapping(expectedConventionMapping);
         assert conventionAware.getConventionMapping() == expectedConventionMapping;

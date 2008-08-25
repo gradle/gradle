@@ -17,21 +17,16 @@
 package org.gradle.api.tasks
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.Task
-import org.gradle.api.tasks.util.CopyInstructionFactory
-import org.gradle.api.tasks.util.CopyInstructionTest
-import org.gradle.api.tasks.util.ExistingDirsFilter
-import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.TestPluginConvention1
-import org.junit.runner.RunWith
-import org.gradle.util.JUnit4GroovyMockery
-import org.junit.Test
-import org.junit.Before
-import org.jmock.lib.legacy.ClassImposteriser
-import org.jmock.Expectations
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.util.CopyInstruction
-import static org.junit.Assert.*
-import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.tasks.util.CopyInstructionFactory
+import org.gradle.api.tasks.util.ExistingDirsFilter
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
@@ -56,7 +51,7 @@ class ResourcesTest extends AbstractTaskTest {
         pluginConvention = new ResourcesTestConvention()
         pluginConvention.classesDir = new File('/classes')
         project.convention.plugins.test = pluginConvention
-        resources.conventionMapping = [destinationDir: { it.classesDir }]
+        resources.conventionMapping = [destinationDir: { convention, task -> convention.classesDir } as ConventionValue]
         copyInstructionFactoryMock = context.mock(CopyInstructionFactory.class)
         resources.copyInstructionFactory = copyInstructionFactoryMock
     }
