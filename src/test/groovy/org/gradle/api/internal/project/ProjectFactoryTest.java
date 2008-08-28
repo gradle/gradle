@@ -29,6 +29,8 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.io.File;
 import java.net.URL;
@@ -97,7 +99,7 @@ public class ProjectFactoryTest {
         assertSame(rootProject, project.getRootProject());
         checkProjectResources(project);
 
-        ScriptSource expectedScriptSource = new FileScriptSource("build file", new File(rootDir, "parent/somename/build.gradle"));
+        ScriptSource expectedScriptSource = new FileScriptSource("build file", new File(rootDir, "parent/somename/build.gradle").getAbsoluteFile());
         assertThat(project.getBuildScriptSource(), ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource));
     }
 
