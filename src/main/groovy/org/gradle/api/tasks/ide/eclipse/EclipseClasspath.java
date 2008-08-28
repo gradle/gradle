@@ -115,7 +115,7 @@ public class EclipseClasspath extends ConventionTask {
 
     private void addLibs(Element root) {
         for (String path : EclipseUtil.getSortedStringList(getClasspathLibs())) {
-            classpathEntry(root, LIB, path);
+            classpathEntry(root, LIB, FilenameUtils.separatorsToUnix(path));
         }
     }
 

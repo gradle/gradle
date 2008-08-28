@@ -109,7 +109,7 @@ public class EclipseClasspathTest extends AbstractTaskTest {
         eclipseClasspath.setTestOutputDirectory("testbin");
         eclipseClasspath.setSrcDirs(expectedSrcDirs);
         eclipseClasspath.setTestSrcDirs(expectedTestSrcDirs);
-        eclipseClasspath.setClasspathLibs(WrapUtil.<Object>toList("lib/b.jar", "lib/a.jar"));
+        eclipseClasspath.setClasspathLibs(WrapUtil.<Object>toList("lib\\b.jar", "lib/a.jar"));
         eclipseClasspath.setProjectDependencies(WrapUtil.toList(projectDependencyMock));
     }
 }
