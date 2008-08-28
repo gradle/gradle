@@ -22,6 +22,9 @@ import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import static org.junit.Assert.assertTrue
 
+
+
+
 /**
  * @author Hans Dockter
  */
@@ -116,7 +119,7 @@ class JavaProject {
 
     private static String replaceWithGradleHome(String resourcePath, String gradleHome) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(JavaProject.getResourceAsStream(resourcePath).text).make(gradleHome: new File(gradleHomeForwardSlash).canonicalPath).toString().replace('\\', '/')
+        templateEngine.createTemplate(JavaProject.getResourceAsStream(resourcePath).text).make(gradleHome: new File(gradleHome).canonicalPath).toString().replace('\\', '/')
     }
            
     private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {
