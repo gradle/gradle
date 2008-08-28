@@ -33,6 +33,7 @@ import org.gradle.util.GradleUtil
 import org.gradle.util.PathHelper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.GradleException
 
 
 /**
@@ -75,8 +76,8 @@ class SettingsProcessor {
         Clock settingsProcessingClock = new Clock();
         initDependencyManagerFactory(rootFinder)
         DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
+        ScriptSource source = new ImportsScriptSource(rootFinder.settingsScript, importsReader, rootFinder.rootDir);
         try {
-            ScriptSource source = new ImportsScriptSource(rootFinder.settingsScript, importsReader, rootFinder.rootDir);
             Script settingsScript = scriptProcessor.createScript(
                     source,
                     Thread.currentThread().contextClassLoader,
@@ -85,8 +86,11 @@ class SettingsProcessor {
             Clock clock = new Clock();
             settingsScript.run()
             logger.debug("Timing: Evaluating settings file took: {}", clock.time)
+        } catch (GradleException e) {
+            e.setScriptSource(source)
+            throw e
         } catch (Throwable t) {
-            throw new GradleScriptException(t, Settings.DEFAULT_SETTINGS_FILE)
+            throw new GradleScriptException(t, source)
         }
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.time)
         if (startParameter.currentDir != rootFinder.rootDir && !isCurrentDirIncluded(settings)) {

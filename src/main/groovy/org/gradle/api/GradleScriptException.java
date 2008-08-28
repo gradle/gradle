@@ -15,11 +15,17 @@
  */
 package org.gradle.api;
 
+import org.gradle.groovy.scripts.ScriptSource;
+
 /**
  * @author Hans Dockter
  */
 public class GradleScriptException extends GradleException {
-    public GradleScriptException(Throwable cause, String scriptName) {
-        super(cause, scriptName);
+    public GradleScriptException(Throwable cause) {
+        super(cause);
+    }
+
+    public GradleScriptException(Throwable cause, ScriptSource scriptSource) {
+        super(cause, scriptSource);
     }
 }

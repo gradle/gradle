@@ -17,6 +17,8 @@
 package org.gradle.api;
 
 import org.gradle.util.GUtil;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ import java.util.ArrayList;
  * @author Hans Dockter
  */
 public class GradleException extends RuntimeException {
-    private String scriptName;
+    private ScriptSource scriptSource;
 
     public GradleException() {
     }
@@ -44,23 +46,25 @@ public class GradleException extends RuntimeException {
         super(cause);
     }
 
-    public GradleException(Throwable cause, String scriptName) {
+    public GradleException(Throwable cause, ScriptSource scriptSource) {
         super(cause);
-        this.scriptName = scriptName;
+        this.scriptSource = scriptSource;
     }
 
-    public String getScriptName() {
-        return scriptName;
+    public ScriptSource getScriptSource() {
+        return scriptSource;
     }
 
-    public void setScriptName(String scriptName) {
-        this.scriptName = scriptName;
+    public void setScriptSource(ScriptSource scriptSource) {
+        this.scriptSource = scriptSource;
     }
 
     public String getMessage() {
-        if (scriptName == null) {
+        if (scriptSource == null) {
             return super.getMessage();
         }
+
+        String scriptName = scriptSource.getClassName();
         List<Integer> lineNumbers = new ArrayList<Integer>();
         for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
             for (StackTraceElement element : currentException.getStackTrace()) {
@@ -70,9 +74,9 @@ public class GradleException extends RuntimeException {
             }
         }
         String lineInfo = !lineNumbers.isEmpty()
-                ? String.format("in line(s): %s", GUtil.join(lineNumbers, ", "))
+                ? String.format("at line(s): %s", GUtil.join(lineNumbers, ", "))
                 : "No line info available from stacktrace.";
-        return String.format("Buildscript=%s %s%s%s", scriptName, lineInfo, System.getProperty("line.separator"),
+        return String.format("%s %s%s%s", StringUtils.capitalize(scriptSource.getDescription()), lineInfo, System.getProperty("line.separator"),
                 super.getMessage());
     }
 }

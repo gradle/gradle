@@ -49,7 +49,7 @@ public class DefaultScriptHandler implements IScriptHandler {
         try {
             script = groovyShell.parse(scriptText, scriptName);
         } catch (CompilationFailedException e) {
-            throw new GradleScriptException(e, scriptName);
+            throw new GradleScriptException(e);
         }
         logger.debug("Timing: Creating script took: {}", clock.getTime());
         return script;
@@ -66,7 +66,7 @@ public class DefaultScriptHandler implements IScriptHandler {
         try {
             unit.compile();
         } catch (CompilationFailedException e) {
-            throw new GradleScriptException(e, scriptName);
+            throw new GradleScriptException(e);
         }
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
         return loadFromCache(0, classLoader, scriptName, scriptCacheDir);

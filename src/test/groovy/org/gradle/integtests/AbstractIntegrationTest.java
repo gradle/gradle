@@ -24,8 +24,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.util.HelperUtil;
 import org.hamcrest.Matchers;
-import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -108,11 +106,17 @@ public class AbstractIntegrationTest {
         public GradleExecutionFailure runTasksAndExpectFailure(String... names) {
             try {
                 runTasks(names);
-                fail();
+                fail("Expected build to fail.");
             } catch (GradleException e) {
                 return new GradleExecutionFailure(e);
             }
             throw new AssertionFailedError();
+        }
+
+        public GradleExecution usingSettingsFile(File settingsFile) {
+            assertThat(settingsFile.getParentFile(), equalTo(parameter.getCurrentDir()));
+            parameter.setSettingsFileName(settingsFile.getName());
+            return this;
         }
     }
 
@@ -124,11 +128,15 @@ public class AbstractIntegrationTest {
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            assertThat(failure.getMessage(), containsString(String.format("line(s): %d", lineNumber)));
+            assertThat(failure.getMessage(), Matchers.containsString(String.format("at line(s): %d", lineNumber)));
+        }
+
+        public void assertHasFileName(String filename) {
+            assertThat(failure.getMessage(), startsWith(String.format("%s ", filename)));
         }
 
         public void assertHasDescription(String description) {
-            assertThat(failure.getMessage(), containsString(description));
+            assertThat(failure.getMessage(), endsWith(description));
         }
     }
 

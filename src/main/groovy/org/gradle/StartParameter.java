@@ -18,6 +18,8 @@ package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.gradle.api.Settings;
+import org.gradle.api.Project;
 
 import java.io.File;
 import java.util.HashMap;
@@ -28,8 +30,8 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class StartParameter {
-    private String settingsFileName;
-    private String buildFileName;
+    private String settingsFileName = Settings.DEFAULT_SETTINGS_FILE;
+    private String buildFileName = Project.DEFAULT_BUILD_FILE;
     private List<String> taskNames;
     private File currentDir;
     private boolean searchUpwards;

@@ -47,7 +47,7 @@ class GradleUtil {
         deleteDir(dir)
         dir.mkdirs()
         dir.deleteOnExit()
-        dir
+        dir.canonicalFile
     }
 
     static File[] getGradleClasspath() {

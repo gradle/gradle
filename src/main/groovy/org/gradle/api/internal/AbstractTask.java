@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import groovy.util.AntBuilder;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.execution.Dag;
@@ -38,7 +39,7 @@ public abstract class AbstractTask implements Task {
 
     AntBuilder ant = new AntBuilder();
 
-    Project project;
+    ProjectInternal project;
 
     Dag tasksGraph;
 
@@ -65,7 +66,7 @@ public abstract class AbstractTask implements Task {
     public AbstractTask(Project project, String name, Dag tasksGraph) {
         assert project != null;
         assert name != null;
-        this.project = project;
+        this.project = (ProjectInternal) project;
         this.name = name;
         this.tasksGraph = tasksGraph;
         String separator = project == (project.getRootProject()) ? "" : Project.PATH_SEPARATOR;
@@ -81,7 +82,7 @@ public abstract class AbstractTask implements Task {
     }
 
     public void setProject(Project project) {
-        this.project = project;
+        this.project = (ProjectInternal) project;
     }
 
     public String getName() {
@@ -199,18 +200,18 @@ public abstract class AbstractTask implements Task {
                             break;
                         } else if (e.getCause() instanceof GradleException) {
                             GradleException gradleException = (GradleException) e.getCause();
-                            gradleException.setScriptName(project.getBuildFileClassName());
+                            gradleException.setScriptSource(project.getBuildScriptSource());
                             throw gradleException;
                         } else {
-                            throw new GradleScriptException(e.getCause(), project.getBuildFileClassName());
+                            throw new GradleScriptException(e.getCause(), project.getBuildScriptSource());
                         }
                     }
                     throw e;
                 } catch (GradleException e) {
-                    e.setScriptName(project.getBuildFileClassName());
+                    e.setScriptSource(project.getBuildScriptSource());
                     throw e;
                 } catch (Throwable t) {
-                    throw new GradleScriptException(t, project.getBuildFileClassName());
+                    throw new GradleScriptException(t, project.getBuildScriptSource());
                 }
             }
         }

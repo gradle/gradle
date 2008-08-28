@@ -22,6 +22,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Description;
@@ -150,7 +151,7 @@ public class BuildExecuterTest {
 
     @Test(expected = UnknownTaskException.class)
     public void testExecuteWithNonExistingProjectForDependentTask() {
-        final Project root = context.mock(Project.class);
+        final Project root = context.mock(ProjectInternal.class);
         final String taskName = ":unknownchild:compile";
 
         context.checking(new Expectations() {{
@@ -169,7 +170,7 @@ public class BuildExecuterTest {
 
     @Test(expected = UnknownTaskException.class)
     public void testExecuteWithNonExistingDependentTask() {
-        final Project root = context.mock(Project.class);
+        final Project root = context.mock(ProjectInternal.class);
         final String taskName = ":child:compile";
 
         context.checking(new Expectations() {{

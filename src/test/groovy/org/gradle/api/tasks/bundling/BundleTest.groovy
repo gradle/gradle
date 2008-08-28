@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ITaskFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
@@ -185,7 +186,7 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     private void preparForDependsOnTest() {
-        Project projectMock = context.mock(Project)
+        Project projectMock = context.mock(ProjectInternal)
         bundle.setProject(projectMock)
         context.checking {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
@@ -201,7 +202,7 @@ class BundleTest extends AbstractConventionTaskTest {
         String taskName = (args.baseName ?: getProject().archivesTaskBaseName) + (args.appendix ? "_" + args.appendix : "")
         String classifier = args.classifier ? '_' + args.classifier  : ''
         taskName =  "${taskName}${classifier}_${archiveType.defaultExtension}"
-        Project projectMock = context.mock(Project)
+        Project projectMock = context.mock(ProjectInternal)
         bundle.setProject(projectMock)
         context.checking {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
