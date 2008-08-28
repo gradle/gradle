@@ -590,7 +590,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File getProjectDir() {
-        return new File(rootDir.getParent(), getRelativeFilePath());
+        return new File(rootDir.getParent(), getRelativeFilePath()).getAbsoluteFile();
     }
 
     public File getBuildDir() {

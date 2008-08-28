@@ -17,6 +17,7 @@ package org.gradle.api.tasks.ide.eclipse;
 
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.ProjectDependency;
+import org.apache.commons.io.FilenameUtils;
 
 import java.util.*;
 
@@ -39,5 +40,9 @@ class EclipseUtil {
         }
         Collections.sort(sortedList);
         return sortedList;
+    }
+
+    static String relativePath(Project project, Object path) {
+        return FilenameUtils.separatorsToUnix(project.relativePath(path).toString());
     }
 }

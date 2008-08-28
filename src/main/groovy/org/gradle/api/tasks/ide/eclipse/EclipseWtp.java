@@ -28,6 +28,7 @@ import org.gradle.api.TaskAction;
 import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.execution.Dag;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -90,7 +91,7 @@ public class EclipseWtp extends ConventionTask {
         Element wbModule = root.addElement("wb-module").addAttribute("deploy-name", getDeployName().toString());
         wbModule.addElement("property").addAttribute("name", "context-root").addAttribute("value", getDeployName().toString());
         addResourceMappings(wbModule);
-        wbModule.addElement("property").addAttribute("name", "java-output-path").addAttribute("value", getProject().relativePath(getOutputDirectory()).toString());
+        wbModule.addElement("property").addAttribute("name", "java-output-path").addAttribute("value", relativePath(getOutputDirectory()));
         addLibs(wbModule);
         addDependsOnProjects(wbModule);
         return document;
@@ -101,7 +102,7 @@ public class EclipseWtp extends ConventionTask {
             for (Object source : getWarResourceMappings().get(deployPath)) {
                 wbModule.addElement("wb-resource").
                         addAttribute("deploy-path", deployPath).
-                        addAttribute("source-path", getProject().relativePath(source).toString());
+                        addAttribute("source-path", relativePath(source));
             }
         }
     }
@@ -110,7 +111,7 @@ public class EclipseWtp extends ConventionTask {
         for (String libPath : EclipseUtil.getSortedStringList(getWarLibs())) {
             wbModule.addElement("dependent-module").
                     addAttribute("deploy-path", "/WEB-INF/lib").
-                    addAttribute("handle", "module:/classpath/" + libPath).
+                    addAttribute("handle", "module:/classpath/" + FilenameUtils.separatorsToUnix(libPath)).
                     addElement("dependency-type").setText("uses");
         }
     }
@@ -122,6 +123,10 @@ public class EclipseWtp extends ConventionTask {
                     addAttribute("handle", "module:/resource/" + project.getName()).
                     addElement("dependency-type").setText("uses");
         }
+    }
+
+    private String relativePath(Object path) {
+        return EclipseUtil.relativePath(getProject(), path);
     }
 
     /**

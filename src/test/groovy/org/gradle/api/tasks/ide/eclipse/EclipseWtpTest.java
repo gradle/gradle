@@ -109,9 +109,9 @@ public class EclipseWtpTest extends AbstractTaskTest {
     private void configureEclipse() {
         eclipseWtp.setDeployName("name");
         eclipseWtp.setOutputDirectory("bin");
-        eclipseWtp.setWarLibs(WrapUtil.<Object>toList("lib/b.jar", "lib/a.jar"));
+        eclipseWtp.setWarLibs(WrapUtil.<Object>toList("lib\\b.jar", "lib/a.jar"));
         eclipseWtp.setProjectDependencies(WrapUtil.toList(projectDependencyMock));
         eclipseWtp.setWarResourceMappings(WrapUtil.<String, List<Object>>toMap("WEB-INF/lib",
-                WrapUtil.<Object>toList(new File(getProject().getProjectDir(), "conf1"), "conf2")));
+                WrapUtil.<Object>toList(new File(getProject().getProjectDir(), "conf1"), "conf2/child")));
     }
 }

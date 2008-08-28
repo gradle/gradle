@@ -29,6 +29,7 @@ import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.execution.Dag;
 import org.gradle.util.GFileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -122,13 +123,13 @@ public class EclipseClasspath extends ConventionTask {
         for (String srcDir : existingRelativePaths(getSrcDirs())) {
             classpathEntry(root, SRC, srcDir);
         }
-        classpathEntry(root, OUTPUT, getProject().relativePath(getOutputDirectory()).toString());
+        classpathEntry(root, OUTPUT, relativePath(getOutputDirectory()));
     }
 
     private void addTestSrcDirs(Element root) {
         for (String testSrcDir : existingRelativePaths(getTestSrcDirs())) {
             classpathEntry(root, SRC, testSrcDir).
-                    addAttribute(OUTPUT, getProject().relativePath(getTestOutputDirectory()).toString());
+                    addAttribute(OUTPUT, FilenameUtils.separatorsToUnix(relativePath(getTestOutputDirectory())));
         }
     }
 
@@ -149,11 +150,15 @@ public class EclipseClasspath extends ConventionTask {
         List<String> existingRelativePaths = new ArrayList<String>();
         for (Object path : allPaths) {
             if (getProject().file(path).exists()) {
-                existingRelativePaths.add(getProject().relativePath(path).toString());
+                existingRelativePaths.add(relativePath(path));
             }
         }
         Collections.sort(existingRelativePaths);
         return existingRelativePaths;
+    }
+
+    private String relativePath(Object path) {
+        return EclipseUtil.relativePath(getProject(), path);
     }
 
     /**

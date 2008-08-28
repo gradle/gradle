@@ -675,7 +675,7 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testProjectDir() {
-        assertEquals(new File("${rootDir.path}/${child1.name}"), child1.projectDir)
+        assertEquals(new File("${rootDir.path}/${child1.name}").getAbsoluteFile(), child1.projectDir)
     }
 
     @Test void testBuildDir() {
@@ -689,7 +689,7 @@ def scriptMethod(Closure closure) {
         child1.baseDirConverter = [baseDir: {String path, File baseDir, PathValidation pathValidation ->
             converterCalled = true
             assertEquals(expectedPath, path)
-            assertEquals(new File("${rootDir.path}/${child1.name}"), baseDir)
+            assertEquals(new File("${rootDir.path}/${child1.name}").getAbsoluteFile(), baseDir)
             assertEquals(expectedValidation, pathValidation)
         }] as BaseDirConverter
         child1.file(expectedPath, PathValidation.FILE)
@@ -799,6 +799,9 @@ def scriptMethod(Closure closure) {
         String relativePath = 'src/main';
         File relativeFile = new File(relativePath);
         String absoluteFile = new File(project.getProjectDir(), "relativePath").getAbsolutePath();
+
+        println project.getProjectDir()
+        println absoluteFile
 
         assertEquals(relativeFile, pathFinder(relativePath))
         assertEquals(relativeFile, pathFinder(relativeFile))
