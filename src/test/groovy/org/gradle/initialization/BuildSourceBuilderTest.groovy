@@ -48,7 +48,7 @@ class BuildSourceBuilderTest {
         expectedStartParameter = new StartParameter(
                 searchUpwards: true,
                 currentDir: testBuildSrcDir,
-                buildFileName: Project.DEFAULT_PROJECT_FILE,
+                buildFileName: Project.DEFAULT_BUILD_FILE,
                 taskNames: ['task1', 'task2'],
                 gradleUserHomeDir: new File('gradleUserHome'),
                 projectProperties: dependencyProjectProps
@@ -121,7 +121,7 @@ class BuildSourceBuilderTest {
     }
 
     private createBuildFile() {
-        new File(testBuildSrcDir, Project.DEFAULT_PROJECT_FILE).createNewFile()
+        new File(testBuildSrcDir, Project.DEFAULT_BUILD_FILE).createNewFile()
     }
 
     private createArtifact() {

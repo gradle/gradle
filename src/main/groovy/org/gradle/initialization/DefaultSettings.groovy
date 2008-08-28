@@ -62,7 +62,7 @@ class DefaultSettings implements Settings {
         this.buildSourceBuilder = buildSourceBuilder
         dependencyManager.addConfiguration(BUILD_CONFIGURATION)
         buildSrcStartParameter = new StartParameter(
-                buildFileName: Project.DEFAULT_PROJECT_FILE,
+                buildFileName: Project.DEFAULT_BUILD_FILE,
                 taskNames: [JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS],
                 searchUpwards: true,
                 gradleUserHomeDir: startParameter.gradleUserHomeDir

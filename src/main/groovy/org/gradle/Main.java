@@ -99,7 +99,7 @@ public class Main {
                 acceptsAll(WrapUtil.toList(IVY_QUIET, "ivy-quiet"), "Set Ivy log level to quiet.");
                 acceptsAll(WrapUtil.toList(STACKTRACE, "stacktrace"), "Print out the stacktrace also for user exceptions (e.g. compile error).");
                 acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"), "Print out the full (very verbose) stacktrace for any exceptions.");
-                acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and there dependencies.");
+                acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
                 acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start dir for Gradle. Defaults to current dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
@@ -184,7 +184,7 @@ public class Main {
                         new File(options.argumentOf(GRADLE_USER_HOME)) : new File(DEFAULT_GRADLE_USER_HOME));
 
         startParameter.setBuildFileName(options.hasArgument(BUILD_FILE) ? options.argumentOf(BUILD_FILE) :
-                (options.has(EMBEDDED_SCRIPT) ? Project.EMBEDDED_SCRIPT_ID : Project.DEFAULT_PROJECT_FILE));
+                (options.has(EMBEDDED_SCRIPT) ? Project.EMBEDDED_SCRIPT_ID : Project.DEFAULT_BUILD_FILE));
 
         startParameter.setSettingsFileName(options.hasArgument(SETTINGS_FILE) ? options.argumentOf(SETTINGS_FILE) : Settings.DEFAULT_SETTINGS_FILE);
 

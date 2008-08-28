@@ -75,7 +75,7 @@ class DefaultSettingsTest {
         assertNotNull(settings.dependencyManager.project.group)
         assertNotNull(settings.dependencyManager.project.version)
         assert settings.buildSourceBuilder.is(buildSourceBuilder)
-        assertEquals(Project.DEFAULT_PROJECT_FILE, settings.buildSrcStartParameter.buildFileName)
+        assertEquals(Project.DEFAULT_BUILD_FILE, settings.buildSrcStartParameter.buildFileName)
         assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS], settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
     }

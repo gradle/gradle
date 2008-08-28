@@ -45,7 +45,7 @@ createTask('$TEST_TASK_NAME') {
 """
         File wrapperRoot = new File(baseDir, WRAPPER_PROJECT_NAME)
         wrapperRoot.mkdirs()
-        new File(wrapperRoot, Project.DEFAULT_PROJECT_FILE).withPrintWriter {PrintWriter writer -> writer.write(gradleScript)}
+        new File(wrapperRoot, "build.gradle").withPrintWriter {PrintWriter writer -> writer.write(gradleScript)}
     }
 
 }

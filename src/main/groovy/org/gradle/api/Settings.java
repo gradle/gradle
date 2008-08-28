@@ -28,9 +28,9 @@ import java.util.List;
  * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
  * org.gradle.api.Project} instances which are to particpate in a build.</p>
  *
- * <p>There is a one-to-one correspondence between a <code>Settings</code> instance and a <code>settings.gradle</code>
- * settings file. Before Gradle assembles the projects for a build, it creates a <code>Settings</code> instance and
- * executes the settings file against it.</p>
+ * <p>There is a one-to-one correspondence between a <code>Settings</code> instance and a <code>{@value
+ * #DEFAULT_SETTINGS_FILE}</code> settings file. Before Gradle assembles the projects for a build, it creates a
+ * <code>Settings</code> instance and executes the settings file against it.</p>
  *
  * <h3>Assembling a Multi-Project Build</h3>
  *
@@ -108,8 +108,8 @@ public interface Settings {
     File getRootDir();
 
     /**
-     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed
-     * if only the pom is in the MavenRepo repository (e.g. jta).
+     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed if only the pom is
+     * in the MavenRepo repository (e.g. jta).
      */
     DualResolver addMavenRepo(String[] jarRepoUrls);
 

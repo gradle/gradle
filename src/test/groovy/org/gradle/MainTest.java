@@ -94,7 +94,7 @@ public class MainTest {
         expectedProjectProperties = new HashMap();
         expectedSystemProperties = new HashMap();
         expectedSettingsFileName = Settings.DEFAULT_SETTINGS_FILE;
-        expectedBuildFileName = Project.DEFAULT_PROJECT_FILE;
+        expectedBuildFileName = Project.DEFAULT_BUILD_FILE;
         expectedCacheUsage = CacheUsage.ON;
         expectedSearchUpwards = true;
         expectedEmbeddedScript = "somescript";

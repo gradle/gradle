@@ -32,22 +32,22 @@ import java.util.SortedMap;
  *
  * <h3>Lifecycle</h3>
  *
- * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>build.gradle</code> file. During
- * build initialisation, Gradle assembles a <code>Project</code> object for each project which is to participate in the
- * build, as follows:</p>
+ * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>{@value #DEFAULT_BUILD_FILE}</code>
+ * file. During build initialisation, Gradle assembles a <code>Project</code> object for each project which is to
+ * participate in the build, as follows:</p>
  *
  * <ul>
  *
  * <li>Create a {@link Settings} instance for the build.</li>
  *
- * <li>Evaluate the <code>settings.gradle</code> script, if present, against the {@link Settings} object to configure
- * it.</li>
+ * <li>Evaluate the <code>{@value org.gradle.api.Settings#DEFAULT_SETTINGS_FILE}</code> script, if present, against the
+ * {@link Settings} object to configure it.</li>
  *
  * <li>Use the configured {@link Settings} object to create the hierarchy of <code>Project</code> instances.</li>
  *
- * <li>Finally, evaluate each <code>Project</code> by executing its <code>build.gradle</code> file, if present, against
- * the project. The project are evaulated in breadth-wise order, such that a project is evaulated before its child
- * projects. This order can be overridden by adding an evaluation dependency.</p>
+ * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
+ * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated
+ * before its child projects. This order can be overridden by adding an evaluation dependency.</p>
  *
  * </ul>
  *
@@ -147,7 +147,7 @@ public interface Project extends Comparable<Project> {
     /**
      * The default project build file name.
      */
-    public static final String DEFAULT_PROJECT_FILE = "build.gradle";
+    public static final String DEFAULT_BUILD_FILE = "build.gradle";
 
     public static final String EMBEDDED_SCRIPT_ID = "embedded_script";
 
@@ -212,7 +212,8 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Returns the name of the build file Gradle tries to apply against this project object. The default is <code>
-     * build.gradle</code>. If an embedded script is provided the build file name is {@link #EMBEDDED_SCRIPT_ID}.</p>
+     * {@value #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file name is {@value
+     * #EMBEDDED_SCRIPT_ID}.</p>
      *
      * <p>You can access this property in your build file using <code>buildFileName</code></p>
      *
@@ -225,7 +226,7 @@ public interface Project extends Comparable<Project> {
      * <p>Returns the name of the classname the build file compiles to. They might be the same but not necessarily. If
      * the build file name contains characters which are illegal for a class name, they are replaced in the build file
      * name with underscores. In case of an embedded build script, the build file name and the build file class name are
-     * equal to {@link #EMBEDDED_SCRIPT_ID}. In case there is no build file provided for a project, Gradle injects an
+     * equal to {@value #EMBEDDED_SCRIPT_ID}. In case there is no build file provided for a project, Gradle injects an
      * empty embedded script which obeys to the same naming convention as described above.</p>
      *
      * @return Current build file class name. Never returns null.
@@ -423,13 +424,14 @@ public interface Project extends Comparable<Project> {
      *
      * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
      *
-     * <tr><td><code>type</code></td><td>The class of the task to create.</td><td>{@link
-     * org.gradle.api.internal.DefaultTask}</td></tr>
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
+     * create.</td><td>{@link org.gradle.api.internal.DefaultTask}</td></tr>
      *
-     * <tr><td><code>overwrite</code></td><td>Replace an existing task?</td><td><code>false</code></td></tr>
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
+     * task?</td><td><code>false</code></td></tr>
      *
-     * <tr><td><code>dependsOn</code></td><td>A task name or set of task names which this task depends
-     * on</td><td><code>[]</code></td></tr>
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which
+     * this task depends on</td><td><code>[]</code></td></tr>
      *
      * </table>
      *
@@ -691,10 +693,10 @@ public interface Project extends Comparable<Project> {
     File file(Object path, PathValidation validation) throws InvalidUserDataException;
 
     /**
-     * <p>Returns a file object with a relative path to the project directory. If the passed path is already a
-     * relative path, a file object with the same path is returned. If the passed path is an absolute path,
-     * a file object either the relative path to the project dir is returned, or null, if the absolute path has
-     * not the project dir as one of its parent dirs.
+     * <p>Returns a file object with a relative path to the project directory. If the passed path is already a relative
+     * path, a file object with the same path is returned. If the passed path is an absolute path, a file object either
+     * the relative path to the project dir is returned, or null, if the absolute path has not the project dir as one of
+     * its parent dirs.
      *
      * @param path An object which toString method value is interpreted as path.
      * @return A file with a relative path to the project dir, or null if the given path is outside the project dir.
