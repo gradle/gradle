@@ -23,7 +23,6 @@ import org.gradle.util.GUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
 /**
  * @author Hans Dockter
  */
@@ -53,17 +52,22 @@ class War extends Jar {
 
     Closure createAntArchiveTask() {
         {->
-            List files = []
-            getLibConfigurations().each { String configuration ->
-                files.addAll(dependencyManager.resolve(configuration))
-            }
-            getLibExcludeConfigurations().each { String configuration ->
-                files.removeAll(dependencyManager.resolve(configuration))
-            }
+            List files = dependencies(true, true)
             antWar.execute(new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
                     getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant),
                     getClassesFileSets(), files, getAdditionalLibFileSets(), getWebInfFileSets(), getWebXml())
         }
+    }
+
+    public List dependencies(boolean failForMissingDependencies, boolean includeProjectDependencies) {
+        List files = []
+        getLibConfigurations().each {String configuration ->
+            files.addAll(dependencyManager.resolve(configuration, failForMissingDependencies, includeProjectDependencies))
+        }
+        getLibExcludeConfigurations().each {String configuration ->
+            files.removeAll(dependencyManager.resolve(configuration, failForMissingDependencies, includeProjectDependencies))
+        }
+        files
     }
 
     /**
@@ -92,13 +96,13 @@ class War extends Jar {
         fileSet
     }
 
-    War libConfigurations(String... libConfigurations) {
+    War libConfigurations(String ... libConfigurations) {
         this.libConfigurations = GUtil.chooseCollection(this.libConfigurations, getLibConfigurations())
         this.libConfigurations.addAll(libConfigurations as List)
         this
     }
 
-    War libExcludeConfigurations(String... libExcludeConfigurations) {
+    War libExcludeConfigurations(String ... libExcludeConfigurations) {
         this.libExcludeConfigurations = GUtil.chooseCollection(this.libExcludeConfigurations, getLibExcludeConfigurations())
         this.libExcludeConfigurations.addAll(libExcludeConfigurations as List)
         this

@@ -691,6 +691,17 @@ public interface Project extends Comparable<Project> {
     File file(Object path, PathValidation validation) throws InvalidUserDataException;
 
     /**
+     * <p>Returns a file object with a relative path to the project directory. If the passed path is already a
+     * relative path, a file object with the same path is returned. If the passed path is an absolute path,
+     * a file object either the relative path to the project dir is returned, or null, if the absolute path has
+     * not the project dir as one of its parent dirs.
+     *
+     * @param path An object which toString method value is interpreted as path.
+     * @return A file with a relative path to the project dir, or null if the given path is outside the project dir.
+     */
+    File relativePath(Object path);
+
+    /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
      *
      * @param path The path to convert.

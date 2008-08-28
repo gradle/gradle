@@ -20,12 +20,14 @@ import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
 import org.gradle.api.internal.DefaultTask
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginTest
 import org.gradle.api.tasks.Directory
 import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
 import static org.hamcrest.Matchers.lessThan
@@ -35,10 +37,6 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.api.internal.dependencies.DependencyManagerFactory
-
-
 
 /**
  * @author Hans Dockter
@@ -780,6 +778,32 @@ def scriptMethod(Closure closure) {
 
     @Test void testConfigureProjects() {
         checkConfigureProject('configureProjects', [project, child1] as Set)
+    }
+
+    @Test void testRelativePath() {
+        checkRelativePath(project.&relativePath)
+    }
+
+    @Test(expected = GradleException) void testRelativePathWithUncontainedAbsolutePath() {
+        File uncontainedAbsoluteFile = new File("abc").absoluteFile;
+        project.relativePath(uncontainedAbsoluteFile)
+    }
+
+    @Test void testFindRelativePath() {
+        checkRelativePath(project.&findRelativePath)
+        File uncontainedAbsoluteFile = new File(project.getProjectDir().toString() + "xxx", "abc");
+        assertNull(project.findRelativePath(uncontainedAbsoluteFile))
+    }
+
+    private def checkRelativePath(Closure pathFinder) {
+        String relativePath = 'src/main';
+        File relativeFile = new File(relativePath);
+        String absoluteFile = new File(project.getProjectDir(), "relativePath").getAbsolutePath();
+
+        assertEquals(relativeFile, pathFinder(relativePath))
+        assertEquals(relativeFile, pathFinder(relativeFile))
+        assertEquals(new File("relativePath"), pathFinder(absoluteFile))
+        assertEquals(new File(""), pathFinder(""))
     }
 
     private void checkConfigureProject(String configureMethod, Set projectsToCheck) {

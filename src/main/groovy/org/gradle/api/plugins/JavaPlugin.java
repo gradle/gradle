@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.gradle.api.*;
+import org.gradle.api.dependencies.Filter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
@@ -28,6 +29,10 @@ import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
+import org.gradle.api.tasks.ide.eclipse.EclipseClasspath;
+import org.gradle.api.tasks.ide.eclipse.EclipseClean;
+import org.gradle.api.tasks.ide.eclipse.EclipseProject;
+import org.gradle.api.tasks.ide.eclipse.ProjectType;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.FileSet;
@@ -59,6 +64,10 @@ public class JavaPlugin implements Plugin {
     public static final String TEST_RUNTIME = "testRuntime";
     public static final String DEFAULT = "default";
     public static final String UPLOAD_DISTS = "uploadDists";
+    public static final String ECLIPSE = "eclipse";
+    public static final String ECLIPSE_CLEAN = "eclipseClean";
+    public static final String ECLIPSE_PROJECT = "eclipseProject";
+    public static final String ECLIPSE_CP = "eclipseCp";
 
     public void apply(Project project, PluginRegistry pluginRegistry) {
         apply(project, pluginRegistry, new HashMap());
@@ -103,8 +112,66 @@ public class JavaPlugin implements Plugin {
         Upload distsUpload = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", DISTS), UPLOAD_DISTS);
         distsUpload.getConfigurations().add(DISTS);
 
+        configureEclipse(project);
+
     }
-    
+
+    private void configureEclipse(Project project) {
+        Task eclipse = project.createTask(ECLIPSE).dependsOn(
+                configureEclipseProject(project),
+                configureEclipseClasspath(project)
+        );
+        project.createTask(WrapUtil.toMap("type", EclipseClean.class), ECLIPSE_CLEAN);
+    }
+
+    private EclipseProject configureEclipseProject(Project project) {
+        EclipseProject eclipseProject = (EclipseProject) project.createTask(GUtil.map("type", EclipseProject.class), ECLIPSE_PROJECT);
+        eclipseProject.setProjectName(project.getName());
+        eclipseProject.setProjectType(ProjectType.JAVA);
+        return eclipseProject;
+    }
+
+    private EclipseClasspath configureEclipseClasspath(Project project) {
+        EclipseClasspath eclipseClasspath = (EclipseClasspath) project.createTask(GUtil.map("type", EclipseClasspath.class), ECLIPSE_CP);
+        eclipseClasspath.conventionMapping(GUtil.map(
+                "srcDirs", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
+            }
+        },
+                "testSrcDirs", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                return GUtil.addLists(java(convention).getTestSrcDirs(), java(convention).getTestResourceDirs());
+            }
+        },
+                "outputDirectory", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                return java(convention).getClassesDir();
+            }
+        },
+                "testOutputDirectory", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                return java(convention).getClassesDir();
+            }
+        },
+                "classpathLibs", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                return task.getProject().getDependencies().resolve(TEST_RUNTIME, ((EclipseClasspath) task).getFailForMissingDependencies(), false);
+            }
+        },
+                "projectDependencies", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                /*
+                 * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
+                 * request the project dependencies not via a resolve. We would have to filter the project dependencies
+                 * ourselfes. This is not completely trivial due to configuration inheritance.
+                 */
+                return task.getProject().getDependencies().getDependencies(Filter.PROJECTS_ONLY);
+            }
+        }));
+        return eclipseClasspath;
+    }
+
     private void configureTestResources(Project project) {
         ConventionTask testResources = (ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", COMPILE), TEST_RESOURCES);
         testResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
@@ -180,5 +247,9 @@ public class JavaPlugin implements Plugin {
     protected Compile configureCompile(Compile compile, Map propertyMapping) {
         compile.conventionMapping(propertyMapping);
         return compile;
+    }
+
+    protected JavaPluginConvention java(Convention convention) {
+        return (JavaPluginConvention) convention.getPlugins().get("java");
     }
 }

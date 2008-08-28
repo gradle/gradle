@@ -20,9 +20,17 @@ import org.apache.ivy.core.module.descriptor.Configuration;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.dependencies.Filter;
 import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.Bundle;
+import org.gradle.api.tasks.bundling.War;
+import org.gradle.api.tasks.ide.eclipse.EclipseWtp;
+import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,22 +39,77 @@ import java.util.Map;
 public class WarPlugin implements Plugin {
     public static final String PROVIDED_COMPILE = "providedCompile";
     public static final String PROVIDED_RUNTIME = "providedRuntime";
+    public static final String ECLIPSE_WTP = "eclipseWtp";
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
         project.task(project.getArchivesTaskBaseName() + "_jar").setEnabled(false);
-        ((Bundle) project.task("libs")).war();
+        War war = ((Bundle) project.task("libs")).war();
         configureDependencyManager(project.getDependencies());
+        configureEclipse(project, war);
     }
 
     public void configureDependencyManager(DependencyManager dependencyManager) {
         dependencyManager.addConfiguration(
                 new Configuration(PROVIDED_COMPILE, Configuration.Visibility.PRIVATE, null, null, true, null));
         dependencyManager.addConfiguration(
-                new Configuration(PROVIDED_RUNTIME, Configuration.Visibility.PRIVATE, null, new String[] {PROVIDED_COMPILE}, true, null));
+                new Configuration(PROVIDED_RUNTIME, Configuration.Visibility.PRIVATE, null, new String[]{PROVIDED_COMPILE}, true, null));
         dependencyManager.addConfiguration(new Configuration(JavaPlugin.COMPILE, Configuration.Visibility.PRIVATE, null, new String[]
                 {PROVIDED_COMPILE}, false, null));
         dependencyManager.addConfiguration(new Configuration(JavaPlugin.RUNTIME, Configuration.Visibility.PRIVATE, null, new String[]
                 {JavaPlugin.COMPILE, PROVIDED_RUNTIME}, true, null));
     }
+
+    private void configureEclipse(Project project, War war) {
+        EclipseWtp eclipseWtp = configureEclipseWtp(project, war);
+        project.task(JavaPlugin.ECLIPSE).dependsOn(eclipseWtp);
+    }
+
+    private EclipseWtp configureEclipseWtp(final Project project, final War war) {
+        final EclipseWtp eclipseWtp = (EclipseWtp) project.createTask(GUtil.map("type", EclipseWtp.class), ECLIPSE_WTP);
+
+        eclipseWtp.conventionMapping(GUtil.map(
+                "warResourceMappings", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                Map resourceMappings =  WrapUtil.toMap("/WEB-INF/classes",  GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs()));
+                resourceMappings.put("/", WrapUtil.toList(java(convention).getWebAppDir()));
+                return resourceMappings;
+            }
+        },
+                "outputDirectory", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                return java(convention).getClassesDir();
+            }
+        },
+                "deployName", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                return project.getName();
+            }
+        },
+                "warLibs", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                List warLibs = war.dependencies(eclipseWtp.isFailForMissingDependencies(), false);
+                if (war.getAdditionalLibFileSets() != null) {
+                    warLibs.addAll(war.getAdditionalLibFileSets());
+                }
+                return warLibs;
+            }
+        },
+                "projectDependencies", new ConventionValue() {
+            public Object getValue(Convention convention, Task task) {
+                /*
+                * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
+                * request the project dependencies not via a resolve. We would have to filter the project dependencies
+                * ourselfes. This is not completely trivial due to configuration inheritance.
+                */
+                return task.getProject().getDependencies().getDependencies(Filter.PROJECTS_ONLY);
+            }
+        }));
+        return eclipseWtp;
+    }
+
+    private JavaPluginConvention java(Convention convention) {
+        return (JavaPluginConvention) convention.getPlugins().get("java");
+    }
+
 }

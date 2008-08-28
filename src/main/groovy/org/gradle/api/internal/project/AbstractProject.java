@@ -22,10 +22,10 @@ import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -685,6 +685,31 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public File file(Object path, PathValidation validation) {
         return baseDirConverter.baseDir(path.toString(), getProjectDir(), validation);
+    }
+
+    public File relativePath(Object path) {
+        File result = findRelativePath(path);
+        if (result == null) {
+            throw new GradleException("Path = " + path + " is not a subdirectory of the project root dir.");
+        }
+        return result;
+    }
+
+    public File findRelativePath(Object path) {
+        File file = new File(path.toString());
+        if (!file.isAbsolute()) {
+            return file;
+        }
+        File loopFile = file;
+        String relativePath = "";
+        while (loopFile != null) {
+            if (loopFile.equals(getProjectDir())) {
+                break;
+            }
+            relativePath = loopFile.getName() + "/" + relativePath;
+            loopFile = loopFile.getParentFile();
+        }
+        return loopFile == null ? null : new File(relativePath);
     }
 
     public Task dir(String path) {

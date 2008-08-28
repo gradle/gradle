@@ -16,7 +16,9 @@
 
 package org.gradle.build.integtests
 
-import static org.junit.Assert.*
+import groovy.text.SimpleTemplateEngine
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 /**
  * @author Hans Dockter
@@ -78,6 +80,33 @@ class JavaProject {
         // This test is also important for test cleanup
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
         projects.each {assert !(new File(samplesDirName, "$it/build").exists())}
+
+        checkEclipse(javaprojectDir, gradleHome)
+    }
+
+    private static def checkEclipse(File javaprojectDir, String gradleHome) {
+        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipse'], [], '', Executer.DEBUG)
+        assertEquals(JavaProject.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
+              file(javaprojectDir, API_NAME, ".project").text)
+        assertEquals(JavaProject.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
+                file(javaprojectDir, WEBAPP_1_PATH, ".project").text)
+        assertEquals(replaceWithGradleHome("javaproject/expectedApiClasspathFile.txt", gradleHome),
+                file(javaprojectDir, API_NAME, ".classpath").text)
+        assertEquals(replaceWithGradleHome("javaproject/expectedWebApp1ClasspathFile.txt", gradleHome),
+                file(javaprojectDir, WEBAPP_1_PATH, ".classpath").text)
+        assertEquals(replaceWithGradleHome("javaproject/expectedWebApp1WtpFile.txt", gradleHome),
+                file(javaprojectDir, WEBAPP_1_PATH, ".settings/org.eclipse.wst.common.component").text)
+        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipseClean'], [], '', Executer.DEBUG)
+        checkExistence(javaprojectDir, false, API_NAME, ".project")
+        checkExistence(javaprojectDir, false, WEBAPP_1_PATH, ".project")
+        checkExistence(javaprojectDir, false, API_NAME, ".classpath")
+        checkExistence(javaprojectDir, false, WEBAPP_1_PATH, ".project")
+        checkExistence(javaprojectDir, false, WEBAPP_1_PATH, ".settings/org.eclipse.wst.common.component")
+    }
+
+    private static String replaceWithGradleHome(String resourcePath, String gradleHome) {
+        SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
+        templateEngine.createTemplate(JavaProject.getResourceAsStream(resourcePath).text).make(gradleHome: new File(gradleHome).canonicalPath).toString()    
     }
 
     private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {
@@ -94,8 +123,12 @@ class JavaProject {
         checkExistence(baseDir, true, path)
     }
 
+    static File file(File baseDir, String[] path) {
+        new File(baseDir, path.join('/'));    
+    }
+
     static void checkExistence(File baseDir, boolean shouldExists, String[] path) {
-        File file = new File(baseDir, path.join('/'))
+        File file = file(baseDir, path)
         try {
             assert shouldExists ? file.exists() : !file.exists()
         } catch (AssertionError e) {

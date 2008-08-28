@@ -22,10 +22,12 @@ import org.gradle.api.tasks.util.FileSet
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock)
 class WarTest extends AbstractArchiveTaskTest {
     static final List TEST_LIB_CONFIGURATIONS = ['testLibConf1', 'testLibConf2'] 
     static final List TEST_LIB_EXCLUDE_CONFIGURATIONS = ['testLibConf3', 'testLibConf4']
@@ -55,11 +57,15 @@ class WarTest extends AbstractArchiveTaskTest {
                 testLibConf3: ['/file3' as File],
                 testLibConf4: ['/file4' as File]
         ]
+        prepareDependencyManagerMock(true, true)
+    }
+
+    private void prepareDependencyManagerMock(boolean failForMissingDependency, boolean includeProjectDependencies) {
         getContext().checking {
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[0]); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[0]]))
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[1]); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[1]]))
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_EXCLUDE_CONFIGURATIONS[0]); will(returnValue(filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[0]]))
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_EXCLUDE_CONFIGURATIONS[1]); will(returnValue(filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[1]]))
+            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[0], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[0]]))
+            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[1], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[1]]))
+            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_EXCLUDE_CONFIGURATIONS[0], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[0]]))
+            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_EXCLUDE_CONFIGURATIONS[1], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[1]]))
         }
     }
 
@@ -89,6 +95,11 @@ class WarTest extends AbstractArchiveTaskTest {
 
     @Test public void testWar() {
         assertEquals(War.WAR_EXTENSION, war.extension)
+    }
+
+    @Test public void testDependencies() {
+        prepareDependencyManagerMock(false, false)
+        assertEquals(['/file1' as File, '/file2' as File], war.dependencies(false, false))
     }
 
     @Test public void testLibConfigurations() {
