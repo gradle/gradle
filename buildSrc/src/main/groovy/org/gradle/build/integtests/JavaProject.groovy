@@ -38,7 +38,6 @@ class JavaProject {
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
         File javaprojectDir = new File(samplesDirName, 'javaproject')
-        checkEclipse(javaprojectDir, gradleHome)
 
         // Build and test projects
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'test'], [], '', Executer.DEBUG)
@@ -84,6 +83,7 @@ class JavaProject {
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
         projects.each {assert !(new File(samplesDirName, "$it/build").exists())}
 
+        checkEclipse(javaprojectDir, gradleHome)
     }
 
     private static def checkEclipse(File javaprojectDir, String gradleHome) {
