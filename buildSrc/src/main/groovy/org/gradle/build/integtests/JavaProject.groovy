@@ -17,7 +17,9 @@
 package org.gradle.build.integtests
 
 import groovy.text.SimpleTemplateEngine
-import static org.junit.Assert.assertEquals
+import org.custommonkey.xmlunit.Diff
+import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
+import org.custommonkey.xmlunit.XMLAssert
 import static org.junit.Assert.assertTrue
 
 /**
@@ -36,6 +38,7 @@ class JavaProject {
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
         File javaprojectDir = new File(samplesDirName, 'javaproject')
+        checkEclipse(javaprojectDir, gradleHome)
 
         // Build and test projects
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'test'], [], '', Executer.DEBUG)
@@ -81,20 +84,21 @@ class JavaProject {
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
         projects.each {assert !(new File(samplesDirName, "$it/build").exists())}
 
-        checkEclipse(javaprojectDir, gradleHome)
     }
 
     private static def checkEclipse(File javaprojectDir, String gradleHome) {
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipse'], [], '', Executer.DEBUG)
-        assertEquals(JavaProject.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
               file(javaprojectDir, API_NAME, ".project").text)
-        assertEquals(JavaProject.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
+                file(javaprojectDir, WEBAPP_1_PATH, ".project").text) 
+        compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
                 file(javaprojectDir, WEBAPP_1_PATH, ".project").text)
-        assertEquals(replaceWithGradleHome("javaproject/expectedApiClasspathFile.txt", gradleHome),
+        compareXmlWithIgnoringOrder(replaceWithGradleHome("javaproject/expectedApiClasspathFile.txt", gradleHome),
                 file(javaprojectDir, API_NAME, ".classpath").text)
-        assertEquals(replaceWithGradleHome("javaproject/expectedWebApp1ClasspathFile.txt", gradleHome),
+        compareXmlWithIgnoringOrder(replaceWithGradleHome("javaproject/expectedWebApp1ClasspathFile.txt", gradleHome),
                 file(javaprojectDir, WEBAPP_1_PATH, ".classpath").text)
-        assertEquals(replaceWithGradleHome("javaproject/expectedWebApp1WtpFile.txt", gradleHome),
+        compareXmlWithIgnoringOrder(replaceWithGradleHome("javaproject/expectedWebApp1WtpFile.txt", gradleHome),
                 file(javaprojectDir, WEBAPP_1_PATH, ".settings/org.eclipse.wst.common.component").text)
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipseClean'], [], '', Executer.DEBUG)
         checkExistence(javaprojectDir, false, API_NAME, ".project")
@@ -102,6 +106,12 @@ class JavaProject {
         checkExistence(javaprojectDir, false, API_NAME, ".classpath")
         checkExistence(javaprojectDir, false, WEBAPP_1_PATH, ".project")
         checkExistence(javaprojectDir, false, WEBAPP_1_PATH, ".settings/org.eclipse.wst.common.component")
+    }
+
+    private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
+        Diff diff = new Diff(expectedXml, actualXml)
+        diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
+        XMLAssert.assertXMLEqual(diff, true);
     }
 
     private static String replaceWithGradleHome(String resourcePath, String gradleHome) {

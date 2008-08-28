@@ -7,7 +7,7 @@ usePlugin('groovy')
 
 dependencies {
     addFlatDirResolver('lib', new File(rootDir, 'lib'))
-    dependencies(['compile'], ":svnkit:1.1.6", ":svnkit-javahl:1.1.6")
+    dependencies(['compile'], ":svnkit:1.1.6", ":svnkit-javahl:1.1.6", ":xmlunit:1.2")
 }
 
 sourceCompatibility = 1.5
