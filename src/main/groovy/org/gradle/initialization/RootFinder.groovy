@@ -18,9 +18,8 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
-import org.gradle.api.Settings
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -33,11 +32,12 @@ class RootFinder {
 
     void find(StartParameter startParameter) {
         File searchDir = startParameter.currentDir
+        String settingsFileName = startParameter.settingsFileName
 
         // Damn, there is no do while in Groovy yet. We need an ugly work around.
         while (searchDir && !settingsFile) {
             searchDir.eachFile {
-                if (it.name.equals(Settings.DEFAULT_SETTINGS_FILE)) {
+                if (it.name.equals(settingsFileName)) {
                     settingsFile = it
                 }
             }
@@ -45,7 +45,7 @@ class RootFinder {
         }
         if (!settingsFile) {
             rootDir = startParameter.currentDir
-            settingsFile = new File(rootDir, Settings.DEFAULT_SETTINGS_FILE)
+            settingsFile = new File(rootDir, settingsFileName)
         } else {
             rootDir = settingsFile.parentFile
         }

@@ -34,6 +34,7 @@ import org.junit.Test
  */
 class RootFinderTest {
     static final String TEST_SETTINGS_TEXT = 'somescriptcode'
+    static final String TEST_SETTINGS_FILE_NAME = 'some-settings.gradle'
     RootFinder rootFinder
     File testDir
     File rootDir
@@ -99,7 +100,7 @@ class RootFinderTest {
     }
 
     private void createSettingsFile(File dir) {
-        File file = new File(dir, Settings.DEFAULT_SETTINGS_FILE)
+        File file = new File(dir, TEST_SETTINGS_FILE_NAME)
         file.write(TEST_SETTINGS_TEXT)
         file.deleteOnExit()
         createPropertyFiles(dir)
@@ -116,17 +117,18 @@ class RootFinderTest {
     }
 
     private checkRootFinder(File expectedRootDir) {
-        File expectedSettingsFile = new File(expectedRootDir, Settings.DEFAULT_SETTINGS_FILE)
+        File expectedSettingsFile = new File(expectedRootDir, TEST_SETTINGS_FILE_NAME)
         ScriptSource expectedSettingsScript = new FileScriptSource("settings file", rootFinder.settingsFile)
 
-        assertEquals(expectedGradleProperties, rootFinder.gradleProperties)
         assertEquals(expectedRootDir, rootFinder.rootDir)
         assertEquals(expectedSettingsFile, rootFinder.settingsFile)
         assertThat(rootFinder.settingsScript, ReflectionEqualsMatcher.reflectionEquals(expectedSettingsScript))
+        assertEquals(expectedGradleProperties, rootFinder.gradleProperties)
     }
 
     private StartParameter createStartParams(File currentDir, boolean searchUpwards) {
-        new StartParameter(currentDir: currentDir, searchUpwards: searchUpwards, gradleUserHomeDir: userHome)    
+        new StartParameter(currentDir: currentDir, searchUpwards: searchUpwards, gradleUserHomeDir: userHome,
+                settingsFileName: TEST_SETTINGS_FILE_NAME)
     }
 
 }
