@@ -28,25 +28,25 @@ public class GradleExceptionTest {
     @Test
     public void extractsLineNumbersFromStackTrace() {
 
-        GradleException exception = new GradleException("message");
+        GradleException exception = new GradleException("<message>");
         exception.setScriptSource(source);
         exception.setStackTrace(new StackTraceElement[]{element});
-        assertThat(exception.getMessage(), equalTo("<description> at line(s): 7\nmessage"));
+        assertThat(exception.getMessage(), equalTo(String.format("<description> at line(s): 7%n<message>")));
     }
 
     @Test
     public void extractsLineNumbersFromStackTraceOfCause() {
         RuntimeException cause = new RuntimeException();
         cause.setStackTrace(new StackTraceElement[]{element});
-        GradleException exception = new GradleException("message", cause);
+        GradleException exception = new GradleException("<message>", cause);
         exception.setScriptSource(source);
-        assertThat(exception.getMessage(), equalTo("<description> at line(s): 7\nmessage"));
+        assertThat(exception.getMessage(), equalTo(String.format("<description> at line(s): 7%n<message>")));
     }
 
     @Test
     public void messageIndicatesWhenNoLineNumbersFound() {
-        GradleException exception = new GradleException("message");
+        GradleException exception = new GradleException("<message>");
         exception.setScriptSource(source);
-        assertThat(exception.getMessage(), equalTo("<description> No line info available from stacktrace.\nmessage"));
+        assertThat(exception.getMessage(), equalTo(String.format("<description> No line info available from stacktrace.%n<message>")));
     }
 }
