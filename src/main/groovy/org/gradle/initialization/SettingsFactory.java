@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.initialization;
 
-import org.gradle.StartParameter
-import org.gradle.api.Settings
-import org.gradle.api.internal.dependencies.DependencyManagerFactory
+import org.gradle.StartParameter;
+import org.gradle.api.Settings;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 
 /**
  * @author Hans Dockter
  */
-class SettingsFactory {
-    Settings createSettings(DependencyManagerFactory dependencyManagerFactory,
+public class SettingsFactory {
+    DefaultSettings createSettings(DependencyManagerFactory dependencyManagerFactory,
                             BuildSourceBuilder buildSourceBuilder, RootFinder rootFinder, StartParameter startParameter) {
-        new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
+        return new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter);
     }
 }

@@ -39,6 +39,7 @@ import org.junit.After
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.jmock.lib.legacy.ClassImposteriser
 
 /**
  * @author Hans Dockter
@@ -63,7 +64,8 @@ class SettingsProcessorTest {
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         scriptProcessorMock = context.mock(IScriptProcessor)
         settingsScriptMetaData = context.mock(ISettingsScriptMetaData)
         buildResolverDir = HelperUtil.makeNewTestDir('buildResolver')
@@ -72,12 +74,11 @@ class SettingsProcessorTest {
         expectedStartParameter = new StartParameter()
         expectedRootFinder = new RootFinder()
         importsReader = new ImportsReader()
-        settingsFactory = new SettingsFactory()
+        settingsFactory = context.mock(SettingsFactory)
         dependencyManagerFactory = new DefaultDependencyManagerFactory(new File('root'))
         buildSourceBuilder = new BuildSourceBuilder()
         settingsProcessor = new SettingsProcessor(settingsScriptMetaData, scriptProcessorMock, importsReader, settingsFactory, dependencyManagerFactory, buildSourceBuilder,
                 buildResolverDir)
-        settingsFactoryMocker = new MockFor(SettingsFactory)
     }
 
     @After
@@ -98,10 +99,8 @@ class SettingsProcessorTest {
     @Test public void testCreateBasicSettings() {
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
         expectedStartParameter = createStartParameter(expectedCurrentDir)
-        prepareSettingsFactoryMocker(expectedCurrentDir, expectedCurrentDir)
-        settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
-            assert settingsProcessor.createBasicSettings(expectedRootFinder, expectedStartParameter).is(expectedSettings)
-        }
+        prepareSettingsFactoryMock(expectedCurrentDir, expectedCurrentDir)
+        assert settingsProcessor.createBasicSettings(expectedRootFinder, expectedStartParameter).is(expectedSettings)
         assertEquals([], expectedSettings.projectPaths)
         checkBuildResolverDir(buildResolverDir)
     }
@@ -110,10 +109,8 @@ class SettingsProcessorTest {
         HelperUtil.deleteTestDir()
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
         expectedStartParameter = createStartParameter(expectedCurrentDir)
-        prepareSettingsFactoryMocker(expectedCurrentDir, expectedCurrentDir)
-        settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
-            assert settingsProcessor.createBasicSettings(expectedRootFinder, expectedStartParameter).is(expectedSettings)
-        }
+        prepareSettingsFactoryMock(expectedCurrentDir, expectedCurrentDir)
+        assert settingsProcessor.createBasicSettings(expectedRootFinder, expectedStartParameter).is(expectedSettings)
         assertEquals([], expectedSettings.projectPaths)
         checkBuildResolverDir(buildResolverDir)
     }
@@ -126,7 +123,7 @@ class SettingsProcessorTest {
     @Test public void testProcessWithCurrentDirNoSubproject() {
         File currentDir = new File(TEST_ROOT_DIR, 'currentDir')
         assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, currentDir, ['path1', 'path2'], buildResolverDir) {
-            prepareSettingsFactoryMocker(currentDir, currentDir)
+            prepareSettingsFactoryMock(currentDir, currentDir)
         })
     }
 
@@ -140,18 +137,14 @@ class SettingsProcessorTest {
                 new File(TEST_ROOT_DIR, Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME)))
     }
 
-    private void prepareSettingsFactoryMocker(File expectedRootDir, File expectedCurrentDir) {
+    private void prepareSettingsFactoryMock(File expectedRootDir, File expectedCurrentDir) {
         expectedSettings.rootFinder = expectedRootFinder
         expectedSettings.startParameter = expectedStartParameter
-        settingsFactoryMocker.demand.createSettings(1..1) {DependencyManagerFactory dependencyManagerFactory,
-                                                           BuildSourceBuilder buildSourceBuilder, RootFinder rootFinder, StartParameter startParameter ->
-            assert dependencyManagerFactory.is(settingsProcessor.dependencyManagerFactory)
-            assert buildSourceBuilder.is(settingsProcessor.buildSourceBuilder)
-            assert rootFinder.is(expectedRootFinder)
-            assertEquals(expectedStartParameter, startParameter)
-            expectedSettings
+        context.checking {
+            one(settingsFactory).createSettings(dependencyManagerFactory, buildSourceBuilder, 
+                    expectedRootFinder, expectedStartParameter)
+            will(returnValue(expectedSettings))
         }
-
     }
 
     private DefaultSettings runCUT(File rootDir, File currentDir, List includePaths, File expectedBuildResolverRoot,
@@ -168,7 +161,7 @@ class SettingsProcessorTest {
         expectedRootFinder.settingsScript = settingsScript
         expectedStartParameter = createStartParameter(currentDir)
         expectedSettings.setProjectPaths(includePaths)
-        prepareSettingsFactoryMocker(rootDir, currentDir)
+        prepareSettingsFactoryMock(rootDir, currentDir)
         customSettingsFactoryPreparation()
         ScriptSource expectedScriptSource = new ImportsScriptSource(settingsScript, mockImportsReader, rootDir);
 
@@ -181,10 +174,7 @@ class SettingsProcessorTest {
             one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
         }
 
-        DefaultSettings settings
-        settingsFactoryMocker.use(settingsProcessor.settingsFactory) {
-            settings = settingsProcessor.process(expectedRootFinder, expectedStartParameter)
-        }
+        DefaultSettings settings = settingsProcessor.process(expectedRootFinder, expectedStartParameter)
         checkBuildResolverDir(expectedBuildResolverRoot)
         settings
     }

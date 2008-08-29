@@ -30,6 +30,8 @@ import org.gradle.execution.Dag
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
 import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.StartParameter
+import org.gradle.CacheUsage
 
 
 
@@ -85,6 +87,22 @@ class HelperUtil {
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
                 parentProject.projectFactory)
+    }
+
+    static org.gradle.StartParameter dummyStartParameter() {
+        return new StartParameter(
+                "settingsFileName",
+                "buildFileName",
+                ["onetask", "secondTask"],
+                new File("currentDir"),
+                true,
+                [:],
+                [:],
+                new File("gradleUserHome"),
+                new File("defaultImports"),
+                new File("pluginProperties"),
+                CacheUsage.ON
+        );
     }
 
     static def pureStringTransform(def collection) {
