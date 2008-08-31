@@ -35,8 +35,8 @@ public class StartParameter {
     private List<String> taskNames;
     private File currentDir;
     private boolean searchUpwards;
-    private Map projectProperties = new HashMap();
-    private Map systemPropertiesArgs = new HashMap();
+    private Map<String, String> projectProperties = new HashMap<String, String>();
+    private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
     private File defaultImportsFile;
     private File pluginPropertiesFile;
@@ -45,7 +45,7 @@ public class StartParameter {
     public StartParameter() {
     }
 
-    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir, boolean searchUpwards, Map projectProperties, Map systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
+    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir, boolean searchUpwards, Map<String, String> projectProperties, Map<String, String> systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
         this.settingsFileName = settingsFileName;
         this.buildFileName = buildFileName;
         this.taskNames = taskNames;
@@ -116,19 +116,19 @@ public class StartParameter {
         this.searchUpwards = searchUpwards;
     }
 
-    public Map getProjectProperties() {
+    public Map<String, String> getProjectProperties() {
         return projectProperties;
     }
 
-    public void setProjectProperties(Map projectProperties) {
+    public void setProjectProperties(Map<String, String> projectProperties) {
         this.projectProperties = projectProperties;
     }
 
-    public Map getSystemPropertiesArgs() {
+    public Map<String, String> getSystemPropertiesArgs() {
         return systemPropertiesArgs;
     }
 
-    public void setSystemPropertiesArgs(Map systemPropertiesArgs) {
+    public void setSystemPropertiesArgs(Map<String, String> systemPropertiesArgs) {
         this.systemPropertiesArgs = systemPropertiesArgs;
     }
 
