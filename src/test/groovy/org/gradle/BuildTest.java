@@ -19,6 +19,7 @@ package org.gradle;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.Settings;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
@@ -36,6 +37,10 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Matcher;
+import org.hamcrest.Description;
+import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.net.URL;
@@ -49,7 +54,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
-public class  BuildTest {
+public class BuildTest {
     private ProjectsLoader projectsLoaderMock;
     private RootFinder rootFinderMock;
     private SettingsProcessor settingsProcessorMock;
@@ -105,7 +110,7 @@ public class  BuildTest {
         expectedCurrentProject = HelperUtil.createRootProject(expectedCurrentDir);
 
         expectTasks("a", "b");
-        
+
         expectedStartParams = new StartParameter();
         expectedStartParams.setTaskNames(expectedTaskNames);
         expectedStartParams.setCurrentDir(expectedCurrentDir);
@@ -119,7 +124,8 @@ public class  BuildTest {
                 allowing(rootFinderMock).find(with(any(StartParameter.class)));
                 allowing(rootFinderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
-                allowing(rootFinderMock).getRootDir(); will(returnValue(expectedRootDir));
+                allowing(rootFinderMock).getRootDir();
+                will(returnValue(expectedRootDir));
                 allowing(settingsMock).createClassLoader();
                 will(returnValue(expectedClassLoader));
                 allowing(projectsLoaderMock).getRootProject();
@@ -128,7 +134,6 @@ public class  BuildTest {
                 will(returnValue(expectedCurrentProject));
             }
         });
-        build.addBuildListener(buildListenerMock);
     }
 
     private void expectTasks(String... tasks) {
@@ -158,6 +163,7 @@ public class  BuildTest {
 
     @Test
     public void testAddAndGetBuildListeners() {
+        build.addBuildListener(buildListenerMock);
         assertEquals(WrapUtil.toList(buildListenerMock), build.getBuildListeners());
         BuildListener buildListenerMock2 = context.mock(BuildListener.class, "buildListener2");
         build.addBuildListener(buildListenerMock2);
@@ -166,43 +172,28 @@ public class  BuildTest {
 
     @Test
     public void testRun() {
-        context.checking(new Expectations() {
-            {
-                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
-                will(returnValue(settingsMock));
-            }
-        });
-        setRunExpectations(true);
+        expectSettingsBuilt();
+        expectTasksRunWithDagRebuild();
         build.run(expectedStartParams);
         checkSystemProps(expectedSystemPropertiesArgs);
     }
 
     @Test
     public void testRunWithRebuildDagFalse() {
-        context.checking(new Expectations() {
-            {
-                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
-                will(returnValue(settingsMock));
-            }
-        });
-        setRunExpectations(false);
+        expectSettingsBuilt();
+        expectTasksRunWithoutDagRebuild();
         build.run(expectedStartParams);
         checkSystemProps(expectedSystemPropertiesArgs);
     }
 
     @Test
     public void testRunWithDefaultTasks() {
-        context.checking(new Expectations() {
-            {
-                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
-                will(returnValue(settingsMock));
-            }
-        });
+        expectSettingsBuilt();
         expectedStartParams.setTaskNames(new ArrayList<String>());
         expectedTaskNames = WrapUtil.toList("c", "d");
         expectedCurrentProject.setDefaultTasks(expectedTaskNames);
         expectTasks("c", "d");
-        setRunExpectations(false);
+        expectTasksRunWithoutDagRebuild();
         build.run(expectedStartParams);
         checkSystemProps(expectedSystemPropertiesArgs);
     }
@@ -215,30 +206,92 @@ public class  BuildTest {
                 will(returnValue(settingsMock));
             }
         });
-        setRunExpectations(true);
+        expectTasksRunWithDagRebuild();
         build.runNonRecursivelyWithCurrentDirAsRoot(expectedStartParams);
         checkSystemProps(expectedSystemPropertiesArgs);
     }
 
-    private void setRunExpectations(final boolean rebuildDagReturnValue) {
+    @Test
+    public void testNotifiesListenerOnBuildComplete() {
+        expectSettingsBuilt();
+        expectTasksRunWithDagRebuild();
+        context.checking(new Expectations() {{
+            one(buildListenerMock).buildFinished(with(result(settingsMock, nullValue(Throwable.class))));
+        }});
+
+        build.addBuildListener(buildListenerMock);
+        build.run(expectedStartParams);
+    }
+
+    @Test
+    public void testNotifiesListenerOnBuildCompleteWithFailure() {
+        final RuntimeException failure = new RuntimeException();
+        expectSettingsBuilt();
+        expectTasksRunWithFailure(failure);
+        context.checking(new Expectations() {{
+            one(buildListenerMock).buildFinished(with(result(settingsMock, sameInstance(failure))));
+        }});
+
+        build.addBuildListener(buildListenerMock);
+
+        try {
+            build.run(expectedStartParams);
+            fail();
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
+        }
+    }
+
+    private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
-                one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
-                will(returnValue(rebuildDagReturnValue));
-                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
-                will(returnValue(rebuildDagReturnValue));
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        expectedProjectProperties, System.getProperties(), System.getenv());
-                if (rebuildDagReturnValue) {
-                    one(buildConfigurerMock).process(expectedRootProject);
-                    one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, expectedProjectProperties, System.getProperties(), System.getenv());
-                }
-                one(buildListenerMock).buildFinished(expectedRootDir);
+                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
+                will(returnValue(settingsMock));
             }
         });
     }
 
+    private void expectTasksRunWithoutDagRebuild() {
+        context.checking(new Expectations() {
+            {
+                one(buildConfigurerMock).process(expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
+                will(returnValue(false));
+                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
+                will(returnValue(false));
+                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
+                        expectedProjectProperties, System.getProperties(), System.getenv());
+            }
+        });
+    }
+
+    private void expectTasksRunWithDagRebuild() {
+        context.checking(new Expectations() {
+            {
+                one(buildConfigurerMock).process(expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
+                will(returnValue(true));
+                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
+                will(returnValue(true));
+                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
+                        expectedProjectProperties, System.getProperties(), System.getenv());
+                one(buildConfigurerMock).process(expectedRootProject);
+                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, expectedProjectProperties, System.getProperties(), System.getenv());
+            }
+        });
+    }
+
+    private void expectTasksRunWithFailure(final Throwable failure) {
+        context.checking(new Expectations() {
+            {
+                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
+                        expectedProjectProperties, System.getProperties(), System.getenv());
+                one(buildConfigurerMock).process(expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
+                will(throwException(failure));
+            }
+        });
+    }
 
     @Test(expected = UnknownTaskException.class)
     public void testRunWithUnknownTask() {
@@ -250,7 +303,6 @@ public class  BuildTest {
                 one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildListenerMock).buildFinished(expectedRootDir);
             }
         });
         build.run(expectedStartParams);
@@ -263,7 +315,7 @@ public class  BuildTest {
             {
                 one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
-               one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
+                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
                         expectedProjectProperties, System.getProperties(), System.getenv());
             }
         });
@@ -320,4 +372,16 @@ public class  BuildTest {
 //        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
     }
 
+    private Matcher<BuildResult> result(final Settings expectedSettings, final Matcher<? extends Throwable> exceptionMatcher) {
+        return new BaseMatcher<BuildResult>() {
+            public void describeTo(Description description) {
+                description.appendText("matching build result");
+            }
+
+            public boolean matches(Object actual) {
+                BuildResult result = (BuildResult) actual;
+                return (result.getSettings() == expectedSettings) && exceptionMatcher.matches(result.getFailure());
+            }
+        };
+    }
 }

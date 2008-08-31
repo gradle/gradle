@@ -15,23 +15,22 @@
  */
 package org.gradle;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.Settings;
 
-import java.io.File;
+public class BuildResult {
+    private final Settings settings;
+    private final Throwable failure;
 
-/**
- * @author Hans Dockter
- */
-public class DefaultBuildListener implements BuildListener {
-    private static Logger logger = LoggerFactory.getLogger(DefaultBuildListener.class);
+    public BuildResult(Settings settings, Throwable failure) {
+        this.settings = settings;
+        this.failure = failure;
+    }
 
-    public void buildFinished(BuildResult result) {
-        File rootDir = result.getSettings().getRootDir();
-        try {
-//            GFileUtils.deleteDirectory(new File(rootDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME));
-        } catch (Exception e) {
-            logger.debug("Can't delete the build-resolver dir. We continue.", e);
-        }
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public Throwable getFailure() {
+        return failure;
     }
 }

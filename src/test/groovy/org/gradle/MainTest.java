@@ -25,6 +25,7 @@ import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -173,6 +174,8 @@ public class MainTest {
 
         context.checking(new Expectations() {
             {
+                one(buildMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
+                one(buildMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
                 allowing(buildMock).getSettingsProcessor();
                 will(returnValue(settingsProcessor));
                 if (embedded) {

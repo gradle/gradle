@@ -73,6 +73,7 @@ public class Build {
     }
 
     private void runInternal(DefaultSettings settings, StartParameter startParameter) {
+        RuntimeException failure = null;
         try {
             ClassLoader classLoader = settings.createClassLoader();
             Boolean rebuildDag = true;
@@ -93,10 +94,15 @@ public class Build {
                 logger.debug(String.format("Selected for execution: %s.", selector.getTasks()));
                 rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject());
             }
-        } finally {
-            for (BuildListener buildListener : buildListeners) {
-                buildListener.buildFinished(rootFinder.getRootDir());
-            }
+        } catch (RuntimeException t) {
+            failure = t;
+        }
+        for (BuildListener buildListener : buildListeners) {
+            buildListener.buildFinished(new BuildResult(settings, failure));
+        }
+
+        if (failure != null) {
+            throw failure;
         }
     }
 
@@ -169,7 +175,7 @@ public class Build {
                 ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
                 IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(), startParameter.getCacheUsage());
                 Dag tasksGraph = new Dag();
-                Build build =  new Build(
+                Build build = new Build(
                         new RootFinder(),
                         new SettingsProcessor(
                                 new DefaultSettingsScriptMetaData(),

@@ -16,22 +16,27 @@
 package org.gradle;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
+import org.gradle.util.Clock;
 
 /**
- * @author Hans Dockter
+ * A {@link BuildListener} which logs the final result of the build.
  */
-public class DefaultBuildListener implements BuildListener {
-    private static Logger logger = LoggerFactory.getLogger(DefaultBuildListener.class);
+public class BuildResultLogger implements BuildListener {
+    private final Logger logger;
+    private final Clock buildTimeClock;
+
+    public BuildResultLogger(Logger logger) {
+        this.logger = logger;
+        buildTimeClock = new Clock();
+    }
 
     public void buildFinished(BuildResult result) {
-        File rootDir = result.getSettings().getRootDir();
-        try {
-//            GFileUtils.deleteDirectory(new File(rootDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME));
-        } catch (Exception e) {
-            logger.debug("Can't delete the build-resolver dir. We continue.", e);
+        if (result.getFailure() == null) {
+            logger.info(String.format("%nBUILD SUCCESSFUL%n"));
         }
+        else {
+            logger.error(String.format("%nBUILD FAILED%n"));
+        }
+        logger.info(String.format("Total time: %s", buildTimeClock.getTime()));
     }
 }

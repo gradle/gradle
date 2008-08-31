@@ -21,15 +21,10 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.apache.ivy.util.DefaultMessageLogger;
 import org.apache.ivy.util.Message;
-import org.apache.tools.ant.BuildException;
-import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Settings;
 import org.gradle.initialization.BuildSourceBuilder;
 import org.gradle.initialization.EmbeddedBuildExecuter;
-import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
@@ -61,12 +56,12 @@ public class Main {
     private static final String BUILD_FILE = "b";
     private static final String SETTINGS_FILE = "c";
     private static final String TASKS = "t";
-    private static final String DEBUG = "d";
+    public static final String DEBUG = "d";
     private static final String IVY_QUIET = "i";
     private static final String IVY_DEBUG = "j";
     private static final String QUIET = "q";
-    private static final String FULL_STACKTRACE = "f";
-    private static final String STACKTRACE = "s";
+    public static final String FULL_STACKTRACE = "f";
+    public static final String STACKTRACE = "s";
     private static final String SYSTEM_PROP = "D";
     private static final String PROJECT_PROP = "P";
     private static final String NO_DEFAULT_IMPORTS = "I";
@@ -79,7 +74,7 @@ public class Main {
 
 
     public static void main(String[] args) throws Throwable {
-        Clock buildTimeClock = new Clock();
+        BuildResultLogger resultLogger = new BuildResultLogger(logger);
 
         String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
         String embeddedBuildScript = null;
@@ -113,22 +108,22 @@ public class Main {
             }
         };
 
-        OptionSet options = null;
+        OptionSet options;
         try {
             options = parser.parse(args);
         } catch (OptionException e) {
-            parser.printHelpOn( System.err );
-            System.err.println( "====" );
+            parser.printHelpOn(System.err);
+            System.err.println("====");
             return;
         }
 
         if (options.has(HELP)) {
             parser.printHelpOn(System.out);
             exitWithSuccess(options);
+            return;
         }
 
         configureLogger(options);
-
 
         if (options.hasArgument(BOOTSTRAP_DEBUG_INFO)) {
             logger.debug(options.argumentOf(BOOTSTRAP_DEBUG_INFO));
@@ -137,6 +132,7 @@ public class Main {
         if (options.has(VERSION)) {
             System.out.println(new GradleVersion().prettyPrint());
             exitWithSuccess(options);
+            return;
         }
 
         if (!GUtil.isTrue(gradleHome)) {
@@ -171,7 +167,7 @@ public class Main {
         if (options.has(PROJECT_DIR)) {
             startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
             if (!startParameter.getCurrentDir().isDirectory()) {
-                logger.error("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exists!");
+                logger.error("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
                 exitWithError(options, new InvalidUserDataException());
                 return;
             }
@@ -183,10 +179,16 @@ public class Main {
                 options.hasArgument(GRADLE_USER_HOME) ?
                         new File(options.argumentOf(GRADLE_USER_HOME)) : new File(DEFAULT_GRADLE_USER_HOME));
 
-        startParameter.setBuildFileName(options.hasArgument(BUILD_FILE) ? options.argumentOf(BUILD_FILE) :
-                (options.has(EMBEDDED_SCRIPT) ? Project.EMBEDDED_SCRIPT_ID : Project.DEFAULT_BUILD_FILE));
+        if (options.hasArgument(BUILD_FILE)) {
+            startParameter.setBuildFileName(options.argumentOf(BUILD_FILE));
+        }
+        else if (options.has(EMBEDDED_SCRIPT)) {
+            startParameter.setBuildFileName(Project.EMBEDDED_SCRIPT_ID);
+        }
 
-        startParameter.setSettingsFileName(options.hasArgument(SETTINGS_FILE) ? options.argumentOf(SETTINGS_FILE) : Settings.DEFAULT_SETTINGS_FILE);
+        if (options.hasArgument(SETTINGS_FILE)) {
+            startParameter.setSettingsFileName(options.argumentOf(SETTINGS_FILE));
+        }
 
         startParameter.setPluginPropertiesFile(
                 options.hasArgument(PLUGIN_PROPERTIES_FILE) ? new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)) :
@@ -204,7 +206,7 @@ public class Main {
         } else {
             startParameter.setCacheUsage(CacheUsage.ON);
         }
-        
+
         if (options.has(EMBEDDED_SCRIPT)) {
             if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS)) {
                 logger.error(String.format("Error: The %s option can't be used together with the %s or %s option.",
@@ -226,9 +228,11 @@ public class Main {
             startParameter.setTaskNames(options.nonOptionArguments());
 
             Build.BuildFactory buildFactory = Build.newInstanceFactory(startParameter);
-            Build build = (Build) buildFactory.newInstance(embeddedBuildScript, null);
+            Build build = buildFactory.newInstance(embeddedBuildScript, null);
             build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(
                     new EmbeddedBuildExecuter(buildFactory)));
+            build.addBuildListener(new BuildExceptionReporter(logger, options));
+            build.addBuildListener(resultLogger);
 
             if (options.has(TASKS)) {
                 if (embeddedBuildScript != null) {
@@ -245,18 +249,9 @@ public class Main {
             } else {
                 build.run(startParameter);
             }
-            logger.info(NL + "BUILD SUCCESSFUL");
-        } catch (BuildException e) {
-            handleGradleException(e, options.has(STACKTRACE), options.has(DEBUG), options.has(FULL_STACKTRACE), buildTimeClock, options);
-        } catch (GradleException e) {
-            handleGradleException(e, options.has(STACKTRACE), options.has(DEBUG), options.has(FULL_STACKTRACE), buildTimeClock, options);
         } catch (Throwable e) {
-            logger.error(NL + "Build aborted anormally because of an internal error. Run with -d option to get additonal debug info. Please file an issue at: www.gradle.org");
-            logger.error("Exception is:", e);
-            finalOutput(buildTimeClock);
             exitWithError(options, e);
         }
-        finalOutput(buildTimeClock);
         exitWithSuccess(options);
     }
 
@@ -266,28 +261,8 @@ public class Main {
         }
     }
 
-    static void handleGradleException(Throwable t, boolean stacktrace, boolean debug, boolean fullStacktrace, Clock buildTimeClock, OptionSet options) throws Throwable {
-        String introMessage = "Build aborted abnormally. ";
-        introMessage += (stacktrace || debug) ? "" : " Run with -s option to get stacktrace.";
-        introMessage += debug ? "" : " Run with -d option to get all debug info including stacktrace.";
-        introMessage += fullStacktrace ? "" : " Run (additionally) with -f option to get the full (very verbose) stacktrace";
-        logger.error(NL + introMessage);
-        if (debug || stacktrace || fullStacktrace) {
-            logger.error("Exception is:", fullStacktrace ? t : StackTraceUtils.deepSanitize(t));
-        } else {
-            logger.error("Exception: " + t);
-        }
-        finalOutput(buildTimeClock);
-        exitWithError(options, t);
-    }
-
-    static void finalOutput(Clock buildTimeClock) {
-        logger.info(NL + "Total time: " + buildTimeClock.getTime());
-    }
-
     private static void configureLogger(OptionSet options) throws Throwable {
 
-        //String normalLayout = '%msg%n'
         String normalLayout = "%msg%n";
         String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
 
@@ -304,7 +279,7 @@ public class Main {
             ivyLogLevel = Message.MSG_ERR;
         } else if (options.has(IVY_DEBUG)) {
             ivyLogLevel = Message.MSG_DEBUG;
-        } 
+        }
 
         if (options.has(DEBUG) && options.has(QUIET)) {
             System.out.printf("Error: For the loglevel you must either set '%s' or '%s'. Not Both!", QUIET, DEBUG);
@@ -318,21 +293,18 @@ public class Main {
             if (!options.has(IVY_DEBUG)) {
                 ivyLogLevel = Message.MSG_ERR;
             }
-        }  else {
+        } else {
             loglevel = "INFO";
             layout = normalLayout;
         }
         Message.setDefaultLogger(new DefaultMessageLogger(ivyLogLevel));
         rootLogger.setLevel(Level.toLevel(loglevel));
-
     }
 
     private static void exitWithError(OptionSet options, Throwable e) throws Throwable {
-        System.err.println("Exit with error!");
         if (!options.has(NO_JVM_TERMINATION)) {
             System.exit(1);
         }
         throw e;
     }
-
 }
