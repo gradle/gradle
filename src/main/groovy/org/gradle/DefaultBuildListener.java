@@ -15,6 +15,9 @@
  */
 package org.gradle;
 
+import org.gradle.api.DependencyManager;
+import org.gradle.api.Project;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +32,8 @@ public class DefaultBuildListener implements BuildListener {
     public void buildFinished(BuildResult result) {
         File rootDir = result.getSettings().getRootDir();
         try {
-//            GFileUtils.deleteDirectory(new File(rootDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME));
+            // todo: For some reasons this has failed under windows. We need to check what the problem is. 
+            GFileUtils.deleteDirectory(new File(rootDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME));
         } catch (Exception e) {
             logger.debug("Can't delete the build-resolver dir. We continue.", e);
         }
