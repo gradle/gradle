@@ -32,7 +32,7 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-class RootFinderTest {
+class ParentDirSettingsFinderTest {
     static final String TEST_SETTINGS_TEXT = 'somescriptcode'
     static final String TEST_SETTINGS_FILE_NAME = 'some-settings.gradle'
     ParentDirSettingsFinder rootFinder
