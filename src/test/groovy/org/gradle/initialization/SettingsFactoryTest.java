@@ -15,20 +15,16 @@
  */
 package org.gradle.initialization;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.assertSame;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
-import org.gradle.api.Settings;
+import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
-import org.gradle.StartParameter;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.util.HelperUtil;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
-
-import java.io.File;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.assertSame;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author Hans Dockter
@@ -46,14 +42,14 @@ public class SettingsFactoryTest {
           allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
         }});
         BuildSourceBuilder expectedBuildSourceBuilder = new BuildSourceBuilder(new EmbeddedBuildExecuter());
-        RootFinder expectedRootFinder = new RootFinder();
+        ISettingsFinder expectedSettingsFinder = new ParentDirSettingsFinder();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
 
         SettingsFactory settingsFactory = new SettingsFactory();
-        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(dependencyManagerFactoryMock, expectedBuildSourceBuilder, expectedRootFinder, expectedStartParameter);
+        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(dependencyManagerFactoryMock, expectedBuildSourceBuilder, expectedSettingsFinder, expectedStartParameter);
         assertSame(dependencyManagerMock, settings.getDependencyManager());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());
-        assertSame(expectedRootFinder, settings.getRootFinder());
+        assertSame(expectedSettingsFinder, settings.getRootFinder());
         assertSame(expectedStartParameter, settings.getStartParameter());
     }
 }

@@ -23,23 +23,20 @@ import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.internal.project.ImportsReader
-import org.gradle.groovy.scripts.EmptyScript
-import org.gradle.groovy.scripts.IScriptProcessor
-import org.gradle.groovy.scripts.ISettingsScriptMetaData
-import org.gradle.groovy.scripts.ImportsScriptSource
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.*
 import org.gradle.initialization.DefaultSettings
-import org.gradle.initialization.RootFinder
+import org.gradle.initialization.ParentDirSettingsFinder
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.ReflectionEqualsMatcher
 import org.hamcrest.Matchers
+import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
-import org.jmock.lib.legacy.ClassImposteriser
 
 /**
  * @author Hans Dockter
@@ -47,7 +44,7 @@ import org.jmock.lib.legacy.ClassImposteriser
 class SettingsProcessorTest {
     static final File TEST_ROOT_DIR = new File('rootDir')
     SettingsProcessor settingsProcessor
-    RootFinder expectedRootFinder
+    ISettingsFinder expectedSettingsFinder
     ImportsReader importsReader
     DependencyManagerFactory dependencyManagerFactory
     SettingsFactory settingsFactory
@@ -72,7 +69,7 @@ class SettingsProcessorTest {
         settingsFileDir = HelperUtil.makeNewTestDir('settingsDir')
         expectedSettings = new DefaultSettings()
         expectedStartParameter = new StartParameter()
-        expectedRootFinder = new RootFinder()
+        expectedSettingsFinder = new ParentDirSettingsFinder()
         importsReader = new ImportsReader()
         settingsFactory = context.mock(SettingsFactory)
         dependencyManagerFactory = new DefaultDependencyManagerFactory(new File('root'))
@@ -100,7 +97,7 @@ class SettingsProcessorTest {
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
         expectedStartParameter = createStartParameter(expectedCurrentDir)
         prepareSettingsFactoryMock(expectedCurrentDir, expectedCurrentDir)
-        assert settingsProcessor.createBasicSettings(expectedRootFinder, expectedStartParameter).is(expectedSettings)
+        assert settingsProcessor.createBasicSettings(expectedSettingsFinder, expectedStartParameter).is(expectedSettings)
         assertEquals([], expectedSettings.projectPaths)
         checkBuildResolverDir(buildResolverDir)
     }
@@ -110,7 +107,7 @@ class SettingsProcessorTest {
         File expectedCurrentDir = new File(TEST_ROOT_DIR, 'currentDir')
         expectedStartParameter = createStartParameter(expectedCurrentDir)
         prepareSettingsFactoryMock(expectedCurrentDir, expectedCurrentDir)
-        assert settingsProcessor.createBasicSettings(expectedRootFinder, expectedStartParameter).is(expectedSettings)
+        assert settingsProcessor.createBasicSettings(expectedSettingsFinder, expectedStartParameter).is(expectedSettings)
         assertEquals([], expectedSettings.projectPaths)
         checkBuildResolverDir(buildResolverDir)
     }
@@ -138,11 +135,11 @@ class SettingsProcessorTest {
     }
 
     private void prepareSettingsFactoryMock(File expectedRootDir, File expectedCurrentDir) {
-        expectedSettings.rootFinder = expectedRootFinder
+        expectedSettings.rootFinder = expectedSettingsFinder
         expectedSettings.startParameter = expectedStartParameter
         context.checking {
             one(settingsFactory).createSettings(dependencyManagerFactory, buildSourceBuilder, 
-                    expectedRootFinder, expectedStartParameter)
+                    expectedSettingsFinder, expectedStartParameter)
             will(returnValue(expectedSettings))
         }
     }
@@ -157,8 +154,8 @@ class SettingsProcessorTest {
         settingsProcessor.setImportsReader(mockImportsReader)
 
         ScriptSource settingsScript = context.mock(ScriptSource.class)
-        expectedRootFinder.rootDir = rootDir
-        expectedRootFinder.settingsScript = settingsScript
+        expectedSettingsFinder.rootDir = rootDir
+        expectedSettingsFinder.settingsScript = settingsScript
         expectedStartParameter = createStartParameter(currentDir)
         expectedSettings.setProjectPaths(includePaths)
         prepareSettingsFactoryMock(rootDir, currentDir)
@@ -174,7 +171,7 @@ class SettingsProcessorTest {
             one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
         }
 
-        DefaultSettings settings = settingsProcessor.process(expectedRootFinder, expectedStartParameter)
+        DefaultSettings settings = settingsProcessor.process(expectedSettingsFinder, expectedStartParameter)
         checkBuildResolverDir(expectedBuildResolverRoot)
         settings
     }

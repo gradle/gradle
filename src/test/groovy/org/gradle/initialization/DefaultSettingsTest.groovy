@@ -35,7 +35,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 class DefaultSettingsTest {
-    RootFinder rootFinder
+    ISettingsFinder settingsFinder
     StartParameter startParameter
 
     DefaultDependencyManager dependencyManager
@@ -45,17 +45,17 @@ class DefaultSettingsTest {
     MockFor buildSourceBuilderMocker
 
     @Before public void setUp() {
-        rootFinder = new RootFinder()
-        rootFinder.rootDir = new File('/root')
-        rootFinder.gradleProperties.someGradleProp = 'someValue'
-        startParameter = new StartParameter(currentDir: new File(rootFinder.rootDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
+        settingsFinder = new ParentDirSettingsFinder()
+        settingsFinder.rootDir = new File('/root')
+        settingsFinder.gradleProperties.someGradleProp = 'someValue'
+        startParameter = new StartParameter(currentDir: new File(settingsFinder.rootDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         dependencyManager = new DefaultDependencyManager()
         DependencyManagerFactory dependencyManagerFactory = [createDependencyManager: {Project project ->
             dependencyManager.setProject(project)
             dependencyManager
         }] as DependencyManagerFactory
         buildSourceBuilder = new BuildSourceBuilder(new EmbeddedBuildExecuter())
-        settings = new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
+        settings = new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter)
         dependencyManagerMocker = new StubFor(DefaultDependencyManager)
         buildSourceBuilderMocker = new MockFor(BuildSourceBuilder)
     }
@@ -67,7 +67,7 @@ class DefaultSettingsTest {
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
-        assert settings.rootFinder.is(rootFinder)
+        assert settings.rootFinder.is(settingsFinder)
         assert settings.dependencyManager.is(dependencyManager)
         assert settings.dependencyManager.configurations[DefaultSettings.BUILD_CONFIGURATION]
         assertEquals(startParameter.gradleUserHomeDir.absolutePath, settings.dependencyManager.project.gradleUserHome)
@@ -232,13 +232,13 @@ class DefaultSettingsTest {
     }
 
     @Test (expected = MissingPropertyException) public void testPropertyMissing() {
-        assert settings.rootDir.is(rootFinder.rootDir)
+        assert settings.rootDir.is(getSettingsFinder.rootDir)
         assert settings.currentDir.is(startParameter.currentDir)
-        assert settings.someGradleProp.is(rootFinder.gradleProperties.someGradleProp)
+        assert settings.someGradleProp.is(getSettingsFinder.gradleProperties.someGradleProp)
         settings.unknownProp
     }
 
     @Test public void testGetRootDir() {
-        assertEquals(rootFinder.rootDir, settings.rootDir);
+        assertEquals(settingsFinder.rootDir, settings.rootDir);
     }
 }

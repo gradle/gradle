@@ -43,7 +43,7 @@ public class Build {
 
     static CustomFactory customFactory = null;
 
-    private RootFinder rootFinder;
+    private ISettingsFinder settingsFinder;
     private SettingsProcessor settingsProcessor;
     private ProjectsLoader projectLoader;
     private BuildConfigurer buildConfigurer;
@@ -54,9 +54,9 @@ public class Build {
     public Build() {
     }
 
-    public Build(RootFinder rootFinder, SettingsProcessor settingsProcessor,
+    public Build(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor,
                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
-        this.rootFinder = rootFinder;
+        this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.projectLoader = projectLoader;
         this.buildConfigurer = buildConfigurer;
@@ -122,27 +122,27 @@ public class Build {
     }
 
     private DefaultSettings init(StartParameter startParameter) {
-        rootFinder.find(startParameter);
-        setSystemProperties(startParameter.getSystemPropertiesArgs(), rootFinder);
-        return settingsProcessor.process(rootFinder, startParameter);
+        settingsFinder.find(startParameter);
+        setSystemProperties(startParameter.getSystemPropertiesArgs(), settingsFinder);
+        return settingsProcessor.process(settingsFinder, startParameter);
     }
 
     private DefaultSettings initWithCurrentDirAsRoot(StartParameter startParameter) {
         startParameter.setSearchUpwards(false);
-        rootFinder.find(startParameter);
-        setSystemProperties(startParameter.getSystemPropertiesArgs(), rootFinder);
-        return settingsProcessor.createBasicSettings(rootFinder, startParameter);
+        settingsFinder.find(startParameter);
+        setSystemProperties(startParameter.getSystemPropertiesArgs(), settingsFinder);
+        return settingsProcessor.createBasicSettings(settingsFinder, startParameter);
     }
 
-    private void setSystemProperties(Map properties, RootFinder rootFinder) {
+    private void setSystemProperties(Map properties, ISettingsFinder settingsFinder) {
         System.getProperties().putAll(properties);
-        addSystemPropertiesFromGradleProperties(rootFinder);
+        addSystemPropertiesFromGradleProperties(settingsFinder);
     }
 
-    private void addSystemPropertiesFromGradleProperties(RootFinder rootFinder) {
-        for (String key : rootFinder.getGradleProperties().keySet()) {
+    private void addSystemPropertiesFromGradleProperties(ISettingsFinder settingsFinder) {
+        for (String key : settingsFinder.getGradleProperties().keySet()) {
             if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
-                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), rootFinder.getGradleProperties().get(key));
+                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), settingsFinder.getGradleProperties().get(key));
             }
         }
     }
@@ -176,7 +176,7 @@ public class Build {
                 IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(), startParameter.getCacheUsage());
                 Dag tasksGraph = new Dag();
                 Build build = new Build(
-                        new RootFinder(),
+                        new ParentDirSettingsFinder(),
                         new SettingsProcessor(
                                 new DefaultSettingsScriptMetaData(),
                                 scriptProcessor,
@@ -227,12 +227,12 @@ public class Build {
         public BuildFactory newInstanceFactory(StartParameter startParameter);
     }
 
-    public RootFinder getRootFinder() {
-        return rootFinder;
+    public ISettingsFinder getSettingsFinder() {
+        return settingsFinder;
     }
 
-    public void setRootFinder(RootFinder rootFinder) {
-        this.rootFinder = rootFinder;
+    public void setSettingsFinder(ISettingsFinder settingsFinder) {
+        this.settingsFinder = settingsFinder;
     }
 
     public SettingsProcessor getSettingsProcessor() {

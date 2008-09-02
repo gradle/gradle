@@ -16,27 +16,26 @@
 
 package org.gradle.initialization;
 
+import groovy.lang.Script;
 import org.gradle.StartParameter;
-import org.gradle.api.*;
+import org.gradle.api.DependencyManager;
+import org.gradle.api.GradleException;
+import org.gradle.api.GradleScriptException;
+import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.groovy.scripts.IScriptProcessor;
 import org.gradle.groovy.scripts.ISettingsScriptMetaData;
 import org.gradle.groovy.scripts.ImportsScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.DefaultSettings;
 import org.gradle.util.Clock;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
 import org.gradle.util.PathHelper;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
-import java.util.ArrayList;
-
-import groovy.lang.Script;
 
 
 /**
@@ -75,11 +74,11 @@ public class SettingsProcessor {
         this.buildResolverDir = buildResolverDir;
     }
 
-    public DefaultSettings process(RootFinder rootFinder, StartParameter startParameter) {
+    public DefaultSettings process(ISettingsFinder settingsFinder, StartParameter startParameter) {
         Clock settingsProcessingClock = new Clock();
-        initDependencyManagerFactory(rootFinder);
-        DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter);
-        ScriptSource source = new ImportsScriptSource(rootFinder.getSettingsScript(), importsReader, rootFinder.getRootDir());
+        initDependencyManagerFactory(settingsFinder);
+        DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter);
+        ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScript(), importsReader, settingsFinder.getRootDir());
         try {
             Script settingsScript = scriptProcessor.createScript(
                     source,
@@ -96,23 +95,23 @@ public class SettingsProcessor {
             throw new GradleScriptException(t, source);
         }
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
-        if (startParameter.getCurrentDir() != rootFinder.getRootDir() && !isCurrentDirIncluded(settings)) {
-            return createBasicSettings(rootFinder, startParameter);
+        if (startParameter.getCurrentDir() != settingsFinder.getRootDir() && !isCurrentDirIncluded(settings)) {
+            return createBasicSettings(settingsFinder, startParameter);
         }
         return settings;
     }
 
-    private void initDependencyManagerFactory(RootFinder rootFinder) {
-        File buildResolverDir = GUtil.elvis(this.buildResolverDir, new File(rootFinder.getRootDir(), Project.TMP_DIR_NAME + "/" +
+    private void initDependencyManagerFactory(ISettingsFinder settingsFinder) {
+        File buildResolverDir = GUtil.elvis(this.buildResolverDir, new File(settingsFinder.getRootDir(), Project.TMP_DIR_NAME + "/" +
                 DependencyManager.BUILD_RESOLVER_NAME));
         GradleUtil.deleteDir(buildResolverDir);
         dependencyManagerFactory.setBuildResolverDir(buildResolverDir);
         logger.debug("Set build resolver dir to: {}", dependencyManagerFactory.getBuildResolverDir());
     }
 
-    public DefaultSettings createBasicSettings(RootFinder rootFinder, StartParameter startParameter) {
-        initDependencyManagerFactory(rootFinder);
-        return settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter);
+    public DefaultSettings createBasicSettings(ISettingsFinder settingsFinder, StartParameter startParameter) {
+        initDependencyManagerFactory(settingsFinder);
+        return settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter);
     }
 
     private boolean isCurrentDirIncluded(DefaultSettings settings) {

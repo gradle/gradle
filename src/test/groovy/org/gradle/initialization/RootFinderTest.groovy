@@ -18,14 +18,14 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
-import org.gradle.api.Settings
 import org.gradle.groovy.scripts.FileScriptSource
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.RootFinder
+import org.gradle.initialization.ParentDirSettingsFinder
 import org.gradle.util.HelperUtil
 import org.gradle.util.ReflectionEqualsMatcher
 import org.junit.After
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
 
@@ -35,7 +35,7 @@ import org.junit.Test
 class RootFinderTest {
     static final String TEST_SETTINGS_TEXT = 'somescriptcode'
     static final String TEST_SETTINGS_FILE_NAME = 'some-settings.gradle'
-    RootFinder rootFinder
+    ParentDirSettingsFinder rootFinder
     File testDir
     File rootDir
     File currentDir
@@ -44,7 +44,7 @@ class RootFinderTest {
     Map expectedGradleProperties
 
     @Before public void setUp()  {
-        rootFinder = new RootFinder()
+        rootFinder = new ParentDirSettingsFinder()
         testDir = HelperUtil.makeNewTestDir()
         userHome = new File(testDir, 'userHome')
         userHome.mkdirs()

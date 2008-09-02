@@ -46,7 +46,7 @@ class DefaultSettings implements Settings {
 
     StartParameter startParameter
 
-    RootFinder rootFinder
+    ISettingsFinder rootFinder
 
     StartParameter buildSrcStartParameter
 
@@ -55,7 +55,7 @@ class DefaultSettings implements Settings {
     DefaultSettings() {}
 
     DefaultSettings(DependencyManagerFactory dependencyManagerFactory,
-                    BuildSourceBuilder buildSourceBuilder, RootFinder rootFinder, StartParameter startParameter) {
+                    BuildSourceBuilder buildSourceBuilder, ISettingsFinder rootFinder, StartParameter startParameter) {
         this.rootFinder = rootFinder
         this.startParameter = startParameter
         this.dependencyManager = dependencyManagerFactory.createDependencyManager(createDummyProject())

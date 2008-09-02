@@ -17,18 +17,23 @@
 package org.gradle;
 
 import org.gradle.api.Project;
+import org.gradle.api.Settings;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.Settings;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.DefaultSettings;
+import org.gradle.initialization.ISettingsFinder;
 import org.gradle.initialization.ProjectsLoader;
-import org.gradle.initialization.RootFinder;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -37,10 +42,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Matcher;
-import org.hamcrest.Description;
-import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.net.URL;
@@ -56,7 +57,7 @@ import java.util.Map;
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BuildTest {
     private ProjectsLoader projectsLoaderMock;
-    private RootFinder rootFinderMock;
+    private ISettingsFinder settingsFinderMock;
     private SettingsProcessor settingsProcessorMock;
     private BuildConfigurer buildConfigurerMock;
     private File expectedCurrentDir;
@@ -86,14 +87,14 @@ public class BuildTest {
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         HelperUtil.deleteTestDir();
-        rootFinderMock = context.mock(RootFinder.class);
+        settingsFinderMock = context.mock(ISettingsFinder.class);
         settingsMock = context.mock(DefaultSettings.class);
         buildExecuterMock = context.mock(BuildExecuter.class);
         settingsProcessorMock = context.mock(SettingsProcessor.class);
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         buildListenerMock = context.mock(BuildListener.class);
-        build = new Build(rootFinderMock, settingsProcessorMock, projectsLoaderMock,
+        build = new Build(settingsFinderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
         testGradleProperties = WrapUtil.toMap(Project.SYSTEM_PROP_PREFIX + ".prop1", "value1");
         testGradleProperties.put("prop2", "value2");
@@ -121,10 +122,10 @@ public class BuildTest {
 
         context.checking(new Expectations() {
             {
-                allowing(rootFinderMock).find(with(any(StartParameter.class)));
-                allowing(rootFinderMock).getGradleProperties();
+                allowing(settingsFinderMock).find(with(any(StartParameter.class)));
+                allowing(settingsFinderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
-                allowing(rootFinderMock).getRootDir();
+                allowing(settingsFinderMock).getRootDir();
                 will(returnValue(expectedRootDir));
                 allowing(settingsMock).createClassLoader();
                 will(returnValue(expectedClassLoader));
@@ -151,9 +152,9 @@ public class BuildTest {
 
     @Test
     public void testInit() {
-        build = new Build(rootFinderMock, settingsProcessorMock, projectsLoaderMock,
+        build = new Build(settingsFinderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
-        assertSame(rootFinderMock, build.getRootFinder());
+        assertSame(settingsFinderMock, build.getSettingsFinder());
         assertSame(settingsProcessorMock, build.getSettingsProcessor());
         assertSame(projectsLoaderMock, build.getProjectLoader());
         assertSame(buildConfigurerMock, build.getBuildConfigurer());
@@ -202,7 +203,7 @@ public class BuildTest {
     public void testRunWithEmbeddedScript() {
         context.checking(new Expectations() {
             {
-                one(settingsProcessorMock).createBasicSettings(rootFinderMock, expectedStartParams);
+                one(settingsProcessorMock).createBasicSettings(settingsFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
             }
         });
@@ -245,7 +246,7 @@ public class BuildTest {
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
-                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
             }
         });
@@ -300,7 +301,7 @@ public class BuildTest {
             {
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
                         expectedProjectProperties, System.getProperties(), System.getenv());
-                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
             }
@@ -313,7 +314,7 @@ public class BuildTest {
         setTaskExpectations();
         context.checking(new Expectations() {
             {
-                one(settingsProcessorMock).process(rootFinderMock, expectedStartParams);
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
                         expectedProjectProperties, System.getProperties(), System.getenv());
@@ -331,7 +332,7 @@ public class BuildTest {
             {
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParameterArg,
                         expectedProjectProperties, System.getProperties(), System.getenv());
-                one(settingsProcessorMock).createBasicSettings(rootFinderMock, expectedStartParameterArg);
+                one(settingsProcessorMock).createBasicSettings(settingsFinderMock, expectedStartParameterArg);
                 will(returnValue(settingsMock));
             }
         });

@@ -16,17 +16,17 @@
 
 package org.gradle.initialization
 
+import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.ProjectsLoader
 import org.gradle.util.HelperUtil
-import org.gradle.StartParameter
+import org.junit.After
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.After;
 
 /**
  * @author Hans Dockter
@@ -67,7 +67,7 @@ class ProjectsLoaderTest {
     }
 
     @Test public void testCreateProjects() {
-        RootFinder rootFinder = new RootFinder(rootDir: testRootProjectDir)
+        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(rootDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: testUserDir)
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
                 rootFinder, startParameter)
@@ -132,7 +132,7 @@ class ProjectsLoaderTest {
     }
 
     @Test public void testCreateProjectsWithNonExistingUserAndProjectGradleAndProjectProperties() {
-        RootFinder rootFinder = new RootFinder(rootDir: testRootProjectDir)
+        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(rootDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: testRootProjectDir, gradleUserHomeDir: new File('guh'))
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
                 rootFinder, startParameter)
