@@ -16,65 +16,59 @@
 
 package org.gradle.initialization
 
-import groovy.mock.interceptor.MockFor
-import groovy.mock.interceptor.StubFor
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.StartParameter
+import org.gradle.api.DependencyManager
 import org.gradle.api.Project
 import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.internal.dependencies.DefaultDependencyManager
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.plugins.JavaPlugin
-import org.junit.After
-import static org.junit.Assert.*
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
  */
+@RunWith (org.jmock.integration.junit4.JMock)
 class DefaultSettingsTest {
     ISettingsFinder settingsFinder
     StartParameter startParameter
 
-    DefaultDependencyManager dependencyManager
-    BuildSourceBuilder buildSourceBuilder
+    DependencyManager dependencyManagerMock
+    BuildSourceBuilder buildSourceBuilderMock
     DefaultSettings settings
-    StubFor dependencyManagerMocker
-    MockFor buildSourceBuilderMocker
+    DependencyManagerFactory dependencyManagerFactoryMock
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         settingsFinder = new ParentDirSettingsFinder()
         settingsFinder.rootDir = new File('/root')
         settingsFinder.gradleProperties.someGradleProp = 'someValue'
         startParameter = new StartParameter(currentDir: new File(settingsFinder.rootDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
-        dependencyManager = new DefaultDependencyManager()
-        DependencyManagerFactory dependencyManagerFactory = [createDependencyManager: {Project project ->
-            dependencyManager.setProject(project)
-            dependencyManager
-        }] as DependencyManagerFactory
-        buildSourceBuilder = new BuildSourceBuilder(new EmbeddedBuildExecuter())
-        settings = new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter)
-        dependencyManagerMocker = new StubFor(DefaultDependencyManager)
-        buildSourceBuilderMocker = new MockFor(BuildSourceBuilder)
-    }
-
-    @After
-    public void tearDown() {
-        if (dependencyManagerMocker) { dependencyManagerMocker.expect.verify() }
+        dependencyManagerMock = context.mock(DependencyManager)
+        buildSourceBuilderMock = context.mock(BuildSourceBuilder)
+        dependencyManagerFactoryMock = context.mock(DependencyManagerFactory)
+        context.checking {
+            one(dependencyManagerFactoryMock).createDependencyManager(withParam(BuildDependenciesProjectMatcher.equalsBuildProject(startParameter)))
+            will(returnValue(dependencyManagerMock))
+            one(dependencyManagerMock).addConfiguration("build")
+        }
+        settings = new DefaultSettings(dependencyManagerFactoryMock, buildSourceBuilderMock, settingsFinder, startParameter)
     }
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
         assert settings.rootFinder.is(settingsFinder)
-        assert settings.dependencyManager.is(dependencyManager)
-        assert settings.dependencyManager.configurations[DefaultSettings.BUILD_CONFIGURATION]
-        assertEquals(startParameter.gradleUserHomeDir.absolutePath, settings.dependencyManager.project.gradleUserHome)
-        assertNotNull(settings.dependencyManager.project.name)
-        assertNotNull(settings.dependencyManager.project.group)
-        assertNotNull(settings.dependencyManager.project.version)
-        assert settings.buildSourceBuilder.is(buildSourceBuilder)
+        assert settings.dependencyManager.is(dependencyManagerMock)
+
+        assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertEquals(Project.DEFAULT_BUILD_FILE, settings.buildSrcStartParameter.buildFileName)
         assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS], settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
@@ -91,51 +85,37 @@ class DefaultSettingsTest {
 
     @Test public void testDependencies() {
         String[] expectedDependencies = ["dep1", "dep2"]
-        dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
-            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
-            assertArrayEquals expectedDependencies, dependencies
+        context.checking {
+            one(dependencyManagerMock).dependencies([DefaultSettings.BUILD_CONFIGURATION], expectedDependencies as Object[])
         }
-        dependencyManagerMocker.use(dependencyManager) {
-            settings.dependencies(expectedDependencies)
-        }
+        settings.dependencies(expectedDependencies)
     }
 
     @Test public void testDependency() {
         String expectedId = "dep1"
         Closure expectedConfigureClosure
-        dependencyManagerMocker.demand.dependency(1..1) {List confs, String id, Closure configureClosure ->
-            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
-            assertEquals(expectedId, id)
-            assertEquals(expectedConfigureClosure, configureClosure)
+        context.checking {
+            one(dependencyManagerMock).dependency([DefaultSettings.BUILD_CONFIGURATION], expectedId, expectedConfigureClosure)
         }
-        dependencyManagerMocker.use(dependencyManager) {
-            settings.dependency(expectedId, expectedConfigureClosure)
-        }
+        settings.dependency(expectedId, expectedConfigureClosure)
     }
 
     @Test public void testClientModule() {
         String expectedId = "dep1"
         Closure expectedConfigureClosure
-        dependencyManagerMocker.demand.clientModule(1..1) {List confs, String id, Closure configureClosure ->
-            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
-            assertEquals(expectedId, id)
-            assertEquals(expectedConfigureClosure, configureClosure)
+        context.checking {
+            one(dependencyManagerMock).clientModule([DefaultSettings.BUILD_CONFIGURATION], expectedId, expectedConfigureClosure)
         }
-        dependencyManagerMocker.use(dependencyManager) {
-            settings.clientModule(expectedId, expectedConfigureClosure)
-        }
+        settings.clientModule(expectedId, expectedConfigureClosure)
     }
 
     @Test public void testAddMavenRepo() {
         DualResolver expectedResolver = new DualResolver()
         String[] expectedJarRepoUrls = ['http://www.repo.org']
-        dependencyManagerMocker.demand.addMavenRepo(1..1) {String[] jarRepoUrls ->
-            assertArrayEquals(expectedJarRepoUrls, jarRepoUrls)
-            expectedResolver
+        context.checking {
+            one(dependencyManagerMock).addMavenRepo(expectedJarRepoUrls); will(returnValue(expectedResolver))
         }
-        dependencyManagerMocker.use(dependencyManager) {
-            assert settings.addMavenRepo(expectedJarRepoUrls).is(expectedResolver)
-        }
+        assert settings.addMavenRepo(expectedJarRepoUrls).is(expectedResolver)
     }
 
     @Test public void testAddMavenStyleRepo() {
@@ -143,37 +123,31 @@ class DefaultSettingsTest {
         String expectedName = 'somename'
         String expectedRoot = 'http://www.root.org'
         String[] expectedJarRepoUrls = ['http://www.repo.org']
-        dependencyManagerMocker.demand.addMavenStyleRepo(1..1) {String name, String root, String[] jarRepoUrls ->
-            assertEquals(expectedName, name)
-            assertEquals(expectedRoot, root)
-            assertArrayEquals(expectedJarRepoUrls, jarRepoUrls)
-            expectedResolver
+        context.checking {
+            one(dependencyManagerMock).addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls);
+            will(returnValue(expectedResolver))
         }
-        dependencyManagerMocker.use(dependencyManager) {
-            assert settings.addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls).is(expectedResolver)
-        }
+        assert settings.addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls).is(expectedResolver)
     }
 
     @Test public void testAddFlatFileResolver() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
         File[] expectedDirs = ['a' as File]
-        dependencyManagerMocker.demand.addFlatDirResolver(1..1) {String name, File[] dirs ->
-            assertEquals(expectedName, name)
-            assertArrayEquals(expectedDirs, dirs)
-            expectedResolver
+        context.checking {
+            one(dependencyManagerMock).addFlatDirResolver(expectedName, expectedDirs);
+            will(returnValue(expectedResolver))
         }
-        dependencyManagerMocker.use(dependencyManager) {
-            assert settings.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
-        }
+        assert settings.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
     }
 
     @Test public void testResolver() {
         ResolverContainer expectedResolverContainer = new ResolverContainer()
-        dependencyManagerMocker.demand.getClasspathResolvers(1..1) {expectedResolverContainer}
-        dependencyManagerMocker.use(dependencyManager) {
-            assert settings.resolvers.is(expectedResolverContainer)
+        context.checking {
+            allowing(dependencyManagerMock).getClasspathResolvers();
+            will(returnValue(expectedResolverContainer))
         }
+        assert settings.resolvers.is(expectedResolverContainer)
     }
 
     @Test public void testCreateClassLoaderWithNullBuildSourceBuilder() {
@@ -186,9 +160,8 @@ class DefaultSettingsTest {
 
     @Test public void testCreateClassLoaderWithExistingBuildSource() {
         String testDependency = 'org.gradle:somedep:1.0'
-        dependencyManagerMocker.demand.dependencies(1..1) {List confs, Object[] dependencies ->
-            assertEquals([DefaultSettings.BUILD_CONFIGURATION], confs)
-            assertEquals([testDependency], dependencies as List)
+        context.checking {
+            one(dependencyManagerMock).dependencies([DefaultSettings.BUILD_CONFIGURATION], [testDependency] as Object[])
         }
         checkCreateClassLoader(testDependency)
     }
@@ -196,33 +169,23 @@ class DefaultSettingsTest {
     private checkCreateClassLoader(def expectedDependency, boolean srcBuilderNull = false) {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
-        buildSourceBuilderMocker.demand.createDependency(1..1) {File buildResolverDir, StartParameter startParameter ->
-            assertEquals(expectedBuildResolverDir, buildResolverDir)
-            StartParameter expectedStartParameter = StartParameter.newInstance(settings.buildSrcStartParameter);
-            expectedStartParameter.setCurrentDir(new File(settings.rootFinder.rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-            assertEquals(expectedStartParameter, startParameter)
-            expectedDependency
-        }
-        dependencyManagerMocker.demand.getBuildResolverDir(0..1) {->
-            expectedBuildResolverDir
-        }
-        dependencyManagerMocker.demand.resolve(1..1) {String configuration ->
-            assertEquals(DefaultSettings.BUILD_CONFIGURATION, configuration)
-            testFiles
+        StartParameter expectedStartParameter = StartParameter.newInstance(settings.buildSrcStartParameter);
+        expectedStartParameter.setCurrentDir(new File(settings.rootFinder.rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
+        context.checking {
+            allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
+            one(dependencyManagerMock).resolve(DefaultSettings.BUILD_CONFIGURATION); will(returnValue(testFiles))
         }
         URLClassLoader createdClassLoader = null
 
         if (srcBuilderNull) {
             settings.buildSourceBuilder = null
-            dependencyManagerMocker.use(dependencyManager) {
-                createdClassLoader = settings.createClassLoader()
-            }
+            createdClassLoader = settings.createClassLoader()
         } else {
-            buildSourceBuilderMocker.use(buildSourceBuilder) {
-                dependencyManagerMocker.use(dependencyManager) {
-                    createdClassLoader = settings.createClassLoader()
-                }
+            context.checking {
+                one(buildSourceBuilderMock).createDependency(expectedBuildResolverDir, expectedStartParameter)
+                will(returnValue(expectedDependency))
             }
+            createdClassLoader = settings.createClassLoader()
         }
 
         Set urls = createdClassLoader.URLs as HashSet
@@ -241,4 +204,6 @@ class DefaultSettingsTest {
     @Test public void testGetRootDir() {
         assertEquals(settingsFinder.rootDir, settings.rootDir);
     }
+
+
 }

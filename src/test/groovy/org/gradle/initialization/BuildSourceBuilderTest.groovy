@@ -23,7 +23,9 @@ import org.gradle.StartParameter
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.After;
+import org.junit.After
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser;
 
 /**
  * @author Hans Dockter
@@ -31,20 +33,20 @@ import org.junit.After;
 class BuildSourceBuilderTest {
     BuildSourceBuilder buildSourceBuilder
     EmbeddedBuildExecuter embeddedBuildExecuter
-    MockFor embeddedBuildExecuterMocker
     File rootDir
     File testBuildSrcDir
     File testBuildResolverDir
     StartParameter expectedStartParameter
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         File testDir = HelperUtil.makeNewTestDir()
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
         (testBuildResolverDir = new File(testDir, 'testBuildResolverDir')).mkdir()
-        embeddedBuildExecuter = new EmbeddedBuildExecuter()
+        embeddedBuildExecuter = context.mock(EmbeddedBuildExecuter)
         buildSourceBuilder = new BuildSourceBuilder(embeddedBuildExecuter)
-        embeddedBuildExecuterMocker = new MockFor(EmbeddedBuildExecuter)
         expectedStartParameter = new StartParameter(
                 searchUpwards: true,
                 currentDir: testBuildSrcDir,
@@ -71,33 +73,26 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithExistingBuildSources() {
-        embeddedBuildExecuterMocker.demand.execute(1..1) {File buildResolverDir, StartParameter startParameter ->
-            createArtifact()
-            assertEquals(testBuildResolverDir, buildResolverDir)
-            StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
-            expectedStartParameter.setSearchUpwards(false)
-            assertEquals(StartParameter.newInstance(expectedStartParameter), startParameter)
+        StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
+        expectedStartParameter.setSearchUpwards(false)
+        context.checking {
+            one(embeddedBuildExecuter).execute(testBuildResolverDir, expectedStartParameter)
         }
+        createArtifact()
         createBuildFile()
-        embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
-            def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
-            assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
-        }
+        def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
+        assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
-        embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, String embeddedScript, StartParameter startParameter ->
-            createArtifact()
-            assertEquals(testBuildResolverDir, buildResolverDir)
-            assertEquals(embeddedScript, BuildSourceBuilder.DEFAULT_SCRIPT)
-            StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
-            expectedStartParameter.setSearchUpwards(false)
-            assertEquals(StartParameter.newInstance(expectedStartParameter), startParameter)
+        StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
+        expectedStartParameter.setSearchUpwards(false)
+        context.checking {
+            one(embeddedBuildExecuter).executeEmbeddedScript(testBuildResolverDir, BuildSourceBuilder.getDefaultScript(), expectedStartParameter)
         }
-        embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
-            def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
-            assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
-        }
+        createArtifact()
+        def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
+        assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
@@ -107,10 +102,10 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
-        embeddedBuildExecuterMocker.demand.executeEmbeddedScript(1..1) {File buildResolverDir, String embeddedScript, StartParameter startParameter -> }
-        embeddedBuildExecuterMocker.use(embeddedBuildExecuter) {
-            assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
+        context.checking {
+            one(embeddedBuildExecuter).executeEmbeddedScript(withParam(any(File)), withParam(any(String)), withParam(any(StartParameter)))
         }
+        assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }
 
     @Test public void testCreateDependencyWithEmptyTaskList() {

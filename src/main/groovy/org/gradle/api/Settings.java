@@ -51,6 +51,9 @@ public interface Settings {
      * <p>The default name for the settings file.</p>
      */
     final static String DEFAULT_SETTINGS_FILE = "settings.gradle";
+    String BUILD_DEPENDENCIES_PROJECT_GROUP = "org.gradle";
+    String BUILD_DEPENDENCIES_PROJECT_VERSION = "SNAPSHOT";
+    String BUILD_DEPENDENCIES_PROJECT_NAME = "build";
 
     /**
      * <p>The paths to the project which should take part in this build additional to the project containing the

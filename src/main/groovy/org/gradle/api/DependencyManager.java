@@ -37,9 +37,11 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface DependencyManager extends DependencyContainer {
+    public static final String GROUP = "group";
+    public static final String VERSION = "version";
     public static final String DEFAULT_MAVEN_REPO_NAME = "MavenRepo";
 
-    public static String DEFAULT_ARTIFACT_PATTERN = "/[artifact]-[revision](-[classifier]).[ext]";
+    public static final String DEFAULT_ARTIFACT_PATTERN = "/[artifact]-[revision](-[classifier]).[ext]";
 
     public static final String MAVEN_REPO_URL = "http://repo1.maven.org/maven2/";
 
