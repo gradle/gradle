@@ -16,7 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
 import java.util.Map;
@@ -24,12 +23,8 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public interface ISettingsFinder {
-    void find(StartParameter startParameter);
+public interface IGradlePropertiesLoader {
+    Map<String, String> getGradleProperties();
 
-    File getRootDir();
-
-    File getSettingsFile();
-
-    ScriptSource getSettingsScript();
+    void loadGradleProperties(File rootDir, StartParameter startParameter);
 }

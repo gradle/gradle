@@ -23,10 +23,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.DefaultSettings;
-import org.gradle.initialization.ISettingsFinder;
-import org.gradle.initialization.ProjectsLoader;
-import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.*;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.BaseMatcher;
@@ -58,6 +55,7 @@ import java.util.Map;
 public class BuildTest {
     private ProjectsLoader projectsLoaderMock;
     private ISettingsFinder settingsFinderMock;
+    private IGradlePropertiesLoader gradlePropertiesLoaderMock;
     private SettingsProcessor settingsProcessorMock;
     private BuildConfigurer buildConfigurerMock;
     private File expectedCurrentDir;
@@ -88,13 +86,14 @@ public class BuildTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         HelperUtil.deleteTestDir();
         settingsFinderMock = context.mock(ISettingsFinder.class);
+        gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
         settingsMock = context.mock(DefaultSettings.class);
         buildExecuterMock = context.mock(BuildExecuter.class);
         settingsProcessorMock = context.mock(SettingsProcessor.class);
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         buildListenerMock = context.mock(BuildListener.class);
-        build = new Build(settingsFinderMock, settingsProcessorMock, projectsLoaderMock,
+        build = new Build(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
         testGradleProperties = WrapUtil.toMap(Project.SYSTEM_PROP_PREFIX + ".prop1", "value1");
         testGradleProperties.put("prop2", "value2");
@@ -123,7 +122,8 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 allowing(settingsFinderMock).find(with(any(StartParameter.class)));
-                allowing(settingsFinderMock).getGradleProperties();
+                allowing(gradlePropertiesLoaderMock).loadGradleProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)));
+                allowing(gradlePropertiesLoaderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
                 allowing(settingsFinderMock).getRootDir();
                 will(returnValue(expectedRootDir));
@@ -152,9 +152,10 @@ public class BuildTest {
 
     @Test
     public void testInit() {
-        build = new Build(settingsFinderMock, settingsProcessorMock, projectsLoaderMock,
+        build = new Build(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
         assertSame(settingsFinderMock, build.getSettingsFinder());
+        assertSame(gradlePropertiesLoaderMock, build.getGradlePropertiesLoader());
         assertSame(settingsProcessorMock, build.getSettingsProcessor());
         assertSame(projectsLoaderMock, build.getProjectLoader());
         assertSame(buildConfigurerMock, build.getBuildConfigurer());

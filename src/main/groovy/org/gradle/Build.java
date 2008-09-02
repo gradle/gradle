@@ -44,6 +44,7 @@ public class Build {
     static CustomFactory customFactory = null;
 
     private ISettingsFinder settingsFinder;
+    private IGradlePropertiesLoader gradlePropertiesLoader;
     private SettingsProcessor settingsProcessor;
     private ProjectsLoader projectLoader;
     private BuildConfigurer buildConfigurer;
@@ -54,9 +55,10 @@ public class Build {
     public Build() {
     }
 
-    public Build(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor,
+    public Build(ISettingsFinder settingsFinder, IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
         this.settingsFinder = settingsFinder;
+        this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.settingsProcessor = settingsProcessor;
         this.projectLoader = projectLoader;
         this.buildConfigurer = buildConfigurer;
@@ -122,27 +124,31 @@ public class Build {
     }
 
     private DefaultSettings init(StartParameter startParameter) {
-        settingsFinder.find(startParameter);
-        setSystemProperties(startParameter.getSystemPropertiesArgs(), settingsFinder);
+        initInternal(startParameter);
         return settingsProcessor.process(settingsFinder, startParameter);
     }
 
     private DefaultSettings initWithCurrentDirAsRoot(StartParameter startParameter) {
         startParameter.setSearchUpwards(false);
-        settingsFinder.find(startParameter);
-        setSystemProperties(startParameter.getSystemPropertiesArgs(), settingsFinder);
+        initInternal(startParameter);
         return settingsProcessor.createBasicSettings(settingsFinder, startParameter);
     }
 
-    private void setSystemProperties(Map properties, ISettingsFinder settingsFinder) {
-        System.getProperties().putAll(properties);
-        addSystemPropertiesFromGradleProperties(settingsFinder);
+    private void initInternal(StartParameter startParameter) {
+        settingsFinder.find(startParameter);
+        gradlePropertiesLoader.loadGradleProperties(settingsFinder.getRootDir(), startParameter);
+        setSystemProperties(startParameter.getSystemPropertiesArgs());
     }
 
-    private void addSystemPropertiesFromGradleProperties(ISettingsFinder settingsFinder) {
-        for (String key : settingsFinder.getGradleProperties().keySet()) {
+    private void setSystemProperties(Map properties) {
+        System.getProperties().putAll(properties);
+        addSystemPropertiesFromGradleProperties();
+    }
+
+    private void addSystemPropertiesFromGradleProperties() {
+        for (String key : gradlePropertiesLoader.getGradleProperties().keySet()) {
             if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
-                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), settingsFinder.getGradleProperties().get(key));
+                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), gradlePropertiesLoader.getGradleProperties().get(key));
             }
         }
     }
@@ -177,6 +183,7 @@ public class Build {
                 Dag tasksGraph = new Dag();
                 Build build = new Build(
                         new ParentDirSettingsFinder(),
+                        new DefaultGradlePropertiesLoader(),
                         new SettingsProcessor(
                                 new DefaultSettingsScriptMetaData(),
                                 scriptProcessor,
@@ -233,6 +240,14 @@ public class Build {
 
     public void setSettingsFinder(ISettingsFinder settingsFinder) {
         this.settingsFinder = settingsFinder;
+    }
+
+    public IGradlePropertiesLoader getGradlePropertiesLoader() {
+        return gradlePropertiesLoader;
+    }
+
+    public void setGradlePropertiesLoader(IGradlePropertiesLoader gradlePropertiesLoader) {
+        this.gradlePropertiesLoader = gradlePropertiesLoader;
     }
 
     public SettingsProcessor getSettingsProcessor() {
