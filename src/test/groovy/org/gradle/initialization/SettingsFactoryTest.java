@@ -49,7 +49,7 @@ public class SettingsFactoryTest {
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(dependencyManagerFactoryMock, expectedBuildSourceBuilder, expectedSettingsFinder, expectedStartParameter);
         assertSame(dependencyManagerMock, settings.getDependencyManager());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());
-        assertSame(expectedSettingsFinder, settings.getRootFinder());
+        assertSame(expectedSettingsFinder, settings.getSettingsFinder());
         assertSame(expectedStartParameter, settings.getStartParameter());
     }
 }

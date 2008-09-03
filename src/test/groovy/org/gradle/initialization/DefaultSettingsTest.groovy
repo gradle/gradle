@@ -65,7 +65,7 @@ class DefaultSettingsTest {
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
-        assert settings.rootFinder.is(settingsFinder)
+        assert settings.settingsFinder.is(settingsFinder)
         assert settings.dependencyManager.is(dependencyManagerMock)
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
@@ -170,7 +170,7 @@ class DefaultSettingsTest {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = StartParameter.newInstance(settings.buildSrcStartParameter);
-        expectedStartParameter.setCurrentDir(new File(settings.rootFinder.settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
+        expectedStartParameter.setCurrentDir(new File(settings.settingsFinder.settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
         context.checking {
             allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
             one(dependencyManagerMock).resolve(DefaultSettings.BUILD_CONFIGURATION); will(returnValue(testFiles))

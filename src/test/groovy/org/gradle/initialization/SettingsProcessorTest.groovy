@@ -135,7 +135,7 @@ class SettingsProcessorTest {
     }
 
     private void prepareSettingsFactoryMock(File expectedRootDir, File expectedCurrentDir) {
-        expectedSettings.rootFinder = expectedSettingsFinder
+        expectedSettings.settingsFinder = expectedSettingsFinder
         expectedSettings.startParameter = expectedStartParameter
         context.checking {
             one(settingsFactory).createSettings(dependencyManagerFactory, buildSourceBuilder, 

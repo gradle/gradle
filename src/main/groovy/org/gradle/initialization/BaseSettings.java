@@ -52,7 +52,7 @@ public class BaseSettings implements Settings {
 
     private StartParameter startParameter;
 
-    private ISettingsFinder rootFinder;
+    private ISettingsFinder settingsFinder;
 
     private StartParameter buildSrcStartParameter;
 
@@ -62,8 +62,8 @@ public class BaseSettings implements Settings {
     }
 
     public BaseSettings(DependencyManagerFactory dependencyManagerFactory,
-                        BuildSourceBuilder buildSourceBuilder, ISettingsFinder rootFinder, StartParameter startParameter) {
-        this.rootFinder = rootFinder;
+                        BuildSourceBuilder buildSourceBuilder, ISettingsFinder settingsFinder, StartParameter startParameter) {
+        this.settingsFinder = settingsFinder;
         this.startParameter = startParameter;
         this.dependencyManager = dependencyManagerFactory.createDependencyManager(createBuildDependenciesProject());
         this.buildSourceBuilder = buildSourceBuilder;
@@ -116,7 +116,7 @@ public class BaseSettings implements Settings {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         Object dependency = null;
         StartParameter startParameter = StartParameter.newInstance(buildSrcStartParameter);
-        startParameter.setCurrentDir(new File(rootFinder.getSettingsDir(), DEFAULT_BUILD_SRC_DIR));
+        startParameter.setCurrentDir(new File(settingsFinder.getSettingsDir(), DEFAULT_BUILD_SRC_DIR));
         if (buildSourceBuilder != null) {
             dependency = buildSourceBuilder.createDependency(dependencyManager.getBuildResolverDir(),
                     startParameter);
@@ -151,7 +151,7 @@ public class BaseSettings implements Settings {
     }
 
     public File getRootDir() {
-        return rootFinder.getSettingsDir();
+        return settingsFinder.getSettingsDir();
     }
 
     public DependencyManager getDependencyManager() {
@@ -186,12 +186,12 @@ public class BaseSettings implements Settings {
         this.startParameter = startParameter;
     }
 
-    public ISettingsFinder getRootFinder() {
-        return rootFinder;
+    public ISettingsFinder getSettingsFinder() {
+        return settingsFinder;
     }
 
-    public void setRootFinder(ISettingsFinder rootFinder) {
-        this.rootFinder = rootFinder;
+    public void setSettingsFinder(ISettingsFinder settingsFinder) {
+        this.settingsFinder = settingsFinder;
     }
 
     public StartParameter getBuildSrcStartParameter() {

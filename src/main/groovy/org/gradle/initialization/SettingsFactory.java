@@ -24,7 +24,7 @@ import org.gradle.api.internal.dependencies.DependencyManagerFactory;
  */
 public class SettingsFactory {
     DefaultSettings createSettings(DependencyManagerFactory dependencyManagerFactory,
-                            BuildSourceBuilder buildSourceBuilder, ISettingsFinder rootFinder, StartParameter startParameter) {
-        return new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter);
+                            BuildSourceBuilder buildSourceBuilder, ISettingsFinder settingsFinder, StartParameter startParameter) {
+        return new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter);
     }
 }

@@ -35,7 +35,7 @@ import org.junit.Test
 class ParentDirSettingsFinderTest {
     static final String TEST_SETTINGS_TEXT = 'somescriptcode'
     static final String TEST_SETTINGS_FILE_NAME = 'some-settings.gradle'
-    ParentDirSettingsFinder rootFinder
+    ParentDirSettingsFinder parentDirSettingsFinder
     File testDir
     File rootDir
     File currentDir
@@ -44,7 +44,7 @@ class ParentDirSettingsFinderTest {
     Map expectedGradleProperties
 
     @Before public void setUp()  {
-        rootFinder = new ParentDirSettingsFinder()
+        parentDirSettingsFinder = new ParentDirSettingsFinder()
         testDir = HelperUtil.makeNewTestDir()
         userHome = new File(testDir, 'userHome')
         userHome.mkdirs()
@@ -65,38 +65,38 @@ class ParentDirSettingsFinderTest {
     }
 
     @Test public void testInit() {
-        assertEquals([:], rootFinder.gradleProperties)
+        assertEquals([:], parentDirSettingsFinder.gradleProperties)
     }
 
     @Test public void testGradleSettingsInCurrentDirWithSearchUpwardsTrue() {
         createSettingsFile(currentDir)
-        rootFinder.find(createStartParams(currentDir, true))
-        checkRootFinder(currentDir)
+        parentDirSettingsFinder.find(createStartParams(currentDir, true))
+        checkSettingsFinder(currentDir)
     }
 
     @Test public void testGradleSettingsInCurrentDirWithSearchUpwardsFalse() {
         createSettingsFile(currentDir)
-        rootFinder.find(createStartParams(currentDir, false))
-        checkRootFinder(currentDir)
+        parentDirSettingsFinder.find(createStartParams(currentDir, false))
+        checkSettingsFinder(currentDir)
     }
 
     @Test public void testGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
         createSettingsFile(rootDir)
-        rootFinder.find(createStartParams(currentDir, true))
-        checkRootFinder(rootDir)
+        parentDirSettingsFinder.find(createStartParams(currentDir, true))
+        checkSettingsFinder(rootDir)
     }
 
     @Test public void testGradleSettingsInUpwardDirWithSearchUpwardsFalse() {
         createSettingsFile(rootDir)
         createPropertyFiles(currentDir)
-        rootFinder.find(createStartParams(currentDir, false))
-        checkRootFinder(currentDir)
+        parentDirSettingsFinder.find(createStartParams(currentDir, false))
+        checkSettingsFinder(currentDir)
     }
 
     @Test public void testNoGradleSettingsInUpwardDirWithSearchUpwardsTrue() {
         createPropertyFiles(currentDir)
-        rootFinder.find(createStartParams(currentDir, true))
-        checkRootFinder(currentDir)
+        parentDirSettingsFinder.find(createStartParams(currentDir, true))
+        checkSettingsFinder(currentDir)
     }
 
     private void createSettingsFile(File dir) {
@@ -116,14 +116,14 @@ class ParentDirSettingsFinderTest {
         createProps(rootDir, prop1: 'value1RootDir', prop3: 'value3')
     }
 
-    private checkRootFinder(File expectedRootDir) {
+    private checkSettingsFinder(File expectedRootDir) {
         File expectedSettingsFile = new File(expectedRootDir, TEST_SETTINGS_FILE_NAME)
-        ScriptSource expectedSettingsScript = new FileScriptSource("settings file", rootFinder.settingsFile)
+        ScriptSource expectedSettingsScript = new FileScriptSource("settings file", parentDirSettingsFinder.settingsFile)
 
-        assertEquals(expectedRootDir, rootFinder.settingsDir)
-        assertEquals(expectedSettingsFile, rootFinder.settingsFile)
-        assertThat(rootFinder.settingsScript, ReflectionEqualsMatcher.reflectionEquals(expectedSettingsScript))
-        assertEquals(expectedGradleProperties, rootFinder.gradleProperties)
+        assertEquals(expectedRootDir, parentDirSettingsFinder.settingsDir)
+        assertEquals(expectedSettingsFile, parentDirSettingsFinder.settingsFile)
+        assertThat(parentDirSettingsFinder.settingsScript, ReflectionEqualsMatcher.reflectionEquals(expectedSettingsScript))
+        assertEquals(expectedGradleProperties, parentDirSettingsFinder.gradleProperties)
     }
 
     private StartParameter createStartParams(File currentDir, boolean searchUpwards) {

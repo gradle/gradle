@@ -30,17 +30,17 @@ public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
     DefaultSettings(DependencyManagerFactory dependencyManagerFactory,
-                    BuildSourceBuilder buildSourceBuilder, ISettingsFinder rootFinder, StartParameter startParameter) {
-        super(dependencyManagerFactory, buildSourceBuilder, rootFinder, startParameter)
+                    BuildSourceBuilder buildSourceBuilder, ISettingsFinder settingsFinder, StartParameter startParameter) {
+        super(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter)
     }
 
     def propertyMissing(String property) {
-        def delegateObject = [rootFinder, startParameter].find {
+        def delegateObject = [settingsFinder, startParameter].find {
             it.metaClass.hasProperty(it, property)
         }
         if (delegateObject) { return delegateObject."$property" }
-        if (rootFinder.gradleProperties.keySet().contains(property)) {
-            return rootFinder.gradleProperties[property]
+        if (settingsFinder.gradleProperties.keySet().contains(property)) {
+            return settingsFinder.gradleProperties[property]
         }
         throw new MissingPropertyException(property, DefaultSettings)
     }

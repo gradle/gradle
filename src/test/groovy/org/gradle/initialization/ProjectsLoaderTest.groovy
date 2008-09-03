@@ -67,10 +67,10 @@ class ProjectsLoaderTest {
     }
 
     @Test public void testCreateProjects() {
-        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(settingsDir: testRootProjectDir)
+        ParentDirSettingsFinder parentDirSettingsFinder = new ParentDirSettingsFinder(settingsDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: testUserDir)
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
-                rootFinder, startParameter)
+                parentDirSettingsFinder, startParameter)
         settings.include('parent' + Project.PATH_SEPARATOR + 'child1', 'parent' + Project.PATH_SEPARATOR + 'child2',
                 'parent' + Project.PATH_SEPARATOR + 'folder' + Project.PATH_SEPARATOR + 'child3')
         Map testUserProps = [prop1: 'value1', prop2: 'value2', prop3: 'value3']
@@ -132,10 +132,10 @@ class ProjectsLoaderTest {
     }
 
     @Test public void testCreateProjectsWithNonExistingUserAndProjectGradleAndProjectProperties() {
-        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(settingsDir: testRootProjectDir)
+        ParentDirSettingsFinder parentDirSettingsFinder = new ParentDirSettingsFinder(settingsDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: testRootProjectDir, gradleUserHomeDir: new File('guh'))
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
-                rootFinder, startParameter)
+                parentDirSettingsFinder, startParameter)
 
         startParameter.gradleUserHomeDir = new File('nonexistingGradleHome')
         projectLoader.load(settings, testClassLoader, startParameter, [:], [:], [:])
