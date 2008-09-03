@@ -16,20 +16,22 @@
 
 package org.gradle.initialization
 
-import groovy.mock.interceptor.MockFor
+import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
-import org.gradle.StartParameter
-import static org.junit.Assert.*
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
+import org.junit.After
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import org.junit.After
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock)
 class BuildSourceBuilderTest {
     BuildSourceBuilder buildSourceBuilder
     EmbeddedBuildExecuter embeddedBuildExecuter
