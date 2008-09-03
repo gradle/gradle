@@ -116,7 +116,7 @@ public class BaseSettings implements Settings {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         Object dependency = null;
         StartParameter startParameter = StartParameter.newInstance(buildSrcStartParameter);
-        startParameter.setCurrentDir(new File(rootFinder.getRootDir(), DEFAULT_BUILD_SRC_DIR));
+        startParameter.setCurrentDir(new File(rootFinder.getSettingsDir(), DEFAULT_BUILD_SRC_DIR));
         if (buildSourceBuilder != null) {
             dependency = buildSourceBuilder.createDependency(dependencyManager.getBuildResolverDir(),
                     startParameter);
@@ -151,7 +151,7 @@ public class BaseSettings implements Settings {
     }
 
     public File getRootDir() {
-        return rootFinder.getRootDir();
+        return rootFinder.getSettingsDir();
     }
 
     public DependencyManager getDependencyManager() {

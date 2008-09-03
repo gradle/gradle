@@ -32,7 +32,7 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class ParentDirSettingsFinder implements ISettingsFinder {
-    private File rootDir;
+    private File settingsDir;
     private File settingsFile;
     private ScriptSource settingsScript;
     private Map<String, String> gradleProperties = new HashMap<String, String>();
@@ -51,13 +51,13 @@ public class ParentDirSettingsFinder implements ISettingsFinder {
             searchDir = startParameter.isSearchUpwards() ? searchDir.getParentFile() : null;
         }
         if (settingsFile == null) {
-            rootDir = startParameter.getCurrentDir();
-            settingsFile = new File(rootDir, settingsFileName);
+            settingsDir = startParameter.getCurrentDir();
+            settingsFile = new File(settingsDir, settingsFileName);
         } else {
-            rootDir = settingsFile.getParentFile();
+            settingsDir = settingsFile.getParentFile();
         }
         settingsScript = new FileScriptSource("settings file", settingsFile);
-        addGradleProperties(rootDir, startParameter);
+        addGradleProperties(settingsDir, startParameter);
     }
 
     private void addGradleProperties(File rootDir, StartParameter startParameter) {
@@ -80,12 +80,12 @@ public class ParentDirSettingsFinder implements ISettingsFinder {
         }
     }
 
-    public File getRootDir() {
-        return rootDir;
+    public File getSettingsDir() {
+        return settingsDir;
     }
 
-    public void setRootDir(File rootDir) {
-        this.rootDir = rootDir;
+    public void setSettingsDir(File settingsDir) {
+        this.settingsDir = settingsDir;
     }
 
     public File getSettingsFile() {

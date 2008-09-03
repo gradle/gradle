@@ -78,7 +78,7 @@ public class SettingsProcessor {
         Clock settingsProcessingClock = new Clock();
         initDependencyManagerFactory(settingsFinder);
         DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter);
-        ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScript(), importsReader, settingsFinder.getRootDir());
+        ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScript(), importsReader, settingsFinder.getSettingsDir());
         try {
             Script settingsScript = scriptProcessor.createScript(
                     source,
@@ -95,14 +95,14 @@ public class SettingsProcessor {
             throw new GradleScriptException(t, source);
         }
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
-        if (startParameter.getCurrentDir() != settingsFinder.getRootDir() && !isCurrentDirIncluded(settings)) {
+        if (startParameter.getCurrentDir() != settingsFinder.getSettingsDir() && !isCurrentDirIncluded(settings)) {
             return createBasicSettings(settingsFinder, startParameter);
         }
         return settings;
     }
 
     private void initDependencyManagerFactory(ISettingsFinder settingsFinder) {
-        File buildResolverDir = GUtil.elvis(this.buildResolverDir, new File(settingsFinder.getRootDir(), Project.TMP_DIR_NAME + "/" +
+        File buildResolverDir = GUtil.elvis(this.buildResolverDir, new File(settingsFinder.getSettingsDir(), Project.TMP_DIR_NAME + "/" +
                 DependencyManager.BUILD_RESOLVER_NAME));
         GradleUtil.deleteDir(buildResolverDir);
         dependencyManagerFactory.setBuildResolverDir(buildResolverDir);

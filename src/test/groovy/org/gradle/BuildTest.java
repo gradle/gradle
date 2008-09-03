@@ -125,7 +125,7 @@ public class BuildTest {
                 allowing(gradlePropertiesLoaderMock).loadGradleProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)));
                 allowing(gradlePropertiesLoaderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
-                allowing(settingsFinderMock).getRootDir();
+                allowing(settingsFinderMock).getSettingsDir();
                 will(returnValue(expectedRootDir));
                 allowing(settingsMock).createClassLoader();
                 will(returnValue(expectedClassLoader));

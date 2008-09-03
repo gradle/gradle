@@ -80,8 +80,8 @@ class ProjectsLoader {
             logger.debug("Adding user properties (if not overwritten by system project properties: {}", userHomeProperties)
         }
         logger.debug("Looking for system project properties")
-        ProjectInternal rootProject = projectFactory.createProject(settings.rootFinder.rootDir.name, null,
-                settings.rootFinder.rootDir, buildScriptClassLoader)
+        ProjectInternal rootProject = projectFactory.createProject(settings.rootFinder.settingsDir.name, null,
+                settings.rootFinder.settingsDir, buildScriptClassLoader)
         addPropertiesToProject(startParameter.gradleUserHomeDir, userHomeProperties + projectProperties, systemAndEnvProjectProperties, rootProject)
         settings.projectPaths.each {
             List folders = it.split(Project.PATH_SEPARATOR)

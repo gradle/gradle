@@ -67,7 +67,7 @@ class ProjectsLoaderTest {
     }
 
     @Test public void testCreateProjects() {
-        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(rootDir: testRootProjectDir)
+        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(settingsDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: testUserDir)
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
                 rootFinder, startParameter)
@@ -132,7 +132,7 @@ class ProjectsLoaderTest {
     }
 
     @Test public void testCreateProjectsWithNonExistingUserAndProjectGradleAndProjectProperties() {
-        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(rootDir: testRootProjectDir)
+        ParentDirSettingsFinder rootFinder = new ParentDirSettingsFinder(settingsDir: testRootProjectDir)
         StartParameter startParameter = new StartParameter(currentDir: testRootProjectDir, gradleUserHomeDir: new File('guh'))
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
                 rootFinder, startParameter)

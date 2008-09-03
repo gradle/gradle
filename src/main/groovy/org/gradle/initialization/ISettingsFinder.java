@@ -27,7 +27,7 @@ import java.util.Map;
 public interface ISettingsFinder {
     void find(StartParameter startParameter);
 
-    File getRootDir();
+    File getSettingsDir();
 
     File getSettingsFile();
 

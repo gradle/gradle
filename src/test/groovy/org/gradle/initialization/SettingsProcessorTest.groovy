@@ -154,7 +154,7 @@ class SettingsProcessorTest {
         settingsProcessor.setImportsReader(mockImportsReader)
 
         ScriptSource settingsScript = context.mock(ScriptSource.class)
-        expectedSettingsFinder.rootDir = rootDir
+        expectedSettingsFinder.settingsDir = rootDir
         expectedSettingsFinder.settingsScript = settingsScript
         expectedStartParameter = createStartParameter(currentDir)
         expectedSettings.setProjectPaths(includePaths)

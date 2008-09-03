@@ -49,9 +49,9 @@ class DefaultSettingsTest {
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         settingsFinder = new ParentDirSettingsFinder()
-        settingsFinder.rootDir = new File('/root')
+        settingsFinder.settingsDir = new File('/root')
         settingsFinder.gradleProperties.someGradleProp = 'someValue'
-        startParameter = new StartParameter(currentDir: new File(settingsFinder.rootDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
+        startParameter = new StartParameter(currentDir: new File(settingsFinder.settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         dependencyManagerMock = context.mock(DependencyManager)
         buildSourceBuilderMock = context.mock(BuildSourceBuilder)
         dependencyManagerFactoryMock = context.mock(DependencyManagerFactory)
@@ -170,7 +170,7 @@ class DefaultSettingsTest {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = StartParameter.newInstance(settings.buildSrcStartParameter);
-        expectedStartParameter.setCurrentDir(new File(settings.rootFinder.rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
+        expectedStartParameter.setCurrentDir(new File(settings.rootFinder.settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
         context.checking {
             allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
             one(dependencyManagerMock).resolve(DefaultSettings.BUILD_CONFIGURATION); will(returnValue(testFiles))
@@ -195,14 +195,14 @@ class DefaultSettingsTest {
     }
 
     @Test (expected = MissingPropertyException) public void testPropertyMissing() {
-        assert settings.rootDir.is(getSettingsFinder.rootDir)
+        assert settings.rootDir.is(getSettingsFinder.getSettingsDir)
         assert settings.currentDir.is(startParameter.currentDir)
         assert settings.someGradleProp.is(getSettingsFinder.gradleProperties.someGradleProp)
         settings.unknownProp
     }
 
     @Test public void testGetRootDir() {
-        assertEquals(settingsFinder.rootDir, settings.rootDir);
+        assertEquals(settingsFinder.settingsDir, settings.rootDir);
     }
 
 

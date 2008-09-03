@@ -120,7 +120,7 @@ class ParentDirSettingsFinderTest {
         File expectedSettingsFile = new File(expectedRootDir, TEST_SETTINGS_FILE_NAME)
         ScriptSource expectedSettingsScript = new FileScriptSource("settings file", rootFinder.settingsFile)
 
-        assertEquals(expectedRootDir, rootFinder.rootDir)
+        assertEquals(expectedRootDir, rootFinder.settingsDir)
         assertEquals(expectedSettingsFile, rootFinder.settingsFile)
         assertThat(rootFinder.settingsScript, ReflectionEqualsMatcher.reflectionEquals(expectedSettingsScript))
         assertEquals(expectedGradleProperties, rootFinder.gradleProperties)

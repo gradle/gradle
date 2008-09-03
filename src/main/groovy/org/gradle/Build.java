@@ -136,7 +136,7 @@ public class Build {
 
     private void initInternal(StartParameter startParameter) {
         settingsFinder.find(startParameter);
-        gradlePropertiesLoader.loadGradleProperties(settingsFinder.getRootDir(), startParameter);
+        gradlePropertiesLoader.loadGradleProperties(settingsFinder.getSettingsDir(), startParameter);
         setSystemProperties(startParameter.getSystemPropertiesArgs());
     }
 
