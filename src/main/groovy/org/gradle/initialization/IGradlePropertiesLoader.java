@@ -26,5 +26,5 @@ import java.util.Map;
 public interface IGradlePropertiesLoader {
     Map<String, String> getGradleProperties();
 
-    void loadGradleProperties(File rootDir, StartParameter startParameter);
+    void loadProperties(File rootDir, StartParameter startParameter);
 }

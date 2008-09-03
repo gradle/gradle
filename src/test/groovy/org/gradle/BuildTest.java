@@ -122,7 +122,7 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 allowing(settingsFinderMock).find(with(any(StartParameter.class)));
-                allowing(gradlePropertiesLoaderMock).loadGradleProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)));
+                allowing(gradlePropertiesLoaderMock).loadProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)));
                 allowing(gradlePropertiesLoaderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
                 allowing(settingsFinderMock).getSettingsDir();

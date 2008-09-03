@@ -31,7 +31,7 @@ import java.util.Map;
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private Map<String, String> gradleProperties = new HashMap<String, String>();
 
-    public void loadGradleProperties(File rootDir, StartParameter startParameter) {
+    public void loadProperties(File rootDir, StartParameter startParameter) {
         addGradleProperties(
                 new File(rootDir, Project.GRADLE_PROPERTIES),
                 new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
