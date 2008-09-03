@@ -61,41 +61,29 @@ public class ProjectsLoader {
     }
 
     public ProjectsLoader load(DefaultSettings settings, ClassLoader buildScriptClassLoader, StartParameter startParameter,
-                               Map systemProperties, Map envProperties) {
+                               Map<String, String> externalProjectProperties, Map systemProperties, Map envProperties) {
         logger.info("++ Loading Project objects");
         Clock clock = new Clock();
-        rootProject = createProjects(settings, buildScriptClassLoader, startParameter, systemProperties, envProperties);
+        rootProject = createProjects(settings, buildScriptClassLoader, startParameter, externalProjectProperties, systemProperties, envProperties);
         currentProject = (ProjectInternal) rootProject.project(PathHelper.getCurrentProjectPath(rootProject.getRootDir(), startParameter.getCurrentDir()));
         logger.debug("Timing: Loading projects took: " + clock.getTime());
         return this;
     }
 
     // todo Why are the projectProperties passed only to the root project and the userHomeProperties passed to every Project
-    private ProjectInternal createProjects(DefaultSettings settings, ClassLoader buildScriptClassLoader,
-                                           StartParameter startParameter, Map systemProperties, Map envProperties) {
+    private ProjectInternal createProjects(DefaultSettings settings, ClassLoader buildScriptClassLoader, StartParameter startParameter,
+                                           Map<String, String> externalProjectProperties, Map systemProperties, Map envProperties) {
         logger.debug("Creating the projects and evaluating the project files!");
         Map systemAndEnvProjectProperties = GUtil.addMaps(getSystemProjectProperties(systemProperties),
                 getEnvProjectProperties(envProperties));
         if (GUtil.isTrue(systemAndEnvProjectProperties)) {
-            logger.debug("Added system and env project properties: {}", systemAndEnvProjectProperties);
+            logger.debug("Added system and env project properties: {}", systemAndEnvProjectProperties.keySet());
         }
-        File propertyFile = new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES);
-        Properties userHomeProperties = new Properties();
-        logger.debug("Looking for user properties from: {}", propertyFile);
-        if (!propertyFile.isFile()) {
-            logger.debug("user property file does not exists. We continue!");
-        } else {
-            try {
-                userHomeProperties.load(new FileInputStream(propertyFile));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            logger.debug("Adding user properties (if not overwritten by system project properties: {}", userHomeProperties);
-        }
+        logger.debug("Adding external properties (if not overwritten by system project properties: {}", externalProjectProperties.keySet());
         logger.debug("Looking for system project properties");
         ProjectInternal rootProject = projectFactory.createProject(settings.getSettingsFinder().getSettingsDir().getName(), null,
                 settings.getSettingsFinder().getSettingsDir(), buildScriptClassLoader);
-        addPropertiesToProject(startParameter.getGradleUserHomeDir(), GUtil.addMaps(userHomeProperties, startParameter.getProjectProperties()),
+        addPropertiesToProject(startParameter.getGradleUserHomeDir(), GUtil.addMaps(externalProjectProperties, startParameter.getProjectProperties()),
                 systemAndEnvProjectProperties, rootProject);
         for (String path : settings.getProjectPaths()) {
             String[] folders = path.split(Project.PATH_SEPARATOR);
@@ -103,7 +91,7 @@ public class ProjectsLoader {
             for (String name : folders) {
                 if (parent.getChildProjects().get(name) == null) {
                     parent.getChildProjects().put(name, parent.addChildProject(name));
-                    addPropertiesToProject(startParameter.getGradleUserHomeDir(), userHomeProperties, systemAndEnvProjectProperties,
+                    addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties, systemAndEnvProjectProperties,
                             (ProjectInternal) parent.getChildProjects().get(name));
                 }
                 parent = (ProjectInternal) parent.getChildProjects().get(name);
@@ -122,7 +110,7 @@ public class ProjectsLoader {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            logger.debug("Adding project properties (if not overwritten by user properties): {}", projectProperties);
+            logger.debug("Adding project properties (if not overwritten by user properties): {}", projectProperties.keySet());
         } else {
             logger.debug("project property file does not exists. We continue!");
         }
