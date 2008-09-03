@@ -85,7 +85,7 @@ public class Build {
                     : new NameResolvingTaskSelector(taskNames);
             while (selector.hasNext()) {
                 if (rebuildDag) {
-                    projectLoader.load(settings, classLoader, startParameter, startParameter.getProjectProperties(),
+                    projectLoader.load(settings, classLoader, startParameter, 
                             getAllSystemProperties(), getAllEnvProperties());
                     buildConfigurer.process(projectLoader.getRootProject());
                 } else {
@@ -118,7 +118,7 @@ public class Build {
     }
 
     private String taskListInternal(DefaultSettings settings, StartParameter startParameter) {
-        projectLoader.load(settings, settings.createClassLoader(), startParameter, startParameter.getProjectProperties(),
+        projectLoader.load(settings, settings.createClassLoader(), startParameter, 
                 getAllSystemProperties(), getAllEnvProperties());
         return buildConfigurer.taskList(projectLoader.getRootProject(), true, projectLoader.getCurrentProject());
     }

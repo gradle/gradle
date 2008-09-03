@@ -68,7 +68,10 @@ class ProjectsLoaderTest {
 
     @Test public void testCreateProjects() {
         ParentDirSettingsFinder parentDirSettingsFinder = new ParentDirSettingsFinder(settingsDir: testRootProjectDir)
-        StartParameter startParameter = new StartParameter(currentDir: new File(testRootProjectDir, 'parent'), gradleUserHomeDir: testUserDir)
+        StartParameter startParameter = new StartParameter(
+                currentDir: new File(testRootProjectDir, 'parent'),
+                gradleUserHomeDir: testUserDir,
+                projectProperties: testProjectProperties)
         DefaultSettings settings = new DefaultSettings(new DefaultDependencyManagerFactory(new File('root')), new BuildSourceBuilder(),
                 parentDirSettingsFinder, startParameter)
         settings.include('parent' + Project.PATH_SEPARATOR + 'child1', 'parent' + Project.PATH_SEPARATOR + 'child2',
@@ -92,7 +95,7 @@ class ProjectsLoaderTest {
         new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, Project.GRADLE_PROPERTIES)), '')
         new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, Project.GRADLE_PROPERTIES)), '')
 
-        projectLoader.load(settings, testClassLoader, startParameter, testProjectProperties, testSystemProps, testEnvProps)
+        projectLoader.load(settings, testClassLoader, startParameter, testSystemProps, testEnvProps)
 
         ProjectInternal rootProject = projectLoader.rootProject
         assert rootProject.buildScriptClassLoader.is(testClassLoader)
@@ -138,7 +141,7 @@ class ProjectsLoaderTest {
                 parentDirSettingsFinder, startParameter)
 
         startParameter.gradleUserHomeDir = new File('nonexistingGradleHome')
-        projectLoader.load(settings, testClassLoader, startParameter, [:], [:], [:])
+        projectLoader.load(settings, testClassLoader, startParameter, [:], [:])
 
         ProjectInternal rootProject = projectLoader.rootProject
 

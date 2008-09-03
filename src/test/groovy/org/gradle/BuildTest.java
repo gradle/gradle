@@ -262,7 +262,7 @@ public class BuildTest {
                 one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
                 will(returnValue(false));
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        expectedProjectProperties, System.getProperties(), System.getenv());
+                        System.getProperties(), System.getenv());
             }
         });
     }
@@ -276,9 +276,9 @@ public class BuildTest {
                 one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
                 will(returnValue(true));
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        expectedProjectProperties, System.getProperties(), System.getenv());
+                        System.getProperties(), System.getenv());
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, expectedProjectProperties, System.getProperties(), System.getenv());
+                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, System.getProperties(), System.getenv());
             }
         });
     }
@@ -287,7 +287,7 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        expectedProjectProperties, System.getProperties(), System.getenv());
+                        System.getProperties(), System.getenv());
                 one(buildConfigurerMock).process(expectedRootProject);
                 one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
                 will(throwException(failure));
@@ -301,7 +301,7 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        expectedProjectProperties, System.getProperties(), System.getenv());
+                        System.getProperties(), System.getenv());
                 one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
@@ -318,7 +318,7 @@ public class BuildTest {
                 one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
                 will(returnValue(settingsMock));
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        expectedProjectProperties, System.getProperties(), System.getenv());
+                        System.getProperties(), System.getenv());
             }
         });
         build.taskList(expectedStartParams);
@@ -332,7 +332,7 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParameterArg,
-                        expectedProjectProperties, System.getProperties(), System.getenv());
+                        System.getProperties(), System.getenv());
                 one(settingsProcessorMock).createBasicSettings(settingsFinderMock, expectedStartParameterArg);
                 will(returnValue(settingsMock));
             }

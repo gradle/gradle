@@ -61,10 +61,10 @@ public class ProjectsLoader {
     }
 
     public ProjectsLoader load(DefaultSettings settings, ClassLoader buildScriptClassLoader, StartParameter startParameter,
-                        Map projectProperties, Map systemProperties, Map envProperties) {
+                               Map systemProperties, Map envProperties) {
         logger.info("++ Loading Project objects");
         Clock clock = new Clock();
-        rootProject = createProjects(settings, buildScriptClassLoader, startParameter, projectProperties, systemProperties, envProperties);
+        rootProject = createProjects(settings, buildScriptClassLoader, startParameter, systemProperties, envProperties);
         currentProject = (ProjectInternal) rootProject.project(PathHelper.getCurrentProjectPath(rootProject.getRootDir(), startParameter.getCurrentDir()));
         logger.debug("Timing: Loading projects took: " + clock.getTime());
         return this;
@@ -72,11 +72,10 @@ public class ProjectsLoader {
 
     // todo Why are the projectProperties passed only to the root project and the userHomeProperties passed to every Project
     private ProjectInternal createProjects(DefaultSettings settings, ClassLoader buildScriptClassLoader,
-                                          StartParameter startParameter, Map projectProperties, Map systemProperties, Map envProperties) {
-        assert projectProperties != null;
+                                           StartParameter startParameter, Map systemProperties, Map envProperties) {
         logger.debug("Creating the projects and evaluating the project files!");
         Map systemAndEnvProjectProperties = GUtil.addMaps(getSystemProjectProperties(systemProperties),
-            getEnvProjectProperties(envProperties));
+                getEnvProjectProperties(envProperties));
         if (GUtil.isTrue(systemAndEnvProjectProperties)) {
             logger.debug("Added system and env project properties: {}", systemAndEnvProjectProperties);
         }
@@ -96,7 +95,7 @@ public class ProjectsLoader {
         logger.debug("Looking for system project properties");
         ProjectInternal rootProject = projectFactory.createProject(settings.getSettingsFinder().getSettingsDir().getName(), null,
                 settings.getSettingsFinder().getSettingsDir(), buildScriptClassLoader);
-        addPropertiesToProject(startParameter.getGradleUserHomeDir(), GUtil.addMaps(userHomeProperties, projectProperties),
+        addPropertiesToProject(startParameter.getGradleUserHomeDir(), GUtil.addMaps(userHomeProperties, startParameter.getProjectProperties()),
                 systemAndEnvProjectProperties, rootProject);
         for (String path : settings.getProjectPaths()) {
             String[] folders = path.split(Project.PATH_SEPARATOR);
