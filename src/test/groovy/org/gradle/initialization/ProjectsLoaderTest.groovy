@@ -77,14 +77,14 @@ class ProjectsLoaderTest {
         Map testRootProjectProps = [rootProp1: 'rootValue1', rootProp2: 'rootValue2', prop1: 'rootValue']
         Map testParentProjectProps = [parentProp1: 'parentValue1', parentProp2: 'parentValue2', prop1: 'parentValue']
         Map testSystemProps = [
-                "${ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX}mySystemProp": 'mySystemPropValue',
-                "${ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX}prop2": 'systemPropValue2',
+                (ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "mySystemProp"): 'mySystemPropValue',
+                (ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop2"): 'systemPropValue2',
                 prop1: 'someSystemPropValue1',
                 (ProjectsLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX): 'someValue'
         ]
         Map testEnvProps = [
-                "${ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX}myEnvProp": 'myEnvPropValue',
-                "${ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX}prop3": 'envPropValue2',
+                (ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX + "myEnvProp"): 'myEnvPropValue',
+                (ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX + "prop3"): 'envPropValue2',
                 prop3: 'someEnvPropValue1',
                 (ProjectsLoader.ENV_PROJECT_PROPERTIES_PREFIX): 'someValue'
         ]

@@ -11,4 +11,8 @@ public interface ProjectInternal extends Project {
     ScriptSource getBuildScriptSource();
 
     ClassLoader getBuildScriptClassLoader();
+
+    Project addChildProject(String name);
+
+    void setGradleUserHome(String gradleUserHome);
 }
