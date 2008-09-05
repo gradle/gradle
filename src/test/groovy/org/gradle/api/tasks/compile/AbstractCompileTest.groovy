@@ -17,15 +17,13 @@
 package org.gradle.api.tasks.compile
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.Task
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.gradle.api.DependencyManager
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.GradleScriptException
 import org.junit.Before
 import static org.junit.Assert.*
 import org.junit.Test
-import org.gradle.test.util.Check;
 
 /**
  * @author Hans Dockter
@@ -67,19 +65,19 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
 
 
-    @Test(expected = InvalidUserDataException) public void testExecuteWithUnspecifiedSourceCompatibility() {
+    @Test(expected = GradleScriptException) public void testExecuteWithUnspecifiedSourceCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.sourceCompatibility = null
         compile.execute()
     }
 
-    @Test(expected = InvalidUserDataException) public void testExecuteWithUnspecifiedTargetCompatibility() {
+    @Test(expected = GradleScriptException) public void testExecuteWithUnspecifiedTargetCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.targetCompatibility = null
         compile.execute()
     }
 
-    @Test(expected = InvalidUserDataException) public void testExecuteWithUnspecifiedAntCompile() {
+    @Test(expected = GradleScriptException) public void testExecuteWithUnspecifiedAntCompile() {
         setUpMocksAndAttributes(compile)
         compile.antCompile = null
         compile.execute()

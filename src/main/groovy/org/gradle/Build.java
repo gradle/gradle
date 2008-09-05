@@ -65,17 +65,18 @@ public class Build {
         this.buildExecuter = buildExecuter;
     }
 
-    public void runNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
-        runInternal(initWithCurrentDirAsRoot(startParameter), startParameter);
+    public BuildResult runNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
+        DefaultSettings settings = initWithCurrentDirAsRoot(startParameter);
+        return runInternal(settings, startParameter);
     }
 
-    public void run(StartParameter startParameter) {
+    public BuildResult run(StartParameter startParameter) {
         DefaultSettings settings = init(startParameter);
-        runInternal(settings, startParameter);
+        return runInternal(settings, startParameter);
     }
 
-    private void runInternal(DefaultSettings settings, StartParameter startParameter) {
-        RuntimeException failure = null;
+    private BuildResult runInternal(DefaultSettings settings, StartParameter startParameter) {
+        Throwable failure = null;
         try {
             ClassLoader classLoader = settings.createClassLoader();
             Boolean rebuildDag = true;
@@ -96,16 +97,16 @@ public class Build {
                 logger.debug(String.format("Selected for execution: %s.", selector.getTasks()));
                 rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject());
             }
-        } catch (RuntimeException t) {
+        } catch (Throwable t) {
             failure = t;
         }
+
+        BuildResult buildResult = new BuildResult(settings, failure);
         for (BuildListener buildListener : buildListeners) {
-            buildListener.buildFinished(new BuildResult(settings, failure));
+            buildListener.buildFinished(buildResult);
         }
 
-        if (failure != null) {
-            throw failure;
-        }
+        return buildResult;
     }
 
     public String taskListNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {

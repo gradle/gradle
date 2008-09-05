@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Task
+import org.gradle.api.GradleScriptException
 import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
 import org.junit.Before
@@ -73,7 +73,7 @@ class DirectoryTest extends AbstractTaskTest {
         assert file.isFile()
     }
 
-    @Test (expected = InvalidUserDataException) public void testWithExistingFile() {
+    @Test (expected = GradleScriptException) public void testWithExistingFile() {
         File file = new File(project.projectDir, 'testname')
         file.createNewFile()
         directory = new Directory(project, 'testname', null)

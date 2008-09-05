@@ -184,38 +184,31 @@ public abstract class AbstractTask implements Task {
             for (TaskAction action : actions) {
                 logger.debug("Executing Action:");
                 try {
-                    action.execute(this, getTasksGraph());
+                    doExecute(action);
                 } catch (StopExecutionException e) {
                     logger.info("Execution stopped by some action with message: {}", e.getMessage());
                     break;
                 } catch (StopActionException e) {
                     logger.debug("Action stopped by some action with message: {}", e.getMessage());
                     continue;
-                    // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the Groovy bug is fixed we can remove this.
-                } catch (InvokerInvocationException e) {
-                    if (e.getCause() != null) {
-                        if (e.getCause() instanceof StopActionException) {
-                            continue;
-                        } else if (e.getCause() instanceof StopExecutionException) {
-                            break;
-                        } else if (e.getCause() instanceof GradleException) {
-                            GradleException gradleException = (GradleException) e.getCause();
-                            gradleException.setScriptSource(project.getBuildScriptSource());
-                            throw gradleException;
-                        } else {
-                            throw new GradleScriptException(e.getCause(), project.getBuildScriptSource());
-                        }
-                    }
-                    throw e;
-                } catch (GradleException e) {
-                    e.setScriptSource(project.getBuildScriptSource());
-                    throw e;
                 } catch (Throwable t) {
-                    throw new GradleScriptException(t, project.getBuildScriptSource());
+                    throw new GradleScriptException(String.format("Execution failed for task %s.", getPath()), t, project.getBuildScriptSource());
                 }
             }
         }
         executed = true;
+    }
+
+    private void doExecute(TaskAction action) throws Throwable {
+        try {
+            action.execute(this, getTasksGraph());
+            // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the Groovy bug is fixed we can remove this.
+        } catch (InvokerInvocationException e) {
+            if (e.getCause() != null) {
+                throw e.getCause();
+            }
+            throw e;
+        }
     }
 
     public Task dependsOn(Object... paths) {

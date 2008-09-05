@@ -106,8 +106,8 @@ public class JavadocTest extends AbstractConventionTaskTest {
             task.execute();
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), endsWith("Javadoc generation failed."));
-            assertThat(e.getCause(), sameInstance((Throwable) failure));
+            assertThat(e.getCause().getMessage(), endsWith("Javadoc generation failed."));
+            assertThat(e.getCause().getCause(), sameInstance((Throwable) failure));
         }
     }
 

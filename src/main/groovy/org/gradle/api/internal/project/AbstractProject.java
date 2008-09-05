@@ -485,11 +485,8 @@ public abstract class AbstractProject implements ProjectInternal {
         buildScript = buildScriptProcessor.createScript(this);
         try {
             buildScript.run();
-        } catch (GradleException e) {
-            e.setScriptSource(getBuildScriptSource());
-            throw e;
         } catch (Throwable t) {
-            throw new GradleScriptException(t, getBuildScriptSource());
+            throw new GradleScriptException(String.format("A problem occurred evaluating project %s.", path), t, getBuildScriptSource());
         }
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = STATE_INITIALIZED;

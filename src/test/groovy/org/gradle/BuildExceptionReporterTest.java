@@ -37,7 +37,8 @@ public class BuildExceptionReporterTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         logger = context.mock(Logger.class);
         final OptionSet optionSet = context.mock(OptionSet.class);
-        reporter = new BuildExceptionReporter(logger, optionSet);
+        reporter = new BuildExceptionReporter(logger);
+        reporter.setOptions(optionSet);
 
         context.checking(new Expectations() {{
             allowing(optionSet).has(with(aNonNull(String.class)));
@@ -50,10 +51,23 @@ public class BuildExceptionReporterTest {
         final GradleException exception = new GradleException("<message>");
 
         context.checking(new Expectations() {{
-            one(logger).error(with(containsString("Build aborted abnormally.")));
+            one(logger).error(with(containsString("Build failed with an exception.")));
             one(logger).error(String.format("Exception: %s", exception));
         }});
 
+        reporter.buildFinished(new BuildResult(null, exception));
+    }
+
+    @Test
+    public void reportsBuildFailureWhenOptionsHaveNotBeenSet() {
+        final GradleException exception = new GradleException("<message>");
+
+        context.checking(new Expectations() {{
+            one(logger).error(with(containsString("Build failed with an exception.")));
+            one(logger).error(String.format("Exception: %s", exception));
+        }});
+
+        reporter = new BuildExceptionReporter(logger);
         reporter.buildFinished(new BuildResult(null, exception));
     }
 
@@ -62,10 +76,21 @@ public class BuildExceptionReporterTest {
         final RuntimeException failure = new RuntimeException("<message>");
 
         context.checking(new Expectations() {{
-            one(logger).error(with(containsString("Build aborted anormally because of an internal error.")));
-            one(logger).error("Exception is:", failure);
+            one(logger).error(with(containsString("Build aborted because of an internal error.")), with(sameInstance(failure)));
         }});
 
+        reporter.buildFinished(new BuildResult(null, failure));
+    }
+
+    @Test
+    public void reportsInternalFailureWhenOptionsHaveNotBeenSet() {
+        final RuntimeException failure = new RuntimeException("<message>");
+
+        context.checking(new Expectations() {{
+            one(logger).error(with(containsString("Build aborted because of an internal error.")), with(sameInstance(failure)));
+        }});
+
+        reporter = new BuildExceptionReporter(logger);
         reporter.buildFinished(new BuildResult(null, failure));
     }
 

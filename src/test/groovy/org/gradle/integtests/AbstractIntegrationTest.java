@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.Build;
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
+import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.util.HelperUtil;
@@ -93,24 +94,33 @@ public class AbstractIntegrationTest {
             this.script = script;
         }
 
+        public GradleExecution withSearchUpwards() {
+            parameter.setSearchUpwards(true);
+            return this;
+        }
+        
         public GradleExecution runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
+            BuildResult result;
             if (script == null) {
-                Build.newInstanceFactory(parameter).newInstance(null, null).run(parameter);
+                result = Build.newInstanceFactory(parameter).newInstance(null, null).run(parameter);
             } else {
-                Build.newInstanceFactory(parameter).newInstance(script, null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
+                result = Build.newInstanceFactory(parameter).newInstance(script, null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
             }
+            if (result.getFailure() instanceof RuntimeException) {
+                throw (RuntimeException) result.getFailure();
+            }
+            assertThat(result.getFailure(), nullValue());
             return this;
         }
 
         public GradleExecutionFailure runTasksAndExpectFailure(String... names) {
             try {
                 runTasks(names);
-                fail("Expected build to fail.");
+                throw new AssertionFailedError("expected build to fail.");
             } catch (GradleException e) {
                 return new GradleExecutionFailure(e);
             }
-            throw new AssertionFailedError();
         }
 
         public GradleExecution usingSettingsFile(File settingsFile) {
@@ -128,7 +138,7 @@ public class AbstractIntegrationTest {
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            assertThat(failure.getMessage(), Matchers.containsString(String.format("at line(s): %d", lineNumber)));
+            assertThat(failure.getMessage(), containsString(String.format("at line(s): %d", lineNumber)));
         }
 
         public void assertHasFileName(String filename) {
@@ -137,6 +147,10 @@ public class AbstractIntegrationTest {
 
         public void assertHasDescription(String description) {
             assertThat(failure.getMessage(), endsWith(description));
+        }
+
+        public void assertHasContext(String context) {
+            assertThat(failure.getMessage(), containsString(context));
         }
     }
 

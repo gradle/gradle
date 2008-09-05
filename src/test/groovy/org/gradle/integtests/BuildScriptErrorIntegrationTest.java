@@ -27,6 +27,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName("Embedded build file");
         failure.assertHasLineNumber(1);
+        failure.assertHasContext("A problem occurred evaluating project :.");
     }
 
     @Test @Ignore
@@ -43,9 +44,22 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     public void reportsTaskActionExecutionFailsWithRuntimeException() {
         File buildFile = getTestBuildFile("task-action-execution-failure.gradle");
 
-        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("broken");
+        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("brokenClosure");
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
+        failure.assertHasContext("Execution failed for task :brokenClosure");
+        failure.assertHasDescription("broken closure");
+    }
+
+    @Test
+    public void reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
+        File buildFile = getTestBuildFile("task-action-execution-failure.gradle");
+
+        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("brokenJavaTask");
+
+        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
+        failure.assertHasContext("Execution failed for task :brokenJavaTask");
+        failure.assertHasDescription("broken action");
     }
 }

@@ -29,34 +29,35 @@ import java.util.ArrayList;
  * @author Hans Dockter
  */
 public class GradleException extends RuntimeException {
-    private ScriptSource scriptSource;
+    private final ScriptSource scriptSource;
 
     public GradleException() {
+        this(null, null, null);
     }
 
     public GradleException(String message) {
-        super(message);
+        this(message, null, null);
     }
 
     public GradleException(String message, Throwable cause) {
-        super(message, cause);
+        this(message, cause, null);
     }
 
     public GradleException(Throwable cause) {
-        super(cause);
+        this(null, cause, null);
     }
 
     public GradleException(Throwable cause, ScriptSource scriptSource) {
-        super(cause);
+        this(null, cause, scriptSource);
+    }
+
+    public GradleException(String message, Throwable cause, ScriptSource scriptSource) {
+        super(message, cause);
         this.scriptSource = scriptSource;
     }
 
     public ScriptSource getScriptSource() {
         return scriptSource;
-    }
-
-    public void setScriptSource(ScriptSource scriptSource) {
-        this.scriptSource = scriptSource;
     }
 
     public String getMessage() {
@@ -79,4 +80,5 @@ public class GradleException extends RuntimeException {
         return String.format("%s %s%s%s", StringUtils.capitalize(scriptSource.getDescription()), lineInfo, System.getProperty("line.separator"),
                 super.getMessage());
     }
+
 }

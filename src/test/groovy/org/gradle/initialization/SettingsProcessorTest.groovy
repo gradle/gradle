@@ -30,18 +30,21 @@ import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.ReflectionEqualsMatcher
-import org.hamcrest.Matchers
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.gradle.api.GradleScriptException
 
 /**
  * @author Hans Dockter
  */
+@RunWith (org.jmock.integration.junit4.JMock.class)
 class SettingsProcessorTest {
+
     static final File TEST_ROOT_DIR = new File('rootDir')
     SettingsProcessor settingsProcessor
     ISettingsFinder expectedSettingsFinder
@@ -55,6 +58,8 @@ class SettingsProcessorTest {
 
     IScriptProcessor scriptProcessorMock
     ISettingsScriptMetaData settingsScriptMetaData
+    ScriptSource settingsScript
+    Script expectedScript
 
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
@@ -70,8 +75,10 @@ class SettingsProcessorTest {
         expectedSettings = new DefaultSettings()
         expectedStartParameter = new StartParameter()
         expectedSettingsFinder = new ParentDirSettingsFinder()
-        importsReader = new ImportsReader()
+        importsReader = context.mock(ImportsReader)
         settingsFactory = context.mock(SettingsFactory)
+        settingsScript = context.mock(ScriptSource.class)
+        expectedScript = context.mock(Script.class)
         dependencyManagerFactory = new DefaultDependencyManagerFactory(new File('root'))
         buildSourceBuilder = new BuildSourceBuilder()
         settingsProcessor = new SettingsProcessor(settingsScriptMetaData, scriptProcessorMock, importsReader, settingsFactory, dependencyManagerFactory, buildSourceBuilder,
@@ -86,11 +93,11 @@ class SettingsProcessorTest {
     @Test public void testSettingsProcessor() {
         assertSame(settingsScriptMetaData, settingsProcessor.settingsScriptMetaData)
         assertSame(scriptProcessorMock, settingsProcessor.scriptProcessor)
-        assert settingsProcessor.importsReader.is(importsReader)
-        assert settingsProcessor.settingsFactory.is(settingsFactory)
-        assert settingsProcessor.dependencyManagerFactory.is(dependencyManagerFactory)
-        assert settingsProcessor.buildSourceBuilder.is(buildSourceBuilder)
-        assert settingsProcessor.buildResolverDir.is(buildResolverDir)
+        assertThat(settingsProcessor.importsReader, sameInstance(importsReader))
+        assertThat(settingsProcessor.settingsFactory, sameInstance(settingsFactory))
+        assertThat(settingsProcessor.dependencyManagerFactory, sameInstance(dependencyManagerFactory))
+        assertThat(settingsProcessor.buildSourceBuilder, sameInstance(buildSourceBuilder))
+        assertThat(settingsProcessor.buildResolverDir, sameInstance(buildResolverDir))
     }
 
     @Test public void testCreateBasicSettings() {
@@ -117,7 +124,7 @@ class SettingsProcessorTest {
         assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, currentDir, ['currentDir', 'path2'], buildResolverDir))
     }
 
-    @Test public void testProcessWithCurrentDirNoSubproject() {
+    @Test public void testProcessWithCurrentDirNotASubprojectOfRootProject() {
         File currentDir = new File(TEST_ROOT_DIR, 'currentDir')
         assertSame(expectedSettings, runCUT(TEST_ROOT_DIR, currentDir, ['path1', 'path2'], buildResolverDir) {
             prepareSettingsFactoryMock(currentDir, currentDir)
@@ -134,6 +141,33 @@ class SettingsProcessorTest {
                 new File(TEST_ROOT_DIR, Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME)))
     }
 
+    @Test public void testWrapsScriptEvaluationFailure() {
+        RuntimeException failure = new RuntimeException()
+        File currentDir = new File(TEST_ROOT_DIR, 'currentDir')
+        ScriptSource expectedScriptSource = new ImportsScriptSource(settingsScript, importsReader, TEST_ROOT_DIR);
+
+        prepareDependencies(TEST_ROOT_DIR, [], currentDir)
+        context.checking {
+            one(scriptProcessorMock).createScript(
+                    withParam(notNullValue(ScriptSource.class)),
+                    withParam(notNullValue(ClassLoader.class)),
+                    withParam(equalTo(Script.class)))
+            will(returnValue(expectedScript))
+            one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
+            one(expectedScript)
+            will(throwException(failure))
+        }
+
+        try {
+            settingsProcessor.process(expectedSettingsFinder, expectedStartParameter)
+            fail()
+        } catch (GradleScriptException e) {
+            assertThat(e.originalMessage, equalTo("A problem occurred evaluating the settings file."))
+            assertThat(e.scriptSource, ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource))
+            assertThat(e.cause, equalTo(failure))
+        }
+    }
+
     private void prepareSettingsFactoryMock(File expectedRootDir, File expectedCurrentDir) {
         expectedSettings.settingsFinder = expectedSettingsFinder
         expectedSettings.startParameter = expectedStartParameter
@@ -146,34 +180,34 @@ class SettingsProcessorTest {
 
     private DefaultSettings runCUT(File rootDir, File currentDir, List includePaths, File expectedBuildResolverRoot,
                                    Closure customSettingsFactoryPreparation = {}) {
-        String expectedScriptAttachement = "expectedScriptAttachement"
 
-        Script expectedScript = new EmptyScript();
+        StartParameter expectedStartParameter = prepareDependencies(rootDir, includePaths, currentDir, customSettingsFactoryPreparation)
 
-        ImportsReader mockImportsReader = [getImports: {File importsRootDir -> expectedScriptAttachement }] as ImportsReader
-        settingsProcessor.setImportsReader(mockImportsReader)
-
-        ScriptSource settingsScript = context.mock(ScriptSource.class)
-        expectedSettingsFinder.settingsDir = rootDir
-        expectedSettingsFinder.settingsScript = settingsScript
-        expectedStartParameter = createStartParameter(currentDir)
-        expectedSettings.setProjectPaths(includePaths)
-        prepareSettingsFactoryMock(rootDir, currentDir)
-        customSettingsFactoryPreparation()
-        ScriptSource expectedScriptSource = new ImportsScriptSource(settingsScript, mockImportsReader, rootDir);
+        ScriptSource expectedScriptSource = new ImportsScriptSource(settingsScript, importsReader, rootDir);
 
         context.checking {
             one(scriptProcessorMock).createScript(
                     withParam(ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource)),
-                    withParam(Matchers.sameInstance(Thread.currentThread().contextClassLoader)),
-                    withParam(Matchers.equalTo(Script.class)))
+                    withParam(sameInstance(Thread.currentThread().contextClassLoader)),
+                    withParam(equalTo(Script.class)))
             will(returnValue(expectedScript))
             one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
+            one(expectedScript)
         }
 
         DefaultSettings settings = settingsProcessor.process(expectedSettingsFinder, expectedStartParameter)
         checkBuildResolverDir(expectedBuildResolverRoot)
         settings
+    }
+
+    private StartParameter prepareDependencies(File rootDir, List includePaths, File currentDir, Closure customSettingsFactoryPreparation = {}) {
+        expectedSettingsFinder.settingsDir = new File(rootDir.path)
+        expectedSettingsFinder.settingsScript = settingsScript
+        expectedStartParameter = createStartParameter(currentDir)
+        expectedSettings.setProjectPaths(includePaths)
+        prepareSettingsFactoryMock(rootDir, currentDir)
+        customSettingsFactoryPreparation()
+        return expectedStartParameter
     }
 
     private void checkBuildResolverDir(File buildResolverDir) {

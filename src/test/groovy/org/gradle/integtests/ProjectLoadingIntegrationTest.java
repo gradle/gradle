@@ -19,8 +19,11 @@ import org.gradle.Build;
 import org.gradle.StartParameter;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.Ignore;
+import static org.apache.commons.io.FileUtils.writeStringToFile;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -40,4 +43,15 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void canProvideAnEmbeddedBuildFile() {
         usingBuildScript("Task task = createTask('do-stuff')").runTasks("do-stuff");
     }
+
+    @Test @Ignore
+    public void canRunProjectInSubdirectoryOfAnotherMultiProjectBuild() throws IOException {
+        File buildFile = new File(getTestDir(), "subdirectory/build.gradle");
+        writeStringToFile(buildFile, "createTask('do-stuff')");
+        File otherBuildSettingsFile = new File(getTestDir(), "settings.gradle");
+        writeStringToFile(otherBuildSettingsFile, "include('another')");
+
+        usingBuildFile(buildFile).withSearchUpwards().runTasks("do-stuff");
+    }
+
 }

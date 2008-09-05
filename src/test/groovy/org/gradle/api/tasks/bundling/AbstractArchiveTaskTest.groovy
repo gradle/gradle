@@ -19,6 +19,7 @@ package org.gradle.api.tasks.bundling
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.GradleScriptException
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.AntDirective
@@ -117,7 +118,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertFalse(testArchiveParentDirs.contains(archiveTask.destinationDir))
     }
 
-    @Test (expected = InvalidUserDataException) public void testExecuteWithNullDestinationDir() {
+    @Test (expected = GradleScriptException) public void testExecuteWithNullDestinationDir() {
         archiveTask.destinationDir = null
         archiveTask.execute()
     }

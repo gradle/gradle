@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import groovy.lang.Script;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
@@ -88,14 +87,11 @@ public class SettingsProcessor {
             Clock clock = new Clock();
             settingsScript.run();
             logger.debug("Timing: Evaluating settings file took: {}", clock.getTime());
-        } catch (GradleException e) {
-            e.setScriptSource(source);
-            throw e;
         } catch (Throwable t) {
-            throw new GradleScriptException(t, source);
+            throw new GradleScriptException("A problem occurred evaluating the settings file.", t, source);
         }
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
-        if (startParameter.getCurrentDir() != settingsFinder.getSettingsDir() && !isCurrentDirIncluded(settings)) {
+        if (!startParameter.getCurrentDir().equals(settingsFinder.getSettingsDir()) && !isCurrentDirIncluded(settings)) {
             return createBasicSettings(settingsFinder, startParameter);
         }
         return settings;
@@ -115,9 +111,8 @@ public class SettingsProcessor {
     }
 
     private boolean isCurrentDirIncluded(DefaultSettings settings) {
-        settings.getProjectPaths().contains(
+        return settings.getProjectPaths().contains(
                 PathHelper.getCurrentProjectPath(settings.getRootDir(), settings.getStartParameter().getCurrentDir()).substring(1));
-        return true;
     }
 
     public ImportsReader getImportsReader() {

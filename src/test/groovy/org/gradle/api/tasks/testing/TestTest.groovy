@@ -221,8 +221,8 @@ class TestTest extends AbstractConventionTaskTest {
             closure.call()
             fail()
         } catch (Throwable t) {
-            assertThat(exceptionClass.isInstance(t), Matchers.equalTo(true))
-            assertThat(t.getMessage(), Matchers.containsString(message))
+            assertThat(exceptionClass.isInstance(t.getCause()), Matchers.equalTo(true))
+            assertThat(t.getCause().getMessage(), Matchers.containsString(message))
         }
     }
 }

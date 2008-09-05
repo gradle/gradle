@@ -27,10 +27,13 @@ import java.util.Formatter;
  */
 public class BuildExceptionReporter implements BuildListener {
     private final Logger logger;
-    private final OptionSet options;
+    private OptionSet options;
 
-    public BuildExceptionReporter(Logger logger, OptionSet options) {
+    public BuildExceptionReporter(Logger logger) {
         this.logger = logger;
+    }
+
+    public void setOptions(OptionSet options) {
         this.options = options;
     }
 
@@ -47,20 +50,19 @@ public class BuildExceptionReporter implements BuildListener {
         }
     }
 
-    private void reportInternalError(Throwable failure) {
+    public void reportInternalError(Throwable failure) {
         Formatter formatter = new Formatter();
         formatter.format("%n");
-        formatter.format("Build aborted anormally because of an internal error. Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org", Main.DEBUG);
-        logger.error(formatter.toString());
-        logger.error("Exception is:", failure);
+        formatter.format("Build aborted because of an internal error. Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org", Main.DEBUG);
+        logger.error(formatter.toString(), failure);
     }
 
     private void reportBuildFailure(Throwable failure) {
-        boolean stacktrace = options.has(Main.STACKTRACE) || options.has(Main.DEBUG);
-        boolean fullStacktrace = options.has(Main.FULL_STACKTRACE);
+        boolean stacktrace = options != null && (options.has(Main.STACKTRACE) || options.has(Main.DEBUG));
+        boolean fullStacktrace = options != null && (options.has(Main.FULL_STACKTRACE));
         Formatter formatter = new Formatter();
         formatter.format("%n");
-        formatter.format("Build aborted abnormally. ");
+        formatter.format("Build failed with an exception. ");
         if (!stacktrace && !fullStacktrace) {
             formatter.format(" Run with -%s or -%s option to get stacktrace.", Main.STACKTRACE, Main.DEBUG);
         }

@@ -30,7 +30,7 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
-import static org.hamcrest.Matchers.lessThan
+import static org.hamcrest.Matchers.*
 import org.jmock.Mockery
 import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.*
@@ -257,6 +257,27 @@ class DefaultProjectTest {
         project.buildScriptProcessor = mockReader1
         child1.buildScriptProcessor = mockReader2
         project.evaluate()
+    }
+
+    @Test void testWrapsEvaulationFailure() {
+        RuntimeException failure = new RuntimeException()
+        BuildScriptProcessor mockBuildScriptProcessor = context.mock(BuildScriptProcessor)
+        Script mockScript = context.mock(Script)
+        project.buildScriptProcessor = mockBuildScriptProcessor
+        context.checking {
+            one(mockBuildScriptProcessor).createScript(project)
+            will(returnValue(mockScript))
+            one(mockScript)
+            will(throwException(failure))
+        }
+        try {
+            project.evaluate()
+            fail()
+        } catch (GradleScriptException e) {
+            assertThat(e.originalMessage, equalTo("A problem occurred evaluating project :."))
+            assertThat(e.scriptSource, equalTo(project.buildScriptSource))
+            assertThat(e.cause, equalTo(failure))
+        };
     }
 
     @Test void testDependsOnWithNoEvaluation() {

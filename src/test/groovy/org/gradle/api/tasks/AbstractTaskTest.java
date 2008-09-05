@@ -29,6 +29,7 @@ import org.gradle.util.WrapUtil;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -200,36 +201,38 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testActionWithThrowable() {
-        getTask().doFirst(createExceptionAction(new RuntimeException()));
-        checkException(GradleScriptException.class);
-    }
-
-    @Test
-    public void testActionWithGradleEception() {
-        getTask().doFirst(createExceptionAction(new GradleException("x")));
-        checkException(GradleException.class);
+        RuntimeException failure = new RuntimeException();
+        getTask().doFirst(createExceptionAction(failure));
+        checkException(failure);
     }
 
     @Test
     public void testActionWithInvokerInvocationExceptionAndWrappedThrowable() {
-        getTask().doFirst(createExceptionAction(new InvokerInvocationException(new RuntimeException("x"))));
-        checkException(GradleScriptException.class);
+        RuntimeException failure = new RuntimeException("x");
+        getTask().doFirst(createExceptionAction(new InvokerInvocationException(failure)));
+        checkException(failure);
     }
 
     @Test
-    public void testActionWithInvokerInvocationExceptionAndWrappedGradleException() {
-        getTask().doFirst(createExceptionAction(new InvokerInvocationException(new GradleException("x"))));
-        checkException(GradleException.class);
+    public void testActionWithInvokerInvocationExceptionAndNoWrappedThrowable() {
+        InvokerInvocationException failure = new InvokerInvocationException(new Throwable()) {
+            @Override
+            public Throwable getCause() {
+                return null;
+            }
+        };
+        getTask().doFirst(createExceptionAction(failure));
+        checkException(failure);
     }
 
-    private void checkException(Class exceptionType) {
+    private void checkException(Throwable cause) {
         try {
             getTask().execute();
             fail();
-        } catch (Exception e) {
-            assertEquals(exceptionType, e.getClass());
-            GradleException gradleException = (GradleException) e;
-//            assertEquals(getProject().getBuildFileClassName(), gradleException.getScriptName());
+        } catch (GradleScriptException e) {
+            assertThat(e.getOriginalMessage(), equalTo("Execution failed for task " + getTask().getPath() + "."));
+            assertThat(e.getScriptSource(), sameInstance(project.getBuildScriptSource()));
+            assertThat(e.getCause(), sameInstance(cause));
         }
     }
 

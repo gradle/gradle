@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.Clean;
@@ -88,7 +89,7 @@ public class CleanTest extends AbstractConventionTaskTest {
         assertFalse(clean.dir.exists());
     }
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test(expected = GradleScriptException.class)
     public void testExecuteWithNullDir() {
         clean.execute();
     }

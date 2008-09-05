@@ -29,8 +29,7 @@ import org.gradle.util.WrapUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -176,7 +175,9 @@ public class BuildTest {
     public void testRun() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
-        build.run(expectedStartParams);
+        BuildResult buildResult = build.run(expectedStartParams);
+        assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
+        assertThat(buildResult.getFailure(), nullValue());
         checkSystemProps(expectedSystemPropertiesArgs);
     }
 
@@ -236,12 +237,8 @@ public class BuildTest {
 
         build.addBuildListener(buildListenerMock);
 
-        try {
-            build.run(expectedStartParams);
-            fail();
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure));
-        }
+        BuildResult buildResult = build.run(expectedStartParams);
+        assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
     private void expectSettingsBuilt() {
@@ -296,7 +293,7 @@ public class BuildTest {
         });
     }
 
-    @Test(expected = UnknownTaskException.class)
+    @Test
     public void testRunWithUnknownTask() {
         expectedStartParams.setTaskNames(WrapUtil.toList("unknown"));
         context.checking(new Expectations() {
@@ -308,7 +305,9 @@ public class BuildTest {
                 one(buildConfigurerMock).process(expectedRootProject);
             }
         });
-        build.run(expectedStartParams);
+        BuildResult buildResult = build.run(expectedStartParams);
+        assertThat(buildResult.getFailure(), notNullValue());
+        assertThat(buildResult.getFailure().getClass(), equalTo((Object) UnknownTaskException.class));
     }
 
     @Test

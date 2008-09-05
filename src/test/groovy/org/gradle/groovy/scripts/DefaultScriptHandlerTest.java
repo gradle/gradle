@@ -16,8 +16,8 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.InputStreamClassLoader;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import org.junit.After;
@@ -108,11 +108,11 @@ public class DefaultScriptHandlerTest {
         assertNull(scriptHandler.loadFromCache(100000, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
     }
 
-    @Test(expected = GradleScriptException.class) public void testWriteToCacheWithException() {
+    @Test(expected = GradleException.class) public void testWriteToCacheWithException() {
         Script script = scriptHandler.writeToCache("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
     }
 
-    @Test(expected = GradleScriptException.class) public void testCreateScriptWithException() {
+    @Test(expected = GradleException.class) public void testCreateScriptWithException() {
         Script script = scriptHandler.createScript("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, expectedScriptClass);
     }
 

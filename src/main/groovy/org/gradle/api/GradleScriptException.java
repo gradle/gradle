@@ -18,14 +18,27 @@ package org.gradle.api;
 import org.gradle.groovy.scripts.ScriptSource;
 
 /**
+ * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the parsing or execution of a
+ * script.</p>
+ *
  * @author Hans Dockter
  */
 public class GradleScriptException extends GradleException {
-    public GradleScriptException(Throwable cause) {
-        super(cause);
+    private final String originalMessage;
+
+    public GradleScriptException(String message, Throwable cause, ScriptSource scriptSource) {
+        super(getMessage(message, cause), cause, scriptSource);
+        originalMessage = message;
     }
 
-    public GradleScriptException(Throwable cause, ScriptSource scriptSource) {
-        super(cause, scriptSource);
+    private static String getMessage(String message, Throwable cause) {
+        if (cause == null || cause.getMessage() == null) {
+            return message;
+        }
+        return String.format("%s%n%s", message, cause.getMessage());
+    }
+
+    public String getOriginalMessage() {
+        return originalMessage;
     }
 }

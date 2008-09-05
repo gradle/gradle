@@ -75,6 +75,7 @@ public class Main {
 
     public static void main(String[] args) throws Throwable {
         BuildResultLogger resultLogger = new BuildResultLogger(logger);
+        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(logger);
 
         String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
         String embeddedBuildScript = null;
@@ -116,6 +117,8 @@ public class Main {
             System.err.println("====");
             return;
         }
+
+        exceptionReporter.setOptions(options);
 
         if (options.has(HELP)) {
             parser.printHelpOn(System.out);
@@ -224,14 +227,13 @@ public class Main {
         logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
         logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
 
-        try {
-            startParameter.setTaskNames(options.nonOptionArguments());
+        startParameter.setTaskNames(options.nonOptionArguments());
 
+        try {
             Build.BuildFactory buildFactory = Build.newInstanceFactory(startParameter);
             Build build = buildFactory.newInstance(embeddedBuildScript, null);
-            build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(
-                    new EmbeddedBuildExecuter(buildFactory)));
-            build.addBuildListener(new BuildExceptionReporter(logger, options));
+            build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(new EmbeddedBuildExecuter(buildFactory)));
+            build.addBuildListener(exceptionReporter);
             build.addBuildListener(resultLogger);
 
             if (options.has(TASKS)) {
@@ -250,6 +252,7 @@ public class Main {
                 build.run(startParameter);
             }
         } catch (Throwable e) {
+            exceptionReporter.buildFinished(new BuildResult(null, e));
             exitWithError(options, e);
         }
         exitWithSuccess(options);

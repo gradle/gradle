@@ -17,19 +17,18 @@ public class GradleExceptionTest {
 
     @Before
     public void setUp() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(source).getClassName();
             will(returnValue("filename"));
             allowing(source).getDescription();
             will(returnValue("<description>"));
         }});
     }
-    
+
     @Test
     public void extractsLineNumbersFromStackTrace() {
 
-        GradleException exception = new GradleException("<message>");
-        exception.setScriptSource(source);
+        GradleException exception = new GradleException("<message>", null, source);
         exception.setStackTrace(new StackTraceElement[]{element});
         assertThat(exception.getMessage(), equalTo(String.format("<description> at line(s): 7%n<message>")));
     }
@@ -38,15 +37,13 @@ public class GradleExceptionTest {
     public void extractsLineNumbersFromStackTraceOfCause() {
         RuntimeException cause = new RuntimeException();
         cause.setStackTrace(new StackTraceElement[]{element});
-        GradleException exception = new GradleException("<message>", cause);
-        exception.setScriptSource(source);
+        GradleException exception = new GradleException("<message>", cause, source);
         assertThat(exception.getMessage(), equalTo(String.format("<description> at line(s): 7%n<message>")));
     }
 
     @Test
     public void messageIndicatesWhenNoLineNumbersFound() {
-        GradleException exception = new GradleException("<message>");
-        exception.setScriptSource(source);
+        GradleException exception = new GradleException("<message>", null, source);
         assertThat(exception.getMessage(), equalTo(String.format("<description> No line info available from stacktrace.%n<message>")));
     }
 }
