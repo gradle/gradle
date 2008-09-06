@@ -13,21 +13,21 @@ public class BuildResultTest {
     }
 
     @Test
-    public void rethrowsRuntimeException() {
-        RuntimeException failure = new RuntimeException();
+    public void rethrowsGradleException() {
+        Throwable failure = new GradleException();
         BuildResult result = new BuildResult(null, failure);
 
         try {
             result.rethrowFailure();
             fail();
         } catch (Exception e) {
-            assertThat(e, sameInstance((Throwable) failure));
+            assertThat(e, sameInstance(failure));
         }
     }
 
     @Test
-    public void rethrowsThrowable() {
-        Throwable failure = new Throwable();
+    public void rethrowWrapsOtherExceptions() {
+        Throwable failure = new RuntimeException();
         BuildResult result = new BuildResult(null, failure);
 
         try {
