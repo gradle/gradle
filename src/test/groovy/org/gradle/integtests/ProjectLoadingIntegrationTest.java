@@ -38,8 +38,13 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canProvideAnEmbeddedBuildFile() {
-        usingBuildScript("Task task = createTask('do-stuff')").runTasks("do-stuff");
+    public void embeddedBuildFileIgnoresBuildAndScriptFiles() throws IOException {
+        File rootDir = getTestDir();
+        File settingsFile = new File(rootDir, "settings.gradle");
+        writeStringToFile(settingsFile, "throw new RuntimeException()");
+        File buildFile = new File(getTestDir(), "build.gradle");
+        writeStringToFile(buildFile, "throw new RuntimeException()");
+        inDirectory(rootDir).usingBuildScript("Task task = createTask('do-stuff')").runTasks("do-stuff");
     }
 
     @Test
@@ -53,8 +58,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         File childBuildFile = new File(childDir, "build.gradle");
         writeStringToFile(childBuildFile, "createTask('do-stuff')");
 
-        usingCurrentDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff");
-        usingCurrentDirectory(childDir).withSearchUpwards().runTasks(":do-stuff", "do-stuff");
+        inDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff");
+        inDirectory(childDir).withSearchUpwards().runTasks(":do-stuff", "do-stuff");
     }
 
     @Test @Ignore

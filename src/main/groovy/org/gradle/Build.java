@@ -40,7 +40,7 @@ import java.util.Map;
 public class Build {
     private static Logger logger = LoggerFactory.getLogger(Build.class);
 
-    static BuildFactory buildFactory = new DefaultBuildFactory();
+    private static BuildFactory buildFactory = new DefaultBuildFactory();
 
     private ISettingsFinder settingsFinder;
     private IGradlePropertiesLoader gradlePropertiesLoader;
@@ -62,11 +62,6 @@ public class Build {
         this.projectLoader = projectLoader;
         this.buildConfigurer = buildConfigurer;
         this.buildExecuter = buildExecuter;
-    }
-
-    public BuildResult runNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
-        DefaultSettings settings = initWithCurrentDirAsRoot(startParameter);
-        return runInternal(settings, startParameter);
     }
 
     public BuildResult run(StartParameter startParameter) {
@@ -108,11 +103,6 @@ public class Build {
         return buildResult;
     }
 
-    public String taskListNonRecursivelyWithCurrentDirAsRoot(StartParameter startParameter) {
-        StartParameter newStartParameter = StartParameter.newInstance(startParameter);
-        return taskListInternal(initWithCurrentDirAsRoot(newStartParameter), newStartParameter);
-    }
-
     public String taskList(StartParameter startParameter) {
         return taskListInternal(init(startParameter), startParameter);
     }
@@ -126,12 +116,6 @@ public class Build {
     private DefaultSettings init(StartParameter startParameter) {
         initInternal(startParameter);
         return settingsProcessor.process(settingsFinder, startParameter);
-    }
-
-    private DefaultSettings initWithCurrentDirAsRoot(StartParameter startParameter) {
-        startParameter.setSearchUpwards(false);
-        initInternal(startParameter);
-        return settingsProcessor.createBasicSettings(settingsFinder, startParameter);
     }
 
     private void initInternal(StartParameter startParameter) {
@@ -251,8 +235,11 @@ public class Build {
             IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(), startParameter.getCacheUsage());
             Dag tasksGraph = new Dag();
             File buildResolverDir = startParameter.getBuildResolverDirectory();
+            ISettingsFinder settingsFinder = startParameter.getSettingsScriptSource() == null
+                    ? new ParentDirSettingsFinder()
+                    : new EmbeddedScriptSettingsFinder();
             Build build = new Build(
-                    new ParentDirSettingsFinder(),
+                    settingsFinder,
                     new DefaultGradlePropertiesLoader(),
                     new SettingsProcessor(
                             new DefaultSettingsScriptMetaData(),

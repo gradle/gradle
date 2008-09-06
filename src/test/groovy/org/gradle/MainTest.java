@@ -167,18 +167,10 @@ public class MainTest {
             {
                 one(buildMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
                 one(buildMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
-                if (embedded) {
-                    if (noTasks) {
-                        one(buildMock).taskListNonRecursivelyWithCurrentDirAsRoot(with(new StartParameterMatcher(true)));
-                    } else {
-                        one(buildMock).runNonRecursivelyWithCurrentDirAsRoot(with(new StartParameterMatcher(false)));
-                    }
+                if (noTasks) {
+                    one(buildMock).taskList(with(new StartParameterMatcher(true)));
                 } else {
-                    if (noTasks) {
-                        one(buildMock).taskList(with(new StartParameterMatcher(true)));
-                    } else {
-                        one(buildMock).run(with(new StartParameterMatcher(false)));
-                    }
+                    one(buildMock).run(with(new StartParameterMatcher(false)));
                 }
             }
         });
@@ -322,6 +314,7 @@ public class MainTest {
     @Test
     public void testMainWithEmbeddedScript() throws Throwable {
         expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
+        expectedSearchUpwards = false;
         checkMain(true, false, new MainCall() {
             public void execute() throws Throwable {
                 Main.main(args("-S", "-e", expectedEmbeddedScript));
@@ -356,6 +349,7 @@ public class MainTest {
     @Test
     public void testMainWithShowTasksAndEmbeddedScript() throws Throwable {
         expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
+        expectedSearchUpwards = false;
         checkMain(true, true, new MainCall() {
             public void execute() throws Throwable {
                 Main.main(new String[]{"-S", "-e", expectedEmbeddedScript, "-t"});

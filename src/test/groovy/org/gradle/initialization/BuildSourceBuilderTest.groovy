@@ -93,7 +93,7 @@ class BuildSourceBuilderTest {
         modifiedStartParameter.setBuildResolverDirectory(testBuildResolverDir)
         modifiedStartParameter.useEmbeddedBuildFile(BuildSourceBuilder.getDefaultScript())
         context.checking {
-            one(embeddedBuildExecuter).executeEmbeddedScript(modifiedStartParameter)
+            one(embeddedBuildExecuter).execute(modifiedStartParameter)
         }
         createArtifact()
         def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
@@ -108,7 +108,7 @@ class BuildSourceBuilderTest {
 
     @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
         context.checking {
-            one(embeddedBuildExecuter).executeEmbeddedScript(withParam(any(StartParameter)))
+            one(embeddedBuildExecuter).execute(withParam(any(StartParameter)))
         }
         assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }

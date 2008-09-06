@@ -16,14 +16,13 @@
 
 package org.gradle.initialization;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.commons.io.IOUtils;
+import org.apache.ivy.core.IvyPatternHelper;
+import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.StartParameter;
-import org.gradle.util.GUtil;
-import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,10 +71,8 @@ public class BuildSourceBuilder {
         if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
             logger.debug("Build script file does not exists. Using default one.");
             startParameterArg.useEmbeddedBuildFile(getDefaultScript());
-            embeddedBuildExecuter.executeEmbeddedScript(startParameterArg);
-        } else {
-            embeddedBuildExecuter.execute(startParameterArg);
         }
+        embeddedBuildExecuter.execute(startParameterArg);
         logger.info("Check if build artifact exists: ${buildArtifactFile(buildResolverDir)}");
         if (!buildArtifactFile(buildResolverDir).exists()) {
             logger.info("Building buildSrc has not produced any artifact!");

@@ -97,16 +97,8 @@ public class AbstractIntegrationTest {
         
         public GradleExecution runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
-            BuildResult result;
-            if (parameter.getBuildScriptSource() == null) {
-                result = Build.newInstance(parameter).run(parameter);
-            } else {
-                result = Build.newInstance(parameter).runNonRecursivelyWithCurrentDirAsRoot(parameter);
-            }
-            if (result.getFailure() instanceof RuntimeException) {
-                throw (RuntimeException) result.getFailure();
-            }
-            assertThat(result.getFailure(), nullValue());
+            BuildResult result = Build.newInstance(parameter).run(parameter);
+            result.rethrowFailure();
             return this;
         }
 
@@ -122,6 +114,11 @@ public class AbstractIntegrationTest {
         public GradleExecution usingSettingsFile(File settingsFile) {
             assertThat(settingsFile.getParentFile(), equalTo(parameter.getCurrentDir()));
             parameter.setSettingsFileName(settingsFile.getName());
+            return this;
+        }
+
+        public GradleExecution usingBuildScript(String script) {
+            parameter.useEmbeddedBuildFile(script);
             return this;
         }
     }
@@ -150,7 +147,7 @@ public class AbstractIntegrationTest {
         }
     }
 
-    protected GradleExecution usingCurrentDirectory(File file) {
+    protected GradleExecution inDirectory(File file) {
         StartParameter parameter = startParameter();
         parameter.setCurrentDir(file);
         return new GradleExecution(parameter);

@@ -17,14 +17,14 @@
 package org.gradle
 
 import org.gradle.CacheUsage
-import org.junit.Before
-import org.junit.Test
 import org.gradle.api.Project
 import org.gradle.api.Settings
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.util.ReflectionEqualsMatcher
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 
 /**
  * @author Hans Dockter

@@ -73,17 +73,4 @@ public class EmbeddedBuildExecuterTest {
         embeddedBuildExecuter.execute(localExpectedStartParameter);
         embeddedBuildExecuter.execute(localExpectedStartParameter);
     }
-
-    @Test
-    public void testExecuteEmbedded() {
-        context.checking(new Expectations() {
-            {
-                exactly(2).of(buildFactoryMock).newInstance(expectedStartParameter);
-                will(returnValue(buildMock));
-                exactly(2).of(buildMock).runNonRecursivelyWithCurrentDirAsRoot(expectedStartParameter);
-            }
-        });
-        embeddedBuildExecuter.executeEmbeddedScript(expectedStartParameter);
-        embeddedBuildExecuter.executeEmbeddedScript(expectedStartParameter);
-    }
 }

@@ -45,8 +45,8 @@ public class StartParameter {
     private File pluginPropertiesFile;
     private File buildResolverDirectory;
     private CacheUsage cacheUsage;
-    private StringScriptSource buildScriptSource;
-    private StringScriptSource settingsScriptSource;
+    private ScriptSource buildScriptSource;
+    private ScriptSource settingsScriptSource;
 
     public StartParameter() {
     }
@@ -118,8 +118,8 @@ public class StartParameter {
     }
 
     /**
-     * <p>Returns the {@link ScriptSource} to use for the build file. Returns null when the default build file(s) are to
-     * be used.</p>
+     * <p>Returns the {@link ScriptSource} to use for the build file for this build. Returns null when the default
+     * build file(s) are to be used. This source is used for <em>all</em> projects included in the build.</p>
      *
      * @return The build file source, or null to use the defaults.
      */
@@ -128,8 +128,8 @@ public class StartParameter {
     }
 
     /**
-     * <p>Returns the {@link ScriptSource} to use for the settings file. Returns null when the default settings file is
-     * to be used.</p>
+     * <p>Returns the {@link ScriptSource} to use for the settings file for this build. Returns null when the default
+     * settings file is to be used.</p>
      *
      * @return The settings file source, or null to use the default.
      */
@@ -138,7 +138,17 @@ public class StartParameter {
     }
 
     /**
-     * <p>Specifies that the given script should be used as the build file. Uses an empty settings file.</p>
+     * <p>Sets the {@link ScriptSource} to use for the settings file. Set to null to use the default settings file.</p>
+     *
+     * @param settingsScriptSource The settings file source.
+     */
+    public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
+        this.settingsScriptSource = settingsScriptSource;
+    }
+
+    /**
+     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
+     * </p>
      *
      * @param buildScript The script to use as the build file.
      * @return this
@@ -147,6 +157,7 @@ public class StartParameter {
         buildScriptSource = new StringScriptSource("embedded build file", buildScript);
         buildFileName = Project.EMBEDDED_SCRIPT_ID;
         settingsScriptSource = new StringScriptSource("empty settings file", "");
+        searchUpwards = false;
         return this;
     }
 

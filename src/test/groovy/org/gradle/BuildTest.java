@@ -23,7 +23,11 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.*;
+import org.gradle.initialization.DefaultSettings;
+import org.gradle.initialization.IGradlePropertiesLoader;
+import org.gradle.initialization.ISettingsFinder;
+import org.gradle.initialization.ProjectsLoader;
+import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.BaseMatcher;
@@ -202,19 +206,6 @@ public class BuildTest {
     }
 
     @Test
-    public void testRunWithEmbeddedScript() {
-        context.checking(new Expectations() {
-            {
-                one(settingsProcessorMock).createBasicSettings(settingsFinderMock, expectedStartParams);
-                will(returnValue(settingsMock));
-            }
-        });
-        expectTasksRunWithDagRebuild();
-        build.runNonRecursivelyWithCurrentDirAsRoot(expectedStartParams);
-        checkSystemProps(expectedSystemPropertiesArgs);
-    }
-
-    @Test
     public void testNotifiesListenerOnBuildComplete() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
@@ -322,23 +313,6 @@ public class BuildTest {
             }
         });
         build.taskList(expectedStartParams);
-        checkSystemProps(expectedSystemPropertiesArgs);
-    }
-
-    @Test
-    public void testTaskListEmbedded() {
-        final StartParameter expectedStartParameterArg = StartParameter.newInstance(expectedStartParams);
-        expectedStartParameterArg.setSearchUpwards(false);
-        context.checking(new Expectations() {
-            {
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParameterArg,
-                        testGradleProperties, System.getProperties(), System.getenv());
-                one(settingsProcessorMock).createBasicSettings(settingsFinderMock, expectedStartParameterArg);
-                will(returnValue(settingsMock));
-            }
-        });
-        setTaskExpectations();
-        build.taskListNonRecursivelyWithCurrentDirAsRoot(expectedStartParameterArg);
         checkSystemProps(expectedSystemPropertiesArgs);
     }
 

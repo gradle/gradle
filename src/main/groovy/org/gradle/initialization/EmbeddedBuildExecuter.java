@@ -38,10 +38,6 @@ public class EmbeddedBuildExecuter {
         buildFactory.newInstance(startParameter).run(startParameter).rethrowFailure();
     }
 
-    public void executeEmbeddedScript(StartParameter startParameter) {
-        buildFactory.newInstance(startParameter).runNonRecursivelyWithCurrentDirAsRoot(startParameter).rethrowFailure();
-    }
-
     public BuildFactory getBuildFactory() {
         return buildFactory;
     }

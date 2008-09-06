@@ -75,7 +75,6 @@ public class Main {
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(logger);
 
         String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
-        String embeddedBuildScript = null;
         StartParameter startParameter = new StartParameter();
 
         OptionParser parser = new OptionParser() {
@@ -210,8 +209,7 @@ public class Main {
                 exitWithError(options, new InvalidUserDataException());
                 return;
             }
-            embeddedBuildScript = options.argumentOf(EMBEDDED_SCRIPT);
-            startParameter.useEmbeddedBuildFile(embeddedBuildScript);
+            startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
         }
 
         logger.debug("gradle.home= " + gradleHome);
@@ -229,20 +227,12 @@ public class Main {
             build.addBuildListener(resultLogger);
 
             if (options.has(TASKS)) {
-                if (embeddedBuildScript != null) {
-                    System.out.print(build.taskListNonRecursivelyWithCurrentDirAsRoot(startParameter));
-                } else {
-                    System.out.println(build.taskList(startParameter));
-                }
+                System.out.println(build.taskList(startParameter));
                 exitWithSuccess(options);
                 return;
             }
 
-            if (embeddedBuildScript != null) {
-                build.runNonRecursivelyWithCurrentDirAsRoot(startParameter);
-            } else {
-                build.run(startParameter);
-            }
+            build.run(startParameter);
         } catch (Throwable e) {
             exceptionReporter.buildFinished(new BuildResult(null, e));
             exitWithError(options, e);
