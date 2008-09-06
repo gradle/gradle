@@ -75,10 +75,10 @@ public class Build {
             ClassLoader classLoader = settings.createClassLoader();
             Boolean rebuildDag = true;
             List<String> taskNames = startParameter.getTaskNames();
-            TaskSelector selector = taskNames.size() == 0
-                    ? new ProjectDefaultsTaskSelector()
-                    : new NameResolvingTaskSelector(taskNames);
-            while (selector.hasNext()) {
+            TaskExecuter executer = taskNames.size() == 0
+                    ? new ProjectDefaultsTaskExecuter()
+                    : new NameResolvingTaskExecuter(taskNames);
+            while (executer.hasNext()) {
                 if (rebuildDag) {
                     projectLoader.load(settings, classLoader, startParameter, gradlePropertiesLoader.getGradleProperties(), 
                             getAllSystemProperties(), getAllEnvProperties());
@@ -86,10 +86,10 @@ public class Build {
                 } else {
                     logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
                 }
-                selector.select(projectLoader.getCurrentProject());
-                logger.info(String.format("++++ Starting build for %s.", selector.getDescription()));
-                logger.debug(String.format("Selected for execution: %s.", selector.getTasks()));
-                rebuildDag = buildExecuter.execute(selector.getTasks(), projectLoader.getRootProject());
+                executer.select(projectLoader.getCurrentProject());
+                logger.info(String.format("++++ Starting build for %s.", executer.getDescription()));
+                executer.execute(buildExecuter);
+                rebuildDag = executer.requiresProjectReload();
             }
         } catch (Throwable t) {
             failure = t;
