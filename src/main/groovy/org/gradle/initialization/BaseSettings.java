@@ -72,10 +72,9 @@ public class BaseSettings implements Settings {
     }
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {
-        buildSrcStartParameter = new StartParameter();
+        buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS));
         buildSrcStartParameter.setSearchUpwards(true);
-        buildSrcStartParameter.setGradleUserHomeDir(startParameter.getGradleUserHomeDir());
     }
 
     public void include(String[] projectPaths) {

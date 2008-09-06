@@ -22,9 +22,6 @@ import joptsimple.OptionSet;
 import org.apache.ivy.util.DefaultMessageLogger;
 import org.apache.ivy.util.Message;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.initialization.BuildSourceBuilder;
-import org.gradle.initialization.EmbeddedBuildExecuter;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
@@ -185,10 +182,6 @@ public class Main {
         if (options.hasArgument(BUILD_FILE)) {
             startParameter.setBuildFileName(options.argumentOf(BUILD_FILE));
         }
-        else if (options.has(EMBEDDED_SCRIPT)) {
-            startParameter.setBuildFileName(Project.EMBEDDED_SCRIPT_ID);
-        }
-
         if (options.hasArgument(SETTINGS_FILE)) {
             startParameter.setSettingsFileName(options.argumentOf(SETTINGS_FILE));
         }
@@ -199,7 +192,7 @@ public class Main {
 
         if (options.has(CACHE_OFF)) {
             if (options.has(REBUILD_CACHE)) {
-                logger.error(String.format("Error: The %s option can't be used together with the %s option.",
+                logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",
                         CACHE_OFF, REBUILD_CACHE));
                 exitWithError(options, new InvalidUserDataException());
             }
@@ -211,13 +204,14 @@ public class Main {
         }
 
         if (options.has(EMBEDDED_SCRIPT)) {
-            if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS)) {
-                logger.error(String.format("Error: The %s option can't be used together with the %s or %s option.",
-                        EMBEDDED_SCRIPT, BUILD_FILE, NO_SEARCH_UPWARDS));
+            if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
+                logger.error(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
+                        EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
                 exitWithError(options, new InvalidUserDataException());
                 return;
             }
             embeddedBuildScript = options.argumentOf(EMBEDDED_SCRIPT);
+            startParameter.useEmbeddedBuildFile(embeddedBuildScript);
         }
 
         logger.debug("gradle.home= " + gradleHome);
@@ -230,9 +224,7 @@ public class Main {
         startParameter.setTaskNames(options.nonOptionArguments());
 
         try {
-            Build.BuildFactory buildFactory = Build.newInstanceFactory(startParameter);
-            Build build = buildFactory.newInstance(embeddedBuildScript, null);
-            build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(new EmbeddedBuildExecuter(buildFactory)));
+            Build build = Build.newInstance(startParameter);
             build.addBuildListener(exceptionReporter);
             build.addBuildListener(resultLogger);
 
@@ -276,7 +268,7 @@ public class Main {
 
         int ivyLogLevel = Message.MSG_INFO;
         if (options.has(IVY_DEBUG) && options.has(IVY_QUIET)) {
-            System.out.printf("Error: For the dependency output you must either set '%s' or '%s'. Not Both!", IVY_QUIET, IVY_DEBUG);
+            System.out.printf("Error: For the dependency output you must either set -%s or -%s. Not Both!", IVY_QUIET, IVY_DEBUG);
             exitWithError(options, new RuntimeException("Wrong Parameter"));
         } else if (options.has(IVY_QUIET)) {
             ivyLogLevel = Message.MSG_ERR;
@@ -285,7 +277,7 @@ public class Main {
         }
 
         if (options.has(DEBUG) && options.has(QUIET)) {
-            System.out.printf("Error: For the loglevel you must either set '%s' or '%s'. Not Both!", QUIET, DEBUG);
+            System.out.printf("Error: For the loglevel you must either set -%s or -%s. Not Both!", QUIET, DEBUG);
             exitWithError(options, new RuntimeException("Wrong Parameter"));
         } else if (options.has(DEBUG)) {
             loglevel = "DEBUG";

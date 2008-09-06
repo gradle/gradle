@@ -65,25 +65,25 @@ public class EmbeddedBuildExecuterTest {
         localExpectedStartParameter.setSearchUpwards(true);
         context.checking(new Expectations() {
             {
-                exactly(2).of(buildFactoryMock).newInstance(null, expectedBuildResolverDir);
+                exactly(2).of(buildFactoryMock).newInstance(localExpectedStartParameter);
                 will(returnValue(buildMock));
                 exactly(2).of(buildMock).run(localExpectedStartParameter);
             }
         });
-        embeddedBuildExecuter.execute(expectedBuildResolverDir, localExpectedStartParameter);
-        embeddedBuildExecuter.execute(expectedBuildResolverDir, localExpectedStartParameter);
+        embeddedBuildExecuter.execute(localExpectedStartParameter);
+        embeddedBuildExecuter.execute(localExpectedStartParameter);
     }
 
     @Test
     public void testExecuteEmbedded() {
         context.checking(new Expectations() {
             {
-                exactly(2).of(buildFactoryMock).newInstance(expectedEmbeddedScript, expectedBuildResolverDir);
+                exactly(2).of(buildFactoryMock).newInstance(expectedStartParameter);
                 will(returnValue(buildMock));
                 exactly(2).of(buildMock).runNonRecursivelyWithCurrentDirAsRoot(expectedStartParameter);
             }
         });
-        embeddedBuildExecuter.executeEmbeddedScript(expectedBuildResolverDir, expectedEmbeddedScript, expectedStartParameter);
-        embeddedBuildExecuter.executeEmbeddedScript(expectedBuildResolverDir, expectedEmbeddedScript, expectedStartParameter);
+        embeddedBuildExecuter.executeEmbeddedScript(expectedStartParameter);
+        embeddedBuildExecuter.executeEmbeddedScript(expectedStartParameter);
     }
 }

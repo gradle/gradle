@@ -20,11 +20,14 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Settings;
 import org.gradle.api.Project;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -32,7 +35,7 @@ import java.util.Map;
 public class StartParameter {
     private String settingsFileName = Settings.DEFAULT_SETTINGS_FILE;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
-    private List<String> taskNames;
+    private List<String> taskNames = new ArrayList<String>();
     private File currentDir;
     private boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<String, String>();
@@ -40,7 +43,10 @@ public class StartParameter {
     private File gradleUserHomeDir;
     private File defaultImportsFile;
     private File pluginPropertiesFile;
+    private File buildResolverDirectory;
     private CacheUsage cacheUsage;
+    private StringScriptSource buildScriptSource;
+    private StringScriptSource settingsScriptSource;
 
     public StartParameter() {
     }
@@ -72,7 +78,26 @@ public class StartParameter {
         startParameter.defaultImportsFile = startParameterSrc.defaultImportsFile;
         startParameter.pluginPropertiesFile = startParameterSrc.pluginPropertiesFile;
         startParameter.cacheUsage = startParameterSrc.cacheUsage;
+        startParameter.buildResolverDirectory = startParameterSrc.buildResolverDirectory;
+        startParameter.buildScriptSource = startParameterSrc.buildScriptSource;
+        startParameter.settingsScriptSource = startParameterSrc.settingsScriptSource;
 
+        return startParameter;
+    }
+
+    /**
+     * <p>Creates the parameters for a new build, using these parameters as a template. Copies the environmental
+     * properties from this parameter (eg gradle user home dir, etc), but does not copy the build specific properties
+     * (eg task names).</p>
+     *
+     * @return The new parameters.
+     */
+    public StartParameter newBuild() {
+        StartParameter startParameter = new StartParameter();
+        startParameter.gradleUserHomeDir = gradleUserHomeDir;
+        startParameter.pluginPropertiesFile = pluginPropertiesFile;
+        startParameter.defaultImportsFile = defaultImportsFile;
+        startParameter.cacheUsage = cacheUsage;
         return startParameter;
     }
 
@@ -90,6 +115,47 @@ public class StartParameter {
 
     public void setBuildFileName(String buildFileName) {
         this.buildFileName = buildFileName;
+    }
+
+    /**
+     * <p>Returns the {@link ScriptSource} to use for the build file. Returns null when the default build file(s) are to
+     * be used.</p>
+     *
+     * @return The build file source, or null to use the defaults.
+     */
+    public ScriptSource getBuildScriptSource() {
+        return buildScriptSource;
+    }
+
+    /**
+     * <p>Returns the {@link ScriptSource} to use for the settings file. Returns null when the default settings file is
+     * to be used.</p>
+     *
+     * @return The settings file source, or null to use the default.
+     */
+    public ScriptSource getSettingsScriptSource() {
+        return settingsScriptSource;
+    }
+
+    /**
+     * <p>Specifies that the given script should be used as the build file. Uses an empty settings file.</p>
+     *
+     * @param buildScript The script to use as the build file.
+     * @return this
+     */
+    public StartParameter useEmbeddedBuildFile(String buildScript) {
+        buildScriptSource = new StringScriptSource("embedded build file", buildScript);
+        buildFileName = Project.EMBEDDED_SCRIPT_ID;
+        settingsScriptSource = new StringScriptSource("empty settings file", "");
+        return this;
+    }
+
+    public File getBuildResolverDirectory() {
+        return buildResolverDirectory;
+    }
+
+    public void setBuildResolverDirectory(File buildResolverDirectory) {
+        this.buildResolverDirectory = buildResolverDirectory;
     }
 
     public List<String> getTaskNames() {

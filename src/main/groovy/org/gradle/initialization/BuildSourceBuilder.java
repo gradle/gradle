@@ -67,12 +67,14 @@ public class BuildSourceBuilder {
         StartParameter startParameterArg = StartParameter.newInstance(startParameter);
         startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
         startParameterArg.setSearchUpwards(false);
+        startParameterArg.setBuildResolverDirectory(buildResolverDir);
 
         if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
             logger.debug("Build script file does not exists. Using default one.");
-            embeddedBuildExecuter.executeEmbeddedScript(buildResolverDir, getDefaultScript(), startParameterArg);
+            startParameterArg.useEmbeddedBuildFile(getDefaultScript());
+            embeddedBuildExecuter.executeEmbeddedScript(startParameterArg);
         } else {
-            embeddedBuildExecuter.execute(buildResolverDir, startParameterArg);
+            embeddedBuildExecuter.execute(startParameterArg);
         }
         logger.info("Check if build artifact exists: ${buildArtifactFile(buildResolverDir)}");
         if (!buildArtifactFile(buildResolverDir).exists()) {

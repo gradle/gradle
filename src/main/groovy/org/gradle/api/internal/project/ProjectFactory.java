@@ -33,14 +33,14 @@ public class ProjectFactory implements IProjectFactory {
     PluginRegistry pluginRegistry;
     String buildFileName;
     ProjectRegistry projectRegistry;
-    String embeddedScript;
+    ScriptSource embeddedScript;
     ITaskFactory taskFactory;
 
     public ProjectFactory() {
     }
 
     public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
-                          PluginRegistry pluginRegistry, String buildFileName, ProjectRegistry projectRegistry, String embeddedScript) {
+                          PluginRegistry pluginRegistry, String buildFileName, ProjectRegistry projectRegistry, ScriptSource embeddedScript) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
@@ -53,7 +53,7 @@ public class ProjectFactory implements IProjectFactory {
     public DefaultProject createProject(String name, Project parent, File rootDir, ClassLoader buildScriptClassLoader) {
         ScriptSource source;
         if (embeddedScript != null) {
-            source = new StringScriptSource("embedded build file", embeddedScript);
+            source = embeddedScript;
         } else if (parent == null) {
             source = new FileScriptSource("build file", new File(rootDir, buildFileName));
         } else {

@@ -25,7 +25,6 @@ import org.gradle.configuration.ProjectTasksPrettyPrinter;
 import org.gradle.execution.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
-import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,7 @@ import java.util.Map;
 public class Build {
     private static Logger logger = LoggerFactory.getLogger(Build.class);
 
-    static CustomFactory customFactory = null;
+    static BuildFactory buildFactory = new DefaultBuildFactory();
 
     private ISettingsFinder settingsFinder;
     private IGradlePropertiesLoader gradlePropertiesLoader;
@@ -172,67 +171,17 @@ public class Build {
         }
     }
 
-    public static BuildFactory newInstanceFactory(final StartParameter startParameter) {
-        if (customFactory != null) {
-            return customFactory.newInstanceFactory(startParameter);
-        }
-        return new BuildFactory() {
-            public Build newInstance(String inMemoryScriptText, File buildResolverDir) {
-                DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
-                ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
-                IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(), startParameter.getCacheUsage());
-                Dag tasksGraph = new Dag();
-                Build build = new Build(
-                        new ParentDirSettingsFinder(),
-                        new DefaultGradlePropertiesLoader(),
-                        new SettingsProcessor(
-                                new DefaultSettingsScriptMetaData(),
-                                scriptProcessor,
-                                importsReader,
-                                new SettingsFactory(),
-                                dependencyManagerFactory,
-                                null,
-                                buildResolverDir),
-                        new ProjectsLoader(
-                                new ProjectFactory(
-                                        new TaskFactory(tasksGraph),
-                                        dependencyManagerFactory,
-                                        new BuildScriptProcessor(
-                                                scriptProcessor,
-                                                new DefaultProjectScriptMetaData(),
-                                                importsReader
-                                        ),
-                                        new PluginRegistry(
-                                                startParameter.getPluginPropertiesFile()),
-                                        startParameter.getBuildFileName(),
-                                        new ProjectRegistry(),
-                                        inMemoryScriptText)
-
-                        ),
-                        new BuildConfigurer(
-                                new ProjectDependencies2TaskResolver(),
-                                new ProjectTasksPrettyPrinter()),
-                        new BuildExecuter(tasksGraph
-                        ));
-                if (buildResolverDir == null) {
-                    build.addBuildListener(new DefaultBuildListener());
-                }
-                return build;
-            }
-        };
+    public static Build newInstance(final StartParameter startParameter) {
+        return buildFactory.newInstance(startParameter);
     }
 
     // This is used for mocking
-    public static void injectCustomFactory(CustomFactory customFactory) {
-        Build.customFactory = customFactory;
+    public static void injectCustomFactory(BuildFactory buildFactory) {
+        Build.buildFactory = buildFactory == null ? new DefaultBuildFactory() : buildFactory;
     }
 
     public static interface BuildFactory {
-        public Build newInstance(String inMemoryScriptText, File buildResolverDir);
-    }
-
-    public static interface CustomFactory {
-        public BuildFactory newInstanceFactory(StartParameter startParameter);
+        public Build newInstance(StartParameter startParameter);
     }
 
     public ISettingsFinder getSettingsFinder() {
@@ -295,11 +244,50 @@ public class Build {
         buildListeners.add(buildListener);
     }
 
-    // In a future release Gradle will have a listener framework. Then this class will be replaced by a standard
-    // listener class.
-    public static class Cleaner {
-        public void clean(File buildResolverDir) {
-            GFileUtils.deleteDirectory(buildResolverDir);
+    private static class DefaultBuildFactory implements BuildFactory {
+        public Build newInstance(StartParameter startParameter) {
+            DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
+            ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
+            IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(), startParameter.getCacheUsage());
+            Dag tasksGraph = new Dag();
+            File buildResolverDir = startParameter.getBuildResolverDirectory();
+            Build build = new Build(
+                    new ParentDirSettingsFinder(),
+                    new DefaultGradlePropertiesLoader(),
+                    new SettingsProcessor(
+                            new DefaultSettingsScriptMetaData(),
+                            scriptProcessor,
+                            importsReader,
+                            new SettingsFactory(),
+                            dependencyManagerFactory,
+                            null,
+                            buildResolverDir),
+                    new ProjectsLoader(
+                            new ProjectFactory(
+                                    new TaskFactory(tasksGraph),
+                                    dependencyManagerFactory,
+                                    new BuildScriptProcessor(
+                                            scriptProcessor,
+                                            new DefaultProjectScriptMetaData(),
+                                            importsReader
+                                    ),
+                                    new PluginRegistry(
+                                            startParameter.getPluginPropertiesFile()),
+                                    startParameter.getBuildFileName(),
+                                    new ProjectRegistry(),
+                                    startParameter.getBuildScriptSource())
+
+                    ),
+                    new BuildConfigurer(
+                            new ProjectDependencies2TaskResolver(),
+                            new ProjectTasksPrettyPrinter()),
+                    new BuildExecuter(tasksGraph
+                    ));
+            build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(new EmbeddedBuildExecuter(this)));
+            if (buildResolverDir == null) {
+                build.addBuildListener(new DefaultBuildListener());
+            }
+            return build;
         }
     }
 }

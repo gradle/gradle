@@ -66,7 +66,7 @@ class HelperUtil {
                 new PluginRegistry(),
                 "build.gradle",
                 new ProjectRegistry(),
-                "// an empty build script")
+                new StringScriptSource("embedded build file", "embedded"))
 
         DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
         project.setBuildScript(new EmptyScript())

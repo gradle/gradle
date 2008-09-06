@@ -34,14 +34,12 @@ public class EmbeddedBuildExecuter {
         this.buildFactory = buildFactory;
     }
 
-    public void execute(File buildResolverDir, StartParameter startParameter) {
-        Build build = buildFactory.newInstance(null, buildResolverDir);
-        build.run(startParameter);
+    public void execute(StartParameter startParameter) {
+        buildFactory.newInstance(startParameter).run(startParameter).rethrowFailure();
     }
 
-    public void executeEmbeddedScript(File buildResolverDir, String embeddedScript, StartParameter startParameter) {
-        Build build = buildFactory.newInstance(embeddedScript,  buildResolverDir);
-        build.runNonRecursivelyWithCurrentDirAsRoot(startParameter);
+    public void executeEmbeddedScript(StartParameter startParameter) {
+        buildFactory.newInstance(startParameter).runNonRecursivelyWithCurrentDirAsRoot(startParameter).rethrowFailure();
     }
 
     public BuildFactory getBuildFactory() {

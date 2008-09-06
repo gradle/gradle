@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle
 
 import org.gradle.CacheUsage
 import org.junit.Before
 import org.junit.Test
+import org.gradle.api.Project
+import org.gradle.api.Settings
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.util.ReflectionEqualsMatcher
 
 /**
  * @author Hans Dockter
@@ -26,7 +32,7 @@ import org.junit.Test
 class StartParameterTest {
     StartParameter testObj
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
         testObj = new StartParameter(
                 settingsFileName: 'settingsfile',
                 buildFileName: 'buildfile',
@@ -46,5 +52,46 @@ class StartParameterTest {
     @Test public void testNewInstance() {
         StartParameter startParameter = StartParameter.newInstance(testObj)
         assert startParameter.equals(testObj)
+    }
+
+    @Test public void testDefaultValues() {
+        StartParameter parameter = new StartParameter();
+        assertThat(parameter.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
+        assertThat(parameter.settingsFileName, equalTo(Settings.DEFAULT_SETTINGS_FILE))
+        assertThat(parameter.taskNames, notNullValue())
+        assertThat(parameter.projectProperties, notNullValue())
+        assertThat(parameter.systemPropertiesArgs, notNullValue())
+    }
+
+    @Test public void testUseEmbeddedBuildFile() {
+        StartParameter parameter = new StartParameter();
+        parameter.useEmbeddedBuildFile("<content>")
+        assertThat(parameter.buildScriptSource, ReflectionEqualsMatcher.reflectionEquals(new StringScriptSource("embedded build file", "<content>")))
+        assertThat(parameter.buildFileName, equalTo(Project.EMBEDDED_SCRIPT_ID))
+        assertThat(parameter.settingsScriptSource, ReflectionEqualsMatcher.reflectionEquals(new StringScriptSource("empty settings file", "")))
+        assertThat(parameter.searchUpwards, equalTo(false))
+    }
+    
+    @Test public void testNewBuild() {
+        StartParameter parameter = new StartParameter();
+
+        // Copied properties
+        parameter.setGradleUserHomeDir(new File("home"));
+        parameter.setCacheUsage(CacheUsage.OFF);
+        parameter.setPluginPropertiesFile(new File("plugins"));
+        parameter.setDefaultImportsFile(new File("imports"));
+
+        // Non-copied
+        parameter.setBuildFileName("b");
+        parameter.getTaskNames().add("t1");
+
+        StartParameter newParameter = parameter.newBuild();
+
+        assertThat(newParameter, not(equalTo(parameter)));
+
+        assertThat(newParameter.getGradleUserHomeDir(), equalTo(parameter.getGradleUserHomeDir()));
+        assertThat(newParameter.getCacheUsage(), equalTo(parameter.getCacheUsage()));
+        assertThat(newParameter.getPluginPropertiesFile(), equalTo(parameter.getPluginPropertiesFile()));
+        assertThat(newParameter.getDefaultImportsFile(), equalTo(parameter.getDefaultImportsFile()));
     }
 }

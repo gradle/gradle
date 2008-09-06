@@ -358,20 +358,12 @@ public class BuildTest {
     // todo: This test is rather weak. Make it stronger.
     //@Test
     public void testNewInstanceFactory() {
-        File expectedPluginProps = new File("pluginProps");
-        File expectedDefaultImports = new File("defaultImports");
-
         StartParameter startParameter = new StartParameter();
         startParameter.setBuildFileName("buildfile");
         startParameter.setDefaultImportsFile(new File("imports"));
         startParameter.setPluginPropertiesFile(new File("plugin"));
-        Build build = Build.newInstanceFactory(startParameter).newInstance(
-                "embeddedscript",
-                new File("buildResolverDir"));
-//        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
-//        assertEquals(expectedDefaultImports, build.settingsProcessor.importsReader.defaultImportsFile)
-        build = Build.newInstanceFactory(startParameter).newInstance(null, null);
-//        assertEquals(expectedDefaultImports, build.projectLoader.buildScriptProcessor.importsReader.defaultImportsFile)
+        Build build = Build.newInstance(startParameter);
+        assertThat(build, notNullValue());
     }
 
     private Matcher<BuildResult> result(final Settings expectedSettings, final Matcher<? extends Throwable> exceptionMatcher) {

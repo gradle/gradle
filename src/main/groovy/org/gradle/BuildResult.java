@@ -16,6 +16,7 @@
 package org.gradle;
 
 import org.gradle.api.Settings;
+import org.gradle.api.GradleException;
 
 public class BuildResult {
     private final Settings settings;
@@ -32,5 +33,17 @@ public class BuildResult {
 
     public Throwable getFailure() {
         return failure;
+    }
+
+    /**
+     * <p>Rethrows the build failure. Does nothing if there was no build failure.</p>
+     */
+    public void rethrowFailure() {
+        if (failure instanceof RuntimeException) {
+            throw (RuntimeException) failure;
+        }
+        if (failure != null) {
+            throw new GradleException("Build aborted because of an internal error.", failure);
+        }
     }
 }

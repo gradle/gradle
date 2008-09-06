@@ -22,9 +22,7 @@ import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 import org.gradle.util.HelperUtil;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -87,11 +85,9 @@ public class AbstractIntegrationTest {
 
     public static class GradleExecution {
         protected final StartParameter parameter;
-        private final String script;
 
-        public GradleExecution(StartParameter parameter, String script) {
+        public GradleExecution(StartParameter parameter) {
             this.parameter = parameter;
-            this.script = script;
         }
 
         public GradleExecution withSearchUpwards() {
@@ -102,10 +98,10 @@ public class AbstractIntegrationTest {
         public GradleExecution runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
             BuildResult result;
-            if (script == null) {
-                result = Build.newInstanceFactory(parameter).newInstance(null, null).run(parameter);
+            if (parameter.getBuildScriptSource() == null) {
+                result = Build.newInstance(parameter).run(parameter);
             } else {
-                result = Build.newInstanceFactory(parameter).newInstance(script, null).runNonRecursivelyWithCurrentDirAsRoot(parameter);
+                result = Build.newInstance(parameter).runNonRecursivelyWithCurrentDirAsRoot(parameter);
             }
             if (result.getFailure() instanceof RuntimeException) {
                 throw (RuntimeException) result.getFailure();
@@ -154,16 +150,22 @@ public class AbstractIntegrationTest {
         }
     }
 
+    protected GradleExecution usingCurrentDirectory(File file) {
+        StartParameter parameter = startParameter();
+        parameter.setCurrentDir(file);
+        return new GradleExecution(parameter);
+    }
+
     protected GradleExecution usingBuildFile(File file) {
         StartParameter parameter = startParameter();
         parameter.setCurrentDir(file.getParentFile());
         parameter.setBuildFileName(file.getName());
-        return new GradleExecution(parameter, null);
+        return new GradleExecution(parameter);
     }
 
     protected GradleExecution usingBuildScript(String script) {
         StartParameter parameter = startParameter();
-        parameter.setBuildFileName(Project.EMBEDDED_SCRIPT_ID);
-        return new GradleExecution(parameter, script);
+        parameter.useEmbeddedBuildFile(script);
+        return new GradleExecution(parameter);
     }
 }

@@ -105,8 +105,10 @@ public class ProjectFactoryTest {
 
     @Test
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
+        ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
+
         ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
-                "build.gradle", projectRegistry, "<content>");
+                "build.gradle", projectRegistry, expectedScriptSource);
 
         DefaultProject project = projectFactory.createProject("somename", null, rootDir, buildScriptClassLoader);
 
@@ -116,9 +118,7 @@ public class ProjectFactoryTest {
         assertNull(project.getParent());
         assertSame(project, project.getRootProject());
         checkProjectResources(project);
-
-        ScriptSource expectedScriptSource = new StringScriptSource("embedded build file", "<content>");
-        assertThat(project.getBuildScriptSource(), ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource));
+        assertSame(project.getBuildScriptSource(), expectedScriptSource);
     }
 
     private void checkProjectResources(DefaultProject project) {

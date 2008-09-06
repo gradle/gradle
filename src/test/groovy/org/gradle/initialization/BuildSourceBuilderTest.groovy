@@ -75,10 +75,11 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithExistingBuildSources() {
-        StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
-        expectedStartParameter.setSearchUpwards(false)
+        StartParameter modifiedStartParameter = StartParameter.newInstance(expectedStartParameter)
+        modifiedStartParameter.setSearchUpwards(false)
+        modifiedStartParameter.setBuildResolverDirectory(testBuildResolverDir)
         context.checking {
-            one(embeddedBuildExecuter).execute(testBuildResolverDir, expectedStartParameter)
+            one(embeddedBuildExecuter).execute(modifiedStartParameter)
         }
         createArtifact()
         createBuildFile()
@@ -87,10 +88,12 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
-        StartParameter expectedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
-        expectedStartParameter.setSearchUpwards(false)
+        StartParameter modifiedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
+        modifiedStartParameter.setSearchUpwards(false)
+        modifiedStartParameter.setBuildResolverDirectory(testBuildResolverDir)
+        modifiedStartParameter.useEmbeddedBuildFile(BuildSourceBuilder.getDefaultScript())
         context.checking {
-            one(embeddedBuildExecuter).executeEmbeddedScript(testBuildResolverDir, BuildSourceBuilder.getDefaultScript(), expectedStartParameter)
+            one(embeddedBuildExecuter).executeEmbeddedScript(modifiedStartParameter)
         }
         createArtifact()
         def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
@@ -105,7 +108,7 @@ class BuildSourceBuilderTest {
 
     @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
         context.checking {
-            one(embeddedBuildExecuter).executeEmbeddedScript(withParam(any(File)), withParam(any(String)), withParam(any(StartParameter)))
+            one(embeddedBuildExecuter).executeEmbeddedScript(withParam(any(StartParameter)))
         }
         assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }

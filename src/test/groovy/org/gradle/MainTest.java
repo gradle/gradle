@@ -19,7 +19,6 @@ package org.gradle;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Settings;
-import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -37,7 +36,11 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -61,29 +64,19 @@ public class MainTest {
     private boolean expectedSearchUpwards;
     private String expectedEmbeddedScript;
     private StartParameter actualStartParameter;
-    private String actualEmbeddedScript;
-    private File actualBuildResolverDir;
 
     private Build buildMock;
     private JUnit4Mockery context = new JUnit4Mockery();
-    private Build.BuildFactory testBuildFactory;
 
     @Before
     public void setUp() throws IOException {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         buildMock = context.mock(Build.class);
-        testBuildFactory = new Build.BuildFactory() {
-            public Build newInstance(String inMemoryScriptText, File buildResolverDir) {
-                actualEmbeddedScript = inMemoryScriptText;
-                actualBuildResolverDir = buildResolverDir;
-                return buildMock;
-            }
-        };
 
-        Build.injectCustomFactory(new Build.CustomFactory() {
-            public Build.BuildFactory newInstanceFactory(StartParameter startParameter) {
+        Build.injectCustomFactory(new Build.BuildFactory() {
+            public Build newInstance(StartParameter startParameter) {
                 actualStartParameter = startParameter;
-                return testBuildFactory;
+                return buildMock;
             }
         });
 
@@ -170,14 +163,10 @@ public class MainTest {
     }
 
     private void checkMain(final boolean embedded, final boolean noTasks, MainCall mainCall) throws Throwable {
-        final SettingsProcessor settingsProcessor = new SettingsProcessor();
-
         context.checking(new Expectations() {
             {
                 one(buildMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
                 one(buildMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
-                allowing(buildMock).getSettingsProcessor();
-                will(returnValue(settingsProcessor));
                 if (embedded) {
                     if (noTasks) {
                         one(buildMock).taskListNonRecursivelyWithCurrentDirAsRoot(with(new StartParameterMatcher(true)));
@@ -197,14 +186,12 @@ public class MainTest {
         mainCall.execute();
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter, noTasks);
-        assertNull(actualBuildResolverDir);
+        assertNull(actualStartParameter.getBuildResolverDirectory());
         if (embedded) {
-            assertEquals(expectedEmbeddedScript, actualEmbeddedScript);
+            assertThat(actualStartParameter.getBuildScriptSource().getText(), equalTo(expectedEmbeddedScript));
         } else {
-            assert !GUtil.isTrue(actualEmbeddedScript);
+            assert !GUtil.isTrue(actualStartParameter.getBuildScriptSource());
         }
-        assertNotNull(settingsProcessor.getBuildSourceBuilder());
-        assertSame(testBuildFactory, settingsProcessor.getBuildSourceBuilder().getEmbeddedBuildExecuter().getBuildFactory());
     }
 
     @Test
@@ -350,6 +337,11 @@ public class MainTest {
     @Test(expected = InvalidUserDataException.class)
     public void testMainWithEmbeddedScriptAndConflictingSpecifyBuildFileOption() throws Throwable {
         Main.main(new String[]{"-S", "-e", "someScript", "-bsomeFile", "clean"});
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithEmbeddedScriptAndConflictingSpecifySettingsFileOption() throws Throwable {
+        Main.main(new String[]{"-S", "-e", "someScript", "-csomeFile", "clean"});
     }
 
     @Test

@@ -17,6 +17,8 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.api.Project;
 import org.gradle.util.GUtil;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import java.io.File;
 
@@ -46,5 +48,13 @@ public class StringScriptSource implements ScriptSource {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
+    }
+
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }
