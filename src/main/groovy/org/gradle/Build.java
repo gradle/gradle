@@ -18,13 +18,34 @@ package org.gradle;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.BuildScriptProcessor;
+import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
-import org.gradle.execution.*;
-import org.gradle.groovy.scripts.*;
-import org.gradle.initialization.*;
+import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.Dag;
+import org.gradle.execution.TaskExecuter;
+import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
+import org.gradle.groovy.scripts.DefaultScriptHandler;
+import org.gradle.groovy.scripts.DefaultScriptProcessor;
+import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
+import org.gradle.groovy.scripts.IScriptProcessor;
+import org.gradle.initialization.BuildSourceBuilder;
+import org.gradle.initialization.DefaultGradlePropertiesLoader;
+import org.gradle.initialization.DefaultSettings;
+import org.gradle.initialization.EmbeddedBuildExecuter;
+import org.gradle.initialization.EmbeddedScriptSettingsFinder;
+import org.gradle.initialization.IGradlePropertiesLoader;
+import org.gradle.initialization.ISettingsFinder;
+import org.gradle.initialization.ParentDirSettingsFinder;
+import org.gradle.initialization.ProjectsLoader;
+import org.gradle.initialization.SettingsFactory;
+import org.gradle.initialization.SettingsProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,10 +95,7 @@ public class Build {
         try {
             ClassLoader classLoader = settings.createClassLoader();
             Boolean rebuildDag = true;
-            List<String> taskNames = startParameter.getTaskNames();
-            TaskExecuter executer = taskNames.size() == 0
-                    ? new ProjectDefaultsTaskExecuter()
-                    : new NameResolvingTaskExecuter(taskNames);
+            TaskExecuter executer = startParameter.getTaskExecuter();
             while (executer.hasNext()) {
                 if (rebuildDag) {
                     projectLoader.load(settings, classLoader, startParameter, gradlePropertiesLoader.getGradleProperties(), 
@@ -101,16 +119,6 @@ public class Build {
         }
 
         return buildResult;
-    }
-
-    public String taskList(StartParameter startParameter) {
-        return taskListInternal(init(startParameter), startParameter);
-    }
-
-    private String taskListInternal(DefaultSettings settings, StartParameter startParameter) {
-        projectLoader.load(settings, settings.createClassLoader(), startParameter, gradlePropertiesLoader.getGradleProperties(),
-                getAllSystemProperties(), getAllEnvProperties());
-        return buildConfigurer.taskList(projectLoader.getRootProject(), true, projectLoader.getCurrentProject());
     }
 
     private DefaultSettings init(StartParameter startParameter) {

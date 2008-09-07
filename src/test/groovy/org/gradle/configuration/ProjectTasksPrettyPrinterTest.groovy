@@ -46,10 +46,12 @@ class ProjectTasksPrettyPrinterTest {
         // would(has) lead to failing tests under Windows.
         StringWriter stringWriter = new StringWriter()
         String separator = '*' * 50
-        new PlatformLineWriter(stringWriter).withWriter { it.write("""$separator
+        new PlatformLineWriter(stringWriter).withWriter { it.write("""
+$separator
 Project: $project1
 ++Task: $task11.path: ${task11.dependsOn.toString().replace("\"", "")}
 ++Task: $task12.path: $task12.dependsOn
+
 $separator
 Project: $project2
 ++Task: $task21.path: $task21.dependsOn

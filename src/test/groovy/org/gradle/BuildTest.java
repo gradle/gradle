@@ -301,29 +301,6 @@ public class BuildTest {
         assertThat(buildResult.getFailure().getClass(), equalTo((Object) UnknownTaskException.class));
     }
 
-    @Test
-    public void testTaskList() {
-        setTaskExpectations();
-        context.checking(new Expectations() {
-            {
-                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
-                will(returnValue(settingsMock));
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        testGradleProperties, System.getProperties(), System.getenv());
-            }
-        });
-        build.taskList(expectedStartParams);
-        checkSystemProps(expectedSystemPropertiesArgs);
-    }
-
-    private void setTaskExpectations() {
-        context.checking(new Expectations() {
-            {
-                one(buildConfigurerMock).taskList(expectedRootProject, true, expectedCurrentProject);
-            }
-        });
-    }
-
     private void checkSystemProps(Map props) {
         assertFalse(System.getProperties().keySet().contains("prop2"));
         assertEquals(testGradleProperties.get(Project.SYSTEM_PROP_PREFIX + ".prop1"), System.getProperty("prop1"));

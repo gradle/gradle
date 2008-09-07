@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -22,6 +22,10 @@ import org.gradle.api.Settings;
 import org.gradle.api.Project;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.ProjectDefaultsTaskExecuter;
+import org.gradle.execution.NameResolvingTaskExecuter;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.HashMap;
@@ -47,6 +51,7 @@ public class StartParameter {
     private CacheUsage cacheUsage;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
+    private TaskExecuter taskExecuter = new ProjectDefaultsTaskExecuter();
 
     public StartParameter() {
     }
@@ -81,6 +86,7 @@ public class StartParameter {
         startParameter.buildResolverDirectory = startParameterSrc.buildResolverDirectory;
         startParameter.buildScriptSource = startParameterSrc.buildScriptSource;
         startParameter.settingsScriptSource = startParameterSrc.settingsScriptSource;
+        startParameter.taskExecuter = startParameterSrc.taskExecuter;
 
         return startParameter;
     }
@@ -118,8 +124,8 @@ public class StartParameter {
     }
 
     /**
-     * <p>Returns the {@link ScriptSource} to use for the build file for this build. Returns null when the default
-     * build file(s) are to be used. This source is used for <em>all</em> projects included in the build.</p>
+     * <p>Returns the {@link ScriptSource} to use for the build file for this build. Returns null when the default build
+     * file(s) are to be used. This source is used for <em>all</em> projects included in the build.</p>
      *
      * @return The build file source, or null to use the defaults.
      */
@@ -161,20 +167,57 @@ public class StartParameter {
         return this;
     }
 
+    /**
+     * <p>Returns the build resolver directory to use, if any. The build resolver directory is used to store artifacts
+     * shared between the projects of the build.  Returns null when the default build resolver directory is to be used.
+     * </p>
+     *
+     * @return The build resolver directory, or null if the default is to be used.
+     */
     public File getBuildResolverDirectory() {
         return buildResolverDirectory;
     }
 
+    /**
+     * <p>Specifies the build resolver directory to use. The build resolver directory is used to store artifacts shared
+     * between the projects of the build.  Set to null to use the default build resolver directory for this build.</p>
+     */
     public void setBuildResolverDirectory(File buildResolverDirectory) {
         this.buildResolverDirectory = buildResolverDirectory;
+    }
+
+    /**
+     * <p>Returns the {@link TaskExecuter} to use.</p>
+     *
+     * @return The {@link TaskExecuter}. Never returns null.
+     */
+    public TaskExecuter getTaskExecuter() {
+        return taskExecuter;
+    }
+
+    /**
+     * <p>Sets the {@link TaskExecuter} to use.</p>
+     */
+    public void setTaskExecuter(TaskExecuter taskExecuter) {
+        this.taskExecuter = taskExecuter;
     }
 
     public List<String> getTaskNames() {
         return taskNames;
     }
 
+    /**
+     * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the
+     * project.</p>
+     */
     public void setTaskNames(List<String> taskNames) {
-        this.taskNames = taskNames;
+        if (!GUtil.isTrue(taskNames)) {
+            this.taskNames = new ArrayList<String>();
+            taskExecuter = new ProjectDefaultsTaskExecuter();
+        } else {
+            this.taskNames = new ArrayList<String>(taskNames);
+            taskExecuter = new NameResolvingTaskExecuter(this.taskNames);
+        }
     }
 
     public File getCurrentDir() {

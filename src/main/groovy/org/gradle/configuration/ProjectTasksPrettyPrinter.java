@@ -18,30 +18,26 @@ package org.gradle.configuration;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.apache.commons.io.IOUtils;
 
+import java.util.Formatter;
 import java.util.Map;
-import java.util.List;
 import java.util.Set;
-import java.io.StringWriter;
-import java.io.BufferedWriter;
 
 /**
  * @author Hans Dockter
  */
 public class ProjectTasksPrettyPrinter {
-    public static final String NL = System.getProperty("line.separator");
-    public static final String SEPARATOR = "**************************************************" + NL;
+    public static final String SEPARATOR = "**************************************************";
 
-    String getPrettyText(Map<Project, Set<Task>> tasks) {
-        StringBuffer sb = new StringBuffer();
+    public String getPrettyText(Map<Project, Set<Task>> tasks) {
+        Formatter formatter = new Formatter();
         for (Project project : tasks.keySet()) {
-            sb.append(SEPARATOR);
-            sb.append("Project: " + project + NL);
+            formatter.format("%n%s%n", SEPARATOR);
+            formatter.format("Project: %s%n", project);
             for (Task task : tasks.get(project)) {
-                sb.append("++Task: " + task.getPath() + ": " + task.getDependsOn() + NL);
+                formatter.format("++Task: %s: %s%n", task.getPath(), task.getDependsOn());
             }
         }
-        return sb.toString();
+        return formatter.toString();
     }
 }

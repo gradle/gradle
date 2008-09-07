@@ -18,10 +18,10 @@ package org.gradle.configuration
 
 import org.gradle.api.Project
 import org.gradle.api.ProjectAction
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.Clock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.internal.project.ProjectInternal
 
 /**
  * @author Hans Dockter
@@ -52,16 +52,4 @@ class BuildConfigurer {
         projectDependencies2TasksResolver.resolve(rootProject)
         logger.debug("Timing: Configuring projects took " + clock.time)
     }
-
-    String taskList(Project rootProject, boolean recursive, Project currentProject) {
-        assert rootProject
-        assert currentProject
-
-        process(rootProject)
-
-        logger.debug("Finding tasks for project: {} Recursive:{}", currentProject, recursive)
-        Map tasks = currentProject.getAllTasks(recursive)
-        projectTasksPrettyPrinter.getPrettyText(tasks)
-    }
-
 }

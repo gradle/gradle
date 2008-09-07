@@ -168,7 +168,7 @@ public class MainTest {
                 one(buildMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
                 one(buildMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
                 if (noTasks) {
-                    one(buildMock).taskList(with(new StartParameterMatcher(true)));
+                    one(buildMock).run(with(new StartParameterMatcher(true)));
                 } else {
                     one(buildMock).run(with(new StartParameterMatcher(false)));
                 }

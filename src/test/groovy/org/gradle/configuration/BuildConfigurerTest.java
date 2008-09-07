@@ -24,7 +24,6 @@ import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -90,18 +89,4 @@ public class BuildConfigurerTest {
         createExpectations();
         buildConfigurer.process(rootProject);
     }
-
-    @Test
-    public void testTaskList() {
-        createExpectations();
-        final String expectedTasksPrettyText = "someTasksText";
-        final ProjectTasksPrettyPrinter projectTasksPrettyPrinterMock = context.mock(ProjectTasksPrettyPrinter.class);
-        buildConfigurer.setProjectTasksPrettyPrinter(projectTasksPrettyPrinterMock);
-        context.checking(new Expectations() {{
-            allowing(projectTasksPrettyPrinterMock).getPrettyText(expectedTasksMap); will(returnValue(expectedTasksPrettyText));
-        }});
-
-        assertEquals(expectedTasksPrettyText, buildConfigurer.taskList(rootProject, false, rootProject));
-    }
-
 }

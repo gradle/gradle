@@ -19,8 +19,11 @@ package org.gradle
 import org.gradle.CacheUsage
 import org.gradle.api.Project
 import org.gradle.api.Settings
+import org.gradle.execution.TaskExecuter
+import org.gradle.execution.NameResolvingTaskExecuter
+import org.gradle.execution.ProjectDefaultsTaskExecuter
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.util.ReflectionEqualsMatcher
+import static org.gradle.util.ReflectionEqualsMatcher.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.junit.Before
@@ -61,14 +64,33 @@ class StartParameterTest {
         assertThat(parameter.taskNames, notNullValue())
         assertThat(parameter.projectProperties, notNullValue())
         assertThat(parameter.systemPropertiesArgs, notNullValue())
+        assertThat(parameter.taskExecuter, instanceOf(ProjectDefaultsTaskExecuter))
+    }
+
+    @Test public void testSetTaskNames() {
+        StartParameter parameter = new StartParameter()
+        parameter.setTaskNames(Arrays.asList("a", "b"))
+        assertThat(parameter.taskExecuter, reflectionEquals(new NameResolvingTaskExecuter(Arrays.asList("a", "b"))))
+    }
+
+    @Test public void testSetTaskNamesToEmptyOrNullListUsesProjectDefaultTasks() {
+        StartParameter parameter = new StartParameter()
+
+        parameter.setTaskExecuter({} as TaskExecuter)
+        parameter.setTaskNames(Collections.emptyList())
+        assertThat(parameter.taskExecuter, instanceOf(ProjectDefaultsTaskExecuter))
+
+        parameter.setTaskExecuter({} as TaskExecuter)
+        parameter.setTaskNames(null)
+        assertThat(parameter.taskExecuter, instanceOf(ProjectDefaultsTaskExecuter))
     }
 
     @Test public void testUseEmbeddedBuildFile() {
         StartParameter parameter = new StartParameter();
         parameter.useEmbeddedBuildFile("<content>")
-        assertThat(parameter.buildScriptSource, ReflectionEqualsMatcher.reflectionEquals(new StringScriptSource("embedded build file", "<content>")))
+        assertThat(parameter.buildScriptSource, reflectionEquals(new StringScriptSource("embedded build file", "<content>")))
         assertThat(parameter.buildFileName, equalTo(Project.EMBEDDED_SCRIPT_ID))
-        assertThat(parameter.settingsScriptSource, ReflectionEqualsMatcher.reflectionEquals(new StringScriptSource("empty settings file", "")))
+        assertThat(parameter.settingsScriptSource, reflectionEquals(new StringScriptSource("empty settings file", "")))
         assertThat(parameter.searchUpwards, equalTo(false))
     }
     

@@ -22,6 +22,7 @@ import joptsimple.OptionSet;
 import org.apache.ivy.util.DefaultMessageLogger;
 import org.apache.ivy.util.Message;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.execution.BuiltInTaskExecuter;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
@@ -219,18 +220,17 @@ public class Main {
         logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
         logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
 
-        startParameter.setTaskNames(options.nonOptionArguments());
+        if (options.has(TASKS)) {
+            startParameter.setTaskExecuter(new BuiltInTaskExecuter());
+        } else {
+            startParameter.setTaskNames(options.nonOptionArguments());
+        }
 
         try {
             Build build = Build.newInstance(startParameter);
+
             build.addBuildListener(exceptionReporter);
             build.addBuildListener(resultLogger);
-
-            if (options.has(TASKS)) {
-                System.out.println(build.taskList(startParameter));
-                exitWithSuccess(options);
-                return;
-            }
 
             build.run(startParameter);
         } catch (Throwable e) {
