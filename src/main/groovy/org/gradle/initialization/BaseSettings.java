@@ -19,25 +19,26 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
-import org.gradle.api.*;
+import org.gradle.api.DependencyManager;
+import org.gradle.api.Project;
+import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.initialization.IProjectDescriptorRegistry;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.GradleUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.PathHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -112,6 +113,13 @@ public class BaseSettings implements Settings {
                     parentProjectDescriptor = projectDescriptor;
                 }
             }
+        }
+    }
+
+    public void includeFlat(String[] projectNames) {
+        for (String projectName : projectNames) {
+            createProjectDescriptor(rootProjectDescriptor, projectName,
+                    new File(rootProjectDescriptor.getDir().getParentFile(), projectName));
         }
     }
 

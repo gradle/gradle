@@ -22,21 +22,16 @@ import org.gradle.StartParameter
 import org.gradle.api.DependencyManager
 import org.gradle.api.Project
 import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertTrue
-import static org.junit.Assert.assertNull
-import static org.junit.Assert.assertSame
+import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.internal.project.DefaultProjectRegistry
 
 /**
  * @author Hans Dockter
@@ -55,7 +50,7 @@ class DefaultSettingsTest {
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        settingsDir = new File('/root')
+        settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         dependencyManagerMock = context.mock(DependencyManager)
@@ -109,6 +104,22 @@ class DefaultSettingsTest {
         settings.include(paths2)
         assertTrue(rootProjectDescriptor.getChildren().contains(new DefaultProjectDescriptor(
                 rootProjectDescriptor, projectD, new File(rootProjectDescriptor.getDir(), projectD), new DefaultProjectDescriptorRegistry())))
+    }
+
+    @Test public void testIncludeFlat() {
+        ProjectDescriptor rootProjectDescriptor = settings.getRootProjectDescriptor();
+        String projectA = "a"
+        String projectB = "b"
+        String[] paths = [projectA, projectB]
+        settings.includeFlat(paths)
+        assertEquals(2, rootProjectDescriptor.getChildren().size())
+        testDescriptor(settings.descriptor(":" + projectA), projectA, new File(settingsDir.parentFile, projectA))
+        testDescriptor(settings.descriptor(":" + projectB), projectB, new File(settingsDir.parentFile, projectB))
+    }
+
+    private void testDescriptor(DefaultProjectDescriptor descriptor, String name, File projectDir) {
+        assertEquals(name, descriptor.getName(), descriptor.getName())
+        assertEquals(projectDir, descriptor.getDir())
     }
 
     @Test public void testCreateProjectDescriptor() {

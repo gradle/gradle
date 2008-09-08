@@ -111,6 +111,7 @@ class Userguide {
                 runMp('dependencies/messagesConfigDependenciesBroken/messages/consumer', 'MessagesConfigDependenciesBroken', 'consume'),
                 runMp('dependencies/messagesConfigDependencies/messages/consumer', 'MessagesConfigDependencies', 'consume'),
                 runMp('dependencies/messagesConfigDependenciesAltSolution/messages/consumer', 'MessagesConfigDependenciesAltSolution', 'consume'),
+                runMp('flat/master', 'Flat', 'hello'),
                 run('tutorial', 'antChecksum', 'checksum'),
                 run('tutorial', 'antChecksumWithMethod', 'checksum'),
                 run('tutorial', 'autoskip', '-Dskip.autoskip autoskip'),
