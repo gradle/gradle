@@ -18,12 +18,7 @@ package org.gradle;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
-import org.gradle.api.internal.project.BuildScriptProcessor;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.internal.project.TaskFactory;
+import org.gradle.api.internal.project.*;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
@@ -35,17 +30,7 @@ import org.gradle.groovy.scripts.DefaultScriptHandler;
 import org.gradle.groovy.scripts.DefaultScriptProcessor;
 import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.initialization.BuildSourceBuilder;
-import org.gradle.initialization.DefaultGradlePropertiesLoader;
-import org.gradle.initialization.DefaultSettings;
-import org.gradle.initialization.EmbeddedBuildExecuter;
-import org.gradle.initialization.EmbeddedScriptSettingsFinder;
-import org.gradle.initialization.IGradlePropertiesLoader;
-import org.gradle.initialization.ISettingsFinder;
-import org.gradle.initialization.ParentDirSettingsFinder;
-import org.gradle.initialization.ProjectsLoader;
-import org.gradle.initialization.SettingsFactory;
-import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,8 +83,8 @@ public class Build {
             TaskExecuter executer = startParameter.getTaskExecuter();
             while (executer.hasNext()) {
                 if (rebuildDag) {
-                    projectLoader.load(settings, classLoader, startParameter, gradlePropertiesLoader.getGradleProperties(), 
-                            getAllSystemProperties(), getAllEnvProperties());
+                    projectLoader.reset();
+                    projectLoader.load(settings.getRootProjectDescriptor(), classLoader, startParameter, gradlePropertiesLoader.getGradleProperties());
                     buildConfigurer.process(projectLoader.getRootProject());
                 } else {
                     logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
@@ -123,18 +108,12 @@ public class Build {
 
     private DefaultSettings init(StartParameter startParameter) {
         initInternal(startParameter);
-        return settingsProcessor.process(settingsFinder, startParameter);
+        return settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader.getGradleProperties());
     }
 
     private void initInternal(StartParameter startParameter) {
         settingsFinder.find(startParameter);
-        gradlePropertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter);
-        setSystemProperties(startParameter.getSystemPropertiesArgs());
-    }
-
-    private void setSystemProperties(Map properties) {
-        System.getProperties().putAll(properties);
-        addSystemPropertiesFromGradleProperties();
+        gradlePropertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
 
     private void addSystemPropertiesFromGradleProperties() {
@@ -253,7 +232,7 @@ public class Build {
                             new DefaultSettingsScriptMetaData(),
                             scriptProcessor,
                             importsReader,
-                            new SettingsFactory(),
+                            new SettingsFactory(new DefaultProjectDescriptorRegistry()),
                             dependencyManagerFactory,
                             null,
                             buildResolverDir),
@@ -269,7 +248,7 @@ public class Build {
                                     new PluginRegistry(
                                             startParameter.getPluginPropertiesFile()),
                                     startParameter.getBuildFileName(),
-                                    new ProjectRegistry(),
+                                    new DefaultProjectRegistry(),
                                     startParameter.getBuildScriptSource())
 
                     ),

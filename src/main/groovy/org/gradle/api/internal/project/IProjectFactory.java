@@ -25,5 +25,6 @@ import java.io.File;
  * @author Hans Dockter
  */
 public interface IProjectFactory {
-    ProjectInternal createProject(String name, Project parent, File rootDir, ClassLoader buildScriptClassLoader);
+    ProjectInternal createProject(String name, Project parent, File rootDir, File projectDir, ClassLoader buildScriptClassLoader);
+    void reset();
 }

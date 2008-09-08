@@ -15,8 +15,8 @@
  */
 package org.gradle;
 
-import org.gradle.api.Settings;
 import org.gradle.api.GradleException;
+import org.gradle.api.initialization.Settings;
 
 public class BuildResult {
     private final Settings settings;

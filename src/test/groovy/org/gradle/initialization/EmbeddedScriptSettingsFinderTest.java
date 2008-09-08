@@ -24,7 +24,7 @@ public class EmbeddedScriptSettingsFinderTest {
 
         settingsFinder.find(parameter);
 
-        assertThat(settingsFinder.getSettingsScript(), sameInstance(settingsScriptSource));
+        assertThat(settingsFinder.getSettingsScriptSource(), sameInstance(settingsScriptSource));
     }
 
     @Test

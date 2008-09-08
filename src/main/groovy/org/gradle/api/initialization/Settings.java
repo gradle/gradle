@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.initialization;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.dependencies.ResolverContainer;
+import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.DependencyManager;
+import org.gradle.StartParameter;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
@@ -56,17 +58,6 @@ public interface Settings {
     String BUILD_DEPENDENCIES_PROJECT_NAME = "build";
 
     /**
-     * <p>The paths to the project which should take part in this build additional to the project containing the
-     * settings file, which takes always in part in the build.</p>
-     *
-     * <p>A project path in the settings file is slightly different from a project path you use in your build file. A
-     * settings project path is always relative to the directory containing the settings file.</p>
-     *
-     * @return a list with project paths in the order they have been added.
-     */
-    List<String> getProjectPaths();
-
-    /**
      * <p>Adds paths of projects which should take part in this build, additional to the project containing the settings
      * file, which takes always in part in the build.</p>
      *
@@ -78,7 +69,7 @@ public interface Settings {
     void include(String[] projectPaths);
 
     /**
-     * <p>Returns the {@link DependencyManager} which manages the classpath to use for the build files.</p>
+     * <p>Returns the {@link org.gradle.api.DependencyManager} which manages the classpath to use for the build files.</p>
      *
      * @return the dependency manager instance responsible for managing the dependencies for the users build script
      *         classpath.
@@ -117,4 +108,8 @@ public interface Settings {
     DualResolver addMavenRepo(String[] jarRepoUrls);
 
     DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
+
+    ProjectDescriptor getRootProjectDescriptor();
+
+    StartParameter getStartParameter();
 }

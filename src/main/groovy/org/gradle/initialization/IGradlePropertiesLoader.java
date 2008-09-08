@@ -24,7 +24,12 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface IGradlePropertiesLoader {
+    public static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
+
+    public static final String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
+    
     Map<String, String> getGradleProperties();
 
-    void loadProperties(File rootDir, StartParameter startParameter);
+    void loadProperties(File rootDir, StartParameter startParameter, Map<String, String> systemProperties,
+                        Map<String, String> envProperties);
 }

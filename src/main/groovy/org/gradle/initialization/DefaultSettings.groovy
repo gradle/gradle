@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization
 
-import groovy.lang.MissingPropertyException;
-import org.gradle.StartParameter;
-import org.gradle.api.Settings;
+import org.gradle.StartParameter
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.util.WrapUtil;
 
 /**
  * @author Hans Dockter
@@ -29,18 +25,14 @@ import org.gradle.util.WrapUtil;
 public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
-    DefaultSettings(DependencyManagerFactory dependencyManagerFactory,
-                    BuildSourceBuilder buildSourceBuilder, ISettingsFinder settingsFinder, StartParameter startParameter) {
-        super(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter)
+    DefaultSettings(DependencyManagerFactory dependencyManagerFactory, IProjectDescriptorRegistry projectDescriptorRegistry,
+                    BuildSourceBuilder buildSourceBuilder, File settingsDir, Map gradleProperties, StartParameter startParameter) {
+        super(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir, gradleProperties, startParameter)
     }
 
     def propertyMissing(String property) {
-        def delegateObject = [settingsFinder, startParameter].find {
-            it.metaClass.hasProperty(it, property)
-        }
-        if (delegateObject) { return delegateObject."$property" }
-        if (settingsFinder.gradleProperties.keySet().contains(property)) {
-            return settingsFinder.gradleProperties[property]
+        if (gradleProperties.keySet().contains(property)) {
+            return gradleProperties[property]
         }
         throw new MissingPropertyException(property, DefaultSettings)
     }

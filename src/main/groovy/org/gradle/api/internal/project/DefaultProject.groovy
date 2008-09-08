@@ -37,11 +37,11 @@ class DefaultProject extends AbstractProject {
         super();
     }
 
-    public DefaultProject(String name, Project parent, File rootDir, String buildFileName, ScriptSource scriptSource,
+    public DefaultProject(String name, Project parent, File rootDir, File projectDir, String buildFileName, ScriptSource scriptSource,
                           ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
-                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry,
+                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
                           IProjectFactory projectFactory) {
-        super(name, parent, rootDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
+        super(name, parent, rootDir, projectDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
                 buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory);
     }
 

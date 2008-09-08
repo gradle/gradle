@@ -18,7 +18,7 @@ public class EmbeddedScriptSettingsFinder implements ISettingsFinder {
         return settingsDir;
     }
 
-    public ScriptSource getSettingsScript() {
+    public ScriptSource getSettingsScriptSource() {
         return settingsScript;
     }
 }

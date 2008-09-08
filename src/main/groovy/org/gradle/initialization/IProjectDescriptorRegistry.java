@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.util
+package org.gradle.initialization;
 
-import org.gradle.api.Project
+import org.gradle.api.initialization.ProjectDescriptor;
+
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-class PathHelper {
-    static String getCurrentProjectPath(File rootDir, File currentDir) {
-        String path = ''
-        File dir = currentDir
-        while (true) {
-            if (dir == rootDir) {
-                return Project.PATH_SEPARATOR + "$path"   
-            } 
-            String suffix = path ? Project.PATH_SEPARATOR + "$path" : ''
-            path = "${dir.name}$suffix"
-            dir = dir.parentFile
-        }
-    }
+public interface IProjectDescriptorRegistry {
+    void addProjectDescriptor(DefaultProjectDescriptor projectDescriptor);
+
+    DefaultProjectDescriptor getProjectDescriptor(String path);
+
+    DefaultProjectDescriptor getProjectDescriptor(File projectDir);
+
+    void changeDescriptorPath(String oldPath, String newPath);
+
+    void changeProjectDir(File oldDir, File newDir);
 }

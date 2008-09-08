@@ -171,7 +171,7 @@ class DagTest {
     }
 
     @Test public void testExecute() {
-        Project child = root.addChildProject('child')
+        Project child = root.addChildProject('child', new File("projectDir"))
         List executedIdList = []
         DefaultTask dummyTask0 = createTask(root, 'a', executedIdList, 2)
         Set dependsOnTasks0 = [createTask(root, 'child2', executedIdList, 1),
@@ -186,7 +186,7 @@ class DagTest {
     }
 
     @Test public void testExecuteWithDagNeutral() {
-        Project child = root.addChildProject('child')
+        Project child = root.addChildProject('child', new File("childProjectDir"))
         List executedIdList = []
         DefaultTask dummyTask0 = createTask(root, 'a', executedIdList, 2)
         dag.addTask(dummyTask0, [] as Set)

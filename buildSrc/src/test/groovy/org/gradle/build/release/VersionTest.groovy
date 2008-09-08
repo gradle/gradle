@@ -20,6 +20,7 @@ import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
+import org.gradle.groovy.scripts.StringScriptSource
 
 /**
  * @author Hans Dockter
@@ -50,10 +51,10 @@ class VersionTest extends GroovyTestCase {
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 "build.gradle",
-                new ProjectRegistry(),
-                "// an empty build script")
+                new DefaultProjectRegistry(),
+                new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, rootDir, null)
         project.setBuildScript(new EmptyScript())
         return project;
     }

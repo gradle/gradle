@@ -21,7 +21,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Factory;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
-import org.gradle.api.Settings;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.DependencyManager;
 
 /**

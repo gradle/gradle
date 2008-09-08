@@ -38,12 +38,12 @@ import java.util.SortedMap;
  *
  * <ul>
  *
- * <li>Create a {@link Settings} instance for the build.</li>
+ * <li>Create a {@link org.gradle.api.initialization.Settings} instance for the build.</li>
  *
- * <li>Evaluate the <code>{@value org.gradle.api.Settings#DEFAULT_SETTINGS_FILE}</code> script, if present, against the
- * {@link Settings} object to configure it.</li>
+ * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if present, against the
+ * {@link org.gradle.api.initialization.Settings} object to configure it.</li>
  *
- * <li>Use the configured {@link Settings} object to create the hierarchy of <code>Project</code> instances.</li>
+ * <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
  * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated

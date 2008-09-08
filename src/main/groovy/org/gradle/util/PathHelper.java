@@ -14,18 +14,19 @@
  * limitations under the License.
  */
  
-package org.gradle.util
+package org.gradle.util;
 
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
-import org.junit.Test
+import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
 
 /**
  * @author Hans Dockter
  */
-class PathHelperTest {
-    @Test public void absolutePath() {
-        assertTrue(PathHelper.isAbsolutePath(":path"))
-        assertFalse(PathHelper.isAbsolutePath("path"))
+public class PathHelper {
+    public static boolean isAbsolutePath(String path) {
+        if (!GUtil.isTrue(path)) {
+            throw new InvalidUserDataException("A path must be specified!");
+        }
+        return path.startsWith(Project.PATH_SEPARATOR);
     }
 }

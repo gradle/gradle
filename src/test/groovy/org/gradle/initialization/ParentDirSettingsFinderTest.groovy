@@ -41,8 +41,6 @@ class ParentDirSettingsFinderTest {
     File currentDir
     File userHome
 
-    Map expectedGradleProperties
-
     @Before public void setUp()  {
         parentDirSettingsFinder = new ParentDirSettingsFinder()
         testDir = HelperUtil.makeNewTestDir()
@@ -56,16 +54,11 @@ class ParentDirSettingsFinderTest {
         currentDir = new File(inbetweenDir, "current")
         currentDir.mkdir()
         currentDir.deleteOnExit()
-        expectedGradleProperties = [prop1: 'value1UserHome', prop2: 'value2', prop3: 'value3']
     }
 
     @After
     public void tearDown() {
         HelperUtil.deleteTestDir()
-    }
-
-    @Test public void testInit() {
-        assertEquals([:], parentDirSettingsFinder.gradleProperties)
     }
 
     @Test public void testGradleSettingsInCurrentDirWithSearchUpwardsTrue() {
@@ -122,8 +115,7 @@ class ParentDirSettingsFinderTest {
 
         assertEquals(expectedRootDir, parentDirSettingsFinder.settingsDir)
         assertEquals(expectedSettingsFile, parentDirSettingsFinder.settingsFile)
-        assertThat(parentDirSettingsFinder.settingsScript, ReflectionEqualsMatcher.reflectionEquals(expectedSettingsScript))
-        assertEquals(expectedGradleProperties, parentDirSettingsFinder.gradleProperties)
+        assertThat(parentDirSettingsFinder.settingsScriptSource, ReflectionEqualsMatcher.reflectionEquals(expectedSettingsScript))
     }
 
     private StartParameter createStartParams(File currentDir, boolean searchUpwards) {

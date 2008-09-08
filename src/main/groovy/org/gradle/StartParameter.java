@@ -18,20 +18,20 @@ package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.Settings;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
+import org.gradle.execution.NameResolvingTaskExecuter;
+import org.gradle.execution.ProjectDefaultsTaskExecuter;
+import org.gradle.execution.TaskExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.execution.TaskExecuter;
-import org.gradle.execution.ProjectDefaultsTaskExecuter;
-import org.gradle.execution.NameResolvingTaskExecuter;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * @author Hans Dockter

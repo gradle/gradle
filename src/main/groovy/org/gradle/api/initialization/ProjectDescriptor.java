@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.util
+package org.gradle.api.initialization;
 
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
-import org.junit.Test
+import org.gradle.initialization.DefaultProjectDescriptor;
+
+import java.io.File;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-class PathHelperTest {
-    @Test public void absolutePath() {
-        assertTrue(PathHelper.isAbsolutePath(":path"))
-        assertFalse(PathHelper.isAbsolutePath("path"))
-    }
+public interface ProjectDescriptor {
+    String getName();
+
+    void setName(String name);
+
+    File getDir();
+
+    void setDir(File dir);
+
+    DefaultProjectDescriptor getParent();
+
+    Set<DefaultProjectDescriptor> getChildren();
+
+    String getPath();
 }

@@ -3,6 +3,8 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.groovy.scripts.ScriptSource;
 
+import java.io.File;
+
 public interface ProjectInternal extends Project {
     Project evaluate();
 
@@ -12,7 +14,9 @@ public interface ProjectInternal extends Project {
 
     ClassLoader getBuildScriptClassLoader();
 
-    Project addChildProject(String name);
+    Project addChildProject(String name, File projectDir);
 
     void setGradleUserHome(String gradleUserHome);
+
+    IProjectRegistry getProjectRegistry();
 }

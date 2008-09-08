@@ -17,16 +17,10 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Project;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -34,8 +28,7 @@ import java.util.Properties;
 public class ParentDirSettingsFinder implements ISettingsFinder {
     private File settingsDir;
     private File settingsFile;
-    private ScriptSource settingsScript;
-    private Map<String, String> gradleProperties = new HashMap<String, String>();
+    private ScriptSource settingsScriptSource;
 
     public void find(StartParameter startParameter) {
         File searchDir = startParameter.getCurrentDir();
@@ -56,28 +49,7 @@ public class ParentDirSettingsFinder implements ISettingsFinder {
         } else {
             settingsDir = settingsFile.getParentFile();
         }
-        settingsScript = new FileScriptSource("settings file", settingsFile);
-        addGradleProperties(settingsDir, startParameter);
-    }
-
-    private void addGradleProperties(File rootDir, StartParameter startParameter) {
-        addGradleProperties(
-                new File(rootDir, Project.GRADLE_PROPERTIES),
-                new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
-    }
-
-    private void addGradleProperties(File... files) {
-        for (File propertyFile : files) {
-            if (propertyFile.isFile()) {
-                Properties properties = new Properties();
-                try {
-                    properties.load(new FileInputStream(propertyFile));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                gradleProperties.putAll(new HashMap(properties));
-            }
-        }
+        settingsScriptSource = new FileScriptSource("settings file", settingsFile);
     }
 
     public File getSettingsDir() {
@@ -96,19 +68,11 @@ public class ParentDirSettingsFinder implements ISettingsFinder {
         this.settingsFile = settingsFile;
     }
 
-    public ScriptSource getSettingsScript() {
-        return settingsScript;
+    public ScriptSource getSettingsScriptSource() {
+        return settingsScriptSource;
     }
 
-    public void setSettingsScript(ScriptSource settingsScript) {
-        this.settingsScript = settingsScript;
-    }
-
-    public Map<String, String> getGradleProperties() {
-        return gradleProperties;
-    }
-
-    public void setGradleProperties(Map<String, String> gradleProperties) {
-        this.gradleProperties = gradleProperties;
+    public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
+        this.settingsScriptSource = settingsScriptSource;
     }
 }

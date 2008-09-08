@@ -19,12 +19,21 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 
+import java.io.File;
+import java.util.Map;
+
 /**
  * @author Hans Dockter
  */
 public class SettingsFactory {
-    DefaultSettings createSettings(DependencyManagerFactory dependencyManagerFactory,
-                            BuildSourceBuilder buildSourceBuilder, ISettingsFinder settingsFinder, StartParameter startParameter) {
-        return new DefaultSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter);
+    IProjectDescriptorRegistry projectDescriptorRegistry;
+
+    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry) {
+        this.projectDescriptorRegistry = projectDescriptorRegistry;
+    }
+
+    public DefaultSettings createSettings(DependencyManagerFactory dependencyManagerFactory,
+                            BuildSourceBuilder buildSourceBuilder, File settingsDir, Map gradleProperties, StartParameter startParameter) {
+        return new DefaultSettings(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir, gradleProperties, startParameter);
     }
 }

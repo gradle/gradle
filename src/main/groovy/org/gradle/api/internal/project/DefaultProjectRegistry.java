@@ -16,20 +16,43 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.GUtil;
 
 import java.util.*;
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-public class ProjectRegistry {
-    private Map<String, Project> projects = new HashMap<String, Project>();
+public class DefaultProjectRegistry implements IProjectRegistry {
+    private Map<String, Project> projects;
 
-    private Map<String, Set<Project>> subProjects = new HashMap<String, Set<Project>>();
+    private Map<String, Set<Project>> subProjects;
+
+    private Map<File, Project> projectDir2Project;
+
+    public DefaultProjectRegistry() {
+        init();
+    }
+
+    private void init() {
+        projects = new HashMap<String, Project>();
+        subProjects = new HashMap<String, Set<Project>>();
+        projectDir2Project = new HashMap<File, Project>();
+    }
 
     public void addProject(Project project) {
+        if (projectDir2Project.get(project.getProjectDir()) != null) {
+            throw new InvalidUserDataException("Project " + project + " has already existing projectDir: " + project.getProjectDir());
+        }
         projects.put(project.getPath(), project);
         subProjects.put(project.getPath(), new TreeSet());
+        addProjectToParentSubProjects(project);
+        projectDir2Project.put(project.getProjectDir(), project);
+    }
+
+    private void addProjectToParentSubProjects(Project project) {
         Project loopProject = project.getParent();
         while (loopProject != null) {
             subProjects.get(loopProject.getPath()).add(project);
@@ -41,13 +64,23 @@ public class ProjectRegistry {
         return projects.get(path);
     }
 
+    public Project getProject(File projectDir) {
+        return projectDir2Project.get(projectDir);
+    }
+
     public Set<Project> getAllProjects(String path) {
         Set<Project> result = new TreeSet(getSubProjects(path));
-        result.add(projects.get(path));
+        if (projects.get(path) != null) {
+            result.add(projects.get(path));
+        }
         return result;
     }
 
     public Set<Project> getSubProjects(String path) {
-        return subProjects.get(path);
+        return GUtil.elvis(subProjects.get(path), new TreeSet<Project>());
+    }
+
+    public void reset() {
+        init();
     }
 }

@@ -28,60 +28,115 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.initialization.ProjectDescriptor
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.api.initialization.ProjectDescriptor
+import org.gradle.api.internal.project.DefaultProjectRegistry
 
 /**
  * @author Hans Dockter
  */
 @RunWith (org.jmock.integration.junit4.JMock)
 class DefaultSettingsTest {
-    ISettingsFinder settingsFinder
+    File settingsDir
     StartParameter startParameter
-
+    Map gradleProperties
     DependencyManager dependencyManagerMock
     BuildSourceBuilder buildSourceBuilderMock
     DefaultSettings settings
     DependencyManagerFactory dependencyManagerFactoryMock
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    DefaultProjectDescriptorRegistry projectDescriptorRegistry;
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        settingsFinder = new ParentDirSettingsFinder()
-        settingsFinder.settingsDir = new File('/root')
-        settingsFinder.gradleProperties.someGradleProp = 'someValue'
-        startParameter = new StartParameter(currentDir: new File(settingsFinder.settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
+        settingsDir = new File('/root')
+        gradleProperties = [someGradleProp: 'someValue']
+        startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         dependencyManagerMock = context.mock(DependencyManager)
         buildSourceBuilderMock = context.mock(BuildSourceBuilder)
         dependencyManagerFactoryMock = context.mock(DependencyManagerFactory)
+        projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
         context.checking {
             one(dependencyManagerFactoryMock).createDependencyManager(withParam(BuildDependenciesProjectMatcher.equalsBuildProject(startParameter)))
             will(returnValue(dependencyManagerMock))
             one(dependencyManagerMock).addConfiguration("build")
         }
-        settings = new DefaultSettings(dependencyManagerFactoryMock, buildSourceBuilderMock, settingsFinder, startParameter)
+        settings = new DefaultSettings(dependencyManagerFactoryMock, projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, gradleProperties, startParameter)
     }
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
-        assert settings.settingsFinder.is(settingsFinder)
+        assertEquals(settingsDir, settings.getSettingsDir())
+        assertEquals(gradleProperties, settings.getGradleProperties())
         assert settings.dependencyManager.is(dependencyManagerMock)
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertEquals(Project.DEFAULT_BUILD_FILE, settings.buildSrcStartParameter.buildFileName)
         assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS], settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
+        checkRootProjectDescriptor();
+    }
+
+    private void checkRootProjectDescriptor() {
+        assertNull(settings.getRootProjectDescriptor().getParent())
+        assertEquals(settingsDir, settings.getRootProjectDescriptor().getDir())
+        assertEquals(settings.getRootProjectDescriptor().getDir().getName(), settings.getRootProjectDescriptor().getName())
     }
 
     @Test public void testInclude() {
-        String[] paths1 = ['a', 'b']
-        String[] paths2 = ['c', 'd']
+        ProjectDescriptor rootProjectDescriptor = settings.getRootProjectDescriptor();
+        String projectA = "a"
+        String projectB = "b"
+        String projectC = "c"
+        String projectD = "d"
+        String[] paths1 = [projectA, "$projectB:$projectC"]
+        String[] paths2 = [projectD]
         settings.include(paths1)
-        assertEquals(paths1 as List, settings.projectPaths)
+        assertEquals(2, rootProjectDescriptor.getChildren().size())
+        assertTrue(rootProjectDescriptor.getChildren().contains(new DefaultProjectDescriptor(
+                rootProjectDescriptor, projectA, new File(rootProjectDescriptor.getDir(), projectA), new DefaultProjectDescriptorRegistry())))
+        assertTrue(rootProjectDescriptor.getChildren().contains(new DefaultProjectDescriptor(
+                rootProjectDescriptor, projectB, new File(rootProjectDescriptor.getDir(), projectB), new DefaultProjectDescriptorRegistry())))
+        DefaultProjectDescriptor projectBDescriptor = settings.descriptor(projectB)
+        assertTrue(projectBDescriptor.getChildren().contains(new DefaultProjectDescriptor(
+                projectBDescriptor, projectC, new File(projectBDescriptor.getDir(), projectC), new DefaultProjectDescriptorRegistry())))
         settings.include(paths2)
-        assertEquals((paths1 as List) + (paths2 as List), settings.projectPaths)
+        assertTrue(rootProjectDescriptor.getChildren().contains(new DefaultProjectDescriptor(
+                rootProjectDescriptor, projectD, new File(rootProjectDescriptor.getDir(), projectD), new DefaultProjectDescriptorRegistry())))
     }
+
+    @Test public void testCreateProjectDescriptor() {
+        String testName = "testname"
+        File testDir = new File("testDir")
+        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
+        assertSame(settings.getRootProjectDescriptor(), projectDescriptor.getParent())
+        assertSame(settings.getProjectDescriptorRegistry(), projectDescriptor.getProjectDescriptorRegistry())
+        assertEquals(testName, projectDescriptor.getName())
+        assertEquals(testDir, projectDescriptor.getDir())
+    }
+
+    @Test public void testGetProjectDescriptorByPath() {
+        String testName = "testname"
+        File testDir = new File("testDir")
+        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
+        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getPath())
+        assertSame(foundProjectDescriptor, projectDescriptor)
+    }
+
+    @Test public void testGetProjectDescriptorByProjectDir() {
+        String testName = "testname"
+        File testDir = new File("testDir")
+        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
+        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getDir())
+        assertSame(foundProjectDescriptor, projectDescriptor)
+    }
+
 
     @Test public void testDependencies() {
         String[] expectedDependencies = ["dep1", "dep2"]
@@ -170,7 +225,7 @@ class DefaultSettingsTest {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = StartParameter.newInstance(settings.buildSrcStartParameter);
-        expectedStartParameter.setCurrentDir(new File(settings.settingsFinder.settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
+        expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
         context.checking {
             allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
             one(dependencyManagerMock).resolve(DefaultSettings.BUILD_CONFIGURATION); will(returnValue(testFiles))
@@ -195,14 +250,12 @@ class DefaultSettingsTest {
     }
 
     @Test (expected = MissingPropertyException) public void testPropertyMissing() {
-        assert settings.rootDir.is(getSettingsFinder.getSettingsDir)
-        assert settings.currentDir.is(startParameter.currentDir)
         assert settings.someGradleProp.is(getSettingsFinder.gradleProperties.someGradleProp)
         settings.unknownProp
     }
 
     @Test public void testGetRootDir() {
-        assertEquals(settingsFinder.settingsDir, settings.rootDir);
+        assertEquals(settingsDir, settings.rootDir);
     }
 
 
