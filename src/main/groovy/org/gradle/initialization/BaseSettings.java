@@ -130,8 +130,6 @@ public class BaseSettings implements Settings {
         return projectPath;
     }
 
-    
-
     public void dependencies(Object[] dependencies) {
         dependencyManager.dependencies(WrapUtil.toList(BUILD_CONFIGURATION), dependencies);
     }

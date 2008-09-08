@@ -25,7 +25,7 @@ import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.internal.project.ImportsReader
 import org.gradle.groovy.scripts.*
 import org.gradle.initialization.DefaultSettings
-import org.gradle.initialization.ParentDirSettingsFinder
+import org.gradle.initialization.ParentDirSettingsFinderStrategy
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
@@ -45,7 +45,7 @@ class SettingsProcessorTest {
     static final File TEST_ROOT_DIR = new File('rootDir')
     static final File TEST_CURRENT_DIR = new File('currentDir')
     SettingsProcessor settingsProcessor
-    ParentDirSettingsFinder expectedSettingsFinder
+    DefaultSettingsFinder expectedSettingsFinder
     ImportsReader importsReader
     DependencyManagerFactory dependencyManagerFactory
     SettingsFactory settingsFactory
@@ -97,7 +97,7 @@ class SettingsProcessorTest {
     }
 
     private void initSettingsFinder() {
-        expectedSettingsFinder = new ParentDirSettingsFinder()
+        expectedSettingsFinder = new DefaultSettingsFinder()
         scriptSourceMock = context.mock(ScriptSource)
         expectedSettingsFinder.setSettingsScriptSource(scriptSourceMock)
         expectedSettingsFinder.setSettingsDir(TEST_ROOT_DIR)

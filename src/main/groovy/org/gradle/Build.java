@@ -31,6 +31,7 @@ import org.gradle.groovy.scripts.DefaultScriptProcessor;
 import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
 import org.gradle.initialization.*;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,7 +224,9 @@ public class Build {
             Dag tasksGraph = new Dag();
             File buildResolverDir = startParameter.getBuildResolverDirectory();
             ISettingsFinder settingsFinder = startParameter.getSettingsScriptSource() == null
-                    ? new ParentDirSettingsFinder()
+                    ? new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
+                    new MasterDirSettingsFinderStrategy(),
+                    new ParentDirSettingsFinderStrategy()))
                     : new EmbeddedScriptSettingsFinder();
             Build build = new Build(
                     settingsFinder,

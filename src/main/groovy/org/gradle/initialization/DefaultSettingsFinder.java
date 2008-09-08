@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.FileScriptSource;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
-public class ParentDirSettingsFinder implements ISettingsFinder {
+public class DefaultSettingsFinder implements ISettingsFinder {
     private File settingsDir;
-    private File settingsFile;
     private ScriptSource settingsScriptSource;
+    private List<ISettingsFileSearchStrategy> settingsFileSearchStrategies;
+
+    public DefaultSettingsFinder(List<ISettingsFileSearchStrategy> settingsFileSearchStrategies) {
+        this.settingsFileSearchStrategies = settingsFileSearchStrategies;
+    }
 
     public void find(StartParameter startParameter) {
-        File searchDir = startParameter.getCurrentDir();
-        String settingsFileName = startParameter.getSettingsFileName();
-
-        // Damn, there is no do while in Groovy yet. We need an ugly work around.
-        while (searchDir != null && settingsFile == null) {
-            for (File file : searchDir.listFiles()) {
-                if (file.getName().equals(settingsFileName)) {
-                    settingsFile = file;
-                }
+        File settingsFile = null;
+        for (ISettingsFileSearchStrategy settingsFileSearchStrategy : settingsFileSearchStrategies) {
+            settingsFile = settingsFileSearchStrategy.find(startParameter);
+            if (settingsFile != null) {
+                break;
             }
-            searchDir = startParameter.isSearchUpwards() ? searchDir.getParentFile() : null;
         }
         if (settingsFile == null) {
             settingsDir = startParameter.getCurrentDir();
-            settingsFile = new File(settingsDir, settingsFileName);
+            settingsFile = new File(startParameter.getCurrentDir(), startParameter.getSettingsFileName());
         } else {
             settingsDir = settingsFile.getParentFile();
         }
@@ -58,14 +57,6 @@ public class ParentDirSettingsFinder implements ISettingsFinder {
 
     public void setSettingsDir(File settingsDir) {
         this.settingsDir = settingsDir;
-    }
-
-    public File getSettingsFile() {
-        return settingsFile;
-    }
-
-    public void setSettingsFile(File settingsFile) {
-        this.settingsFile = settingsFile;
     }
 
     public ScriptSource getSettingsScriptSource() {
