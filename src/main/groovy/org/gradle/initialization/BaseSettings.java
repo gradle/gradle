@@ -19,16 +19,18 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Project;
-import org.gradle.api.Settings;
+import org.gradle.api.*;
+import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.initialization.IProjectDescriptorRegistry;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.GradleUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.PathHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,36 +52,77 @@ public class BaseSettings implements Settings {
     private BuildSourceBuilder buildSourceBuilder;
     private Map<String, String> additionalProperties = new HashMap();
 
+    private Map<String, String> gradleProperties;
     private StartParameter startParameter;
 
-    private ISettingsFinder settingsFinder;
+    private File settingsDir;
 
     private StartParameter buildSrcStartParameter;
 
-    private List<String> projectPaths = new ArrayList<String>();
+    private DefaultProjectDescriptor rootProjectDescriptor;
+
+    IProjectDescriptorRegistry projectDescriptorRegistry;
 
     public BaseSettings() {
     }
 
-    public BaseSettings(DependencyManagerFactory dependencyManagerFactory,
-                        BuildSourceBuilder buildSourceBuilder, ISettingsFinder settingsFinder, StartParameter startParameter) {
-        this.settingsFinder = settingsFinder;
+    public BaseSettings(DependencyManagerFactory dependencyManagerFactory, IProjectDescriptorRegistry projectDescriptorRegistry,
+                        BuildSourceBuilder buildSourceBuilder, File settingsDir, Map<String, String> gradleProperties, StartParameter startParameter) {
+        this.projectDescriptorRegistry = projectDescriptorRegistry;
+        this.settingsDir = settingsDir;
+        this.gradleProperties = gradleProperties;
         this.startParameter = startParameter;
         this.dependencyManager = dependencyManagerFactory.createDependencyManager(createBuildDependenciesProject());
         this.buildSourceBuilder = buildSourceBuilder;
         dependencyManager.addConfiguration(BUILD_CONFIGURATION);
         assignBuildSrcStartParameter(startParameter);
+        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {
         buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS));
         buildSrcStartParameter.setSearchUpwards(true);
+        buildSrcStartParameter.setGradleUserHomeDir(startParameter.getGradleUserHomeDir());
+    }
+
+    public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
+        return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry);
+    }
+
+    public DefaultProjectDescriptor descriptor(String path) {
+        return projectDescriptorRegistry.getProjectDescriptor(path);
+    }
+
+    public DefaultProjectDescriptor descriptor(File projectDir) {
+        return projectDescriptorRegistry.getProjectDescriptor(projectDir);
     }
 
     public void include(String[] projectPaths) {
-        this.projectPaths.addAll(Arrays.asList(projectPaths));
+        for (String projectPath : projectPaths) {
+            String subPath = "";
+            String[] pathElements = removeTrailingColon(projectPath).split(":");
+            DefaultProjectDescriptor parentProjectDescriptor = rootProjectDescriptor;
+            for (String pathElement : pathElements) {
+                subPath = subPath + ":" + pathElement;
+                DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(subPath);
+                if (projectDescriptor == null) {
+                    parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getDir(), pathElement));
+                } else {
+                    parentProjectDescriptor = projectDescriptor;
+                }
+            }
+        }
     }
+
+    private String removeTrailingColon(String projectPath) {
+        if (projectPath.startsWith(":")) {
+            return projectPath.substring(1);
+        }
+        return projectPath;
+    }
+
+    
 
     public void dependencies(Object[] dependencies) {
         dependencyManager.dependencies(WrapUtil.toList(BUILD_CONFIGURATION), dependencies);
@@ -115,7 +158,7 @@ public class BaseSettings implements Settings {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         Object dependency = null;
         StartParameter startParameter = StartParameter.newInstance(buildSrcStartParameter);
-        startParameter.setCurrentDir(new File(settingsFinder.getSettingsDir(), DEFAULT_BUILD_SRC_DIR));
+        startParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
         if (buildSourceBuilder != null) {
             dependency = buildSourceBuilder.createDependency(dependencyManager.getBuildResolverDir(),
                     startParameter);
@@ -149,8 +192,16 @@ public class BaseSettings implements Settings {
         return dummyProjectForDepencencyManager;
     }
 
+    public ProjectDescriptor getRootProjectDescriptor() {
+        return rootProjectDescriptor;
+    }
+
+    public void setRootProjectDescriptor(DefaultProjectDescriptor rootProjectDescriptor) {
+        this.rootProjectDescriptor = rootProjectDescriptor;
+    }
+
     public File getRootDir() {
-        return settingsFinder.getSettingsDir();
+        return rootProjectDescriptor.getDir();
     }
 
     public DependencyManager getDependencyManager() {
@@ -185,12 +236,12 @@ public class BaseSettings implements Settings {
         this.startParameter = startParameter;
     }
 
-    public ISettingsFinder getSettingsFinder() {
-        return settingsFinder;
+    public File getSettingsDir() {
+        return settingsDir;
     }
 
-    public void setSettingsFinder(ISettingsFinder settingsFinder) {
-        this.settingsFinder = settingsFinder;
+    public void setSettingsDir(File settingsDir) {
+        this.settingsDir = settingsDir;
     }
 
     public StartParameter getBuildSrcStartParameter() {
@@ -201,11 +252,15 @@ public class BaseSettings implements Settings {
         this.buildSrcStartParameter = buildSrcStartParameter;
     }
 
-    public List<String> getProjectPaths() {
-        return projectPaths;
+    public IProjectDescriptorRegistry getProjectDescriptorRegistry() {
+        return projectDescriptorRegistry;
     }
 
-    public void setProjectPaths(List<String> projectPaths) {
-        this.projectPaths = projectPaths;
+    public void setProjectDescriptorRegistry(IProjectDescriptorRegistry projectDescriptorRegistry) {
+        this.projectDescriptorRegistry = projectDescriptorRegistry;
+    }
+
+    public Map<String, String> getGradleProperties() {
+        return gradleProperties;
     }
 }

@@ -16,18 +16,14 @@
 
 package org.gradle;
 
-import org.gradle.api.Project;
-import org.gradle.api.Settings;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.DefaultSettings;
-import org.gradle.initialization.IGradlePropertiesLoader;
-import org.gradle.initialization.ISettingsFinder;
-import org.gradle.initialization.ProjectsLoader;
-import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.*;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.BaseMatcher;
@@ -69,8 +65,6 @@ public class BuildTest {
     private URLClassLoader expectedClassLoader;
     private DefaultSettings settingsMock;
     private boolean expectedSearchUpwards;
-    private Map expectedProjectProperties;
-    private Map expectedSystemPropertiesArgs;
     private List<String> expectedTaskNames;
     private List<Iterable<Task>> expectedTasks;
     private StartParameter expectedStartParams;
@@ -82,6 +76,8 @@ public class BuildTest {
 
     private BuildExecuter buildExecuterMock;
 
+    private ProjectDescriptor expectedRootProjectDescriptor;
+    
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
@@ -98,17 +94,15 @@ public class BuildTest {
         buildListenerMock = context.mock(BuildListener.class);
         build = new Build(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
-        testGradleProperties = WrapUtil.toMap(Project.SYSTEM_PROP_PREFIX + ".prop1", "value1");
-        testGradleProperties.put("prop2", "value2");
+        testGradleProperties = WrapUtil.toMap("prop1", "value1");
         expectedSearchUpwards = false;
         expectedClassLoader = new URLClassLoader(new URL[0]);
-        expectedProjectProperties = WrapUtil.toMap("prop", "value");
-        expectedSystemPropertiesArgs = WrapUtil.toMap("systemProp", "systemPropValue");
 
         expectedRootDir = new File("rootDir");
         expectedCurrentDir = new File(expectedRootDir, "currentDir");
         expectedGradleUserHomeDir = new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir");
 
+        expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry());
         expectedRootProject = HelperUtil.createRootProject(expectedRootDir);
         expectedCurrentProject = HelperUtil.createRootProject(expectedCurrentDir);
 
@@ -119,19 +113,20 @@ public class BuildTest {
         expectedStartParams.setCurrentDir(expectedCurrentDir);
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(expectedGradleUserHomeDir);
-        expectedStartParams.setSystemPropertiesArgs(expectedSystemPropertiesArgs);
-        expectedStartParams.setProjectProperties(expectedProjectProperties);
 
         context.checking(new Expectations() {
             {
                 allowing(settingsFinderMock).find(with(any(StartParameter.class)));
-                allowing(gradlePropertiesLoaderMock).loadProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)));
+                allowing(gradlePropertiesLoaderMock).loadProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)),
+                        with(equal((Map) System.getProperties())), with(equal(System.getenv())));
                 allowing(gradlePropertiesLoaderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
                 allowing(settingsFinderMock).getSettingsDir();
                 will(returnValue(expectedRootDir));
                 allowing(settingsMock).createClassLoader();
                 will(returnValue(expectedClassLoader));
+                allowing(settingsMock).getRootProjectDescriptor();
+                will(returnValue(expectedRootProjectDescriptor));
                 allowing(projectsLoaderMock).getRootProject();
                 will(returnValue(expectedRootProject));
                 allowing(projectsLoaderMock).getCurrentProject();
@@ -182,7 +177,6 @@ public class BuildTest {
         BuildResult buildResult = build.run(expectedStartParams);
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
-        checkSystemProps(expectedSystemPropertiesArgs);
     }
 
     @Test
@@ -190,7 +184,6 @@ public class BuildTest {
         expectSettingsBuilt();
         expectTasksRunWithoutDagRebuild();
         build.run(expectedStartParams);
-        checkSystemProps(expectedSystemPropertiesArgs);
     }
 
     @Test
@@ -202,7 +195,6 @@ public class BuildTest {
         expectTasks("c", "d");
         expectTasksRunWithoutDagRebuild();
         build.run(expectedStartParams);
-        checkSystemProps(expectedSystemPropertiesArgs);
     }
 
     @Test
@@ -235,7 +227,7 @@ public class BuildTest {
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
-                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
                 will(returnValue(settingsMock));
             }
         });
@@ -249,8 +241,9 @@ public class BuildTest {
                 will(returnValue(false));
                 one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
                 will(returnValue(false));
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        testGradleProperties, System.getProperties(), System.getenv());
+                one(projectsLoaderMock).reset();
+                one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
+                        testGradleProperties);
             }
         });
     }
@@ -263,11 +256,12 @@ public class BuildTest {
                 will(returnValue(true));
                 one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
                 will(returnValue(true));
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        testGradleProperties, System.getProperties(), System.getenv());
+                one(projectsLoaderMock).reset();
+                one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
+                        testGradleProperties);
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams, testGradleProperties,
-                        System.getProperties(), System.getenv());
+                one(projectsLoaderMock).reset();
+                one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams, testGradleProperties);
             }
         });
     }
@@ -275,8 +269,9 @@ public class BuildTest {
     private void expectTasksRunWithFailure(final Throwable failure) {
         context.checking(new Expectations() {
             {
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        testGradleProperties, System.getProperties(), System.getenv());
+                one(projectsLoaderMock).reset();
+                one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
+                        testGradleProperties);
                 one(buildConfigurerMock).process(expectedRootProject);
                 one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
                 will(throwException(failure));
@@ -289,9 +284,10 @@ public class BuildTest {
         expectedStartParams.setTaskNames(WrapUtil.toList("unknown"));
         context.checking(new Expectations() {
             {
-                one(projectsLoaderMock).load(settingsMock, expectedClassLoader, expectedStartParams,
-                        testGradleProperties, System.getProperties(), System.getenv());
-                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams);
+                one(projectsLoaderMock).reset();
+                one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
+                        testGradleProperties);
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
             }
@@ -299,11 +295,6 @@ public class BuildTest {
         BuildResult buildResult = build.run(expectedStartParams);
         assertThat(buildResult.getFailure(), notNullValue());
         assertThat(buildResult.getFailure().getClass(), equalTo((Object) UnknownTaskException.class));
-    }
-
-    private void checkSystemProps(Map props) {
-        assertFalse(System.getProperties().keySet().contains("prop2"));
-        assertEquals(testGradleProperties.get(Project.SYSTEM_PROP_PREFIX + ".prop1"), System.getProperty("prop1"));
     }
 
     // todo: This test is rather weak. Make it stronger.

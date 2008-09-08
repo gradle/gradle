@@ -32,7 +32,7 @@ public class ProjectFactory implements IProjectFactory {
     BuildScriptProcessor buildScriptProcessor;
     PluginRegistry pluginRegistry;
     String buildFileName;
-    ProjectRegistry projectRegistry;
+    IProjectRegistry projectRegistry;
     ScriptSource embeddedScript;
     ITaskFactory taskFactory;
 
@@ -40,7 +40,7 @@ public class ProjectFactory implements IProjectFactory {
     }
 
     public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
-                          PluginRegistry pluginRegistry, String buildFileName, ProjectRegistry projectRegistry, ScriptSource embeddedScript) {
+                          PluginRegistry pluginRegistry, String buildFileName, IProjectRegistry projectRegistry, ScriptSource embeddedScript) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
@@ -50,18 +50,20 @@ public class ProjectFactory implements IProjectFactory {
         this.embeddedScript = embeddedScript;
     }
 
-    public DefaultProject createProject(String name, Project parent, File rootDir, ClassLoader buildScriptClassLoader) {
+    public DefaultProject createProject(String name, Project parent, File rootDir, File projectDir, ClassLoader buildScriptClassLoader) {
         ScriptSource source;
         if (embeddedScript != null) {
             source = embeddedScript;
         } else if (parent == null) {
             source = new FileScriptSource("build file", new File(rootDir, buildFileName));
         } else {
-            File projectDir = new File(parent.getProjectDir(), name);
             source = new FileScriptSource("build file", new File(projectDir, buildFileName));
         }
-        return new DefaultProject(name, parent, rootDir, buildFileName, source, buildScriptClassLoader, taskFactory,
+        return new DefaultProject(name, parent, rootDir, projectDir, buildFileName, source, buildScriptClassLoader, taskFactory,
                 dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this);
     }
 
+    public void reset() {
+        projectRegistry.reset();
+    }
 }

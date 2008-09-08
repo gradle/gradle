@@ -50,8 +50,6 @@ class DefaultProjectTest {
 
     static final String TEST_TASK_NAME = 'testtask'
 
-    static final File TEST_ROOT = new File("root")
-
     Task testTask;
 
     DefaultProject project, child1, child2, childchild
@@ -61,7 +59,7 @@ class DefaultProjectTest {
     ClassLoader buildScriptClassLoader
 
     PluginRegistry pluginRegistry
-    ProjectRegistry projectRegistry
+    IProjectRegistry projectRegistry
 
     File rootDir
 
@@ -74,7 +72,7 @@ class DefaultProjectTest {
     DependencyManagerFactory dependencyManagerFactoryMock;
     DependencyManager dependencyManagerMock;
 
-    Mockery context = new JUnit4GroovyMockery()
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
 
     @Before
@@ -89,36 +87,30 @@ class DefaultProjectTest {
         buildScriptClassLoader = new URLClassLoader([] as URL[])
         rootDir = new File("/path/root")
         pluginRegistry = new PluginRegistry(new File('somepath'))
-        projectRegistry = new ProjectRegistry()
+        projectRegistry = new DefaultProjectRegistry()
         buildScriptProcessor = new BuildScriptProcessor()
         ProjectFactory factory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor,
                 pluginRegistry, TEST_BUILD_FILE_NAME, projectRegistry, null)
-        project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
+        project = new DefaultProject('root', null, rootDir, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
                 factory);
-        child1 = project.addChildProject("child1")
-        childchild = child1.addChildProject("childchild")
-        child2 = project.addChildProject("child2")
+        child1 = project.addChildProject("child1", new File("child1"))
+        childchild = child1.addChildProject("childchild", new File("childchild"))
+        child2 = project.addChildProject("child2", new File("child2"))
         testTask = new DefaultTask(project, TEST_TASK_NAME, null)
-        //        addScriptToProject(getListWithAllProjects())
-    }
-
-    private addScriptToProject(List projects) {
-        projects.each {DefaultProject project ->
-            project.script = testScript
-        }
     }
 
     @Test void testProject() {
         assertSame project, child1.parent
         assertSame project, child1.rootProject
-        checkProject(project, null, 'root')
+        checkProject(project, null, 'root', rootDir)
     }
 
-    private void checkProject(Project project, Project parent, String name) {
+    private void checkProject(Project project, Project parent, String name, File projectDir) {
         assertSame parent, project.parent
         assertEquals name, project.name
         assertSame(rootDir, project.rootDir)
+        assertSame(projectDir, project.projectDir)
         assertSame this.project, project.rootProject
         assertEquals(TEST_BUILD_FILE_NAME, project.buildFileName)
         assertSame project.buildScriptClassLoader, buildScriptClassLoader
@@ -360,13 +352,15 @@ class DefaultProjectTest {
     }
 
     @Test void testAddAndGetChildProject() {
+        File child1Dir = "child1dir" as File
+        File child2Dir = "child2dir" as File
         project.childProjects = [:]
-        project.addChildProject('child1')
+        project.addChildProject('child1', child1Dir)
         assertEquals(1, project.childProjects.size())
-        checkProject(project.childProjects.child1, project, 'child1')
-        project.addChildProject('child2')
+        checkProject(project.childProjects.child1, project, 'child1', child1Dir)
+        project.addChildProject('child2', child2Dir)
         assertEquals(2, project.childProjects.size())
-        checkProject(project.childProjects.child2, project, 'child2')
+        checkProject(project.childProjects.child2, project, 'child2', child2Dir)
     }
 
     @Test public void testDefaultTasks() {
@@ -695,10 +689,6 @@ def scriptMethod(Closure closure) {
         assertEquals(getListWithAllChildProjects(), project.subprojects)
     }
 
-    @Test void testProjectDir() {
-        assertEquals(new File("${rootDir.path}/${child1.name}").getAbsoluteFile(), child1.projectDir)
-    }
-
     @Test void testBuildDir() {
         assertEquals(new File(child1.projectDir, "${Project.DEFAULT_BUILD_DIR_NAME}"), child1.buildDir)
     }
@@ -710,7 +700,7 @@ def scriptMethod(Closure closure) {
         child1.baseDirConverter = [baseDir: {String path, File baseDir, PathValidation pathValidation ->
             converterCalled = true
             assertEquals(expectedPath, path)
-            assertEquals(new File("${rootDir.path}/${child1.name}").getAbsoluteFile(), baseDir)
+            assertEquals(child1.getProjectDir(), baseDir)
             assertEquals(expectedValidation, pathValidation)
         }] as BaseDirConverter
         child1.file(expectedPath, PathValidation.FILE)

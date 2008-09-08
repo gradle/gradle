@@ -47,6 +47,7 @@ class HelperUtil {
                 projectName,
                 parent,
                 new File(""),
+                new File("projectDir"),
                 "build.gradle",
                 new StringScriptSource("test build file", null),
                 null,
@@ -65,10 +66,10 @@ class HelperUtil {
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 "build.gradle",
-                new ProjectRegistry(),
+                new DefaultProjectRegistry(),
                 new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, rootDir, null)
         project.setBuildScript(new EmptyScript())
         return project;
     }
@@ -78,6 +79,7 @@ class HelperUtil {
                 name,
                 parentProject,
                 parentProject.rootDir,
+                new File("projectDir" + name),
                 parentProject.buildFileName,
                 new StringScriptSource("test build file", null),
                 parentProject.buildScriptClassLoader,

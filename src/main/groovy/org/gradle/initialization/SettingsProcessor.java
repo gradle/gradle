@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import groovy.lang.Script;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
@@ -30,11 +31,12 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
-import org.gradle.util.PathHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Map;
+import java.util.HashMap;
 
 
 /**
@@ -73,11 +75,28 @@ public class SettingsProcessor {
         this.buildResolverDir = buildResolverDir;
     }
 
-    public DefaultSettings process(ISettingsFinder settingsFinder, StartParameter startParameter) {
+    public DefaultSettings process(ISettingsFinder settingsFinder, StartParameter startParameter, Map<String, String> gradleProperties) {
         Clock settingsProcessingClock = new Clock();
         initDependencyManagerFactory(settingsFinder);
-        DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter);
-        ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScript(), importsReader, settingsFinder.getSettingsDir());
+        DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder.getSettingsDir(), gradleProperties, startParameter);
+        if (settingsFinder.getSettingsScriptSource().getText() != null) {
+            applySettingsScript(settingsFinder, settings);
+            if (!isSettingsFileApplicableToCurrentDir(settings, settingsFinder, startParameter)) {
+                settings = createBasicSettings(settingsFinder, startParameter);
+            }
+        } else {
+            settings = createBasicSettings(settingsFinder, startParameter);
+        }
+        logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
+        return settings;
+    }
+
+    private boolean isSettingsFileApplicableToCurrentDir(DefaultSettings settings, ISettingsFinder settingsFinder, StartParameter startParameter) {
+        return settings.descriptor(settings.getStartParameter().getCurrentDir()) != null;
+    }
+
+    private void applySettingsScript(ISettingsFinder settingsFinder, DefaultSettings settings) {
+        ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScriptSource(), importsReader, settingsFinder.getSettingsDir());
         try {
             Script settingsScript = scriptProcessor.createScript(
                     source,
@@ -90,11 +109,6 @@ public class SettingsProcessor {
         } catch (Throwable t) {
             throw new GradleScriptException("A problem occurred evaluating the settings file.", t, source);
         }
-        logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
-        if (!startParameter.getCurrentDir().equals(settingsFinder.getSettingsDir()) && !isCurrentDirIncluded(settings)) {
-            return createBasicSettings(settingsFinder, startParameter);
-        }
-        return settings;
     }
 
     private void initDependencyManagerFactory(ISettingsFinder settingsFinder) {
@@ -107,12 +121,7 @@ public class SettingsProcessor {
 
     public DefaultSettings createBasicSettings(ISettingsFinder settingsFinder, StartParameter startParameter) {
         initDependencyManagerFactory(settingsFinder);
-        return settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder, startParameter);
-    }
-
-    private boolean isCurrentDirIncluded(DefaultSettings settings) {
-        return settings.getProjectPaths().contains(
-                PathHelper.getCurrentProjectPath(settings.getRootDir(), settings.getStartParameter().getCurrentDir()).substring(1));
+        return settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder.getSettingsDir(), new HashMap<String, String>(), startParameter);
     }
 
     public ImportsReader getImportsReader() {
@@ -155,12 +164,12 @@ public class SettingsProcessor {
         this.buildResolverDir = buildResolverDir;
     }
 
-    public IScriptProcessor getScriptProcessor() {
-        return scriptProcessor;
-    }
-
     public void setScriptProcessor(IScriptProcessor scriptProcessor) {
         this.scriptProcessor = scriptProcessor;
+    }
+
+    public IScriptProcessor getScriptProcessor() {
+        return scriptProcessor;
     }
 
     public ISettingsScriptMetaData getSettingsScriptMetaData() {

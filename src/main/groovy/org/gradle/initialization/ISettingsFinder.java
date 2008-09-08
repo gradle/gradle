@@ -29,5 +29,5 @@ public interface ISettingsFinder {
 
     File getSettingsDir();
 
-    ScriptSource getSettingsScript();
+    ScriptSource getSettingsScriptSource();
 }

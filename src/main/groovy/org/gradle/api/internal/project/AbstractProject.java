@@ -26,6 +26,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
+import org.gradle.util.PathHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +60,8 @@ public abstract class AbstractProject implements ProjectInternal {
     private PluginRegistry pluginRegistry;
 
     private File rootDir;
+
+    private File projectDir;
 
     private Project parent;
 
@@ -100,7 +103,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private int depth = 0;
 
-    private ProjectRegistry projectRegistry;
+    private IProjectRegistry projectRegistry;
 
     private ITaskFactory taskFactory;
 
@@ -114,13 +117,14 @@ public abstract class AbstractProject implements ProjectInternal {
         convention = new Convention(this);
     }
 
-    public AbstractProject(String name, Project parent, File rootDir, String buildFileName, ScriptSource buildScriptSource,
+    public AbstractProject(String name, Project parent, File rootDir, File projectDir, String buildFileName, ScriptSource buildScriptSource,
                            ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
-                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, ProjectRegistry projectRegistry,
+                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
                            IProjectFactory projectFactory) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.rootDir = rootDir;
+        this.projectDir = projectDir;
         this.parent = parent;
         this.name = name;
         this.buildFileName = buildFileName;
@@ -150,6 +154,10 @@ public abstract class AbstractProject implements ProjectInternal {
         projectRegistry.addProject(this);
 
         convention = new Convention(this);
+    }
+
+    public String getRelativeFilePath() {
+        return "/" + rootProject.getName() + "/" + path.substring(1).replace(Project.PATH_SEPARATOR, "/");
     }
 
     public Project getRootProject() {
@@ -376,11 +384,11 @@ public abstract class AbstractProject implements ProjectInternal {
         this.archivesBaseName = archivesBaseName;
     }
 
-    public ProjectRegistry getProjectRegistry() {
+    public IProjectRegistry getProjectRegistry() {
         return projectRegistry;
     }
 
-    public void setProjectRegistry(ProjectRegistry projectRegistry) {
+    public void setProjectRegistry(IProjectRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 
@@ -415,10 +423,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public static boolean isAbsolutePath(String path) {
-        if (!GUtil.isTrue(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
-        return path.startsWith(Project.PATH_SEPARATOR);
+        return PathHelper.isAbsolutePath(path);
     }
 
     public Project project(String path) {
@@ -573,21 +578,21 @@ public abstract class AbstractProject implements ProjectInternal {
         return tasks.get(name);
     }
 
-    public Project addChildProject(String name) {
-        childProjects.put(name, createChildProject(name));
+    public Project addChildProject(String name, File projectDir) {
+        childProjects.put(name, createChildProject(name, projectDir));
         return childProjects.get(name);
     }
 
-    protected ProjectInternal createChildProject(String name) {
-        return projectFactory.createProject(name, this, rootDir, buildScriptClassLoader);
-    }
-
-    public String getRelativeFilePath() {
-        return "/" + rootProject.getName() + "/" + path.substring(1).replace(Project.PATH_SEPARATOR, "/");
+    protected ProjectInternal createChildProject(String name, File projectDir) {
+        return projectFactory.createProject(name, this, rootDir, projectDir, buildScriptClassLoader);
     }
 
     public File getProjectDir() {
-        return new File(rootDir.getParent(), getRelativeFilePath()).getAbsoluteFile();
+        return projectDir;
+    }
+
+    public void setProjectDir(File projectDir) {
+        this.projectDir = projectDir;
     }
 
     public File getBuildDir() {
