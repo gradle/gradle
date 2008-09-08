@@ -18,7 +18,6 @@ package org.gradle
 
 import org.gradle.CacheUsage
 import org.gradle.api.Project
-import org.gradle.api.Settings
 import org.gradle.execution.TaskExecuter
 import org.gradle.execution.NameResolvingTaskExecuter
 import org.gradle.execution.ProjectDefaultsTaskExecuter
@@ -28,6 +27,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.gradle.api.initialization.Settings
 
 /**
  * @author Hans Dockter
