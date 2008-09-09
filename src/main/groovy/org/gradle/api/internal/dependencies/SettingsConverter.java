@@ -75,6 +75,7 @@ public class SettingsConverter {
         }
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
         ConfigureUtil.configure(clientModuleChainConfigurer, chainResolver);
+
         return ivySettings;
     }
 

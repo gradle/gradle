@@ -17,6 +17,10 @@
 package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.plugins.conflict.LatestConflictManager;
+import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.GradleArtifact;
@@ -48,6 +52,9 @@ public class ModuleDescriptorConverter {
         addDependencyDescriptors(moduleDescriptor, dependencyManager, includeProjectDependencies);
         addArtifacts(moduleDescriptor, dependencyManager);
         addExcludes(moduleDescriptor, dependencyManager);
+        moduleDescriptor.addConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION,
+                    ExactPatternMatcher.ANY_EXPRESSION), ExactPatternMatcher.INSTANCE,
+                new LatestConflictManager(new LatestRevisionStrategy()));
         return moduleDescriptor;
     }
 
