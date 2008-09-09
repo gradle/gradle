@@ -19,9 +19,9 @@ package org.gradle.initialization;
 import groovy.lang.Script;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.Project;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.groovy.scripts.IScriptProcessor;
@@ -35,8 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -75,13 +75,13 @@ public class SettingsProcessor {
         this.buildResolverDir = buildResolverDir;
     }
 
-    public DefaultSettings process(ISettingsFinder settingsFinder, StartParameter startParameter, Map<String, String> gradleProperties) {
+    public SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter, Map<String, String> gradleProperties) {
         Clock settingsProcessingClock = new Clock();
         initDependencyManagerFactory(settingsFinder);
-        DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder.getSettingsDir(), gradleProperties, startParameter);
+        SettingsInternal settings = settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder.getSettingsDir(), gradleProperties, startParameter);
         if (settingsFinder.getSettingsScriptSource().getText() != null) {
             applySettingsScript(settingsFinder, settings);
-            if (!isSettingsFileApplicableToCurrentDir(settings, settingsFinder, startParameter)) {
+            if (!isSettingsFileApplicableToCurrentDir(settings)) {
                 settings = createBasicSettings(settingsFinder, startParameter);
             }
         } else {
@@ -91,11 +91,11 @@ public class SettingsProcessor {
         return settings;
     }
 
-    private boolean isSettingsFileApplicableToCurrentDir(DefaultSettings settings, ISettingsFinder settingsFinder, StartParameter startParameter) {
+    private boolean isSettingsFileApplicableToCurrentDir(SettingsInternal settings) {
         return settings.descriptor(settings.getStartParameter().getCurrentDir()) != null;
     }
 
-    private void applySettingsScript(ISettingsFinder settingsFinder, DefaultSettings settings) {
+    private void applySettingsScript(ISettingsFinder settingsFinder, SettingsInternal settings) {
         ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScriptSource(), importsReader, settingsFinder.getSettingsDir());
         try {
             Script settingsScript = scriptProcessor.createScript(
@@ -119,7 +119,7 @@ public class SettingsProcessor {
         logger.debug("Set build resolver dir to: {}", dependencyManagerFactory.getBuildResolverDir());
     }
 
-    public DefaultSettings createBasicSettings(ISettingsFinder settingsFinder, StartParameter startParameter) {
+    public SettingsInternal createBasicSettings(ISettingsFinder settingsFinder, StartParameter startParameter) {
         initDependencyManagerFactory(settingsFinder);
         return settingsFactory.createSettings(dependencyManagerFactory, buildSourceBuilder, settingsFinder.getSettingsDir(), new HashMap<String, String>(), startParameter);
     }

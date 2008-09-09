@@ -16,9 +16,14 @@
 
 package org.gradle;
 
-import org.gradle.api.Project;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.BuildScriptProcessor;
+import org.gradle.api.internal.project.DefaultProjectRegistry;
+import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
@@ -30,7 +35,20 @@ import org.gradle.groovy.scripts.DefaultScriptHandler;
 import org.gradle.groovy.scripts.DefaultScriptProcessor;
 import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
 import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildSourceBuilder;
+import org.gradle.initialization.DefaultGradlePropertiesLoader;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.initialization.DefaultSettingsFinder;
+import org.gradle.initialization.EmbeddedBuildExecuter;
+import org.gradle.initialization.EmbeddedScriptSettingsFinder;
+import org.gradle.initialization.IGradlePropertiesLoader;
+import org.gradle.initialization.ISettingsFileSearchStrategy;
+import org.gradle.initialization.ISettingsFinder;
+import org.gradle.initialization.MasterDirSettingsFinderStrategy;
+import org.gradle.initialization.ParentDirSettingsFinderStrategy;
+import org.gradle.initialization.ProjectsLoader;
+import org.gradle.initialization.SettingsFactory;
+import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +74,7 @@ public class Build {
     private BuildConfigurer buildConfigurer;
     private BuildExecuter buildExecuter;
 
-    private List<BuildListener> buildListeners = new ArrayList<BuildListener>();
-
-    public Build() {
-    }
+    private final List<BuildListener> buildListeners = new ArrayList<BuildListener>();
 
     public Build(ISettingsFinder settingsFinder, IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
@@ -72,29 +87,11 @@ public class Build {
     }
 
     public BuildResult run(StartParameter startParameter) {
-        DefaultSettings settings = init(startParameter);
-        return runInternal(settings, startParameter);
-    }
-
-    private BuildResult runInternal(DefaultSettings settings, StartParameter startParameter) {
+        SettingsInternal settings = null;
         Throwable failure = null;
         try {
-            ClassLoader classLoader = settings.createClassLoader();
-            Boolean rebuildDag = true;
-            TaskExecuter executer = startParameter.getTaskExecuter();
-            while (executer.hasNext()) {
-                if (rebuildDag) {
-                    projectLoader.reset();
-                    projectLoader.load(settings.getRootProjectDescriptor(), classLoader, startParameter, gradlePropertiesLoader.getGradleProperties());
-                    buildConfigurer.process(projectLoader.getRootProject());
-                } else {
-                    logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
-                }
-                executer.select(projectLoader.getCurrentProject());
-                logger.info(String.format("++++ Starting build for %s.", executer.getDescription()));
-                executer.execute(buildExecuter);
-                rebuildDag = executer.requiresProjectReload();
-            }
+            settings = init(startParameter);
+            runInternal(settings, startParameter);
         } catch (Throwable t) {
             failure = t;
         }
@@ -107,22 +104,29 @@ public class Build {
         return buildResult;
     }
 
-    private DefaultSettings init(StartParameter startParameter) {
-        initInternal(startParameter);
-        return settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader.getGradleProperties());
+    private void runInternal(SettingsInternal settings, StartParameter startParameter) {
+        ClassLoader classLoader = settings.createClassLoader();
+        Boolean rebuildDag = true;
+        TaskExecuter executer = startParameter.getTaskExecuter();
+        while (executer.hasNext()) {
+            if (rebuildDag) {
+                projectLoader.reset();
+                projectLoader.load(settings.getRootProjectDescriptor(), classLoader, startParameter, gradlePropertiesLoader.getGradleProperties());
+                buildConfigurer.process(projectLoader.getRootProject());
+            } else {
+                logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
+            }
+            executer.select(projectLoader.getCurrentProject());
+            logger.info(String.format("++++ Starting build for %s.", executer.getDescription()));
+            executer.execute(buildExecuter);
+            rebuildDag = executer.requiresProjectReload();
+        }
     }
 
-    private void initInternal(StartParameter startParameter) {
+    private SettingsInternal init(StartParameter startParameter) {
         settingsFinder.find(startParameter);
         gradlePropertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter, getAllSystemProperties(), getAllEnvProperties());
-    }
-
-    private void addSystemPropertiesFromGradleProperties() {
-        for (String key : gradlePropertiesLoader.getGradleProperties().keySet()) {
-            if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
-                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), gradlePropertiesLoader.getGradleProperties().get(key));
-            }
-        }
+        return settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader.getGradleProperties());
     }
 
     private Map getAllSystemProperties() {
@@ -206,10 +210,6 @@ public class Build {
 
     public List<BuildListener> getBuildListeners() {
         return buildListeners;
-    }
-
-    protected void setBuildListeners(List<BuildListener> buildListeners) {
-        this.buildListeners = buildListeners;
     }
 
     public void addBuildListener(BuildListener buildListener) {

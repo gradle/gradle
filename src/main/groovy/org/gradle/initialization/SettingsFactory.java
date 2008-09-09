@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.internal.SettingsInternal;
 
 import java.io.File;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class SettingsFactory {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
-    public DefaultSettings createSettings(DependencyManagerFactory dependencyManagerFactory,
+    public SettingsInternal createSettings(DependencyManagerFactory dependencyManagerFactory,
                             BuildSourceBuilder buildSourceBuilder, File settingsDir, Map gradleProperties, StartParameter startParameter) {
         return new DefaultSettings(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir, gradleProperties, startParameter);
     }

@@ -54,8 +54,8 @@ public class SettingsFactoryTest {
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
 
         SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry);
-        DefaultSettings settings = settingsFactory.createSettings(dependencyManagerFactoryMock, expectedBuildSourceBuilder,
-                expectedSettingsDir, expectedGradleProperties, expectedStartParameter);
+        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(dependencyManagerFactoryMock,
+                expectedBuildSourceBuilder, expectedSettingsDir, expectedGradleProperties, expectedStartParameter);
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         assertSame(dependencyManagerMock, settings.getDependencyManager());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());

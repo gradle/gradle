@@ -19,10 +19,9 @@ package org.gradle.api.initialization;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.DependencyManager;
 import org.gradle.StartParameter;
+import org.gradle.api.DependencyManager;
+import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
 
@@ -110,6 +109,10 @@ public interface Settings {
     DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
 
     ProjectDescriptor getRootProjectDescriptor();
+
+    ProjectDescriptor descriptor(String path);
+
+    ProjectDescriptor descriptor(File projectDir);
 
     StartParameter getStartParameter();
 }

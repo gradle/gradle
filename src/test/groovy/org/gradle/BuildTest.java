@@ -21,6 +21,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.*;
@@ -63,7 +64,7 @@ public class BuildTest {
     private DefaultProject expectedRootProject;
     private DefaultProject expectedCurrentProject;
     private URLClassLoader expectedClassLoader;
-    private DefaultSettings settingsMock;
+    private SettingsInternal settingsMock;
     private boolean expectedSearchUpwards;
     private List<String> expectedTaskNames;
     private List<Iterable<Task>> expectedTasks;
@@ -86,7 +87,7 @@ public class BuildTest {
         HelperUtil.deleteTestDir();
         settingsFinderMock = context.mock(ISettingsFinder.class);
         gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
-        settingsMock = context.mock(DefaultSettings.class);
+        settingsMock = context.mock(SettingsInternal.class);
         buildExecuterMock = context.mock(BuildExecuter.class);
         settingsProcessorMock = context.mock(SettingsProcessor.class);
         projectsLoaderMock = context.mock(ProjectsLoader.class);
@@ -207,6 +208,25 @@ public class BuildTest {
 
         build.addBuildListener(buildListenerMock);
         build.run(expectedStartParams);
+    }
+
+    @Test
+    public void testNotifiesListenerOnSettingsInitWithFailure() {
+        final RuntimeException failure = new RuntimeException();
+        context.checking(new Expectations() {
+            {
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
+                will(throwException(failure));
+            }
+        });
+        context.checking(new Expectations() {{
+            one(buildListenerMock).buildFinished(with(result(null, sameInstance(failure))));
+        }});
+
+        build.addBuildListener(buildListenerMock);
+
+        BuildResult buildResult = build.run(expectedStartParams);
+        assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
     @Test

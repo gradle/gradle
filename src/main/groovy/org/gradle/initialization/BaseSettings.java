@@ -23,9 +23,9 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.GradleUtil;
@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class BaseSettings implements Settings {
+public class BaseSettings implements SettingsInternal {
     private static Logger logger = LoggerFactory.getLogger(DefaultSettings.class);
 
     public static final String BUILD_CONFIGURATION = "build";

@@ -30,6 +30,9 @@ public class DefaultBuildListener implements BuildListener {
     private static Logger logger = LoggerFactory.getLogger(DefaultBuildListener.class);
 
     public void buildFinished(BuildResult result) {
+        if (result.getSettings() == null) {
+            return;
+        }
         File rootDir = result.getSettings().getRootDir();
         try {
             // todo: For some reasons this has failed under windows. We need to check what the problem is. 
