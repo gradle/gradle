@@ -29,56 +29,19 @@ import java.util.ArrayList;
  * @author Hans Dockter
  */
 public class GradleException extends RuntimeException {
-    private final ScriptSource scriptSource;
-
     public GradleException() {
-        this(null, null, null);
+        super();
     }
 
     public GradleException(String message) {
-        this(message, null, null);
+        super(message);
     }
 
     public GradleException(String message, Throwable cause) {
-        this(message, cause, null);
+        super(message, cause);
     }
 
     public GradleException(Throwable cause) {
-        this(null, cause, null);
+        super(cause);
     }
-
-    public GradleException(Throwable cause, ScriptSource scriptSource) {
-        this(null, cause, scriptSource);
-    }
-
-    public GradleException(String message, Throwable cause, ScriptSource scriptSource) {
-        super(message, cause);
-        this.scriptSource = scriptSource;
-    }
-
-    public ScriptSource getScriptSource() {
-        return scriptSource;
-    }
-
-    public String getMessage() {
-        if (scriptSource == null) {
-            return super.getMessage();
-        }
-
-        String scriptName = scriptSource.getClassName();
-        List<Integer> lineNumbers = new ArrayList<Integer>();
-        for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
-            for (StackTraceElement element : currentException.getStackTrace()) {
-                if (element.getFileName() != null && element.getFileName().equals(scriptName) && element.getLineNumber() >= 0) {
-                    lineNumbers.add(element.getLineNumber());
-                }
-            }
-        }
-        String lineInfo = !lineNumbers.isEmpty()
-                ? String.format("at line(s): %s", GUtil.join(lineNumbers, ", "))
-                : "No line info available from stacktrace.";
-        return String.format("%s %s%s%s", StringUtils.capitalize(scriptSource.getDescription()), lineInfo, System.getProperty("line.separator"),
-                super.getMessage());
-    }
-
 }

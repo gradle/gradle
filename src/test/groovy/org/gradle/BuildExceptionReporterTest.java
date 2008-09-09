@@ -17,26 +17,32 @@ package org.gradle;
 
 import joptsimple.OptionSet;
 import org.gradle.api.GradleException;
+import org.gradle.api.GradleScriptException;
+import org.gradle.groovy.scripts.ScriptSource;
 import static org.hamcrest.Matchers.*;
+import org.hamcrest.Matcher;
 import org.jmock.Expectations;
+import org.jmock.States;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 
-@RunWith(org.jmock.integration.junit4.JMock.class)
+@RunWith(JMock.class)
 public class BuildExceptionReporterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private Logger logger;
     private BuildExceptionReporter reporter;
+    private OptionSet optionSet;
 
     @Before
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         logger = context.mock(Logger.class);
-        final OptionSet optionSet = context.mock(OptionSet.class);
+        optionSet = context.mock(OptionSet.class);
         reporter = new BuildExceptionReporter(logger);
         reporter.setOptions(optionSet);
 
@@ -49,10 +55,33 @@ public class BuildExceptionReporterTest {
     @Test
     public void reportsBuildFailure() {
         final GradleException exception = new GradleException("<message>");
+        final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
+                containsString("<message>"));
 
         context.checking(new Expectations() {{
-            one(logger).error(with(containsString("Build failed with an exception.")));
-            one(logger).error(String.format("Exception: %s", exception));
+            one(logger).error(with(errorMessage));
+        }});
+
+        reporter.buildFinished(new BuildResult(null, exception));
+    }
+
+    @Test
+    public void reportsGradleScriptException() {
+        final GradleScriptException exception
+                = new GradleScriptException("<message>", new RuntimeException("<cause>"),
+                context.mock(ScriptSource.class)) {
+            @Override
+            public String getLocation() {
+                return "<location>";
+            }
+        };
+        final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
+                containsString("<location>"),
+                containsString("<message>"),
+                containsString("Cause: <cause>"));
+
+        context.checking(new Expectations() {{
+            one(logger).error(with(errorMessage));
         }});
 
         reporter.buildFinished(new BuildResult(null, exception));
@@ -61,10 +90,11 @@ public class BuildExceptionReporterTest {
     @Test
     public void reportsBuildFailureWhenOptionsHaveNotBeenSet() {
         final GradleException exception = new GradleException("<message>");
+        final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
+                containsString("<message>"));
 
         context.checking(new Expectations() {{
-            one(logger).error(with(containsString("Build failed with an exception.")));
-            one(logger).error(String.format("Exception: %s", exception));
+            one(logger).error(with(errorMessage));
         }});
 
         reporter = new BuildExceptionReporter(logger);

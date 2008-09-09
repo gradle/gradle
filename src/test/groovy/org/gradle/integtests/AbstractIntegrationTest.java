@@ -131,15 +131,15 @@ public class AbstractIntegrationTest {
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            assertThat(failure.getMessage(), containsString(String.format("at line(s): %d", lineNumber)));
+            assertThat(failure.getMessage(), containsString(String.format(" line(s): %d", lineNumber)));
         }
 
         public void assertHasFileName(String filename) {
-            assertThat(failure.getMessage(), startsWith(String.format("%s ", filename)));
+            assertThat(failure.getMessage(), startsWith(String.format("%s", filename)));
         }
 
         public void assertHasDescription(String description) {
-            assertThat(failure.getMessage(), endsWith(description));
+            assertThat(failure.getCause().getMessage(), endsWith(description));
         }
 
         public void assertHasContext(String context) {

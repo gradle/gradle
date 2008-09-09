@@ -16,6 +16,11 @@
 package org.gradle.api;
 
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.GUtil;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the parsing or execution of a
@@ -25,20 +30,53 @@ import org.gradle.groovy.scripts.ScriptSource;
  */
 public class GradleScriptException extends GradleException {
     private final String originalMessage;
+    private final ScriptSource scriptSource;
 
     public GradleScriptException(String message, Throwable cause, ScriptSource scriptSource) {
-        super(getMessage(message, cause), cause, scriptSource);
+        super(null, cause);
+        assert message != null && cause != null && scriptSource != null;
         originalMessage = message;
+        this.scriptSource = scriptSource;
     }
 
-    private static String getMessage(String message, Throwable cause) {
-        if (cause == null || cause.getMessage() == null) {
-            return message;
-        }
-        return String.format("%s%n%s", message, cause.getMessage());
-    }
-
+    /**
+     * <p>Returns the undecorated message of this exception.</p>
+     *
+     * @return The undecorated message. Never returns null.
+     */
     public String getOriginalMessage() {
         return originalMessage;
+    }
+
+    /**
+     * <p>Returns the source the script where this of this exception occurred.</p>
+     *
+     * @return The source. Never returns null.
+     */
+    public ScriptSource getScriptSource() {
+        return scriptSource;
+    }
+
+    /**
+     * <p>Returns a description of the location of where this execption occurred.</p>
+     *
+     * @return The location description. Never returns null.
+     */
+    public String getLocation() {
+        String scriptName = scriptSource.getClassName();
+        List<Integer> lineNumbers = new ArrayList<Integer>();
+        for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
+            for (StackTraceElement element : currentException.getStackTrace()) {
+                if (element.getFileName() != null && element.getFileName().equals(scriptName) && element.getLineNumber() >= 0) {
+                    lineNumbers.add(element.getLineNumber());
+                }
+            }
+        }
+        String lineInfo = !lineNumbers.isEmpty() ? String.format(" line(s): %s", GUtil.join(lineNumbers, ", ")) : "";
+        return StringUtils.capitalize(scriptSource.getDescription()) + lineInfo;
+    }
+
+    public String getMessage() {
+        return String.format("%s%n%s", getLocation(), originalMessage);
     }
 }

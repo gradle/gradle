@@ -18,6 +18,7 @@ package org.gradle;
 import org.slf4j.Logger;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.GradleScriptException;
 import joptsimple.OptionSet;
 
 import java.util.Formatter;
@@ -44,7 +45,7 @@ public class BuildExceptionReporter implements BuildListener {
         }
 
         if (failure instanceof GradleException) {
-            reportBuildFailure(failure);
+            reportBuildFailure((GradleException) failure);
         } else {
             reportInternalError(failure);
         }
@@ -53,27 +54,40 @@ public class BuildExceptionReporter implements BuildListener {
     public void reportInternalError(Throwable failure) {
         Formatter formatter = new Formatter();
         formatter.format("%n");
-        formatter.format("Build aborted because of an internal error. Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org", Main.DEBUG);
+        formatter.format("Build aborted because of an internal error.%n");
+        formatter.format("Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org", Main.DEBUG);
+        formatter.format("%n");
         logger.error(formatter.toString(), failure);
     }
 
-    private void reportBuildFailure(Throwable failure) {
+    private void reportBuildFailure(GradleException failure) {
         boolean stacktrace = options != null && (options.has(Main.STACKTRACE) || options.has(Main.DEBUG));
         boolean fullStacktrace = options != null && (options.has(Main.FULL_STACKTRACE));
+
         Formatter formatter = new Formatter();
-        formatter.format("%n");
-        formatter.format("Build failed with an exception. ");
-        if (!stacktrace && !fullStacktrace) {
-            formatter.format(" Run with -%s or -%s option to get stacktrace.", Main.STACKTRACE, Main.DEBUG);
-        }
+        formatter.format("%nBuild failed with an exception.%n");
         if (!fullStacktrace) {
-            formatter.format(" Run with -%s option to get the full (very verbose) stacktrace.", Main.FULL_STACKTRACE);
+            if (!stacktrace) {
+                formatter.format("Run with -%s or -%s option to get more details. ", Main.STACKTRACE, Main.DEBUG);
+            }
+            formatter.format("Run with -%s option to get the full (very verbose) stacktrace.%n", Main.FULL_STACKTRACE);
         }
-        logger.error(formatter.toString());
-        if (stacktrace || fullStacktrace) {
-            logger.error("Exception is:", fullStacktrace ? failure : StackTraceUtils.deepSanitize(failure));
+        formatter.format("%n");
+
+        if (failure instanceof GradleScriptException) {
+            GradleScriptException scriptException = (GradleScriptException) failure;
+            formatter.format("%s%n%n", scriptException.getLocation());
+            formatter.format("%s%nCause: %s", scriptException.getOriginalMessage(),
+                    scriptException.getCause().getMessage());
         } else {
-            logger.error("Exception: " + failure);
+            formatter.format("%s", failure.getMessage());
+        }
+
+        if (stacktrace || fullStacktrace) {
+            formatter.format("%n%nException is:");
+            logger.error(formatter.toString(), fullStacktrace ? failure : StackTraceUtils.deepSanitize(failure));
+        } else {
+            logger.error(formatter.toString());
         }
     }
 }
