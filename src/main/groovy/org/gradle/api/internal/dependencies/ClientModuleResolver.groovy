@@ -69,7 +69,9 @@ class ClientModuleResolver extends BasicResolver {
         null
     }
 
-
+    protected Resource getResource(String s) {
+        return null;  
+    }
 
     public void publish(Artifact artifact, File src, boolean overwrite) {
         null
