@@ -23,12 +23,14 @@ import org.gradle.util.HelperUtil
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 
 /**
  * @author Hans Dockter
  */
 class DependencyDescriptorFactoryTest {
     static final String TEST_CONF = "conf"
+    static final ModuleDescriptor TEST_PARENT = HelperUtil.getTestModuleDescriptor(TEST_CONF)
     static final Set TEST_CONF_SET = [TEST_CONF]
     static final List TEST_EXCLUDE_RULES = [HelperUtil.getTestExcludeRules()]
     static final Map TEST_EXTRA_ATTRIBUTES = [a: 'b']
@@ -49,12 +51,12 @@ class DependencyDescriptorFactoryTest {
     }
 
     @Test public void testCreateDependencyDescriptor() {
-        checkDescriptor(dependencyDescriptorFactory.createDescriptor(TEST_DESCRIPTOR, TEST_FORCE, TEST_TRANSITIVE,
+        checkDescriptor(dependencyDescriptorFactory.createDescriptor(TEST_PARENT, TEST_DESCRIPTOR, TEST_FORCE, TEST_TRANSITIVE,
                 TEST_CHANGING, TEST_CONF_SET, TEST_EXCLUDE_RULES, TEST_EXTRA_ATTRIBUTES))
     }
 
     @Test public void testCreateDependencyDescriptorWithClassifier() {
-        checkDescriptor(dependencyDescriptorFactory.createDescriptor(TEST_DESCRIPTOR_WITH_CLASSIFIER, TEST_FORCE,
+        checkDescriptor(dependencyDescriptorFactory.createDescriptor(TEST_PARENT, TEST_DESCRIPTOR_WITH_CLASSIFIER, TEST_FORCE,
                 TEST_TRANSITIVE, TEST_CHANGING, TEST_CONF_SET, TEST_EXCLUDE_RULES, TEST_EXTRA_ATTRIBUTES),
                 [(DependencyManager.CLASSIFIER): TEST_CLASSIFIER])
     }

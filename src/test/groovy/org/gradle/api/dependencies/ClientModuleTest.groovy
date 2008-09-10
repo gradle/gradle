@@ -73,18 +73,19 @@ class ClientModuleTest extends AbstractDependencyContainerTest {
         String testDependencyUserDescription = "org.apache:test:5.0.4"
         DependencyDescriptor testDependencyDescriptor = [:] as DependencyDescriptor
         Dependency testDependency = [createDepencencyDescriptor: {testDependencyDescriptor}] as Dependency
+        ModuleDescriptor parentDescriptor = [:] as ModuleDescriptor
 
         context.checking {
             one(dependencyFactory).createDependency(new HashSet(clientModule.defaultConfs), testDependencyUserDescription, project);
             will(returnValue(testDependency))
-            one(dependencyDescriptorFactoryMock).createDescriptor(testId, false, true, true, clientModule.confs,
+            one(dependencyDescriptorFactoryMock).createDescriptor(parentDescriptor, testId, false, true, true, clientModule.confs,
                     [], [(ClientModule.CLIENT_MODULE_KEY): testId]); will(returnValue(expectedDependencyDescriptor))
         }
 
         DependencyDescriptor dependencyDescriptor
         println clientModule.dependencyFactory.getClass()
         clientModule.dependencies(testDependencyUserDescription)
-        assert clientModule.createDepencencyDescriptor().is(expectedDependencyDescriptor)
+        assert clientModule.createDepencencyDescriptor(parentDescriptor).is(expectedDependencyDescriptor)
         ModuleDescriptor moduleDescriptor = testModuleRegistry[testId]
         assert moduleDescriptor
         assert moduleDescriptor.moduleRevisionId == expectedDependencyDescriptor.dependencyRevisionId

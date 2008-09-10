@@ -46,8 +46,8 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
         this.confs = confs
     }
 
-    DependencyDescriptor createDepencencyDescriptor() {
-        DefaultDependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor(id, false, true, true, confs, [],
+    DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent) {
+        DefaultDependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor(parent, id, false, true, true, confs, [],
                 [(CLIENT_MODULE_KEY): id])
         addModuleDescriptors(dd.dependencyRevisionId)
         dd

@@ -32,6 +32,8 @@ import org.gradle.util.GradleUtil
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.StartParameter
 import org.gradle.CacheUsage
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.descriptor.Configuration
 
 
 
@@ -139,6 +141,11 @@ class HelperUtil {
 
     static DefaultDependencyDescriptor getTestDescriptor() {
         new DefaultDependencyDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), false)
+    }
+
+    static DefaultModuleDescriptor getTestModuleDescriptor(String conf) {
+        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(ModuleRevisionId.newInstance('org', 'name', 'rev'))
+        moduleDescriptor.addConfiguration(new Configuration(conf))
     }
 
     static Script createTestScript() {

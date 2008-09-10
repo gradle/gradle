@@ -98,11 +98,11 @@ public class ModuleDependencyTest extends AbstractDependencyTest {
 
     @Test public void testCreateDependencyDescriptor() {
         context.checking(new Expectations() {{
-            one(dependencyDescriptorFactoryMock).createDescriptor(TEST_DESCRIPTOR, moduleDependency.isForce(),
+            one(dependencyDescriptorFactoryMock).createDescriptor(getParentModuleDescriptor(), TEST_DESCRIPTOR, moduleDependency.isForce(),
                     true, false, TEST_CONF_SET, moduleDependency.getExcludeRules().getRules());
             will(returnValue(expectedDependencyDescriptor));
         }});
-        assertSame(expectedDependencyDescriptor, moduleDependency.createDepencencyDescriptor());
+        assertSame(expectedDependencyDescriptor, moduleDependency.createDepencencyDescriptor(getParentModuleDescriptor()));
     }
 }
 

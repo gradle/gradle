@@ -97,10 +97,10 @@ public class ArtifactDependencyTest extends AbstractDependencyTest {
 
     @Test public void testCreateDependencyDescriptor() {
         context.checking(new Expectations() {{
-            one(dependencyDescriptorFactoryMock).createDescriptor(TEST_MODULE_DESCRIPTOR, artifactDependency.isForce(),
+            one(dependencyDescriptorFactoryMock).createDescriptor(getParentModuleDescriptor(), TEST_MODULE_DESCRIPTOR, artifactDependency.isForce(),
                     false, false, TEST_CONF_SET, new ArrayList<ExcludeRule>()); will(returnValue(expectedDependencyDescriptor));  
         }});
-        assertSame(expectedDependencyDescriptor, artifactDependency.createDepencencyDescriptor());
+        assertSame(expectedDependencyDescriptor, artifactDependency.createDepencencyDescriptor(getParentModuleDescriptor()));
         DependencyArtifactDescriptor artifactDescriptor = expectedDependencyDescriptor.getAllDependencyArtifacts()[0];
         assertEquals(expectedDependencyDescriptor.getDependencyRevisionId().getName(), artifactDescriptor.getName());
         assertEquals("jar", artifactDescriptor.getExt());

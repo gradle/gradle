@@ -73,7 +73,7 @@ public class DefaultDependencyResolverTest {
         expectedResolveReport = new ResolveReport(expectedModuleDescriptor);
         expectedResolveOptions = new ResolveOptions();
         expectedResolveOptions.setConfs(WrapUtil.toArray(TEST_CONF));
-        expectedResolveOptions.setOutputReport(false);
+        expectedResolveOptions.setOutputReport(true);
     }
 
     @Test

@@ -17,8 +17,11 @@ package org.gradle.api.dependencies;
 
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.jmock.integration.junit4.JUnit4Mockery;
 
 import java.util.Set;
 
@@ -34,10 +37,25 @@ abstract public class AbstractDependencyTest {
     protected abstract AbstractDependency getDependency();
     protected abstract Object getUserDescription();
 
+    private ModuleDescriptor parentModuleDescriptor;
+
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
+
+    public void setUp() {
+        parentModuleDescriptor = context.mock(ModuleDescriptor.class); 
+    }
+
     @Test
     public void testGenericInit() {
         assertEquals(TEST_CONF_SET, getDependency().getConfs());
         assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
     }
 
+    protected ModuleDescriptor getParentModuleDescriptor() {
+        return parentModuleDescriptor;
+    }
+
+    protected void setParentModuleDescriptor(ModuleDescriptor parentModuleDescriptor) {
+        this.parentModuleDescriptor = parentModuleDescriptor;
+    }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.dependencies;
 
 import groovy.lang.GString;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.DependenciesUtil;
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
@@ -56,8 +57,8 @@ public class ModuleDependency extends AbstractDependency {
         return WrapUtil.toArray(String.class, GString.class);
     }
 
-    public DependencyDescriptor createDepencencyDescriptor() {
-        return dependencyDescriptorFactory.createDescriptor(getUserDependencyDescription().toString(), force, true, false, getConfs(),
+    public DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent) {
+        return dependencyDescriptorFactory.createDescriptor(parent, getUserDependencyDescription().toString(), force, true, false, getConfs(),
                 excludeRules.getRules());
     }
 

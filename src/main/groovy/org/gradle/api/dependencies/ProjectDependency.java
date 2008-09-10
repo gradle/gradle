@@ -18,6 +18,7 @@ package org.gradle.api.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
@@ -52,8 +53,8 @@ public class ProjectDependency extends AbstractDependency {
         return WrapUtil.toArray(Project.class);
     }
 
-    public DependencyDescriptor createDepencencyDescriptor() {
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(getDependencyProject().getDependencies().createModuleRevisionId(), false, true);
+    public DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent) {
+        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(parent, getDependencyProject().getDependencies().createModuleRevisionId(), false, true, true);
         for (String conf : getConfs()) {
             dd.addDependencyConfiguration(conf, dependencyConfiguration);
         }

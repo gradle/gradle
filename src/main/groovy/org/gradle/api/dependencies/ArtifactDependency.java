@@ -17,10 +17,7 @@
 package org.gradle.api.dependencies;
 
 import groovy.lang.GString;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.*;
 import org.gradle.api.internal.dependencies.DependenciesUtil;
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.WrapUtil;
@@ -53,9 +50,9 @@ public class ArtifactDependency extends AbstractDependency {
         return WrapUtil.toArray(String.class, GString.class);
     }
 
-    public DependencyDescriptor createDepencencyDescriptor() {
+    public DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent) {
         Map<String, String> groups = DependenciesUtil.splitExtension(getUserDependencyDescription().toString());
-        DefaultDependencyDescriptor dd = (DefaultDependencyDescriptor) dependencyDescriptorFactory.createDescriptor(
+        DefaultDependencyDescriptor dd = (DefaultDependencyDescriptor) dependencyDescriptorFactory.createDescriptor(parent,
                 (String) groups.get("core"), force, false, false, getConfs(), new ArrayList<ExcludeRule>());
         DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(
                 dd, dd.getDependencyRevisionId().getName(),

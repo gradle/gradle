@@ -52,7 +52,7 @@ public class DefaultDependencyResolver implements IDependencyResolver {
         //        ivy.configure(new File('/Users/hans/IdeaProjects/gradle/gradle-core/ivysettings.xml'))
         ResolveOptions resolveOptions = new ResolveOptions();
         resolveOptions.setConfs(WrapUtil.toArray(conf));
-        resolveOptions.setOutputReport(false);
+        resolveOptions.setOutputReport(true);
         Clock ivyClock = new Clock();
         ResolveReport resolveReport = null;
         try {

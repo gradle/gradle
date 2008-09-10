@@ -16,6 +16,7 @@
 package org.gradle.api.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 /**
 * @author Hans Dockter
@@ -23,5 +24,5 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 public interface Dependency {
     public static final String DEFAULT_CONFIGURATION = "default";
             
-    DependencyDescriptor createDepencencyDescriptor();
+    DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent);
 }

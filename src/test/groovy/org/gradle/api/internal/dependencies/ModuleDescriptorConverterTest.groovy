@@ -32,6 +32,7 @@ import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.hamcrest.Matchers
 
 /**
  * @author Hans Dockter
@@ -72,7 +73,7 @@ class ModuleDescriptorConverterTest {
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
         ProjectDependency dependency = context.mock(ProjectDependency)
         context.checking {
-            allowing(dependency).createDepencencyDescriptor(); will(returnValue(dependencyDescriptor))    
+            allowing(dependency).createDepencencyDescriptor(withParam(aNonNull(ModuleDescriptor))); will(returnValue(dependencyDescriptor))    
         }
         DependencyDescriptor dependencyDescriptor2 = [:] as DependencyDescriptor
 

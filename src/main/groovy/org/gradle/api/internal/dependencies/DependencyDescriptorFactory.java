@@ -19,6 +19,7 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.Dependency;
@@ -33,18 +34,18 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DependencyDescriptorFactory {
-    public DependencyDescriptor createDescriptor(String descriptor, boolean force, boolean transitive, boolean changing, Set<String> confs,
+    public DependencyDescriptor createDescriptor(ModuleDescriptor parent, String descriptor, boolean force, boolean transitive, boolean changing, Set<String> confs,
                                           List<ExcludeRule> excludeRules) {
-        return createDescriptor(descriptor, force, transitive, changing, confs, excludeRules, new HashMap());
+        return createDescriptor(parent, descriptor, force, transitive, changing, confs, excludeRules, new HashMap());
     }
 
-    public DependencyDescriptor createDescriptor(String descriptor, boolean force, boolean transitive, boolean changing, Set<String> confs,
+    public DependencyDescriptor createDescriptor(ModuleDescriptor parent, String descriptor, boolean force, boolean transitive, boolean changing, Set<String> confs,
                                           List<ExcludeRule> excludeRules, Map extraAttributes) {
         String[] dependencyParts = descriptor.split(":");
         Map allExtraAttributes = (dependencyParts.length == 4 ? WrapUtil.toMap(DependencyManager.CLASSIFIER, dependencyParts[3]) :
             new HashMap());
         allExtraAttributes.putAll(extraAttributes);
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null,
+        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(parent,
                 ModuleRevisionId.newInstance(dependencyParts[0], dependencyParts[1], dependencyParts[2], allExtraAttributes),
                 force, changing, transitive);
         for (String conf : confs) {

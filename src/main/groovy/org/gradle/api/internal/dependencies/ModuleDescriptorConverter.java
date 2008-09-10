@@ -68,7 +68,7 @@ public class ModuleDescriptorConverter {
                                           boolean includeProjectDependencies) {
         for (Dependency dependency : dependencyManager.getDependencies()) {
             if (includeProjectDependencies || !(dependency instanceof ProjectDependency)) {
-                moduleDescriptor.addDependency(dependency.createDepencencyDescriptor());
+                moduleDescriptor.addDependency(dependency.createDepencencyDescriptor(moduleDescriptor));
             }
         }
         for (DependencyDescriptor dependencyDescriptor : dependencyManager.getDependencyDescriptors()) {
