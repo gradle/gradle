@@ -16,9 +16,8 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.*;
-import org.gradle.api.internal.DefaultTask;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,7 @@ import java.util.Set;
 public class BuildExecuter {
     private static Logger logger = LoggerFactory.getLogger(BuildExecuter.class);
 
-    Dag dag;
+    private Dag dag;
 
     public BuildExecuter() {
     }
@@ -47,7 +46,7 @@ public class BuildExecuter {
 
         Clock clock = new Clock();
         dag.reset();
-        fillDag(this.dag, tasks, rootProject);
+        fillDag(this.dag, tasks);
         logger.debug("Timing: Creating the DAG took " + clock.getTime());
         clock.reset();
         boolean dagNeutral = dag.execute();
@@ -55,73 +54,34 @@ public class BuildExecuter {
         return !dagNeutral;
     }
 
-    private void fillDag(Dag dag, Iterable<Task> tasks, Project rootProject) {
+    private void fillDag(Dag dag, Iterable<Task> tasks) {
         for (Task task : tasks) {
-            Set<Task> dependsOnTasks = findDependsOnTasks(task, rootProject);
+            Set<Task> dependsOnTasks = findDependsOnTasks(task);
             dag.addTask(task, dependsOnTasks);
             if (dependsOnTasks.size() > 0) {
                 logger.debug("Found dependsOn tasks for {}: {}", task, dependsOnTasks);
-                fillDag(dag, dependsOnTasks, rootProject);
+                fillDag(dag, dependsOnTasks);
             } else {
                 logger.debug("Found no dependsOn tasks for {}", task);
             }
         }
     }
 
-    private Set<Task> findDependsOnTasks(Task task, Project rootProject) {
+    private Set<Task> findDependsOnTasks(Task task) {
         logger.debug("Find dependsOn tasks for {}", task);
         Set<Task> dependsOnTasks = new HashSet<Task>();
         for (Object taskDescriptor : task.getDependsOn()) {
-            String absolutePath = absolutePath(task.getProject(), taskDescriptor);
-            Path path = new Path(absolutePath);
-            ProjectInternal project = (ProjectInternal) getProjectFromTaskPath(path, rootProject);
-            DefaultTask dependsOnTask = (DefaultTask) project.getTasks().get(path.taskName);
-            if (dependsOnTask == null)
-                throw new UnknownTaskException("Task with path " + taskDescriptor + " could not be found.");
+            String path = toPath(taskDescriptor);
+            Task dependsOnTask = task.getProject().task(path);
             dependsOnTasks.add(dependsOnTask);
         }
         return dependsOnTasks;
     }
 
-    private String absolutePath(Project project, Object taskDescriptor) {
+    private String toPath(Object taskDescriptor) {
         if (taskDescriptor instanceof Task) {
             return ((Task) taskDescriptor).getPath();
         }
-        return project.absolutePath(taskDescriptor.toString());
+        return taskDescriptor.toString();
     }
-
-    private Project getProjectFromTaskPath(Path path, Project rootProject) {
-        try {
-            return rootProject.project(path.projectPath);
-        } catch (UnknownProjectException e) {
-            throw new UnknownTaskException("Task with path " + path + " could not be found!");
-        }
-    }
-
-    private static class Path {
-        private String projectPath;
-        private String taskName;
-
-        private Path(String taskPath) {
-            int index = taskPath.lastIndexOf(Project.PATH_SEPARATOR);
-            if (index == -1) {
-                throw new InvalidUserDataException("Taskpath " + taskPath + " is not a valid path.");
-            }
-            this.projectPath = index == 0 ? Project.PATH_SEPARATOR : taskPath.substring(0, index);
-            this.taskName = taskPath.substring(index + 1);
-        }
-
-        public String getProjectPath() {
-            return projectPath;
-        }
-
-        public String getTaskName() {
-            return taskName;
-        }
-
-        public String toString() {
-            return projectPath + Project.PATH_SEPARATOR + taskName;
-        }
-    }
-
 }

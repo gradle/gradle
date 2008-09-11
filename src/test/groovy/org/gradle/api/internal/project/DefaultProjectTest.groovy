@@ -422,9 +422,12 @@ class DefaultProjectTest {
     }
 
     @Test void testTask() {
-        DefaultTask task = project.tasks[TEST_TASK_NAME] = new DefaultTask(project, TEST_TASK_NAME, null)
-        assert project.task(TEST_TASK_NAME).is(task)
-        assert project."$TEST_TASK_NAME".is(task)
+        DefaultTask task = project.tasks['task'] = new DefaultTask(project, 'task', null)
+        DefaultTask childTask = child1.tasks['task'] = new DefaultTask(child1, 'task', null)
+        assertThat(project.task('task'), sameInstance(task))
+        assertThat(project.task(':task'), sameInstance(task))
+        assertThat(project.task(':child1:task'), sameInstance(childTask))
+        assertThat(project.task('child1:task'), sameInstance(childTask))
     }
 
     @Test void testTaskWithConfigureClosure() {
@@ -435,14 +438,32 @@ class DefaultProjectTest {
             one(mockTask).configure(testConfigureClosure); will(returnValue(mockTask))
         }
 
-        assert mockTask.is(project.task(TEST_TASK_NAME, testConfigureClosure))
+        assertThat(project.task(TEST_TASK_NAME, testConfigureClosure), sameInstance(mockTask))
     }
 
-
-    @Test (expected = InvalidUserDataException) void testTaskWithNonExistingTask() {
-        project.task(TEST_TASK_NAME)
+    @Test void testTaskWithNonExistingTask() {
+        try {
+            project.task("unknown")
+            fail()
+        } catch (UnknownTaskException e) {
+            assertThat(e.message, equalTo("Task with path 'unknown' could not be found in project ':'."))
+        }
     }
 
+    @Test void testTaskWithNonExistingProject() {
+        try {
+            project.task("unknown:task")
+            fail()
+        } catch (UnknownTaskException e) {
+            assertThat(e.message, equalTo("Task with path 'unknown:task' could not be found in project ':'."))
+        }
+    }
+
+    @Test void testCanAccessTaskAsAProjectProperty() {
+        DefaultTask task = project.tasks[TEST_TASK_NAME] = new DefaultTask(project, TEST_TASK_NAME, null)
+        assertThat(project."$TEST_TASK_NAME", sameInstance(task))
+    }
+    
     @Test (expected = MissingPropertyException) void testPropertyShortCutForTaskCallWithNonExistingTask() {
         project.unknownTask
     }
@@ -502,12 +523,22 @@ class DefaultProjectTest {
         assertSame(child1, childchild.project(Project.PATH_SEPARATOR + "child1"))
     }
 
-    @Test (expected = UnknownProjectException) void testGetProjectWithUnknownAbsolutePath() {
-        project.project(Project.PATH_SEPARATOR + "unknownchild")
+    @Test void testGetProjectWithUnknownAbsolutePath() {
+        try {
+            project.project(Project.PATH_SEPARATOR + "unknownchild")
+            fail()
+        } catch (UnknownProjectException e) {
+            assertEquals(e.getMessage(), "Project with path ':unknownchild' could not be found in project ':'.")
+        }
     }
 
-    @Test (expected = UnknownProjectException) void testGetProjectWithUnknownRelativePath() {
-        project.project("unknownChild")
+    @Test void testGetProjectWithUnknownRelativePath() {
+        try {
+            project.project("unknownchild")
+            fail()
+        } catch (UnknownProjectException e) {
+            assertEquals(e.getMessage(), "Project with path 'unknownchild' could not be found in project ':'.")
+        }
     }
 
     @Test (expected = InvalidUserDataException) void testGetProjectWithEmptyPath() {
@@ -516,6 +547,22 @@ class DefaultProjectTest {
 
     @Test (expected = InvalidUserDataException) void testGetProjectWithNullPath() {
         project.project(null)
+    }
+
+    @Test void testFindProject() {
+        assertSame(project, project.findProject(Project.PATH_SEPARATOR))
+        assertSame(child1, project.findProject(Project.PATH_SEPARATOR + "child1"))
+        assertSame(child1, project.findProject("child1"))
+        assertSame(childchild, child1.findProject('childchild'))
+        assertSame(child1, childchild.findProject(Project.PATH_SEPARATOR + "child1"))
+    }
+
+    @Test void testFindProjectWithUnknownAbsolutePath() {
+        assertNull(project.findProject(Project.PATH_SEPARATOR + "unknownchild"))
+    }
+
+    @Test void testFindProjectWithUnknownRelativePath() {
+        assertNull(project.findProject("unknownChild"))
     }
 
     @Test void testGetProjectWithClosure() {

@@ -24,8 +24,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * A {@link TaskExecuter} which selects tasks which match the provided names. For each name, selects all tasks in
- * all projects whose name is the given name.
+ * A {@link TaskExecuter} which selects tasks which match the provided names. For each name, selects all tasks in all
+ * projects whose name is the given name.
  */
 public class NameResolvingTaskExecuter implements TaskExecuter {
     private static Logger logger = LoggerFactory.getLogger(NameResolvingTaskExecuter.class);
@@ -81,20 +81,15 @@ public class NameResolvingTaskExecuter implements TaskExecuter {
     }
 
     private Set<Task> findTasks(Project project, String taskName) {
-        if (taskName.contains(Project.PATH_SEPARATOR)) {
-            taskName = project.absolutePath(taskName);
-            // todo Refactor: first find the project then the task.
-            Map<Project, Set<Task>> allTasks = project.getRootProject().getAllTasks(true);
-            for (Collection<Task> projectTasks : allTasks.values()) {
-                for (Task task : projectTasks) {
-                    if (task.getPath().equals(taskName)) {
-                        return Collections.singleton(task);
-                    }
-                }
-            }
-            return Collections.emptySet();
-        } else {
+        if (!taskName.contains(Project.PATH_SEPARATOR)) {
             return project.getTasksByName(taskName, true);
+        }
+
+        Task task = project.findTask(taskName);
+        if (task != null) {
+            return Collections.singleton(task);
+        } else {
+            return Collections.emptySet();
         }
     }
 

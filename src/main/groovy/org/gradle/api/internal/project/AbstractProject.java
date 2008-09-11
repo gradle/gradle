@@ -29,6 +29,7 @@ import org.gradle.util.GradleUtil;
 import org.gradle.util.PathHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.*;
@@ -427,21 +428,19 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project project(String path) {
-        Project project = findProject(isAbsolutePath(path) ? path : absolutePath(path));
+        Project project = findProject(path);
         if (project == null) {
-            throw new UnknownProjectException("Project with path " + path + " could not be found");
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in project '%s'.",
+                    path, getPath()));
         }
         return project;
     }
 
-    public Project findProject(String absolutePath) {
-        if (!GUtil.isTrue(absolutePath)) {
+    public Project findProject(String path) {
+        if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        if (!isAbsolutePath(path)) {
-            throw new InvalidUserDataException("The path must be absolute!");
-        }
-        return projectRegistry.getProject(absolutePath);
+        return projectRegistry.getProject(isAbsolutePath(path) ? path : absolutePath(path));
     }
 
     public Set<Project> getAllprojects() {
@@ -538,11 +537,29 @@ public abstract class AbstractProject implements ProjectInternal {
         return plugin;
     }
 
-    public Task task(String name) {
-        if (tasks.get(name) == null) {
-            throw new InvalidUserDataException("Task with name= " + name + " does not exists!");
+    public Task findTask(String path) {
+        if (!GUtil.isTrue(path)) {
+            throw new InvalidUserDataException("A path must be specified!");
         }
-        return tasks.get(name);
+        if (!path.contains(PATH_SEPARATOR)) {
+            return tasks.get(path);
+        }
+
+        String projectPath = StringUtils.substringBeforeLast(path, PATH_SEPARATOR);
+        Project project = findProject(!GUtil.isTrue(projectPath) ? PATH_SEPARATOR : projectPath);
+        if (project == null) {
+            return null;
+        }
+        return project.task(StringUtils.substringAfterLast(path, PATH_SEPARATOR));
+    }
+
+    public Task task(String path) {
+        Task task = findTask(path);
+        if (task == null) {
+            throw new UnknownTaskException(String.format("Task with path '%s' could not be found in project '%s'.",
+                    path, getPath()));
+        }
+        return task;
     }
 
     public void defaultTasks(String... defaultTasks) {

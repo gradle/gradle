@@ -40,10 +40,11 @@ import java.util.SortedMap;
  *
  * <li>Create a {@link org.gradle.api.initialization.Settings} instance for the build.</li>
  *
- * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if present, against the
- * {@link org.gradle.api.initialization.Settings} object to configure it.</li>
+ * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if
+ * present, against the {@link org.gradle.api.initialization.Settings} object to configure it.</li>
  *
- * <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of <code>Project</code> instances.</li>
+ * <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of
+ * <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
  * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated
@@ -266,7 +267,7 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Returns the set of projects which this project depends on.</p>
      *
-     * <p>You can access this property in your build file using <code>childProjects</code></p>
+     * <p>You can access this property in your build file using <code>dependsOnProjects</code></p>
      *
      * @return The set of projects. Returns an empty set if this project depends on no projects.
      */
@@ -358,31 +359,40 @@ public interface Project extends Comparable<Project> {
     Project usePlugin(Class<? extends Plugin> pluginClass);
 
     /**
-     * <p>Returns the {@link Task} from the project which has the given name. If no such task exists, an exception is
-     * thrown.</p>
+     * <p>Returns the {@link Task} from the project which has the given path. Relative paths are interpreted relative to
+     * this project. Returns null if no such task exists.</p>
      *
-     * <p>You can call this method in your build file using the task name. See <a href="#properties">here</a> for more
-     * details.</p>
-     *
-     * @param name the name of the task to be returned
-     * @return a task with the same name as the name argument. Never returns null.
-     * @throws InvalidUserDataException If no task with the given name exists in this project.
+     * @param path the path of the task to be returned
+     * @return The task. Returns null if so such task exists.
      */
-    Task task(String name) throws InvalidUserDataException;
+    Task findTask(String path);
 
     /**
-     * <p>Returns the {@link Task} from this project which has the given name. Before the task is returned, the given
-     * closure is passed to the task's {@link Task#configure(groovy.lang.Closure)} method. If no such task exists, an
-     * exception is thrown.</p>
+     * <p>Returns the {@link Task} from the project which has the given path. Relative paths are interpreted relative to
+     * this project. If no such task exists, an exception is thrown.</p>
+     *
+     * <p>You can also call this method in your build file using the task name. See <a href="#properties">here</a> for
+     * more details.</p>
+     *
+     * @param path the path of the task to be returned
+     * @return The task. Never returns null.
+     * @throws UnknownTaskException If no task with the given path exists.
+     */
+    Task task(String path) throws UnknownTaskException;
+
+    /**
+     * <p>Returns the {@link Task} from this project which has the given path. Relative paths are interpreted relative
+     * to this project. Before the task is returned, the given closure is passed to the task's {@link
+     * Task#configure(groovy.lang.Closure)} method. If no such task exists, an exception is thrown.</p>
      *
      * <p>You can call this method in your build file using the task name followed by a code block.</p>
      *
-     * @param name the name of the task to be returned
+     * @param path the path of the task to be returned
      * @param configurationClosure the closure to use to configure the task.
-     * @return a task with the same name as the name argument. Never returns null.
-     * @throws InvalidUserDataException If no task with the given name exists in this project.
+     * @return The task. Never returns null.
+     * @throws UnknownTaskException If no task with the given path exists.
      */
-    Task task(String name, Closure configurationClosure) throws InvalidUserDataException;
+    Task task(String path, Closure configurationClosure) throws UnknownTaskException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
@@ -620,9 +630,9 @@ public interface Project extends Comparable<Project> {
     Project dependsOnChildren(boolean evaluateDependsOnProject);
 
     /**
-     * <p>Locates a project by absolute path.</p>
+     * <p>Locates a project by path. If the path is relative, it is interpreted relative to this project.</p>
      *
-     * @param path The absolute path.
+     * @param path The path.
      * @return The project with the given path. Returns null if no such project exists.
      */
     Project findProject(String path);
@@ -641,6 +651,7 @@ public interface Project extends Comparable<Project> {
      * interpreted relative to this project.</p>
      *
      * @param path The path.
+     * @param configureClosure The closure to use to configure the project.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
      */
@@ -902,6 +913,7 @@ public interface Project extends Comparable<Project> {
      * </ol>
      *
      * @param propertyName The name of the property.
+     * @return The value of the property, possibly null.
      * @throws MissingPropertyException When the given property is unknown.
      */
     Object property(String propertyName) throws MissingPropertyException;

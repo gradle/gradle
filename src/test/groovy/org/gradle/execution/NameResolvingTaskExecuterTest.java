@@ -19,18 +19,16 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import org.junit.Test;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeSet;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
@@ -52,17 +50,10 @@ public class NameResolvingTaskExecuterTest {
     @Test
     public void selectsTaskWithMatchingPath() {
         final Task task = context.mock(Task.class);
-        final SortedMap<Project, Set<Task>> tasks = WrapUtil.toSortedMap(project, WrapUtil.toSet(task));
 
         context.checking(new Expectations(){{
-            atLeast(1).of(project).absolutePath("a:b");
-            will(returnValue(":a:b"));
-
-            atLeast(1).of(rootProject).getAllTasks(true);
-            will(returnValue(tasks));
-
-            allowing(task).getPath();
-            will(returnValue(":a:b"));
+            atLeast(1).of(project).findTask("a:b");
+            will(returnValue(task));
         }});
 
         NameResolvingTaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("a:b"));
@@ -178,6 +169,26 @@ public class NameResolvingTaskExecuterTest {
             fail();
         } catch (UnknownTaskException e) {
             assertThat(e.getMessage(), equalTo("Task 'name1' not found in this project."));
+        }
+    }
+
+    @Test
+    public void failsWhenUnknownTaskPathIsProvided() {
+        final Task task = context.mock(Task.class);
+
+        context.checking(new Expectations() {{
+            atLeast(1).of(project).findTask("a:b");
+            will(returnValue(null));
+            atLeast(1).of(project).getTasksByName("name2", true);
+            will(returnValue(WrapUtil.toSet(task)));
+        }});
+
+        TaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("a:b", "name2"));
+        try {
+            executer.select(project);
+            fail();
+        } catch (UnknownTaskException e) {
+            assertThat(e.getMessage(), equalTo("Task 'a:b' not found in this project."));
         }
     }
 

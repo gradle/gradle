@@ -18,11 +18,8 @@ package org.gradle.execution;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.UnknownProjectException;
-import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Description;
@@ -147,43 +144,5 @@ public class BuildExecuterTest {
         assertEquals(WrapUtil.toSet(task1), collectDagTasksAction.tasksMap.get(task2));
         assertEquals(new HashSet(), collectDagTasksAction.tasksMap.get(task1));
 
-    }
-
-    @Test(expected = UnknownTaskException.class)
-    public void testExecuteWithNonExistingProjectForDependentTask() {
-        final Project root = context.mock(ProjectInternal.class);
-        final String taskName = ":unknownchild:compile";
-
-        context.checking(new Expectations() {{
-            allowing(root).getRootProject(); will(returnValue(root));
-            allowing(root).getPath(); will(returnValue("root"));
-            allowing(root).absolutePath(taskName); will(returnValue(taskName));
-            allowing(root).project(":unknownchild"); will(throwException(new UnknownProjectException()));
-            allowing(dagMock).reset();
-        }});
-        
-        Task compileTask = new DefaultTask(root, "compile", dagMock);
-        compileTask.dependsOn(taskName);
-
-        buildExecuter.execute(WrapUtil.toList(compileTask), root);
-    }
-
-    @Test(expected = UnknownTaskException.class)
-    public void testExecuteWithNonExistingDependentTask() {
-        final Project root = context.mock(ProjectInternal.class);
-        final String taskName = ":child:compile";
-
-        context.checking(new Expectations() {{
-            allowing(root).getRootProject(); will(returnValue(root));
-            allowing(root).getPath(); will(returnValue("root"));
-            allowing(root).absolutePath(taskName); will(returnValue(taskName));
-            allowing(root).project(":child"); will(returnValue(child));
-            allowing(dagMock).reset();
-        }});
-
-        Task compileTask = new DefaultTask(root, "compile", dagMock);
-        compileTask.dependsOn(taskName);
-
-        buildExecuter.execute(WrapUtil.toList(compileTask), root);
     }
 }

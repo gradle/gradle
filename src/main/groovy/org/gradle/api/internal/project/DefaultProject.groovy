@@ -152,8 +152,8 @@ class DefaultProject extends AbstractProject {
         return (Project) ConfigureUtil.configure(configureClosure, project(path));
     }
 
-    public Task task(String name, Closure configureClosure) {
-        Task task = task(name);
+    public Task task(String path, Closure configureClosure) {
+        Task task = task(path);
         if (configureClosure != null) {
             task.configure(configureClosure);
         }
