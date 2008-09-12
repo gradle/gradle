@@ -70,13 +70,14 @@ class ResolverFactoryTest {
     private void checkMavenResolver(IBiblioResolver resolver, String name, String url) {
         assertEquals url, resolver.root
         assertEquals name, resolver.name
-        assertTrue resolver.allownomd
+        assertFalse resolver.allownomd
     }
 
     @Test
     public void testCreateMavenRepoWithAdditionalJarUrls() {
         String testUrl2 = 'http://www.gradle2.org'
         DualResolver dualResolver = factory.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, testUrl2)
+        assertFalse dualResolver.allownomd
         checkIBiblio(dualResolver.ivyResolver, "_poms")
         URLResolver urlResolver = dualResolver.artifactResolver
         assert urlResolver.m2compatible

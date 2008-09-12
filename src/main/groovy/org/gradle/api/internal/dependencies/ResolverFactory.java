@@ -71,7 +71,7 @@ public class ResolverFactory {
         iBiblioResolver.setM2compatible(true);
         iBiblioResolver.setUseMavenMetadata(true);
         if (jarRepoUrls.length == 0) {
-            iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
+            iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_REQUIRED);
             return iBiblioResolver;
         }
         iBiblioResolver.setName(iBiblioResolver.getName() + "_poms");
@@ -86,7 +86,7 @@ public class ResolverFactory {
             urlResolver.addArtifactPattern(jarRepoUrl + '/' + DependencyManager.MAVEN_REPO_PATTERN);
         }
         dualResolver.setArtifactResolver(urlResolver);
-        dualResolver.setAllownomd(true);
+        dualResolver.setAllownomd(false);
         return dualResolver;
     }
 }
