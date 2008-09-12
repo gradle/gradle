@@ -68,22 +68,22 @@ public class DefaultDependencyContainer implements DependencyContainer {
         this.dependencyDescriptors.addAll(Arrays.asList(dependencyDescriptors));
     }
 
-    public ModuleDependency dependency(List confs, String id) {
+    public Dependency dependency(List confs, Object id) {
         return dependency(confs, id, null);
     }
 
-    public ModuleDependency dependency(List confs, String id, Closure configureClosure) {
-        ModuleDependency dependency = (ModuleDependency) dependencyFactory.createDependency(new HashSet(confs), id, project);
+    public Dependency dependency(List confs, Object id, Closure configureClosure) {
+        Dependency dependency = dependencyFactory.createDependency(new HashSet(confs), id, project);
         dependencies.add(dependency);
         ConfigureUtil.configure(configureClosure, dependency);
         return dependency;
     }
 
-    public ModuleDependency dependency(String id) {
+    public Dependency dependency(String id) {
         return dependency(id, null);
     }
 
-    public ModuleDependency dependency(String id, Closure configureClosure) {
+    public Dependency dependency(String id, Closure configureClosure) {
         return dependency(defaultConfs, id, configureClosure);
     }
 

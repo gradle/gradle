@@ -84,7 +84,7 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
         super.dependencies(confs, dependencies)
     }
 
-    ModuleDependency dependency(List confs, String id, Closure configureClosure = null) {
+    Dependency dependency(List confs, String id, Closure configureClosure = null) {
         if (confs != defaultConfs) {
             throw new UnsupportedOperationException("You can assign confs $confs to dependencies in a client module.")
         }

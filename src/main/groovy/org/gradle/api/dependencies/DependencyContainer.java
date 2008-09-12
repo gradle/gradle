@@ -92,25 +92,23 @@ public interface DependencyContainer {
     void dependencyDescriptors(DependencyDescriptor... dependencyDescriptors);
 
     /**
-     * Adds a module dependency to the given confs. The configureClosure configures this moduleDependency.
-     * See {@link org.gradle.api.dependencies.ModuleDependency} for the API that can be used. 
+     * Adds a dependency to the given confs. The configureClosure configures this dependency. 
      *
      * @param confs
-     * @param moduleName
+     * @param userDependencyDescription
      * @param configureClosure
-     * @return the added ModuleDependency
+     * @return the added Dependency
      */
-    ModuleDependency dependency(List confs, String moduleName, Closure configureClosure);
+    Dependency dependency(List confs, Object userDependencyDescription, Closure configureClosure);
 
     /**
-     * Adds a module dependency to the default confs. The configureClosure configures this moduleDependency.
-     * See {@link org.gradle.api.dependencies.ModuleDependency} for the API that can be used.
+     * Adds a dependency to the default confs. The configureClosure configures this dependency.
      *
-     * @param moduleName
+     * @param userDependencyDescription
      * @param configureClosure
-     * @return the added ModuleDependency
+     * @return the added Dependency
      */
-    ModuleDependency dependency(String moduleName, Closure configureClosure);
+    Dependency dependency(String userDependencyDescription, Closure configureClosure);
 
     /**
      * Adds a client module to the given confs. The configureClosure configures this client module.
@@ -118,7 +116,7 @@ public interface DependencyContainer {
      *
      * @param moduleName
      * @param configureClosure
-     * @return the added ModuleDependency
+     * @return the added ClientModule
      */
     ClientModule clientModule(List confs, String moduleName, Closure configureClosure);
 

@@ -38,6 +38,7 @@ public class ProjectDependency extends AbstractExcludeAwareDependency {
 
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory();
 
+    // todo Remove this constructor eventually as a addDependency with Closure notation is the recommended way.
     public ProjectDependency(Project dependencyProject, String dependencyConfiguration) {
         this(null, dependencyProject, null);
         this.dependencyConfiguration = dependencyConfiguration;
