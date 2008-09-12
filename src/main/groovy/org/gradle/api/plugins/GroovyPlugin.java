@@ -22,6 +22,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
@@ -46,6 +48,8 @@ public class GroovyPlugin extends JavaPlugin {
         configureCompile(project);
 
         configureTestCompile(project);
+
+        ((Test) project.task(TEST)).getOptions().getForkOptions().setForkMode(ForkMode.ONCE);
 
         configureJavadoc(project);
 

@@ -35,6 +35,7 @@ import org.gradle.api.tasks.ide.eclipse.EclipseProject;
 import org.gradle.api.tasks.ide.eclipse.ProjectType;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.execution.Dag;
 import org.gradle.util.GUtil;
@@ -200,6 +201,9 @@ public class JavaPlugin implements Plugin {
     private void configureTest(Project project) {
         final Test test = (Test) project.createTask(GUtil.map("type", Test.class, "dependsOn", TEST_COMPILE), TEST);
         test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
+        test.getOptions().setFork(true);
+        test.getOptions().getForkOptions().setForkMode(ForkMode.PER_TEST);
+        test.getOptions().getForkOptions().setDir(project.getProjectDir());
         test.doFirst(new TaskAction() {
             public void execute(Task task, Dag tasksGraph) {
                 Test test = (Test) task;
