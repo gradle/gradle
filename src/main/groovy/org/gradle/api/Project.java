@@ -18,15 +18,14 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.plugins.Convention;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 
 /**
  * This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>, you
@@ -665,7 +664,7 @@ public interface Project extends Comparable<Project> {
      * just this project.
      * @return A map from project to a set of tasks.
      */
-    SortedMap<Project, Set<Task>> getAllTasks(boolean recursive);
+    Map<Project, Set<Task>> getAllTasks(boolean recursive);
 
     /**
      * Returns the set of tasks with the given name contained in this project, and optionally its subprojects.</p>
