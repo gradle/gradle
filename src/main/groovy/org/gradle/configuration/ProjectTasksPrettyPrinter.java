@@ -22,6 +22,8 @@ import org.gradle.api.Task;
 import java.util.Formatter;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * @author Hans Dockter
@@ -31,11 +33,14 @@ public class ProjectTasksPrettyPrinter {
 
     public String getPrettyText(Map<Project, Set<Task>> tasks) {
         Formatter formatter = new Formatter();
-        for (Project project : tasks.keySet()) {
+        SortedSet<Project> sortedProjects = new TreeSet<Project>(tasks.keySet());
+        for (Project project : sortedProjects) {
             formatter.format("%n%s%n", SEPARATOR);
-            formatter.format("Project: %s%n", project);
-            for (Task task : tasks.get(project)) {
-                formatter.format("++Task: %s: %s%n", task.getPath(), task.getDependsOn());
+            formatter.format("Project %s%n", project.getPath());
+            SortedSet<Task> sortedTasks = new TreeSet<Task>(tasks.get(project));
+            for (Task task : sortedTasks) {
+                SortedSet<Task> sortedDependencies = new TreeSet<Task>(task.getDependencies().getDependencies(task));
+                formatter.format("  Task %s %s%n", task.getPath(), sortedDependencies);
             }
         }
         return formatter.toString();

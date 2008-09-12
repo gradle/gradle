@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal
 
-import org.gradle.api.Task
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.tasks.AbstractTaskTest
+import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.execution.Dag;
- 
+
 /**
  * @author Hans Dockter
  */

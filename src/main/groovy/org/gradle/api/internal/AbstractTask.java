@@ -17,17 +17,21 @@ package org.gradle.api.internal;
 
 import groovy.util.AntBuilder;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
-import org.gradle.api.*;
+import org.gradle.api.GradleScriptException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.TaskAction;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.execution.Dag;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -50,8 +54,6 @@ public abstract class AbstractTask implements Task {
 
     private List<String> skipProperties = new ArrayList<String>();
 
-    private Set<Object> dependsOn = new HashSet<Object>();
-
     private boolean executed;
 
     private boolean enabled = true;
@@ -59,6 +61,8 @@ public abstract class AbstractTask implements Task {
     private String path = null;
 
     private boolean dagNeutral = false;
+
+    private DefaultTaskDependency dependencies = new DefaultTaskDependency();
 
     public AbstractTask() {
 
@@ -110,12 +114,16 @@ public abstract class AbstractTask implements Task {
         this.skipProperties = skipProperties;
     }
 
+    public TaskDependency getDependencies() {
+        return dependencies;
+    }
+
     public Set<Object> getDependsOn() {
-        return dependsOn;
+        return dependencies.getValues();
     }
 
     public void setDependsOn(Set<?> dependsOn) {
-        this.dependsOn = new HashSet<Object>(dependsOn);
+        dependencies.setValues(dependsOn);
     }
 
     public boolean isExecuted() {
@@ -217,12 +225,7 @@ public abstract class AbstractTask implements Task {
     }
 
     public Task dependsOn(Object... paths) {
-        for (Object path : paths) {
-            if (!GUtil.isTrue(path)) {
-                throw new InvalidUserDataException("A pathelement must not be empty");
-            }
-            dependsOn.add(path);
-        }
+        dependencies.add(paths);
         return this;
     }
 

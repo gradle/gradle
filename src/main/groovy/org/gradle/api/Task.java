@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 
@@ -52,8 +53,8 @@ import org.slf4j.Logger;
  *
  * <p>A task may have dependencies on other tasks. Gradle ensures that tasks are executed in dependency order, so that
  * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
- * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}.  You can add a {@link Task} object as a dependency, or
- * a String task name or path. A relative path is interpreted relative to the task's {@link Project}.</p>
+ * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}.  You can add a {@link Task}, a {@link TaskDependency},
+ * or a String task path as a dependency. A relative path is interpreted relative to the task's {@link Project}.</p>
  *
  * <h3>Using a Task in the Build File</h3>
  *
@@ -100,6 +101,13 @@ public interface Task extends Comparable<Task> {
      * @param actions The actions.
      */
     void setActions(List<TaskAction> actions);
+
+    /**
+     * <p>Returns the {@link TaskDependency} which contains all the tasks that this task depends on.</p>
+     *
+     * @return The dependencies of this task. Never returns null.
+     */
+    TaskDependency getDependencies();
 
     /**
      * <p>Returns the paths of the tasks which this task depends on.</p>

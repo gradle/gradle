@@ -22,7 +22,6 @@ import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -54,9 +53,10 @@ public class BuildExecuter {
         return !dagNeutral;
     }
 
-    private void fillDag(Dag dag, Iterable<Task> tasks) {
+    private void fillDag(Dag dag, Iterable<? extends Task> tasks) {
         for (Task task : tasks) {
-            Set<Task> dependsOnTasks = findDependsOnTasks(task);
+            logger.debug("Find dependsOn tasks for {}", task);
+            Set<? extends Task> dependsOnTasks = task.getDependencies().getDependencies(task);
             dag.addTask(task, dependsOnTasks);
             if (dependsOnTasks.size() > 0) {
                 logger.debug("Found dependsOn tasks for {}: {}", task, dependsOnTasks);
@@ -65,23 +65,5 @@ public class BuildExecuter {
                 logger.debug("Found no dependsOn tasks for {}", task);
             }
         }
-    }
-
-    private Set<Task> findDependsOnTasks(Task task) {
-        logger.debug("Find dependsOn tasks for {}", task);
-        Set<Task> dependsOnTasks = new HashSet<Task>();
-        for (Object taskDescriptor : task.getDependsOn()) {
-            String path = toPath(taskDescriptor);
-            Task dependsOnTask = task.getProject().task(path);
-            dependsOnTasks.add(dependsOnTask);
-        }
-        return dependsOnTasks;
-    }
-
-    private String toPath(Object taskDescriptor) {
-        if (taskDescriptor instanceof Task) {
-            return ((Task) taskDescriptor).getPath();
-        }
-        return taskDescriptor.toString();
     }
 }

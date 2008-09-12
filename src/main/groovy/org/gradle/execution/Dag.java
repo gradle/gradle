@@ -231,7 +231,7 @@ public class Dag {
         return "Out: " + fOut.toString() + " In: " + fIn.toString(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
-    public void addTask(Task task, Set<Task> dependsOnTasks) {
+    public void addTask(Task task, Iterable<? extends Task> dependsOnTasks) {
         logger.debug("Add task: {} DependsOnTasks: {}", task, dependsOnTasks);
         addVertex(task);
         for (Task dependsOnTask : dependsOnTasks) {
