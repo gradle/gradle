@@ -70,23 +70,23 @@ public class StartParameter {
         this.cacheUsage = cacheUsage;
     }
 
-    public static StartParameter newInstance(StartParameter startParameterSrc) {
+    public StartParameter newInstance() {
         StartParameter startParameter = new StartParameter();
-        startParameter.settingsFileName = startParameterSrc.settingsFileName;
-        startParameter.buildFileName = startParameterSrc.buildFileName;
-        startParameter.taskNames = startParameterSrc.taskNames;
-        startParameter.currentDir = startParameterSrc.currentDir;
-        startParameter.searchUpwards = startParameterSrc.searchUpwards;
-        startParameter.projectProperties = startParameterSrc.projectProperties;
-        startParameter.systemPropertiesArgs = startParameterSrc.systemPropertiesArgs;
-        startParameter.gradleUserHomeDir = startParameterSrc.gradleUserHomeDir;
-        startParameter.defaultImportsFile = startParameterSrc.defaultImportsFile;
-        startParameter.pluginPropertiesFile = startParameterSrc.pluginPropertiesFile;
-        startParameter.cacheUsage = startParameterSrc.cacheUsage;
-        startParameter.buildResolverDirectory = startParameterSrc.buildResolverDirectory;
-        startParameter.buildScriptSource = startParameterSrc.buildScriptSource;
-        startParameter.settingsScriptSource = startParameterSrc.settingsScriptSource;
-        startParameter.taskExecuter = startParameterSrc.taskExecuter;
+        startParameter.settingsFileName = settingsFileName;
+        startParameter.buildFileName = buildFileName;
+        startParameter.taskNames = taskNames;
+        startParameter.currentDir = currentDir;
+        startParameter.searchUpwards = searchUpwards;
+        startParameter.projectProperties = projectProperties;
+        startParameter.systemPropertiesArgs = systemPropertiesArgs;
+        startParameter.gradleUserHomeDir = gradleUserHomeDir;
+        startParameter.defaultImportsFile = defaultImportsFile;
+        startParameter.pluginPropertiesFile = pluginPropertiesFile;
+        startParameter.cacheUsage = cacheUsage;
+        startParameter.buildResolverDirectory = buildResolverDirectory;
+        startParameter.buildScriptSource = buildScriptSource;
+        startParameter.settingsScriptSource = settingsScriptSource;
+        startParameter.taskExecuter = taskExecuter;
 
         return startParameter;
     }

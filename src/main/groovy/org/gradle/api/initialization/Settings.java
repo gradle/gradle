@@ -21,13 +21,14 @@ import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.Project;
 import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
 
 /**
  * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
- * org.gradle.api.Project} instances which are to particpate in a build.</p>
+ * Project} instances which are to participate in a build.</p>
  *
  * <p>There is a one-to-one correspondence between a <code>Settings</code> instance and a <code>{@value
  * #DEFAULT_SETTINGS_FILE}</code> settings file. Before Gradle assembles the projects for a build, it creates a
@@ -36,9 +37,15 @@ import java.io.File;
  * <h3>Assembling a Multi-Project Build</h3>
  *
  * <p>One of the purposes of the <code>Settings</code> object is to allow you to declare the projects which are to be
- * included in the build. You add projects to the build using the {@link #include(String[])} method.</p>
+ * included in the build. You add projects to the build using the {@link #include(String[])} method.  There is always a
+ * root project included in a build.  It is added automatically when the <code>Settings</code> object is created.  The
+ * root project's name defaults to the name of the directory containing the settings file. The root project's project
+ * directory defaults to the directory containing the settings file.</p>
  *
- * <h3>Defining the Build Classpath</h3>
+ * <p>When a project is included in the build, a {@link ProjectDescriptor} is created. You can use this descriptor to
+ * change the default vaules for several properties of the project.</p>
+ *
+ * <h3>Defining the Build Class-path</h3>
  *
  * <p>Using the <code>Settings</code> object, you can define the classpath which will be used to load the build files,
  * and all objects used by them. This includes the non-standard plugins which the build files will use.</p>
@@ -51,7 +58,8 @@ public interface Settings {
     /**
      * <p>The default name for the settings file.</p>
      */
-    final static String DEFAULT_SETTINGS_FILE = "settings.gradle";
+    String DEFAULT_SETTINGS_FILE = "settings.gradle";
+
     String BUILD_DEPENDENCIES_PROJECT_GROUP = "org.gradle";
     String BUILD_DEPENDENCIES_PROJECT_VERSION = "SNAPSHOT";
     String BUILD_DEPENDENCIES_PROJECT_NAME = "build";
@@ -67,8 +75,10 @@ public interface Settings {
      */
     void include(String[] projectPaths);
 
+    void includeFlat(String[] projectNames);
+
     /**
-     * <p>Returns the {@link org.gradle.api.DependencyManager} which manages the classpath to use for the build files.</p>
+     * <p>Returns the {@link DependencyManager} which manages the classpath to use for the build files.</p>
      *
      * @return the dependency manager instance responsible for managing the dependencies for the users build script
      *         classpath.
@@ -94,9 +104,17 @@ public interface Settings {
     FileSystemResolver addFlatDirResolver(String name, Object[] dirs);
 
     /**
-     * Returns the root dir of the build project.
+     * <p>Returns the settings directory of the build. The settings directory is the directory containing the settings
+     * file.</p>
      *
-     * @return A file describing the root dir.
+     * @return The settings directory. Never returns null.
+     */
+    File getSettingsDir();
+
+    /**
+     * <p>Returns the root directory of the build. The root directory is the project directory of the root project.</p>
+     *
+     * @return The root directory. Never returns null.
      */
     File getRootDir();
 
@@ -108,11 +126,30 @@ public interface Settings {
 
     DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
 
+    /**
+     * <p>Returns the root project of the build.</p>
+     *
+     * @return The root project. Never returns null.
+     */
     ProjectDescriptor getRootProjectDescriptor();
 
+    /**
+     * <p>Returns the project with the given path.</p>
+     *
+     * @param path The path
+     * @return The project with the given path. Returns null if no such project exists.
+     */
     ProjectDescriptor descriptor(String path);
 
+    /**
+     * <p>Returns the project with the given project directory.</p>
+     *
+     * @param projectDir The project directory.
+     * @return The project with the given project directory. Returns null if no such project exists.
+     */
     ProjectDescriptor descriptor(File projectDir);
 
     StartParameter getStartParameter();
+
+    void clientModule(String id, Closure configureClosure);
 }

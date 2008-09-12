@@ -21,24 +21,40 @@ import groovy.util.AntBuilder;
 import java.util.List;
 import java.util.Set;
 
+import org.gradle.api.tasks.StopActionException;
+import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.execution.Dag;
+import org.slf4j.Logger;
+
 /**
  * <p>A <code>Task</code> represents a single step of a build, such as compiling classes or generating javadoc.</p>
  *
- * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
- * actions is executed in turn, by calling {@link TaskAction#execute(Task, org.gradle.execution.Dag)}.  You can add
- * actions to a task by calling {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
- *
  * <p>A task belongs to a {@link Project}. You can use the various methods on {@link Project} to create and lookup task
  * instances.</p>
+ *
+ * <h3>Task Actions</h3>
+ *
+ * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
+ * actions is executed in turn, by calling {@link TaskAction#execute(Task, Dag)}.  You can add actions to a task by
+ * calling {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
+ *
+ * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
+ * the task.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or {@link
+ * #doLast(groovy.lang.Closure)}.</p>
+ *
+ * There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
+ * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
+ * {@link StopActionException}. A task action can abort execution of the task and continue to the next task by throwing
+ * a {@link StopExecutionException}. Using these exceptions allows you to have precondition actions which skip execution
+ * of the task, or part of the task, if not true.</p>
  *
  * <h3>Dependencies</h3>
  *
  * <p>A task may have dependencies on other tasks. Gradle ensures that tasks are executed in dependency order, so that
  * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
- * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}</p>
+ * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}.  You can add a {@link Task} object as a dependency, or
+ * a String task name or path. A relative path is interpreted relative to the task's {@link Project}.</p>
  *
- * <h3>Exceptions</h3>
- * 
  * <h3>Using a Task in the Build File</h3>
  *
  * <p>A task generally provides no special build file behaviour, and can be used as a regular script object.</p>
@@ -90,14 +106,15 @@ public interface Task extends Comparable<Task> {
      *
      * @return The paths of the tasks this task depends on. Returns an empty set if this task has no dependencies.
      */
-    Set getDependsOn();
+    Set<Object> getDependsOn();
 
     /**
-     * <p>Sets the paths of the tasks which this task depends on.</p>
+     * <p>Sets the paths of the tasks which this task depends on. This can contain {@link Task} instances, or String
+     * task names or paths. Relative paths are interpreted relative to this task's project.</p>
      *
      * @param dependsOnTasks The set of task paths.
      */
-    void setDependsOn(Set dependsOnTasks);
+    void setDependsOn(Set<?> dependsOnTasks);
 
     /**
      * <p>Returns true if this task has been executed.</p>
@@ -136,8 +153,8 @@ public interface Task extends Comparable<Task> {
 
     /**
      * <p>Adds the given closure to the beginning of this task's action list. If the closure takes 1 parameter, it is
-     * passed this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link
-     * org.gradle.execution.Dag} for the currently executing build.</p>
+     * passed this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link Dag}
+     * for the currently executing build.</p>
      *
      * @param action The action closure to execute.
      * @return This task.
@@ -154,8 +171,8 @@ public interface Task extends Comparable<Task> {
 
     /**
      * <p>Adds the given closure to the end of this task's action list. If the closure takes 1 parameter, it is passed
-     * this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link
-     * org.gradle.execution.Dag} for the currently executing build.</p>
+     * this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link Dag} for the
+     * currently executing build.</p>
      *
      * @param action The action closure to execute.
      * @return This task.
@@ -222,10 +239,18 @@ public interface Task extends Comparable<Task> {
     List<String> getSkipProperties();
 
     /**
-     * <p>Returns the <code>AntBuilder</code> for this task.  You can use this to execute ant tasks.</p>
+     * <p>Returns the <code>AntBuilder</code> for this task.  You can use this in your build file to execute ant
+     * tasks.</p>
      *
      * @return The <code>AntBuilder</code>
      */
     AntBuilder getAnt();
+
+    /**
+     * <p>Returns the logger for this task. You can use this in your build file to write log messages.</p>
+     *
+     * @return The logger. Never returns null.
+     */
+    Logger getLogger();
 }
 

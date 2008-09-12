@@ -39,6 +39,7 @@ import java.util.*;
  */
 public abstract class AbstractProject implements ProjectInternal {
     private static Logger logger = LoggerFactory.getLogger(AbstractProject.class);
+    private static Logger buildLogger = LoggerFactory.getLogger(Project.class);
 
     public static final int STATE_CREATED = 0;
 
@@ -772,5 +773,9 @@ public abstract class AbstractProject implements ProjectInternal {
     public AfterEvaluateListener addAfterEvaluateListener(AfterEvaluateListener afterEvaluateListener) {
         afterEvaluateListeners.add(afterEvaluateListener);
         return afterEvaluateListener;
+    }
+
+    public Logger getLogger() {
+        return buildLogger;
     }
 }

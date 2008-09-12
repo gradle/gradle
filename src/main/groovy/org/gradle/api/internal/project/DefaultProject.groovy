@@ -23,16 +23,11 @@ import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
 
 /**
  * @author Hans Dockter
  */
 class DefaultProject extends AbstractProject {
-    private static Logger logger = LoggerFactory.getLogger(DefaultProject)
-
     public DefaultProject() {
         super();
     }

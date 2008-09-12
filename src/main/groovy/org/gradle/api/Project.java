@@ -19,6 +19,8 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.initialization.Settings;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.List;
@@ -38,13 +40,12 @@ import java.util.SortedMap;
  *
  * <ul>
  *
- * <li>Create a {@link org.gradle.api.initialization.Settings} instance for the build.</li>
+ * <li>Create a {@link Settings} instance for the build.</li>
  *
- * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if
- * present, against the {@link org.gradle.api.initialization.Settings} object to configure it.</li>
+ * <li>Evaluate the <code>{@value Settings#DEFAULT_SETTINGS_FILE}</code> script, if present, against the {@link
+ * Settings} object to configure it.</li>
  *
- * <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of
- * <code>Project</code> instances.</li>
+ * <li>Use the configured {@link Settings} object to create the hierarchy of <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
  * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated
@@ -183,7 +184,7 @@ public interface Project extends Comparable<Project> {
     Project getRootProject();
 
     /**
-     * <p>Returns the root directory of this project. The root directory is the directory containing the root
+     * <p>Returns the root directory of this project. The root directory is the project directory of the root
      * project.</p>
      *
      * <p>You can access this property in your build file using <code>rootDir</code></p>
@@ -359,8 +360,8 @@ public interface Project extends Comparable<Project> {
     Project usePlugin(Class<? extends Plugin> pluginClass);
 
     /**
-     * <p>Returns the {@link Task} from the project which has the given path. Relative paths are interpreted relative to
-     * this project. Returns null if no such task exists.</p>
+     * <p>Locates a {@link Task} by path. Relative paths are interpreted relative to this project. Returns null if no
+     * such task exists.</p>
      *
      * @param path the path of the task to be returned
      * @return The task. Returns null if so such task exists.
@@ -917,4 +918,13 @@ public interface Project extends Comparable<Project> {
      * @throws MissingPropertyException When the given property is unknown.
      */
     Object property(String propertyName) throws MissingPropertyException;
+
+    /**
+     * <p>Returns the logger for this project. You can use this in your build file to write log messages.</p>
+     *
+     * <p>You can use this property in your build file using <code>logger</code>.</p>
+     *
+     * @return The logger. Never returns null.
+     */
+    Logger getLogger();
 }

@@ -23,19 +23,12 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.execution.Dag;
 import org.gradle.util.ConfigureUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultTask extends AbstractTask {
-    private static Logger logger = LoggerFactory.getLogger(DefaultTask.class);
-
     public DefaultTask() {
-
     }
 
     public DefaultTask(Project project, String name, Dag tasksGraph) {
@@ -62,17 +55,6 @@ public class DefaultTask extends AbstractTask {
         return (Task) ConfigureUtil.configure(closure, this);
     }
 
-    private Task configureEvent(List<Closure> closures) {
-        for (Closure closure : closures) {
-            configure(closure);
-        }
-        return this;
-    }
-
-    public boolean getExecuted() {
-        return executed;
-    }
-
     private TaskAction convertClosureToAction(final Closure actionClosure) {
         if (actionClosure.getMaximumNumberOfParameters() == 0) {
             return new TaskAction() {
@@ -96,5 +78,4 @@ public class DefaultTask extends AbstractTask {
             throw new InvalidUserDataException("Action closure has too many arguments!");
         }
     }
-
 }

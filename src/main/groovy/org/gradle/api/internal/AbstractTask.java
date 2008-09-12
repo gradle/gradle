@@ -36,28 +36,29 @@ import java.util.Set;
  */
 public abstract class AbstractTask implements Task {
     private static Logger logger = LoggerFactory.getLogger(AbstractTask.class);
+    private static Logger buildLogger = LoggerFactory.getLogger(Task.class);
 
-    AntBuilder ant = new AntBuilder();
+    private AntBuilder ant = new AntBuilder();
 
-    ProjectInternal project;
+    private ProjectInternal project;
 
-    Dag tasksGraph;
+    private Dag tasksGraph;
 
-    String name;
+    private String name;
 
-    List<TaskAction> actions = new ArrayList<TaskAction>();
+    private List<TaskAction> actions = new ArrayList<TaskAction>();
 
-    List<String> skipProperties = new ArrayList<String>();
+    private List<String> skipProperties = new ArrayList<String>();
 
-    Set dependsOn = new HashSet();
+    private Set<Object> dependsOn = new HashSet<Object>();
 
-    boolean executed;
+    private boolean executed;
 
-    boolean enabled = true;
+    private boolean enabled = true;
 
-    String path = null;
+    private String path = null;
 
-    boolean dagNeutral = false;
+    private boolean dagNeutral = false;
 
     public AbstractTask() {
 
@@ -109,15 +110,19 @@ public abstract class AbstractTask implements Task {
         this.skipProperties = skipProperties;
     }
 
-    public Set getDependsOn() {
+    public Set<Object> getDependsOn() {
         return dependsOn;
     }
 
-    public void setDependsOn(Set dependsOn) {
-        this.dependsOn = dependsOn;
+    public void setDependsOn(Set<?> dependsOn) {
+        this.dependsOn = new HashSet<Object>(dependsOn);
     }
 
     public boolean isExecuted() {
+        return executed;
+    }
+
+    public boolean getExecuted() {
         return executed;
     }
 
@@ -257,5 +262,9 @@ public abstract class AbstractTask implements Task {
 
     public String toString() {
         return getPath();
+    }
+
+    public Logger getLogger() {
+        return buildLogger;
     }
 }

@@ -75,7 +75,7 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithExistingBuildSources() {
-        StartParameter modifiedStartParameter = StartParameter.newInstance(expectedStartParameter)
+        StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
         modifiedStartParameter.setSearchUpwards(false)
         modifiedStartParameter.setBuildResolverDirectory(testBuildResolverDir)
         context.checking {
@@ -88,7 +88,7 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
-        StartParameter modifiedStartParameter = StartParameter.newInstance(this.expectedStartParameter)
+        StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
         modifiedStartParameter.setSearchUpwards(false)
         modifiedStartParameter.setBuildResolverDirectory(testBuildResolverDir)
         modifiedStartParameter.useEmbeddedBuildFile(BuildSourceBuilder.getDefaultScript())
@@ -101,7 +101,7 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
-        expectedStartParameter = StartParameter.newInstance(expectedStartParameter)
+        expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
         assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }
@@ -115,7 +115,7 @@ class BuildSourceBuilderTest {
 
     @Test public void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
-        expectedStartParameter = StartParameter.newInstance(expectedStartParameter)
+        expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setTaskNames([])
         assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
     }

@@ -61,7 +61,7 @@ public class EmbeddedBuildExecuterTest {
 
     @Test
     public void testExecute() {
-        final StartParameter localExpectedStartParameter = StartParameter.newInstance(expectedStartParameter);
+        final StartParameter localExpectedStartParameter = expectedStartParameter.newInstance();
         localExpectedStartParameter.setSearchUpwards(true);
         context.checking(new Expectations() {
             {

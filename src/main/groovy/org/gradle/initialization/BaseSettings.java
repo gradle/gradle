@@ -48,6 +48,7 @@ public class BaseSettings implements SettingsInternal {
 
     public static final String BUILD_CONFIGURATION = "build";
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
+
     private DependencyManager dependencyManager;
 
     private BuildSourceBuilder buildSourceBuilder;
@@ -84,7 +85,6 @@ public class BaseSettings implements SettingsInternal {
         buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS));
         buildSrcStartParameter.setSearchUpwards(true);
-        buildSrcStartParameter.setGradleUserHomeDir(startParameter.getGradleUserHomeDir());
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
@@ -163,7 +163,7 @@ public class BaseSettings implements SettingsInternal {
     public URLClassLoader createClassLoader() {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         Object dependency = null;
-        StartParameter startParameter = StartParameter.newInstance(buildSrcStartParameter);
+        StartParameter startParameter = buildSrcStartParameter.newInstance();
         startParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
         if (buildSourceBuilder != null) {
             dependency = buildSourceBuilder.createDependency(dependencyManager.getBuildResolverDir(),

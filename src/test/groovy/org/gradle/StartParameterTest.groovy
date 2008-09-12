@@ -53,7 +53,7 @@ class StartParameterTest {
 
 
     @Test public void testNewInstance() {
-        StartParameter startParameter = StartParameter.newInstance(testObj)
+        StartParameter startParameter = testObj.newInstance()
         assert startParameter.equals(testObj)
     }
 

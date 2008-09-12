@@ -235,7 +235,7 @@ class DefaultSettingsTest {
     private checkCreateClassLoader(def expectedDependency, boolean srcBuilderNull = false) {
         List testFiles = [new File('/root/f1'), new File('/root/f2')]
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
-        StartParameter expectedStartParameter = StartParameter.newInstance(settings.buildSrcStartParameter);
+        StartParameter expectedStartParameter = settings.buildSrcStartParameter.newInstance();
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
         context.checking {
             allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))

@@ -63,7 +63,7 @@ public class BuildSourceBuilder {
             return null;
         }
         logger.info("================================================" + " Start building buildSrc");
-        StartParameter startParameterArg = StartParameter.newInstance(startParameter);
+        StartParameter startParameterArg = startParameter.newInstance();
         startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
         startParameterArg.setSearchUpwards(false);
         startParameterArg.setBuildResolverDirectory(buildResolverDir);
