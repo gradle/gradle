@@ -32,7 +32,7 @@ public class ResolverFactory {
     public ResolverFactory(LocalReposCacheHandler localReposCacheHandler) {
         this.localReposCacheHandler = localReposCacheHandler;
     }
-    
+
     public DependencyResolver createResolver(Object userDescription) {
         DependencyResolver result;
         if (userDescription instanceof String) {
@@ -41,7 +41,7 @@ public class ResolverFactory {
             Map<String, String> userDescriptionMap = (Map<String, String>) userDescription;
             result = createMavenRepoResolver(userDescriptionMap.get("name"), userDescriptionMap.get("url"));
         } else if (userDescription instanceof DependencyResolver) {
-            result = (DependencyResolver) userDescription; 
+            result = (DependencyResolver) userDescription;
         } else {
             throw new InvalidUserDataException("Illegal Resolver type");
         }
@@ -62,13 +62,19 @@ public class ResolverFactory {
         return resolver;
     }
 
-    public DualResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
+    public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
         IBiblioResolver iBiblioResolver = new IBiblioResolver();
         iBiblioResolver.setUsepoms(true);
-        iBiblioResolver.setName(name + "_poms");
-        iBiblioResolver.setRoot(root); 
-        iBiblioResolver.setPattern(DependencyManager.MAVEN_REPO_PATTERN); 
+        iBiblioResolver.setName(name);
+        iBiblioResolver.setRoot(root);
+        iBiblioResolver.setPattern(DependencyManager.MAVEN_REPO_PATTERN);
         iBiblioResolver.setM2compatible(true);
+        iBiblioResolver.setUseMavenMetadata(true);
+        if (jarRepoUrls.length == 0) {
+            iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
+            return iBiblioResolver;
+        }
+        iBiblioResolver.setName(iBiblioResolver.getName() + "_poms");
         DualResolver dualResolver = new DualResolver();
         dualResolver.setName(name);
         dualResolver.setIvyResolver(iBiblioResolver);
@@ -80,7 +86,7 @@ public class ResolverFactory {
             urlResolver.addArtifactPattern(jarRepoUrl + '/' + DependencyManager.MAVEN_REPO_PATTERN);
         }
         dualResolver.setArtifactResolver(urlResolver);
-        dualResolver.setAllownomd(false);
+        dualResolver.setAllownomd(true);
         return dualResolver;
     }
 }

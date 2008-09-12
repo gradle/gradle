@@ -22,9 +22,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DualResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
@@ -258,13 +256,13 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         return (FileSystemResolver) classpathResolvers.add(resolver);
     }
 
-    public DualResolver addMavenRepo(String... jarRepoUrls) {
-        return (DualResolver) classpathResolvers.add(classpathResolvers.createMavenRepoResolver(DependencyManager.DEFAULT_MAVEN_REPO_NAME,
+    public DependencyResolver addMavenRepo(String... jarRepoUrls) {
+        return classpathResolvers.add(classpathResolvers.createMavenRepoResolver(DependencyManager.DEFAULT_MAVEN_REPO_NAME,
                 DependencyManager.MAVEN_REPO_URL, jarRepoUrls));
     }
 
-    public DualResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls) {
-        return (DualResolver) classpathResolvers.add(classpathResolvers.createMavenRepoResolver(name, root, jarRepoUrls));
+    public DependencyResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls) {
+        return classpathResolvers.add(classpathResolvers.createMavenRepoResolver(name, root, jarRepoUrls));
     }
 
     public Map<String, Configuration> getConfigurations() {

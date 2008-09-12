@@ -19,6 +19,7 @@ package org.gradle.api.initialization;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
@@ -120,11 +121,10 @@ public interface Settings {
 
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed if only the pom is
-     * in the MavenRepo repository (e.g. jta).
      */
-    DualResolver addMavenRepo(String[] jarRepoUrls);
+    DependencyResolver addMavenRepo(String[] jarRepoUrls);
 
-    DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
+    DependencyResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
 
     /**
      * <p>Returns the root project of the build.</p>

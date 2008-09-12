@@ -17,9 +17,7 @@
 package org.gradle.api.dependencies;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.DualResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.LocalReposCacheHandler;
 import org.gradle.api.internal.dependencies.ResolverFactory;
@@ -150,7 +148,7 @@ public class ResolverContainer {
         return resolverFactory.createFlatDirResolver(name, roots);
     }
 
-    public DualResolver createMavenRepoResolver(String name, String root, String[] jarRepoUrls) {
+    public AbstractResolver createMavenRepoResolver(String name, String root, String[] jarRepoUrls) {
         return resolverFactory.createMavenRepoResolver(name, root, jarRepoUrls);
     }
 

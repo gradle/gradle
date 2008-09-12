@@ -16,8 +16,8 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
@@ -150,11 +150,11 @@ public class BaseSettings implements SettingsInternal {
         return dependencyManager.addFlatDirResolver(name, dirs);
     }
 
-    public DualResolver addMavenRepo(String[] jarRepoUrls) {
+    public DependencyResolver addMavenRepo(String[] jarRepoUrls) {
         return dependencyManager.addMavenRepo(jarRepoUrls);
     }
 
-    public DualResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls) {
+    public DependencyResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls) {
         return dependencyManager.addMavenStyleRepo(name, root, jarRepoUrls);
     }
 

@@ -67,27 +67,35 @@ class ResolverFactoryTest {
         factory.createResolver(someIllegalDescription)
     }
 
-    private void checkMavenResolver(DualResolver resolver, String name, String url) {
-        assertEquals url, resolver.ivyResolver.root
+    private void checkMavenResolver(IBiblioResolver resolver, String name, String url) {
+        assertEquals url, resolver.root
         assertEquals name, resolver.name
         assertFalse resolver.allownomd
     }
 
     @Test
-    public void testCreateMavenRepo() {
+    public void testCreateMavenRepoWithAdditionalJarUrls() {
         String testUrl2 = 'http://www.gradle2.org'
         DualResolver dualResolver = factory.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, testUrl2)
-        IBiblioResolver iBiblioResolver = dualResolver.ivyResolver
-        assert iBiblioResolver.usepoms
-        assert iBiblioResolver.m2compatible
-        assertEquals(TEST_REPO_URL + '/', iBiblioResolver.root)
-        assertEquals(DependencyManager.MAVEN_REPO_PATTERN, iBiblioResolver.pattern)
-        assertEquals("${TEST_REPO_NAME}_poms" as String, iBiblioResolver.name)
+        checkIBiblio(dualResolver.ivyResolver, "_poms")
         URLResolver urlResolver = dualResolver.artifactResolver
         assert urlResolver.m2compatible
         assert urlResolver.artifactPatterns.contains("$TEST_REPO_URL/$DependencyManager.MAVEN_REPO_PATTERN" as String)
         assert urlResolver.artifactPatterns.contains("$testUrl2/$DependencyManager.MAVEN_REPO_PATTERN" as String)
         assertEquals("${TEST_REPO_NAME}_jars" as String, urlResolver.name)
+    }
+
+    @Test
+    public void testCreateMavenRepoWithNoAdditionalJarUrls() {
+        checkIBiblio(factory.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL), "")
+    }
+
+    private void checkIBiblio(IBiblioResolver iBiblioResolver, String expectedNameSuffix) {
+        assert iBiblioResolver.usepoms
+        assert iBiblioResolver.m2compatible
+        assertEquals(TEST_REPO_URL + '/', iBiblioResolver.root)
+        assertEquals(DependencyManager.MAVEN_REPO_PATTERN, iBiblioResolver.pattern)
+        assertEquals("${TEST_REPO_NAME}$expectedNameSuffix" as String, iBiblioResolver.name)
     }
 
     @Test public void testCreateFlatDirResolver() {
