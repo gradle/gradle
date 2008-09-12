@@ -70,7 +70,7 @@ class ResolverFactoryTest {
     private void checkMavenResolver(IBiblioResolver resolver, String name, String url) {
         assertEquals url, resolver.root
         assertEquals name, resolver.name
-        assertFalse resolver.allownomd
+        assertTrue resolver.allownomd
     }
 
     @Test
