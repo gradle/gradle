@@ -19,30 +19,22 @@ package org.gradle.api.dependencies;
 import groovy.lang.GString;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.DependenciesUtil;
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.WrapUtil;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class ModuleDependency extends AbstractDependency {
+public class ModuleDependency extends AbstractExcludeAwareDependency {
     private boolean force = false;
 
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory();
 
-    private ExcludeRuleContainer excludeRules;
-
-    public ModuleDependency(Set confs, Object userDependencyDescription, ExcludeRuleContainer excludeRuleContainer) {
+    public ModuleDependency(Set confs, Object userDependencyDescription) {
         super(confs, userDependencyDescription);
-        if (excludeRuleContainer == null) {
-            throw new InvalidUserDataException("ExcludeRuleContainer must not be null!");
-        }
-        excludeRules = excludeRuleContainer;
     }
 
     public boolean isValidDescription(Object userDependencyDescription) {
@@ -59,12 +51,7 @@ public class ModuleDependency extends AbstractDependency {
 
     public DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent) {
         return dependencyDescriptorFactory.createDescriptor(parent, getUserDependencyDescription().toString(), force, true, false, getConfs(),
-                excludeRules.getRules());
-    }
-
-    public ModuleDependency exclude(Map<String, String> args) {
-        excludeRules.add(args);
-        return this;
+                getExcludeRules().getRules());
     }
 
     public ModuleDependency force(boolean force) {
@@ -86,13 +73,5 @@ public class ModuleDependency extends AbstractDependency {
 
     public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-    }
-
-    public ExcludeRuleContainer getExcludeRules() {
-        return excludeRules;
-    }
-
-    public void setExcludeRules(ExcludeRuleContainer excludeRules) {
-        this.excludeRules = excludeRules;
     }
 }

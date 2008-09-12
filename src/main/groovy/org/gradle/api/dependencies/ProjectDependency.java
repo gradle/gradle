@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -30,10 +31,12 @@ import java.util.Set;
 /**
 * @author Hans Dockter
 */
-public class ProjectDependency extends AbstractDependency {
+public class ProjectDependency extends AbstractExcludeAwareDependency {
     private String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION;
 
     private Project project;
+
+    private DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory();
 
     public ProjectDependency(Project dependencyProject, String dependencyConfiguration) {
         this(null, dependencyProject, null);
@@ -54,11 +57,8 @@ public class ProjectDependency extends AbstractDependency {
     }
 
     public DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent) {
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(parent, getDependencyProject().getDependencies().createModuleRevisionId(), false, true, true);
-        for (String conf : getConfs()) {
-            dd.addDependencyConfiguration(conf, dependencyConfiguration);
-        }
-        return dd;
+        return dependencyDescriptorFactory.createDescriptor(parent, getDependencyProject().getDependencies().createModuleRevisionId(),
+                false, true, true, getConfs(), getExcludeRules().getRules(), dependencyConfiguration);
     }
 
     public ProjectDependency dependencyConfiguration(String dependencyConfiguration) {

@@ -27,6 +27,7 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,8 +42,6 @@ public class ModuleDependencyTest extends AbstractDependencyTest {
     protected DependencyDescriptorFactory dependencyDescriptorFactoryMock;
 
     protected DefaultDependencyDescriptor expectedDependencyDescriptor;
-
-    private ExcludeRuleContainer expectedExcludeRuleContainer;
 
     private ModuleDependency moduleDependency;
 
@@ -59,9 +58,8 @@ public class ModuleDependencyTest extends AbstractDependencyTest {
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
-        expectedExcludeRuleContainer = new DefaultExcludeRuleContainer();
-        expectedExcludeRuleContainer.add(GUtil.map("org", "someorg", "module", "somemodule"));
-        moduleDependency = new ModuleDependency(TEST_CONF_SET, TEST_DESCRIPTOR, expectedExcludeRuleContainer);
+        moduleDependency = new ModuleDependency(TEST_CONF_SET, TEST_DESCRIPTOR);
+        moduleDependency.getExcludeRules().add(GUtil.map("org", "someorg", "module", "somemodule"));
         moduleDependency.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock);
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor();
     }
@@ -69,31 +67,27 @@ public class ModuleDependencyTest extends AbstractDependencyTest {
     @Test
     public void testInit() {
         assert !moduleDependency.isForce();
-        assertSame(expectedExcludeRuleContainer, moduleDependency.getExcludeRules());
-    }
-
-    @Test (expected = InvalidUserDataException.class) public void testNullExcludeContainer() {
-        new ModuleDependency(TEST_CONF_SET, TEST_DESCRIPTOR, null);
+        assertNotNull(moduleDependency.getExcludeRules());
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testSingleString() {
-        new ModuleDependency(TEST_CONF_SET, "singlestring", expectedExcludeRuleContainer);
+        new ModuleDependency(TEST_CONF_SET, "singlestring");
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testMissingVersion() {
-        new ModuleDependency(TEST_CONF_SET, "junit:junit", expectedExcludeRuleContainer);
+        new ModuleDependency(TEST_CONF_SET, "junit:junit");
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testArtifactNotation() {
-        new ModuleDependency(TEST_CONF_SET, "junit:junit:3.8.2@jar", expectedExcludeRuleContainer);
+        new ModuleDependency(TEST_CONF_SET, "junit:junit:3.8.2@jar");
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testArtifactNotationWithClassifier() {
-        new ModuleDependency(TEST_CONF_SET, "junit:junit:3.8.2:jdk14@jar", expectedExcludeRuleContainer);
+        new ModuleDependency(TEST_CONF_SET, "junit:junit:3.8.2:jdk14@jar");
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testUnknownType() {
-        new ModuleDependency(TEST_CONF_SET, new Point(3, 4), expectedExcludeRuleContainer);
+        new ModuleDependency(TEST_CONF_SET, new Point(3, 4));
     }
 
     @Test public void testCreateDependencyDescriptor() {

@@ -34,22 +34,29 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DependencyDescriptorFactory {
-    public DependencyDescriptor createDescriptor(ModuleDescriptor parent, String descriptor, boolean force, boolean transitive, boolean changing, Set<String> confs,
+    public DependencyDescriptor createDescriptor(ModuleDescriptor parent, String descriptor, boolean force,
+                                                 boolean transitive, boolean changing, Set<String> confs,
                                           List<ExcludeRule> excludeRules) {
         return createDescriptor(parent, descriptor, force, transitive, changing, confs, excludeRules, new HashMap());
     }
 
-    public DependencyDescriptor createDescriptor(ModuleDescriptor parent, String descriptor, boolean force, boolean transitive, boolean changing, Set<String> confs,
+    public DependencyDescriptor createDescriptor(ModuleDescriptor parent, String descriptor, boolean force,
+                                                 boolean transitive, boolean changing, Set<String> confs,
                                           List<ExcludeRule> excludeRules, Map extraAttributes) {
         String[] dependencyParts = descriptor.split(":");
         Map allExtraAttributes = (dependencyParts.length == 4 ? WrapUtil.toMap(DependencyManager.CLASSIFIER, dependencyParts[3]) :
             new HashMap());
         allExtraAttributes.putAll(extraAttributes);
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(parent,
-                ModuleRevisionId.newInstance(dependencyParts[0], dependencyParts[1], dependencyParts[2], allExtraAttributes),
-                force, changing, transitive);
+        return createDescriptor(parent, ModuleRevisionId.newInstance(dependencyParts[0], dependencyParts[1], dependencyParts[2], allExtraAttributes),
+                force, transitive, changing, confs, excludeRules, Dependency.DEFAULT_CONFIGURATION);
+    }
+
+    public DependencyDescriptor createDescriptor(ModuleDescriptor parent, ModuleRevisionId moduleRevisionId,
+                                                 boolean force, boolean transitive, boolean changing,
+                                                 Set<String> confs, List<ExcludeRule> excludeRules, String dependencyConfiguration) {
+        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(parent, moduleRevisionId, force, changing, transitive);
         for (String conf : confs) {
-            dd.addDependencyConfiguration(conf, Dependency.DEFAULT_CONFIGURATION);
+            dd.addDependencyConfiguration(conf, dependencyConfiguration);
             for (ExcludeRule excludeRule : excludeRules) {
                  dd.addExcludeRule(conf, excludeRule);
             }

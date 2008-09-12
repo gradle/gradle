@@ -30,27 +30,18 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
 public class ModuleDependencyFactoryTest {
     private ModuleDependencyFactory moduleDependencyFactory;
 
-    private JUnit4Mockery context = new JUnit4Mockery();    
-
     @Test
     public void testCreateDependency() {
-        final IExcludeRuleContainerFactory excludeRuleContainerFactoryMock = context.mock(IExcludeRuleContainerFactory.class);
-        final ExcludeRuleContainer expectedExcludeRuleContainer = new DefaultExcludeRuleContainer();
-        context.checking(new Expectations() {{
-          one(excludeRuleContainerFactoryMock).createExcludeRuleContainer(); will(returnValue(expectedExcludeRuleContainer));
-        }});
         Set<String> expectedConfs = WrapUtil.toSet("conf1");
         String expectedDescription = "junit:junit:4.0";
-        moduleDependencyFactory = new ModuleDependencyFactory(excludeRuleContainerFactoryMock);
+        moduleDependencyFactory = new ModuleDependencyFactory();
         ModuleDependency moduleDependency = (ModuleDependency)
                 moduleDependencyFactory.createDependency(expectedConfs, expectedDescription, null);
         assertEquals(expectedConfs, moduleDependency.getConfs());
         assertEquals(expectedDescription, moduleDependency.getUserDependencyDescription());
-        assertSame(expectedExcludeRuleContainer, moduleDependency.getExcludeRules());
     }
 
 }

@@ -25,13 +25,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class ModuleDependencyFactory implements IDependencyImplementationFactory {
-    IExcludeRuleContainerFactory excludeRuleContainerFactory;
-
-    public ModuleDependencyFactory(IExcludeRuleContainerFactory excludeRuleContainerFactory) {
-        this.excludeRuleContainerFactory = excludeRuleContainerFactory;
-    }
-
     public Dependency createDependency(Set confs, Object userDependencyDescription, Project project) {
-        return new ModuleDependency(confs, userDependencyDescription, excludeRuleContainerFactory.createExcludeRuleContainer());
+        return new ModuleDependency(confs, userDependencyDescription);
     }
 }

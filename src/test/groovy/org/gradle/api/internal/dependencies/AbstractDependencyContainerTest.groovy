@@ -148,7 +148,7 @@ public abstract class AbstractDependencyContainerTest {
     private void checkAddDependency(List expectedConfs, Closure addDependencyMethod) {
         String expectedId = 'someid'
 
-        ModuleDependency testModuleDependency = new ModuleDependency(null, 'org:name:1.0', new DefaultExcludeRuleContainer())
+        ModuleDependency testModuleDependency = new ModuleDependency(null, 'org:name:1.0')
 
         context.checking {
             one(dependencyFactory).createDependency(expectedConfs as Set,
