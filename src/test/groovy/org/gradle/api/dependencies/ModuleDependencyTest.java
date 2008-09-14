@@ -17,17 +17,14 @@
 package org.gradle.api.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDependencyNotation;
-import org.gradle.api.internal.dependencies.DefaultExcludeRuleContainer;
 import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -96,6 +93,16 @@ public class ModuleDependencyTest extends AbstractDependencyTest {
                     true, false, TEST_CONF_SET, moduleDependency.getExcludeRules().getRules());
             will(returnValue(expectedDependencyDescriptor));
         }});
+        assertSame(expectedDependencyDescriptor, moduleDependency.createDepencencyDescriptor(getParentModuleDescriptor()));
+    }
+
+    @Test public void testCreateDependencyDescriptorWithChanging() {
+        context.checking(new Expectations() {{
+            one(dependencyDescriptorFactoryMock).createDescriptor(getParentModuleDescriptor(), TEST_DESCRIPTOR, moduleDependency.isForce(),
+                    true, true, TEST_CONF_SET, moduleDependency.getExcludeRules().getRules());
+            will(returnValue(expectedDependencyDescriptor));
+        }});
+        moduleDependency.setChanging(true);
         assertSame(expectedDependencyDescriptor, moduleDependency.createDepencencyDescriptor(getParentModuleDescriptor()));
     }
 }

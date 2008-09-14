@@ -30,6 +30,7 @@ import java.util.Set;
  */
 public class ModuleDependency extends AbstractExcludeAwareDependency {
     private boolean force = false;
+    private boolean changing = false;
 
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DependencyDescriptorFactory();
 
@@ -50,8 +51,8 @@ public class ModuleDependency extends AbstractExcludeAwareDependency {
     }
 
     public DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent) {
-        return dependencyDescriptorFactory.createDescriptor(parent, getUserDependencyDescription().toString(), force, true, false, getConfs(),
-                getExcludeRules().getRules());
+        return dependencyDescriptorFactory.createDescriptor(parent, getUserDependencyDescription().toString(),
+                force, true, changing, getConfs(), getExcludeRules().getRules());
     }
 
     public ModuleDependency force(boolean force) {
@@ -73,5 +74,13 @@ public class ModuleDependency extends AbstractExcludeAwareDependency {
 
     public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    }
+
+    public boolean isChanging() {
+        return changing;
+    }
+
+    public void setChanging(boolean changing) {
+        this.changing = changing;
     }
 }
