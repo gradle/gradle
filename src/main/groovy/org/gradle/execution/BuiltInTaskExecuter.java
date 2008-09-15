@@ -48,7 +48,7 @@ public class BuiltInTaskExecuter implements TaskExecuter {
 
     public void execute(BuildExecuter executer) {
         assert selected;
-        executer.execute(Collections.singleton((Task) task), task.getProject().getRootProject());
+        executer.execute(Collections.singleton(task));
     }
 
     public boolean requiresProjectReload() {

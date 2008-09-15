@@ -39,7 +39,7 @@ public class ProjectTasksPrettyPrinter {
             formatter.format("Project %s%n", project.getPath());
             SortedSet<Task> sortedTasks = new TreeSet<Task>(tasks.get(project));
             for (Task task : sortedTasks) {
-                SortedSet<Task> sortedDependencies = new TreeSet<Task>(task.getDependencies().getDependencies(task));
+                SortedSet<Task> sortedDependencies = new TreeSet<Task>(task.getTaskDependencies().getDependencies(task));
                 formatter.format("  Task %s %s%n", task.getPath(), sortedDependencies);
             }
         }

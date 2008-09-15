@@ -114,7 +114,7 @@ public abstract class AbstractTask implements Task {
         this.skipProperties = skipProperties;
     }
 
-    public TaskDependency getDependencies() {
+    public TaskDependency getTaskDependencies() {
         return dependencies;
     }
 

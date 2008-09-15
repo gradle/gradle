@@ -107,7 +107,7 @@ public interface Task extends Comparable<Task> {
      *
      * @return The dependencies of this task. Never returns null.
      */
-    TaskDependency getDependencies();
+    TaskDependency getTaskDependencies();
 
     /**
      * <p>Returns the paths of the tasks which this task depends on.</p>

@@ -39,9 +39,9 @@ class ProjectTasksPrettyPrinterTest {
 
         Project project1 = [getPath: {expectedProject1String}, compareTo: {-1}] as Project
         Project project2 = [getPath: {expectedProject2String}, compareTo: {1}] as Project
-        Task task11 = [getPath: {expectedTask11String}, getDependencies: {task11Dependency}, compareTo: {-1}] as Task
-        Task task12 = [getPath: {expectedTask12String}, getDependencies: {emptyDependency}, compareTo: {1}] as Task
-        Task task21 = [getPath: {expectedTask21String}, getDependencies: {emptyDependency}] as Task
+        Task task11 = [getPath: {expectedTask11String}, getTaskDependencies: {task11Dependency}, compareTo: {-1}] as Task
+        Task task12 = [getPath: {expectedTask12String}, getTaskDependencies: {emptyDependency}, compareTo: {1}] as Task
+        Task task21 = [getPath: {expectedTask21String}, getTaskDependencies: {emptyDependency}] as Task
 
         Map tasks = [(project1): new LinkedHashSet([task11, task12]), (project2): [task21] as Set]
         // We can't use triple quoted strings for cresting the expected value, as they use always /n as

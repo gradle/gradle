@@ -34,17 +34,11 @@ import java.util.TreeSet;
 @RunWith (org.jmock.integration.junit4.JMock.class)
 public class NameResolvingTaskExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Project rootProject = context.mock(Project.class, "root");
     private final Project project = context.mock(Project.class, "child");
 
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-
-        context.checking(new Expectations(){{
-            allowing(project).getRootProject();
-            will(returnValue(rootProject));
-        }});
     }
     
     @Test
@@ -89,7 +83,7 @@ public class NameResolvingTaskExecuterTest {
         context.checking(new Expectations() {{
             atLeast(1).of(project).getTasksByName("name", true);
             will(returnValue(tasks));
-            one(buildExecuter).execute(tasks, rootProject);
+            one(buildExecuter).execute(tasks);
             will(returnValue(false));
         }});
 
@@ -107,10 +101,6 @@ public class NameResolvingTaskExecuterTest {
         final Task task2 = context.mock(Task.class, "task2");
 
         context.checking(new Expectations() {{
-            allowing(project1).getRootProject();
-            will(returnValue(rootProject));
-            allowing(project2).getRootProject();
-            will(returnValue(rootProject));
             allowing(project1).getTasksByName(with(aNonNull(String.class)), with(equalTo(true)));
             will(returnValue(WrapUtil.toSet(task1)));
             atLeast(1).of(project2).getTasksByName("name2", true);

@@ -31,17 +31,25 @@ package org.gradle.execution;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.DefaultTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
  * A directed acyclic graph. See http://en.wikipedia.org/wiki/Directed_acyclic_graph
  */
-public class Dag {
+public class Dag implements TaskExecutionGraph {
     private static final Logger logger = LoggerFactory.getLogger(Dag.class);
 
     /**
@@ -262,7 +270,7 @@ public class Dag {
 
     public boolean hasTask(String path) {
         assert path != null && path.length() > 0;
-        for (DefaultTask task : getAllTasks()) {
+        for (Task task : getAllTasks()) {
             if (task.getPath().equals(path)) {
                 return true;
             }
@@ -270,13 +278,13 @@ public class Dag {
         return false;
     }
 
-    public Set<DefaultTask> getAllTasks() {
+    public Set<Task> getAllTasks() {
         return accumulateTasks(getSources());
     }
 
-    private Set<DefaultTask> accumulateTasks(Set<DefaultTask> tasks) {
-        Set<DefaultTask> resultTasks = new HashSet<DefaultTask>();
-        for (DefaultTask task : tasks) {
+    private <T extends Task> Set<T> accumulateTasks(Set<T> tasks) {
+        Set<T> resultTasks = new HashSet<T>();
+        for (T task : tasks) {
             resultTasks.addAll(accumulateTasks(new HashSet(getChildren(task))));
             resultTasks.add(task);
         }
@@ -285,7 +293,7 @@ public class Dag {
 
     public Set<Project> getProjects() {
         HashSet<Project> projects = new HashSet<Project>();
-        for (DefaultTask task : getAllTasks()) {
+        for (Task task : getAllTasks()) {
             projects.add(task.getProject());
         }
         return projects;

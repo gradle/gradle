@@ -64,7 +64,7 @@ public class BuiltInTaskExecuterTest {
         assertThat(executer.getTask(), instanceOf(TaskListTask.class));
 
         context.checking(new Expectations(){{
-            one(buildExecuter).execute(Collections.singleton(executer.getTask()), rootProject);
+            one(buildExecuter).execute(Collections.singleton(executer.getTask()));
         }});
 
         assertThat(executer.getDescription(), equalTo("taskList"));

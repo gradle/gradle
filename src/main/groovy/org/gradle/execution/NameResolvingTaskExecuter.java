@@ -33,7 +33,6 @@ public class NameResolvingTaskExecuter implements TaskExecuter {
     private Iterator<String> current;
     private Set<Task> tasks;
     private String description;
-    private Project project;
     private boolean reloadProjects;
 
     public NameResolvingTaskExecuter(Iterable<String> names) {
@@ -60,7 +59,6 @@ public class NameResolvingTaskExecuter implements TaskExecuter {
         String taskName = current.next();
         description = String.format("primary task '%s'", taskName);
         tasks = findTasks(project, taskName);
-        this.project = project;
     }
 
     private void checkForUnknownTasks(Project project) {
@@ -103,7 +101,7 @@ public class NameResolvingTaskExecuter implements TaskExecuter {
 
     public void execute(BuildExecuter executer) {
         logger.debug(String.format("Selected for execution: %s.", tasks));
-        reloadProjects = executer.execute(tasks, project.getRootProject());
+        reloadProjects = executer.execute(tasks);
     }
 
     public boolean requiresProjectReload() {

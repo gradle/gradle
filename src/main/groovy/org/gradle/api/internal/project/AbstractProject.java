@@ -646,7 +646,7 @@ public abstract class AbstractProject implements ProjectInternal {
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
-        dependsOnProjects.add(project(absolutePath(path)));
+        dependsOnProjects.add(project(path));
         if (evaluateDependsOnProject) {
             evaluationDependsOn(path);
         }
@@ -656,7 +656,7 @@ public abstract class AbstractProject implements ProjectInternal {
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
-        DefaultProject projectToEvaluate = (DefaultProject) project(absolutePath(path));
+        DefaultProject projectToEvaluate = (DefaultProject) project(path);
         if (projectToEvaluate.getState() == DefaultProject.STATE_INITIALIZING) {
             throw new CircularReferenceException("Circular referencing during evaluation for project: " + projectToEvaluate);
         }

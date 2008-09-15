@@ -20,11 +20,16 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.*;
+import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.initialization.IGradlePropertiesLoader;
+import org.gradle.initialization.ISettingsFinder;
+import org.gradle.initialization.ProjectsLoader;
+import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.BaseMatcher;
@@ -257,9 +262,9 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(0));
                 will(returnValue(false));
-                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(1));
                 will(returnValue(false));
                 one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
@@ -272,9 +277,9 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(0));
                 will(returnValue(true));
-                one(buildExecuterMock).execute(expectedTasks.get(1), expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(1));
                 will(returnValue(true));
                 one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
@@ -293,7 +298,7 @@ public class BuildTest {
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0), expectedRootProject);
+                one(buildExecuterMock).execute(expectedTasks.get(0));
                 will(throwException(failure));
             }
         });

@@ -16,7 +16,6 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
@@ -39,9 +38,8 @@ public class BuildExecuter {
         this.dag = dag;
     }
 
-    public boolean execute(Iterable<Task> tasks, Project rootProject) {
+    public boolean execute(Iterable<? extends Task> tasks) {
         assert tasks != null;
-        assert rootProject != null;
 
         Clock clock = new Clock();
         dag.reset();
@@ -56,7 +54,7 @@ public class BuildExecuter {
     private void fillDag(Dag dag, Iterable<? extends Task> tasks) {
         for (Task task : tasks) {
             logger.debug("Find dependsOn tasks for {}", task);
-            Set<? extends Task> dependsOnTasks = task.getDependencies().getDependencies(task);
+            Set<? extends Task> dependsOnTasks = task.getTaskDependencies().getDependencies(task);
             dag.addTask(task, dependsOnTasks);
             if (dependsOnTasks.size() > 0) {
                 logger.debug("Found dependsOn tasks for {}: {}", task, dependsOnTasks);
