@@ -136,10 +136,28 @@ public interface Settings {
     /**
      * <p>Returns the project with the given path.</p>
      *
+     * @param path The path.
+     * @return The project with the given path. Never returns null.
+     * @throws org.gradle.api.UnknownProjectException If no project with the given path exists.
+     */
+    ProjectDescriptor descriptor(String path);
+
+    /**
+     * <p>Returns the project with the given path.</p>
+     *
      * @param path The path
      * @return The project with the given path. Returns null if no such project exists.
      */
-    ProjectDescriptor descriptor(String path);
+    ProjectDescriptor findDescriptor(String path);
+
+    /**
+     * <p>Returns the project with the given project directory.</p>
+     *
+     * @param projectDir The project directory.
+     * @return The project with the given project directory. Never returns null.
+     * @throws org.gradle.api.UnknownProjectException If no project with the given path exists.
+     */
+    ProjectDescriptor descriptor(File projectDir);
 
     /**
      * <p>Returns the project with the given project directory.</p>
@@ -147,7 +165,7 @@ public interface Settings {
      * @param projectDir The project directory.
      * @return The project with the given project directory. Returns null if no such project exists.
      */
-    ProjectDescriptor descriptor(File projectDir);
+    ProjectDescriptor findDescriptor(File projectDir);
 
     StartParameter getStartParameter();
 

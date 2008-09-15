@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
+import org.gradle.api.UnknownProjectException;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
@@ -91,12 +92,28 @@ public class BaseSettings implements SettingsInternal {
         return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry);
     }
 
-    public DefaultProjectDescriptor descriptor(String path) {
+    public DefaultProjectDescriptor findDescriptor(String path) {
         return projectDescriptorRegistry.getProjectDescriptor(path);
     }
 
-    public DefaultProjectDescriptor descriptor(File projectDir) {
+    public DefaultProjectDescriptor findDescriptor(File projectDir) {
         return projectDescriptorRegistry.getProjectDescriptor(projectDir);
+    }
+
+    public DefaultProjectDescriptor descriptor(String path) {
+        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(path);
+        if (projectDescriptor == null) {
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", path));
+        }
+        return projectDescriptor;
+    }
+
+    public DefaultProjectDescriptor descriptor(File projectDir) {
+        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(projectDir);
+        if (projectDescriptor == null) {
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectDir));
+        }
+        return projectDescriptor;
     }
 
     public void include(String[] projectPaths) {

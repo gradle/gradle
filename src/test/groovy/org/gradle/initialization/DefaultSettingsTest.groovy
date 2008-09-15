@@ -32,6 +32,7 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.UnknownProjectException
 
 /**
  * @author Hans Dockter
@@ -132,20 +133,37 @@ class DefaultSettingsTest {
         assertEquals(testDir, projectDescriptor.getDir())
     }
 
-    @Test public void testGetProjectDescriptorByPath() {
-        String testName = "testname"
-        File testDir = new File("testDir")
-        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
+    @Test public void testFindDescriptorByPath() {
+        DefaultProjectDescriptor projectDescriptor =  createTestDescriptor();
         DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getPath())
         assertSame(foundProjectDescriptor, projectDescriptor)
     }
 
-    @Test public void testGetProjectDescriptorByProjectDir() {
-        String testName = "testname"
-        File testDir = new File("testDir")
-        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
+    @Test public void testFindDescriptorByProjectDir() {
+        DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
         DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getDir())
         assertSame(foundProjectDescriptor, projectDescriptor)
+    }
+
+    @Test(expected = UnknownProjectException) public void testDescriptorByPath() {
+        DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
+        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getPath())
+        assertSame(foundProjectDescriptor, projectDescriptor)
+        settings.descriptor("unknownPath")
+    }
+
+
+    @Test(expected = UnknownProjectException) public void testDescriptorByProjectDir() {
+        DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
+        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getDir())
+        assertSame(foundProjectDescriptor, projectDescriptor)
+        settings.descriptor(new File("unknownPath"))
+    }
+
+    private DefaultProjectDescriptor createTestDescriptor() {
+        String testName = "testname"
+        File testDir = new File("testDir")
+        return settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
     }
 
 
