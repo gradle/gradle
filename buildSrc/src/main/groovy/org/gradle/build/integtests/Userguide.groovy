@@ -35,7 +35,7 @@ class Userguide {
             if (run.groovyScript) {
                 result = runGroovyScript(new File(userguideDir, "$run.subDir/$run.file"))
             } else {
-                result = Executer.execute(gradleHome, new File(userguideDir, run.subDir).absolutePath, [run.execute], run.envs, run.file,
+                result = Executer.execute(gradleHome, new File(userguideDir, run.subDir).absolutePath, run.execute ? [run.execute] : [], run.envs, run.file,
                         run.debugLevel)
             }
             result.output = ">$result.unixCommand$NL" + result.output

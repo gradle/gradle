@@ -51,14 +51,14 @@ class Executer {
 
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
         ByteArrayOutputStream errStream = new ByteArrayOutputStream()
-        String taskNameText = tasknames.join(' ')
+        String taskNameText = tasknames ? ' ' + tasknames.join(' ') : ''
         String buildFileSpecifier = buildFileName ? "-b$buildFileName" : ''
         long runBeforeKill = 30 * 60 * 1000
         List additionalEnvs = []
         if (System.getenv('JAVA_HOME')) {additionalEnvs << "JAVA_HOME=${System.getenv('JAVA_HOME')}"}
         String actualCommand
-        String windowsCommand = "cmd /c ${windowsCommandSnippet}.exe ${outputOption(outputType)}" + "$buildFileSpecifier $taskNameText"
-        String unixCommand = "$unixCommandSnippet ${outputOption(outputType)}$buildFileSpecifier $taskNameText"
+        String windowsCommand = "cmd /c ${windowsCommandSnippet}.exe ${outputOption(outputType)}" + "$buildFileSpecifier$taskNameText"
+        String unixCommand = "$unixCommandSnippet ${outputOption(outputType)}$buildFileSpecifier$taskNameText"
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             Execute execute = new Execute()
             actualCommand = windowsCommand
@@ -90,9 +90,9 @@ class Executer {
 
     static String outputOption(int outputType) {
         switch (outputType) {
-            case QUIET: return '-q '
+            case QUIET: return '-q'
             case INFO: return ''
-            case DEBUG: return '-d '
+            case DEBUG: return '-d'
         }
     }
 }
