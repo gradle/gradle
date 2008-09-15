@@ -147,7 +147,7 @@ class Userguide {
     }
 
     static GradleRun run(String subDir, String id, String execute, int debugLevel = Executer.QUIET) {
-        new GradleRun(subDir: subDir, id: id, execute: execute, debugLevel: debugLevel, file: id + '.gradle')
+        new GradleRun(subDir: "$subDir/$id", id: id, execute: execute, debugLevel: debugLevel)
     }
 
     static GradleRun runEnv(String subDir, String id, String execute, List envs, int debugLevel = Executer.QUIET) {
