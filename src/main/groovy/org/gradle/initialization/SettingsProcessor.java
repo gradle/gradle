@@ -92,7 +92,7 @@ public class SettingsProcessor {
     }
 
     private boolean isSettingsFileApplicableToCurrentDir(SettingsInternal settings) {
-        return settings.descriptor(settings.getStartParameter().getCurrentDir()) != null;
+        return settings.findDescriptor(settings.getStartParameter().getCurrentDir()) != null;
     }
 
     private void applySettingsScript(ISettingsFinder settingsFinder, SettingsInternal settings) {
