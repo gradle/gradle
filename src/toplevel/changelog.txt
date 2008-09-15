@@ -8,7 +8,6 @@ Release Notes - Gradle - Version 0.4
 
 ** Improvement
     * [GRADLE-45] - Add proper handling for path with spaces under windows for all relevant env variables
-    * [GRADLE-114] - Improve the speed of the build script evaluation
     * [GRADLE-175] - Allow to specify a project name.
     * [GRADLE-185] - Add test for correctness of line number in case of a build script error
     * [GRADLE-189] - Add resolve method to dependency manager which allows to exclude project dependencies and to set failForMissingDependencies.
