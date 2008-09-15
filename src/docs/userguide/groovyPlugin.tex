@@ -77,4 +77,9 @@ The \emph{GroovyCompile} task has two instances, \texttt{compile} and \texttt{te
 Have a look at \href{\API tasks/compile/GroovyCompile.html}{org.gradle.api.tasks.compile.GroovyCompile} to learn about the details. The compile task delegates to the Ant Groovyc task to do the compile. Via the compile task you can set most of the properties of Ants Groovyc task. 
 % section compile (end)
 
+/\section{Test} % (fold)
+\label{sec:test}
+In contrast to the Java plugin the fork mode is set to once by default, because of the significant startup time of Groovy. The Java plugin uses per test as fork mode (see section \ref{sec:java_test}). 
+% section test (end)
+
 % chapter the_groovy_plugin (end)

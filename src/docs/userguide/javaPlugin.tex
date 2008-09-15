@@ -153,7 +153,7 @@ Have a look at \href{\API tasks/compile/Compile.html}{org.gradle.api.tasks.compi
 % section compile (end)
 
 \section{Test} % (fold)
-\label{sec:test}
+\label{sec:java_test}
 The \texttt{test} task executes the unit tests which have been compiled by the \texttt{testCompile} task. 
 \begin{center}
 	\begin{tabular}{|l|l|} \hline
@@ -164,7 +164,11 @@ The \texttt{test} task executes the unit tests which have been compiled by the \
 		unmanagedClasspath & [classesDir] \\ \hline
 	\end{tabular} 
 \end{center}
-\noindent Have a look at \href{\API tasks/testing/Test.html}{org.gradle.api.tasks.testing.Test} to learn more. Right now the test results are always in XML-format. The task has a \texttt{stopAtFailuresOrErrors} property to control the behavior when tests are failing. The task \emph{always} executes all the tests and afterwards stops the build if this property is true and there are failing tests or tests that have thrown an uncaught exception. The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support with our next release. 
+\noindent Have a look at \href{\API tasks/testing/Test.html}{org.gradle.api.tasks.testing.Test} to learn more. Right now the test results are always in XML-format. The task has a \texttt{stopAtFailuresOrErrors} property to control the behavior when tests are failing. Test \emph{always} executes all tests. It stops the build afterwards if \texttt{stopAtFailuresOrErrors} is true and there are failing tests or tests that have thrown an uncaught exception. 
+
+Per default the tests are run in a forked JVM and the fork is done per test. You can modify this behavior by setting forking to false or set the forkmode to once.
+
+The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support in one of our next releases. 
 % section test (end)
 
 \section{Bundles} % (fold)
@@ -324,10 +328,43 @@ The convention object of the JavaPlugin has a \texttt{metaInf} property pointing
 metaInf << new FileSet(someDir)
 \end{Verbatim}
 % subsection archive_tasks (end)
+% section metainf_and_manifest (end)
 
 \section{Upload} % (fold)
 \label{sec:upload}
 The \emph{Upload} task has two instances, \texttt{uploadLibs} and \texttt{uploadDists}. An easy way of describing there behavior, is that all archives added to the \texttt{libs} and \texttt{dists} bundle are uploaded by the corresponding upload task. An upload task uploads to the repositories assigned to it. If needed you have more control on what files get uploaded. Have a look at \href{\API tasks/Upload.html}{org.gradle.api.tasks.Upload} to learn more.
 % section upload (end)
-% section metainf_and_manifest (end)
+
+\section{Eclipse} % (fold)
+\label{sec:eclipse}
+Gradle comes with a number of tasks for generating eclipse files for your projects. 
+\subsection{Eclipse Classpath} % (fold)
+\label{sub:eclipse_classpath}
+\href{\API tasks/ide/eclipse/EclipseClasspath.html}{org.gradle.api.tasks.ide.eclipse.EclipseClasspath} has a default instance with the name \texttt{eclipseCp}. It generates a \texttt{.classpath} file.
+\begin{center}
+	\begin{tabular}{|l|l|} \hline
+		\multicolumn{2}{|c|}{Convention to Property Mapping} \\ \hline
+	    \textbf{Task Property} & \textbf{Convention Property} \\ \hline
+		srcDirs & srcDirs + resourcesDirs \\ \hline
+		testSrcDirs & testSrcDirs + testResourcesDirs \\ \hline
+		outputDirectory & classesDir \\ \hline
+		testOutputDirectory & testClassesDir \\ \hline
+		classpathLibs & the resolve result for \texttt{testRuntime} \\ \hline
+	\end{tabular} 
+\end{center}
+% subsection eclipse_classpath (end)
+\subsection{Eclipse Project} % (fold)
+\label{sub:eclipse_project}
+\href{\API tasks/ide/eclipse/EclipseProject.html}{org.gradle.api.tasks.ide.eclipse.EclipseProject} has a default instance with the name \texttt{eclipseProject}. It generates a \texttt{.project} file.
+\begin{center}
+	\begin{tabular}{|l|l|} \hline
+		\multicolumn{2}{|c|}{Convention to Property Mapping} \\ \hline
+	    \textbf{Task Property} & \textbf{Convention Property} \\ \hline
+		name & project.name \\ \hline
+		projectType \\ ProjectType.JAVA \hline
+	\end{tabular} 
+\end{center}
+% subsection eclipse_project (end)
+The java plugin also provides a task called \texttt{eclipse} which generates both of the eclipse tasks mentioned above. If you are using the war plugin, \texttt{eclipse} also leads to the execution of the \texttt{eclipseWtp} task.
+% section eclipse (end)
 % chapter the_java_plugin (end)
