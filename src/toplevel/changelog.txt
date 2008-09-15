@@ -1,49 +1,27 @@
-Release Notes - Gradle - Version 0.3
+Release Notes - Gradle - Version 0.4
 
-** Sub-task
-    * [GRADLE-166] - Add junit reporting
 
 ** Bug
-    * [GRADLE-64] - Windows Start script returns 0 also in the case of an error
-    * [GRADLE-124] - gradle.bat reports "No modern compiler."
-    * [GRADLE-130] - setting dependsOn in the configure closure of a bundle archive method is overwritten by the bundle.
-    * [GRADLE-131] - Destination directory should be created by the archive task if it does not exists.
-    * [GRADLE-132] - Gradle wrapper does not remove old zip when upgrading to new version
-    * [GRADLE-134] - Can't add depedencies to be used by Gradle's default dependencies
-    * [GRADLE-136] - Declaring a classpath project dependencies does not trigger an evaluate of the depends-on project
-    * [GRADLE-137] - Child dependsOn settings of bunldes are not properly established.
-    * [GRADLE-139] - web.xml from webapp folder is not added to the war.
-    * [GRADLE-152] - Zip dependencies are not resolved
-    * [GRADLE-164] - Artifact dependency unresolved when custom destinationDir is used.
-    * [GRADLE-167] - npe if tests failed
+    * [GRADLE-187] - unsupported operation when adding to project archive
+    * [GRADLE-192] - Javadoc task produces errors on package.html
+    * [GRADLE-210] - Gradle does not resolve version conflicts properly
 
 ** Improvement
-    * [GRADLE-38] - Refactor for ConventionTasks the mechanisms how convention values are used.
-    * [GRADLE-117] - Cache the compiled build scripts.
-    * [GRADLE-122] - Make the install target of the Gradle build work on windows.
-    * [GRADLE-125] - dir property of fileset method should be optionally of type String
-    * [GRADLE-127] - Add Project. hasProperty coverage to userguide.
-    * [GRADLE-129] - Provide actions access to dag
-    * [GRADLE-135] - Migrate from commons-cli to JOpt simple for command line processing.
-    * [GRADLE-138] - Add method to add to a webInf/classes/additionalLib FileSet of a War task.
-    * [GRADLE-140] - Offer a possibility to not to bundle certain compile and runtime dependencies in a war.
-    * [GRADLE-142] - Change the default naming schema for archives.
-    * [GRADLE-143] - Introduce a flag that allows a task to declare that it does not modify the project tree.
-    * [GRADLE-147] - Make the wrapper task configurable to where the gradle-wrapper jar and the distribution should be located.
-    * [GRADLE-151] - Offer rootDir accessor in settings.gradle
-    * [GRADLE-153] - Enable easy setting of jvm opts in the start and wrapper scripts.
-    * [GRADLE-156] - Add afterEvaluateListener
-    * [GRADLE-157] - Make the name of settings.gradle customizable
-    * [GRADLE-165] - Allow a fully qualified task path to be specified on the command-line
-    * [GRADLE-168] - Improve javadoc generation for groovy projects
-    * [GRADLE-169] - Remove build resolver dir after the build is finished.
-    * [GRADLE-170] - Allow n:n mapping between tasks and configurations
-    * [GRADLE-172] - Create a distinct JDK 1.4 compatible Gradle distribution
-    * [GRADLE-173] - Add excludeConfigurations to War task
-    * [GRADLE-176] - A Bundle should offer a propery for its archive tasks instead of the archive tasks names
-    * [GRADLE-177] - Change the location of the build-resolver dir from the top level root-project to the tmp dir of the root-project.
+    * [GRADLE-45] - Add proper handling for path with spaces under windows for all relevant env variables
+    * [GRADLE-114] - Improve the speed of the build script evaluation
+    * [GRADLE-175] - Allow to specify a project name.
+    * [GRADLE-185] - Add test for correctness of line number in case of a build script error
+    * [GRADLE-189] - Add resolve method to dependency manager which allows to exclude project dependencies and to set failForMissingDependencies.
+    * [GRADLE-191] - Add a method to DependencyManager to get dependencies based on a libs/project filter
+    * [GRADLE-193] - Change convention value data structure from Closure to inner class.
+    * [GRADLE-202] - Provide more context in error logging for common failures
+    * [GRADLE-203] - The gradle properties should be also exposed to the settings.
+    * [GRADLE-207] - Allow exclude for project dependencies
+    * [GRADLE-214] - Consistent task and project lookup through the Project interface
+    * [GRADLE-216] - The Java Plugin should set the working dir of the forked JVM to the project dir.
+    * [GRADLE-217] - Tests should be run in forked mode as default.
+    * [GRADLE-224] - Allow 'changing' flag to be specified for a module dependency
 
 ** New Feature
-    * [GRADLE-146] - Allow the definition of default tasks
-    * [GRADLE-155] - global exclude of transitive deps
-    * [GRADLE-161] - Allow to assign multiple lib configurations for a war task.
+    * [GRADLE-28] - Add tasks for generating Eclipse files
+    * [GRADLE-158] - Allow an arbitray layout for a multi-project build.
