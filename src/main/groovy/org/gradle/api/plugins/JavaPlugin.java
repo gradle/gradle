@@ -152,7 +152,7 @@ public class JavaPlugin implements Plugin {
         },
                 "testOutputDirectory", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return java(convention).getClassesDir();
+                return java(convention).getTestClassesDir();
             }
         },
                 "classpathLibs", new ConventionValue() {
