@@ -28,7 +28,8 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import org.apache.ivy.plugins.resolver.BasicResolver;
 
 /**
  * @author Hans Dockter
@@ -70,14 +71,14 @@ class ResolverFactoryTest {
     private void checkMavenResolver(IBiblioResolver resolver, String name, String url) {
         assertEquals url, resolver.root
         assertEquals name, resolver.name
-        assertFalse resolver.allownomd
+        assertTrue resolver.allownomd
     }
 
     @Test
     public void testCreateMavenRepoWithAdditionalJarUrls() {
         String testUrl2 = 'http://www.gradle2.org'
         DualResolver dualResolver = factory.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, testUrl2)
-        assertFalse dualResolver.allownomd
+        assertTrue dualResolver.allownomd
         checkIBiblio(dualResolver.ivyResolver, "_poms")
         URLResolver urlResolver = dualResolver.artifactResolver
         assert urlResolver.m2compatible
@@ -94,6 +95,7 @@ class ResolverFactoryTest {
     private void checkIBiblio(IBiblioResolver iBiblioResolver, String expectedNameSuffix) {
         assert iBiblioResolver.usepoms
         assert iBiblioResolver.m2compatible
+        assertTrue iBiblioResolver.allownomd
         assertEquals(TEST_REPO_URL + '/', iBiblioResolver.root)
         assertEquals(DependencyManager.MAVEN_REPO_PATTERN, iBiblioResolver.pattern)
         assertEquals("${TEST_REPO_NAME}$expectedNameSuffix" as String, iBiblioResolver.name)
