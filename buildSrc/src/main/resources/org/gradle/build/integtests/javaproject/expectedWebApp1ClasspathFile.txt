@@ -7,7 +7,7 @@
   <classpathentry kind="lib" path="$gradleHome/samples/javaproject/lib/junit-4.4.jar"/>
   <classpathentry kind="src" path="src/main/java"/>
   <classpathentry kind="output" path="build/classes"/>
-  <classpathentry kind="src" path="src/test/java" output="build/classes"/>
+  <classpathentry kind="src" path="src/test/java" output="build/test-classes"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
   <classpathentry kind="src" path="/api" combineaccessrules="false"/>
   <classpathentry kind="src" path="/shared" combineaccessrules="false"/>
