@@ -503,7 +503,7 @@ void ftp(Map args, Closure antFileset = {}) {
                 classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
                 classpath: dependencies.antpath('ftpAntTask'))
         Map ftpArgs = args + [
-                server: 'www.gradle.org',
+                server: 'ftp.gradle.org',
                 userid: websiteFtpUserName,
                 password: websiteFtpUserPassword
         ]
