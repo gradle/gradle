@@ -84,18 +84,41 @@ public interface DependencyManager extends DependencyContainer {
      */
     List<String> getAbsoluteArtifactPatterns();
 
+    /**
+     * Directories where Ivy should look for artifacts according to the {@link #getDefaultArtifactPattern()}.
+     *
+     * @return
+     */
     Set<File> getArtifactParentDirs();
 
+    /**
+     * Returns an Ivy pattern describing not a path but only a pattern for the artifact file itself. The default for this property
+     * is {@link #DEFAULT_ARTIFACT_PATTERN}. The path information is taken from {@link #getArtifactParentDirs()}.
+     *
+     * @see #setDefaultArtifactPattern(String) 
+     */
     String getDefaultArtifactPattern();
 
+    /**
+     * Sets the default artifact pattern.
+     *
+     * @param defaultArtifactPattern The default artifact pattern.
+     * @see #getDefaultArtifactPattern()
+     */
     void setDefaultArtifactPattern(String defaultArtifactPattern);
 
     /**
-     * The name of the task which produces the artifacts of this project. This is needed by other projects,
+     * Returns the name of the task which produces the artifacts of this project. This is needed by other projects,
      * which have a dependency on a project.
      */
     String getArtifactProductionTaskName();
 
+    /**
+     * Set the artifact production task name for this project.
+     *
+     * @param name The name of the artifact production task name.
+     * @see #getArtifactProductionTaskName() 
+     */
     void setArtifactProductionTaskName(String name);
 
     Map<String, Set<String>> getConfs4Task();
@@ -120,11 +143,20 @@ public interface DependencyManager extends DependencyContainer {
      * task of the other project that produces the jar. This way a compile does not trigger the build of the other project,
      * but a testCompile does.
      *
-     * @param conf  the name of the conf
-     * @param task the name of the task
+     * @param conf  The name of the configuration
+     * @param task The name of the task
+     * @return this
      */
     DependencyManager linkConfWithTask(String conf, String task);
 
+    /**
+     * Disassociates a conf from a task.
+     *
+     * @param conf The name of the configuration
+     * @param task The name of the task
+     * @return this
+     * @see #linkConfWithTask(String, String) 
+     */
     DependencyManager unlinkConfWithTask(String conf, String task);
 
     /**
@@ -216,19 +248,65 @@ public interface DependencyManager extends DependencyContainer {
      */
     RepositoryResolver getBuildResolver();
 
+    /**
+     * Set's the fail behavior for resolving dependencies.
+     * 
+     * @see #isFailForMissingDependencies() 
+     */
     void setFailForMissingDependencies(boolean failForMissingDependencies);
 
+    /**
+     * If true an exception is thrown if a dependency can't be resolved. This usually leads to a build failure (unless
+     * there is custom logic which catches the exception).
+     */
     boolean isFailForMissingDependencies();
 
+    /**
+     * Adds a resolver that look in a list of directories for artifacts. The artifacts are expected to be located in the
+     * root of the specified directories. The resolver ignores any group/organization information specified in the
+     * dependency section of your build script. If you only use this kind of resolver you might specify your
+     * dependencies like <code>":junit:4.4"</code> instead of <code>"junit:junit:4.4"</code>
+     *
+     * @param name The name of the resolver
+     * @param dirs The directories to look for artifacts.
+     * @return the added resolver
+     */
     FileSystemResolver addFlatDirResolver(String name, Object... dirs);
 
     /**
-     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed
+     * Adds a resolver which look in the official Maven Repo for dependencies. The URL of the official Repo is {@link
+     * #MAVEN_REPO_URL}. The name is {@link #DEFAULT_MAVEN_REPO_NAME}. The behavior of this resolver is otherwise the same
+     * as the ones added by {@link #addMavenStyleRepo(String, String, String[])}.
+     *
+     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. 
+     * @return the added resolver
+     * @see #addMavenStyleRepo(String, String, String[])  
      */
     DependencyResolver addMavenRepo(String... jarRepoUrls);
 
+    /**
+     * Adds a resolver that uses Maven pom.xml descriptor files for resolving dependencies. By default the resolver
+     * accepts to resolve artifacts without a pom. The resolver always looks first in the root location for the pom and
+     * the artifact. Sometimes the artifact is supposed to live in a different repository as the pom. In such a case you can specify
+     * further locations to look for an artifact. But be aware that the pom is only looked for in the root location.
+     *
+     * For Ivy related reasons, Maven Snapshot dependencies are only properly resolved if no additional jar locations are
+     * specified. This is unfortunate and we hope to improve this in our next release. 
+     *
+     * @param name The name of the resolver
+     * @param root A URL to look for artifacts and pom's
+     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. 
+     * @return the added resolver
+     */
     DependencyResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls);
 
+    /**
+     * Publishes dependencies with a set of resolvers.
+     *
+     * @param configurations The configurations which dependencies you want to publish. 
+     * @param resolvers The resolvers you want to publish the dependencies with.
+     * @param uploadModuleDescriptor Whether the module descriptor should be published (ivy.xml or pom.xml)
+     */
     void publish(List<String> configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor);
 
     ModuleRevisionId createModuleRevisionId();
