@@ -56,6 +56,7 @@ public class JavaPlugin implements Plugin {
     public static final String TEST = "test";
     public static final String LIBS = "libs";
     public static final String DISTS = "dists";
+    public static final String UPLOAD_INTERNAL_LIBS = "uploadInternalLibs";
     public static final String UPLOAD_LIBS = "uploadLibs";
     public static final String CLEAN = "clean";
     public static final String INIT = "init";
@@ -105,6 +106,7 @@ public class JavaPlugin implements Plugin {
 
         configureLibs(project, javaConvention);
 
+        configureUploadInternalLibs(project);
         configureUploadLibs(project);
 
         Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", UPLOAD_LIBS), DISTS);
@@ -179,10 +181,16 @@ public class JavaPlugin implements Plugin {
         testResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
     }
 
+    private void configureUploadInternalLibs(Project project) {
+        Upload uploadInternalLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_INTERNAL_LIBS);
+        uploadInternalLibs.getBundles().add(project.task(LIBS));
+        uploadInternalLibs.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
+        uploadInternalLibs.setUploadModuleDescriptor(true);
+    }
+
     private void configureUploadLibs(Project project) {
         Upload uploadLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_LIBS);
         uploadLibs.getBundles().add(project.task(LIBS));
-        uploadLibs.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
         uploadLibs.setUploadModuleDescriptor(true);
     }
 
@@ -224,7 +232,7 @@ public class JavaPlugin implements Plugin {
         dependencies.addConfiguration(new Configuration(LIBS, Visibility.PUBLIC, null, null, true, null));
         dependencies.addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, new String[]{RUNTIME, LIBS}, true, null));
         dependencies.addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null));
-        dependencies.setArtifactProductionTaskName(UPLOAD_LIBS);
+        dependencies.setArtifactProductionTaskName(UPLOAD_INTERNAL_LIBS);
         dependencies.getArtifactParentDirs().add(project.getBuildDir());
         dependencies.getArtifactParentDirs().add(javaPluginConvention.getDistsDir());
         dependencies.linkConfWithTask(COMPILE, COMPILE);

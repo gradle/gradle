@@ -74,7 +74,7 @@ class DefaultSettingsTest {
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertEquals(Project.DEFAULT_BUILD_FILE, settings.buildSrcStartParameter.buildFileName)
-        assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_LIBS], settings.buildSrcStartParameter.taskNames)
+        assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS], settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
         checkRootProjectDescriptor();
     }
