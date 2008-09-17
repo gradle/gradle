@@ -24,7 +24,7 @@ test {
     options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)
 }
 
-uploadLibs.doLast {
+uploadInternalLibs.doLast {
     InstallOptions installOptions = new InstallOptions()
     installOptions.overwrite = true
     installOptions.validate = false
