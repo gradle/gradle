@@ -23,10 +23,9 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -35,13 +34,7 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     private List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>();
 
     public void add(Map<String, String> args) {
-        String org = GUtil.elvis(args.get("org"), PatternMatcher.ANY_EXPRESSION);
-        String module = GUtil.elvis(args.get("module"), PatternMatcher.ANY_EXPRESSION);
-        excludeRules.add(new DefaultExcludeRule(new ArtifactId(
-                new ModuleId(org, module), PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
-                ExactPatternMatcher.INSTANCE, null));
+        add(args, Collections.EMPTY_SET);
     }
 
     public List<ExcludeRule> getRules() {
@@ -50,5 +43,19 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
 
     public void setRules(List<ExcludeRule> excludeRules) {
         this.excludeRules = excludeRules;
+    }
+
+    public void add(Map<String, String> args, Set<String> confs) {
+        String org = GUtil.elvis(args.get("org"), PatternMatcher.ANY_EXPRESSION);
+        String module = GUtil.elvis(args.get("module"), PatternMatcher.ANY_EXPRESSION);
+        DefaultExcludeRule excludeRule = new DefaultExcludeRule(new ArtifactId(
+                new ModuleId(org, module), PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION),
+                ExactPatternMatcher.INSTANCE, null);
+        excludeRules.add(excludeRule);
+        for (String conf : confs) {
+            excludeRule.addConfiguration(conf);   
+        }
     }
 }

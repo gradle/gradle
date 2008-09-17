@@ -17,19 +17,32 @@ package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultExcludeRuleContainerTest {
     private DefaultExcludeRuleContainer excludeRuleContainer;
+    private String expectedOrg;
+    private String expectedModule;
+    private String expectedOrg2;
+    private String expectedModule2;
 
     @Before
     public void setUp() {
         excludeRuleContainer = new DefaultExcludeRuleContainer();
+        expectedOrg = "org";
+        expectedModule = "module";
+        expectedOrg2 = "org2";
+        expectedModule2 = "module2";
     }
 
     @Test
@@ -39,11 +52,20 @@ public class DefaultExcludeRuleContainerTest {
 
     @Test
     public void testAdd() {
-        String expectedOrg = "org";
-        String expectedModule = "module";
-        String expectedOrg2 = "org2";
-        String expectedModule2 = "module2";
         excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule));
+        checkAdd();
+    }
+
+    @Test
+    public void testAddWithConfigurations() {
+        Set<String> confs = WrapUtil.toSet("conf1", "conf2");
+        excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule), confs);
+        assertEquals(Arrays.asList(excludeRuleContainer.getRules().get(0).getConfigurations()), new ArrayList(confs));
+        checkAdd();
+    }
+
+    private void checkAdd() {
+
         assertEquals(1, excludeRuleContainer.getRules().size());
         assertEquals(excludeRuleContainer.getRules().get(0).getAttribute(IvyPatternHelper.ORGANISATION_KEY),
                 expectedOrg);
@@ -56,4 +78,6 @@ public class DefaultExcludeRuleContainerTest {
         assertEquals(excludeRuleContainer.getRules().get(1).getAttribute(IvyPatternHelper.MODULE_KEY),
                 expectedModule2);
     }
+
+
 }
