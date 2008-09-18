@@ -18,12 +18,12 @@ import java.io.IOException;
 public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void javadocGenerationFailsOnError() throws IOException {
-        File buildFile = new File(getTestDir(), "javadocs.gradle");
-        writeStringToFile(buildFile, "usePlugin(org.gradle.api.plugins.JavaPlugin)");
-        writeStringToFile(new File(getTestDir(), "src/main/java/org/gradle/broken.java"), "broken");
+        TestFile buildFile = testFile("javadocs.gradle");
+        buildFile.write("usePlugin(org.gradle.api.plugins.JavaPlugin)");
+        testFile("src/main/java/org/gradle/broken.java").write("broken");
 
         GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("javadoc");
-        
+
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasContext("Execution failed for task :javadoc");
         failure.assertHasDescription("Javadoc generation failed.");

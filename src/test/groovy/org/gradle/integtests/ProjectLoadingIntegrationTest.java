@@ -40,23 +40,19 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void embeddedBuildFileIgnoresBuildAndScriptFiles() throws IOException {
         File rootDir = getTestDir();
-        File settingsFile = new File(rootDir, "settings.gradle");
-        writeStringToFile(settingsFile, "throw new RuntimeException()");
-        File buildFile = new File(getTestDir(), "build.gradle");
-        writeStringToFile(buildFile, "throw new RuntimeException()");
+        testFile("settings.gradle").write("throw new RuntimeException()");
+        testFile("build.gradle").write("throw new RuntimeException()");
         inDirectory(rootDir).usingBuildScript("Task task = createTask('do-stuff')").runTasks("do-stuff");
     }
 
     @Test
     public void canDeterminesRootProjectAndCurrentProjecBasedOnCurrentDirectory() throws IOException {
         File rootDir = getTestDir();
-        File settingsFile = new File(rootDir, "settings.gradle");
-        writeStringToFile(settingsFile, "include('child')");
-        File buildFile = new File(getTestDir(), "build.gradle");
-        writeStringToFile(buildFile, "createTask('do-stuff')");
         File childDir = new File(rootDir, "child");
-        File childBuildFile = new File(childDir, "build.gradle");
-        writeStringToFile(childBuildFile, "createTask('do-stuff')");
+
+        testFile("settings.gradle").write("include('child')");
+        testFile("build.gradle").write("createTask('do-stuff')");
+        testFile("child/build.gradle").write("createTask('do-stuff')");
 
         inDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff");
         inDirectory(childDir).withSearchUpwards().runTasks(":do-stuff", "do-stuff");
@@ -64,10 +60,9 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test @Ignore
     public void handlesProjectInSubdirectoryOfAnotherMultiProjectBuild() throws IOException {
-        File buildFile = new File(getTestDir(), "subdirectory/build.gradle");
-        writeStringToFile(buildFile, "createTask('do-stuff')");
-        File otherBuildSettingsFile = new File(getTestDir(), "settings.gradle");
-        writeStringToFile(otherBuildSettingsFile, "include('another')");
+        TestFile buildFile = testFile("subdirectory/build.gradle");
+        buildFile.write("createTask('do-stuff')");
+        testFile("settings.gradle").write("include('another')");
 
         usingBuildFile(buildFile).withSearchUpwards().runTasks("do-stuff");
     }

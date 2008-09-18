@@ -22,6 +22,7 @@ import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -35,17 +36,18 @@ import java.util.Arrays;
 
 public class AbstractIntegrationTest {
     private File testDir;
-    private File defaultImportFile;
 
     @Before
     public void setupTestDir() throws IOException {
         testDir = HelperUtil.makeNewTestDir().getCanonicalFile();
-        defaultImportFile = new File(testDir, "default-imports");
-        FileUtils.writeStringToFile(defaultImportFile, "import org.gradle.api.*");
     }
 
     public File getTestDir() {
         return testDir;
+    }
+
+    public TestFile testFile(String name) {
+        return new TestFile(new File(getTestDir(), name));
     }
 
     protected File getTestBuildFile(String name) {
@@ -59,7 +61,7 @@ public class AbstractIntegrationTest {
             throw new RuntimeException(String.format("Could not locate test build file '%s'.", name));
         }
 
-        File destFile = new File(testDir, sourceFile.getName()).getAbsoluteFile();
+        File destFile = testFile(sourceFile.getName()).asFile();
         try {
             FileUtils.copyFile(sourceFile, destFile);
         } catch (IOException e) {
@@ -69,20 +71,72 @@ public class AbstractIntegrationTest {
     }
 
     protected StartParameter startParameter() {
+        TestFile defaultImportFile = testFile("default-imports");
+        defaultImportFile.write("import org.gradle.api.*");
+
         StartParameter parameter = new StartParameter();
 
         // TODO: should not have to set these
-        parameter.setPluginPropertiesFile(new File(testDir, "plugin.properties"));
-        parameter.setGradleUserHomeDir(new File(testDir, "user-home"));
+        parameter.setPluginPropertiesFile(testFile("plugin.properties").asFile());
+        parameter.setGradleUserHomeDir(testFile("user-home").asFile());
 
-        parameter.setDefaultImportsFile(defaultImportFile);
+        parameter.setDefaultImportsFile(defaultImportFile.asFile());
         parameter.setSearchUpwards(false);
         parameter.setCacheUsage(CacheUsage.ON);
-        parameter.setCurrentDir(testDir);
+        parameter.setCurrentDir(getTestDir());
 
         return parameter;
     }
 
+    protected GradleExecution inDirectory(File file) {
+        StartParameter parameter = startParameter();
+        parameter.setCurrentDir(file);
+        return new GradleExecution(parameter);
+    }
+
+    protected GradleExecution usingBuildFile(TestFile file) {
+        return usingBuildFile(file.asFile());
+    }
+    
+    protected GradleExecution usingBuildFile(File file) {
+        StartParameter parameter = startParameter();
+        parameter.setCurrentDir(file.getParentFile());
+        parameter.setBuildFileName(file.getName());
+        return new GradleExecution(parameter);
+    }
+
+    protected GradleExecution usingBuildScript(String script) {
+        StartParameter parameter = startParameter();
+        parameter.useEmbeddedBuildFile(script);
+        return new GradleExecution(parameter);
+    }
+
+    public static class TestFile {
+        private final File file;
+
+        public TestFile(File file) {
+            this.file = file.getAbsoluteFile();
+        }
+
+        public TestFile write(String content) {
+            try {
+                FileUtils.writeStringToFile(file, content);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            return this;
+        }
+
+        public File asFile() {
+            return file;
+        }
+
+        @Override
+        public String toString() {
+            return file.getPath();
+        }
+    }
+    
     public static class GradleExecution {
         protected final StartParameter parameter;
 
@@ -94,7 +148,7 @@ public class AbstractIntegrationTest {
             parameter.setSearchUpwards(true);
             return this;
         }
-        
+
         public GradleExecution runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
             BuildResult result = Build.newInstance(parameter).run(parameter);
@@ -109,6 +163,10 @@ public class AbstractIntegrationTest {
             } catch (GradleException e) {
                 return new GradleExecutionFailure(e);
             }
+        }
+
+        public GradleExecution usingSettingsFile(TestFile settingsFile) {
+            return usingSettingsFile(settingsFile.asFile());
         }
 
         public GradleExecution usingSettingsFile(File settingsFile) {
@@ -147,22 +205,4 @@ public class AbstractIntegrationTest {
         }
     }
 
-    protected GradleExecution inDirectory(File file) {
-        StartParameter parameter = startParameter();
-        parameter.setCurrentDir(file);
-        return new GradleExecution(parameter);
-    }
-
-    protected GradleExecution usingBuildFile(File file) {
-        StartParameter parameter = startParameter();
-        parameter.setCurrentDir(file.getParentFile());
-        parameter.setBuildFileName(file.getName());
-        return new GradleExecution(parameter);
-    }
-
-    protected GradleExecution usingBuildScript(String script) {
-        StartParameter parameter = startParameter();
-        parameter.useEmbeddedBuildFile(script);
-        return new GradleExecution(parameter);
-    }
 }
