@@ -44,6 +44,8 @@ public class Bundle extends ConventionTask {
 
     private List<AbstractArchiveTask> archiveTasks = new ArrayList<AbstractArchiveTask>();
 
+    private List<String> defaultConfigurations = new ArrayList<String>();
+
     public Bundle(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
     }
@@ -66,6 +68,7 @@ public class Bundle extends ConventionTask {
         archiveTask.setBaseName(getProject().getArchivesBaseName() + (args.get(APPENDIX_KEY) != null ? "-" + args.get(APPENDIX_KEY) : ""));
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
         setTaskDependsOn(archiveTask, getChildrenDependOn());
+        archiveTask.configurations((String[]) defaultConfigurations.toArray(new String[defaultConfigurations.size()]));
         this.dependsOn(taskName);
         archiveTasks.add(archiveTask);
         if (configureClosure != null) {
@@ -227,5 +230,13 @@ public class Bundle extends ConventionTask {
 
     protected void setArchiveTasks(List<AbstractArchiveTask> archiveTasks) {
         this.archiveTasks = archiveTasks;
+    }
+
+    public List<String> getDefaultConfigurations() {
+        return defaultConfigurations;
+    }
+
+    public void setDefaultConfigurations(List<String> defaultConfigurations) {
+        this.defaultConfigurations = defaultConfigurations;
     }
 }

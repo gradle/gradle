@@ -109,8 +109,7 @@ public class JavaPlugin implements Plugin {
         configureUploadInternalLibs(project);
         configureUploadLibs(project);
 
-        Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", UPLOAD_LIBS), DISTS);
-        distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
+        configureDists(project);
 
         Upload distsUpload = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", DISTS), UPLOAD_DISTS);
         distsUpload.getConfigurations().add(DISTS);
@@ -183,19 +182,20 @@ public class JavaPlugin implements Plugin {
 
     private void configureUploadInternalLibs(Project project) {
         Upload uploadInternalLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_INTERNAL_LIBS);
-        uploadInternalLibs.getBundles().add(project.task(LIBS));
+        uploadInternalLibs.getConfigurations().add(LIBS);
         uploadInternalLibs.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
         uploadInternalLibs.setUploadModuleDescriptor(true);
     }
 
     private void configureUploadLibs(Project project) {
         Upload uploadLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_LIBS);
-        uploadLibs.getBundles().add(project.task(LIBS));
+        uploadLibs.getConfigurations().add(LIBS);
         uploadLibs.setUploadModuleDescriptor(true);
     }
 
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
         Bundle libsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", TEST), LIBS);
+        libsBundle.setDefaultConfigurations(WrapUtil.toList(LIBS));
         libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
         Jar jar = libsBundle.jar();
         jar.conventionMapping(WrapUtil.<String, ConventionValue>toMap("resourceCollections",
@@ -204,6 +204,12 @@ public class JavaPlugin implements Plugin {
                         return WrapUtil.toList(new FileSet(javaConvention.getClassesDir()));
                     }
                 }));
+    }
+
+    private void configureDists(Project project) {
+        Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", UPLOAD_LIBS), DISTS);
+        distsBundle.setDefaultConfigurations(WrapUtil.toList(DISTS));
+        distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
     }
 
     private void configureTest(Project project) {

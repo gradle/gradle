@@ -40,6 +40,9 @@ public class ResolverContainer {
 
     private Map<String, DependencyResolver> resolvers = new HashMap<String, DependencyResolver>();
 
+    public ResolverContainer() {
+    }
+
     public ResolverContainer(LocalReposCacheHandler localReposCacheHandler) {
         resolverFactory = new ResolverFactory(localReposCacheHandler);
     }

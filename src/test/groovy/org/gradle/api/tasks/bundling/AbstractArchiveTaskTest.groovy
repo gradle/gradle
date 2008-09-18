@@ -238,4 +238,11 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertEquals(mergeGroups[0].includes, ['a'] as Set)
     }
 
+    @Test public void testConfigurations() {
+        archiveTask.configurations = []
+        archiveTask.configurations('conf1')
+        archiveTask.configurations('conf2')
+        assertEquals(['conf1', 'conf2'], archiveTask.configurations)
+    }
+
 }

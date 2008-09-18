@@ -92,7 +92,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     /**
      * The dependency configurations the archive gets added to if publish is true.
      */
-    private String[] configurations
+    private List<String> configurations
 
     /**
      * The dependency manager to use for adding the archive to the configurations.
@@ -128,14 +128,15 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     /**
-     * Sets (not add) the configurations the archive gets published to.
+     * Adds the configurations the archive gets published to.
      *
      * @param publish the value assigned to the publish property
      * @return this
      */
     public AbstractArchiveTask configurations(String... configurations) {
-        this.configurations = configurations
-        this
+        this.configurations = GUtil.chooseCollection(this.configurations, getConfigurations())
+        GUtil.flatten(Arrays.asList(configurations), this.configurations);
+        return this;
     }
 
     public void generateArchive(Task task) {
@@ -340,11 +341,11 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         this.publish = publish;
     }
 
-    public String[] getConfigurations() {
+    public List<String> getConfigurations() {
         return conv(configurations, "configurations");
     }
 
-    public void setConfigurations(String[] configurations) {
+    public void setConfigurations(List<String> configurations) {
         this.configurations = configurations;
     }
 

@@ -67,7 +67,6 @@ public class UploadTest extends AbstractTaskTest {
         assertFalse(upload.isUploadModuleDescriptor());
         assertNotNull(upload.getUploadResolvers());
         assertEquals(new ArrayList(), upload.getConfigurations());
-        assertEquals(new HashSet(), upload.getBundles());
     }
 
     @Test public void testUploading() {
@@ -75,28 +74,14 @@ public class UploadTest extends AbstractTaskTest {
         Map resolver1 = WrapUtil.toMap("name", RESOLVER_NAME_1);
         resolver1.put("url", "http://www.url1.com");
         Map resolver2 = WrapUtil.toMap("name", RESOLVER_NAME_2);
-        resolver1.put("url", "http://www.url2.com");
+        resolver2.put("url", "http://www.url2.com");
         final List<String> expectedConfigurations = WrapUtil.toList("conf1");
         upload.setConfigurations(expectedConfigurations);
         upload.setProject(HelperUtil.createRootProject(projectRootDir));
         ((AbstractProject) upload.getProject()).setDependencies(dependencyManagerMock);
         Bundle bundle = new Bundle(upload.getProject(), "bundle", getTasksGraph());
-        bundle.setDefaultArchiveTypes(JavaPluginConvention.DEFAULT_ARCHIVE_TYPES);
-        AbstractArchiveTask zip1 = bundle.zip(WrapUtil.toMap("baseName", "zip1"));
-        AbstractArchiveTask zip2 = bundle.zip(WrapUtil.toMap("baseName", "zip2"));
-        AbstractArchiveTask zip3 = bundle.zip(WrapUtil.toMap("baseName", "zip3"));
-        zip1.configurations("zip", "zip1");
-        zip2.configurations("zip2");
-        zip2.setPublish(false);
-        zip3.configurations("zip", "zip3");
-        upload.setBundles(WrapUtil.toSet(bundle));
-        //['zip1', 'zip', 'zip3'],
         context.checking(new Expectations() {{
-            one(dependencyManagerMock).publish(
-                    (List) with(hasItems("conf1", "zip", "zip1", "zip3")),
-                    with(equal(upload.getUploadResolvers())),
-                    with(equal(false))
-            );
+            one(dependencyManagerMock).publish(expectedConfigurations, upload.getUploadResolvers(), false);
         }});
         upload.execute();
     }

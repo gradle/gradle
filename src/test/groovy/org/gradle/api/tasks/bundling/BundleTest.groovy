@@ -58,6 +58,8 @@ class BundleTest extends AbstractConventionTaskTest {
 
     String expectedDefaultArchiveName
 
+    List testDefaultConfigurations
+
     Map testArgs
 
     Closure testClosure
@@ -82,10 +84,12 @@ class BundleTest extends AbstractConventionTaskTest {
         }
         testChildrenDependsOn = ['othertaskpath', 'othertaskpath2']
         testBundleDependsOn = ['othertaskpath10', "othertaskpath11"]
+        testDefaultConfigurations = ['conf1', 'conf2']
         bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
         bundle.childrenDependOn = testChildrenDependsOn
         bundle.dependsOn = testBundleDependsOn
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
+        bundle.defaultConfigurations = testDefaultConfigurations
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
         expectedDefaultArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
@@ -228,6 +232,7 @@ class BundleTest extends AbstractConventionTaskTest {
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
+        assertEquals(testDefaultConfigurations, archiveTask.configurations)
         assert bundle.archiveTasks.contains(archiveTask)
         archiveTask
     }

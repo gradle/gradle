@@ -183,11 +183,6 @@ public class DefaultConventionsToPropertiesMapping {
             public Object getValue(Convention convention, Task task) {
                 return ((JavaPluginConvention) convention.getPlugins().get("java")).getDistsDir();
             }
-        },
-                "configurations", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return WrapUtil.toArray(JavaPlugin.DISTS);
-            }
         }));
     }
 
@@ -210,11 +205,6 @@ public class DefaultConventionsToPropertiesMapping {
                 "metaInfResourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
                 return ((JavaPluginConvention) convention.getPlugins().get("java")).getMetaInf();
-            }
-        },
-                "configurations", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return WrapUtil.toArray(JavaPlugin.LIBS);
             }
         }));
     }
