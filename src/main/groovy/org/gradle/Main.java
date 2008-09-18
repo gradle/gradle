@@ -232,7 +232,10 @@ public class Main {
             build.addBuildListener(exceptionReporter);
             build.addBuildListener(resultLogger);
 
-            build.run(startParameter);
+            BuildResult buildResult = build.run(startParameter);
+            if (buildResult.getFailure() != null) {
+                exitWithError(options, buildResult.getFailure());
+            }
         } catch (Throwable e) {
             exceptionReporter.buildFinished(new BuildResult(null, e));
             exitWithError(options, e);
