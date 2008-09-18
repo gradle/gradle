@@ -163,14 +163,15 @@ public class MainTest {
     }
 
     private void checkMain(final boolean embedded, final boolean noTasks, MainCall mainCall) throws Throwable {
+        final BuildResult testBuildResult = new BuildResult(context.mock(Settings.class), null);
         context.checking(new Expectations() {
             {
                 one(buildMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
                 one(buildMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
                 if (noTasks) {
-                    one(buildMock).run(with(new StartParameterMatcher(true)));
+                    one(buildMock).run(with(new StartParameterMatcher(true))); will(returnValue(testBuildResult));
                 } else {
-                    one(buildMock).run(with(new StartParameterMatcher(false)));
+                    one(buildMock).run(with(new StartParameterMatcher(false))); will(returnValue(testBuildResult));
                 }
             }
         });
