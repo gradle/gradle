@@ -45,7 +45,7 @@ public class ProjectFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ClassLoader buildScriptClassLoader = new URLClassLoader(new URL[0]);
     private final File rootDir = new File("/root");
-    private final File projectDir = new File("/project§");
+    private final File projectDir = new File("/project").getAbsoluteFile();
     private DependencyManagerFactory dependencyManagerFactoryMock;
     private ITaskFactory taskFactoryMock;
     private DefaultProject rootProject;
