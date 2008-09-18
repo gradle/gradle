@@ -34,6 +34,7 @@ import org.gradle.StartParameter
 import org.gradle.CacheUsage
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.Configuration
+import org.gradle.invocation.DefaultBuild
 
 
 
@@ -48,7 +49,6 @@ class HelperUtil {
         return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [
                 projectName,
                 parent,
-                new File(""),
                 new File("projectDir"),
                 "build.gradle",
                 new StringScriptSource("test build file", null),
@@ -58,6 +58,7 @@ class HelperUtil {
                 null,
                 null,
                 parent.projectRegistry,
+                null,
                 null] as Object[])
     }
 
@@ -69,9 +70,10 @@ class HelperUtil {
                 new PluginRegistry(),
                 "build.gradle",
                 new DefaultProjectRegistry(),
+                new Dag(),
                 new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, rootDir, null)
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
         project.setBuildScript(new EmptyScript())
         return project;
     }
@@ -80,7 +82,6 @@ class HelperUtil {
         return new DefaultProject(
                 name,
                 parentProject,
-                parentProject.rootDir,
                 new File("projectDir" + name),
                 parentProject.buildFileName,
                 new StringScriptSource("test build file", null),
@@ -90,7 +91,8 @@ class HelperUtil {
                 parentProject.buildScriptProcessor,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
-                parentProject.projectFactory)
+                parentProject.projectFactory,
+                new DefaultBuild(null, null))
     }
 
     static org.gradle.StartParameter dummyStartParameter() {

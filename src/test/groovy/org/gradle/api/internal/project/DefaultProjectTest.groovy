@@ -37,6 +37,7 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.invocation.Build
 
 /**
  * @author Hans Dockter
@@ -71,6 +72,7 @@ class DefaultProjectTest {
 
     DependencyManagerFactory dependencyManagerFactoryMock;
     DependencyManager dependencyManagerMock;
+    Build build;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
@@ -82,6 +84,7 @@ class DefaultProjectTest {
         dependencyManagerMock = context.mock(DependencyManager)
         dependencyManagerFactoryMock = [createDependencyManager: {Project project -> dependencyManagerMock}] as DependencyManagerFactory
         script = context.mock(ScriptSource.class)
+        build = context.mock(Build.class)
 
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
@@ -90,10 +93,10 @@ class DefaultProjectTest {
         projectRegistry = new DefaultProjectRegistry()
         buildScriptProcessor = new BuildScriptProcessor()
         ProjectFactory factory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor,
-                pluginRegistry, TEST_BUILD_FILE_NAME, projectRegistry, null)
-        project = new DefaultProject('root', null, rootDir, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
+                pluginRegistry, TEST_BUILD_FILE_NAME, projectRegistry, null, null)
+        project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
-                factory);
+                factory, build);
         child1 = project.addChildProject("child1", new File("child1"))
         childchild = child1.addChildProject("childchild", new File("childchild"))
         child2 = project.addChildProject("child2", new File("child2"))
@@ -115,6 +118,7 @@ class DefaultProjectTest {
         assertEquals(TEST_BUILD_FILE_NAME, project.buildFileName)
         assertSame project.buildScriptClassLoader, buildScriptClassLoader
         assertSame buildScriptProcessor, project.buildScriptProcessor
+        assertSame project.build, build
         assertNotNull(project.ant)
         assertNotNull(project.convention)
         assertEquals([], project.getDefaultTasks())

@@ -19,20 +19,17 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.api.internal.project.IProjectFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.Clock;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 
-import java.util.Map;
-import java.util.Properties;
-import java.util.HashMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -70,7 +67,7 @@ public class ProjectsLoader {
         logger.debug("Adding external properties: {}", externalProjectProperties.keySet());
         logger.debug("Looking for system project properties");
         ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor.getName(), null,
-                rootProjectDescriptor.getDir(), rootProjectDescriptor.getDir(), buildScriptClassLoader);
+                rootProjectDescriptor.getDir(), buildScriptClassLoader);
         addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties, rootProject);
         addProjects(rootProject, rootProjectDescriptor, startParameter, externalProjectProperties);
         return rootProject;
@@ -80,7 +77,6 @@ public class ProjectsLoader {
                              Map<String, String> externalProjectProperties) {
         for (DefaultProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
             ProjectInternal childProject = (ProjectInternal) parent.addChildProject(childProjectDescriptor.getName(), childProjectDescriptor.getDir());
-            parent.getChildProjects().put(childProjectDescriptor.getName(), childProject);
             addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties,
                     childProject);
             addProjects(childProject, childProjectDescriptor, startParameter, externalProjectProperties);
@@ -114,7 +110,7 @@ public class ProjectsLoader {
 
     public void reset() {
         projectFactory.reset();    
-    };
+    }
 
     public IProjectFactory getProjectFactory() {
         return projectFactory;

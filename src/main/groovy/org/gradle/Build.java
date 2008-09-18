@@ -252,6 +252,7 @@ public class Build {
                                             startParameter.getPluginPropertiesFile()),
                                     startParameter.getBuildFileName(),
                                     new DefaultProjectRegistry(),
+                                    tasksGraph,
                                     startParameter.getBuildScriptSource())
 
                     ),

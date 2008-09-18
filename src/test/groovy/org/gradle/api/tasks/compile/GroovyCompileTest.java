@@ -53,7 +53,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        getProject().setRootDir(AbstractCompileTest.TEST_ROOT_DIR);
+        getProject().setProjectDir(AbstractCompileTest.TEST_ROOT_DIR);
         testObj = new GroovyCompile(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
         antJavacCompileMock = context.mock(AntJavac.class);
         antGroovycCompileMock = context.mock(AntGroovyc.class);

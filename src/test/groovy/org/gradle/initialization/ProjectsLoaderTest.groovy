@@ -18,25 +18,32 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
-import org.gradle.api.internal.project.*
-import org.gradle.initialization.DefaultSettings
+import org.gradle.api.internal.project.BuildScriptProcessor
+import org.gradle.api.internal.project.IProjectFactory
+import org.gradle.api.internal.project.IProjectRegistry
+import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.project.ProjectFactory
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.ProjectsLoader
 import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
+import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.lib.legacy.ClassImposteriser
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 class ProjectsLoaderTest {
     ProjectsLoader projectsLoader
-    ProjectFactory projectFactory
+    IProjectFactory projectFactory
     BuildScriptProcessor buildScriptProcessor
     PluginRegistry pluginRegistry
     File testDir
@@ -46,13 +53,12 @@ class ProjectsLoaderTest {
     Map testProjectProperties
     File testUserHomeDir
     DefaultProjectDescriptorRegistry projectDescriptorRegistry
-
-
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp()  {
         testClassLoader = new URLClassLoader([] as URL[])
         testProjectProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
-        projectFactory = new ProjectFactory(new TaskFactory(), new DefaultDependencyManagerFactory(new File('root')), null, null, "build.gradle", new DefaultProjectRegistry(), null)
+        projectFactory = context.mock(IProjectFactory)
         buildScriptProcessor = new BuildScriptProcessor()
         pluginRegistry = new PluginRegistry()
         projectsLoader = new ProjectsLoader(projectFactory)
@@ -74,14 +80,20 @@ class ProjectsLoaderTest {
     }
 
     @Test public void testCreateProjects() {
+        ProjectInternal rootProject = context.mock(ProjectInternal, 'root')
+        ProjectInternal parentProject = context.mock(ProjectInternal, 'parent')
+        ProjectInternal child1 = context.mock(ProjectInternal, 'child1')
+        ProjectInternal child2 = context.mock(ProjectInternal, 'child2')
+        IProjectRegistry projectRegistry = context.mock(IProjectRegistry)
+
         StartParameter startParameter = new StartParameter(
                 currentDir: new File(testRootProjectDir, 'parent'),
                 gradleUserHomeDir: testUserHomeDir)
         DefaultProjectDescriptor rootProjectDescriptor = new DefaultProjectDescriptor(null, 'root', testRootProjectDir, projectDescriptorRegistry)
         DefaultProjectDescriptor parentProjectDescriptor = new DefaultProjectDescriptor(rootProjectDescriptor, 'parent',
                 testParentProjectDir, projectDescriptorRegistry)
-        new DefaultProjectDescriptor(parentProjectDescriptor, 'child1', new File('child1'), projectDescriptorRegistry)
-        new DefaultProjectDescriptor(parentProjectDescriptor, 'child2', new File('child2'), projectDescriptorRegistry)
+        DefaultProjectDescriptor child1ProjectDescriptor = new DefaultProjectDescriptor(parentProjectDescriptor, 'child1', new File('child1'), projectDescriptorRegistry)
+        DefaultProjectDescriptor child2ProjectDescriptor = new DefaultProjectDescriptor(parentProjectDescriptor, 'child2', new File('child2'), projectDescriptorRegistry)
 
         Map testExternalProps = [prop1: 'value1', prop2: 'value2', prop3: 'value3']
         Map testRootProjectProps = [rootProp1: 'rootValue1', rootProp2: 'rootValue2', prop1: 'rootValue']
@@ -90,51 +102,72 @@ class ProjectsLoaderTest {
         new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, Project.GRADLE_PROPERTIES)), '')
         new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, Project.GRADLE_PROPERTIES)), '')
 
+        context.checking {
+            allowing(rootProject).getProjectDir()
+            will(returnValue(testRootProjectDir))
+            allowing(parentProject).getProjectDir()
+            will(returnValue(parentProjectDescriptor.dir))
+            allowing(child1).getProjectDir()
+            will(returnValue(child1ProjectDescriptor.dir))
+            allowing(child2).getProjectDir()
+            will(returnValue(child2ProjectDescriptor.dir))
+
+            one(projectFactory).createProject(rootProjectDescriptor.getName(), null, testRootProjectDir, testClassLoader)
+            will(returnValue(rootProject))
+
+            one(rootProject).setGradleUserHome(testUserHomeDir.canonicalPath)
+
+            one(rootProject).setProperty('rootProp1', 'rootValue1')
+            one(rootProject).setProperty('rootProp2', 'rootValue2')
+            one(rootProject).setProperty('prop1', 'value1')
+            one(rootProject).setProperty('prop2', 'value2')
+            one(rootProject).setProperty('prop3', 'value3')
+
+            one(rootProject).addChildProject('parent', parentProjectDescriptor.dir)
+            will(returnValue(parentProject))
+
+            one(parentProject).setGradleUserHome(testUserHomeDir.canonicalPath)
+
+            one(parentProject).setProperty('parentProp1', 'parentValue1')
+            one(parentProject).setProperty('parentProp2', 'parentValue2')
+            one(parentProject).setProperty('prop1', 'value1')
+            one(parentProject).setProperty('prop2', 'value2')
+            one(parentProject).setProperty('prop3', 'value3')
+
+            one(parentProject).addChildProject('child1', child1ProjectDescriptor.dir)
+            will(returnValue(child1))
+
+            one(child1).setProperty('prop1', 'value1')
+            one(child1).setProperty('prop2', 'value2')
+            one(child1).setProperty('prop3', 'value3')
+
+            one(child1).setGradleUserHome(testUserHomeDir.canonicalPath)
+
+            one(parentProject).addChildProject('child2', child2ProjectDescriptor.dir)
+            will(returnValue(child2))
+
+            one(child2).setGradleUserHome(testUserHomeDir.canonicalPath)
+
+            one(child2).setProperty('prop1', 'value1')
+            one(child2).setProperty('prop2', 'value2')
+            one(child2).setProperty('prop3', 'value3')
+
+            one(rootProject).getProjectRegistry()
+            will(returnValue(projectRegistry))
+
+            one(projectRegistry).getProject(startParameter.currentDir)
+            will(returnValue(child2))
+        }
+
         projectsLoader.load(rootProjectDescriptor, testClassLoader, startParameter, testExternalProps)
-
-        ProjectInternal rootProject = projectsLoader.rootProject
-        assert rootProject.buildScriptClassLoader.is(testClassLoader)
-        assertSame(testRootProjectDir.getAbsolutePath(), rootProject.rootDir.getAbsolutePath())
-        assertEquals(Project.PATH_SEPARATOR, rootProject.path)
-        assertEquals(rootProjectDescriptor.getName(), rootProject.name)
-        assertEquals 1, rootProject.childProjects.size()
-        assertNotNull rootProject.childProjects.parent
-        assertEquals 2, rootProject.childProjects.parent.childProjects.size()
-        assertNotNull rootProject.childProjects.parent.childProjects.child1
-        assertNotNull rootProject.childProjects.parent.childProjects.child2
-        
-        checkProjects(testExternalProps, ['prop2', 'prop3'], rootProject, rootProject.childProjects.parent,
-                rootProject.childProjects.parent.childProjects.child1,
-                rootProject.childProjects.parent.childProjects.child2)
-        checkProjectProperties(testRootProjectProps, rootProject, ['prop1'])
-        checkProjectProperties(testParentProjectProps, rootProject.childProjects.parent, ['prop1'])
-        assertNull(rootProject.childProjects.parent.additionalProperties[new ArrayList(testProjectProperties.keySet())[0]])
-    }
-
-    private void checkProjects(Map properties, List excludeKeys, Project[] projects) {
-        projects.each {Project project ->
-            assertEquals(testUserHomeDir.canonicalPath, project.gradleUserHome)
-            checkProjectProperties(properties, project, excludeKeys)
-        }
-    }
-
-    private checkProjectProperties(Map properties, Project project, List excludeKeys = []) {
-        properties.each {key, value ->
-            if (excludeKeys.contains(key)) {return}
-            assertEquals(project."$key", value)
-        }
+        assertThat(projectsLoader.rootProject, sameInstance(rootProject))
     }
 
     @Test public void testReset() {
-        JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-        context.setImposteriser(ClassImposteriser.INSTANCE)
-        ProjectFactory projectFactoryMock = context.mock(ProjectFactory)
-        projectsLoader.setProjectFactory(projectFactoryMock)
         context.checking {
-            one(projectFactoryMock).reset()
+            one(projectFactory).reset()
         }
         projectsLoader.reset()
-        context.assertIsSatisfied()
     }
 
 }

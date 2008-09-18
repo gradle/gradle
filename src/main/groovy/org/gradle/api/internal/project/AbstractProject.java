@@ -32,6 +32,7 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
@@ -70,6 +71,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Project rootProject;
 
+    private Build build;
+
     private BuildScriptProcessor buildScriptProcessor;
 
     private ClassLoader buildScriptClassLoader;
@@ -81,8 +84,6 @@ public abstract class AbstractProject implements ProjectInternal {
     private ScriptSource buildScriptSource;
 
     private PluginRegistry pluginRegistry;
-
-    private File rootDir;
 
     private File projectDir;
 
@@ -140,13 +141,13 @@ public abstract class AbstractProject implements ProjectInternal {
         convention = new Convention(this);
     }
 
-    public AbstractProject(String name, Project parent, File rootDir, File projectDir, String buildFileName, ScriptSource buildScriptSource,
-                           ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
-                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                           IProjectFactory projectFactory) {
+    public AbstractProject(String name, Project parent, File projectDir, String buildFileName,
+                           ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
+                           DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
+                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
+                           IProjectFactory projectFactory, Build build) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
-        this.rootDir = rootDir;
         this.projectDir = projectDir;
         this.parent = parent;
         this.name = name;
@@ -163,6 +164,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.archivesBaseName = name;
         this.projectFactory = projectFactory;
         this.buildScriptSource = buildScriptSource;
+        this.build = build;
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
@@ -189,6 +191,14 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setRootProject(Project rootProject) {
         this.rootProject = rootProject;
+    }
+
+    public Build getBuild() {
+        return build;
+    }
+
+    public void setBuild(Build build) {
+        this.build = build;
     }
 
     public BuildScriptProcessor getBuildScriptProcessor() {
@@ -252,11 +262,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File getRootDir() {
-        return rootDir;
-    }
-
-    public void setRootDir(File rootDir) {
-        this.rootDir = rootDir;
+        return rootProject.getProjectDir();
     }
 
     public Project getParent() {
@@ -623,7 +629,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     protected ProjectInternal createChildProject(String name, File projectDir) {
-        return projectFactory.createProject(name, this, rootDir, projectDir, buildScriptClassLoader);
+        return projectFactory.createProject(name, this, projectDir, buildScriptClassLoader);
     }
 
     public File getProjectDir() {

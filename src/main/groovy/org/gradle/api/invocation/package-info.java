@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
-
-import org.gradle.api.Project;
-
-import java.io.File;
 
 /**
- * Creates a {@link Project} implementation.
- *
- * @author Hans Dockter
+ * The classes for invoking and monitoring gradle builds.
  */
-public interface IProjectFactory {
-    ProjectInternal createProject(String name, Project parent, File projectDir, ClassLoader buildScriptClassLoader);
-
-    void reset();
-}
+package org.gradle.api.invocation;

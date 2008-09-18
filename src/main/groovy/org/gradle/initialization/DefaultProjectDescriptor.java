@@ -20,8 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.util.PathHelper;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.LinkedHashSet;
 
 /**
  * @author Hans Dockter
@@ -30,7 +30,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
     private String name;
     private File dir;
     private DefaultProjectDescriptor parent;
-    private Set<DefaultProjectDescriptor> children = new HashSet<DefaultProjectDescriptor>();
+    private Set<DefaultProjectDescriptor> children = new LinkedHashSet<DefaultProjectDescriptor>();
     private IProjectDescriptorRegistry projectDescriptorRegistry;
     private String path;
 

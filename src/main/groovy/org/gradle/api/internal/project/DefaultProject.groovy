@@ -23,6 +23,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.invocation.Build
 
 /**
  * @author Hans Dockter
@@ -32,12 +33,13 @@ class DefaultProject extends AbstractProject {
         super();
     }
 
-    public DefaultProject(String name, Project parent, File rootDir, File projectDir, String buildFileName, ScriptSource scriptSource,
-                          ClassLoader buildScriptClassLoader, ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
-                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                          IProjectFactory projectFactory) {
-        super(name, parent, rootDir, projectDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
-                buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory);
+    public DefaultProject(String name, Project parent, File projectDir, String buildFileName, ScriptSource scriptSource,
+                          ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
+                          DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
+                          PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
+                          IProjectFactory projectFactory, Build build) {
+        super(name, parent, projectDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
+                buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory, build);
     }
 
     def property(String name) {

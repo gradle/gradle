@@ -17,10 +17,13 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
+import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.execution.Dag;
+import org.gradle.invocation.DefaultBuild;
 
 import java.io.File;
 
@@ -28,39 +31,53 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class ProjectFactory implements IProjectFactory {
-    DependencyManagerFactory dependencyManagerFactory;
-    BuildScriptProcessor buildScriptProcessor;
-    PluginRegistry pluginRegistry;
-    String buildFileName;
-    IProjectRegistry projectRegistry;
-    ScriptSource embeddedScript;
-    ITaskFactory taskFactory;
+    private DependencyManagerFactory dependencyManagerFactory;
+    private BuildScriptProcessor buildScriptProcessor;
+    private PluginRegistry pluginRegistry;
+    private String buildFileName;
+    private IProjectRegistry projectRegistry;
+    private ScriptSource embeddedScript;
+    private ITaskFactory taskFactory;
+    private Dag taskGraph;
 
     public ProjectFactory() {
     }
 
-    public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
-                          PluginRegistry pluginRegistry, String buildFileName, IProjectRegistry projectRegistry, ScriptSource embeddedScript) {
+    public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
+                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
+                          String buildFileName, IProjectRegistry projectRegistry, Dag taskGraph,
+                          ScriptSource embeddedScript) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
         this.buildFileName = buildFileName;
         this.projectRegistry = projectRegistry;
+        this.taskGraph = taskGraph;
         this.embeddedScript = embeddedScript;
     }
 
-    public DefaultProject createProject(String name, Project parent, File rootDir, File projectDir, ClassLoader buildScriptClassLoader) {
+    public DefaultProject createProject(String name, Project parent, File projectDir,
+                                        ClassLoader buildScriptClassLoader) {
         ScriptSource source;
         if (embeddedScript != null) {
             source = embeddedScript;
-        } else if (parent == null) {
-            source = new FileScriptSource("build file", new File(rootDir, buildFileName));
         } else {
             source = new FileScriptSource("build file", new File(projectDir, buildFileName));
         }
-        return new DefaultProject(name, parent, rootDir, projectDir, buildFileName, source, buildScriptClassLoader, taskFactory,
-                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this);
+        Build build;
+        if (parent == null) {
+            build = new DefaultBuild(null, taskGraph);
+        } else {
+            build = parent.getBuild();
+        }
+        DefaultProject project = new DefaultProject(name, parent, projectDir, buildFileName, source,
+                buildScriptClassLoader, taskFactory,
+                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this, build);
+        if (parent == null) {
+            ((DefaultBuild) build).setRootProject(project.getRootProject());
+        }
+        return project;
     }
 
     public void reset() {

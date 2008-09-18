@@ -20,6 +20,7 @@ import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.invocation.Build;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -41,8 +42,8 @@ import java.util.Set;
  *
  * <li>Create a {@link Settings} instance for the build.</li>
  *
- * <li>Evaluate the <code>{@value Settings#DEFAULT_SETTINGS_FILE}</code> script, if present, against the {@link
- * Settings} object to configure it.</li>
+ * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if
+ * present, against the {@link Settings} object to configure it.</li>
  *
  * <li>Use the configured {@link Settings} object to create the hierarchy of <code>Project</code> instances.</li>
  *
@@ -926,4 +927,13 @@ public interface Project extends Comparable<Project> {
      * @return The logger. Never returns null.
      */
     Logger getLogger();
+
+    /**
+     * <p>Returns the {@link Build} which this project belongs to.</p>
+     *
+     * <p>You can use this property in your build file using <code>build</code>.</p>
+     *
+     * @return The build. Never returns null.
+     */
+    Build getBuild();
 }
