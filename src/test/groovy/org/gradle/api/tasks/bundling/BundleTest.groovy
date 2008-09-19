@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.dependencies.Dependency
 
 /**
  * @author Hans Dockter
@@ -59,6 +60,8 @@ class BundleTest extends AbstractConventionTaskTest {
     String expectedDefaultArchiveName
 
     List testDefaultConfigurations
+    
+    List testCustomConfigurations
 
     Map testArgs
 
@@ -78,7 +81,8 @@ class BundleTest extends AbstractConventionTaskTest {
         taskMock = context.mock(Task)
         taskFactoryMock = context.mock(ITaskFactory)
         getProject().setTaskFactory(taskFactoryMock)
-        testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier']
+        testCustomConfigurations = ['customConf1', 'customConf2']
+        testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier', confs: testCustomConfigurations]
         testClosure = {
             destinationDir = TEST_DESTINATION_DIR
         }
@@ -220,19 +224,23 @@ class BundleTest extends AbstractConventionTaskTest {
         String taskName = (args.baseName ?: getProject().archivesTaskBaseName) + (args.appendix ? "_" + args.appendix : "")
         String archiveBaseName = getProject().archivesBaseName + (args.appendix ? "-" + args.appendix : "")
         String classifier = args.classifier ? '_' + args.classifier  : ''
+        List confs = []
+        confs.addAll(args.confs != null ? args.confs : [Dependency.MASTER_CONFIGURATION])
+        confs.addAll(testDefaultConfigurations)
         checkCommonStuff(archiveTask, "${taskName}${classifier}_${archiveType.defaultExtension}",
-                archiveType.conventionMapping, archiveBaseName, classifier ? classifier.substring(1) : '')
+                archiveType.conventionMapping, archiveBaseName, classifier ? classifier.substring(1) : '', confs)
     }
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
-                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveClassifier) {
+                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveClassifier,
+                                                    List expectedConfigurations) {
         assertEquals(TEST_DESTINATION_DIR, archiveTask.destinationDir)
         assertEquals(conventionMapping, archiveTask.conventionMapping)
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
-        assertEquals(testDefaultConfigurations, archiveTask.configurations)
+        assertEquals(expectedConfigurations, archiveTask.configurations)
         assert bundle.archiveTasks.contains(archiveTask)
         archiveTask
     }

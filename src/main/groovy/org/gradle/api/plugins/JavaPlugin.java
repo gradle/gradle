@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.gradle.api.*;
 import org.gradle.api.dependencies.Filter;
+import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
@@ -64,7 +65,6 @@ public class JavaPlugin implements Plugin {
 
     public static final String RUNTIME = "runtime";
     public static final String TEST_RUNTIME = "testRuntime";
-    public static final String DEFAULT = "default";
     public static final String UPLOAD_DISTS = "uploadDists";
     public static final String ECLIPSE = "eclipse";
     public static final String ECLIPSE_CLEAN = "eclipseClean";
@@ -236,7 +236,9 @@ public class JavaPlugin implements Plugin {
         dependencies.addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, new String[]{COMPILE}, false, null));
         dependencies.addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, new String[]{RUNTIME, TEST_COMPILE}, true, null));
         dependencies.addConfiguration(new Configuration(LIBS, Visibility.PUBLIC, null, null, true, null));
-        dependencies.addConfiguration(new Configuration(DEFAULT, Visibility.PUBLIC, null, new String[]{RUNTIME, LIBS}, true, null));
+        dependencies.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION, Visibility.PUBLIC, null,
+                new String[]{RUNTIME, Dependency.MASTER_CONFIGURATION}, true, null));
+        dependencies.addConfiguration(new Configuration(Dependency.MASTER_CONFIGURATION, Visibility.PUBLIC, null, null, true, null));
         dependencies.addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null));
         dependencies.setArtifactProductionTaskName(UPLOAD_INTERNAL_LIBS);
         dependencies.getArtifactParentDirs().add(project.getBuildDir());

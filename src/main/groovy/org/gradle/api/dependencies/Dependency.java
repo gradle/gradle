@@ -23,6 +23,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 */
 public interface Dependency {
     public static final String DEFAULT_CONFIGURATION = "default";
-            
+    public static final String MASTER_CONFIGURATION = "master";
+
     DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent);
 }
