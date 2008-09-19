@@ -38,6 +38,9 @@ public class BuildExceptionReporter implements BuildListener {
         this.options = options;
     }
 
+    public void buildStarted(StartParameter startParameter) {
+    }
+
     public void buildFinished(BuildResult result) {
         Throwable failure = result.getFailure();
         if (failure == null) {

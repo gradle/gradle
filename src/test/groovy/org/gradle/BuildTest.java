@@ -204,10 +204,11 @@ public class BuildTest {
     }
 
     @Test
-    public void testNotifiesListenerOnBuildComplete() {
+    public void testNotifiesListenerOnBuildStartAndComplete() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         context.checking(new Expectations() {{
+            one(buildListenerMock).buildStarted(expectedStartParams);
             one(buildListenerMock).buildFinished(with(result(settingsMock, nullValue(Throwable.class))));
         }});
 
@@ -218,13 +219,10 @@ public class BuildTest {
     @Test
     public void testNotifiesListenerOnSettingsInitWithFailure() {
         final RuntimeException failure = new RuntimeException();
-        context.checking(new Expectations() {
-            {
-                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
-                will(throwException(failure));
-            }
-        });
         context.checking(new Expectations() {{
+            one(buildListenerMock).buildStarted(expectedStartParams);
+            one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
+            will(throwException(failure));
             one(buildListenerMock).buildFinished(with(result(null, sameInstance(failure))));
         }});
 
@@ -240,6 +238,7 @@ public class BuildTest {
         expectSettingsBuilt();
         expectTasksRunWithFailure(failure);
         context.checking(new Expectations() {{
+            one(buildListenerMock).buildStarted(expectedStartParams);
             one(buildListenerMock).buildFinished(with(result(settingsMock, sameInstance(failure))));
         }});
 

@@ -19,5 +19,7 @@ package org.gradle;
  * @author Hans Dockter
  */
 public interface BuildListener {
+    void buildStarted(StartParameter startParameter);
+
     void buildFinished(BuildResult result);
 }

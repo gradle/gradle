@@ -68,7 +68,7 @@ class HelperUtil {
                 new DefaultDependencyManagerFactory(new File('root')),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
-                "build.gradle",
+                new StartParameter(),
                 new DefaultProjectRegistry(),
                 new Dag(),
                 new StringScriptSource("embedded build file", "embedded"))
@@ -92,7 +92,7 @@ class HelperUtil {
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
                 parentProject.projectFactory,
-                new DefaultBuild(null, null))
+                new DefaultBuild(null, null, null))
     }
 
     static org.gradle.StartParameter dummyStartParameter() {

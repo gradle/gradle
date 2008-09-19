@@ -70,12 +70,10 @@ public class Main {
     private static final String REBUILD_CACHE = "r";
     private static final String HELP = "h";
 
-
     public static void main(String[] args) throws Throwable {
         BuildResultLogger resultLogger = new BuildResultLogger(logger);
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(logger);
 
-        String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
         StartParameter startParameter = new StartParameter();
 
         OptionParser parser = new OptionParser() {
@@ -135,14 +133,17 @@ public class Main {
             return;
         }
 
+        String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
         if (!GUtil.isTrue(gradleHome)) {
             logger.error("The gradle.home property is not set. Please set it and try again.");
             exitWithError(options, new InvalidUserDataException());
             return;
         }
+        startParameter.setGradleHomeDir(new File(gradleHome));
 
-        startParameter.setDefaultImportsFile(
-                options.has(NO_DEFAULT_IMPORTS) ? null : new File(gradleHome + '/' + IMPORTS_FILE_NAME));
+        if (options.has(NO_DEFAULT_IMPORTS)) {
+            startParameter.setDefaultImportsFile(null);
+        }
 
         if (options.has(SYSTEM_PROP)) {
             List<String> props = options.argumentsOf(SYSTEM_PROP);
@@ -171,25 +172,21 @@ public class Main {
                 exitWithError(options, new InvalidUserDataException());
                 return;
             }
-        } else {
-            startParameter.setCurrentDir(new File(System.getProperty("user.dir")));
         }
 
-        startParameter.setGradleUserHomeDir(
-                options.hasArgument(GRADLE_USER_HOME) ?
-                        new File(options.argumentOf(GRADLE_USER_HOME)) : new File(DEFAULT_GRADLE_USER_HOME));
-
+        if (options.hasArgument(GRADLE_USER_HOME)) {
+            startParameter.setGradleUserHomeDir(new File(options.argumentOf(GRADLE_USER_HOME)));
+        }
         if (options.hasArgument(BUILD_FILE)) {
             startParameter.setBuildFileName(options.argumentOf(BUILD_FILE));
         }
         if (options.hasArgument(SETTINGS_FILE)) {
             startParameter.setSettingsFileName(options.argumentOf(SETTINGS_FILE));
         }
-
-        startParameter.setPluginPropertiesFile(
-                options.hasArgument(PLUGIN_PROPERTIES_FILE) ? new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)) :
-                        new File(gradleHome + '/' + DEFAULT_PLUGIN_PROPERTIES));
-
+        if (options.hasArgument(PLUGIN_PROPERTIES_FILE)) {
+            startParameter.setPluginPropertiesFile(new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)));
+        }
+        
         if (options.has(CACHE_OFF)) {
             if (options.has(REBUILD_CACHE)) {
                 logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",
@@ -212,13 +209,6 @@ public class Main {
             }
             startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
         }
-
-        logger.debug("gradle.home= " + gradleHome);
-        logger.debug("Project dir: " + startParameter.getCurrentDir());
-        logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
-        logger.info("Buildfilename: " + startParameter.getBuildFileName());
-        logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
-        logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
 
         if (options.has(TASKS)) {
             startParameter.setTaskExecuter(new BuiltInTaskExecuter());

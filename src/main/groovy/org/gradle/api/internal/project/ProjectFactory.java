@@ -17,13 +17,13 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.invocation.Build;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.execution.Dag;
 import org.gradle.invocation.DefaultBuild;
+import org.gradle.StartParameter;
 
 import java.io.File;
 
@@ -34,24 +34,24 @@ public class ProjectFactory implements IProjectFactory {
     private DependencyManagerFactory dependencyManagerFactory;
     private BuildScriptProcessor buildScriptProcessor;
     private PluginRegistry pluginRegistry;
-    private String buildFileName;
+    private StartParameter startParameter;
     private IProjectRegistry projectRegistry;
     private ScriptSource embeddedScript;
     private ITaskFactory taskFactory;
-    private Dag taskGraph;
+    private TaskExecutionGraph taskGraph;
 
     public ProjectFactory() {
     }
 
     public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
-                          String buildFileName, IProjectRegistry projectRegistry, Dag taskGraph,
+                          StartParameter startParameter, IProjectRegistry projectRegistry, TaskExecutionGraph taskGraph,
                           ScriptSource embeddedScript) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
-        this.buildFileName = buildFileName;
+        this.startParameter = startParameter;
         this.projectRegistry = projectRegistry;
         this.taskGraph = taskGraph;
         this.embeddedScript = embeddedScript;
@@ -63,15 +63,15 @@ public class ProjectFactory implements IProjectFactory {
         if (embeddedScript != null) {
             source = embeddedScript;
         } else {
-            source = new FileScriptSource("build file", new File(projectDir, buildFileName));
+            source = new FileScriptSource("build file", new File(projectDir, startParameter.getBuildFileName()));
         }
         Build build;
         if (parent == null) {
-            build = new DefaultBuild(null, taskGraph);
+            build = new DefaultBuild(null, taskGraph, startParameter);
         } else {
             build = parent.getBuild();
         }
-        DefaultProject project = new DefaultProject(name, parent, projectDir, buildFileName, source,
+        DefaultProject project = new DefaultProject(name, parent, projectDir, startParameter.getBuildFileName(), source,
                 buildScriptClassLoader, taskFactory,
                 dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this, build);
         if (parent == null) {

@@ -38,6 +38,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.invocation.Build
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -93,7 +94,7 @@ class DefaultProjectTest {
         projectRegistry = new DefaultProjectRegistry()
         buildScriptProcessor = new BuildScriptProcessor()
         ProjectFactory factory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor,
-                pluginRegistry, TEST_BUILD_FILE_NAME, projectRegistry, null, null)
+                pluginRegistry, new StartParameter(), projectRegistry, null, null)
         project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
                 factory, build);

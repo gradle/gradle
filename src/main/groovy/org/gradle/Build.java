@@ -87,6 +87,8 @@ public class Build {
     }
 
     public BuildResult run(StartParameter startParameter) {
+        fireBuildStarted(startParameter);
+
         SettingsInternal settings = null;
         Throwable failure = null;
         try {
@@ -97,11 +99,21 @@ public class Build {
         }
 
         BuildResult buildResult = new BuildResult(settings, failure);
+        fireBuildFinished(buildResult);
+
+        return buildResult;
+    }
+
+    private void fireBuildStarted(StartParameter startParameter) {
+        for (BuildListener buildListener : buildListeners) {
+            buildListener.buildStarted(startParameter);
+        }
+    }
+
+    private void fireBuildFinished(BuildResult buildResult) {
         for (BuildListener buildListener : buildListeners) {
             buildListener.buildFinished(buildResult);
         }
-
-        return buildResult;
     }
 
     private void runInternal(SettingsInternal settings, StartParameter startParameter) {
@@ -250,7 +262,7 @@ public class Build {
                                     ),
                                     new PluginRegistry(
                                             startParameter.getPluginPropertiesFile()),
-                                    startParameter.getBuildFileName(),
+                                    startParameter,
                                     new DefaultProjectRegistry(),
                                     tasksGraph,
                                     startParameter.getBuildScriptSource())
@@ -263,7 +275,7 @@ public class Build {
                     ));
             build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(new EmbeddedBuildExecuter(this)));
             if (buildResolverDir == null) {
-                build.addBuildListener(new DefaultBuildListener());
+                build.addBuildListener(new BuildCleanupListener());
             }
             return build;
         }

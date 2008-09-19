@@ -40,14 +40,15 @@ public class StartParameter {
     private String settingsFileName = Settings.DEFAULT_SETTINGS_FILE;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
     private List<String> taskNames = new ArrayList<String>();
-    private File currentDir;
+    private File currentDir = new File(System.getProperty("user.dir"));
     private boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
-    private File gradleUserHomeDir;
+    private File gradleUserHomeDir = new File(Main.DEFAULT_GRADLE_USER_HOME);
     private File defaultImportsFile;
     private File pluginPropertiesFile;
     private File buildResolverDirectory;
+    private File gradleHomeDir;
     private CacheUsage cacheUsage;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
@@ -56,7 +57,10 @@ public class StartParameter {
     public StartParameter() {
     }
 
-    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir, boolean searchUpwards, Map<String, String> projectProperties, Map<String, String> systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile, File pluginPropertiesFile, CacheUsage cacheUsage) {
+    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir,
+                          boolean searchUpwards, Map<String, String> projectProperties,
+                          Map<String, String> systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile,
+                          File pluginPropertiesFile, CacheUsage cacheUsage) {
         this.settingsFileName = settingsFileName;
         this.buildFileName = buildFileName;
         this.taskNames = taskNames;
@@ -79,6 +83,7 @@ public class StartParameter {
         startParameter.searchUpwards = searchUpwards;
         startParameter.projectProperties = projectProperties;
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
+        startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.defaultImportsFile = defaultImportsFile;
         startParameter.pluginPropertiesFile = pluginPropertiesFile;
@@ -100,6 +105,7 @@ public class StartParameter {
      */
     public StartParameter newBuild() {
         StartParameter startParameter = new StartParameter();
+        startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.pluginPropertiesFile = pluginPropertiesFile;
         startParameter.defaultImportsFile = defaultImportsFile;
@@ -121,6 +127,20 @@ public class StartParameter {
 
     public void setBuildFileName(String buildFileName) {
         this.buildFileName = buildFileName;
+    }
+
+    public File getGradleHomeDir() {
+        return gradleHomeDir;
+    }
+
+    public void setGradleHomeDir(File gradleHomeDir) {
+        this.gradleHomeDir = gradleHomeDir;
+        if (defaultImportsFile == null) {
+            defaultImportsFile = new File(gradleHomeDir, Main.IMPORTS_FILE_NAME);
+        }
+        if (pluginPropertiesFile == null) {
+            pluginPropertiesFile = new File(gradleHomeDir, Main.DEFAULT_PLUGIN_PROPERTIES);
+        }
     }
 
     /**
@@ -187,7 +207,7 @@ public class StartParameter {
     }
 
     /**
-     * <p>Returns the {@link TaskExecuter} to use.</p>
+     * <p>Returns the {@link TaskExecuter} to use for the build.</p>
      *
      * @return The {@link TaskExecuter}. Never returns null.
      */
@@ -196,7 +216,7 @@ public class StartParameter {
     }
 
     /**
-     * <p>Sets the {@link TaskExecuter} to use.</p>
+     * <p>Sets the {@link TaskExecuter} to use for the build.</p>
      */
     public void setTaskExecuter(TaskExecuter taskExecuter) {
         this.taskExecuter = taskExecuter;

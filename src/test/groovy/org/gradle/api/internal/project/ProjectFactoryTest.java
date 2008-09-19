@@ -23,6 +23,7 @@ import org.gradle.execution.Dag;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import static org.gradle.util.ReflectionEqualsMatcher.*;
+import org.gradle.StartParameter;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -70,7 +71,7 @@ public class ProjectFactoryTest {
         }});
 
         projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
-                "build.gradle", projectRegistry, taskGraph, null);
+                new StartParameter(), projectRegistry, taskGraph, null);
     }
 
     @Test
@@ -118,7 +119,7 @@ public class ProjectFactoryTest {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
 
         ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
-                "build.gradle", projectRegistry, taskGraph, expectedScriptSource);
+                new StartParameter(), projectRegistry, taskGraph, expectedScriptSource);
 
         DefaultProject project = projectFactory.createProject("somename", null, rootDir, buildScriptClassLoader);
 

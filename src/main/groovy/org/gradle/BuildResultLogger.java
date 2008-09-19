@@ -30,6 +30,16 @@ public class BuildResultLogger implements BuildListener {
         buildTimeClock = new Clock();
     }
 
+    public void buildStarted(StartParameter startParameter) {
+        logger.info("Starting Build");
+        logger.debug("Gradle home dir: " + startParameter.getGradleHomeDir());
+        logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
+        logger.debug("Project dir: " + startParameter.getCurrentDir());
+        logger.debug("Build file name: " + startParameter.getBuildFileName());
+        logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
+        logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
+    }
+
     public void buildFinished(BuildResult result) {
         if (result.getFailure() == null) {
             logger.info(String.format("%nBUILD SUCCESSFUL%n"));

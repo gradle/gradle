@@ -28,14 +28,19 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.api.initialization.Settings
+import org.junit.After
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
  */
 class StartParameterTest {
     StartParameter testObj
+    File gradleHome
 
     @Before public void setUp() {
+        gradleHome = HelperUtil.testDir
+
         testObj = new StartParameter(
                 settingsFileName: 'settingsfile',
                 buildFileName: 'buildfile',
@@ -51,7 +56,6 @@ class StartParameterTest {
         )
     }
 
-
     @Test public void testNewInstance() {
         StartParameter startParameter = testObj.newInstance()
         assert startParameter.equals(testObj)
@@ -59,6 +63,8 @@ class StartParameterTest {
 
     @Test public void testDefaultValues() {
         StartParameter parameter = new StartParameter();
+        assertThat(parameter.gradleUserHomeDir, equalTo(new File(Main.DEFAULT_GRADLE_USER_HOME)))
+        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
         assertThat(parameter.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
         assertThat(parameter.settingsFileName, equalTo(Settings.DEFAULT_SETTINGS_FILE))
         assertThat(parameter.taskNames, notNullValue())
@@ -93,15 +99,30 @@ class StartParameterTest {
         assertThat(parameter.settingsScriptSource, reflectionEquals(new StringScriptSource("empty settings file", "")))
         assertThat(parameter.searchUpwards, equalTo(false))
     }
+
+    @Test public void testSettingGradleHomeSetsDefaultLocationsIfNotAlreadySet() {
+        StartParameter parameter = new StartParameter()
+        parameter.gradleHomeDir = gradleHome
+        assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome, Main.IMPORTS_FILE_NAME)))
+        assertThat(parameter.pluginPropertiesFile, equalTo(new File(gradleHome, Main.DEFAULT_PLUGIN_PROPERTIES)))
+
+        parameter = new StartParameter()
+        parameter.defaultImportsFile = new File("imports")
+        parameter.pluginPropertiesFile = new File("plugins")
+        parameter.gradleHomeDir = gradleHome
+        assertThat(parameter.defaultImportsFile, equalTo(new File("imports")))
+        assertThat(parameter.pluginPropertiesFile, equalTo(new File("plugins")))
+    }
     
     @Test public void testNewBuild() {
-        StartParameter parameter = new StartParameter();
+        StartParameter parameter = new StartParameter()
 
         // Copied properties
-        parameter.setGradleUserHomeDir(new File("home"));
-        parameter.setCacheUsage(CacheUsage.OFF);
-        parameter.setPluginPropertiesFile(new File("plugins"));
-        parameter.setDefaultImportsFile(new File("imports"));
+        parameter.gradleHomeDir = gradleHome
+        parameter.gradleUserHomeDir = new File("home")
+        parameter.cacheUsage = CacheUsage.OFF
+        parameter.pluginPropertiesFile = new File("plugins")
+        parameter.defaultImportsFile = new File("imports")
 
         // Non-copied
         parameter.setBuildFileName("b");
@@ -111,9 +132,10 @@ class StartParameterTest {
 
         assertThat(newParameter, not(equalTo(parameter)));
 
-        assertThat(newParameter.getGradleUserHomeDir(), equalTo(parameter.getGradleUserHomeDir()));
-        assertThat(newParameter.getCacheUsage(), equalTo(parameter.getCacheUsage()));
-        assertThat(newParameter.getPluginPropertiesFile(), equalTo(parameter.getPluginPropertiesFile()));
-        assertThat(newParameter.getDefaultImportsFile(), equalTo(parameter.getDefaultImportsFile()));
+        assertThat(newParameter.gradleHomeDir, equalTo(parameter.gradleHomeDir));
+        assertThat(newParameter.gradleUserHomeDir, equalTo(parameter.gradleUserHomeDir));
+        assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
+        assertThat(newParameter.pluginPropertiesFile, equalTo(parameter.pluginPropertiesFile));
+        assertThat(newParameter.defaultImportsFile, equalTo(parameter.defaultImportsFile));
     }
 }

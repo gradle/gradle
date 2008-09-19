@@ -26,8 +26,11 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public class DefaultBuildListener implements BuildListener {
-    private static Logger logger = LoggerFactory.getLogger(DefaultBuildListener.class);
+public class BuildCleanupListener implements BuildListener {
+    private static Logger logger = LoggerFactory.getLogger(BuildCleanupListener.class);
+
+    public void buildStarted(StartParameter startParameter) {
+    }
 
     public void buildFinished(BuildResult result) {
         if (result.getSettings() == null) {
