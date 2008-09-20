@@ -16,14 +16,16 @@
 
 package org.gradle.api.tasks.wrapper;
 
-import org.gradle.Main;
-import org.gradle.api.*;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.TaskAction;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.execution.Dag;
 import org.gradle.util.CompressUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
-import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.Install;
 
 import java.io.File;
@@ -97,8 +99,8 @@ public class Wrapper extends DefaultTask {
         }
         File jarFileDestination = new File(getProject().getProjectDir(), getJarPath() + "/" + Install.WRAPPER_JAR);
 
-        File jarFileSource = new File(System.getProperty(Main.GRADLE_HOME_PROPERTY_KEY) + "/lib",
-                WRAPPER_JAR_BASE_NAME + "-" + new GradleVersion().getVersion() + ".jar");
+        File jarFileSource = new File(getProject().getBuild().getGradleHomeDir() + "/lib",
+                WRAPPER_JAR_BASE_NAME + "-" + getProject().getBuild().getGradleVersion() + ".jar");
         File tmpExplodedSourceJar = GradleUtil.makeNewDir(new File(getProject().getBuildDir(), "wrapperJar"));
         CompressUtil.unzip(jarFileSource, tmpExplodedSourceJar);
         File propFile = new File(tmpExplodedSourceJar.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties");

@@ -18,16 +18,21 @@ package org.gradle.api.tasks.wrapper;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.taskdefs.Jar;
-import org.gradle.Main;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.util.*;
+import org.gradle.invocation.DefaultBuild;
+import org.gradle.util.AntUtil;
+import org.gradle.util.CompressUtil;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.TestConsts;
 import org.gradle.wrapper.Install;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,19 +49,15 @@ public class WrapperTest extends AbstractTaskTest {
     public static final String TEST_TEXT = "sometext";
     public static final String TEST_FILE_NAME = "somefile";
 
-    private String originalGradleHome;
     private Wrapper wrapper;
     private UnixWrapperScriptGenerator unixWrapperScriptGeneratorMock;
     private WindowsExeGenerator windowsExeGenerator;
     private File testDir;
     private File sourceWrapperJar;
     private String distributionPath;
-    private String zipPath;
     private String targetWrapperJarPath;
     private Mockery context = new Mockery();
     private String expectedTargetWrapperJar;
-    private Wrapper.PathBase expectedDistributionBase;
-    private Wrapper.PathBase expectedZipBase;
 
     @Before
     public void setUp() {
@@ -72,19 +73,15 @@ public class WrapperTest extends AbstractTaskTest {
         File testGradleHomeLib = new File(testGradleHome, "lib");
         testGradleHomeLib.mkdirs();
         createSourceWrapperJar(testGradleHomeLib);
-        originalGradleHome = System.getProperty(Main.GRADLE_HOME_PROPERTY_KEY);
-        System.setProperty(Main.GRADLE_HOME_PROPERTY_KEY, testGradleHome.getAbsolutePath());
+        ((DefaultBuild) getProject().getBuild()).getStartParameter().setGradleHomeDir(testGradleHome);
         targetWrapperJarPath = "jarPath";
         expectedTargetWrapperJar = targetWrapperJarPath + "/" + Install.WRAPPER_JAR;
         new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs();
         distributionPath = "somepath";
-        zipPath = "myzippath";
         wrapper.setJarPath(targetWrapperJarPath);
         wrapper.setDistributionPath(distributionPath);
         wrapper.setUnixWrapperScriptGenerator(unixWrapperScriptGeneratorMock);
         wrapper.setWindowsExeGenerator(windowsExeGenerator);
-        expectedDistributionBase = Wrapper.PathBase.PROJECT;
-        expectedZipBase = Wrapper.PathBase.PROJECT;
     }
 
     private void createSourceWrapperJar(File testGradleHomeLib) {
@@ -101,9 +98,6 @@ public class WrapperTest extends AbstractTaskTest {
     @After
     public void tearDown() {
         HelperUtil.deleteTestDir();
-        if (originalGradleHome != null) {
-            System.setProperty(Main.GRADLE_HOME_PROPERTY_KEY, originalGradleHome);
-        }
     }
 
     public AbstractTask getTask() {
