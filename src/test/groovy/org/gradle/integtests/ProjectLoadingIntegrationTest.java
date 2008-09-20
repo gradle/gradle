@@ -58,7 +58,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         inDirectory(childDir).withSearchUpwards().runTasks(":do-stuff", "do-stuff");
     }
 
-    @Test @Ignore
+    @Test
     public void handlesProjectInSubdirectoryOfAnotherMultiProjectBuild() throws IOException {
         TestFile buildFile = testFile("subdirectory/build.gradle");
         buildFile.write("createTask('do-stuff')");

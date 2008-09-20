@@ -57,6 +57,7 @@ public class ProjectsLoader {
         Clock clock = new Clock();
         rootProject = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter, externalProjectProperties);
         currentProject = (ProjectInternal) rootProject.getProjectRegistry().getProject(startParameter.getCurrentDir());
+        assert currentProject != null;
         logger.debug("Timing: Loading projects took: " + clock.getTime());
         return this;
     }

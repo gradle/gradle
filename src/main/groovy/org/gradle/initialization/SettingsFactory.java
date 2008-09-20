@@ -27,14 +27,19 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class SettingsFactory {
-    IProjectDescriptorRegistry projectDescriptorRegistry;
+    private IProjectDescriptorRegistry projectDescriptorRegistry;
+    private DependencyManagerFactory dependencyManagerFactory;
+    private BuildSourceBuilder buildSourceBuilder;
 
-    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry) {
+    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry,
+                           DependencyManagerFactory dependencyManagerFactory, BuildSourceBuilder buildSourceBuilder) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
+        this.dependencyManagerFactory = dependencyManagerFactory;
+        this.buildSourceBuilder = buildSourceBuilder;
     }
 
-    public SettingsInternal createSettings(DependencyManagerFactory dependencyManagerFactory,
-                            BuildSourceBuilder buildSourceBuilder, File settingsDir, Map gradleProperties, StartParameter startParameter) {
-        return new DefaultSettings(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir, gradleProperties, startParameter);
+    public SettingsInternal createSettings(File settingsDir, Map gradleProperties, StartParameter startParameter) {
+        return new DefaultSettings(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir,
+                gradleProperties, startParameter);
     }
 }

@@ -44,8 +44,9 @@ public class SettingsFactoryTest {
         final File expectedSettingsDir = new File("settingsDir");
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         context.checking(new Expectations() {{
-          allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class))); will(returnValue(dependencyManagerMock));
-          allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
+            allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
+            will(returnValue(dependencyManagerMock));
+            allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
         }});
 
         BuildSourceBuilder expectedBuildSourceBuilder = new BuildSourceBuilder(new EmbeddedBuildExecuter());
@@ -53,9 +54,11 @@ public class SettingsFactoryTest {
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
 
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry);
-        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(dependencyManagerFactoryMock,
-                expectedBuildSourceBuilder, expectedSettingsDir, expectedGradleProperties, expectedStartParameter);
+        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry,
+                dependencyManagerFactoryMock, expectedBuildSourceBuilder);
+        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,
+                expectedGradleProperties, expectedStartParameter);
+        
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         assertSame(dependencyManagerMock, settings.getDependencyManager());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());

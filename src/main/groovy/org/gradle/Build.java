@@ -18,6 +18,7 @@ package org.gradle;
 
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.BuildScriptProcessor;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.ImportsReader;
@@ -48,7 +49,9 @@ import org.gradle.initialization.MasterDirSettingsFinderStrategy;
 import org.gradle.initialization.ParentDirSettingsFinderStrategy;
 import org.gradle.initialization.ProjectsLoader;
 import org.gradle.initialization.SettingsFactory;
+import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.ScriptLocatingSettingsProcessor;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +79,8 @@ public class Build {
 
     private final List<BuildListener> buildListeners = new ArrayList<BuildListener>();
 
-    public Build(ISettingsFinder settingsFinder, IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
+    public Build(ISettingsFinder settingsFinder, IGradlePropertiesLoader gradlePropertiesLoader,
+                 SettingsProcessor settingsProcessor,
                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
         this.settingsFinder = settingsFinder;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
@@ -123,7 +127,8 @@ public class Build {
         while (executer.hasNext()) {
             if (rebuildDag) {
                 projectLoader.reset();
-                projectLoader.load(settings.getRootProjectDescriptor(), classLoader, startParameter, gradlePropertiesLoader.getGradleProperties());
+                projectLoader.load(settings.getRootProjectDescriptor(), classLoader, startParameter,
+                        gradlePropertiesLoader.getGradleProperties());
                 buildConfigurer.process(projectLoader.getRootProject());
             } else {
                 logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
@@ -137,7 +142,8 @@ public class Build {
 
     private SettingsInternal init(StartParameter startParameter) {
         settingsFinder.find(startParameter);
-        gradlePropertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter, getAllSystemProperties(), getAllEnvProperties());
+        gradlePropertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter, getAllSystemProperties(),
+                getAllEnvProperties());
         return settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader.getGradleProperties());
     }
 
@@ -230,11 +236,12 @@ public class Build {
 
     private static class DefaultBuildFactory implements BuildFactory {
         public Build newInstance(StartParameter startParameter) {
-            DefaultDependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
+            DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
             ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
-            IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(), startParameter.getCacheUsage());
+            IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(),
+                    startParameter.getCacheUsage());
             Dag tasksGraph = new Dag();
-            File buildResolverDir = startParameter.getBuildResolverDirectory();
+            File buildResolverDir = startParameter.getBuildResolverDir();
             ISettingsFinder settingsFinder = startParameter.getSettingsScriptSource() == null
                     ? new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
                     new MasterDirSettingsFinderStrategy(),
@@ -243,14 +250,18 @@ public class Build {
             Build build = new Build(
                     settingsFinder,
                     new DefaultGradlePropertiesLoader(),
-                    new SettingsProcessor(
-                            new DefaultSettingsScriptMetaData(),
-                            scriptProcessor,
-                            importsReader,
-                            new SettingsFactory(new DefaultProjectDescriptorRegistry()),
-                            dependencyManagerFactory,
-                            null,
-                            buildResolverDir),
+                    new ScriptLocatingSettingsProcessor(
+                            new ScriptEvaluatingSettingsProcessor(
+                                    new DefaultSettingsScriptMetaData(),
+                                    scriptProcessor,
+                                    importsReader,
+                                    new SettingsFactory(
+                                            new DefaultProjectDescriptorRegistry(),
+                                            dependencyManagerFactory,
+                                            new BuildSourceBuilder(new EmbeddedBuildExecuter(this))),
+                                    dependencyManagerFactory,
+                                    buildResolverDir)
+                    ),
                     new ProjectsLoader(
                             new ProjectFactory(
                                     new TaskFactory(tasksGraph),
@@ -273,7 +284,7 @@ public class Build {
                             new ProjectTasksPrettyPrinter()),
                     new BuildExecuter(tasksGraph
                     ));
-            build.getSettingsProcessor().setBuildSourceBuilder(new BuildSourceBuilder(new EmbeddedBuildExecuter(this)));
+
             if (buildResolverDir == null) {
                 build.addBuildListener(new BuildCleanupListener());
             }

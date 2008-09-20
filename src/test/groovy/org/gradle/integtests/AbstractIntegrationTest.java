@@ -71,16 +71,14 @@ public class AbstractIntegrationTest {
     }
 
     protected StartParameter startParameter() {
-        TestFile defaultImportFile = testFile("default-imports");
+        StartParameter parameter = new StartParameter();
+        parameter.setGradleHomeDir(testFile("gradle-home").asFile());
+
+        TestFile defaultImportFile = testFile("gradle-home/gradle-imports");
         defaultImportFile.write("import org.gradle.api.*");
 
-        StartParameter parameter = new StartParameter();
-
-        // TODO: should not have to set these
-        parameter.setPluginPropertiesFile(testFile("plugin.properties").asFile());
         parameter.setGradleUserHomeDir(testFile("user-home").asFile());
 
-        parameter.setDefaultImportsFile(defaultImportFile.asFile());
         parameter.setSearchUpwards(false);
         parameter.setCacheUsage(CacheUsage.ON);
         parameter.setCurrentDir(getTestDir());

@@ -35,6 +35,10 @@ public class DefaultBuild implements Build {
         return rootProject;
     }
 
+    public StartParameter getStartParameter() {
+        return startParameter;
+    }
+
     public void setRootProject(Project rootProject) {
         this.rootProject = rootProject;
     }

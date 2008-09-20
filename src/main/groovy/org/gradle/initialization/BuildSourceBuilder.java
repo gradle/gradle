@@ -66,7 +66,7 @@ public class BuildSourceBuilder {
         StartParameter startParameterArg = startParameter.newInstance();
         startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
         startParameterArg.setSearchUpwards(false);
-        startParameterArg.setBuildResolverDirectory(buildResolverDir);
+        startParameterArg.setBuildResolverDir(buildResolverDir);
 
         if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
             logger.debug("Build script file does not exists. Using default one.");

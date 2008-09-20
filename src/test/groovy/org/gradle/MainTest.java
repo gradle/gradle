@@ -179,7 +179,7 @@ public class MainTest {
         mainCall.execute();
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter, noTasks);
-        assertNull(actualStartParameter.getBuildResolverDirectory());
+        assertNull(actualStartParameter.getBuildResolverDir());
         if (embedded) {
             assertThat(actualStartParameter.getBuildScriptSource().getText(), equalTo(expectedEmbeddedScript));
         } else {

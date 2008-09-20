@@ -77,7 +77,7 @@ class BuildSourceBuilderTest {
     @Test public void testCreateDependencyWithExistingBuildSources() {
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
         modifiedStartParameter.setSearchUpwards(false)
-        modifiedStartParameter.setBuildResolverDirectory(testBuildResolverDir)
+        modifiedStartParameter.setBuildResolverDir(testBuildResolverDir)
         context.checking {
             one(embeddedBuildExecuter).execute(modifiedStartParameter)
         }
@@ -90,7 +90,7 @@ class BuildSourceBuilderTest {
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
         StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
         modifiedStartParameter.setSearchUpwards(false)
-        modifiedStartParameter.setBuildResolverDirectory(testBuildResolverDir)
+        modifiedStartParameter.setBuildResolverDir(testBuildResolverDir)
         modifiedStartParameter.useEmbeddedBuildFile(BuildSourceBuilder.getDefaultScript())
         context.checking {
             one(embeddedBuildExecuter).execute(modifiedStartParameter)
