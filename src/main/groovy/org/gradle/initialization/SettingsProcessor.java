@@ -21,9 +21,9 @@ import org.gradle.StartParameter;
 import java.util.Map;
 
 /**
- * Responsible for locating and evaluating the {@link SettingsInternal} for a build.
+ * Responsible for locating, constructing, and evaluating the {@link SettingsInternal} for a build.
  */
 public interface SettingsProcessor {
     SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter,
-                             Map<String, String> gradleProperties);
+                             IGradlePropertiesLoader propertiesLoader);
 }

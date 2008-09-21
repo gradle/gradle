@@ -11,7 +11,7 @@ public class SettingsScriptErrorIntegrationTest extends AbstractIntegrationTest 
     public void reportsSettingsScriptEvaluationFailsWithRuntimeException() throws IOException {
         TestFile buildFile = testFile("some build.gradle");
         TestFile settingsFile = testFile("some settings.gradle");
-        settingsFile.write("\n\nthrow new RuntimeException('<failure message>')");
+        settingsFile.writelns("", "", "throw new RuntimeException('<failure message>')");
 
         GradleExecutionFailure failure = usingBuildFile(buildFile).usingSettingsFile(settingsFile)
                 .runTasksAndExpectFailure("do-stuff");

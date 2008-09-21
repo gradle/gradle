@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -30,7 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Map;
 
 @RunWith(JMock.class)
 public class ScriptLocatingSettingsProcessorTest {
@@ -38,10 +36,11 @@ public class ScriptLocatingSettingsProcessorTest {
     private final SettingsProcessor delegate = context.mock(SettingsProcessor.class);
     private final ISettingsFinder finder = context.mock(ISettingsFinder.class);
     private StartParameter startParameter;
-    private final Map<String, String> properties = WrapUtil.toMap("prop", "value");
+    private final IGradlePropertiesLoader propertiesLoader = context.mock(IGradlePropertiesLoader.class);
     private final SettingsInternal settings = context.mock(SettingsInternal.class, "settings");
     private final SettingsProcessor processor = new ScriptLocatingSettingsProcessor(delegate);
     private final File currentDir = new File("currentDir");
+    private final File settingsDir = new File("settingsDir");
 
     @Before
     public void setUp() {
@@ -57,14 +56,21 @@ public class ScriptLocatingSettingsProcessorTest {
     @Test
     public void usesDelegateToCreateSettings() {
         context.checking(new Expectations() {{
-            one(delegate).process(finder, startParameter, properties);
+            one(finder).find(startParameter);
+
+            one(finder).getSettingsDir();
+            will(returnValue(settingsDir));
+
+            one(propertiesLoader).loadProperties(settingsDir, startParameter);
+
+            one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
             one(settings).findDescriptor(currentDir);
             will(returnValue(context.mock(ProjectDescriptor.class)));
         }});
 
-        assertThat(processor.process(finder, startParameter, properties), sameInstance(settings));
+        assertThat(processor.process(finder, startParameter, propertiesLoader), sameInstance(settings));
     }
 
     @Test
@@ -73,7 +79,14 @@ public class ScriptLocatingSettingsProcessorTest {
         final SettingsInternal currentDirSettings = context.mock(SettingsInternal.class, "currentDirSettings");
 
         context.checking(new Expectations() {{
-            one(delegate).process(finder, startParameter, properties);
+            one(finder).find(startParameter);
+
+            one(finder).getSettingsDir();
+            will(returnValue(settingsDir));
+
+            one(propertiesLoader).loadProperties(settingsDir, startParameter);
+
+            one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
             one(settings).findDescriptor(currentDir);
@@ -84,10 +97,15 @@ public class ScriptLocatingSettingsProcessorTest {
 
             one(finder).find(noSearchParameter);
 
-            one(delegate).process(finder, noSearchParameter, properties);
+            one(finder).getSettingsDir();
+            will(returnValue(currentDir));
+
+            one(propertiesLoader).loadProperties(currentDir, noSearchParameter);
+
+            one(delegate).process(finder, noSearchParameter, propertiesLoader);
             will(returnValue(currentDirSettings));
         }});
 
-        assertThat(processor.process(finder, startParameter, properties), sameInstance(currentDirSettings));
+        assertThat(processor.process(finder, startParameter, propertiesLoader), sameInstance(currentDirSettings));
     }
 }

@@ -123,8 +123,7 @@ public class BuildTest {
         context.checking(new Expectations() {
             {
                 allowing(settingsFinderMock).find(with(any(StartParameter.class)));
-                allowing(gradlePropertiesLoaderMock).loadProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)),
-                        with(equal((Map) System.getProperties())), with(equal(System.getenv())));
+                allowing(gradlePropertiesLoaderMock).loadProperties(with(equal(expectedRootDir)), with(any(StartParameter.class)));
                 allowing(gradlePropertiesLoaderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
                 allowing(settingsFinderMock).getSettingsDir();
@@ -221,7 +220,7 @@ public class BuildTest {
         final RuntimeException failure = new RuntimeException();
         context.checking(new Expectations() {{
             one(buildListenerMock).buildStarted(expectedStartParams);
-            one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
+            one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, gradlePropertiesLoaderMock);
             will(throwException(failure));
             one(buildListenerMock).buildFinished(with(result(null, sameInstance(failure))));
         }});
@@ -251,7 +250,7 @@ public class BuildTest {
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
-                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, gradlePropertiesLoaderMock);
                 will(returnValue(settingsMock));
             }
         });
@@ -311,7 +310,7 @@ public class BuildTest {
                 one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
-                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, testGradleProperties);
+                one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, gradlePropertiesLoaderMock);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
             }
@@ -322,12 +321,10 @@ public class BuildTest {
     }
 
     // todo: This test is rather weak. Make it stronger.
-    //@Test
+    @Test
     public void testNewInstanceFactory() {
         StartParameter startParameter = new StartParameter();
-        startParameter.setBuildFileName("buildfile");
-        startParameter.setDefaultImportsFile(new File("imports"));
-        startParameter.setPluginPropertiesFile(new File("plugin"));
+        startParameter.setGradleHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleHomeDir"));
         Build build = Build.newInstance(startParameter);
         assertThat(build, notNullValue());
     }

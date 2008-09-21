@@ -55,6 +55,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
     ScriptSource scriptSourceMock
+    IGradlePropertiesLoader propertiesLoaderMock
     Map expectedGradleProperties
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
@@ -67,6 +68,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         initSettingsFinder()
         expectedStartParameter = new StartParameter()
         expectedGradleProperties = [a: 'b']
+        propertiesLoaderMock = [getGradleProperties: { expectedGradleProperties } ] as IGradlePropertiesLoader
         initExpectedSettings()
     }
 
@@ -121,7 +123,7 @@ class ScriptEvaluatingSettingsProcessorTest {
             one(settingsFactory).createSettings(TEST_ROOT_DIR, [:], expectedStartParameter)
             will(returnValue(expectedBasicSettings))
         }
-        assertSame(expectedBasicSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, expectedGradleProperties))
+        assertSame(expectedBasicSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, propertiesLoaderMock))
         checkDependencyManagerFactory()
     }
 
@@ -131,7 +133,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         context.checking {
             allowing(scriptSourceMock).getText(); will(returnValue(""))
         }
-        assertSame(expectedSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, expectedGradleProperties))
+        assertSame(expectedSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, propertiesLoaderMock))
         checkDependencyManagerFactory()
     }
 
@@ -159,7 +161,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         context.checking {
             allowing(scriptSourceMock).getText(); will(returnValue(""))
         }
-        assertSame(expectedSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, expectedGradleProperties))
+        assertSame(expectedSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, propertiesLoaderMock))
         assertEquals(new File(TEST_ROOT_DIR, Project.TMP_DIR_NAME + "/" +
                 DependencyManager.BUILD_RESOLVER_NAME), dependencyManagerFactory.getBuildResolverDir())
     }

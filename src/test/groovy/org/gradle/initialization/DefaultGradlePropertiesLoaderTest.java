@@ -15,16 +15,15 @@
  */
 package org.gradle.initialization;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.After;
-import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -97,8 +96,32 @@ public class DefaultGradlePropertiesLoaderTest {
         assertEquals("systemPropArgValue", System.getProperty("systemPropArgKey"));
     }
 
+    @Test
     public void loadPropertiesWithNoExceptionForNonExistingUserHomeAndSettingsDir() {
         HelperUtil.deleteTestDir();
         gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+    }
+
+    @Test
+    public void reloadsProperties() {
+        writePropertyFile(settingsDir, GUtil.map("prop1", "value", "prop2", "value"));
+
+        File otherSettingsDir = HelperUtil.makeNewTestDir("otherSettingsDir");
+        writePropertyFile(otherSettingsDir, GUtil.map("prop1", "otherValue"));
+
+        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        assertEquals("value", gradlePropertiesLoader.getGradleProperties().get("prop1"));
+        assertEquals("value", gradlePropertiesLoader.getGradleProperties().get("prop2"));
+
+        gradlePropertiesLoader.loadProperties(otherSettingsDir, startParameter, systemProperties, envProperties);
+        assertEquals("otherValue", gradlePropertiesLoader.getGradleProperties().get("prop1"));
+        assertNull(gradlePropertiesLoader.getGradleProperties().get("prop2"));
+    }
+
+    @Test
+    public void buildSystemProperties() {
+        System.setProperty("gradle-loader-test", "value");
+        assertTrue(gradlePropertiesLoader.getAllSystemProperties().containsKey("gradle-loader-test"));
+        assertEquals("value", gradlePropertiesLoader.getAllSystemProperties().get("gradle-loader-test"));
     }
 }

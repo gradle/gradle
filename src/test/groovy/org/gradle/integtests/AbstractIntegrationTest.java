@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Formatter;
 
 public class AbstractIntegrationTest {
     private File testDir;
@@ -75,7 +76,7 @@ public class AbstractIntegrationTest {
         parameter.setGradleHomeDir(testFile("gradle-home").asFile());
 
         TestFile defaultImportFile = testFile("gradle-home/gradle-imports");
-        defaultImportFile.write("import org.gradle.api.*");
+        defaultImportFile.write("import org.gradle.api.*\nimport static org.junit.Assert.*\nimport static org.hamcrest.Matchers.*");
 
         parameter.setGradleUserHomeDir(testFile("user-home").asFile());
 
@@ -116,9 +117,17 @@ public class AbstractIntegrationTest {
             this.file = file.getAbsoluteFile();
         }
 
-        public TestFile write(String content) {
+        public TestFile writelns(String... lines) {
+            Formatter formatter = new Formatter();
+            for (String line : lines) {
+                formatter.format("%s%n", line);
+            }
+            return write(formatter);
+        }
+        
+        public TestFile write(Object content) {
             try {
-                FileUtils.writeStringToFile(file, content);
+                FileUtils.writeStringToFile(file, content.toString());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

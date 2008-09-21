@@ -60,9 +60,15 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void handlesProjectInSubdirectoryOfAnotherMultiProjectBuild() throws IOException {
-        TestFile buildFile = testFile("subdirectory/build.gradle");
-        buildFile.write("createTask('do-stuff')");
         testFile("settings.gradle").write("include('another')");
+        testFile("gradle.properties").writelns("prop=value2", "otherProp=value");
+
+        TestFile buildFile = testFile("subdirectory/build.gradle");
+        buildFile.writelns("createTask('do-stuff') {",
+                "assertThat(prop, equalTo('value'))",
+                "assertTrue(!project.hasProperty('otherProp'))",
+                "}");
+        testFile("subdirectory/gradle.properties").write("prop=value");
 
         usingBuildFile(buildFile).withSearchUpwards().runTasks("do-stuff");
     }

@@ -33,7 +33,7 @@ public class GradleScriptException extends GradleException {
     private final ScriptSource scriptSource;
 
     public GradleScriptException(String message, Throwable cause, ScriptSource scriptSource) {
-        super(null, cause);
+        super(cause);
         assert message != null && cause != null && scriptSource != null;
         originalMessage = message;
         this.scriptSource = scriptSource;

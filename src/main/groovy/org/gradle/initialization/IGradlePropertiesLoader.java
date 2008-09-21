@@ -30,6 +30,5 @@ public interface IGradlePropertiesLoader {
     
     Map<String, String> getGradleProperties();
 
-    void loadProperties(File rootDir, StartParameter startParameter, Map<String, String> systemProperties,
-                        Map<String, String> envProperties);
+    void loadProperties(File rootDir, StartParameter startParameter);
 }

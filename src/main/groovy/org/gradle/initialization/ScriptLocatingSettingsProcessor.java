@@ -18,8 +18,6 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
 
-import java.util.Map;
-
 public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor processor;
 
@@ -28,16 +26,22 @@ public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
     }
 
     public SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter,
-                                    Map<String, String> gradleProperties) {
-        SettingsInternal settings = processor.process(settingsFinder, startParameter, gradleProperties);
+                                    IGradlePropertiesLoader propertiesLoader) {
+        settingsFinder.find(startParameter);
+        propertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter);
+
+        SettingsInternal settings = processor.process(settingsFinder, startParameter, propertiesLoader);
         if (settings.findDescriptor(startParameter.getCurrentDir()) != null) {
             return settings;
         }
 
+        // The settings we found did not include the current directory. Try again with no search upwards.
+
         StartParameter noSearchParameter = startParameter.newInstance();
         noSearchParameter.setSearchUpwards(false);
         settingsFinder.find(noSearchParameter);
+        propertiesLoader.loadProperties(settingsFinder.getSettingsDir(), noSearchParameter);
 
-        return processor.process(settingsFinder, noSearchParameter, gradleProperties);
+        return processor.process(settingsFinder, noSearchParameter, propertiesLoader);
     }
 }

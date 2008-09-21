@@ -75,10 +75,11 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     }
 
     public SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter,
-                                    Map<String, String> gradleProperties) {
+                                    IGradlePropertiesLoader propertiesLoader) {
         Clock settingsProcessingClock = new Clock();
         initDependencyManagerFactory(settingsFinder);
-        SettingsInternal settings = settingsFactory.createSettings(settingsFinder.getSettingsDir(), gradleProperties,
+        SettingsInternal settings = settingsFactory.createSettings(settingsFinder.getSettingsDir(),
+                propertiesLoader.getGradleProperties(),
                 startParameter);
         if (settingsFinder.getSettingsScriptSource().getText() != null) {
             applySettingsScript(settingsFinder, settings);
