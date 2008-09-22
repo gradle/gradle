@@ -35,7 +35,7 @@ public class ProjectDependencies2TaskResolver {
                     for (String taskName : project.getTasks().keySet()) {
                         if (dependsOnProject.getTasks().get(taskName) != null) {
                             logger.debug("Setting task dependencies for task: {}", taskName);
-                            project.getTasks().get(taskName).dependsOn(dependsOnProject.getTasks().get(taskName).getPath());
+                            project.getTasks().get(taskName).dependsOn(dependsOnProject.getTasks().get(taskName));
                         }
                     }
                 }

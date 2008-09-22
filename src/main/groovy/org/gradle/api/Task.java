@@ -49,12 +49,30 @@ import org.slf4j.Logger;
  * a {@link StopExecutionException}. Using these exceptions allows you to have precondition actions which skip execution
  * of the task, or part of the task, if not true.</p>
  *
- * <h3>Dependencies</h3>
+ * <a name="dependencies"/><h3>Dependencies</h3>
  *
  * <p>A task may have dependencies on other tasks. Gradle ensures that tasks are executed in dependency order, so that
  * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
- * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}.  You can add a {@link Task}, a {@link TaskDependency},
- * or a String task path as a dependency. A relative path is interpreted relative to the task's {@link Project}.</p>
+ * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}.  You can add objects of any of the following types as
+ * a depedency:</p>
+ *
+ * <ul>
+ *
+ * <li>A string task path or name. A relative path is interpreted relative to the task's {@link Project}. This allows
+ * you to refer to tasks in other projects, although the recommended way of establishing cross project dependencies, is
+ * via the {@link Project#dependsOn(String)} method of the task's {@link Project}</li>
+ *
+ * <li>A {@link Task}.</li>
+ *
+ * <li>A closure. The closure may take a {@code Task as parameter, and should return a {@code Task} or collection of
+ * tasks.</li>
+ *
+ * <li>A {@link TaskDependency}.</li>
+ *
+ * <li>A {@code Collection} or {@code Map}. The collection/map is flattened and its elements added as described
+ * above.</li>
+ *
+ * </ul>
  *
  * <h3>Using a Task in the Build File</h3>
  *
@@ -110,15 +128,15 @@ public interface Task extends Comparable<Task> {
     TaskDependency getTaskDependencies();
 
     /**
-     * <p>Returns the paths of the tasks which this task depends on.</p>
+     * <p>Returns the dependencies of this task.</p>
      *
-     * @return The paths of the tasks this task depends on. Returns an empty set if this task has no dependencies.
+     * @return The dependencies of this task. Returns an empty set if this task has no dependencies.
      */
     Set<Object> getDependsOn();
 
     /**
-     * <p>Sets the paths of the tasks which this task depends on. This can contain {@link Task} instances, or String
-     * task names or paths. Relative paths are interpreted relative to this task's project.</p>
+     * <p>Sets the dependencies of this task. See <a href="#dependencies">here</a> for a description of the types of
+     * objects which can be used as task dependencies.</p>
      *
      * @param dependsOnTasks The set of task paths.
      */
@@ -140,13 +158,10 @@ public interface Task extends Comparable<Task> {
     String getPath();
 
     /**
-     * <p>Adds the given task paths to the dependsOn task paths of this task. If the task path is a relative path (which
-     * means just a name of a task), the path is interpreted as relative to the path of the project belonging to this
-     * task. If the given path is absolute, the given path is used as is. That way you can directly refer to tasks of
-     * other projects in a multi-project build. Although the recommended way of establishing cross project dependencies,
-     * is via the {@link Project#dependsOn(String)} method of the task's {@link Project}.</p>
+     * <p>Adds the given dependencies to this task. See <a href="#dependencies">here</a> for a description of the types
+     * of objects which can be used as task dependencies.</p>
      *
-     * @param paths The paths of the tasks to add dependencies to.
+     * @param paths The dependencies to add to this task.
      * @return the task object this method is applied to
      */
     Task dependsOn(Object... paths);

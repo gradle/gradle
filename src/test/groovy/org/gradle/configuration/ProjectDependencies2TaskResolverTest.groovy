@@ -46,6 +46,6 @@ class ProjectDependencies2TaskResolverTest {
     @Test public void testResolve() {
         child.dependsOn(root.path, false)
         resolver.resolve(root)
-        assertEquals([rootTask.path] as Set, childTask.dependsOn)
+        assertEquals([rootTask] as Set, childTask.dependsOn)
     }
 }

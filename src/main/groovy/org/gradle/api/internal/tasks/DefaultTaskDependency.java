@@ -15,13 +15,17 @@
  */
 package org.gradle.api.internal.tasks;
 
+import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GUtil;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultTaskDependency implements TaskDependency {
@@ -34,6 +38,14 @@ public class DefaultTaskDependency implements TaskDependency {
                 result.add((Task) dependency);
             } else if (dependency instanceof TaskDependency) {
                 result.addAll(((TaskDependency) dependency).getDependencies(task));
+            } else if (dependency instanceof Closure) {
+                Closure closure = (Closure) dependency;
+                Object closureResult = closure.call(task);
+                if (closureResult instanceof Task) {
+                    result.add((Task) closureResult);
+                } else {
+                    result.addAll((Collection<? extends Task>) closureResult);
+                }
             } else {
                 String path = dependency.toString();
                 result.addAll(Collections.singleton(task.getProject().task(path)));
@@ -48,13 +60,13 @@ public class DefaultTaskDependency implements TaskDependency {
 
     public void setValues(Set<?> values) {
         this.values.clear();
-        for (Object value : values) {
-            addValue(value);
-        }
+        add(values);
     }
 
     public void add(Object... values) {
-        for (Object value : values) {
+        List<Object> flattened = new ArrayList<Object>();
+        GUtil.flatten(values, flattened);
+        for (Object value : flattened) {
             addValue(value);
         }
     }

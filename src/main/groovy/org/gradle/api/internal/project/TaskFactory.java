@@ -57,15 +57,9 @@ public class TaskFactory implements ITaskFactory {
             }
             args.put(Task.TASK_DEPENDS_ON, Collections.singletonList(singleDependencyName));
         }
-        Object[] dependsOnTasks;
-        Object dependsOnTasksArg = args.get(Task.TASK_DEPENDS_ON);
-        if (dependsOnTasksArg instanceof Collection) {
-            dependsOnTasks = (Object[]) ((Collection) dependsOnTasksArg).toArray(new Object[((Collection) dependsOnTasksArg).size()]);
-        } else {
-            dependsOnTasks = new Object[]{dependsOnTasksArg};
-        }
+        Object dependsOnTasks = args.get(Task.TASK_DEPENDS_ON);
         if (logger.isDebugEnabled()) {
-            logger.debug("Adding dependencies: " + Arrays.asList(dependsOnTasks));
+            logger.debug("Adding dependencies: " + dependsOnTasks);
         }
 
         task.dependsOn(dependsOnTasks);

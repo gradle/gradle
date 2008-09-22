@@ -87,7 +87,7 @@ public class Bundle extends ConventionTask {
 
     private void setTaskDependsOn(AbstractArchiveTask task, Set<Object> childrenDependOn) {
         if (GUtil.isTrue(childrenDependOn)) {
-            task.dependsOn((Object[]) childrenDependOn.toArray(new Object[childrenDependOn.size()]));
+            task.dependsOn(childrenDependOn);
         } else {
             createDependsOnForNonArchiveParentTasks(task);
         }
@@ -100,7 +100,7 @@ public class Bundle extends ConventionTask {
                 taskDependsOn.add(dependsOn);
             }
         }
-        task.dependsOn((Object[]) taskDependsOn.toArray(new Object[taskDependsOn.size()]));
+        task.dependsOn(taskDependsOn);
     }
 
     private boolean isChildArchive(Object dependsOn) {
