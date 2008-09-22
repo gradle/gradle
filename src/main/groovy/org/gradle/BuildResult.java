@@ -18,6 +18,9 @@ package org.gradle;
 import org.gradle.api.GradleException;
 import org.gradle.api.initialization.Settings;
 
+/**
+ * <p>A {@code BuildResult} packages up the results of a build executed by a {@link Gradle} instance.</p>
+ */
 public class BuildResult {
     private final Settings settings;
     private final Throwable failure;

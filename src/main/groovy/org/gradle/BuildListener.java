@@ -16,10 +16,23 @@
 package org.gradle;
 
 /**
+ * <p>A {@code BuildListener} is notified of events as a {@link Gradle} instance executes a build.</p>
+ *
  * @author Hans Dockter
+ * @see Gradle#addBuildListener(BuildListener)
  */
 public interface BuildListener {
+    /**
+     * <p>Called when the build is started.</p>
+     *
+     * @param startParameter The {@link StartParameter} used to create the Gradle instance. Never null.
+     */
     void buildStarted(StartParameter startParameter);
 
+    /**
+     * <p>Called when the build is completed.</p>
+     *
+     * @param result The result of the build.
+     */
     void buildFinished(BuildResult result);
 }

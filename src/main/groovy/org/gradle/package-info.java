@@ -15,6 +15,6 @@
  */
 
 /**
- * <b>Start Here:</b> Gradle's {@link org.gradle.api.Project} API, which is available from your build scripts.
+ * Classes for embedding Gradle.
  */
-package org.gradle.api;
+package org.gradle;

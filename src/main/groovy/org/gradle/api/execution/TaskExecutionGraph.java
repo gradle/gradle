@@ -23,9 +23,10 @@ import java.util.Set;
 /**
  * <p>A <code>TaskExecutionGraph</code> is responsible for managing the ordering and execution of {@link Task}
  * instances. The <code>TaskExecutionGraph</code> maintains an execution plan of tasks to be executed (or which have
- * been executed), which you can query.</p>
+ * been executed), which you can query from your build file.</p>
  *
- * <p>You can obtain an instance of {@code TaskExecutionGraph} by calling {@link Build#getTaskExecutionGraph()}.</p>
+ * <p>You can access the {@code TaskExecutionGraph} by calling {@link Build#getTaskExecutionGraph()}. In your build file
+ * you can use {@code build.taskExecutionGraph} to access it.</p>
  *
  * <p>The <code>TaskExecutionGraph</code> is populated after all the projects in the build have been evaulated. It is
  * empty before then.</p>

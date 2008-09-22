@@ -342,7 +342,8 @@ javadoc {
     destinationDir = explodedDistJavadocsDir
     include 'org/gradle/api/**'
     exclude 'org/gradle/api/internal/**'
-    // todo understand why not excluding this leads to a javadoc exception 
+    include 'org/gradle/*'
+    // todo understand why not excluding this leads to a javadoc exception
     exclude 'org/gradle/api/plugins/DefaultConventionsToPropertiesMapping.java'
 }
 
