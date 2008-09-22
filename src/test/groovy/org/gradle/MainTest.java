@@ -65,18 +65,18 @@ public class MainTest {
     private String expectedEmbeddedScript;
     private StartParameter actualStartParameter;
 
-    private Build buildMock;
+    private Gradle gradleMock;
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
     public void setUp() throws IOException {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        buildMock = context.mock(Build.class);
+        gradleMock = context.mock(Gradle.class);
 
-        Build.injectCustomFactory(new Build.BuildFactory() {
-            public Build newInstance(StartParameter startParameter) {
+        Gradle.injectCustomFactory(new Gradle.BuildFactory() {
+            public Gradle newInstance(StartParameter startParameter) {
                 actualStartParameter = startParameter;
-                return buildMock;
+                return gradleMock;
             }
         });
 
@@ -96,7 +96,7 @@ public class MainTest {
 
     @After
     public void tearDown() {
-        Build.injectCustomFactory(null);
+        Gradle.injectCustomFactory(null);
     }
 
 //    @Test public void testMainWithSpecifiedNonExistingProjectDirectory() {
@@ -166,12 +166,12 @@ public class MainTest {
         final BuildResult testBuildResult = new BuildResult(context.mock(Settings.class), null);
         context.checking(new Expectations() {
             {
-                one(buildMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
-                one(buildMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
+                one(gradleMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
+                one(gradleMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
                 if (noTasks) {
-                    one(buildMock).run(with(new StartParameterMatcher(true))); will(returnValue(testBuildResult));
+                    one(gradleMock).run(with(new StartParameterMatcher(true))); will(returnValue(testBuildResult));
                 } else {
-                    one(buildMock).run(with(new StartParameterMatcher(false))); will(returnValue(testBuildResult));
+                    one(gradleMock).run(with(new StartParameterMatcher(false))); will(returnValue(testBuildResult));
                 }
             }
         });

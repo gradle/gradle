@@ -16,8 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.gradle.Build;
-import org.gradle.Build.BuildFactory;
+import org.gradle.Gradle;
+import org.gradle.Gradle.BuildFactory;
 import org.gradle.StartParameter;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -36,7 +36,7 @@ import java.io.File;
 public class EmbeddedBuildExecuterTest {
     EmbeddedBuildExecuter embeddedBuildExecuter;
     BuildFactory buildFactoryMock;
-    Build buildMock;
+    Gradle gradleMock;
     StartParameter expectedStartParameter;
     File expectedBuildResolverDir;
     String expectedEmbeddedScript;
@@ -45,7 +45,7 @@ public class EmbeddedBuildExecuterTest {
     @Before
     public void setUp()  {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        buildMock = context.mock(Build.class);
+        gradleMock = context.mock(Gradle.class);
         buildFactoryMock = context.mock(BuildFactory.class);
         expectedStartParameter = new StartParameter();
         expectedStartParameter.setCurrentDir(new File("projectDir"));
@@ -66,8 +66,8 @@ public class EmbeddedBuildExecuterTest {
         context.checking(new Expectations() {
             {
                 exactly(2).of(buildFactoryMock).newInstance(localExpectedStartParameter);
-                will(returnValue(buildMock));
-                exactly(2).of(buildMock).run(localExpectedStartParameter);
+                will(returnValue(gradleMock));
+                exactly(2).of(gradleMock).run(localExpectedStartParameter);
             }
         });
         embeddedBuildExecuter.execute(localExpectedStartParameter);

@@ -16,11 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.gradle.Build;
 import org.gradle.StartParameter;
-import org.gradle.Build.BuildFactory;
-
-import java.io.File;
+import org.gradle.Gradle.BuildFactory;
 
 /**
  * @author Hans Dockter

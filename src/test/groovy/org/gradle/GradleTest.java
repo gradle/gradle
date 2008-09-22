@@ -57,7 +57,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
-public class BuildTest {
+public class GradleTest {
     private ProjectsLoader projectsLoaderMock;
     private ISettingsFinder settingsFinderMock;
     private IGradlePropertiesLoader gradlePropertiesLoaderMock;
@@ -78,7 +78,7 @@ public class BuildTest {
 
     private Map testGradleProperties = new HashMap();
 
-    private Build build;
+    private Gradle gradle;
 
     private BuildExecuter buildExecuterMock;
 
@@ -98,7 +98,7 @@ public class BuildTest {
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         buildListenerMock = context.mock(BuildListener.class);
-        build = new Build(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
+        gradle = new Gradle(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
         testGradleProperties = WrapUtil.toMap("prop1", "value1");
         expectedSearchUpwards = false;
@@ -155,31 +155,31 @@ public class BuildTest {
 
     @Test
     public void testInit() {
-        build = new Build(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
+        gradle = new Gradle(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
-        assertSame(settingsFinderMock, build.getSettingsFinder());
-        assertSame(gradlePropertiesLoaderMock, build.getGradlePropertiesLoader());
-        assertSame(settingsProcessorMock, build.getSettingsProcessor());
-        assertSame(projectsLoaderMock, build.getProjectLoader());
-        assertSame(buildConfigurerMock, build.getBuildConfigurer());
-        assertSame(buildExecuterMock, build.getBuildExecuter());
-        assertEquals(new ArrayList(), build.getBuildListeners());
+        assertSame(settingsFinderMock, gradle.getSettingsFinder());
+        assertSame(gradlePropertiesLoaderMock, gradle.getGradlePropertiesLoader());
+        assertSame(settingsProcessorMock, gradle.getSettingsProcessor());
+        assertSame(projectsLoaderMock, gradle.getProjectLoader());
+        assertSame(buildConfigurerMock, gradle.getBuildConfigurer());
+        assertSame(buildExecuterMock, gradle.getBuildExecuter());
+        assertEquals(new ArrayList(), gradle.getBuildListeners());
     }
 
     @Test
     public void testAddAndGetBuildListeners() {
-        build.addBuildListener(buildListenerMock);
-        assertEquals(WrapUtil.toList(buildListenerMock), build.getBuildListeners());
+        gradle.addBuildListener(buildListenerMock);
+        assertEquals(WrapUtil.toList(buildListenerMock), gradle.getBuildListeners());
         BuildListener buildListenerMock2 = context.mock(BuildListener.class, "buildListener2");
-        build.addBuildListener(buildListenerMock2);
-        assertEquals(WrapUtil.toList(buildListenerMock, buildListenerMock2), build.getBuildListeners());
+        gradle.addBuildListener(buildListenerMock2);
+        assertEquals(WrapUtil.toList(buildListenerMock, buildListenerMock2), gradle.getBuildListeners());
     }
 
     @Test
     public void testRun() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
-        BuildResult buildResult = build.run(expectedStartParams);
+        BuildResult buildResult = gradle.run(expectedStartParams);
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
     }
@@ -188,7 +188,7 @@ public class BuildTest {
     public void testRunWithRebuildDagFalse() {
         expectSettingsBuilt();
         expectTasksRunWithoutDagRebuild();
-        build.run(expectedStartParams);
+        gradle.run(expectedStartParams);
     }
 
     @Test
@@ -199,7 +199,7 @@ public class BuildTest {
         expectedCurrentProject.setDefaultTasks(expectedTaskNames);
         expectTasks("c", "d");
         expectTasksRunWithoutDagRebuild();
-        build.run(expectedStartParams);
+        gradle.run(expectedStartParams);
     }
 
     @Test
@@ -211,8 +211,8 @@ public class BuildTest {
             one(buildListenerMock).buildFinished(with(result(settingsMock, nullValue(Throwable.class))));
         }});
 
-        build.addBuildListener(buildListenerMock);
-        build.run(expectedStartParams);
+        gradle.addBuildListener(buildListenerMock);
+        gradle.run(expectedStartParams);
     }
 
     @Test
@@ -225,9 +225,9 @@ public class BuildTest {
             one(buildListenerMock).buildFinished(with(result(null, sameInstance(failure))));
         }});
 
-        build.addBuildListener(buildListenerMock);
+        gradle.addBuildListener(buildListenerMock);
 
-        BuildResult buildResult = build.run(expectedStartParams);
+        BuildResult buildResult = gradle.run(expectedStartParams);
         assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
@@ -241,9 +241,9 @@ public class BuildTest {
             one(buildListenerMock).buildFinished(with(result(settingsMock, sameInstance(failure))));
         }});
 
-        build.addBuildListener(buildListenerMock);
+        gradle.addBuildListener(buildListenerMock);
 
-        BuildResult buildResult = build.run(expectedStartParams);
+        BuildResult buildResult = gradle.run(expectedStartParams);
         assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
@@ -315,7 +315,7 @@ public class BuildTest {
                 one(buildConfigurerMock).process(expectedRootProject);
             }
         });
-        BuildResult buildResult = build.run(expectedStartParams);
+        BuildResult buildResult = gradle.run(expectedStartParams);
         assertThat(buildResult.getFailure(), notNullValue());
         assertThat(buildResult.getFailure().getClass(), equalTo((Object) UnknownTaskException.class));
     }
@@ -325,8 +325,8 @@ public class BuildTest {
     public void testNewInstanceFactory() {
         StartParameter startParameter = new StartParameter();
         startParameter.setGradleHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleHomeDir"));
-        Build build = Build.newInstance(startParameter);
-        assertThat(build, notNullValue());
+        Gradle gradle = Gradle.newInstance(startParameter);
+        assertThat(gradle, notNullValue());
     }
 
     private Matcher<BuildResult> result(final Settings expectedSettings, final Matcher<? extends Throwable> exceptionMatcher) {

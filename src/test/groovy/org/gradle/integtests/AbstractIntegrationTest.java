@@ -17,7 +17,7 @@ package org.gradle.integtests;
 
 import junit.framework.AssertionFailedError;
 import org.apache.commons.io.FileUtils;
-import org.gradle.Build;
+import org.gradle.Gradle;
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.BuildResult;
@@ -158,7 +158,7 @@ public class AbstractIntegrationTest {
 
         public GradleExecution runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
-            BuildResult result = Build.newInstance(parameter).run(parameter);
+            BuildResult result = Gradle.newInstance(parameter).run(parameter);
             result.rethrowFailure();
             return this;
         }

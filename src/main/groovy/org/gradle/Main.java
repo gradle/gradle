@@ -217,12 +217,12 @@ public class Main {
         }
 
         try {
-            Build build = Build.newInstance(startParameter);
+            Gradle gradle = Gradle.newInstance(startParameter);
 
-            build.addBuildListener(exceptionReporter);
-            build.addBuildListener(resultLogger);
+            gradle.addBuildListener(exceptionReporter);
+            gradle.addBuildListener(resultLogger);
 
-            BuildResult buildResult = build.run(startParameter);
+            BuildResult buildResult = gradle.run(startParameter);
             if (buildResult.getFailure() != null) {
                 exitWithError(options, buildResult.getFailure());
             }

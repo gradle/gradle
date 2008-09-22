@@ -63,8 +63,8 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class Build {
-    private static Logger logger = LoggerFactory.getLogger(Build.class);
+public class Gradle {
+    private static Logger logger = LoggerFactory.getLogger(Gradle.class);
 
     private static BuildFactory buildFactory = new DefaultBuildFactory();
 
@@ -77,7 +77,7 @@ public class Build {
 
     private final List<BuildListener> buildListeners = new ArrayList<BuildListener>();
 
-    public Build(ISettingsFinder settingsFinder, IGradlePropertiesLoader gradlePropertiesLoader,
+    public Gradle(ISettingsFinder settingsFinder, IGradlePropertiesLoader gradlePropertiesLoader,
                  SettingsProcessor settingsProcessor,
                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
         this.settingsFinder = settingsFinder;
@@ -142,17 +142,17 @@ public class Build {
         return settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader);
     }
 
-    public static Build newInstance(final StartParameter startParameter) {
+    public static Gradle newInstance(final StartParameter startParameter) {
         return buildFactory.newInstance(startParameter);
     }
 
     // This is used for mocking
     public static void injectCustomFactory(BuildFactory buildFactory) {
-        Build.buildFactory = buildFactory == null ? new DefaultBuildFactory() : buildFactory;
+        Gradle.buildFactory = buildFactory == null ? new DefaultBuildFactory() : buildFactory;
     }
 
     public static interface BuildFactory {
-        public Build newInstance(StartParameter startParameter);
+        public Gradle newInstance(StartParameter startParameter);
     }
 
     public ISettingsFinder getSettingsFinder() {
@@ -212,7 +212,7 @@ public class Build {
     }
 
     private static class DefaultBuildFactory implements BuildFactory {
-        public Build newInstance(StartParameter startParameter) {
+        public Gradle newInstance(StartParameter startParameter) {
             DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
             ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
             IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(),
@@ -224,7 +224,7 @@ public class Build {
                     new MasterDirSettingsFinderStrategy(),
                     new ParentDirSettingsFinderStrategy()))
                     : new EmbeddedScriptSettingsFinder();
-            Build build = new Build(
+            Gradle gradle = new Gradle(
                     settingsFinder,
                     new DefaultGradlePropertiesLoader(),
                     new ScriptLocatingSettingsProcessor(
@@ -263,9 +263,9 @@ public class Build {
                     ));
 
             if (buildResolverDir == null) {
-                build.addBuildListener(new BuildCleanupListener());
+                gradle.addBuildListener(new BuildCleanupListener());
             }
-            return build;
+            return gradle;
         }
     }
 }
