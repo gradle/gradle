@@ -98,8 +98,6 @@ public class GradleTest {
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         buildListenerMock = context.mock(BuildListener.class);
-        gradle = new Gradle(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
-                buildConfigurerMock, buildExecuterMock);
         testGradleProperties = WrapUtil.toMap("prop1", "value1");
         expectedSearchUpwards = false;
         expectedClassLoader = new URLClassLoader(new URL[0]);
@@ -120,6 +118,10 @@ public class GradleTest {
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(expectedGradleUserHomeDir);
 
+        gradle = new Gradle(expectedStartParams, settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock,
+                projectsLoaderMock,
+                buildConfigurerMock, buildExecuterMock);
+        
         context.checking(new Expectations() {
             {
                 allowing(settingsFinderMock).find(with(any(StartParameter.class)));
@@ -155,7 +157,8 @@ public class GradleTest {
 
     @Test
     public void testInit() {
-        gradle = new Gradle(settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock, projectsLoaderMock,
+        gradle = new Gradle(expectedStartParams, settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock,
+                projectsLoaderMock,
                 buildConfigurerMock, buildExecuterMock);
         assertSame(settingsFinderMock, gradle.getSettingsFinder());
         assertSame(gradlePropertiesLoaderMock, gradle.getGradlePropertiesLoader());
@@ -179,7 +182,7 @@ public class GradleTest {
     public void testRun() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
-        BuildResult buildResult = gradle.run(expectedStartParams);
+        BuildResult buildResult = gradle.run();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
     }
@@ -188,7 +191,7 @@ public class GradleTest {
     public void testRunWithRebuildDagFalse() {
         expectSettingsBuilt();
         expectTasksRunWithoutDagRebuild();
-        gradle.run(expectedStartParams);
+        gradle.run();
     }
 
     @Test
@@ -199,7 +202,7 @@ public class GradleTest {
         expectedCurrentProject.setDefaultTasks(expectedTaskNames);
         expectTasks("c", "d");
         expectTasksRunWithoutDagRebuild();
-        gradle.run(expectedStartParams);
+        gradle.run();
     }
 
     @Test
@@ -212,7 +215,7 @@ public class GradleTest {
         }});
 
         gradle.addBuildListener(buildListenerMock);
-        gradle.run(expectedStartParams);
+        gradle.run();
     }
 
     @Test
@@ -227,7 +230,7 @@ public class GradleTest {
 
         gradle.addBuildListener(buildListenerMock);
 
-        BuildResult buildResult = gradle.run(expectedStartParams);
+        BuildResult buildResult = gradle.run();
         assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
@@ -243,7 +246,7 @@ public class GradleTest {
 
         gradle.addBuildListener(buildListenerMock);
 
-        BuildResult buildResult = gradle.run(expectedStartParams);
+        BuildResult buildResult = gradle.run();
         assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
@@ -315,7 +318,7 @@ public class GradleTest {
                 one(buildConfigurerMock).process(expectedRootProject);
             }
         });
-        BuildResult buildResult = gradle.run(expectedStartParams);
+        BuildResult buildResult = gradle.run();
         assertThat(buildResult.getFailure(), notNullValue());
         assertThat(buildResult.getFailure().getClass(), equalTo((Object) UnknownTaskException.class));
     }

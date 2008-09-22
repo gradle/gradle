@@ -61,13 +61,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * <p>{@code Gradle} is the main entry point for embedding Gradle. You use this class to manage a Gradle build, as
+ * follows:</p>
+ *
+ * <ul>
+ *
+ * <li>Obtain a {@code Gradle} instance by calling {@link #newInstance}, passing in a {@link StartParameter} configured
+ * appropriately.  The properties of {@code StartParameter} generally correspond to the command-line options of
+ * Gradle.</li>
+ *
+ * <li>Add one or more {@link BuildListener}s to receive events as the build executes by calling {@link
+ * #addBuildListener}.</li>
+ *
+ * <li>Call {@link #run} to execute the build.</li>
+ *
+ * </ul>
+ *
  * @author Hans Dockter
  */
 public class Gradle {
     private static Logger logger = LoggerFactory.getLogger(Gradle.class);
 
-    private static BuildFactory buildFactory = new DefaultBuildFactory();
+    private static GradleFactory factory = new DefaultGradleFactory();
 
+    private StartParameter startParameter;
     private ISettingsFinder settingsFinder;
     private IGradlePropertiesLoader gradlePropertiesLoader;
     private SettingsProcessor settingsProcessor;
@@ -77,9 +94,11 @@ public class Gradle {
 
     private final List<BuildListener> buildListeners = new ArrayList<BuildListener>();
 
-    public Gradle(ISettingsFinder settingsFinder, IGradlePropertiesLoader gradlePropertiesLoader,
-                 SettingsProcessor settingsProcessor,
-                 ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
+    public Gradle(StartParameter startParameter, ISettingsFinder settingsFinder,
+                  IGradlePropertiesLoader gradlePropertiesLoader,
+                  SettingsProcessor settingsProcessor,
+                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
+        this.startParameter = startParameter;
         this.settingsFinder = settingsFinder;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.settingsProcessor = settingsProcessor;
@@ -88,7 +107,13 @@ public class Gradle {
         this.buildExecuter = buildExecuter;
     }
 
-    public BuildResult run(StartParameter startParameter) {
+    /**
+     * <p>Executes the build for this Gradle instance and returns the result. Note that when the build fails, the
+     * exception is available using {@link BuildResult#getFailure()}.</p>
+     *
+     * @return The result. Never returns null.
+     */
+    public BuildResult run() {
         fireBuildStarted(startParameter);
 
         SettingsInternal settings = null;
@@ -143,15 +168,15 @@ public class Gradle {
     }
 
     public static Gradle newInstance(final StartParameter startParameter) {
-        return buildFactory.newInstance(startParameter);
+        return factory.newInstance(startParameter);
     }
 
     // This is used for mocking
-    public static void injectCustomFactory(BuildFactory buildFactory) {
-        Gradle.buildFactory = buildFactory == null ? new DefaultBuildFactory() : buildFactory;
+    public static void injectCustomFactory(GradleFactory gradleFactory) {
+        factory = gradleFactory == null ? new DefaultGradleFactory() : gradleFactory;
     }
 
-    public static interface BuildFactory {
+    public static interface GradleFactory {
         public Gradle newInstance(StartParameter startParameter);
     }
 
@@ -207,11 +232,17 @@ public class Gradle {
         return buildListeners;
     }
 
+    /**
+     * <p>Adds a {@link BuildListener} to this Gradle instance. The listener is notified of events which occur during a
+     * build.</p>
+     *
+     * @param buildListener The listener to add.
+     */
     public void addBuildListener(BuildListener buildListener) {
         buildListeners.add(buildListener);
     }
 
-    private static class DefaultBuildFactory implements BuildFactory {
+    private static class DefaultGradleFactory implements GradleFactory {
         public Gradle newInstance(StartParameter startParameter) {
             DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
             ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
@@ -225,6 +256,7 @@ public class Gradle {
                     new ParentDirSettingsFinderStrategy()))
                     : new EmbeddedScriptSettingsFinder();
             Gradle gradle = new Gradle(
+                    startParameter,
                     settingsFinder,
                     new DefaultGradlePropertiesLoader(),
                     new ScriptLocatingSettingsProcessor(

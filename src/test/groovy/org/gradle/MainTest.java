@@ -73,7 +73,7 @@ public class MainTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         gradleMock = context.mock(Gradle.class);
 
-        Gradle.injectCustomFactory(new Gradle.BuildFactory() {
+        Gradle.injectCustomFactory(new Gradle.GradleFactory() {
             public Gradle newInstance(StartParameter startParameter) {
                 actualStartParameter = startParameter;
                 return gradleMock;
@@ -169,9 +169,9 @@ public class MainTest {
                 one(gradleMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
                 one(gradleMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
                 if (noTasks) {
-                    one(gradleMock).run(with(new StartParameterMatcher(true))); will(returnValue(testBuildResult));
+                    one(gradleMock).run(); will(returnValue(testBuildResult));
                 } else {
-                    one(gradleMock).run(with(new StartParameterMatcher(false))); will(returnValue(testBuildResult));
+                    one(gradleMock).run(); will(returnValue(testBuildResult));
                 }
             }
         });

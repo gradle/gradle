@@ -17,29 +17,30 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.Gradle.BuildFactory;
+import org.gradle.Gradle;
+import org.gradle.Gradle.GradleFactory;
 
 /**
  * @author Hans Dockter
  */
 public class EmbeddedBuildExecuter {
-    BuildFactory buildFactory;
+    Gradle.GradleFactory gradleFactory;
 
     public EmbeddedBuildExecuter() {}
 
-    public EmbeddedBuildExecuter(BuildFactory buildFactory) {
-        this.buildFactory = buildFactory;
+    public EmbeddedBuildExecuter(Gradle.GradleFactory gradleFactory) {
+        this.gradleFactory = gradleFactory;
     }
 
     public void execute(StartParameter startParameter) {
-        buildFactory.newInstance(startParameter).run(startParameter).rethrowFailure();
+        gradleFactory.newInstance(startParameter).run().rethrowFailure();
     }
 
-    public BuildFactory getBuildFactory() {
-        return buildFactory;
+    public GradleFactory getBuildFactory() {
+        return gradleFactory;
     }
 
-    public void setBuildFactory(BuildFactory buildFactory) {
-        this.buildFactory = buildFactory;
+    public void setBuildFactory(Gradle.GradleFactory gradleFactory) {
+        this.gradleFactory = gradleFactory;
     }
 }

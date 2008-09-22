@@ -158,7 +158,7 @@ public class AbstractIntegrationTest {
 
         public GradleExecution runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
-            BuildResult result = Gradle.newInstance(parameter).run(parameter);
+            BuildResult result = Gradle.newInstance(parameter).run();
             result.rethrowFailure();
             return this;
         }

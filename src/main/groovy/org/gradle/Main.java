@@ -222,7 +222,7 @@ public class Main {
             gradle.addBuildListener(exceptionReporter);
             gradle.addBuildListener(resultLogger);
 
-            BuildResult buildResult = gradle.run(startParameter);
+            BuildResult buildResult = gradle.run();
             if (buildResult.getFailure() != null) {
                 exitWithError(options, buildResult.getFailure());
             }

@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.Gradle;
-import org.gradle.Gradle.BuildFactory;
+import org.gradle.Gradle.GradleFactory;
 import org.gradle.StartParameter;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -35,7 +35,7 @@ import java.io.File;
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class EmbeddedBuildExecuterTest {
     EmbeddedBuildExecuter embeddedBuildExecuter;
-    BuildFactory buildFactoryMock;
+    GradleFactory gradleFactoryMock;
     Gradle gradleMock;
     StartParameter expectedStartParameter;
     File expectedBuildResolverDir;
@@ -46,7 +46,7 @@ public class EmbeddedBuildExecuterTest {
     public void setUp()  {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         gradleMock = context.mock(Gradle.class);
-        buildFactoryMock = context.mock(BuildFactory.class);
+        gradleFactoryMock = context.mock(GradleFactory.class);
         expectedStartParameter = new StartParameter();
         expectedStartParameter.setCurrentDir(new File("projectDir"));
         expectedStartParameter.setBuildFileName("buildScriptName");
@@ -54,7 +54,7 @@ public class EmbeddedBuildExecuterTest {
         expectedStartParameter.setGradleUserHomeDir(new File("gradleUserHome"));
         expectedStartParameter.setSystemPropertiesArgs(WrapUtil.toMap("prop1", "prop1"));
         expectedStartParameter.setProjectProperties(WrapUtil.toMap("projectProp1", "projectProp1"));
-        embeddedBuildExecuter = new EmbeddedBuildExecuter(buildFactoryMock);
+        embeddedBuildExecuter = new EmbeddedBuildExecuter(gradleFactoryMock);
         expectedBuildResolverDir = new File("buildResolverDir");
         expectedEmbeddedScript = "somescript";
     }
@@ -65,9 +65,9 @@ public class EmbeddedBuildExecuterTest {
         localExpectedStartParameter.setSearchUpwards(true);
         context.checking(new Expectations() {
             {
-                exactly(2).of(buildFactoryMock).newInstance(localExpectedStartParameter);
+                exactly(2).of(gradleFactoryMock).newInstance(localExpectedStartParameter);
                 will(returnValue(gradleMock));
-                exactly(2).of(gradleMock).run(localExpectedStartParameter);
+                exactly(2).of(gradleMock).run();
             }
         });
         embeddedBuildExecuter.execute(localExpectedStartParameter);
