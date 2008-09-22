@@ -16,8 +16,15 @@
 package org.gradle.api;
 
 /**
+ * <p>A {@code ProjectAction} performs some action on a {@link Project}.</p>
+ *
  * @author Hans Dockter
  */
 public interface ProjectAction {
-     void execute(Project project);
+    /**
+     * <p>Executes this action against the given project.</p>
+     *
+     * @param project The project.
+     */
+    void execute(Project project);
 }

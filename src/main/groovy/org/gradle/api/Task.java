@@ -64,7 +64,7 @@ import org.slf4j.Logger;
  *
  * <li>A {@link Task}.</li>
  *
- * <li>A closure. The closure may take a {@code Task as parameter, and should return a {@code Task} or collection of
+ * <li>A closure. The closure may take a {@code Task} as parameter, and should return a {@code Task} or collection of
  * tasks.</li>
  *
  * <li>A {@link TaskDependency}.</li>

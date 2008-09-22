@@ -15,6 +15,6 @@
  */
 
 /**
- * The classes for managing and monitoring build initialization.
+ * Classes for managing and monitoring build initialization.
  */
 package org.gradle.api.initialization;

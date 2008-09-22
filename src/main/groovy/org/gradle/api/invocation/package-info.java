@@ -15,6 +15,6 @@
  */
 
 /**
- * The classes for invoking and monitoring gradle builds.
+ * Classes for invoking and monitoring gradle builds.
  */
 package org.gradle.api.invocation;

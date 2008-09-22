@@ -15,6 +15,13 @@
  */
 
 /**
- * <b>Start Here:</b> Gradle's {@link org.gradle.api.Project} API, which is available from your build scripts.
+ * <p><b>Start Here:</b> Gradle's {@link org.gradle.api.Project} API, which is available from your build files. The
+ * API used from your build files is made up of 3 main interfaces:</p>
+ *
+ * <ul>
+ * <li>{@link Project}</li>
+ * <li>{@link Task}</li>
+ * <li>{@link DependencyManager}</li>
+ * </ul>
  */
 package org.gradle.api;

@@ -18,8 +18,15 @@ package org.gradle.api;
 import org.gradle.execution.Dag;
 
 /**
+ * <p>A {@code TaskAction} performs some action on a {@link Task}.</p>
+ *
  * @author Hans Dockter
  */
 public interface TaskAction {
+    /**
+     * <p>Executed this action against the given task.</p>
+     *
+     * @param task The task.
+     */
     void execute(Task task, Dag tasksGraph);
 }

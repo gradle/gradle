@@ -28,9 +28,9 @@ import java.util.Set;
  */
 public interface TaskDependency {
     /**
-     * <p>Determines the dependencies for the given {@link Task}. This method is called when the task execution schedule
-     * is being built. This occurs after all the projects have been evaluated, and before any task execution
-     * begins.</p>
+     * <p>Determines the dependencies for the given {@link Task}. This method is called when Gradle assembles the task
+     * execution graph for a build. This occurs after all the projects have been evaluated, and before any task
+     * execution begins.</p>
      *
      * @param task The task to determine the dependencies for.
      * @return The tasks which the given task depends on. Returns an empty set if the task has no dependencies.
