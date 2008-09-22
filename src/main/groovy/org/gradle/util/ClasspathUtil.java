@@ -43,7 +43,7 @@ public class ClasspathUtil {
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
             for (File classpathElement : classpathElements) {
-                logger.info("Adding to classpath: " + classpathElement);
+                logger.debug("Adding to classpath: " + classpathElement);
                 method.invoke(classLoader, classpathElement.toURI().toURL());
             }
         }

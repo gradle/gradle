@@ -107,6 +107,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private BaseDirConverter baseDirConverter = new BaseDirConverter();
 
+    private AntBuilderFactory antBuilderFactory;
+
     private AntBuilder ant = null;
 
     private DependencyManager dependencies;
@@ -143,7 +145,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public AbstractProject(String name, Project parent, File projectDir, String buildFileName,
                            ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
-                           DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
+                           DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory,  
+                           BuildScriptProcessor buildScriptProcessor,
                            PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
                            IProjectFactory projectFactory, Build build) {
         assert name != null;
@@ -156,6 +159,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.dependencies = dependencyManagerFactory.createDependencyManager(this);
+        this.antBuilderFactory = antBuilderFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
@@ -495,10 +499,13 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public AntBuilder getAnt() {
         if (ant == null) {
-            ant = new AntBuilder();
-            GradleUtil.setAntLogging(ant);
+            ant = createAntBuilder();
         }
         return ant;
+    }
+
+    public AntBuilder createAntBuilder() {
+        return antBuilderFactory.createAntBuilder();
     }
 
     /**
@@ -783,6 +790,14 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setTaskFactory(ITaskFactory taskFactory) {
         this.taskFactory = taskFactory;
+    }
+
+    public AntBuilderFactory getAntBuilderFactory() {
+        return antBuilderFactory;
+    }
+
+    public void setAntBuilderFactory(AntBuilderFactory antBuilderFactory) {
+        this.antBuilderFactory = antBuilderFactory;
     }
 
     public DependencyManagerFactory getDependencyManagerFactory() {

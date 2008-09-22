@@ -39,6 +39,7 @@ public class ProjectFactory implements IProjectFactory {
     private ScriptSource embeddedScript;
     private ITaskFactory taskFactory;
     private TaskExecutionGraph taskGraph;
+    private AntBuilderFactory antBuilderFactory;
 
     public ProjectFactory() {
     }
@@ -46,7 +47,7 @@ public class ProjectFactory implements IProjectFactory {
     public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
                           StartParameter startParameter, IProjectRegistry projectRegistry, TaskExecutionGraph taskGraph,
-                          ScriptSource embeddedScript) {
+                          ScriptSource embeddedScript, AntBuilderFactory antBuilderFactory) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
@@ -55,6 +56,7 @@ public class ProjectFactory implements IProjectFactory {
         this.projectRegistry = projectRegistry;
         this.taskGraph = taskGraph;
         this.embeddedScript = embeddedScript;
+        this.antBuilderFactory = antBuilderFactory;
     }
 
     public DefaultProject createProject(String name, Project parent, File projectDir,
@@ -73,7 +75,7 @@ public class ProjectFactory implements IProjectFactory {
         }
         DefaultProject project = new DefaultProject(name, parent, projectDir, startParameter.getBuildFileName(), source,
                 buildScriptClassLoader, taskFactory,
-                dependencyManagerFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this, build);
+                dependencyManagerFactory, antBuilderFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this, build);
         if (parent == null) {
             ((DefaultBuild) build).setRootProject(project.getRootProject());
         }

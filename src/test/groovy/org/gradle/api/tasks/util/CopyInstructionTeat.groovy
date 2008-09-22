@@ -49,7 +49,7 @@ class CopyInstructionTest {
 
         targetDir = new File(rootDir, 'targetDir')
 
-        copyInstruction = new CopyInstruction(sourceDir: sourceDir, targetDir: targetDir)
+        copyInstruction = new CopyInstruction(antBuilder: new AntBuilder(), sourceDir: sourceDir, targetDir: targetDir)
     }
 
     @Test public void testCopyInstruction() {

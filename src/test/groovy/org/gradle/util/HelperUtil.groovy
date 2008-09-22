@@ -35,6 +35,7 @@ import org.gradle.CacheUsage
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.invocation.DefaultBuild
+import org.gradle.logging.AntLoggingAdapter
 
 
 
@@ -55,6 +56,7 @@ class HelperUtil {
                 null,
                 new TaskFactory(),
                 new DefaultDependencyManagerFactory(new File('root')),
+                new DefaultAntBuilderFactory(new AntLoggingAdapter()),
                 null,
                 null,
                 parent.projectRegistry,
@@ -71,7 +73,8 @@ class HelperUtil {
                 new StartParameter(),
                 new DefaultProjectRegistry(),
                 new Dag(),
-                new StringScriptSource("embedded build file", "embedded"))
+                new StringScriptSource("embedded build file", "embedded"),
+                new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
         DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
         project.setBuildScript(new EmptyScript())
@@ -88,6 +91,7 @@ class HelperUtil {
                 parentProject.buildScriptClassLoader,
                 parentProject.taskFactory,
                 parentProject.dependencyManagerFactory,
+                parentProject.getAntBuilderFactory(),
                 parentProject.buildScriptProcessor,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,

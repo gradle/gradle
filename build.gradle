@@ -84,9 +84,9 @@ dependencies {
     }
     compile ":jopt-simple:2.4.1",
             ":ant:1.7.0",
-            ":logback-classic:0.9.8",
-            ":slf4j-api:1.4.3",
-            ":logback-core:0.9.8",
+            ":logback-classic:0.9.9",
+            ":slf4j-api:1.5.3",
+            ":logback-core:0.9.9",
             ":commons-io:1.4@jar",
             ":commons-lang:2.3@jar",
             ":webdavlib:2.0",

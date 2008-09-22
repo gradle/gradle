@@ -3,10 +3,11 @@
     <appender name="STDOUT_INFO"
               class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>INFO</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
+        <level>INFO</level>
+        <onMatch>ACCEPT</onMatch>
+        <onMismatch>DENY</onMismatch>
         </filter>
+        <!--<Filter class="org.gradle.logging.HighLevelFilter" />-->
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>%msg%n</Pattern>
         </layout>

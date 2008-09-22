@@ -19,6 +19,9 @@ package org.gradle.util
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.FilenameUtils
+import org.apache.tools.ant.BuildLogger
+import org.apache.tools.ant.BuildListener
+import org.gradle.logging.AntLoggingAdapter
 
 /**
  * @author Hans Dockter
@@ -66,7 +69,7 @@ class GradleUtil {
     static URL[] getGradleLiBClasspath() {
         File gradleHomeLib = new File(System.properties["gradle.home"] + "/lib")
         if (gradleHomeLib.isDirectory()) {
-            List list = gradleHomeLib.listFiles().findAll { File file -> !file.name.startsWith('groovy-all')}.collect { File file ->
+            List list = gradleHomeLib.listFiles().findAll {File file -> !file.name.startsWith('groovy-all')}.collect {File file ->
                 file.toURI().toURL()
             }
             return list
@@ -89,10 +92,9 @@ class GradleUtil {
     static List gradleClasspath(List searchPatterns) {
         List path = getGradleClasspath() as List
         path.findAll {File file ->
-            int pos = file.name.lastIndexOf('-')
-            if (pos == -1) { return }
-            String libName = file.name.substring(0, pos)
-            searchPatterns.contains(libName)
+            searchPatterns.find {String pattern ->
+                file.name.startsWith(pattern)
+            }
         }
     }
 
@@ -100,28 +102,11 @@ class GradleUtil {
         FilenameUtils.separatorsToUnix(s.toString())
     }
 
-    static setAntLogging(AntBuilder ant) {
-        int logLevel = getAntLogLevel()
-        logger.debug("Set ant loglevel to {}", logLevel)
-        ant.project.getBuildListeners()[0].setMessageOutputLevel(logLevel)
-    }
-
-    static int getAntLogLevel() {
-        int logLevel
-        if (logger.isDebugEnabled()) {
-            logLevel = org.apache.tools.ant.Project.MSG_DEBUG
-        } else if (logger.isInfoEnabled()) {
-            logLevel = org.apache.tools.ant.Project.MSG_INFO
-        } else {
-            logLevel = org.apache.tools.ant.Project.MSG_WARN
-        }
-        logLevel
-    }
-
     static String createIsolatedAntScript(String filling) {
         """ClassLoader loader = Thread.currentThread().contextClassLoader
 AntBuilder ant = loader.loadClass('groovy.util.AntBuilder').newInstance()
-ant.project.getBuildListeners()[0].setMessageOutputLevel(${GradleUtil.antLogLevel})
+// ant.project.removeBuildListener(ant.project.getBuildListeners()[0])
+// ant.project.addBuildListener(loader.loadClass("org.gradle.logging.AntLoggingAdapter").newInstance())
 ant.sequential {
     $filling
 }
@@ -149,6 +134,11 @@ ant.sequential {
         }
     }
 
+    static void replaceBuildListener(AntBuilder antBuilder, BuildListener buildListener) {
+        antBuilder.project.removeBuildListener(antBuilder.getProject().getBuildListeners()[0])
+        antBuilder.project.addBuildListener(buildListener)
+    }
+
     static File getToolsJar() {
         String javaHome = System.getProperty("java.home");
         File toolsJar = new File(javaHome + "/lib/tools.jar");
@@ -172,7 +162,7 @@ ant.sequential {
 
     static executeIsolatedAntScript(List loaderClasspath, String filling) {
         ClassLoader oldCtx = Thread.currentThread().contextClassLoader
-        URL[] taskUrlClasspath = loaderClasspath.collect { File file ->
+        URL[] taskUrlClasspath = loaderClasspath.collect {File file ->
             file.toURI().toURL()
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
@@ -182,10 +172,9 @@ ant.sequential {
         if (toolsJar) {
             ClasspathUtil.addUrl(newLoader, [toolsJar])
         }
-        newLoader.loadClass("com.sun.tools.javac.Main");
         String scriptText = createIsolatedAntScript(filling)
         logger.debug("Using groovyc as: {}", scriptText)
-        newLoader.loadClass("groovy.lang.GroovyShell").newInstance([newLoader] as Object[]).evaluate(
+        newLoader.loadClass("groovy.lang.GroovyShell").newInstance(newLoader).evaluate(
                 scriptText)
         Thread.currentThread().contextClassLoader = oldCtx
     }

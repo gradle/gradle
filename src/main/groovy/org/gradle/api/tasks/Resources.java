@@ -96,12 +96,13 @@ public class Resources extends ConventionTask {
     // It is too cumbersone, if every user of this class has to set this property.
     // So we break IoC a little bit, but anyone can inject a new instance. And this is Groovy,
     // so we don't need an interface.
-    CopyInstructionFactory copyInstructionFactory = new CopyInstructionFactory();
+    CopyInstructionFactory copyInstructionFactory;
 
     ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
     public Resources(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
+        copyInstructionFactory = new CopyInstructionFactory(project.getAnt());
         doLast(new TaskAction() {
             public void execute(Task task, Dag tasksGraph) {
                 copyResources(task);

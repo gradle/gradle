@@ -33,6 +33,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.DefaultTask;
+import org.gradle.logging.Logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -258,7 +259,7 @@ public class Dag implements TaskExecutionGraph {
         for (DefaultTask task : tasks) {
             dagNeutral = execute(new TreeSet(getChildren(task)));
             if (!task.getExecuted()) {
-                logger.info("Executing: " + task);
+                logger.info(Logging.HIGH_LEVEL, "Executing: " + task);
                 task.execute();
                 if (dagNeutral) {
                     dagNeutral = task.isDagNeutral();

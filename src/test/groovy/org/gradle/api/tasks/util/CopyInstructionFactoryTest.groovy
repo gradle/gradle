@@ -23,13 +23,15 @@ import org.junit.Test
  */
 class CopyInstructionFactoryTest {
     @Test public void testCreateCopyInstruction() {
+        AntBuilder expectedAntBuilder = new AntBuilder()
         File expectedSourceDir = 'src' as File
         File expectedTargetDir = 'target' as File
         Set expectedIncludes = ['include'] as Set
         Set expectedExcludes = ['exclude'] as Set
         Map expectedFilters = [x: 'filter']
-        CopyInstruction copyInstruction = new CopyInstructionFactory().createCopyInstruction(
+        CopyInstruction copyInstruction = new CopyInstructionFactory(expectedAntBuilder).createCopyInstruction(
             expectedSourceDir, expectedTargetDir, expectedIncludes, expectedExcludes, expectedFilters)
+        assert copyInstruction.getAntBuilder().is(expectedAntBuilder)
         assert copyInstruction.sourceDir.is(expectedSourceDir)
         assert copyInstruction.targetDir.is(expectedTargetDir)
         assert copyInstruction.includes.is(expectedIncludes)

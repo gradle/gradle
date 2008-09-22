@@ -26,6 +26,7 @@ import org.gradle.execution.BuiltInTaskExecuter;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
+import org.gradle.logging.IvyLoggingAdaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,14 +241,9 @@ public class Main {
     }
 
     private static void configureLogger(OptionSet options) throws Throwable {
-
-        String normalLayout = "%msg%n";
-        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
-
         ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("root");
 
         String loglevel = null;
-        String layout = null;
 
         int ivyLogLevel = Message.MSG_INFO;
         if (options.has(IVY_DEBUG) && options.has(IVY_QUIET)) {
@@ -264,18 +260,15 @@ public class Main {
             exitWithError(options, new RuntimeException("Wrong Parameter"));
         } else if (options.has(DEBUG)) {
             loglevel = "DEBUG";
-            layout = debugLayout;
         } else if (options.has(QUIET)) {
             loglevel = "ERROR";
-            layout = normalLayout;
             if (!options.has(IVY_DEBUG)) {
                 ivyLogLevel = Message.MSG_ERR;
             }
         } else {
             loglevel = "INFO";
-            layout = normalLayout;
         }
-        Message.setDefaultLogger(new DefaultMessageLogger(ivyLogLevel));
+        Message.setDefaultLogger(new IvyLoggingAdaper());
         rootLogger.setLevel(Level.toLevel(loglevel));
     }
 

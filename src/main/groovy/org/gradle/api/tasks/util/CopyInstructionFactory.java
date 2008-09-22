@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.util;
 
+import groovy.util.AntBuilder;
+
 import java.io.File;
 import java.util.Set;
 import java.util.Map;
@@ -24,6 +26,12 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class CopyInstructionFactory {
+    private AntBuilder antBuilder;
+
+    public CopyInstructionFactory(AntBuilder antBuilder) {
+        this.antBuilder = antBuilder;
+    }
+
     public CopyInstruction createCopyInstruction(File sourceDir, File targetDir, Set includes, Set excludes, Map filters) {
         CopyInstruction copyInstruction = new CopyInstruction();
         copyInstruction.setSourceDir(sourceDir);
@@ -31,6 +39,11 @@ public class CopyInstructionFactory {
         copyInstruction.setIncludes(includes);
         copyInstruction.setExcludes(excludes);
         copyInstruction.setFilters(filters);
+        copyInstruction.setAntBuilder(antBuilder);
         return copyInstruction;
+    }
+
+    public AntBuilder getAntBuilder() {
+        return antBuilder;
     }
 }

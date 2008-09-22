@@ -25,6 +25,7 @@ import org.gradle.api.InvalidUserDataException
  * todo: Refactor to accept an existing ant instance
  */
 class CopyInstruction {
+    AntBuilder antBuilder
     File sourceDir
     File targetDir
     Set includes = []
@@ -34,8 +35,7 @@ class CopyInstruction {
     void execute() {
         if (!sourceDir) {throw new InvalidUserDataException('Source dir must not be null!')}
         if (!targetDir) {throw new InvalidUserDataException('Target dir must not be null!')}
-        AntBuilder ant = new AntBuilder()
-        ant.copy(todir: targetDir) {
+        antBuilder.copy(todir: targetDir) {
             fileset(dir: sourceDir) {
                 includes.each {String pattern ->
                     include(name: pattern)

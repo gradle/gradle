@@ -54,6 +54,7 @@ public class ProjectFactoryTest {
     private IProjectRegistry projectRegistry;
     private Dag taskGraph;
     private ProjectFactory projectFactory;
+    private AntBuilderFactory antBuilderFactory;
 
     @Before
     public void setUp() throws Exception {
@@ -64,6 +65,7 @@ public class ProjectFactoryTest {
         pluginRegistry = context.mock(PluginRegistry.class);
         taskGraph = context.mock(Dag.class);
         projectRegistry = context.mock(IProjectRegistry.class);
+        antBuilderFactory = context.mock(AntBuilderFactory.class);
 
         context.checking(new Expectations() {{
             allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
@@ -71,7 +73,7 @@ public class ProjectFactoryTest {
         }});
 
         projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
-                new StartParameter(), projectRegistry, taskGraph, null);
+                new StartParameter(), projectRegistry, taskGraph, null, antBuilderFactory);
     }
 
     @Test
@@ -84,6 +86,7 @@ public class ProjectFactoryTest {
         assertSame(rootDir, project.getRootDir());
         assertSame(rootDir, project.getProjectDir());
         assertSame(project, project.getRootProject());
+        assertSame(antBuilderFactory, project.getAntBuilderFactory());
         assertThat(project.getBuild(), notNullValue());
         assertThat(project.getBuild().getRootProject(), sameInstance((Project) project));
         assertThat(project.getBuild().getTaskExecutionGraph(), sameInstance((TaskExecutionGraph) taskGraph));
@@ -119,7 +122,7 @@ public class ProjectFactoryTest {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
 
         ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
-                new StartParameter(), projectRegistry, taskGraph, expectedScriptSource);
+                new StartParameter(), projectRegistry, taskGraph, expectedScriptSource, antBuilderFactory);
 
         DefaultProject project = projectFactory.createProject("somename", null, rootDir, buildScriptClassLoader);
 

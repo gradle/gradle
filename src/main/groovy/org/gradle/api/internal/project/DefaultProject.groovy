@@ -35,11 +35,12 @@ class DefaultProject extends AbstractProject {
 
     public DefaultProject(String name, Project parent, File projectDir, String buildFileName, ScriptSource scriptSource,
                           ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
-                          DependencyManagerFactory dependencyManagerFactory, BuildScriptProcessor buildScriptProcessor,
+                          DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory, 
+                          BuildScriptProcessor buildScriptProcessor,
                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
                           IProjectFactory projectFactory, Build build) {
         super(name, parent, projectDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
-                buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory, build);
+                antBuilderFactory, buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory, build);
     }
 
     def property(String name) {

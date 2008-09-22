@@ -19,12 +19,7 @@ package org.gradle;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
-import org.gradle.api.internal.project.BuildScriptProcessor;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.TaskFactory;
+import org.gradle.api.internal.project.*;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
@@ -53,6 +48,7 @@ import org.gradle.initialization.ScriptLocatingSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.util.WrapUtil;
+import org.gradle.logging.AntLoggingAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -285,7 +281,8 @@ public class Gradle {
                                     startParameter,
                                     new DefaultProjectRegistry(),
                                     tasksGraph,
-                                    startParameter.getBuildScriptSource())
+                                    startParameter.getBuildScriptSource(),
+                                    new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
                     ),
                     new BuildConfigurer(

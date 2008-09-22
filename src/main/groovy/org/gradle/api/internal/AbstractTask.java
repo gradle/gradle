@@ -42,8 +42,6 @@ public abstract class AbstractTask implements Task {
     private static Logger logger = LoggerFactory.getLogger(AbstractTask.class);
     private static Logger buildLogger = LoggerFactory.getLogger(Task.class);
 
-    private AntBuilder ant = new AntBuilder();
-
     private ProjectInternal project;
 
     private Dag tasksGraph;
@@ -79,7 +77,7 @@ public abstract class AbstractTask implements Task {
     }
 
     public AntBuilder getAnt() {
-        return ant;
+        return project.getAnt();
     }
 
     public Project getProject() {

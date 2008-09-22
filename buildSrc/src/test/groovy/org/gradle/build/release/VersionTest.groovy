@@ -21,6 +21,9 @@ import org.gradle.api.internal.project.*
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
 import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.logging.AntLoggingAdapter
+import org.gradle.execution.Dag
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -50,11 +53,13 @@ class VersionTest extends GroovyTestCase {
                 new DefaultDependencyManagerFactory(new File('root')),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
-                "build.gradle",
+                new StartParameter(),
                 new DefaultProjectRegistry(),
-                new StringScriptSource("embedded build file", "embedded"))
+                new Dag(),
+                new StringScriptSource("embedded build file", "embedded"),
+                new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, rootDir, null)
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
         project.setBuildScript(new EmptyScript())
         return project;
     }

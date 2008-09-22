@@ -70,6 +70,8 @@ class DefaultProjectTest {
     ScriptSource script;
 
     ITaskFactory taskFactoryMock;
+    AntBuilderFactory antBuilderFactoryMock;
+    AntBuilder testAntBuilder
 
     DependencyManagerFactory dependencyManagerFactoryMock;
     DependencyManager dependencyManagerMock;
@@ -82,6 +84,11 @@ class DefaultProjectTest {
     void setUp() {
         context.imposteriser = ClassImposteriser.INSTANCE
         taskFactoryMock = context.mock(ITaskFactory.class);
+        antBuilderFactoryMock = context.mock(AntBuilderFactory)
+        testAntBuilder = new AntBuilder()
+        context.checking {
+            allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
+        }
         dependencyManagerMock = context.mock(DependencyManager)
         dependencyManagerFactoryMock = [createDependencyManager: {Project project -> dependencyManagerMock}] as DependencyManagerFactory
         script = context.mock(ScriptSource.class)
@@ -94,9 +101,9 @@ class DefaultProjectTest {
         projectRegistry = new DefaultProjectRegistry()
         buildScriptProcessor = new BuildScriptProcessor()
         ProjectFactory factory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor,
-                pluginRegistry, new StartParameter(), projectRegistry, null, null)
+                pluginRegistry, new StartParameter(), projectRegistry, null, null, antBuilderFactoryMock)
         project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
-                taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
+                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
                 factory, build);
         child1 = project.addChildProject("child1", new File("child1"))
         childchild = child1.addChildProject("childchild", new File("childchild"))
@@ -119,6 +126,7 @@ class DefaultProjectTest {
         assertEquals(TEST_BUILD_FILE_NAME, project.buildFileName)
         assertSame project.buildScriptClassLoader, buildScriptClassLoader
         assertSame buildScriptProcessor, project.buildScriptProcessor
+        assertSame antBuilderFactoryMock, project.antBuilderFactory
         assertSame project.build, build
         assertNotNull(project.ant)
         assertNotNull(project.convention)
@@ -468,7 +476,7 @@ class DefaultProjectTest {
         DefaultTask task = project.tasks[TEST_TASK_NAME] = new DefaultTask(project, TEST_TASK_NAME, null)
         assertThat(project."$TEST_TASK_NAME", sameInstance(task))
     }
-    
+
     @Test (expected = MissingPropertyException) void testPropertyShortCutForTaskCallWithNonExistingTask() {
         project.unknownTask
     }
@@ -799,8 +807,8 @@ def scriptMethod(Closure closure) {
         assertSame(dirTask14, project.dir('dir1/dir4'));
     }
 
-    @Test void testLazyInitOfAnt() {
-        assertNotNull(project.ant)
+    @Test void testCachingOfAnt() {
+        assertSame(testAntBuilder, project.ant)
         assert project.ant.is(project.ant)
     }
 
@@ -809,6 +817,10 @@ def scriptMethod(Closure closure) {
         project.ant(configureClosure)
         assertEquals(Closure.OWNER_FIRST, configureClosure.@resolveStrategy)
         assertTrue(project.ant.collectorTarget.children[0].realThing instanceof FileSet)
+    }
+
+    @Test void testCreateAntBuilder() {
+        assertSame testAntBuilder, project.createAntBuilder()
     }
 
     @Test void testCompareTo() {
