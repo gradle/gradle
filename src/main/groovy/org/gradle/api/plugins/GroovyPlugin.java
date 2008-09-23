@@ -74,7 +74,7 @@ public class GroovyPlugin extends JavaPlugin {
         },
                 "groovyClasspath", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return task.getProject().getDependencies().resolve("compile");
+                return task.getProject().getDependencies().resolve("groovy");
             }
         }));
     }
@@ -104,7 +104,7 @@ public class GroovyPlugin extends JavaPlugin {
         },
                 "groovyClasspath", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return task.getProject().getDependencies().resolve("compile");
+                return task.getProject().getDependencies().resolve("groovy");
             }
         }));
     }
@@ -120,7 +120,7 @@ public class GroovyPlugin extends JavaPlugin {
         },
                 "groovyClasspath", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return task.getProject().getDependencies().resolve("compile");
+                return task.getProject().getDependencies().resolve("groovy");
             }
         }));
     }

@@ -17,16 +17,15 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
-import org.gradle.util.GradleUtil;
-import org.gradle.util.GUtil;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.execution.Dag;
+import org.gradle.util.GUtil;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -95,7 +94,7 @@ public class GroovyCompile extends Compile {
                 classpath = createClasspath();
             }
             // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
-            List taskClasspath = GUtil.addLists(GradleUtil.getAntJarFiles(), getGroovyClasspath());
+            List taskClasspath = getGroovyClasspath();
             antGroovyCompile.execute(getProject().getAnt(), existingGroovySourceDirs, getGroovyIncludes(), getGroovyExcludes(),
                     getGroovyJavaIncludes(), getGroovyExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
                     getTargetCompatibility(), getOptions(), taskClasspath);

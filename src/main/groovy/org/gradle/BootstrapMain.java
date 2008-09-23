@@ -16,23 +16,44 @@
 
 package org.gradle;
 
+import org.gradle.util.BootstrapUtil;
+
 import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author Steven Devijver, Hans Dockter
  */
 public class BootstrapMain {
+
     public static void main(String[] args) throws Exception {
         String bootStrapDebugValue = System.getProperty("gradle.bootstrap.debug");
         boolean bootStrapDebug = bootStrapDebugValue != null && !bootStrapDebugValue.toUpperCase().equals("FALSE");
 
+        processGradleHome(bootStrapDebug);
+
+        List<URL> loggingJars = toUrl(BootstrapUtil.getLoggingJars());
+        List<URL> nonLoggingJars = toUrl(BootstrapUtil.getNonLoggingJars());
+        ClassLoader parentClassloader = ClassLoader.getSystemClassLoader().getParent();
+        if (bootStrapDebug) {
+            System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
+            System.out.println("Adding the following files to new logging classloader: " + loggingJars);
+            System.out.println("Adding the following files to new lib classloader: " + nonLoggingJars);
+        }
+        URLClassLoader loggingClassLoader = new URLClassLoader(loggingJars.toArray(new URL[loggingJars.size()]), parentClassloader);
+        URLClassLoader libClassLoader = new URLClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]), loggingClassLoader);
+        Thread.currentThread().setContextClassLoader(libClassLoader);
+        Class mainClass = libClassLoader.loadClass("org.gradle.Main");
+        Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
+        mainMethod.invoke(null, new Object[]{args});
+    }
+
+    private static String processGradleHome(boolean bootStrapDebug) {
         String gradleHome = System.getProperty("gradle.home");
         if (gradleHome == null) {
             gradleHome = System.getenv("GRADLE_HOME");
@@ -41,47 +62,21 @@ public class BootstrapMain {
             }
             if (bootStrapDebug) {
                 System.out.println("Gradle Home is declared by environment variable GRADLE_HOME to: " + gradleHome);
-            }                               
+            }
             System.setProperty("gradle.home", gradleHome);
         } else {
             if (bootStrapDebug) {
                 System.out.println("Gradle Home is declared by system property gradle.home to: " + gradleHome);
             }
         }
-
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        List jars = new ArrayList();
-        File[] files = getGradleClasspath(gradleHome, bootStrapDebug);
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].isFile()) {
-                jars.add(files[i].toURI().toURL());
-            }
-        }
-        ClassLoader parentClassloader = classLoader.getParent();
-        if (bootStrapDebug) {
-            System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
-            System.out.println("Adding the following files to new contex classloader: " + jars);
-        }
-        ClassLoader contextClassLoader = new URLClassLoader((URL[]) jars.toArray(new URL[jars.size()]), parentClassloader);
-        classLoader = contextClassLoader;
-        Thread.currentThread().setContextClassLoader(contextClassLoader);
-        Class mainClass = classLoader.loadClass("org.gradle.Main");
-        Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
-        mainMethod.invoke(null, new Object[] { args });
+        return gradleHome;
     }
-
-    private static File[] getGradleClasspath(String gradleHome, boolean bootStrapDebug) {
-        File gradleHomeLib = new File(gradleHome + "/lib");
-        if (bootStrapDebug) {
-            System.out.println("Gradle Home Lib: " + gradleHomeLib.getAbsolutePath());
+    
+    private static List<URL> toUrl(List<File> files) throws MalformedURLException {
+        List<URL> result = new ArrayList<URL>();
+        for (File file : files) {
+            result.add(file.toURI().toURL());
         }
-        if (gradleHomeLib.isDirectory()) {
-            if (bootStrapDebug) {
-                System.out.println("Gradle Home Lib is directory. Looking for files.");
-            }
-            return gradleHomeLib.listFiles();
-        }
-        System.out.println("WARNING: Gradle Home Lib is not a directory. Returning empty list as classpath.");
-        return new File[0];
+        return result;
     }
 }

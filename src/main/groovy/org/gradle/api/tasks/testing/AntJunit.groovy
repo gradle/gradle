@@ -16,9 +16,10 @@
 
 package org.gradle.api.tasks.testing
 
-import org.gradle.util.GradleUtil
+import org.gradle.util.BootstrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
 
 /**
  * @author Hans Dockter
@@ -35,7 +36,7 @@ class AntJunit {
 
     void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, File testReportDir, List includes, List excludes, JunitOptions junitOptions, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)
-        createAntClassPath(ant, classPath + GradleUtil.antJunitJarFiles)
+        createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles)
         Map otherArgs = [
                 includeantruntime: 'false',
                 errorproperty: FAILURES_OR_ERRORS_PROPERTY,

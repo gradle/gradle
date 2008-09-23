@@ -13,10 +13,9 @@ dependencies {
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 // todo Actually it should be only groovy, but without junit we get a strange error. We need to understand this.
-groovyClasspath = {org.gradle.util.GradleUtil.groovyFiles}
-compile.groovyClasspath = org.gradle.util.GradleUtil.gradleClasspath 
-testCompile.groovyClasspath = org.gradle.util.GradleUtil.gradleClasspath
-compile.unmanagedClasspath(org.gradle.util.GradleUtil.gradleClasspath as File[])
+compile.groovyClasspath = org.gradle.util.BootstrapUtil.groovyFiles
+testCompile.groovyClasspath = org.gradle.util.BootstrapUtil.groovyFiles
+compile.unmanagedClasspath(org.gradle.util.BootstrapUtil.gradleClasspath as File[])
 test {
     include '**/*Test.class'
     exclude '**/Abstract*'

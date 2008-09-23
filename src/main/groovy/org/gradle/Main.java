@@ -16,17 +16,23 @@
 package org.gradle;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.filter.LevelFilter;
+import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.spi.FilterReply;
+import ch.qos.logback.core.filter.Filter;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.apache.ivy.util.DefaultMessageLogger;
 import org.apache.ivy.util.Message;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.execution.BuiltInTaskExecuter;
+import org.gradle.logging.IvyLoggingAdaper;
+import org.gradle.logging.HighLevelFilter;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
-import org.gradle.logging.IvyLoggingAdaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,12 +58,12 @@ public class Main {
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
     private static final String PLUGIN_PROPERTIES_FILE = "l";
+    private static final String DEFAULT_IMPORT_FILE = "K";
     private static final String BUILD_FILE = "b";
     private static final String SETTINGS_FILE = "c";
     private static final String TASKS = "t";
     public static final String DEBUG = "d";
-    private static final String IVY_QUIET = "i";
-    private static final String IVY_DEBUG = "j";
+    private static final String INFO = "i";
     private static final String QUIET = "q";
     public static final String FULL_STACKTRACE = "f";
     public static final String STACKTRACE = "s";
@@ -87,14 +93,14 @@ public class Main {
                 acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
                 acceptsAll(WrapUtil.toList(DEBUG, "debug"), "Log in debug mode (includes normal stacktrace).");
                 acceptsAll(WrapUtil.toList(QUIET, "quiet"), "Log errors only.");
-                acceptsAll(WrapUtil.toList(IVY_DEBUG, "ivy-debug"), "Set Ivy log level to debug (very verbose).");
-                acceptsAll(WrapUtil.toList(IVY_QUIET, "ivy-quiet"), "Set Ivy log level to quiet.");
+                acceptsAll(WrapUtil.toList(INFO, "info"), "Set log level to info.");
                 acceptsAll(WrapUtil.toList(STACKTRACE, "stacktrace"), "Print out the stacktrace also for user exceptions (e.g. compile error).");
                 acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"), "Print out the full (very verbose) stacktrace for any exceptions.");
                 acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
                 acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start dir for Gradle. Defaults to current dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"), "Specifies the default import file.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settingsfile"), "Specifies the settings file name. Defaults to settings.gradle.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(BUILD_FILE, "buildfile"), "Specifies the build file name (also for subprojects). Defaults to build.gradle.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(SYSTEM_PROP, "systemprop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
@@ -144,6 +150,8 @@ public class Main {
 
         if (options.has(NO_DEFAULT_IMPORTS)) {
             startParameter.setDefaultImportsFile(null);
+        } else if (options.has(DEFAULT_IMPORT_FILE)) {
+            startParameter.setDefaultImportsFile(new File(options.argumentOf(DEFAULT_IMPORT_FILE)));
         }
 
         if (options.has(SYSTEM_PROP)) {
@@ -241,35 +249,71 @@ public class Main {
     }
 
     private static void configureLogger(OptionSet options) throws Throwable {
-        ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("root");
+        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
+        String infoLayout = "%msg%n";
 
-        String loglevel = null;
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        lc.shutdownAndReset();
+        ch.qos.logback.classic.Logger rootLogger = lc.getLogger(LoggerContext.ROOT_NAME);
 
-        int ivyLogLevel = Message.MSG_INFO;
-        if (options.has(IVY_DEBUG) && options.has(IVY_QUIET)) {
-            System.out.printf("Error: For the dependency output you must either set -%s or -%s. Not Both!", IVY_QUIET, IVY_DEBUG);
-            exitWithError(options, new RuntimeException("Wrong Parameter"));
-        } else if (options.has(IVY_QUIET)) {
-            ivyLogLevel = Message.MSG_ERR;
-        } else if (options.has(IVY_DEBUG)) {
-            ivyLogLevel = Message.MSG_DEBUG;
-        }
-
-        if (options.has(DEBUG) && options.has(QUIET)) {
-            System.out.printf("Error: For the loglevel you must either set -%s or -%s. Not Both!", QUIET, DEBUG);
-            exitWithError(options, new RuntimeException("Wrong Parameter"));
-        } else if (options.has(DEBUG)) {
-            loglevel = "DEBUG";
-        } else if (options.has(QUIET)) {
-            loglevel = "ERROR";
-            if (!options.has(IVY_DEBUG)) {
-                ivyLogLevel = Message.MSG_ERR;
+        ConsoleAppender errorConsoleAppender = new ConsoleAppender();
+        errorConsoleAppender.setContext(lc);
+        errorConsoleAppender.setTarget("System.err");
+        errorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
+        errorConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.ACCEPT, FilterReply.DENY));
+        Level level = Level.INFO;
+        if (!options.has(QUIET)) {
+            ConsoleAppender nonErrorConsoleAppender = new ConsoleAppender();
+            nonErrorConsoleAppender.setContext(lc);
+            nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.DENY, FilterReply.NEUTRAL));
+            if (options.has(DEBUG)) {
+                level = Level.DEBUG;
+                nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
+                errorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
+                nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT, FilterReply.DENY));
+            } else {
+                nonErrorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
+                if (options.has(INFO)) {
+                    nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.DENY));
+                } else {
+                    nonErrorConsoleAppender.addFilter(new HighLevelFilter());
+                }
             }
-        } else {
-            loglevel = "INFO";
+            rootLogger.addAppender(nonErrorConsoleAppender);
+            nonErrorConsoleAppender.start();
         }
+        rootLogger.addAppender(errorConsoleAppender);
+        errorConsoleAppender.start();
         Message.setDefaultLogger(new IvyLoggingAdaper());
-        rootLogger.setLevel(Level.toLevel(loglevel));
+
+        rootLogger.setLevel(level);
+
+
+//        ConsoleAppender appender = new ConsoleAppender();
+//        appender.setLayout(createPatternLayout(lc, infoLayout));
+////        appender.addFilter(createLevelFilter(Level.DEBUG, FilterReply.ACCEPT, FilterReply.DENY));
+//        appender.setContext(lc);
+//        appender.start();
+//        rootLogger.addAppender(appender);
+////        rootLogger.setLevel(Level.DEBUG);
+    }
+
+    private static Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
+        LevelFilter levelFilter = new LevelFilter();
+        levelFilter.setContext(lc);
+        levelFilter.setOnMatch(onMatch);
+        levelFilter.setOnMismatch(onMismatch);
+        levelFilter.setLevel(level.toString());
+        levelFilter.start();
+        return levelFilter;
+    }
+
+    private static PatternLayout createPatternLayout(LoggerContext loggerContext, String pattern) {
+        PatternLayout patternLayout = new PatternLayout();
+        patternLayout.setPattern(pattern);
+        patternLayout.setContext(loggerContext);
+        patternLayout.start();
+        return patternLayout;
     }
 
     private static void exitWithError(OptionSet options, Throwable e) throws Throwable {

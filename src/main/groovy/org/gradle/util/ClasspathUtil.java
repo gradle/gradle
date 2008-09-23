@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
+import java.util.*;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.net.URL;
@@ -29,14 +29,6 @@ import java.net.URL;
  */
 public class ClasspathUtil {
     private static Logger logger = LoggerFactory.getLogger(ClasspathUtil.class);
-
-    public static File[] getGradleClasspath() {
-        File gradleHomeLib = new File(System.getProperty("gradle.home") + "/lib");
-        if (gradleHomeLib.isDirectory()) {
-            return gradleHomeLib.listFiles();
-        }
-        return new File[0];
-    }
 
     public static void addUrl(URLClassLoader classLoader, List<File> classpathElements) {
         try {
@@ -51,5 +43,45 @@ public class ClasspathUtil {
             t.printStackTrace();
             throw new RuntimeException("Error, could not add URL to system classloader", t);
         }
+    }
+
+    public static boolean isToolsJarInClasspath() {
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        // first check if the tools jar is already in the classpath
+        boolean toolsJarAvailable = false;
+        try {
+            // just check whether this throws an exception
+            classLoader.loadClass("com.sun.tools.javac.Main");
+            toolsJarAvailable = true;
+        } catch (Exception e) {
+            try {
+                classLoader.loadClass("sun.tools.javac.Main");
+                toolsJarAvailable = true;
+            } catch (Exception e2) {
+                // ignore
+            }
+        }
+        return toolsJarAvailable;
+    }
+
+    public static File getToolsJar() {
+        String javaHome = System.getProperty("java.home");
+        File toolsJar = new File(javaHome + "/lib/tools.jar");
+        if (toolsJar.exists()) {
+            logger.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
+            // Found in java.home as given
+            return toolsJar;
+        }
+        if (javaHome.toLowerCase(Locale.US).endsWith(File.separator + "jre")) {
+            javaHome = javaHome.substring(0, javaHome.length() - 4);
+            toolsJar = new File(javaHome + "/lib/tools.jar");
+        }
+        if (!toolsJar.exists()) {
+            logger.warn("Unable to locate tools.jar. "
+                    + "Expected to find it in " + toolsJar.getPath());
+            return null;
+        }
+        logger.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
+        return toolsJar;
     }
 }

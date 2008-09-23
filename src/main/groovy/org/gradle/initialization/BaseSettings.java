@@ -193,7 +193,7 @@ public class BaseSettings implements SettingsInternal {
             logger.info("No build sources found.");
         }
         List additionalClasspath = dependencyManager.resolve(BUILD_CONFIGURATION);
-        File toolsJar = GradleUtil.getToolsJar();
+        File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
             additionalClasspath.add(toolsJar);
         }

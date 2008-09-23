@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.GUtil;
-import org.gradle.util.GradleUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -77,7 +76,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
                         testObj.getGroovyJavaIncludes(), testObj.getGroovyJavaExcludes(), testObj.getDestinationDir(),
                         GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
                         testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getOptions(),
-                        GUtil.addLists(GradleUtil.getAntJarFiles(), TEST_GROOVY_CLASSPATH));
+                        TEST_GROOVY_CLASSPATH);
             }
         });
         testObj.execute();

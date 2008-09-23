@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.StartParameter;
+import org.gradle.logging.Logging;
 import org.gradle.api.DependencyManager;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -62,7 +63,7 @@ public class BuildSourceBuilder {
             logger.debug("No task names specified. We leave..");
             return null;
         }
-        logger.info("================================================" + " Start building buildSrc");
+        logger.info(Logging.HIGH_LEVEL, "================================================" + " Start building buildSrc");
         StartParameter startParameterArg = startParameter.newInstance();
         startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
         startParameterArg.setSearchUpwards(false);
@@ -78,7 +79,7 @@ public class BuildSourceBuilder {
             logger.info("Building buildSrc has not produced any artifact!");
             return null;
         }
-        logger.info("================================================" + " Finished building buildSrc");
+        logger.info(Logging.HIGH_LEVEL, "================================================" + " Finished building buildSrc");
         return BUILD_SRC_ID;
     }
 

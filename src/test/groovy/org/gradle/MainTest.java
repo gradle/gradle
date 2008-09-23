@@ -218,6 +218,26 @@ public class MainTest {
     }
 
     @Test
+    public void testMainWithSpecifiedDefaultImportsFile() throws Throwable {
+        expectedGradleImportsFile = new File("somename");
+        checkMain(new MainCall() {
+            public void execute() throws Throwable {
+                Main.main(args("-S", "-K", expectedGradleImportsFile.toString()));
+            }
+        });
+    }
+
+    @Test
+    public void testMainWithSpecifiedPluginPropertiesFile() throws Throwable {
+        expectedPluginPropertiesFile = new File("somename");
+        checkMain(new MainCall() {
+            public void execute() throws Throwable {
+                Main.main(args("-S", "-l", expectedPluginPropertiesFile.toString()));
+            }
+        });
+    }
+
+    @Test
     public void testMainWithSpecifiedBuildFileName() throws Throwable {
         expectedBuildFileName = "somename";
         checkMain(new MainCall() {
