@@ -287,15 +287,6 @@ public class Main {
         Message.setDefaultLogger(new IvyLoggingAdaper());
 
         rootLogger.setLevel(level);
-
-
-//        ConsoleAppender appender = new ConsoleAppender();
-//        appender.setLayout(createPatternLayout(lc, infoLayout));
-////        appender.addFilter(createLevelFilter(Level.DEBUG, FilterReply.ACCEPT, FilterReply.DENY));
-//        appender.setContext(lc);
-//        appender.start();
-//        rootLogger.addAppender(appender);
-////        rootLogger.setLevel(Level.DEBUG);
     }
 
     private static Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
