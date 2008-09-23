@@ -43,7 +43,7 @@ public class DefaultBuild implements Build {
         this.rootProject = rootProject;
     }
 
-    public TaskExecutionGraph getTaskExecutionGraph() {
+    public TaskExecutionGraph getTaskGraph() {
         return taskExecutionGraph;
     }
 

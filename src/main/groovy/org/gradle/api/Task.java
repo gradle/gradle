@@ -40,8 +40,8 @@ import org.slf4j.Logger;
  * calling {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
- * the task.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or {@link
- * #doLast(groovy.lang.Closure)}.</p>
+ * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
+ * {@link #doLast(groovy.lang.Closure)}.</p>
  *
  * There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
@@ -175,9 +175,8 @@ public interface Task extends Comparable<Task> {
     Task doFirst(TaskAction action);
 
     /**
-     * <p>Adds the given closure to the beginning of this task's action list. If the closure takes 1 parameter, it is
-     * passed this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link Dag}
-     * for the currently executing build.</p>
+     * <p>Adds the given closure to the beginning of this task's action list. The closure is passed this task as a
+     * parameter when executed.</p>
      *
      * @param action The action closure to execute.
      * @return This task.
@@ -193,9 +192,8 @@ public interface Task extends Comparable<Task> {
     Task doLast(TaskAction action);
 
     /**
-     * <p>Adds the given closure to the end of this task's action list. If the closure takes 1 parameter, it is passed
-     * this task when executed.  If the closure takes 2 parameters, it is passed this task plus the {@link Dag} for the
-     * currently executing build.</p>
+     * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter
+     * when executed.</p>
      *
      * @param action The action closure to execute.
      * @return This task.

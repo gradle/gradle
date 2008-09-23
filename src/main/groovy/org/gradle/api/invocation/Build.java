@@ -60,5 +60,5 @@ public interface Build {
      *
      * @return The task graph. Never returns null.
      */
-    TaskExecutionGraph getTaskExecutionGraph();
+    TaskExecutionGraph getTaskGraph();
 }

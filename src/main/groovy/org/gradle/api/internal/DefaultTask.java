@@ -56,26 +56,10 @@ public class DefaultTask extends AbstractTask {
     }
 
     private TaskAction convertClosureToAction(final Closure actionClosure) {
-        if (actionClosure.getMaximumNumberOfParameters() == 0) {
-            return new TaskAction() {
-                public void execute(Task task, Dag tasksGraph) {
-                    actionClosure.call();
-                }
-            };
-        } else if (actionClosure.getMaximumNumberOfParameters() == 1) {
-            return new TaskAction() {
-                public void execute(Task task, Dag tasksGraph) {
-                    actionClosure.call(new Object[] {task});
-                }
-            };
-        } else if (actionClosure.getMaximumNumberOfParameters() == 2) {
-            return new TaskAction() {
-                public void execute(Task task, Dag tasksGraph) {
-                    actionClosure.call(new Object[] {task, tasksGraph});
-                }
-            };
-        } else {
-            throw new InvalidUserDataException("Action closure has too many arguments!");
-        }
+        return new TaskAction() {
+            public void execute(Task task, Dag tasksGraph) {
+                actionClosure.call(new Object[] {task});
+            }
+        };
     }
 }

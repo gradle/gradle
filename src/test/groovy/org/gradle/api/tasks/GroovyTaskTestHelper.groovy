@@ -17,35 +17,28 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.Task
-import org.gradle.api.tasks.testing.Test
-import org.gradle.execution.Dag
+import org.gradle.api.internal.AbstractTask
 import static org.junit.Assert.*
-import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.AbstractTask;
 
 /**
  * @author Hans Dockter
  */
 class GroovyTaskTestHelper {
     public static void checkAddActionsWithClosures(AbstractTask task) {
-        task.setActions(new ArrayList());
+        task.deleteAllActions();
         boolean action1Called = false
-        Closure action1 = {Task t -> action1Called = true}
+        Closure action1 = {action1Called = true}
         boolean action2Called = false
         Closure action2 = {Task t -> action2Called = true}
-        boolean action3Called = false
-        Closure action3 = {Task t, Dag tasksGraph -> action3Called = true}
         task.doFirst(action1)
         task.doLast(action2)
-        task.doLast(action3)
         task.execute()
         assertTrue(action1Called)
         assertTrue(action2Called)
-        assertTrue(action3Called)
     }
 
     public static void checkConfigure(AbstractTask task) {
-        Closure action1 = { Task t, Dag dag -> }
+        Closure action1 = { Task t -> }
         assertSame(task, task.configure {
             doFirst(action1)
         });

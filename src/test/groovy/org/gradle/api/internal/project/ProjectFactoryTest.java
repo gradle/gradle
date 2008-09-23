@@ -89,7 +89,7 @@ public class ProjectFactoryTest {
         assertSame(antBuilderFactory, project.getAntBuilderFactory());
         assertThat(project.getBuild(), notNullValue());
         assertThat(project.getBuild().getRootProject(), sameInstance((Project) project));
-        assertThat(project.getBuild().getTaskExecutionGraph(), sameInstance((TaskExecutionGraph) taskGraph));
+        assertThat(project.getBuild().getTaskGraph(), sameInstance((TaskExecutionGraph) taskGraph));
         checkProjectResources(project);
 
         ScriptSource expectedScriptSource = new FileScriptSource("build file", new File(rootDir, "build.gradle"));
