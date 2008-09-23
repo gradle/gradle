@@ -78,7 +78,13 @@ ant.sequential {
 
     static executeIsolatedAntScript(List loaderClasspath, String filling) {
         ClassLoader oldCtx = Thread.currentThread().contextClassLoader
-        URL[] taskUrlClasspath = (loaderClasspath + BootstrapUtil.nonLoggingJars).collect {File file ->
+        File toolsJar = ClasspathUtil.getToolsJar()
+        logger.debug("Tools jar is: {}", toolsJar)
+        List additionalClasspath = BootstrapUtil.nonLoggingJars
+        if (toolsJar) {
+            additionalClasspath.add(toolsJar)
+        }
+        URL[] taskUrlClasspath = (loaderClasspath + additionalClasspath).collect {File file ->
             file.toURI().toURL()
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
