@@ -17,6 +17,7 @@ package org.gradle;
 
 import org.slf4j.Logger;
 import org.gradle.util.Clock;
+import org.gradle.logging.Logging;
 
 /**
  * A {@link BuildListener} which logs the final result of the build.
@@ -42,11 +43,11 @@ public class BuildResultLogger implements BuildListener {
 
     public void buildFinished(BuildResult result) {
         if (result.getFailure() == null) {
-            logger.info(String.format("%nBUILD SUCCESSFUL%n"));
+            logger.info(Logging.HIGH_LEVEL, String.format("%nBUILD SUCCESSFUL%n"));
         }
         else {
             logger.error(String.format("%nBUILD FAILED%n"));
         }
-        logger.info(String.format("Total time: %s", buildTimeClock.getTime()));
+        logger.info(Logging.HIGH_LEVEL, String.format("Total time: %s", buildTimeClock.getTime()));
     }
 }
