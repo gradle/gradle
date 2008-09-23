@@ -57,7 +57,7 @@ public class DefaultTask extends AbstractTask {
 
     private TaskAction convertClosureToAction(final Closure actionClosure) {
         return new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 actionClosure.call(new Object[] {task});
             }
         };

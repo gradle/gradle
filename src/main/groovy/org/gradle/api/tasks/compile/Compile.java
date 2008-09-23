@@ -90,7 +90,7 @@ public class Compile extends ConventionTask {
     public Compile(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 compile(task);
             }
         });

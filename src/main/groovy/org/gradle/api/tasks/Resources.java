@@ -104,7 +104,7 @@ public class Resources extends ConventionTask {
         super(project, name, tasksGraph);
         copyInstructionFactory = new CopyInstructionFactory(project.getAnt());
         doLast(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 copyResources(task);
             }
         });

@@ -61,7 +61,7 @@ public class EclipseWtp extends ConventionTask {
     public EclipseWtp(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 generateWtp();
             }
         });

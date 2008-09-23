@@ -10,7 +10,7 @@ public class BrokenTask extends DefaultTask {
     public BrokenTask(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 throw new RuntimeException("broken action");
             }
         });

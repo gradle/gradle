@@ -46,7 +46,7 @@ public class EclipseProject extends ConventionTask {
     public EclipseProject(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 generateProject(task);
             }
         });

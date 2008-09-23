@@ -24,7 +24,6 @@ import java.util.Set;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 
 /**
@@ -36,7 +35,7 @@ import org.slf4j.Logger;
  * <h3>Task Actions</h3>
  *
  * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
- * actions is executed in turn, by calling {@link TaskAction#execute(Task, Dag)}.  You can add actions to a task by
+ * actions is executed in turn, by calling {@link TaskAction#execute(Task)}.  You can add actions to a task by
  * calling {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with

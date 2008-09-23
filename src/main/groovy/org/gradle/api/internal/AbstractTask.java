@@ -212,7 +212,7 @@ public abstract class AbstractTask implements Task {
 
     private void doExecute(TaskAction action) throws Throwable {
         try {
-            action.execute(this, getTasksGraph());
+            action.execute(this);
             // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the Groovy bug is fixed we can remove this.
         } catch (InvokerInvocationException e) {
             if (e.getCause() != null) {

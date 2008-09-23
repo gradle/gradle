@@ -18,7 +18,7 @@ public class TaskListTask extends DefaultTask {
         super(project, name, tasksGraph);
         setDagNeutral(true);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 generate();
             }
         });

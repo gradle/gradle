@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import org.gradle.execution.Dag;
-
 /**
  * <p>A {@code TaskAction} performs some action on a {@link Task}.</p>
  *
@@ -28,5 +26,5 @@ public interface TaskAction {
      *
      * @param task The task.
      */
-    void execute(Task task, Dag tasksGraph);
+    void execute(Task task);
 }

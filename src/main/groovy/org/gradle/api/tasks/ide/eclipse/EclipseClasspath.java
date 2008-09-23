@@ -73,7 +73,7 @@ public class EclipseClasspath extends ConventionTask {
     public EclipseClasspath(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 generateClasspath();
             }
         });

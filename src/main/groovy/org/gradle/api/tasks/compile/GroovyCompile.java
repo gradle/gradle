@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.GradleUtil;
 import org.gradle.util.GUtil;
 import org.gradle.api.Project;
@@ -69,7 +68,7 @@ public class GroovyCompile extends Compile {
         super(project, name, tasksGraph);
         setActions(new ArrayList<TaskAction>());
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 compile(task);
             }
         });

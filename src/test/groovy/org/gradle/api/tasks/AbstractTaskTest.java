@@ -176,12 +176,12 @@ public abstract class AbstractTaskTest {
         assertFalse(getTask().isExecuted());
         final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
         TaskAction action1 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 actionsCalled.set(0, true);
             }
         };
         TaskAction action2 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 actionsCalled.set(1, true);
             }
         };
@@ -249,7 +249,7 @@ public abstract class AbstractTaskTest {
     private void checkStopExecution(RuntimeException actionException) {
         final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
         TaskAction action2 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 actionsCalled.set(1, true);
             }
         };
@@ -274,7 +274,7 @@ public abstract class AbstractTaskTest {
         getTask().setActions(new ArrayList());
         final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
         TaskAction action2 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 actionsCalled.set(1, true);
             }
         };
@@ -287,7 +287,7 @@ public abstract class AbstractTaskTest {
 
     private TaskAction createExceptionAction(final RuntimeException e) {
         return new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 throw e;
             }
         };
@@ -297,7 +297,7 @@ public abstract class AbstractTaskTest {
     public void testDisabled() {
         getTask().setActions(new ArrayList());
         TaskAction action1 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 fail();
             }
         };
@@ -313,7 +313,7 @@ public abstract class AbstractTaskTest {
         getTask().setSkipProperties(WrapUtil.toList("prop1"));
         final List<Boolean> actionsCalled = WrapUtil.toList(false);
         TaskAction action1 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 actionsCalled.set(0, true);
             }
         };
@@ -342,7 +342,7 @@ public abstract class AbstractTaskTest {
         getTask().setActions(new ArrayList());
         final List<Boolean> actionsCalled = WrapUtil.toList(false);
         TaskAction action1 = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 actionsCalled.set(0, true);
             }
         };

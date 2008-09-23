@@ -53,7 +53,7 @@ public class TaskFactoryTest {
         taskFactory = new TaskFactory(testTaskGraph);
         testProject = new DefaultProject();
         testAction = new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 ;
             }
         };

@@ -38,7 +38,6 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.util.FileSet;
-import org.gradle.execution.Dag;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -219,7 +218,7 @@ public class JavaPlugin implements Plugin {
         test.getOptions().getForkOptions().setForkMode(ForkMode.PER_TEST);
         test.getOptions().getForkOptions().setDir(project.getProjectDir());
         test.doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 Test test = (Test) task;
                 List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().task(TEST_COMPILE)).getUnmanagedClasspath();
                 test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
@@ -255,7 +254,7 @@ public class JavaPlugin implements Plugin {
         testCompile.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
         configureCompile(testCompile, propertyMapping);
         return (Compile) testCompile.doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 Compile testCompile = (Compile) task;
                 if (compile.getUnmanagedClasspath() != null) {
                     testCompile.unmanagedClasspath((Object[]) compile.getUnmanagedClasspath().toArray(new Object[compile.getUnmanagedClasspath().size()]));

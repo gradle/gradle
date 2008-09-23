@@ -21,8 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.internal.DefaultTask;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +55,7 @@ public class Upload extends DefaultTask {
     public Upload(Project project, String name, Dag tasksGraph) {
         super(project, name, tasksGraph);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 upload(task);
             }
         });

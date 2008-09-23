@@ -44,7 +44,7 @@ public class Clean extends ConventionTask {
         super(project, name, tasksGraph);
         setDagNeutral(true);
         doFirst(new TaskAction() {
-            public void execute(Task task, Dag tasksGraph) {
+            public void execute(Task task) {
                 clean(task);
             }
         });
