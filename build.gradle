@@ -108,8 +108,8 @@ dependencies {
             ":launch4j-bin-windows:$launch4jVersion@zip", ":launch4j-bin-unix:$launch4jVersion@zip"
 }
 
-init.doFirst {Task task, Dag dag ->
-    if (dag.hasTask(':release')) {
+init.doFirst {Task task ->
+    if (build.taskGraph.hasTask(':release')) {
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
         userguideRemoteDir += version
