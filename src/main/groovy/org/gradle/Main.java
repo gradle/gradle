@@ -276,6 +276,7 @@ public class Main {
                 if (options.has(INFO)) {
                     nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.DENY));
                 } else {
+                    nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.NEUTRAL));
                     nonErrorConsoleAppender.addFilter(new HighLevelFilter());
                 }
             }
