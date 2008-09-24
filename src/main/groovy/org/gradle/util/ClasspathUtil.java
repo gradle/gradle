@@ -77,7 +77,7 @@ public class ClasspathUtil {
             toolsJar = new File(javaHome + "/lib/tools.jar");
         }
         if (!toolsJar.exists()) {
-            logger.warn("Unable to locate tools.jar. "
+            logger.debug("Unable to locate tools.jar. "
                     + "Expected to find it in " + toolsJar.getPath());
             return null;
         }
