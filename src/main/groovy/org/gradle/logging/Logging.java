@@ -29,7 +29,7 @@ public class Logging {
    public static final Marker HIGH_LEVEL = MarkerFactory.getDetachedMarker("HIGH_LEVEL");
    public static final Marker IVY = MarkerFactory.getDetachedMarker("IVY");
    public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {{
-        put(Message.MSG_ERR, LogLevel.ERROR);
+        put(Message.MSG_ERR, LogLevel.WARN);
         put(Message.MSG_WARN, LogLevel.WARN);
         put(Message.MSG_INFO, LogLevel.INFO);
         put(Message.MSG_DEBUG, LogLevel.DEBUG);
