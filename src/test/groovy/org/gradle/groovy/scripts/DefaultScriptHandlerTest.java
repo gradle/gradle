@@ -105,6 +105,7 @@ public class DefaultScriptHandlerTest {
     @Test public void testLoadFromCacheWithStaleCache() {
         scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
         scriptCacheDir.setLastModified(0);
+        assertTrue(scriptCacheDir.lastModified() < 100000);
         assertNull(scriptHandler.loadFromCache(100000, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
     }
 
