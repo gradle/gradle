@@ -43,11 +43,11 @@ public class BuildResultLogger implements BuildListener {
 
     public void buildFinished(BuildResult result) {
         if (result.getFailure() == null) {
-            logger.info(Logging.HIGH_LEVEL, String.format("%nBUILD SUCCESSFUL%n"));
+            logger.info(Logging.LIFECYCLE, String.format("%nBUILD SUCCESSFUL%n"));
         }
         else {
             logger.error(String.format("%nBUILD FAILED%n"));
         }
-        logger.info(Logging.HIGH_LEVEL, String.format("Total time: %s", buildTimeClock.getTime()));
+        logger.info(Logging.LIFECYCLE, String.format("Total time: %s", buildTimeClock.getTime()));
     }
 }

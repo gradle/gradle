@@ -71,9 +71,9 @@ public class AntLoggingAdapter implements BuildLogger {
         }
         message.append(event.getMessage());
         if (event.getException() != null) {
-            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(Logging.IVY, message.toString(), event.getException());
+            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(Logging.ANT_IVY, message.toString(), event.getException());
         } else {
-            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(Logging.IVY, message.toString());
+            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(Logging.ANT_IVY, message.toString());
         }
     }
 }

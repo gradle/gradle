@@ -28,7 +28,7 @@ import org.apache.ivy.util.AbstractMessageLogger;
 public class IvyLoggingAdaper extends AbstractMessageLogger {
 
     public void log(String msg, int level) {
-        Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(level).log(Logging.IVY, msg);
+        Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(level).log(Logging.ANT_IVY, msg);
     }
 
     public void rawlog(String msg, int level) {
@@ -36,11 +36,11 @@ public class IvyLoggingAdaper extends AbstractMessageLogger {
     }
 
     public void doProgress() {
-        LogLevel.INFO.log(Logging.IVY, ".");
+        LogLevel.INFO.log(Logging.ANT_IVY, ".");
     }
 
     public void doEndProgress(String msg) {
-        LogLevel.INFO.log(Logging.IVY, msg);
+        LogLevel.INFO.log(Logging.ANT_IVY, msg);
     }
 
 }

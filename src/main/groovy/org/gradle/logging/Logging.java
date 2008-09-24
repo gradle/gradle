@@ -26,8 +26,8 @@ import java.util.HashMap;
  * @author Hans Dockter
  */
 public class Logging {
-   public static final Marker HIGH_LEVEL = MarkerFactory.getDetachedMarker("HIGH_LEVEL");
-   public static final Marker IVY = MarkerFactory.getDetachedMarker("IVY");
+   public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
+   public static final Marker ANT_IVY = MarkerFactory.getDetachedMarker("ANT_IVY");
    public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {{
         put(Message.MSG_ERR, LogLevel.WARN);
         put(Message.MSG_WARN, LogLevel.WARN);

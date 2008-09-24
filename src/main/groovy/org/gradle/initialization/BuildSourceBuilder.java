@@ -63,7 +63,7 @@ public class BuildSourceBuilder {
             logger.debug("No task names specified. We leave..");
             return null;
         }
-        logger.info(Logging.HIGH_LEVEL, "================================================" + " Start building buildSrc");
+        logger.info(Logging.LIFECYCLE, "================================================" + " Start building buildSrc");
         StartParameter startParameterArg = startParameter.newInstance();
         startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
         startParameterArg.setSearchUpwards(false);
@@ -79,7 +79,7 @@ public class BuildSourceBuilder {
             logger.info("Building buildSrc has not produced any artifact!");
             return null;
         }
-        logger.info(Logging.HIGH_LEVEL, "================================================" + " Finished building buildSrc");
+        logger.info(Logging.LIFECYCLE, "================================================" + " Finished building buildSrc");
         return BUILD_SRC_ID;
     }
 

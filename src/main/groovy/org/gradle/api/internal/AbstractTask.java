@@ -193,9 +193,9 @@ public abstract class AbstractTask implements Task {
             logger.info("Skipping execution as task is disabled.");
         }
         if (!enabled || trueSkips.size() > 0) {
-            logger.info(Logging.HIGH_LEVEL, "Skipping  Task: {}", path);
+            logger.info(Logging.LIFECYCLE, "Skipping  Task: {}", path);
         } else {
-            logger.info(Logging.HIGH_LEVEL, "Executing Task: {}", path);
+            logger.info(Logging.LIFECYCLE, "Executing Task: {}", path);
             for (TaskAction action : actions) {
                 logger.debug("Executing Action:");
                 try {

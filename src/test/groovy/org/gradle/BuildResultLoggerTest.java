@@ -39,8 +39,8 @@ public class BuildResultLoggerTest {
     @Test
     public void logsBuildSuccessAndTotalTime() {
         context.checking(new Expectations(){{
-            one(logger).info(Logging.HIGH_LEVEL, String.format("%nBUILD SUCCESSFUL%n"));
-            one(logger).info(with(equal(Logging.HIGH_LEVEL)), with(startsWith("Total time:")));
+            one(logger).info(Logging.LIFECYCLE, String.format("%nBUILD SUCCESSFUL%n"));
+            one(logger).info(with(equal(Logging.LIFECYCLE)), with(startsWith("Total time:")));
         }});
 
         listener.buildFinished(new BuildResult(null, null));
@@ -50,7 +50,7 @@ public class BuildResultLoggerTest {
     public void logsBuildFailedAndTotalTime() {
         context.checking(new Expectations(){{
             one(logger).error(String.format("%nBUILD FAILED%n"));
-            one(logger).info(with(equal(Logging.HIGH_LEVEL)), with(startsWith("Total time:")));
+            one(logger).info(with(equal(Logging.LIFECYCLE)), with(startsWith("Total time:")));
         }});
 
         listener.buildFinished(new BuildResult(null, new RuntimeException()));

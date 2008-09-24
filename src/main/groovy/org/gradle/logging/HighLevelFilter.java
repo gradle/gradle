@@ -26,7 +26,7 @@ public class HighLevelFilter extends Filter {
     @Override
     public FilterReply decide(Object event) {
         LoggingEvent loggingEvent = (LoggingEvent) event;
-        if (loggingEvent.getMarker() == Logging.HIGH_LEVEL) {
+        if (loggingEvent.getMarker() == Logging.LIFECYCLE) {
             return FilterReply.ACCEPT;
         } else {
             return FilterReply.DENY;
