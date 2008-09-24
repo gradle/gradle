@@ -28,6 +28,7 @@ import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.execution.Dag;
+import org.gradle.logging.Logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,24 +175,27 @@ public abstract class AbstractTask implements Task {
     }
 
     public void execute() {
-        logger.debug("Executing Task: {}", path);
-        if (!enabled) {
-            logger.info("Skipping execution as task is disabled.");
-            executed = true;
-            return;
-        }
+        logger.debug("Starting to execute Task: {}", path);
         List trueSkips = new ArrayList();
-        List<String> allSkipProperties = new ArrayList<String>(skipProperties);
-        allSkipProperties.add(Task.AUTOSKIP_PROPERTY_PREFIX + name);
-        for (String skipProperty : allSkipProperties) {
-            String propValue = System.getProperty(skipProperty);
-            if (propValue != null && !(propValue.toUpperCase().equals("FALSE"))) {
-                trueSkips.add(skipProperty);
+        if (enabled) {
+            List<String> allSkipProperties = new ArrayList<String>(skipProperties);
+            allSkipProperties.add(Task.AUTOSKIP_PROPERTY_PREFIX + name);
+            for (String skipProperty : allSkipProperties) {
+                String propValue = System.getProperty(skipProperty);
+                if (propValue != null && !(propValue.toUpperCase().equals("FALSE"))) {
+                    trueSkips.add(skipProperty);
+                }
             }
-        }
-        if (trueSkips.size() > 0) {
-            logger.info("Skipping execution as following skip properties are true: " + trueSkips);
+            if (trueSkips.size() > 0) {
+                logger.info("Skipping execution as following skip properties are true: " + trueSkips);
+            }
         } else {
+            logger.info("Skipping execution as task is disabled.");
+        }
+        if (!enabled || trueSkips.size() > 0) {
+            logger.info(Logging.HIGH_LEVEL, "Skipping  Task: {}", path);
+        } else {
+            logger.info(Logging.HIGH_LEVEL, "Executing Task: {}", path);
             for (TaskAction action : actions) {
                 logger.debug("Executing Action:");
                 try {
@@ -208,6 +212,7 @@ public abstract class AbstractTask implements Task {
             }
         }
         executed = true;
+        logger.debug("Finished executing Task: {}", path);
     }
 
     private void doExecute(TaskAction action) throws Throwable {

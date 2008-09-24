@@ -259,7 +259,7 @@ public class Dag implements TaskExecutionGraph {
         for (DefaultTask task : tasks) {
             dagNeutral = execute(new TreeSet(getChildren(task)));
             if (!task.getExecuted()) {
-                logger.info(Logging.HIGH_LEVEL, "Executing: " + task);
+                logger.info("Executing: " + task);
                 task.execute();
                 if (dagNeutral) {
                     dagNeutral = task.isDagNeutral();
