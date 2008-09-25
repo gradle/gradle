@@ -40,7 +40,7 @@ class WarTest extends AbstractArchiveTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        war = new War(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        war = new War(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(war)
         war.manifest = new GradleManifest()
         war.metaInfResourceCollections = [new FileSet()]

@@ -216,7 +216,7 @@ class BundleTest extends AbstractConventionTaskTest {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
             allowing(projectMock).getArchivesTaskBaseName(); will(returnValue(Project.DEFAULT_ARCHIVES_TASK_BASE_NAME))
             one(projectMock).createTask([(Task.TASK_TYPE): archiveType.getTaskClass()], taskName)
-            will(returnValue(archiveType.getTaskClass().newInstance(getProject(), taskName, getTasksGraph())))
+            will(returnValue(createTask(archiveType.getTaskClass(), getProject(), taskName)))
         }
     }
 

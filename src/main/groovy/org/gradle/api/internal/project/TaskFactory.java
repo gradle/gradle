@@ -68,9 +68,19 @@ public class TaskFactory implements ITaskFactory {
     }
 
     private Task createTaskObject(Project project, Class type, String name) {
+        // todo - remove this one
         try {
             Constructor constructor = type.getDeclaredConstructor(Project.class, String.class, Dag.class);
             return (Task) constructor.newInstance(project, name, tasksGraph);
+        } catch (NoSuchMethodException e) {
+            // ignore, try next one
+        } catch (Exception e) {
+            throw new GradleException("Task creation error.", e);
+        }
+
+        try {
+            Constructor constructor = type.getDeclaredConstructor(Project.class, String.class);
+            return (Task) constructor.newInstance(project, name);
         } catch (Exception e) {
             throw new GradleException("Task creation error.", e);
         }

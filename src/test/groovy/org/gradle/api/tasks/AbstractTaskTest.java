@@ -22,6 +22,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.execution.Dag;
 import org.gradle.test.util.Check;
 import org.gradle.util.HelperUtil;
@@ -32,9 +33,9 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.*;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -58,12 +59,13 @@ public abstract class AbstractTaskTest {
     public abstract AbstractTask getTask();
 
     public Task createTask(Project project, String name) {
-        try {
-            Constructor constructor = getTask().getClass().getDeclaredConstructor(Project.class, String.class, Dag.class);
-            return (Task) constructor.newInstance(project, name, tasksGraph);
-        } catch (Exception e) {
-            throw new GradleException("Task creation error.", e);
-        }
+        return createTask(getTask().getClass(), project, name);
+    }
+
+    public Task createTask(Class<? extends AbstractTask> type, Project project, String name) {
+        Task task = new TaskFactory(tasksGraph).createTask(project, new HashMap(), WrapUtil.toMap(Task.TASK_TYPE, type), name);
+        assertEquals(task.getClass(), type);
+        return task;
     }
 
     @Test
@@ -71,7 +73,6 @@ public abstract class AbstractTaskTest {
         assertTrue(getTask().isEnabled());
         assertEquals(TEST_TASK_NAME, getTask().getName());
         assertSame(project, getTask().getProject());
-        assertSame(tasksGraph, getTask().getTasksGraph());
         assertNotNull(getTask().getSkipProperties());
     }
 
