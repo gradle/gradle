@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.util.ZipFileSet
-import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
@@ -28,8 +27,8 @@ public class Zip extends AbstractArchiveTask {
 
     AntZip antZip = new AntZip()
 
-    Zip(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    Zip(Project project, String name) {
+        super(project, name, null)
         extension = ZIP_EXTENSION
     }
 

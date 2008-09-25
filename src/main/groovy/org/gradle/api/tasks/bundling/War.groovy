@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.execution.Dag
 import org.gradle.util.GUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

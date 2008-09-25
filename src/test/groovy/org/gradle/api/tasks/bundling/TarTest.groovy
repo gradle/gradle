@@ -32,7 +32,7 @@ class TarTest extends AbstractArchiveTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        tar = new Tar(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        tar = new Tar(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(tar)
         antTarMocker = new MockFor(AntTar)
     }

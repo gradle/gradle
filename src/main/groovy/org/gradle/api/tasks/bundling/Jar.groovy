@@ -39,7 +39,7 @@ public class Jar extends Zip {
     String fileSetManifest
 
     Jar(Project project, String name) {
-        super(project, name, null);
+        super(project, name);
         extension = DEFAULT_EXTENSION
     }   
 

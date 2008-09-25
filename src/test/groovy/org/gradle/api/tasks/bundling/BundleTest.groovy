@@ -200,9 +200,9 @@ class BundleTest extends AbstractConventionTaskTest {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
             allowing(projectMock).getArchivesTaskBaseName(); will(returnValue('archive'))
             one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip1_zip")
-            will(returnValue(Zip.newInstance(getProject(), "zip1_zip", null)))
+            will(returnValue(Zip.newInstance(getProject(), "zip1_zip")))
             one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip2_zip")
-            will(returnValue(Zip.newInstance(getProject(), "zip2_zip", null)))
+            will(returnValue(Zip.newInstance(getProject(), "zip2_zip")))
         }
     }
 
