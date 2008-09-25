@@ -39,8 +39,8 @@ class DirectoryTest extends AbstractTaskTest {
 
     @Before public void setUp() {
         super.setUp()
-        directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
-        directory = new Directory(project, TASK_DIR_NAME, getTasksGraph())
+        directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
+        directory = new Directory(project, TASK_DIR_NAME)
         HelperUtil.makeNewTestDir()
     }
 
@@ -54,7 +54,7 @@ class DirectoryTest extends AbstractTaskTest {
     }
 
     @Test (expected = InvalidUserDataException) public void testInitWithAbsolutePathName() {
-        directory = new Directory(project, new File('nonRelative').absolutePath, null)
+        directory = new Directory(project, new File('nonRelative').absolutePath)
     }
 
     @Test public void testExecute() {
@@ -76,7 +76,7 @@ class DirectoryTest extends AbstractTaskTest {
     @Test (expected = GradleScriptException) public void testWithExistingFile() {
         File file = new File(project.projectDir, 'testname')
         file.createNewFile()
-        directory = new Directory(project, 'testname', null)
+        directory = new Directory(project, 'testname')
         directory.execute()
     }
 

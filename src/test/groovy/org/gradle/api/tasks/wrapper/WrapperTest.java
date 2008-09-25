@@ -63,7 +63,7 @@ public class WrapperTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
+        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         unixWrapperScriptGeneratorMock = context.mock(UnixWrapperScriptGenerator.class);
         windowsExeGenerator = context.mock(WindowsExeGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
@@ -106,7 +106,7 @@ public class WrapperTest extends AbstractTaskTest {
 
     @Test
     public void testWrapper() {
-        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
+        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         assertEquals("", wrapper.getJarPath());
         assertEquals("", wrapper.getScriptDestinationPath());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());

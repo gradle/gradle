@@ -34,7 +34,7 @@ public class BuiltInTaskExecuter implements TaskExecuter {
 
     public void select(Project project) {
         assert !selected;
-        task = new TaskListTask(project, "taskList", null);
+        task = new TaskListTask(project, "taskList");
         selected = true;
     }
 

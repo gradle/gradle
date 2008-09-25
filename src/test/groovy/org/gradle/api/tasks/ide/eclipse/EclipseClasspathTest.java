@@ -74,7 +74,7 @@ public class EclipseClasspathTest extends AbstractTaskTest {
         context.checking(new Expectations() {{
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));
         }});
-        eclipseClasspath = new EclipseClasspath(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
+        eclipseClasspath = new EclipseClasspath(getProject(), AbstractTaskTest.TEST_TASK_NAME);
     }
 
     private void createProjectDirs(List<Object>... fileLists) {

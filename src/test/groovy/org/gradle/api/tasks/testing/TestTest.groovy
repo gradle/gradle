@@ -57,7 +57,7 @@ class TestTest extends AbstractConventionTaskTest {
 
     @Before public void setUp() {
         super.setUp()
-        test = new Test(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        test = new Test(project, AbstractTaskTest.TEST_TASK_NAME)
         test.project.projectDir = TEST_ROOT_DIR
         antJUnitMocker = new MockFor(AntJunit)
         dependencyManagerMocker = new MockFor(DependencyManager)

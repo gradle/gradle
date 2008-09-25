@@ -18,11 +18,8 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.gradle.api.*;
 import org.gradle.util.GUtil;
-import org.gradle.execution.Dag;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -33,7 +30,6 @@ import java.io.File;
 * @author Hans Dockter
 */
 public class Compile extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Compile.class);
 
     /**
      * The directories with the sources to compile
@@ -87,8 +83,8 @@ public class Compile extends ConventionTask {
 
     protected ClasspathConverter classpathConverter = new ClasspathConverter();
 
-    public Compile(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public Compile(Project project, String name) {
+        super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 compile(task);

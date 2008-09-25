@@ -18,7 +18,6 @@ package org.gradle.util
 
 import org.gradle.api.Project
 import org.gradle.api.internal.ConventionTask
-import org.gradle.execution.Dag
 
 /**
  * @author Hans Dockter
@@ -29,7 +28,7 @@ class TestTask extends ConventionTask  {
     List list1
     List list2
     
-    TestTask(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph)
+    TestTask(Project project, String name) {
+        super(project, name)
     }
 }

@@ -27,7 +27,6 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.execution.Dag;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
@@ -58,8 +57,8 @@ public class EclipseWtp extends ConventionTask {
 
     private boolean failForMissingDependencies = true;
 
-    public EclipseWtp(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public EclipseWtp(Project project, String name) {
+        super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generateWtp();

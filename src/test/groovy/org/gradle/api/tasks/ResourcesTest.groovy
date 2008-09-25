@@ -47,7 +47,7 @@ class ResourcesTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        resources = new Resources(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        resources = new Resources(project, AbstractTaskTest.TEST_TASK_NAME)
         pluginConvention = new ResourcesTestConvention()
         pluginConvention.classesDir = new File('/classes')
         project.convention.plugins.test = pluginConvention

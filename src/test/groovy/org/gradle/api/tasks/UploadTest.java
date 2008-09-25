@@ -20,12 +20,8 @@ import groovy.mock.interceptor.MockFor;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.hasItems;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
@@ -35,7 +31,6 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +50,7 @@ public class UploadTest extends AbstractTaskTest {
 
     @Before public void setUp() {
         super.setUp();
-        upload = new Upload(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
+        upload = new Upload(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         (projectRootDir = new File(HelperUtil.makeNewTestDir(), "root")).mkdir();
     }
 
@@ -79,7 +74,6 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfigurations(expectedConfigurations);
         upload.setProject(HelperUtil.createRootProject(projectRootDir));
         ((AbstractProject) upload.getProject()).setDependencies(dependencyManagerMock);
-        Bundle bundle = new Bundle(upload.getProject(), "bundle", getTasksGraph());
         context.checking(new Expectations() {{
             one(dependencyManagerMock).publish(expectedConfigurations, upload.getUploadResolvers(), false);
         }});

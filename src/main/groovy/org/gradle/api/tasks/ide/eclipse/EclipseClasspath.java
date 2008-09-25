@@ -27,7 +27,6 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.execution.Dag;
 import org.gradle.util.GFileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -70,8 +69,8 @@ public class EclipseClasspath extends ConventionTask {
     private static final String COMBINEACCESSRULES = "combineaccessrules";
     private static final String DEFAULT_JRE_CONTAINER = "org.eclipse.jdt.launching.JRE_CONTAINER";
 
-    public EclipseClasspath(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public EclipseClasspath(Project project, String name) {
+        super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generateClasspath();

@@ -22,7 +22,6 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DefaultTask;
-import org.gradle.execution.Dag;
 import org.gradle.util.CompressUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleUtil;
@@ -77,8 +76,8 @@ public class Wrapper extends DefaultTask {
 
     private WindowsExeGenerator windowsExeGenerator = new WindowsExeGenerator();
 
-    public Wrapper(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public Wrapper(Project project, String name) {
+        super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generate(task);

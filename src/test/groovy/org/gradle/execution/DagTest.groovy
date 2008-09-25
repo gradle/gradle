@@ -154,8 +154,8 @@ class DagTest {
     }
 
     @Test public void testAddTask() {
-        DefaultTask dummyTask = new DefaultTask(root, 'a', null)
-        Set dependsOnTasks = [new DefaultTask(root, 'b', null), new DefaultTask(root, 'c', null)]
+        DefaultTask dummyTask = new DefaultTask(root, 'a')
+        Set dependsOnTasks = [new DefaultTask(root, 'b'), new DefaultTask(root, 'c')]
         dag.addTask(dummyTask, dependsOnTasks)
         assertEquals(new HashSet([dummyTask]), dag.sources)
         assertEquals(new HashSet(dependsOnTasks), dag.sinks)
@@ -164,8 +164,8 @@ class DagTest {
 
 
     @Test (expected = CircularReferenceException) public void testAddTaskWithCircularReference() {
-        DefaultTask dummyTask = new DefaultTask(root, 'a', null)
-        DefaultTask dummyTask2 = new DefaultTask(root, 'b', null)
+        DefaultTask dummyTask = new DefaultTask(root, 'a')
+        DefaultTask dummyTask2 = new DefaultTask(root, 'b')
         dag.addTask(dummyTask, [dummyTask2] as Set)
         dag.addTask(dummyTask2, [dummyTask] as Set)
     }
@@ -196,14 +196,14 @@ class DagTest {
     }
 
     private DefaultTask createTask(Project project, String name, List executedIdList, int executedId) {
-        DefaultTask dummyTask0 = new DefaultTask(project, name, null)
+        DefaultTask dummyTask0 = new DefaultTask(project, name)
         dummyTask0.doFirst { executedIdList << executedId }
         dummyTask0
     }
 
     @Test public void testReset() {
-        DefaultTask dummyTask0 = new DefaultTask(root, 'a', null)
-        Set dependsOnTasks0 = [new DefaultTask(root, 'child2', null), new DefaultTask(root, 'child1', null)]
+        DefaultTask dummyTask0 = new DefaultTask(root, 'a')
+        Set dependsOnTasks0 = [new DefaultTask(root, 'child2'), new DefaultTask(root, 'child1')]
         dag.addTask(dummyTask0, dependsOnTasks0)
         assertTrue(dag.sources.size() > 0)
         assertTrue(dag.sinks.size() > 0)
@@ -215,8 +215,8 @@ class DagTest {
     @Test public void testGetProjects() {
         Project root = HelperUtil.createRootProject(new File('/root'))
         Project child = HelperUtil.createProjectMock([:], 'child', root)
-        DefaultTask task1 = new DefaultTask(root, 'task1', null)
-        DefaultTask task2 = new DefaultTask(child, 'task2', null)
+        DefaultTask task1 = new DefaultTask(root, 'task1')
+        DefaultTask task2 = new DefaultTask(child, 'task2')
         dag.addTask(task1, [] as Set)
         dag.addTask(task2, [] as Set)
         assertEquals([root, child] as Set, dag.projects)
@@ -225,8 +225,8 @@ class DagTest {
     @Test public void testHasTask() {
         Project root = HelperUtil.createRootProject(new File('/root'))
         Project child = HelperUtil.createProjectMock([:], 'child', root)
-        DefaultTask task1 = new DefaultTask(root, 'task1', null)
-        DefaultTask task2 = new DefaultTask(child, 'task2', null)
+        DefaultTask task1 = new DefaultTask(root, 'task1')
+        DefaultTask task2 = new DefaultTask(child, 'task2')
         dag.addTask(task1, [] as Set)
         dag.addTask(task2, [] as Set)
         assertTrue(dag.hasTask(':task1'))

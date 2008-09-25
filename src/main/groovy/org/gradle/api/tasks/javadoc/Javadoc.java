@@ -23,7 +23,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.execution.Dag;
 import org.gradle.util.GUtil;
 import org.apache.tools.ant.BuildException;
 
@@ -55,8 +54,8 @@ public class Javadoc extends ConventionTask {
 
     private AntJavadoc antJavadoc = new AntJavadoc();
 
-    public Javadoc(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public Javadoc(Project project, String name) {
+        super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generate();

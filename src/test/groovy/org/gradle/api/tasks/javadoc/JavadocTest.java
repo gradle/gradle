@@ -57,7 +57,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
         existingDirsFilter = context.mock(ExistingDirsFilter.class);
         dependencyManager = context.mock(DependencyManager.class);
 
-        task = new Javadoc(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
+        task = new Javadoc(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         task.setAntJavadoc(antJavadoc);
         task.setExistentDirsFilter(existingDirsFilter);
         task.setDependencyManager(dependencyManager);

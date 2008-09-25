@@ -20,7 +20,6 @@ import org.gradle.api.*
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.util.ExistingDirsFilter
-import org.gradle.execution.Dag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -83,8 +82,8 @@ class Test extends ConventionTask {
 
     protected ClasspathConverter classpathConverter = new ClasspathConverter()
 
-    Test(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    Test(Project project, String name) {
+        super(project, name);
         doFirst(this.&executeTests)
     }
 

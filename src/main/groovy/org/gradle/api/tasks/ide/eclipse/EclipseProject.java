@@ -25,7 +25,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.execution.Dag;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -43,8 +42,8 @@ public class EclipseProject extends ConventionTask {
 
     private ProjectType projectType = ProjectType.SIMPLE;
 
-    public EclipseProject(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public EclipseProject(Project project, String name) {
+        super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generateProject(task);

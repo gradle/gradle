@@ -19,7 +19,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.execution.Dag;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -38,8 +37,8 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class EclipseClean extends ConventionTask {
-    public EclipseClean(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public EclipseClean(Project project, String name) {
+        super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 deleteEclipseFiles();

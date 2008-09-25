@@ -4,13 +4,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
-import org.gradle.execution.Dag;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 
@@ -34,11 +32,11 @@ public class TaskListTaskTest {
         context.checking(new Expectations(){{
             allowing(project).getRootProject();
             will(returnValue(project));
-            allowing(project).getPath();
+            allowing(project).absolutePath("list");
             will(returnValue(":path"));
         }});
 
-        task = new TaskListTask(project, "list", new Dag());
+        task = new TaskListTask(project, "list");
         task.setPrinter(printer);
     }
 

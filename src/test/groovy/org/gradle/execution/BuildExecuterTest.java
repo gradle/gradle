@@ -68,11 +68,11 @@ public class BuildExecuterTest {
 
     @Test
     public void testExecute() {
-        final Task rootCompile = new DefaultTask(root, "compile", dagMock);
-        final Task rootTest = new DefaultTask(root, "test", dagMock);
-        final Task childCompile = new DefaultTask(child, "compile", dagMock);
-        final Task childTest = new DefaultTask(child, "test", dagMock);
-        final Task childOther = new DefaultTask(child, "other", dagMock);
+        final Task rootCompile = new DefaultTask(root, "compile");
+        final Task rootTest = new DefaultTask(root, "test");
+        final Task childCompile = new DefaultTask(child, "compile");
+        final Task childTest = new DefaultTask(child, "test");
+        final Task childOther = new DefaultTask(child, "other");
         rootTest.setDependsOn(WrapUtil.toSet(rootCompile.getPath()));
         childTest.setDependsOn(WrapUtil.toSet(childCompile.getName(), childOther));
 
@@ -88,7 +88,7 @@ public class BuildExecuterTest {
     }
 
     @Test public void testExecuteWithRebuildDagAndDagNeutralTask() {
-        final Task rootCompile = new DefaultTask(root, "compile", dagMock);
+        final Task rootCompile = new DefaultTask(root, "compile");
         root.getTasks().put(rootCompile.getName(), rootCompile);
         setDagMockExpectations(WrapUtil.<Project>toSet(root), WrapUtil.toSet(rootCompile), true);
         assertFalse(buildExecuter.execute(WrapUtil.toList(rootCompile)));
@@ -129,9 +129,9 @@ public class BuildExecuterTest {
 
     @Test
     public void testExecuteWithTransitiveTargetDependecies() {
-        Task task1 = new DefaultTask(root, "task1", dagMock);
-        Task task2 = new DefaultTask(root, "task2", dagMock).dependsOn("task1");
-        Task task3 = new DefaultTask(root, "task3", dagMock).dependsOn("task2");
+        Task task1 = new DefaultTask(root, "task1");
+        Task task2 = new DefaultTask(root, "task2").dependsOn("task1");
+        Task task3 = new DefaultTask(root, "task3").dependsOn("task2");
         root.getTasks().put("task1", task1);
         root.getTasks().put("task2", task2);
         root.getTasks().put("task3", task3);

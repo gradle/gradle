@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.util.ExistingDirsFilter
-import org.gradle.execution.Dag
 import org.gradle.util.BootstrapUtil
 
 
@@ -40,8 +39,8 @@ class Groovydoc extends ConventionTask {
 
     def self
 
-    Groovydoc(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    Groovydoc(Project project, String name) {
+        super(project, name);
         doFirst(this.&generate)
         self = this
     }

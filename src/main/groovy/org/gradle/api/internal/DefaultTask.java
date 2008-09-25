@@ -29,10 +29,11 @@ import org.gradle.util.ConfigureUtil;
  */
 public class DefaultTask extends AbstractTask {
     public DefaultTask() {
+        this(null, null);
     }
 
-    public DefaultTask(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public DefaultTask(Project project, String name) {
+        super(project, name);
     }
 
     public Task doFirst(Closure action) {

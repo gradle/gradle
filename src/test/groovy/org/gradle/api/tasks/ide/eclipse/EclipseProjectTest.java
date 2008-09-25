@@ -45,7 +45,7 @@ public class EclipseProjectTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         projectDir = HelperUtil.makeNewTestDir();
-        eclipseProject = new EclipseProject(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
+        eclipseProject = new EclipseProject(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         eclipseProject.setProjectName("myProject");
     }
 

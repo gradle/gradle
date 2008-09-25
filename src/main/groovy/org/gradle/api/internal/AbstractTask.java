@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.execution.Dag;
 import org.gradle.logging.Logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +44,6 @@ public abstract class AbstractTask implements Task {
 
     private ProjectInternal project;
 
-    private Dag tasksGraph;
-
     private String name;
 
     private List<TaskAction> actions = new ArrayList<TaskAction>();
@@ -63,18 +60,12 @@ public abstract class AbstractTask implements Task {
 
     private DefaultTaskDependency dependencies = new DefaultTaskDependency();
 
-    public AbstractTask() {
-
-    }
-
-    public AbstractTask(Project project, String name, Dag tasksGraph) {
+    public AbstractTask(Project project, String name) {
         assert project != null;
         assert name != null;
         this.project = (ProjectInternal) project;
         this.name = name;
-        this.tasksGraph = tasksGraph;
-        String separator = project == (project.getRootProject()) ? "" : Project.PATH_SEPARATOR;
-        path = project.getPath() + separator + name;
+        path = project.absolutePath(name);
     }
 
     public AntBuilder getAnt() {
@@ -159,14 +150,6 @@ public abstract class AbstractTask implements Task {
 
     public void setDagNeutral(boolean dagNeutral) {
         this.dagNeutral = dagNeutral;
-    }
-
-    public Dag getTasksGraph() {
-        return tasksGraph;
-    }
-
-    public void setTasksGraph(Dag tasksGraph) {
-        this.tasksGraph = tasksGraph;
     }
 
     public Task deleteAllActions() {

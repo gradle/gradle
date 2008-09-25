@@ -4,7 +4,6 @@ import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.TaskAction;
 import org.gradle.api.Task;
-import org.gradle.execution.Dag;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
 
 /**
@@ -14,8 +13,8 @@ import org.gradle.configuration.ProjectTasksPrettyPrinter;
 public class TaskListTask extends DefaultTask {
     private ProjectTasksPrettyPrinter printer = new ProjectTasksPrettyPrinter();
 
-    public TaskListTask(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public TaskListTask(Project project, String name) {
+        super(project, name);
         setDagNeutral(true);
         doFirst(new TaskAction() {
             public void execute(Task task) {

@@ -46,7 +46,7 @@ public class BuiltInTaskExecuterTest {
         context.checking(new Expectations(){{
             allowing(project).getRootProject();
             will(returnValue(rootProject));
-            allowing(project).getPath();
+            allowing(project).absolutePath("taskList");
             will(returnValue(":path"));
         }});
     }

@@ -23,9 +23,6 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.CopyInstructionFactory;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.GUtil;
-import org.gradle.execution.Dag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.io.File;
@@ -38,7 +35,6 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class Resources extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Resources.class);
 
     /**
      * A list of file objects denoting the directories to extract the content from.
@@ -100,8 +96,8 @@ public class Resources extends ConventionTask {
 
     ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
-    public Resources(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public Resources(Project project, String name) {
+        super(project, name);
         copyInstructionFactory = new CopyInstructionFactory(project.getAnt());
         doLast(new TaskAction() {
             public void execute(Task task) {

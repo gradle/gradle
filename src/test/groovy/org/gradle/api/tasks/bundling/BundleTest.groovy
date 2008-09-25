@@ -89,7 +89,7 @@ class BundleTest extends AbstractConventionTaskTest {
         testChildrenDependsOn = ['othertaskpath', 'othertaskpath2']
         testBundleDependsOn = ['othertaskpath10', "othertaskpath11"]
         testDefaultConfigurations = ['conf1', 'conf2']
-        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
         bundle.childrenDependOn = testChildrenDependsOn
         bundle.dependsOn = testBundleDependsOn
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
@@ -101,7 +101,7 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testBundle() {
-        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
         assertEquals([] as Set, bundle.childrenDependOn)
     }
 

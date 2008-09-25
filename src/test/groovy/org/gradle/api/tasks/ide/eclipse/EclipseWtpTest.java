@@ -68,15 +68,7 @@ public class EclipseWtpTest extends AbstractTaskTest {
         context.checking(new Expectations() {{
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));
         }});
-        eclipseWtp = new EclipseWtp(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
-    }
-
-    private void createProjectDirs(List<String>... fileLists) {
-        for (List<String> fileList : fileLists) {
-            for (String path : fileList) {
-                getProject().file(path).mkdirs();
-            }
-        }
+        eclipseWtp = new EclipseWtp(getProject(), AbstractTaskTest.TEST_TASK_NAME);
     }
 
     @After

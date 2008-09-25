@@ -84,12 +84,12 @@ public class TaskFactoryTest {
     }
 
     @Test (expected = InvalidUserDataException.class) public void testCreateDefaultTaskWithSameNameAsExistingTask() {
-        tasks.put(TEST_TASK_NAME, new DefaultTask());
+        tasks.put(TEST_TASK_NAME, new DefaultTask(testProject, TEST_TASK_NAME));
         taskFactory.createTask(testProject, tasks, empyArgMap, TEST_TASK_NAME);
     }
 
     @Test public void testCreateDefaultTaskWithSameNameAsExistingTaskAndOverwriteTrue() {
-        Task oldTask = new DefaultTask();
+        Task oldTask = new DefaultTask(testProject, TEST_TASK_NAME);
         tasks.put(TEST_TASK_NAME, oldTask);
         Task task = taskFactory.createTask(testProject, tasks, WrapUtil.toMap("overwrite", true), TEST_TASK_NAME);
         Assert.assertNotSame(oldTask, task);

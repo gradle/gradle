@@ -20,12 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.Resources;
-import org.gradle.execution.Dag;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -33,8 +29,6 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class Bundle extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Resources.class);
-
     public static final String BASENAME_KEY = "baseName";
     public static final String APPENDIX_KEY = "appendix";
     public static final String CLASSIFIER_KEY = "classifier";
@@ -48,8 +42,8 @@ public class Bundle extends ConventionTask {
 
     private List<String> defaultConfigurations = new ArrayList<String>();
 
-    public Bundle(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public Bundle(Project project, String name) {
+        super(project, name);
     }
 
     public AbstractArchiveTask createArchive(ArchiveType type, Closure configureClosure) {

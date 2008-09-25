@@ -30,7 +30,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME, getTasksGraph())
+        defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME)
     }
 
     AbstractTask getTask() {

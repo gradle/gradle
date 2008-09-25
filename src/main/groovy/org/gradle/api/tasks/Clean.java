@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.execution.Dag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +39,8 @@ public class Clean extends ConventionTask {
 
     ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
 
-    public Clean(Project project, String name, Dag tasksGraph) {
-        super(project, name, tasksGraph);
+    public Clean(Project project, String name) {
+        super(project, name);
         setDagNeutral(true);
         doFirst(new TaskAction() {
             public void execute(Task task) {

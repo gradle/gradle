@@ -31,7 +31,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
 import static org.hamcrest.Matchers.*
-import org.jmock.Mockery
 import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.*
 import org.junit.Before
@@ -108,7 +107,7 @@ class DefaultProjectTest {
         child1 = project.addChildProject("child1", new File("child1"))
         childchild = child1.addChildProject("childchild", new File("childchild"))
         child2 = project.addChildProject("child2", new File("child2"))
-        testTask = new DefaultTask(project, TEST_TASK_NAME, null)
+        testTask = new DefaultTask(project, TEST_TASK_NAME)
     }
 
     @Test void testProject() {
@@ -435,8 +434,8 @@ class DefaultProjectTest {
     }
 
     @Test void testTask() {
-        DefaultTask task = project.tasks['task'] = new DefaultTask(project, 'task', null)
-        DefaultTask childTask = child1.tasks['task'] = new DefaultTask(child1, 'task', null)
+        DefaultTask task = project.tasks['task'] = new DefaultTask(project, 'task')
+        DefaultTask childTask = child1.tasks['task'] = new DefaultTask(child1, 'task')
         assertThat(project.task('task'), sameInstance(task))
         assertThat(project.task(':task'), sameInstance(task))
         assertThat(project.task(':child1:task'), sameInstance(childTask))
@@ -473,7 +472,7 @@ class DefaultProjectTest {
     }
 
     @Test void testCanAccessTaskAsAProjectProperty() {
-        DefaultTask task = project.tasks[TEST_TASK_NAME] = new DefaultTask(project, TEST_TASK_NAME, null)
+        DefaultTask task = project.tasks[TEST_TASK_NAME] = new DefaultTask(project, TEST_TASK_NAME)
         assertThat(project."$TEST_TASK_NAME", sameInstance(task))
     }
 
@@ -609,7 +608,7 @@ class DefaultProjectTest {
     }
 
     @Test void testGetTasksByNameWithSingularTask() {
-        DefaultTask child1Task = child1.tasks['child1Task'] = new DefaultTask(project, 'child1Task', null)
+        DefaultTask child1Task = child1.tasks['child1Task'] = new DefaultTask(project, 'child1Task')
         assertEquals([child1Task] as Set, project.getTasksByName(child1Task.name, true))
         assertEquals(0, project.getTasksByName(child1Task.name, false).size())
     }
@@ -631,7 +630,7 @@ class DefaultProjectTest {
     private List addTestTaskToAllProjects(String name) {
         List tasks = []
         project.allprojects.each {Project project ->
-            project.tasks[name] = new DefaultTask(project, name, null)
+            project.tasks[name] = new DefaultTask(project, name)
             tasks << project.tasks[name]
         }
         tasks
@@ -643,7 +642,7 @@ class DefaultProjectTest {
         boolean closureCalled = false
         Closure testConfigureClosure = {closureCalled = true}
         assertEquals('parent', project.scriptMethod(testConfigureClosure))
-        project.tasks['scriptMethod'] = new DefaultTask(project, 'scriptMethod', null)
+        project.tasks['scriptMethod'] = new DefaultTask(project, 'scriptMethod')
         project.scriptMethod(testConfigureClosure)
         assert closureCalled
         project.convention.plugins.test = new TestConvention()
@@ -773,9 +772,9 @@ def scriptMethod(Closure closure) {
     }
 
     @Test public void testDir() {
-        Task dirTask1 = new Directory(project, 'dir1', null)
-        Task dirTask12 = new Directory(project, 'dir1/dir2', null)
-        Task dirTask123 = new Directory(project, 'dir1/dir2/dir3', null)
+        Task dirTask1 = new Directory(project, 'dir1')
+        Task dirTask12 = new Directory(project, 'dir1/dir2')
+        Task dirTask123 = new Directory(project, 'dir1/dir2/dir3')
         Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
         context.checking {
             one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
@@ -786,9 +785,9 @@ def scriptMethod(Closure closure) {
     }
 
     @Test public void testDirWithExistingParentDirTask() {
-        Task dirTask1 = new Directory(project, 'dir1', null)
+        Task dirTask1 = new Directory(project, 'dir1')
         project.tasks.dir1 = dirTask1
-        Task dirTask14 = new Directory(project, 'dir1/dir4', null)
+        Task dirTask14 = new Directory(project, 'dir1/dir4')
         Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
         context.checking {
             one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1/dir4'); will(returnValue(dirTask14))
@@ -797,9 +796,9 @@ def scriptMethod(Closure closure) {
     }
 
     @Test (expected = InvalidUserDataException) public void testDirWithConflictingNonDirTask() {
-        Task confictingTask = new DefaultTask(project, 'dir1', null)
+        Task confictingTask = new DefaultTask(project, 'dir1')
         project.tasks.dir1 = confictingTask
-        Task dirTask14 = new Directory(project, 'dir1/dir4', null)
+        Task dirTask14 = new Directory(project, 'dir1/dir4')
         Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
         context.checking {
             one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1/dir4'); will(returnValue(dirTask14))

@@ -45,7 +45,7 @@ public class CompileTest extends AbstractCompileTest {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
         getProject().setProjectDir(AbstractCompileTest.TEST_ROOT_DIR);
-        compile = new Compile(getProject(), AbstractTaskTest.TEST_TASK_NAME, getTasksGraph());
+        compile = new Compile(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         antCompileMock = context.mock(AntJavac.class);
         compile.antCompile = antCompileMock;
     }
