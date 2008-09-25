@@ -269,7 +269,7 @@ public class Gradle {
                     ),
                     new ProjectsLoader(
                             new ProjectFactory(
-                                    new TaskFactory(tasksGraph),
+                                    new TaskFactory(),
                                     dependencyManagerFactory,
                                     new BuildScriptProcessor(
                                             scriptProcessor,

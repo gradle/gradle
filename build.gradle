@@ -15,7 +15,6 @@ import org.gradle.build.release.Svn
 import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
-import org.gradle.execution.Dag
 import org.gradle.util.GradleVersion
 
 /**

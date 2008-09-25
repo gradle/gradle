@@ -23,7 +23,6 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.TaskFactory;
-import org.gradle.execution.Dag;
 import org.gradle.test.util.Check;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -47,12 +46,8 @@ public abstract class AbstractTaskTest {
 
     private AbstractProject project;
 
-    private Dag tasksGraph;
-
-
     @Before
     public void setUp() {
-        tasksGraph = new Dag();
         project = HelperUtil.createRootProject(new File(HelperUtil.TMP_DIR_FOR_TEST).getAbsoluteFile());
     }
 
@@ -63,7 +58,7 @@ public abstract class AbstractTaskTest {
     }
 
     public Task createTask(Class<? extends AbstractTask> type, Project project, String name) {
-        Task task = new TaskFactory(tasksGraph).createTask(project, new HashMap(), WrapUtil.toMap(Task.TASK_TYPE, type), name);
+        Task task = new TaskFactory().createTask(project, new HashMap(), WrapUtil.toMap(Task.TASK_TYPE, type), name);
         assertEquals(task.getClass(), type);
         return task;
     }
@@ -383,13 +378,5 @@ public abstract class AbstractTaskTest {
 
     public void setProject(AbstractProject project) {
         this.project = project;
-    }
-
-    public Dag getTasksGraph() {
-        return tasksGraph;
-    }
-
-    public void setTasksGraph(Dag tasksGraph) {
-        this.tasksGraph = tasksGraph;
     }
 }

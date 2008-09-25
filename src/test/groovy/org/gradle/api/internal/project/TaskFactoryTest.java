@@ -20,13 +20,16 @@ import org.junit.Test;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import org.gradle.util.TestTask;
 import org.gradle.util.WrapUtil;
 import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.TaskAction;
 import org.gradle.api.Task;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.execution.Dag;
+import org.gradle.api.Project;
+import org.gradle.api.GradleException;
 
 import java.util.*;
 
@@ -47,10 +50,9 @@ public class TaskFactoryTest {
 
     private Map tasks;
 
-    private Dag testTaskGraph;
-
-    @Before public void setUp() {
-        taskFactory = new TaskFactory(testTaskGraph);
+    @Before
+    public void setUp() {
+        taskFactory = new TaskFactory();
         testProject = new DefaultProject();
         testAction = new TaskAction() {
             public void execute(Task task) {
@@ -61,43 +63,92 @@ public class TaskFactoryTest {
         tasks = new HashMap();
     }
 
-    @Test public void testInit() {
-        assertSame(testTaskGraph, taskFactory.getTasksGraph());
+    @Test
+    public void testCreateTask() {
+        assertEquals(0, checkTask(taskFactory.createTask(testProject, tasks, empyArgMap, TEST_TASK_NAME))
+                .getActions().size());
     }
 
-    @Test public void testCreateTask() {
-        assertEquals(0, checkTask(taskFactory.createTask(testProject, tasks, empyArgMap, TEST_TASK_NAME)).getActions().size());
-    }
-
-    @Test public void testCreateTaskWithDependencies() {
+    @Test
+    public void testCreateTaskWithDependencies() {
         List testDependsOn = WrapUtil.toList("/path1");
-        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn), TEST_TASK_NAME));
-        assertEquals(new HashSet(testDependsOn),task.getDependsOn());
+        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn),
+                TEST_TASK_NAME));
+        assertEquals(new HashSet(testDependsOn), task.getDependsOn());
         assert task.getActions().size() == 0;
     }
 
-    @Test public void testCreateTaskWithSingleDependency() {
+    @Test
+    public void testCreateTaskWithSingleDependency() {
         String testDependsOn = "/path1";
-        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn), TEST_TASK_NAME));
+        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("dependsOn", testDependsOn),
+                TEST_TASK_NAME));
         assertEquals(WrapUtil.toSet(testDependsOn), task.getDependsOn());
         assert task.getActions().size() == 0;
     }
 
-    @Test (expected = InvalidUserDataException.class) public void testCreateDefaultTaskWithSameNameAsExistingTask() {
-        tasks.put(TEST_TASK_NAME, new DefaultTask(testProject, TEST_TASK_NAME));
-        taskFactory.createTask(testProject, tasks, empyArgMap, TEST_TASK_NAME);
+    @Test
+    public void testCreateDefaultTaskWithSameNameAsExistingTask() {
+        tasks.put("name", new DefaultTask(testProject, "name"));
+        try {
+            taskFactory.createTask(testProject, tasks, empyArgMap, "name");
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertEquals("Cannot create task with name 'name' as a task with that name already exists.",
+                    e.getMessage());
+        }
     }
 
-    @Test public void testCreateDefaultTaskWithSameNameAsExistingTaskAndOverwriteTrue() {
+    @Test
+    public void testCreateDefaultTaskWithSameNameAsExistingTaskAndOverwriteTrue() {
         Task oldTask = new DefaultTask(testProject, TEST_TASK_NAME);
         tasks.put(TEST_TASK_NAME, oldTask);
         Task task = taskFactory.createTask(testProject, tasks, WrapUtil.toMap("overwrite", true), TEST_TASK_NAME);
-        Assert.assertNotSame(oldTask, task);
+        assertNotSame(oldTask, task);
     }
 
-    @Test public void testCreateTaskWithNonDefaultType() {
-        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap(Task.TASK_TYPE, TestTask.class), TEST_TASK_NAME));
+    @Test
+    public void testCreateTaskWithNonDefaultType() {
+        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap(Task.TASK_TYPE, TestTask.class),
+                TEST_TASK_NAME));
         assertEquals(TestTask.class, task.getClass());
+    }
+
+    @Test
+    public void testCreateTaskForTypeWithMissingConstructor() {
+        try {
+            taskFactory.createTask(testProject, tasks, WrapUtil.toMap(Task.TASK_TYPE, MissingConstructorTask.class),
+                    "name");
+            fail();
+        } catch (GradleException e) {
+            assertEquals(
+                    "Cannot create task of type 'MissingConstructorTask' as it does not have an appropriate public constructor.",
+                    e.getMessage());
+        }
+    }
+
+    @Test
+    public void testCreateTaskForTypeWhichDoesNotImplementTask() {
+        try {
+            taskFactory.createTask(testProject, tasks, WrapUtil.toMap(Task.TASK_TYPE, NotATask.class), "name");
+            fail();
+        } catch (GradleException e) {
+            assertEquals("Cannot create task of type 'NotATask' as it does not implement the Task interface.",
+                    e.getMessage());
+        }
+    }
+
+    @Test
+    public void testCreateTaskWhenConstructorThrowsException() {
+        try {
+            taskFactory.createTask(testProject, tasks, WrapUtil.toMap(Task.TASK_TYPE, CannotConstructTask.class),
+                    "name");
+            fail();
+        } catch (GradleException e) {
+            assertEquals("Could not create task of type 'CannotConstructTask'.", e.getMessage());
+            assertTrue(RuntimeException.class.isInstance(e.getCause()));
+            assertEquals("fail", e.getCause().getMessage());
+        }
     }
 
     private Task checkTask(Task task) {
@@ -106,4 +157,16 @@ public class TaskFactoryTest {
         return task;
     }
 
+    public static class MissingConstructorTask extends DefaultTask {
+    }
+
+    public static class NotATask {
+    }
+
+    public static class CannotConstructTask extends DefaultTask {
+        public CannotConstructTask(Project project, String name) {
+            super(project, name);
+            throw new RuntimeException("fail");
+        }
+    }
 }
