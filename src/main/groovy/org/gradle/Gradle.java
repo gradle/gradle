@@ -145,7 +145,6 @@ public class Gradle {
         TaskExecuter executer = startParameter.getTaskExecuter();
         while (executer.hasNext()) {
             if (rebuildDag) {
-                projectLoader.reset();
                 projectLoader.load(settings.getRootProjectDescriptor(), classLoader, startParameter,
                         gradlePropertiesLoader.getGradleProperties());
                 buildConfigurer.process(projectLoader.getRootProject());
@@ -279,11 +278,9 @@ public class Gradle {
                                     new PluginRegistry(
                                             startParameter.getPluginPropertiesFile()),
                                     startParameter,
-                                    new DefaultProjectRegistry(),
-                                    tasksGraph,
                                     startParameter.getBuildScriptSource(),
-                                    new DefaultAntBuilderFactory(new AntLoggingAdapter()))
-
+                                    new DefaultAntBuilderFactory(new AntLoggingAdapter())),
+                            tasksGraph
                     ),
                     new BuildConfigurer(
                             new ProjectDependencies2TaskResolver(),

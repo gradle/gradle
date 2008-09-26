@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
-import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
-import org.gradle.api.invocation.Build;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.invocation.DefaultBuild;
-import org.gradle.StartParameter;
 
 import java.io.File;
 
@@ -35,10 +33,8 @@ public class ProjectFactory implements IProjectFactory {
     private BuildScriptProcessor buildScriptProcessor;
     private PluginRegistry pluginRegistry;
     private StartParameter startParameter;
-    private IProjectRegistry projectRegistry;
     private ScriptSource embeddedScript;
     private ITaskFactory taskFactory;
-    private TaskExecutionGraph taskGraph;
     private AntBuilderFactory antBuilderFactory;
 
     public ProjectFactory() {
@@ -46,43 +42,28 @@ public class ProjectFactory implements IProjectFactory {
 
     public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
-                          StartParameter startParameter, IProjectRegistry projectRegistry, TaskExecutionGraph taskGraph,
-                          ScriptSource embeddedScript, AntBuilderFactory antBuilderFactory) {
+                          StartParameter startParameter, ScriptSource embeddedScript,
+                          AntBuilderFactory antBuilderFactory) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
         this.startParameter = startParameter;
-        this.projectRegistry = projectRegistry;
-        this.taskGraph = taskGraph;
         this.embeddedScript = embeddedScript;
         this.antBuilderFactory = antBuilderFactory;
     }
 
-    public DefaultProject createProject(String name, Project parent, File projectDir,
-                                        ClassLoader buildScriptClassLoader) {
+    public DefaultProject createProject(String name, Project parent, File projectDir, BuildInternal build) {
         ScriptSource source;
         if (embeddedScript != null) {
             source = embeddedScript;
         } else {
             source = new FileScriptSource("build file", new File(projectDir, startParameter.getBuildFileName()));
         }
-        Build build;
-        if (parent == null) {
-            build = new DefaultBuild(null, taskGraph, startParameter);
-        } else {
-            build = parent.getBuild();
-        }
-        DefaultProject project = new DefaultProject(name, parent, projectDir, startParameter.getBuildFileName(), source,
-                buildScriptClassLoader, taskFactory,
-                dependencyManagerFactory, antBuilderFactory, buildScriptProcessor, pluginRegistry, projectRegistry, this, build);
-        if (parent == null) {
-            ((DefaultBuild) build).setRootProject(project.getRootProject());
-        }
-        return project;
-    }
-
-    public void reset() {
-        projectRegistry.reset();
+        
+        return new DefaultProject(name, parent, projectDir, startParameter.getBuildFileName(), source,
+                build.getBuildScriptClassLoader(), taskFactory, dependencyManagerFactory, antBuilderFactory,
+                buildScriptProcessor, pluginRegistry,
+                build.getProjectRegistry(), this, build);
     }
 }

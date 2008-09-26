@@ -267,7 +267,6 @@ public class GradleTest {
                 will(returnValue(false));
                 one(buildExecuterMock).execute(expectedTasks.get(1));
                 will(returnValue(false));
-                one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
             }
@@ -282,11 +281,9 @@ public class GradleTest {
                 will(returnValue(true));
                 one(buildExecuterMock).execute(expectedTasks.get(1));
                 will(returnValue(true));
-                one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams, testGradleProperties);
             }
         });
@@ -295,7 +292,6 @@ public class GradleTest {
     private void expectTasksRunWithFailure(final Throwable failure) {
         context.checking(new Expectations() {
             {
-                one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 one(buildConfigurerMock).process(expectedRootProject);
@@ -310,7 +306,6 @@ public class GradleTest {
         expectedStartParams.setTaskNames(WrapUtil.toList("unknown"));
         context.checking(new Expectations() {
             {
-                one(projectsLoaderMock).reset();
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, gradlePropertiesLoaderMock);

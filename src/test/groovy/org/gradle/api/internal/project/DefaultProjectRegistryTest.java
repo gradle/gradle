@@ -75,14 +75,8 @@ public class DefaultProjectRegistryTest {
     }
 
     @Test
-    public void reset() {
-        projectRegistry.reset();
-        assertEquals(0, projectRegistry.getAllProjects(":").size());
-    }
-
-    @Test
     public void accessMethodsForNonExistingsPaths() {
-        projectRegistry.reset();
+        projectRegistry = new DefaultProjectRegistry();
         Project otherRoot = HelperUtil.createRootProject(new File("otherRoot"));
         checkAccessMethods(otherRoot, new TreeSet(), new TreeSet(), null);
     }

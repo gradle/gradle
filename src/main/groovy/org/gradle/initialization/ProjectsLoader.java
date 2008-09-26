@@ -17,7 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.invocation.DefaultBuild;
 import org.gradle.api.Project;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -39,6 +41,8 @@ public class ProjectsLoader {
 
     private IProjectFactory projectFactory;
 
+    private TaskExecutionGraph taskGraph;
+
     private ProjectInternal rootProject;
 
     private ProjectInternal currentProject;
@@ -47,37 +51,45 @@ public class ProjectsLoader {
 
     }
 
-    public ProjectsLoader(IProjectFactory projectFactory) {
+    public ProjectsLoader(IProjectFactory projectFactory, TaskExecutionGraph taskGraph) {
         this.projectFactory = projectFactory;
+        this.taskGraph = taskGraph;
     }
 
-    public ProjectsLoader load(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader, StartParameter startParameter,
+    public ProjectsLoader load(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
+                               StartParameter startParameter,
                                Map<String, String> externalProjectProperties) {
         logger.info("++ Loading Project objects");
+        rootProject = null;
+        currentProject = null;
         Clock clock = new Clock();
-        rootProject = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter, externalProjectProperties);
+        rootProject = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter,
+                externalProjectProperties);
         currentProject = (ProjectInternal) rootProject.getProjectRegistry().getProject(startParameter.getCurrentDir());
         assert currentProject != null;
         logger.debug("Timing: Loading projects took: " + clock.getTime());
         return this;
     }
 
-    private ProjectInternal createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader, StartParameter startParameter,
+    private ProjectInternal createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
+                                           StartParameter startParameter,
                                            Map<String, String> externalProjectProperties) {
-        logger.debug("Creating the projects and evaluating the project files!");
-        logger.debug("Adding external properties: {}", externalProjectProperties.keySet());
-        logger.debug("Looking for system project properties");
+        DefaultBuild build = new DefaultBuild(taskGraph, startParameter, buildScriptClassLoader);
         ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor.getName(), null,
-                rootProjectDescriptor.getDir(), buildScriptClassLoader);
+                rootProjectDescriptor.getDir(), build);
+        build.setRootProject(rootProject);
+        
         addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties, rootProject);
         addProjects(rootProject, rootProjectDescriptor, startParameter, externalProjectProperties);
         return rootProject;
     }
 
-    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, StartParameter startParameter,
+    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor,
+                             StartParameter startParameter,
                              Map<String, String> externalProjectProperties) {
         for (DefaultProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ProjectInternal childProject = (ProjectInternal) parent.addChildProject(childProjectDescriptor.getName(), childProjectDescriptor.getDir());
+            ProjectInternal childProject = (ProjectInternal) parent.addChildProject(childProjectDescriptor.getName(),
+                    childProjectDescriptor.getDir());
             addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties,
                     childProject);
             addProjects(childProject, childProjectDescriptor, startParameter, externalProjectProperties);
@@ -94,7 +106,8 @@ public class ProjectsLoader {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            logger.debug("Adding project properties (if not overwritten by user properties): {}", projectProperties.keySet());
+            logger.debug("Adding project properties (if not overwritten by user properties): {}",
+                    projectProperties.keySet());
         } else {
             logger.debug("project property file does not exists. We continue!");
         }
@@ -107,10 +120,6 @@ public class ProjectsLoader {
         for (Object key : projectProperties.keySet()) {
             project.setProperty((String) key, projectProperties.get(key));
         }
-    }
-
-    public void reset() {
-        projectFactory.reset();    
     }
 
     public IProjectFactory getProjectFactory() {

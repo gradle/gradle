@@ -31,9 +31,6 @@ public class BuildExecuter {
 
     private Dag dag;
 
-    public BuildExecuter() {
-    }
-
     public BuildExecuter(Dag dag) {
         this.dag = dag;
     }

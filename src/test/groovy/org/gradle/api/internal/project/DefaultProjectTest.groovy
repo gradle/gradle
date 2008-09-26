@@ -38,6 +38,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.invocation.Build
 import org.gradle.StartParameter
+import org.gradle.api.internal.BuildInternal
+import org.gradle.invocation.DefaultBuild
 
 /**
  * @author Hans Dockter
@@ -91,16 +93,17 @@ class DefaultProjectTest {
         dependencyManagerMock = context.mock(DependencyManager)
         dependencyManagerFactoryMock = [createDependencyManager: {Project project -> dependencyManagerMock}] as DependencyManagerFactory
         script = context.mock(ScriptSource.class)
-        build = context.mock(Build.class)
 
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
+        build = new DefaultBuild(null, null, buildScriptClassLoader)
+
         rootDir = new File("/path/root").absoluteFile
         pluginRegistry = new PluginRegistry(new File('somepath'))
-        projectRegistry = new DefaultProjectRegistry()
+        projectRegistry = build.projectRegistry
         buildScriptProcessor = new BuildScriptProcessor()
         ProjectFactory factory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor,
-                pluginRegistry, new StartParameter(), projectRegistry, null, null, antBuilderFactoryMock)
+                pluginRegistry, new StartParameter(), null, antBuilderFactoryMock)
         project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
                 factory, build);

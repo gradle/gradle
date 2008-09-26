@@ -22,20 +22,19 @@ import org.gradle.api.internal.project.BuildScriptProcessor
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.IProjectRegistry
 import org.gradle.api.internal.project.PluginRegistry
-import org.gradle.api.internal.project.ProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.ProjectsLoader
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.execution.TaskExecutionGraph
 
 /**
  * @author Hans Dockter
@@ -61,7 +60,7 @@ class ProjectsLoaderTest {
         projectFactory = context.mock(IProjectFactory)
         buildScriptProcessor = new BuildScriptProcessor()
         pluginRegistry = new PluginRegistry()
-        projectsLoader = new ProjectsLoader(projectFactory)
+        projectsLoader = new ProjectsLoader(projectFactory, context.mock(TaskExecutionGraph))
         testDir = HelperUtil.makeNewTestDir()
         (testRootProjectDir = new File(testDir, 'root')).mkdirs()
         (testParentProjectDir = new File(testRootProjectDir, 'parent')).mkdirs()
@@ -112,7 +111,10 @@ class ProjectsLoaderTest {
             allowing(child2).getProjectDir()
             will(returnValue(child2ProjectDescriptor.dir))
 
-            one(projectFactory).createProject(rootProjectDescriptor.getName(), null, testRootProjectDir, testClassLoader)
+            one(projectFactory).createProject(withParam(equalTo(rootProjectDescriptor.getName())),
+                    withParam(nullValue()),
+                    withParam(equalTo(testRootProjectDir)),
+                    withParam(notNullValue()))
             will(returnValue(rootProject))
 
             one(rootProject).setGradleUserHome(testUserHomeDir.canonicalPath)
@@ -162,12 +164,4 @@ class ProjectsLoaderTest {
         projectsLoader.load(rootProjectDescriptor, testClassLoader, startParameter, testExternalProps)
         assertThat(projectsLoader.rootProject, sameInstance(rootProject))
     }
-
-    @Test public void testReset() {
-        context.checking {
-            one(projectFactory).reset()
-        }
-        projectsLoader.reset()
-    }
-
 }

@@ -33,6 +33,4 @@ public interface IProjectRegistry {
     Set<Project> getAllProjects(String path);
 
     Set<Project> getSubProjects(String path);
-
-    void reset();
 }

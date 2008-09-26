@@ -34,13 +34,13 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
-import org.gradle.util.GradleUtil;
 import org.gradle.util.PathHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +71,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Project rootProject;
 
-    private Build build;
+    private BuildInternal build;
 
     private BuildScriptProcessor buildScriptProcessor;
 
@@ -168,7 +168,8 @@ public abstract class AbstractProject implements ProjectInternal {
         this.archivesBaseName = name;
         this.projectFactory = projectFactory;
         this.buildScriptSource = buildScriptSource;
-        this.build = build;
+        // todo remove this cast once we figure out the groovy compile weirdness
+        this.build = (BuildInternal) build;
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
@@ -201,7 +202,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return build;
     }
 
-    public void setBuild(Build build) {
+    public void setBuild(BuildInternal build) {
         this.build = build;
     }
 
@@ -636,7 +637,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     protected ProjectInternal createChildProject(String name, File projectDir) {
-        return projectFactory.createProject(name, this, projectDir, buildScriptClassLoader);
+        return projectFactory.createProject(name, this, projectDir, build);
     }
 
     public File getProjectDir() {

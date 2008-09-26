@@ -80,7 +80,4 @@ public class DefaultProjectRegistry implements IProjectRegistry {
         return GUtil.elvis(subProjects.get(path), new TreeSet<Project>());
     }
 
-    public void reset() {
-        init();
-    }
 }

@@ -71,12 +71,11 @@ class HelperUtil {
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 new StartParameter(),
-                new DefaultProjectRegistry(),
-                new Dag(),
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, null)
+        DefaultBuild build = new DefaultBuild(null, new StartParameter(), null)
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, build)
         project.setBuildScript(new EmptyScript())
         return project;
     }
@@ -96,7 +95,7 @@ class HelperUtil {
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
                 parentProject.projectFactory,
-                new DefaultBuild(null, null, null))
+                parentProject.build)
     }
 
     static org.gradle.StartParameter dummyStartParameter() {
