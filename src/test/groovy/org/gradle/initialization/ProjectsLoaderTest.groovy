@@ -35,6 +35,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.execution.TaskExecutionGraph
+import org.gradle.api.internal.BuildInternal
+import org.gradle.invocation.DefaultBuild
 
 /**
  * @author Hans Dockter
@@ -161,7 +163,9 @@ class ProjectsLoaderTest {
             will(returnValue(child2))
         }
 
-        projectsLoader.load(rootProjectDescriptor, testClassLoader, startParameter, testExternalProps)
-        assertThat(projectsLoader.rootProject, sameInstance(rootProject))
+        BuildInternal build = projectsLoader.load(rootProjectDescriptor, testClassLoader, startParameter, testExternalProps)
+        assertTrue(build.class.equals(DefaultBuild))
+        assertThat(build.rootProject, sameInstance(rootProject))
+        assertThat(build.currentProject, sameInstance(child2))
     }
 }

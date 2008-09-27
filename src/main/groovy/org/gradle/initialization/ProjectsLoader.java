@@ -23,6 +23,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +44,6 @@ public class ProjectsLoader {
 
     private TaskExecutionGraph taskGraph;
 
-    private ProjectInternal rootProject;
-
-    private ProjectInternal currentProject;
-
     public ProjectsLoader() {
 
     }
@@ -56,32 +53,36 @@ public class ProjectsLoader {
         this.taskGraph = taskGraph;
     }
 
-    public ProjectsLoader load(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
-                               StartParameter startParameter,
-                               Map<String, String> externalProjectProperties) {
+    /**
+     * Creates the {@link BuildInternal} and {@link ProjectInternal} instances for the given root project,
+     * ready for the projects to be evaluated.
+     */
+    public BuildInternal load(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
+                              StartParameter startParameter,
+                              Map<String, String> externalProjectProperties) {
         logger.info("++ Loading Project objects");
-        rootProject = null;
-        currentProject = null;
         Clock clock = new Clock();
-        rootProject = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter,
+        DefaultBuild build = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter,
                 externalProjectProperties);
-        currentProject = (ProjectInternal) rootProject.getProjectRegistry().getProject(startParameter.getCurrentDir());
+        ProjectInternal currentProject = (ProjectInternal) build.getRootProject().getProjectRegistry().getProject(
+                startParameter.getCurrentDir());
         assert currentProject != null;
+        build.setCurrentProject(currentProject);
         logger.debug("Timing: Loading projects took: " + clock.getTime());
-        return this;
+        return build;
     }
 
-    private ProjectInternal createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
-                                           StartParameter startParameter,
-                                           Map<String, String> externalProjectProperties) {
+    private DefaultBuild createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
+                                        StartParameter startParameter,
+                                        Map<String, String> externalProjectProperties) {
         DefaultBuild build = new DefaultBuild(taskGraph, startParameter, buildScriptClassLoader);
         ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor.getName(), null,
                 rootProjectDescriptor.getDir(), build);
         build.setRootProject(rootProject);
-        
+
         addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties, rootProject);
         addProjects(rootProject, rootProjectDescriptor, startParameter, externalProjectProperties);
-        return rootProject;
+        return build;
     }
 
     private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor,
@@ -128,21 +129,5 @@ public class ProjectsLoader {
 
     public void setProjectFactory(IProjectFactory projectFactory) {
         this.projectFactory = projectFactory;
-    }
-
-    public ProjectInternal getRootProject() {
-        return rootProject;
-    }
-
-    public void setRootProject(ProjectInternal rootProject) {
-        this.rootProject = rootProject;
-    }
-
-    public ProjectInternal getCurrentProject() {
-        return currentProject;
-    }
-
-    public void setCurrentProject(ProjectInternal currentProject) {
-        this.currentProject = currentProject;
     }
 }

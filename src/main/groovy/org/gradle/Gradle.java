@@ -17,6 +17,7 @@
 package org.gradle;
 
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.*;
@@ -142,16 +143,18 @@ public class Gradle {
     private void runInternal(SettingsInternal settings, StartParameter startParameter) {
         ClassLoader classLoader = settings.createClassLoader();
         Boolean rebuildDag = true;
+        BuildInternal build = null;
         TaskExecuter executer = startParameter.getTaskExecuter();
         while (executer.hasNext()) {
             if (rebuildDag) {
-                projectLoader.load(settings.getRootProjectDescriptor(), classLoader, startParameter,
+                build = projectLoader.load(settings.getRootProjectDescriptor(), classLoader,
+                        startParameter,
                         gradlePropertiesLoader.getGradleProperties());
-                buildConfigurer.process(projectLoader.getRootProject());
+                buildConfigurer.process(build.getRootProject());
             } else {
                 logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
             }
-            executer.select(projectLoader.getCurrentProject());
+            executer.select(build.getCurrentProject());
             logger.info(String.format("++++ Starting build for %s.", executer.getDescription()));
             executer.execute(buildExecuter);
             rebuildDag = executer.requiresProjectReload();

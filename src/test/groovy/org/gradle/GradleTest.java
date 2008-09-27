@@ -21,6 +21,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
@@ -75,6 +76,7 @@ public class GradleTest {
     private List<Iterable<Task>> expectedTasks;
     private StartParameter expectedStartParams;
     private BuildListener buildListenerMock;
+    private BuildInternal buildMock;
 
     private Map testGradleProperties = new HashMap();
 
@@ -98,6 +100,7 @@ public class GradleTest {
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         buildListenerMock = context.mock(BuildListener.class);
+        buildMock = context.mock(BuildInternal.class);
         testGradleProperties = WrapUtil.toMap("prop1", "value1");
         expectedSearchUpwards = false;
         expectedClassLoader = new URLClassLoader(new URL[0]);
@@ -134,9 +137,9 @@ public class GradleTest {
                 will(returnValue(expectedClassLoader));
                 allowing(settingsMock).getRootProjectDescriptor();
                 will(returnValue(expectedRootProjectDescriptor));
-                allowing(projectsLoaderMock).getRootProject();
+                allowing(buildMock).getRootProject();
                 will(returnValue(expectedRootProject));
-                allowing(projectsLoaderMock).getCurrentProject();
+                allowing(buildMock).getCurrentProject();
                 will(returnValue(expectedCurrentProject));
             }
         });
@@ -269,6 +272,7 @@ public class GradleTest {
                 will(returnValue(false));
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
+                will(returnValue(buildMock));
             }
         });
     }
@@ -283,8 +287,10 @@ public class GradleTest {
                 will(returnValue(true));
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
+                will(returnValue(buildMock));
                 one(buildConfigurerMock).process(expectedRootProject);
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams, testGradleProperties);
+                will(returnValue(buildMock));
             }
         });
     }
@@ -294,6 +300,7 @@ public class GradleTest {
             {
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
+                will(returnValue(buildMock));
                 one(buildConfigurerMock).process(expectedRootProject);
                 one(buildExecuterMock).execute(expectedTasks.get(0));
                 will(throwException(failure));
@@ -308,6 +315,7 @@ public class GradleTest {
             {
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
+                will(returnValue(buildMock));
                 one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, gradlePropertiesLoaderMock);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);
