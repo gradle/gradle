@@ -23,10 +23,8 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
-import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
-import org.gradle.execution.Dag
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
 import org.gradle.groovy.scripts.StringScriptSource
@@ -74,7 +72,7 @@ class HelperUtil {
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
-        DefaultBuild build = new DefaultBuild(null, new StartParameter(), null)
+        DefaultBuild build = new DefaultBuild(new StartParameter(), null)
         DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, build)
         project.setBuildScript(new EmptyScript())
         return project;
@@ -156,10 +154,6 @@ class HelperUtil {
     static Script createTestScript() {
         new MyScript()        
     }
-
-    static Closure createTaskActionClosure() {
-        return { Task task, Dag dag -> }
-}
 }
 
 class MyScript extends Script {

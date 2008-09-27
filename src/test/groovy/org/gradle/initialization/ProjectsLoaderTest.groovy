@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
+import org.gradle.api.internal.BuildInternal
 import org.gradle.api.internal.project.BuildScriptProcessor
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.IProjectRegistry
@@ -25,18 +26,16 @@ import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.ProjectsLoader
+import org.gradle.invocation.DefaultBuild
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import static org.hamcrest.Matchers.*
 import org.jmock.integration.junit4.JMock
 import org.junit.After
 import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.execution.TaskExecutionGraph
-import org.gradle.api.internal.BuildInternal
-import org.gradle.invocation.DefaultBuild
 
 /**
  * @author Hans Dockter
@@ -62,7 +61,7 @@ class ProjectsLoaderTest {
         projectFactory = context.mock(IProjectFactory)
         buildScriptProcessor = new BuildScriptProcessor()
         pluginRegistry = new PluginRegistry()
-        projectsLoader = new ProjectsLoader(projectFactory, context.mock(TaskExecutionGraph))
+        projectsLoader = new ProjectsLoader(projectFactory)
         testDir = HelperUtil.makeNewTestDir()
         (testRootProjectDir = new File(testDir, 'root')).mkdirs()
         (testParentProjectDir = new File(testRootProjectDir, 'parent')).mkdirs()

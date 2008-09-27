@@ -96,7 +96,7 @@ class DefaultProjectTest {
 
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
-        build = new DefaultBuild(null, null, buildScriptClassLoader)
+        build = new DefaultBuild(null, buildScriptClassLoader)
 
         rootDir = new File("/path/root").absoluteFile
         pluginRegistry = new PluginRegistry(new File('somepath'))

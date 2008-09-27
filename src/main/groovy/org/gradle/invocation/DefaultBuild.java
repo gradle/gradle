@@ -1,7 +1,7 @@
 package org.gradle.invocation;
 
 import org.gradle.StartParameter;
-import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.execution.Dag;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -13,17 +13,16 @@ import java.io.File;
 public class DefaultBuild implements BuildInternal {
     private ProjectInternal rootProject;
     private ProjectInternal currentProject;
-    private TaskExecutionGraph taskExecutionGraph;
+    private Dag taskExecutionGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
     private DefaultProjectRegistry projectRegistry;
 
-    public DefaultBuild(TaskExecutionGraph taskExecutionGraph, StartParameter startParameter,
-                        ClassLoader buildScriptClassLoader) {
-        this.taskExecutionGraph = taskExecutionGraph;
+    public DefaultBuild(StartParameter startParameter, ClassLoader buildScriptClassLoader) {
         this.startParameter = startParameter;
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.projectRegistry = new DefaultProjectRegistry();
+        this.taskExecutionGraph = new Dag();
     }
 
     public String getGradleVersion() {
@@ -58,11 +57,11 @@ public class DefaultBuild implements BuildInternal {
         this.currentProject = currentProject;
     }
 
-    public TaskExecutionGraph getTaskGraph() {
+    public Dag getTaskGraph() {
         return taskExecutionGraph;
     }
 
-    public void setTaskExecutionGraph(TaskExecutionGraph taskExecutionGraph) {
+    public void setTaskExecutionGraph(Dag taskExecutionGraph) {
         this.taskExecutionGraph = taskExecutionGraph;
     }
 

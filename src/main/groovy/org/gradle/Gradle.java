@@ -25,7 +25,6 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.Dag;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
 import org.gradle.groovy.scripts.DefaultScriptHandler;
@@ -151,6 +150,7 @@ public class Gradle {
                         startParameter,
                         gradlePropertiesLoader.getGradleProperties());
                 buildConfigurer.process(build.getRootProject());
+                buildExecuter.setDag(build.getTaskGraph());
             } else {
                 logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
             }
@@ -246,7 +246,6 @@ public class Gradle {
             ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
             IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(),
                     startParameter.getCacheUsage());
-            Dag tasksGraph = new Dag();
             File buildResolverDir = startParameter.getBuildResolverDir();
             ISettingsFinder settingsFinder = startParameter.getSettingsScriptSource() == null
                     ? new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
@@ -282,14 +281,12 @@ public class Gradle {
                                             startParameter.getPluginPropertiesFile()),
                                     startParameter,
                                     startParameter.getBuildScriptSource(),
-                                    new DefaultAntBuilderFactory(new AntLoggingAdapter())),
-                            tasksGraph
+                                    new DefaultAntBuilderFactory(new AntLoggingAdapter()))
                     ),
                     new BuildConfigurer(
                             new ProjectDependencies2TaskResolver(),
                             new ProjectTasksPrettyPrinter()),
-                    new BuildExecuter(tasksGraph
-                    ));
+                    new BuildExecuter());
 
             if (buildResolverDir == null) {
                 gradle.addBuildListener(new BuildCleanupListener());

@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.invocation.DefaultBuild;
 import org.gradle.api.Project;
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -42,15 +41,12 @@ public class ProjectsLoader {
 
     private IProjectFactory projectFactory;
 
-    private TaskExecutionGraph taskGraph;
-
     public ProjectsLoader() {
 
     }
 
-    public ProjectsLoader(IProjectFactory projectFactory, TaskExecutionGraph taskGraph) {
+    public ProjectsLoader(IProjectFactory projectFactory) {
         this.projectFactory = projectFactory;
-        this.taskGraph = taskGraph;
     }
 
     /**
@@ -75,7 +71,7 @@ public class ProjectsLoader {
     private DefaultBuild createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
                                         StartParameter startParameter,
                                         Map<String, String> externalProjectProperties) {
-        DefaultBuild build = new DefaultBuild(taskGraph, startParameter, buildScriptClassLoader);
+        DefaultBuild build = new DefaultBuild(startParameter, buildScriptClassLoader);
         ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor.getName(), null,
                 rootProjectDescriptor.getDir(), build);
         build.setRootProject(rootProject);

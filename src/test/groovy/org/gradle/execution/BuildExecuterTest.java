@@ -62,7 +62,8 @@ public class BuildExecuterTest {
         dagMock = context.mock(Dag.class);
         root = HelperUtil.createRootProject(new File("root"));
         child = root.addChildProject("child", new File("childProjectDir"));
-        buildExecuter = new BuildExecuter(dagMock);
+        buildExecuter = new BuildExecuter();
+        buildExecuter.setDag(dagMock);
         collectDagTasksAction = new CollectDagTasksAction();
     }
 

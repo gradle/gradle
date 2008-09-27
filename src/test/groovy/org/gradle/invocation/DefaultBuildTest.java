@@ -1,6 +1,7 @@
 package org.gradle.invocation;
 
 import org.gradle.StartParameter;
+import org.gradle.execution.Dag;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.util.GradleVersion;
@@ -13,7 +14,7 @@ import java.io.File;
 public class DefaultBuildTest {
     @Test
     public void usesGradleVersion() {
-        DefaultBuild build = new DefaultBuild(null, null, null);
+        DefaultBuild build = new DefaultBuild(null, null);
         assertThat(build.getGradleVersion(), equalTo(new GradleVersion().getVersion()));
     }
 
@@ -23,7 +24,7 @@ public class DefaultBuildTest {
         parameter.setGradleHomeDir(new File("home"));
         parameter.setGradleUserHomeDir(new File("user"));
 
-        DefaultBuild build = new DefaultBuild(null, parameter, null);
+        DefaultBuild build = new DefaultBuild(parameter, null);
 
         assertThat(build.getGradleHomeDir(), equalTo(new File("home")));
         assertThat(build.getGradleUserHomeDir(), equalTo(new File("user")));
@@ -31,7 +32,13 @@ public class DefaultBuildTest {
 
     @Test
     public void createsADefaultProjectRegistry() {
-        DefaultBuild build = new DefaultBuild(null, null, null);
+        DefaultBuild build = new DefaultBuild(null, null);
         assertTrue(build.getProjectRegistry().getClass().equals(DefaultProjectRegistry.class));
+    }
+
+    @Test
+    public void createsATaskGraph() {
+        DefaultBuild build = new DefaultBuild(null, null);
+        assertTrue(build.getTaskGraph().getClass().equals(Dag.class));
     }
 }

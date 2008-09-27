@@ -19,12 +19,18 @@ import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.StartParameter;
+import org.gradle.execution.Dag;
 
 public interface BuildInternal extends Build {
     /**
      * {@inheritDoc}
      */
     ProjectInternal getRootProject();
+
+    /**
+     * {@inheritDoc}
+     */
+    Dag getTaskGraph();
 
     /**
      * Returns the currently selected project.

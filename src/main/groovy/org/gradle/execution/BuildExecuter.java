@@ -31,12 +31,13 @@ public class BuildExecuter {
 
     private Dag dag;
 
-    public BuildExecuter(Dag dag) {
+    public void setDag(Dag dag) {
         this.dag = dag;
     }
 
     public boolean execute(Iterable<? extends Task> tasks) {
         assert tasks != null;
+        assert dag != null;
 
         Clock clock = new Clock();
         dag.reset();
