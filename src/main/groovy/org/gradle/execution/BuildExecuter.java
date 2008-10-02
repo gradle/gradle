@@ -16,50 +16,148 @@
 
 package org.gradle.execution;
 
+import groovy.lang.Closure;
+import org.gradle.api.CircularReferenceException;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
  */
-public class BuildExecuter {
+public class BuildExecuter implements TaskExecutionGraph {
     private static Logger logger = LoggerFactory.getLogger(BuildExecuter.class);
 
-    private Dag dag;
+    private Dag<Task> dag;
+    private List<TaskExecutionGraphListener> listeners = new ArrayList<TaskExecutionGraphListener>();
 
-    public void setDag(Dag dag) {
+    public BuildExecuter(Dag<Task> dag) {
         this.dag = dag;
     }
 
-    public boolean execute(Iterable<? extends Task> tasks) {
+    public void addTasks(Iterable<? extends Task> tasks) {
         assert tasks != null;
-        assert dag != null;
 
         Clock clock = new Clock();
-        dag.reset();
-        fillDag(this.dag, tasks);
+        fillDag(tasks);
         logger.debug("Timing: Creating the DAG took " + clock.getTime());
-        clock.reset();
-        boolean dagNeutral = dag.execute();
+
+    }
+
+    public boolean execute() {
+        Clock clock = new Clock();
+
+        for (TaskExecutionGraphListener listener : listeners) {
+            listener.graphPrepared(this);
+        }
+
+        boolean dagNeutral = execute(new TreeSet<Task>(dag.getSources()));
+        dag.reset();
+
         logger.debug("Timing: Executing the DAG took " + clock.getTime());
         return !dagNeutral;
     }
 
-    private void fillDag(Dag dag, Iterable<? extends Task> tasks) {
+    public boolean execute(Iterable<? extends Task> tasks) {
+        addTasks(tasks);
+        return execute();
+    }
+
+    private void fillDag(Iterable<? extends Task> tasks) {
         for (Task task : tasks) {
             logger.debug("Find dependsOn tasks for {}", task);
             Set<? extends Task> dependsOnTasks = task.getTaskDependencies().getDependencies(task);
-            dag.addTask(task, dependsOnTasks);
+            addTask(task, dependsOnTasks);
             if (dependsOnTasks.size() > 0) {
                 logger.debug("Found dependsOn tasks for {}: {}", task, dependsOnTasks);
-                fillDag(dag, dependsOnTasks);
+                fillDag(dependsOnTasks);
             } else {
                 logger.debug("Found no dependsOn tasks for {}", task);
             }
         }
     }
+
+    public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
+        listeners.remove(listener);
+    }
+
+    public void whenReady(final Closure closure) {
+        listeners.add(new TaskExecutionGraphListener() {
+            public void graphPrepared(TaskExecutionGraph graph) {
+                closure.call(graph);
+            }
+        });
+    }
+
+    private void addTask(Task task, Iterable<? extends Task> dependsOnTasks) {
+        logger.debug("Add task: {} DependsOnTasks: {}", task, dependsOnTasks);
+        dag.addVertex(task);
+        for (Task dependsOnTask : dependsOnTasks) {
+            if (!dag.addEdge(task, dependsOnTask)) {
+                throw new CircularReferenceException(String.format("Can't establish dependency %s ==> %s", task, dependsOnTask));
+            }
+        }
+    }
+
+    private boolean execute(Set<? extends Task> tasks) {
+        boolean dagNeutral = true;
+        for (Task task : tasks) {
+            dagNeutral = execute(new TreeSet<Task>(dag.getChildren(task)));
+            if (!task.getExecuted()) {
+                logger.info("Executing: " + task);
+                ((AbstractTask) task).execute();
+                if (dagNeutral) {
+                    dagNeutral = task.isDagNeutral();
+                }
+            }
+        }
+        return dagNeutral;
+    }
+
+    public boolean hasTask(String path) {
+        assert path != null && path.length() > 0;
+        for (Task task : getAllTasks()) {
+            if (task.getPath().equals(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Set<Task> getAllTasks() {
+        return accumulateTasks(dag.getSources());
+    }
+
+    private Set<Task> accumulateTasks(Set<? extends Task> tasks) {
+        Set<Task> resultTasks = new TreeSet<Task>();
+        for (Task task : tasks) {
+            resultTasks.addAll(accumulateTasks(dag.getChildren(task)));
+            resultTasks.add(task);
+        }
+        return resultTasks;
+    }
+    
+    public Set<Project> getProjects() {
+        HashSet<Project> projects = new HashSet<Project>();
+        for (Task task : getAllTasks()) {
+            projects.add(task.getProject());
+        }
+        return projects;
+    }
+
 }

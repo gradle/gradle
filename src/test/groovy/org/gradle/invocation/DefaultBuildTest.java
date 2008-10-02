@@ -2,6 +2,7 @@ package org.gradle.invocation;
 
 import org.gradle.StartParameter;
 import org.gradle.execution.Dag;
+import org.gradle.execution.BuildExecuter;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.util.GradleVersion;
@@ -39,6 +40,6 @@ public class DefaultBuildTest {
     @Test
     public void createsATaskGraph() {
         DefaultBuild build = new DefaultBuild(null, null);
-        assertTrue(build.getTaskGraph().getClass().equals(Dag.class));
+        assertTrue(build.getTaskGraph().getClass().equals(BuildExecuter.class));
     }
 }

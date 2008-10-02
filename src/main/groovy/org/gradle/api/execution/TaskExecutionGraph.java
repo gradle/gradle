@@ -20,18 +20,42 @@ import org.gradle.api.invocation.Build;
 
 import java.util.Set;
 
+import groovy.lang.Closure;
+
 /**
  * <p>A <code>TaskExecutionGraph</code> is responsible for managing the ordering and execution of {@link Task}
  * instances. The <code>TaskExecutionGraph</code> maintains an execution plan of tasks to be executed (or which have
  * been executed), which you can query from your build file.</p>
  *
- * <p>You can access the {@code TaskExecutionGraph} by calling {@link Build#getTaskGraph()}. In your build file
- * you can use {@code build.taskGraph} to access it.</p>
+ * <p>You can access the {@code TaskExecutionGraph} by calling {@link Build#getTaskGraph()}. In your build file you can
+ * use {@code build.taskGraph} to access it.</p>
  *
  * <p>The <code>TaskExecutionGraph</code> is populated after all the projects in the build have been evaulated. It is
  * empty before then.</p>
  */
 public interface TaskExecutionGraph {
+    /**
+     * <p>Adds a listener to this graph.</p>
+     *
+     * @param listener The listener to add. Does nothing if this listener has already been added.
+     */
+    void addTaskExecutionGraphListener(TaskExecutionGraphListener listener);
+
+    /**
+     * <p>Remove a listener from this graph.</p>
+     *
+     * @param listener The listener to remove. Does nothing if this listener was never added to this graph.
+     */
+    void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener);
+
+    /**
+     * <p>Adds a closure to be called when this graph has been populated. This graph is passed to the graph as a
+     * parameter.</p>
+     *
+     * @param closure The closure to execute when this graph has been populated.
+     */
+    void whenReady(Closure closure);
+
     /**
      * <p>Determines whether the given task is included in the execution plan.</p>
      *

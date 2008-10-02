@@ -2,10 +2,12 @@ package org.gradle.invocation;
 
 import org.gradle.StartParameter;
 import org.gradle.execution.Dag;
+import org.gradle.execution.BuildExecuter;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Task;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -13,7 +15,7 @@ import java.io.File;
 public class DefaultBuild implements BuildInternal {
     private ProjectInternal rootProject;
     private ProjectInternal currentProject;
-    private Dag taskExecutionGraph;
+    private BuildExecuter taskGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
     private DefaultProjectRegistry projectRegistry;
@@ -22,7 +24,7 @@ public class DefaultBuild implements BuildInternal {
         this.startParameter = startParameter;
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.projectRegistry = new DefaultProjectRegistry();
-        this.taskExecutionGraph = new Dag();
+        this.taskGraph = new BuildExecuter(new Dag<Task>());
     }
 
     public String getGradleVersion() {
@@ -57,12 +59,12 @@ public class DefaultBuild implements BuildInternal {
         this.currentProject = currentProject;
     }
 
-    public Dag getTaskGraph() {
-        return taskExecutionGraph;
+    public BuildExecuter getTaskGraph() {
+        return taskGraph;
     }
 
-    public void setTaskExecutionGraph(Dag taskExecutionGraph) {
-        this.taskExecutionGraph = taskExecutionGraph;
+    public void setTaskGraph(BuildExecuter taskGraph) {
+        this.taskGraph = taskGraph;
     }
 
     public IProjectRegistry getProjectRegistry() {

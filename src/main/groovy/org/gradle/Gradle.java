@@ -16,15 +16,19 @@
 
 package org.gradle;
 
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.BuildScriptProcessor;
+import org.gradle.api.internal.project.DefaultAntBuilderFactory;
+import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
-import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
 import org.gradle.groovy.scripts.DefaultScriptHandler;
@@ -47,8 +51,8 @@ import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.ScriptLocatingSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsProcessor;
-import org.gradle.util.WrapUtil;
 import org.gradle.logging.AntLoggingAdapter;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +73,10 @@ import java.util.List;
  * <li>Add one or more {@link BuildListener}s to receive events as the build executes by calling {@link
  * #addBuildListener}.</li>
  *
- * <li>Call {@link #run} to execute the build.</li>
+ * <li>Call {@link #run} to execute the build. This will return a {@link BuildResult}</li>
+ *
+ * <li>Query the build result. You might want to call {@link BuildResult#rethrowFailure()} to rethrow any build
+ * failure.</li>
  *
  * </ul>
  *
@@ -86,21 +93,18 @@ public class Gradle {
     private SettingsProcessor settingsProcessor;
     private ProjectsLoader projectLoader;
     private BuildConfigurer buildConfigurer;
-    private BuildExecuter buildExecuter;
 
     private final List<BuildListener> buildListeners = new ArrayList<BuildListener>();
 
     public Gradle(StartParameter startParameter, ISettingsFinder settingsFinder,
-                  IGradlePropertiesLoader gradlePropertiesLoader,
-                  SettingsProcessor settingsProcessor,
-                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer, BuildExecuter buildExecuter) {
+                  IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
+                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer) {
         this.startParameter = startParameter;
         this.settingsFinder = settingsFinder;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.settingsProcessor = settingsProcessor;
         this.projectLoader = projectLoader;
         this.buildConfigurer = buildConfigurer;
-        this.buildExecuter = buildExecuter;
     }
 
     /**
@@ -150,13 +154,12 @@ public class Gradle {
                         startParameter,
                         gradlePropertiesLoader.getGradleProperties());
                 buildConfigurer.process(build.getRootProject());
-                buildExecuter.setDag(build.getTaskGraph());
             } else {
                 logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
             }
             executer.select(build.getCurrentProject());
             logger.info(String.format("++++ Starting build for %s.", executer.getDescription()));
-            executer.execute(buildExecuter);
+            executer.execute(build.getTaskGraph());
             rebuildDag = executer.requiresProjectReload();
         }
     }
@@ -218,14 +221,6 @@ public class Gradle {
         this.buildConfigurer = buildConfigurer;
     }
 
-    public BuildExecuter getBuildExecuter() {
-        return buildExecuter;
-    }
-
-    public void setBuildExecuter(BuildExecuter buildExecuter) {
-        this.buildExecuter = buildExecuter;
-    }
-
     public List<BuildListener> getBuildListeners() {
         return buildListeners;
     }
@@ -285,8 +280,7 @@ public class Gradle {
                     ),
                     new BuildConfigurer(
                             new ProjectDependencies2TaskResolver(),
-                            new ProjectTasksPrettyPrinter()),
-                    new BuildExecuter());
+                            new ProjectTasksPrettyPrinter()));
 
             if (buildResolverDir == null) {
                 gradle.addBuildListener(new BuildCleanupListener());

@@ -28,36 +28,24 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.CircularReferenceException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.internal.DefaultTask;
-import org.gradle.logging.Logging;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 
 /**
  * A directed acyclic graph. See http://en.wikipedia.org/wiki/Directed_acyclic_graph
  */
-public class Dag implements TaskExecutionGraph {
-    private static final Logger logger = LoggerFactory.getLogger(Dag.class);
+public class Dag<T> {
 
     /**
      * Multimap, supports <code>null</code> key, but not <code>null</code> values.
      */
-    private static final class MultiMap {
-        private final Map fMap = new LinkedHashMap();
+    private static final class MultiMap<T> {
+        private final Map<T, Set<T>> fMap = new LinkedHashMap<T, Set<T>>();
 
         /**
          * Adds <code>val</code> to the values mapped to by <code>key</code>. If
@@ -67,14 +55,15 @@ public class Dag implements TaskExecutionGraph {
          * @param key the key
          * @param val the value
          */
-        public void put(Object key, Object val) {
-            Set values = (Set) fMap.get(key);
+        public void put(T key, T val) {
+            Set<T> values = fMap.get(key);
             if (values == null) {
-                values = new LinkedHashSet();
+                values = new LinkedHashSet<T>();
                 fMap.put(key, values);
             }
-            if (val != null)
+            if (val != null) {
                 values.add(val);
+            }
         }
 
         /**
@@ -83,12 +72,12 @@ public class Dag implements TaskExecutionGraph {
          * @param key the key
          * @return the mappings for <code>key</code>
          */
-        public Set get(Object key) {
-            Set values = (Set) fMap.get(key);
-            return values == null ? Collections.EMPTY_SET : values;
+        public Set<T> get(T key) {
+            Set<T> values =  fMap.get(key);
+            return values == null ? Collections.<T>emptySet() : values;
         }
 
-        public Set keySet() {
+        public Set<T> keySet() {
             return fMap.keySet();
         }
 
@@ -99,9 +88,9 @@ public class Dag implements TaskExecutionGraph {
          * @param key the key to remove
          * @return the removed mappings
          */
-        public Set removeAll(Object key) {
-            Set values = (Set) fMap.remove(key);
-            return values == null ? Collections.EMPTY_SET : values;
+        public Set<T> removeAll(T key) {
+            Set<T> values = fMap.remove(key);
+            return values == null ? Collections.<T>emptySet() : values;
         }
 
         /**
@@ -111,10 +100,11 @@ public class Dag implements TaskExecutionGraph {
          * @param key the key
          * @param val the value
          */
-        public void remove(Object key, Object val) {
-            Set values = (Set) fMap.get(key);
-            if (values != null)
+        public void remove(T key, T val) {
+            Set<T> values = fMap.get(key);
+            if (values != null) {
                 values.remove(val);
+            }
         }
 
         /*
@@ -125,8 +115,8 @@ public class Dag implements TaskExecutionGraph {
         }
     }
 
-    private final MultiMap fOut = new MultiMap();
-    private final MultiMap fIn = new MultiMap();
+    private final MultiMap<T> fOut = new MultiMap<T>();
+    private final MultiMap<T> fIn = new MultiMap<T>();
 
     /**
      * Adds a directed edge from <code>origin</code> to <code>target</code>. The vertices are not
@@ -139,12 +129,13 @@ public class Dag implements TaskExecutionGraph {
      *         edge was not added because it would have violated the acyclic nature of the
      *         receiver.
      */
-    public boolean addEdge(Object origin, Object target) {
+    public boolean addEdge(T origin, T target) {
         assert origin != null;
         assert target != null;
 
-        if (hasPath(target, origin))
+        if (hasPath(target, origin)) {
             return false;
+        }
 
         fOut.put(origin, target);
         fOut.put(target, null);
@@ -159,7 +150,7 @@ public class Dag implements TaskExecutionGraph {
      *
      * @param vertex the new vertex
      */
-    public void addVertex(Object vertex) {
+    public void addVertex(T vertex) {
         assert vertex != null;
         fOut.put(vertex, null);
         fIn.put(vertex, null);
@@ -170,13 +161,15 @@ public class Dag implements TaskExecutionGraph {
      *
      * @param vertex the vertex to remove
      */
-    public void removeVertex(Object vertex) {
-        Set targets = fOut.removeAll(vertex);
-        for (Iterator it = targets.iterator(); it.hasNext();)
-            fIn.remove(it.next(), vertex);
-        Set origins = fIn.removeAll(vertex);
-        for (Iterator it = origins.iterator(); it.hasNext();)
-            fOut.remove(it.next(), vertex);
+    public void removeVertex(T vertex) {
+        Set<T> targets = fOut.removeAll(vertex);
+        for (T target : targets) {
+            fIn.remove(target, vertex);
+        }
+        Set<T> origins = fIn.removeAll(vertex);
+        for (T origin : origins) {
+            fOut.remove(origin, vertex);
+        }
     }
 
     /**
@@ -185,7 +178,7 @@ public class Dag implements TaskExecutionGraph {
      *
      * @return the sources of the receiver
      */
-    public Set getSources() {
+    public Set<T> getSources() {
         return computeZeroEdgeVertices(fIn);
     }
 
@@ -195,17 +188,18 @@ public class Dag implements TaskExecutionGraph {
      *
      * @return the sinks of the receiver
      */
-    public Set getSinks() {
+    public Set<T> getSinks() {
         return computeZeroEdgeVertices(fOut);
     }
 
-    private Set computeZeroEdgeVertices(MultiMap map) {
-        Set candidates = map.keySet();
-        Set roots = new LinkedHashSet(candidates.size());
-        for (Iterator it = candidates.iterator(); it.hasNext();) {
-            Object candidate = it.next();
-            if (map.get(candidate).isEmpty())
+    private Set<T> computeZeroEdgeVertices(MultiMap<T> map) {
+        Set<T> candidates = map.keySet();
+        Set<T> roots = new LinkedHashSet<T>(candidates.size());
+        for (Iterator<T> it = candidates.iterator(); it.hasNext();) {
+            T candidate = it.next();
+            if (map.get(candidate).isEmpty()) {
                 roots.add(candidate);
+            }
         }
         return roots;
     }
@@ -216,20 +210,22 @@ public class Dag implements TaskExecutionGraph {
      * @param vertex the parent vertex
      * @return the direct children of <code>vertex</code>
      */
-    public Set getChildren(Object vertex) {
+    public Set<T> getChildren(T vertex) {
         return Collections.unmodifiableSet(fOut.get(vertex));
     }
 
-    private boolean hasPath(Object start, Object end) {
+    private boolean hasPath(T start, T end) {
         // break condition
-        if (start == end)
+        if (start == end) {
             return true;
+        }
 
-        Set children = fOut.get(start);
-        for (Iterator it = children.iterator(); it.hasNext();)
-            // recursion
-            if (hasPath(it.next(), end))
+        Set<T> children = fOut.get(start);
+        for (T child : children) {
+            if (hasPath(child, end)) {
                 return true;
+            }
+        }
         return false;
     }
 
@@ -238,66 +234,6 @@ public class Dag implements TaskExecutionGraph {
       */
     public String toString() {
         return "Out: " + fOut.toString() + " In: " + fIn.toString(); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    public void addTask(Task task, Iterable<? extends Task> dependsOnTasks) {
-        logger.debug("Add task: {} DependsOnTasks: {}", task, dependsOnTasks);
-        addVertex(task);
-        for (Task dependsOnTask : dependsOnTasks) {
-            if (!addEdge(task, dependsOnTask)) {
-                throw new CircularReferenceException(String.format("Can't establish dependency %s ==> %s", task, dependsOnTask));
-            }
-        }
-    }
-
-    public boolean execute() {
-        return execute(new TreeSet(getSources()));
-    }
-
-    private boolean execute(Set<DefaultTask> tasks) {
-        boolean dagNeutral = true;
-        for (DefaultTask task : tasks) {
-            dagNeutral = execute(new TreeSet(getChildren(task)));
-            if (!task.getExecuted()) {
-                logger.info("Executing: " + task);
-                task.execute();
-                if (dagNeutral) {
-                    dagNeutral = task.isDagNeutral();
-                }
-            }
-        }
-        return dagNeutral;
-    }
-
-    public boolean hasTask(String path) {
-        assert path != null && path.length() > 0;
-        for (Task task : getAllTasks()) {
-            if (task.getPath().equals(path)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Set<Task> getAllTasks() {
-        return accumulateTasks(getSources());
-    }
-
-    private <T extends Task> Set<T> accumulateTasks(Set<T> tasks) {
-        Set<T> resultTasks = new HashSet<T>();
-        for (T task : tasks) {
-            resultTasks.addAll(accumulateTasks(new HashSet(getChildren(task))));
-            resultTasks.add(task);
-        }
-        return resultTasks;
-    }
-
-    public Set<Project> getProjects() {
-        HashSet<Project> projects = new HashSet<Project>();
-        for (Task task : getAllTasks()) {
-            projects.add(task.getProject());
-        }
-        return projects;
     }
 
     public void reset() {

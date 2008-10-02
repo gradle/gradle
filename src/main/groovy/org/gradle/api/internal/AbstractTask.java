@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractTask implements Task {
+public abstract class AbstractTask implements TaskInternal {
     private static Logger logger = LoggerFactory.getLogger(AbstractTask.class);
     private static Logger buildLogger = LoggerFactory.getLogger(Task.class);
 

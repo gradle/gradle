@@ -27,20 +27,15 @@
  */
 package org.gradle.execution
 
-import org.gradle.api.CircularReferenceException
-import org.gradle.api.Project
-import org.gradle.api.internal.DefaultTask
 import org.gradle.execution.Dag
-import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
-import org.junit.Before
 import org.junit.Test
 
 class DagTest {
-    private static final Object A = "A";
-    private static final Object B = "B";
-    private static final Object C = "C";
-    private static final Object D = "D";
+    private static final String A = "A";
+    private static final String B = "B";
+    private static final String C = "C";
+    private static final String D = "D";
     private static final Set AS = Collections.singleton(A);
     private static final Set BS = Collections.singleton(B);
     private static final Set CS = Collections.singleton(C);
@@ -49,18 +44,11 @@ class DagTest {
     private static final Set ACD = new LinkedHashSet([A, C, D]);
     private static final Set BD = new LinkedHashSet([B, D]);
 
-    private Project root;
-
-    private Dag dag
-
-    @Before public void setUp() {
-        dag = new Dag()
-        root = HelperUtil.createRootProject(new File('root'))
-    }
+    private Dag<String> dag = new Dag<String>();
 
     @Test
     public void testEmpty() throws Exception {
-        assertTrue(dag.getChildren(new Object()).isEmpty());
+        assertTrue(dag.getChildren("not in graph").isEmpty());
         assertTrue(dag.getSources().isEmpty());
         assertTrue(dag.getSinks().isEmpty());
     }
@@ -151,90 +139,5 @@ class DagTest {
         assertTrue(dag.getChildren(B).isEmpty());
         assertTrue(dag.getChildren(C).isEmpty());
         assertTrue(dag.getChildren(D).isEmpty());
-    }
-
-    @Test public void testAddTask() {
-        DefaultTask dummyTask = new DefaultTask(root, 'a')
-        Set dependsOnTasks = [new DefaultTask(root, 'b'), new DefaultTask(root, 'c')]
-        dag.addTask(dummyTask, dependsOnTasks)
-        assertEquals(new HashSet([dummyTask]), dag.sources)
-        assertEquals(new HashSet(dependsOnTasks), dag.sinks)
-    }
-
-
-
-    @Test (expected = CircularReferenceException) public void testAddTaskWithCircularReference() {
-        DefaultTask dummyTask = new DefaultTask(root, 'a')
-        DefaultTask dummyTask2 = new DefaultTask(root, 'b')
-        dag.addTask(dummyTask, [dummyTask2] as Set)
-        dag.addTask(dummyTask2, [dummyTask] as Set)
-    }
-
-    @Test public void testExecute() {
-        Project child = root.addChildProject('child', new File("projectDir"))
-        List executedIdList = []
-        DefaultTask dummyTask0 = createTask(root, 'a', executedIdList, 2)
-        Set dependsOnTasks0 = [createTask(root, 'child2', executedIdList, 1),
-                createTask(root, 'child1', executedIdList, 0)]
-        DefaultTask dummyTask1 = createTask(root, 'b', executedIdList, 5)
-        Set dependsOnTasks1 = [createTask(child, 'child', executedIdList, 4),
-                createTask(root, 'longlonglonglongchild', executedIdList, 3)]
-        dag.addTask(dummyTask0, dependsOnTasks0)
-        dag.addTask(dummyTask1, dependsOnTasks1)
-        assertFalse(dag.execute())
-        assertEquals([0, 1, 2, 3, 4, 5], executedIdList)
-    }
-
-    @Test public void testExecuteWithDagNeutral() {
-        Project child = root.addChildProject('child', new File("childProjectDir"))
-        List executedIdList = []
-        DefaultTask dummyTask0 = createTask(root, 'a', executedIdList, 2)
-        dag.addTask(dummyTask0, [] as Set)
-        dummyTask0.dagNeutral = true
-        assertTrue(dag.execute())
-        assertEquals([2], executedIdList)
-    }
-
-    private DefaultTask createTask(Project project, String name, List executedIdList, int executedId) {
-        DefaultTask dummyTask0 = new DefaultTask(project, name)
-        dummyTask0.doFirst { executedIdList << executedId }
-        dummyTask0
-    }
-
-    @Test public void testReset() {
-        DefaultTask dummyTask0 = new DefaultTask(root, 'a')
-        Set dependsOnTasks0 = [new DefaultTask(root, 'child2'), new DefaultTask(root, 'child1')]
-        dag.addTask(dummyTask0, dependsOnTasks0)
-        assertTrue(dag.sources.size() > 0)
-        assertTrue(dag.sinks.size() > 0)
-        dag.reset()
-        assertEquals(0, dag.sources.size())
-        assertEquals(0, dag.sinks.size())
-    }
-
-    @Test public void testGetProjects() {
-        Project root = HelperUtil.createRootProject(new File('/root'))
-        Project child = HelperUtil.createProjectMock([:], 'child', root)
-        DefaultTask task1 = new DefaultTask(root, 'task1')
-        DefaultTask task2 = new DefaultTask(child, 'task2')
-        dag.addTask(task1, [] as Set)
-        dag.addTask(task2, [] as Set)
-        assertEquals([root, child] as Set, dag.projects)
-    }
-
-    @Test public void testHasTask() {
-        Project root = HelperUtil.createRootProject(new File('/root'))
-        Project child = HelperUtil.createProjectMock([:], 'child', root)
-        DefaultTask task1 = new DefaultTask(root, 'task1')
-        DefaultTask task2 = new DefaultTask(child, 'task2')
-        dag.addTask(task1, [] as Set)
-        dag.addTask(task2, [] as Set)
-        assertTrue(dag.hasTask(':task1'))
-        assertFalse(dag.hasTask(':task2'))
-        assertTrue(dag.hasTask(':child:task2'))
-    }
-
-    @Test public void testAddProjectDependencies() {
-
     }
 }

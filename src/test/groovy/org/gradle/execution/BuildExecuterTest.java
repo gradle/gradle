@@ -16,28 +16,27 @@
 
 package org.gradle.execution;
 
+import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.TaskAction;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
-import org.hamcrest.Description;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.api.Action;
-import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -49,101 +48,127 @@ public class BuildExecuterTest {
     BuildExecuter buildExecuter;
     DefaultProject root;
     Project child;
-
     JUnit4Mockery context = new JUnit4Mockery();
-
-    Dag dagMock;
-
-    CollectDagTasksAction collectDagTasksAction;
+    List<Task> executedTasks = new ArrayList<Task>();
 
     @Before
     public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        dagMock = context.mock(Dag.class);
         root = HelperUtil.createRootProject(new File("root"));
         child = root.addChildProject("child", new File("childProjectDir"));
-        buildExecuter = new BuildExecuter();
-        buildExecuter.setDag(dagMock);
-        collectDagTasksAction = new CollectDagTasksAction();
+        buildExecuter = new BuildExecuter(new Dag<Task>());
     }
 
-    @Test
-    public void testExecute() {
-        final Task rootCompile = new DefaultTask(root, "compile");
-        final Task rootTest = new DefaultTask(root, "test");
-        final Task childCompile = new DefaultTask(child, "compile");
-        final Task childTest = new DefaultTask(child, "test");
-        final Task childOther = new DefaultTask(child, "other");
-        rootTest.setDependsOn(WrapUtil.toSet(rootCompile.getPath()));
-        childTest.setDependsOn(WrapUtil.toSet(childCompile.getName(), childOther));
+    @Test public void testExecutesTasksInDependencyOrder() {
+        Task a = createTask("a");
+        Task b = createTask("b", a);
+        Task c = createTask("c", b, a);
+        Task d = createTask("d", c);
 
-        root.getTasks().put(rootCompile.getName(), rootCompile);
-        root.getTasks().put(rootTest.getName(), rootTest);
-        child.getTasks().put(childCompile.getName(), childCompile);
-        child.getTasks().put(childTest.getName(), childTest);
-        child.getTasks().put(childOther.getName(), childOther);
+        buildExecuter.execute(toList(d));
 
-        setDagMockExpectations(WrapUtil.toSet(root, child), WrapUtil.toSet(rootCompile, rootTest, childCompile, childTest, childOther), false);
+        assertThat(executedTasks, equalTo(toList(a, b, c, d)));
+    }
 
-        assertTrue(buildExecuter.execute(WrapUtil.toList(rootTest, childTest)));
+    @Test public void testExecutesTasksWithNoDependenciesInNameOrder() {
+        Task a = createTask("a");
+        Task b = createTask("b");
+        Task c = createTask("c");
+
+        buildExecuter.execute(toList(b, c, a));
+
+        assertThat(executedTasks, equalTo(toList(a, b, c)));
     }
 
     @Test public void testExecuteWithRebuildDagAndDagNeutralTask() {
-        final Task rootCompile = new DefaultTask(root, "compile");
-        root.getTasks().put(rootCompile.getName(), rootCompile);
-        setDagMockExpectations(WrapUtil.<Project>toSet(root), WrapUtil.toSet(rootCompile), true);
-        assertFalse(buildExecuter.execute(WrapUtil.toList(rootCompile)));
+        Task neutral = createTask("a");
+        neutral.setDagNeutral(true);
+        Task notNeutral = createTask("b");
+        notNeutral.setDagNeutral(false);
+
+        assertFalse(buildExecuter.execute(toList(neutral)));
+        assertTrue(buildExecuter.execute(toList(notNeutral)));
     }
 
-    public static class CollectDagTasksAction implements Action {
-        Map<DefaultTask, Set<DefaultTask>> tasksMap = new HashMap<DefaultTask, Set<DefaultTask>>();
+    @Test public void testAddTasksAddsDependencies() {
+        Task a = createTask("a");
+        Task b = createTask("b", a);
+        Task c = createTask("c", b, a);
+        Task d = createTask("d", c);
+        buildExecuter.addTasks(toList(d));
 
-        public CollectDagTasksAction() {
-        }
+        assertTrue(buildExecuter.hasTask(":a"));
+        assertTrue(buildExecuter.hasTask(":b"));
+        assertTrue(buildExecuter.hasTask(":c"));
+        assertTrue(buildExecuter.hasTask(":d"));
+        assertThat(buildExecuter.getAllTasks(), equalTo(toSet(a, b, c, d)));
+    }
 
-        public void describeTo(Description description) {
-            description.appendText("adds ");
-        }
+    @Test public void testDiscardsTasksAfterExecute() {
+        Task a = createTask("a");
+        Task b = createTask("b", a);
 
-        public Object invoke(Invocation invocation) throws Throwable {
-            DefaultTask task = (DefaultTask) invocation.getParameter(0);
-            Set<DefaultTask> dependsOnTasks = (Set<DefaultTask>) invocation.getParameter(1);
-            tasksMap.put(task, dependsOnTasks);
-            return null;
+        buildExecuter.addTasks(toList(b));
+
+        assertThat(buildExecuter.getAllTasks(), equalTo(toSet(a, b)));
+
+        buildExecuter.execute();
+
+        assertTrue(buildExecuter.getAllTasks().isEmpty());
+    }
+    
+    @Test public void testCannotAddTaskWithCircularReference() {
+        Task a = createTask("a");
+        Task b = createTask("b", a);
+        Task c = createTask("c", b);
+        a.dependsOn(c);
+
+        try {
+            buildExecuter.addTasks(toList(c));
+            fail();
+        } catch (CircularReferenceException e) {
+            // Expected
         }
     }
 
-    private void setDagMockExpectations(final Set<Project> projects, final Set<Task> tasks, final boolean dagNeutralExecution) {
-        context.checking(new Expectations() {
-            {
-                one(dagMock).reset();
-                allowing(dagMock).addTask(with(any(DefaultTask.class)), with(any(Set.class)));
-                will(collectDagTasksAction);
-                allowing(dagMock).getProjects();
-                will(returnValue(projects));
-                allowing(dagMock).getAllTasks();
-                will(returnValue(tasks));
-                one(dagMock).execute(); will(returnValue(dagNeutralExecution));
+    @Test public void testNotifiesListenerBeforeExecute() {
+        final TaskExecutionGraphListener listener = context.mock(TaskExecutionGraphListener.class);
+        Task a = createTask("a");
+
+        buildExecuter.addTaskExecutionGraphListener(listener);
+        buildExecuter.addTasks(toList(a));
+
+        context.checking(new Expectations(){{
+            one(listener).graphPrepared(buildExecuter);
+        }});
+
+        buildExecuter.execute();
+    }
+
+    @Test public void testExecutesClosureBeforeExecute() {
+        final Runnable runnable = context.mock(Runnable.class);
+        Task a = createTask("a");
+
+        buildExecuter.whenReady(BuildExecuterTestHelper.toClosure(runnable));
+
+        buildExecuter.addTasks(toList(a));
+
+        context.checking(new Expectations(){{
+            one(runnable).run();
+        }});
+
+        buildExecuter.execute();
+    }
+
+    private Task createTask(String name, final Task... dependsOn) {
+        final TaskInternal task = new DefaultTask(root, name);
+        task.dependsOn((Object[]) dependsOn);
+        task.setDagNeutral(true);
+        task.doFirst(new TaskAction() {
+            public void execute(Task task) {
+                executedTasks.add(task);
             }
         });
+        return task;
     }
 
-    @Test
-    public void testExecuteWithTransitiveTargetDependecies() {
-        Task task1 = new DefaultTask(root, "task1");
-        Task task2 = new DefaultTask(root, "task2").dependsOn("task1");
-        Task task3 = new DefaultTask(root, "task3").dependsOn("task2");
-        root.getTasks().put("task1", task1);
-        root.getTasks().put("task2", task2);
-        root.getTasks().put("task3", task3);
-        setDagMockExpectations(WrapUtil.toSet(root, child),
-                WrapUtil.toSet(task1, task2, task3), false);
-
-        buildExecuter.execute(WrapUtil.toList(task3));
-
-        assertEquals(WrapUtil.toSet(task2), collectDagTasksAction.tasksMap.get(task3));
-        assertEquals(WrapUtil.toSet(task1), collectDagTasksAction.tasksMap.get(task2));
-        assertEquals(new HashSet(), collectDagTasksAction.tasksMap.get(task1));
-
-    }
 }
