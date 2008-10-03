@@ -107,8 +107,8 @@ dependencies {
             ":launch4j-bin-windows:$launch4jVersion@zip", ":launch4j-bin-unix:$launch4jVersion@zip"
 }
 
-init.doFirst {Task task ->
-    if (build.taskGraph.hasTask(':release')) {
+build.taskGraph.whenReady {graph ->
+    if (graph.hasTask(':release')) {
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
         userguideRemoteDir += version
@@ -360,7 +360,7 @@ createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
 
 userguideDir = dir("$buildDir.name/$docsDir.name/userguide")
 
-createTask('userguideVersion', dependsOn: [userguideDir, init]) {
+createTask('userguideVersion', dependsOn: [userguideDir]) {
     File userguideData = mkdir(userguideDir.dir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
     new File(userguideData, 'javadocDir.tex').write('\\def \\JAVADOCDIR {' + javadocRemoteDir + '}')
@@ -374,27 +374,29 @@ createTask('userguide', dependsOn: [userguideDir, 'userguideVersion', 'explodedD
         }
         cleanLatex(userguideSrc)
         3.times {
-            exec(output: userguideDir.toString() + '/pdfOut', executable: 'pdflatex', dir: userguideSrc) {
+            exec(output: userguideDir.toString() + '/pdfOut', executable: 'pdflatex', dir: userguideSrc, failonerror: true) {
                 arg(line: "master.tex")
             }
         }
         copy(file: new File(userguideSrc, 'master.pdf'), tofile: new File(explodedDistDocsDir, 'pdf/userguide.pdf'))
         cleanLatex(userguideSrc)
         3.times {
-            exec(output: userguideDir.toString() + '/htmlOut', executable: 'htlatex', dir: userguideSrc) {
+            exec(output: userguideDir.toString() + '/htmlOut', executable: 'htlatex', dir: userguideSrc, failonerror: true) {
                 arg(line: "master.tex")
             }
         }
         copy(file: new File(userguideSrc, 'master.html'), tofile: new File(explodedDistDocsDir, 'html_single/userguide.html'))
+        copy(file: new File(userguideSrc, 'html/master.css'), todir: new File(explodedDistDocsDir, 'html_single'))
         cleanLatex(userguideSrc)
         3.times {
-            exec(output: userguideDir.toString() + '/htmlSingleOut', executable: 'htlatex', dir: userguideSrc) {
+            exec(output: userguideDir.toString() + '/htmlSingleOut', executable: 'htlatex', dir: userguideSrc, failonerror: true) {
                 arg(line: "master.tex \"html,2\"")
             }
         }
         copy(todir: new File(explodedDistDocsDir, 'html')) {
             fileset(dir: userguideSrc, includes: '*.html')
         }
+        copy(file: new File(userguideSrc, 'html/master.css'), todir: new File(explodedDistDocsDir, 'html'))
         cleanLatex(userguideSrc)
     }
 }
@@ -416,7 +418,7 @@ void cleanLatex(File dir) {
     }
 }
 
-createTask('uploadUserguide', dependsOn: ['userguide', 'init']) {
+createTask('uploadUserguide', dependsOn: ['userguide']) {
     ftp(action: 'mkdir', remotedir: userguideRemoteDir)
     ftp(action: 'delete', remotedir: userguideRemoteDir) {
         fileset() {
@@ -481,7 +483,7 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
     svn.release()
 }
 
-createTask('wrapper', type: Wrapper, dependsOn: ['init', 'archive_bin_zip']).doFirst { task ->
+createTask('wrapper', type: Wrapper, dependsOn: ['archive_bin_zip']).doFirst { task ->
     task.configure {
         gradleVersion = version
         archiveBase = Wrapper.PathBase.PROJECT

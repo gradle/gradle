@@ -1,0 +1,115 @@
+
+body {
+    font-family: arial, sans-serif;
+    color: #666666;
+    font-size: 12pt;
+    margin-top: 4em;
+    margin-left: 4em;
+    margin-right: 4em;
+}
+
+a {
+    color: #444444;
+}
+
+a:visited {
+    color: #444444;
+}
+
+/* Code snippets */
+
+.fancyvrb {
+    border: solid gray 1px;
+    background-color: #f2f2f2;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+    margin-top: 0.6em;
+    margin-bottom: 0.6em;
+    font-family: Courier, monospace;
+    font-size: 80%;
+    white-space: nowrap;
+}
+
+/* Headers */
+
+h1, h2, h3, h4, h5 {
+    color: #6a915e;
+}
+
+h1, h2 {
+    font-size: 130%;
+}
+
+h3 {
+    font-size: 110%;
+}
+
+h2.chapterHead {
+    margin-top: 1.4em;
+}
+
+/* Tables */
+
+table {
+    border-collapse: collapse;
+    border: none;
+}
+
+tr {
+    border: none;
+}
+
+td {
+    border: none;
+}
+
+/* Tabular */
+
+table.tabular {
+    font-size: 90%;
+}
+
+tr.hline {
+    display: none;
+}
+
+table.tabular td {
+    border: solid #d0d0d0 1px;
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
+
+/* Floats */
+
+.table hr {
+    display: none;
+}
+
+td.float br {
+    display: none;
+}
+
+table.caption {
+    margin-top: 0.6em;
+    font-size: 90%;
+}
+
+/* Nav */
+
+.crosslinks {
+    font-size: 90%;
+    color: #666666;
+}
+
+.crosslinks a {
+    color: #666666;
+}
+
+dt.description {
+    font-weight: bold;
+    margin-top: 0.4em;
+}
