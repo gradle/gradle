@@ -17,7 +17,6 @@
 package org.gradle.execution;
 
 import org.gradle.api.CircularReferenceException;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -28,6 +27,7 @@ import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -41,24 +41,23 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
+@RunWith(JMock.class)
 public class BuildExecuterTest {
     static File TEST_ROOT_DIR = new File("/path/root");
 
     BuildExecuter buildExecuter;
     DefaultProject root;
-    Project child;
     JUnit4Mockery context = new JUnit4Mockery();
     List<Task> executedTasks = new ArrayList<Task>();
 
     @Before
     public void setUp() {
         root = HelperUtil.createRootProject(new File("root"));
-        child = root.addChildProject("child", new File("childProjectDir"));
         buildExecuter = new BuildExecuter(new Dag<Task>());
     }
 
-    @Test public void testExecutesTasksInDependencyOrder() {
+    @Test
+    public void testExecutesTasksInDependencyOrder() {
         Task a = createTask("a");
         Task b = createTask("b", a);
         Task c = createTask("c", b, a);
@@ -69,7 +68,8 @@ public class BuildExecuterTest {
         assertThat(executedTasks, equalTo(toList(a, b, c, d)));
     }
 
-    @Test public void testExecutesTasksWithNoDependenciesInNameOrder() {
+    @Test
+    public void testExecutesTasksWithNoDependenciesInNameOrder() {
         Task a = createTask("a");
         Task b = createTask("b");
         Task c = createTask("c");
@@ -79,7 +79,8 @@ public class BuildExecuterTest {
         assertThat(executedTasks, equalTo(toList(a, b, c)));
     }
 
-    @Test public void testExecuteWithRebuildDagAndDagNeutralTask() {
+    @Test
+    public void testExecuteWithRebuildDagAndDagNeutralTask() {
         Task neutral = createTask("a");
         neutral.setDagNeutral(true);
         Task notNeutral = createTask("b");
@@ -89,7 +90,8 @@ public class BuildExecuterTest {
         assertTrue(buildExecuter.execute(toList(notNeutral)));
     }
 
-    @Test public void testAddTasksAddsDependencies() {
+    @Test
+    public void testAddTasksAddsDependencies() {
         Task a = createTask("a");
         Task b = createTask("b", a);
         Task c = createTask("c", b, a);
@@ -100,23 +102,55 @@ public class BuildExecuterTest {
         assertTrue(buildExecuter.hasTask(":b"));
         assertTrue(buildExecuter.hasTask(":c"));
         assertTrue(buildExecuter.hasTask(":d"));
-        assertThat(buildExecuter.getAllTasks(), equalTo(toSet(a, b, c, d)));
+        assertThat(buildExecuter.getAllTasks(), equalTo(toList(a, b, c, d)));
     }
 
-    @Test public void testDiscardsTasksAfterExecute() {
+    @Test
+    public void testGetAllTasksReturnsTasksInExecutionOrder() {
+        Task a = createTask("a");
+        Task b = createTask("b");
+        Task c = createTask("c", b, a);
+        Task d = createTask("d", c);
+        buildExecuter.addTasks(toList(d));
+
+        assertThat(buildExecuter.getAllTasks(), equalTo(toList(a, b, c, d)));
+    }
+
+    @Test
+    public void testCannotUseGetterMethodsWhenGraphHasNotBeenCalculated() {
+        try {
+            buildExecuter.hasTask(":a");
+            fail();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage(), equalTo(
+                    "Task information is not available, as this task execution graph has not been populated."));
+        }
+
+        try {
+            buildExecuter.getAllTasks();
+            fail();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage(), equalTo(
+                    "Task information is not available, as this task execution graph has not been populated."));
+        }
+    }
+
+    @Test
+    public void testDiscardsTasksAfterExecute() {
         Task a = createTask("a");
         Task b = createTask("b", a);
 
         buildExecuter.addTasks(toList(b));
 
-        assertThat(buildExecuter.getAllTasks(), equalTo(toSet(a, b)));
+        assertFalse(buildExecuter.getAllTasks().isEmpty());
 
         buildExecuter.execute();
 
         assertTrue(buildExecuter.getAllTasks().isEmpty());
     }
-    
-    @Test public void testCannotAddTaskWithCircularReference() {
+
+    @Test
+    public void testCannotAddTaskWithCircularReference() {
         Task a = createTask("a");
         Task b = createTask("b", a);
         Task c = createTask("c", b);
@@ -130,21 +164,23 @@ public class BuildExecuterTest {
         }
     }
 
-    @Test public void testNotifiesListenerBeforeExecute() {
+    @Test
+    public void testNotifiesListenerBeforeExecute() {
         final TaskExecutionGraphListener listener = context.mock(TaskExecutionGraphListener.class);
         Task a = createTask("a");
 
         buildExecuter.addTaskExecutionGraphListener(listener);
         buildExecuter.addTasks(toList(a));
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(listener).graphPrepared(buildExecuter);
         }});
 
         buildExecuter.execute();
     }
 
-    @Test public void testExecutesClosureBeforeExecute() {
+    @Test
+    public void testExecutesClosureBeforeExecute() {
         final Runnable runnable = context.mock(Runnable.class);
         Task a = createTask("a");
 
@@ -152,7 +188,7 @@ public class BuildExecuterTest {
 
         buildExecuter.addTasks(toList(a));
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(runnable).run();
         }});
 

@@ -15,23 +15,23 @@
  */
 package org.gradle.api.execution;
 
+import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Build;
 
-import java.util.Set;
-
-import groovy.lang.Closure;
+import java.util.List;
 
 /**
- * <p>A <code>TaskExecutionGraph</code> is responsible for managing the ordering and execution of {@link Task}
- * instances. The <code>TaskExecutionGraph</code> maintains an execution plan of tasks to be executed (or which have
- * been executed), which you can query from your build file.</p>
+ * <p>A <code>TaskExecutionGraph</code> is responsible for managing the execution of the {@link Task} instances which
+ * are part of the build. The <code>TaskExecutionGraph</code> maintains an execution plan of tasks to be executed (or
+ * which have been executed), and you can query this plan from your build file.</p>
  *
  * <p>You can access the {@code TaskExecutionGraph} by calling {@link Build#getTaskGraph()}. In your build file you can
  * use {@code build.taskGraph} to access it.</p>
  *
- * <p>The <code>TaskExecutionGraph</code> is populated after all the projects in the build have been evaulated. It is
- * empty before then.</p>
+ * <p>The <code>TaskExecutionGraph</code> is populated only after all the projects in the build have been evaulated. It
+ * is empty before then. You can receive notification when the graph is populated, using {@link
+ * #whenReady(groovy.lang.Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
  */
 public interface TaskExecutionGraph {
     /**
@@ -61,13 +61,16 @@ public interface TaskExecutionGraph {
      *
      * @param path the <em>absolute</em> path of the task
      * @return true if a task with the given path is included in the execution plan.
+     * @throws IllegalStateException When this graph has not been populated.
      */
     boolean hasTask(String path);
 
     /**
-     * <p>Returns the set of all tasks which are included in the execution plan.</p>
+     * <p>Returns the tasks which are included in the execution plan. The tasks are returned in the order that they will
+     * be executed.</p>
      *
      * @return The tasks. Returns an empty set if no tasks are to be executed.
+     * @throws IllegalStateException When this graph has not been populated.
      */
-    Set<Task> getAllTasks();
+    List<Task> getAllTasks();
 }

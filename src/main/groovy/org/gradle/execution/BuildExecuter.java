@@ -22,16 +22,16 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -40,6 +40,7 @@ public class BuildExecuter implements TaskExecutionGraph {
     private static Logger logger = LoggerFactory.getLogger(BuildExecuter.class);
 
     private Dag<Task> dag;
+    private boolean populated;
     private List<TaskExecutionGraphListener> listeners = new ArrayList<TaskExecutionGraphListener>();
 
     public BuildExecuter(Dag<Task> dag) {
@@ -51,6 +52,7 @@ public class BuildExecuter implements TaskExecutionGraph {
 
         Clock clock = new Clock();
         fillDag(tasks);
+        populated = true;
         logger.debug("Timing: Creating the DAG took " + clock.getTime());
 
     }
@@ -62,11 +64,13 @@ public class BuildExecuter implements TaskExecutionGraph {
             listener.graphPrepared(this);
         }
 
-        boolean dagNeutral = execute(new TreeSet<Task>(dag.getSources()));
-        dag.reset();
-
-        logger.debug("Timing: Executing the DAG took " + clock.getTime());
-        return !dagNeutral;
+        try {
+            boolean dagNeutral = execute(new TreeSet<Task>(dag.getSources()));
+            logger.debug("Timing: Executing the DAG took " + clock.getTime());
+            return !dagNeutral;
+        } finally {
+            dag.reset();
+        }
     }
 
     public boolean execute(Iterable<? extends Task> tasks) {
@@ -120,7 +124,7 @@ public class BuildExecuter implements TaskExecutionGraph {
             dagNeutral = execute(new TreeSet<Task>(dag.getChildren(task)));
             if (!task.getExecuted()) {
                 logger.info("Executing: " + task);
-                ((AbstractTask) task).execute();
+                ((TaskInternal) task).execute();
                 if (dagNeutral) {
                     dagNeutral = task.isDagNeutral();
                 }
@@ -130,6 +134,7 @@ public class BuildExecuter implements TaskExecutionGraph {
     }
 
     public boolean hasTask(String path) {
+        assertPopulated();
         assert path != null && path.length() > 0;
         for (Task task : getAllTasks()) {
             if (task.getPath().equals(path)) {
@@ -139,8 +144,16 @@ public class BuildExecuter implements TaskExecutionGraph {
         return false;
     }
 
-    public Set<Task> getAllTasks() {
-        return accumulateTasks(dag.getSources());
+    public List<Task> getAllTasks() {
+        assertPopulated();
+        return new ArrayList<Task>(accumulateTasks(dag.getSources()));
+    }
+
+    private void assertPopulated() {
+        if (!populated) {
+            throw new IllegalStateException(
+                    "Task information is not available, as this task execution graph has not been populated.");
+        }
     }
 
     private Set<Task> accumulateTasks(Set<? extends Task> tasks) {
@@ -153,6 +166,7 @@ public class BuildExecuter implements TaskExecutionGraph {
     }
     
     public Set<Project> getProjects() {
+        assertPopulated();
         HashSet<Project> projects = new HashSet<Project>();
         for (Task task : getAllTasks()) {
             projects.add(task.getProject());
