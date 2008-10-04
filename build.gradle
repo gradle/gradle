@@ -382,21 +382,27 @@ createTask('userguide', dependsOn: [userguideDir, 'userguideVersion', 'explodedD
         cleanLatex(userguideSrc)
         3.times {
             exec(output: userguideDir.toString() + '/htmlOut', executable: 'htlatex', dir: userguideSrc, failonerror: true) {
-                arg(line: "master.tex")
+                arg(line: "master.tex \"htmluserguide\"")
             }
         }
-        copy(file: new File(userguideSrc, 'master.html'), tofile: new File(explodedDistDocsDir, 'html_single/userguide.html'))
-        copy(file: new File(userguideSrc, 'html/master.css'), todir: new File(explodedDistDocsDir, 'html_single'))
+        copy(todir: new File(explodedDistDocsDir, 'html_single')) {
+            fileset(dir: userguideSrc, includes: '*.html') {
+                include(name: '*.html')
+                include(name: '*.css')
+            }
+        }
         cleanLatex(userguideSrc)
         3.times {
             exec(output: userguideDir.toString() + '/htmlSingleOut', executable: 'htlatex', dir: userguideSrc, failonerror: true) {
-                arg(line: "master.tex \"html,2\"")
+                arg(line: "master.tex \"htmluserguide,2\"")
             }
         }
         copy(todir: new File(explodedDistDocsDir, 'html')) {
-            fileset(dir: userguideSrc, includes: '*.html')
+            fileset(dir: userguideSrc, includes: '*.html') {
+                include(name: '*.html')
+                include(name: '*.css')
+            }
         }
-        copy(file: new File(userguideSrc, 'html/master.css'), todir: new File(explodedDistDocsDir, 'html'))
         cleanLatex(userguideSrc)
     }
 }
