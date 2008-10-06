@@ -18,6 +18,9 @@ package org.gradle;
 import org.slf4j.Logger;
 import org.gradle.util.Clock;
 import org.gradle.logging.Logging;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.execution.TaskExecutionGraph;
 
 /**
  * A {@link BuildListener} which logs the final result of the build.
@@ -39,6 +42,18 @@ public class BuildResultLogger implements BuildListener {
         logger.debug("Build file name: " + startParameter.getBuildFileName());
         logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
         logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
+    }
+
+    public void settingsEvaluated(Settings settings) {
+    }
+
+    public void projectsLoaded(Build build) {
+    }
+
+    public void projectsEvaluated(Build build) {
+    }
+
+    public void taskGraphPrepared(TaskExecutionGraph graph) {
     }
 
     public void buildFinished(BuildResult result) {

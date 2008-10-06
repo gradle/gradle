@@ -15,8 +15,13 @@
  */
 package org.gradle;
 
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.execution.TaskExecutionGraph;
+
 /**
- * <p>A {@code BuildListener} is notified of events as a {@link Gradle} instance executes a build.</p>
+ * <p>A {@code BuildListener} is notified of the major lifecycle events as a {@link Gradle} instance executes a
+ * build.</p>
  *
  * @author Hans Dockter
  * @see Gradle#addBuildListener(BuildListener)
@@ -30,7 +35,39 @@ public interface BuildListener {
     void buildStarted(StartParameter startParameter);
 
     /**
-     * <p>Called when the build is completed.</p>
+     * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is
+     * ready to use to load the build projects.</p>
+     *
+     * @param settings The settings.
+     */
+    void settingsEvaluated(Settings settings);
+
+    /**
+     * <p>Called when the projects for the build have been loaded. The projects have been loaded from the associated
+     * build files, however, none of the projects have yet been evaluated.</p>
+     *
+     * @param build The build which has been loaded.
+     */
+    void projectsLoaded(Build build);
+
+    /**
+     * <p>Called when the projects for the build have been evaluated. The project objects are fully configured and are
+     * ready to use to prepare the task graph.</p>
+     *
+     * @param build The build which has been evaluated.
+     */
+    void projectsEvaluated(Build build);
+
+    /**
+     * <p>Called when the task graph for the build has been prepared. The task graph is fully configured and is ready to
+     * use to execute the tasks which make up the build.</p>
+     *
+     * @param graph The task graph
+     */
+    void taskGraphPrepared(TaskExecutionGraph graph);
+
+    /**
+     * <p>Called when the build is completed. All selected tasks have been executed.</p>
      *
      * @param result The result of the build.
      */

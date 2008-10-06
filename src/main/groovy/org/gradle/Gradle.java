@@ -26,6 +26,8 @@ import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.TaskFactory;
+import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
@@ -131,18 +133,6 @@ public class Gradle {
         return buildResult;
     }
 
-    private void fireBuildStarted(StartParameter startParameter) {
-        for (BuildListener buildListener : buildListeners) {
-            buildListener.buildStarted(startParameter);
-        }
-    }
-
-    private void fireBuildFinished(BuildResult buildResult) {
-        for (BuildListener buildListener : buildListeners) {
-            buildListener.buildFinished(buildResult);
-        }
-    }
-
     private void runInternal(SettingsInternal settings, StartParameter startParameter) {
         ClassLoader classLoader = settings.createClassLoader();
         Boolean rebuildDag = true;
@@ -153,7 +143,10 @@ public class Gradle {
                 build = projectLoader.load(settings.getRootProjectDescriptor(), classLoader,
                         startParameter,
                         gradlePropertiesLoader.getGradleProperties());
+                fireProjectsLoaded(build);
                 buildConfigurer.process(build.getRootProject());
+                fireProjectsEvaluated(build);
+                attachTaskGraphListener(build);
             } else {
                 logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
             }
@@ -164,12 +157,58 @@ public class Gradle {
         }
     }
 
+    private void attachTaskGraphListener(BuildInternal build) {
+        build.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
+            public void graphPrepared(TaskExecutionGraph graph) {
+                fireTaskGraphPrepared(graph);
+            }
+        });
+    }
+
     private SettingsInternal init(StartParameter startParameter) {
-        return settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader);
+        SettingsInternal settings = settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader);
+        fireSettingsEvaluated(settings);
+        return settings;
     }
 
     public static Gradle newInstance(final StartParameter startParameter) {
         return factory.newInstance(startParameter);
+    }
+
+    private void fireBuildStarted(StartParameter startParameter) {
+        for (BuildListener buildListener : buildListeners) {
+            buildListener.buildStarted(startParameter);
+        }
+    }
+
+    private void fireSettingsEvaluated(SettingsInternal settings) {
+        for (BuildListener listener : buildListeners) {
+            listener.settingsEvaluated(settings);
+        }
+    }
+
+    private void fireTaskGraphPrepared(TaskExecutionGraph graph) {
+        for (BuildListener listener : buildListeners) {
+            listener.taskGraphPrepared(graph);
+        }
+    }
+
+    private void fireProjectsLoaded(BuildInternal build) {
+        for (BuildListener listener : buildListeners) {
+            listener.projectsLoaded(build);
+        }
+    }
+
+    private void fireProjectsEvaluated(BuildInternal build) {
+        for (BuildListener listener : buildListeners) {
+            listener.projectsEvaluated(build);
+        }
+    }
+
+    private void fireBuildFinished(BuildResult buildResult) {
+        for (BuildListener buildListener : buildListeners) {
+            buildListener.buildFinished(buildResult);
+        }
     }
 
     // This is used for mocking

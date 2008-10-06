@@ -19,6 +19,9 @@ import org.slf4j.Logger;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.initialization.Settings;
 import joptsimple.OptionSet;
 
 import java.util.Formatter;
@@ -39,6 +42,18 @@ public class BuildExceptionReporter implements BuildListener {
     }
 
     public void buildStarted(StartParameter startParameter) {
+    }
+
+    public void settingsEvaluated(Settings settings) {
+    }
+
+    public void projectsLoaded(Build build) {
+    }
+
+    public void projectsEvaluated(Build build) {
+    }
+
+    public void taskGraphPrepared(TaskExecutionGraph graph) {
     }
 
     public void buildFinished(BuildResult result) {

@@ -17,6 +17,9 @@ package org.gradle;
 
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.initialization.Settings;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,18 @@ public class BuildCleanupListener implements BuildListener {
     private static Logger logger = LoggerFactory.getLogger(BuildCleanupListener.class);
 
     public void buildStarted(StartParameter startParameter) {
+    }
+
+    public void settingsEvaluated(Settings settings) {
+    }
+
+    public void projectsLoaded(Build build) {
+    }
+
+    public void projectsEvaluated(Build build) {
+    }
+
+    public void taskGraphPrepared(TaskExecutionGraph graph) {
     }
 
     public void buildFinished(BuildResult result) {
