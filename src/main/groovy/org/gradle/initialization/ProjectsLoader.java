@@ -56,7 +56,7 @@ public class ProjectsLoader {
     public BuildInternal load(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
                               StartParameter startParameter,
                               Map<String, String> externalProjectProperties) {
-        logger.info("++ Loading Project objects");
+        logger.debug("Loading Project objects");
         Clock clock = new Clock();
         DefaultBuild build = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter,
                 externalProjectProperties);

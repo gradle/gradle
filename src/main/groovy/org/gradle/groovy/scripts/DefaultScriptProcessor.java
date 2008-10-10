@@ -19,9 +19,6 @@ import groovy.lang.Script;
 import org.gradle.CacheUsage;
 import org.gradle.api.Project;
 import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 
@@ -29,8 +26,6 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DefaultScriptProcessor implements IScriptProcessor {
-    private static Logger logger = LoggerFactory.getLogger(DefaultScriptProcessor.class);
-
     private final IScriptHandler scriptHandler;
     private final CacheUsage cacheUsage;
 
@@ -50,7 +45,6 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
         String text = source.getText();
         if (!GUtil.isTrue(text)) {
-            logger.info(String.format("%s is not available. Using an empty script!", StringUtils.capitalize(source.getDescription())));
             return new EmptyScript();
         }
 

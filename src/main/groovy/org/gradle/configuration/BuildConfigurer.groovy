@@ -46,7 +46,7 @@ class BuildConfigurer {
     }
 
     void process(Project rootProject) {
-        logger.info('++ Configuring Project objects')
+        logger.debug('Configuring Project objects')
         Clock clock = new Clock()
         rootProject.allprojects(projectEvaluateAction)
         projectDependencies2TasksResolver.resolve(rootProject)

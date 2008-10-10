@@ -103,10 +103,10 @@ import java.util.Set;
  * can contain any arbitrary name -> value pair.  The properties of this scope are readable and writable.</li>
  *
  * <li>The <em>convention</em> properties added to the project by each {@link Plugin} applied to the project. A {@link
- * Plugin} can add properties and method to a project through the project's {@link Convention} object.  The properties
+ * Plugin} can add properties and methods to a project through the project's {@link Convention} object.  The properties
  * of this scope may be readable or writable, depending on the convention objects.</li>
  *
- * <li>The tasks of the project.  A task is accessable as by using its name as the task name.  The properties of this
+ * <li>The tasks of the project.  A task is accessable by using its name as a property name.  The properties of this
  * scope are read-only. For example, a task called <code>compile</code> is accessable as the <code>compile</code>
  * property.</li>
  *

@@ -21,6 +21,8 @@ import org.gradle.logging.Logging;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 
 /**
  * A {@link BuildListener} which logs the final result of the build.
@@ -36,7 +38,7 @@ public class BuildResultLogger implements BuildListener {
 
     public void buildStarted(StartParameter startParameter) {
         logger.info("Starting Build");
-        logger.debug("Gradle home dir: " + startParameter.getGradleHomeDir());
+        logger.debug("Gradle home: " + startParameter.getGradleHomeDir());
         logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
         logger.debug("Project dir: " + startParameter.getCurrentDir());
         logger.debug("Build file name: " + startParameter.getBuildFileName());
@@ -45,22 +47,30 @@ public class BuildResultLogger implements BuildListener {
     }
 
     public void settingsEvaluated(Settings settings) {
+        SettingsInternal settingsInternal = (SettingsInternal) settings;
+        logger.info(String.format("Settings evaluated using %s.",
+                settingsInternal.getSettingsScript().getDescription()));
     }
 
     public void projectsLoaded(Build build) {
+        ProjectInternal projectInternal = (ProjectInternal) build.getRootProject();
+        logger.info(String.format("Projects loaded. Root project using %s.",
+                projectInternal.getBuildScriptSource().getDescription()));
+        logger.info(String.format("Included projects: %s", projectInternal.getAllprojects()));
     }
 
     public void projectsEvaluated(Build build) {
+        logger.info("All projects evaluated.");
     }
 
     public void taskGraphPrepared(TaskExecutionGraph graph) {
+        logger.info(String.format("Tasks to be executed: %s", graph.getAllTasks()));
     }
 
     public void buildFinished(BuildResult result) {
         if (result.getFailure() == null) {
             logger.info(Logging.LIFECYCLE, String.format("%nBUILD SUCCESSFUL%n"));
-        }
-        else {
+        } else {
             logger.error(String.format("%nBUILD FAILED%n"));
         }
         logger.info(Logging.LIFECYCLE, String.format("Total time: %s", buildTimeClock.getTime()));

@@ -22,6 +22,7 @@ import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
 
 import java.io.File;
 
@@ -54,11 +55,15 @@ public class ProjectFactory implements IProjectFactory {
     }
 
     public DefaultProject createProject(String name, Project parent, File projectDir, BuildInternal build) {
+        File buildFile = new File(projectDir, startParameter.getBuildFileName());
+
         ScriptSource source;
         if (embeddedScript != null) {
             source = embeddedScript;
+        } else if (!buildFile.exists()) {
+            source = new StringScriptSource("empty build file", "");
         } else {
-            source = new FileScriptSource("build file", new File(projectDir, startParameter.getBuildFileName()));
+            source = new FileScriptSource("build file", buildFile);
         }
         
         return new DefaultProject(name, parent, projectDir, startParameter.getBuildFileName(), source,

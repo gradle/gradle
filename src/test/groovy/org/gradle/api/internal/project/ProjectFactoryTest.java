@@ -22,7 +22,9 @@ import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
 import static org.gradle.util.ReflectionEqualsMatcher.*;
+import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -31,8 +33,10 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -43,8 +47,8 @@ import java.net.URLClassLoader;
 public class ProjectFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ClassLoader buildScriptClassLoader = new URLClassLoader(new URL[0]);
-    private final File rootDir = new File("/root");
-    private final File projectDir = new File("/project").getAbsoluteFile();
+    private final File rootDir = HelperUtil.makeNewTestDir();
+    private final File projectDir = new File(rootDir, "project");
     private DependencyManagerFactory dependencyManagerFactoryMock;
     private ITaskFactory taskFactoryMock;
     private BuildScriptProcessor buildScriptProcessor;
@@ -79,7 +83,10 @@ public class ProjectFactoryTest {
     }
 
     @Test
-    public void testConstructsRootProjectWithBuildFile() {
+    public void testConstructsRootProjectWithBuildFile() throws IOException {
+        File buildFile = new File(rootDir, "build.gradle");
+        FileUtils.writeStringToFile(buildFile, "build");
+
         DefaultProject project = projectFactory.createProject("somename", null, rootDir, build);
 
         assertEquals("somename", project.getName());
@@ -90,12 +97,14 @@ public class ProjectFactoryTest {
         assertSame(project, project.getRootProject());
         checkProjectResources(project);
 
-        ScriptSource expectedScriptSource = new FileScriptSource("build file", new File(rootDir, "build.gradle"));
+        ScriptSource expectedScriptSource = new FileScriptSource("build file", buildFile);
         assertThat(project.getBuildScriptSource(), reflectionEquals(expectedScriptSource));
     }
 
     @Test
-    public void testConstructsChildProjectWithBuildFile() {
+    public void testConstructsChildProjectWithBuildFile() throws IOException {
+        File buildFile = new File(projectDir, "build.gradle");
+        FileUtils.writeStringToFile(buildFile, "build");
 
         DefaultProject rootProject = projectFactory.createProject("root", null, rootDir, build);
         DefaultProject parentProject = projectFactory.createProject("parent", rootProject, rootDir, build);
@@ -110,7 +119,17 @@ public class ProjectFactoryTest {
         assertSame(rootProject, project.getRootProject());
         checkProjectResources(project);
 
-        ScriptSource expectedScriptSource = new FileScriptSource("build file", new File(projectDir, "build.gradle").getAbsoluteFile());
+        ScriptSource expectedScriptSource = new FileScriptSource("build file", buildFile);
+        assertThat(project.getBuildScriptSource(), reflectionEquals(expectedScriptSource));
+    }
+
+    @Test
+    public void testUsesEmptyBuildFileWhenBuildFileIsMissing() {
+
+        DefaultProject rootProject = projectFactory.createProject("root", null, rootDir, build);
+        DefaultProject project = projectFactory.createProject("somename", rootProject, projectDir, build);
+
+        ScriptSource expectedScriptSource = new StringScriptSource("empty build file", "");
         assertThat(project.getBuildScriptSource(), reflectionEquals(expectedScriptSource));
     }
 

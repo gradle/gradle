@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.SettingsInternal;
 
@@ -38,8 +39,12 @@ public class SettingsFactory {
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
-    public SettingsInternal createSettings(File settingsDir, Map gradleProperties, StartParameter startParameter) {
-        return new DefaultSettings(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir,
-                gradleProperties, startParameter);
+    public SettingsInternal createSettings(File settingsDir, ScriptSource settingsScript,
+                                           Map<String, String> gradleProperties, StartParameter startParameter) {
+        DefaultSettings settings = new DefaultSettings(dependencyManagerFactory, projectDescriptorRegistry,
+                buildSourceBuilder, settingsDir, gradleProperties, startParameter);
+        // todo - this should be injected into constructor, but I couldn't convince groovy to do so. 
+        settings.setSettingsScript(settingsScript);
+        return settings;
     }
 }

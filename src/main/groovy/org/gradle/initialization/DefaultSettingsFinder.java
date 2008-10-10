@@ -18,6 +18,7 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
 
 import java.io.File;
 import java.util.List;
@@ -44,11 +45,11 @@ public class DefaultSettingsFinder implements ISettingsFinder {
         }
         if (settingsFile == null) {
             settingsDir = startParameter.getCurrentDir();
-            settingsFile = new File(startParameter.getCurrentDir(), startParameter.getSettingsFileName());
+            settingsScriptSource = new StringScriptSource("empty settings file", "");
         } else {
             settingsDir = settingsFile.getParentFile();
+            settingsScriptSource = new FileScriptSource("settings file", settingsFile);
         }
-        settingsScriptSource = new FileScriptSource("settings file", settingsFile);
     }
 
     public File getSettingsDir() {

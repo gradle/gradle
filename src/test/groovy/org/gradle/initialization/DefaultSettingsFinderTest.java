@@ -17,7 +17,10 @@ package org.gradle.initialization;
 
 import org.gradle.util.WrapUtil;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.ReflectionEqualsMatcher.*;
 import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +54,8 @@ public class DefaultSettingsFinderTest {
     @Test
     public void testFindWithStrategy1() {
         context.checking(new Expectations() {{
-          allowing(searchStrategyMock1).find(TEST_START_PARAMETER); will(returnValue(TEST_SETTINGSFILE));
+            allowing(searchStrategyMock1).find(TEST_START_PARAMETER);
+            will(returnValue(TEST_SETTINGSFILE));
         }});
         defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_SETTINGSFILE.getParentFile(), defaultSettingsFinder.getSettingsDir());
@@ -61,8 +65,10 @@ public class DefaultSettingsFinderTest {
     @Test
     public void testFindWithStrategy2() {
         context.checking(new Expectations() {{
-          allowing(searchStrategyMock1).find(TEST_START_PARAMETER); will(returnValue(null));
-          allowing(searchStrategyMock2).find(TEST_START_PARAMETER); will(returnValue(TEST_SETTINGSFILE));
+            allowing(searchStrategyMock1).find(TEST_START_PARAMETER);
+            will(returnValue(null));
+            allowing(searchStrategyMock2).find(TEST_START_PARAMETER);
+            will(returnValue(TEST_SETTINGSFILE));
         }});
         defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_SETTINGSFILE.getParentFile(), defaultSettingsFinder.getSettingsDir());
@@ -72,12 +78,15 @@ public class DefaultSettingsFinderTest {
     @Test
     public void testNotFound() {
         context.checking(new Expectations() {{
-          allowing(searchStrategyMock1).find(TEST_START_PARAMETER); will(returnValue(null));
-          allowing(searchStrategyMock2).find(TEST_START_PARAMETER); will(returnValue(null));
+            allowing(searchStrategyMock1).find(TEST_START_PARAMETER);
+            will(returnValue(null));
+            allowing(searchStrategyMock2).find(TEST_START_PARAMETER);
+            will(returnValue(null));
         }});
         defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_START_PARAMETER.getCurrentDir(), defaultSettingsFinder.getSettingsDir());
-        assertEquals(new File(TEST_START_PARAMETER.getCurrentDir(), TEST_START_PARAMETER.getSettingsFileName()),
-                defaultSettingsFinder.getSettingsScriptSource().getSourceFile());
+        ScriptSource expectedSettingsSource = new StringScriptSource("empty settings file", "");
+        assertThat(defaultSettingsFinder.getSettingsScriptSource(), reflectionEquals(
+                expectedSettingsSource));
     }
 }

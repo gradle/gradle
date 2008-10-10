@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
@@ -29,7 +30,6 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.ClasspathUtil;
-import org.gradle.util.GradleUtil;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +53,12 @@ public class BaseSettings implements SettingsInternal {
     private DependencyManager dependencyManager;
 
     private BuildSourceBuilder buildSourceBuilder;
-    private Map<String, String> additionalProperties = new HashMap();
+    private Map<String, String> additionalProperties = new HashMap<String, String>();
+
+    private ScriptSource settingsScript;
 
     private Map<String, String> gradleProperties;
+
     private StartParameter startParameter;
 
     private File settingsDir;
@@ -70,7 +73,8 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public BaseSettings(DependencyManagerFactory dependencyManagerFactory, IProjectDescriptorRegistry projectDescriptorRegistry,
-                        BuildSourceBuilder buildSourceBuilder, File settingsDir, Map<String, String> gradleProperties, StartParameter startParameter) {
+                        BuildSourceBuilder buildSourceBuilder, File settingsDir, Map<String, String> gradleProperties,
+                        StartParameter startParameter) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.gradleProperties = gradleProperties;
@@ -265,6 +269,14 @@ public class BaseSettings implements SettingsInternal {
 
     public void setSettingsDir(File settingsDir) {
         this.settingsDir = settingsDir;
+    }
+
+    public ScriptSource getSettingsScript() {
+        return settingsScript;
+    }
+
+    public void setSettingsScript(ScriptSource settingsScript) {
+        this.settingsScript = settingsScript;
     }
 
     public StartParameter getBuildSrcStartParameter() {

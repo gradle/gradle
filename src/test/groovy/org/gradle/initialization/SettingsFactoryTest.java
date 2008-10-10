@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
@@ -42,6 +43,7 @@ public class SettingsFactoryTest {
         final DependencyManagerFactory dependencyManagerFactoryMock = context.mock(DependencyManagerFactory.class);
         final DependencyManager dependencyManagerMock = context.mock(DependencyManager.class);
         final File expectedSettingsDir = new File("settingsDir");
+        ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         context.checking(new Expectations() {{
             allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
@@ -57,13 +59,14 @@ public class SettingsFactoryTest {
         SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry,
                 dependencyManagerFactoryMock, expectedBuildSourceBuilder);
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,
-                expectedGradleProperties, expectedStartParameter);
-        
+                expectedScriptSource, expectedGradleProperties, expectedStartParameter);
+
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         assertSame(dependencyManagerMock, settings.getDependencyManager());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());
         assertSame(expectedGradleProperties, settings.getGradleProperties());
         assertSame(expectedSettingsDir, settings.getSettingsDir());
+        assertSame(expectedScriptSource, settings.getSettingsScript());
         assertSame(expectedStartParameter, settings.getStartParameter());
     }
 }

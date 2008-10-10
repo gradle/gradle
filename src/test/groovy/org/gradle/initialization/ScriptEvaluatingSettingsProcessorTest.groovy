@@ -89,7 +89,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         expectedSettings.setProjectDescriptorRegistry(projectDescriptorRegistry)
         expectedSettings.setStartParameter(expectedStartParameter)
         context.checking {
-            one(settingsFactory).createSettings(TEST_ROOT_DIR, expectedGradleProperties, expectedStartParameter)
+            one(settingsFactory).createSettings(TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter)
             will(returnValue(expectedSettings))
         }
     }
@@ -113,18 +113,6 @@ class ScriptEvaluatingSettingsProcessorTest {
         assert settingsProcessor.settingsFactory.is(settingsFactory)
         assert settingsProcessor.dependencyManagerFactory.is(dependencyManagerFactory)
         assert settingsProcessor.buildResolverDir.is(buildResolverDir)
-    }
-
-    @Test public void testProcessWithNoSettingsFile() {
-        expectedStartParameter.setCurrentDir(TEST_ROOT_DIR)
-        DefaultSettings expectedBasicSettings = new DefaultSettings()
-        context.checking {
-            allowing(scriptSourceMock).getText(); will(returnValue(null))
-            one(settingsFactory).createSettings(TEST_ROOT_DIR, [:], expectedStartParameter)
-            will(returnValue(expectedBasicSettings))
-        }
-        assertSame(expectedBasicSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, propertiesLoaderMock))
-        checkDependencyManagerFactory()
     }
 
     @Test public void testProcessWithSettingsFile() {

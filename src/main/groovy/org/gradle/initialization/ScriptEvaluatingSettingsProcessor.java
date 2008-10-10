@@ -35,8 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 
 /**
@@ -79,13 +77,8 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         Clock settingsProcessingClock = new Clock();
         initDependencyManagerFactory(settingsFinder);
         SettingsInternal settings = settingsFactory.createSettings(settingsFinder.getSettingsDir(),
-                propertiesLoader.getGradleProperties(),
-                startParameter);
-        if (settingsFinder.getSettingsScriptSource().getText() != null) {
-            applySettingsScript(settingsFinder, settings);
-        } else {
-            settings = createBasicSettings(settingsFinder, startParameter);
-        }
+                settingsFinder.getSettingsScriptSource(), propertiesLoader.getGradleProperties(), startParameter);
+        applySettingsScript(settingsFinder, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;
     }
@@ -114,12 +107,6 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         GradleUtil.deleteDir(buildResolverDir);
         dependencyManagerFactory.setBuildResolverDir(buildResolverDir);
         logger.debug("Set build resolver dir to: {}", dependencyManagerFactory.getBuildResolverDir());
-    }
-
-    private SettingsInternal createBasicSettings(ISettingsFinder settingsFinder, StartParameter startParameter) {
-        initDependencyManagerFactory(settingsFinder);
-        return settingsFactory.createSettings(settingsFinder.getSettingsDir(), new HashMap<String, String>(),
-                startParameter);
     }
 
     public ImportsReader getImportsReader() {
