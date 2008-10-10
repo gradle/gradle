@@ -63,7 +63,7 @@ public class BuildExecuter implements TaskExecutionGraph {
         Clock clock = new Clock();
 
         for (TaskExecutionGraphListener listener : listeners) {
-            listener.graphPrepared(this);
+            listener.graphPopulated(this);
         }
 
         try {
@@ -104,7 +104,7 @@ public class BuildExecuter implements TaskExecutionGraph {
 
     public void whenReady(final Closure closure) {
         listeners.add(new TaskExecutionGraphListener() {
-            public void graphPrepared(TaskExecutionGraph graph) {
+            public void graphPopulated(TaskExecutionGraph graph) {
                 closure.call(graph);
             }
         });

@@ -44,7 +44,7 @@ public class BuildCleanupListener implements BuildListener {
     public void projectsEvaluated(Build build) {
     }
 
-    public void taskGraphPrepared(TaskExecutionGraph graph) {
+    public void taskGraphPopulated(TaskExecutionGraph graph) {
     }
 
     public void buildFinished(BuildResult result) {

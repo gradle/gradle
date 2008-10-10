@@ -159,7 +159,7 @@ public class Gradle {
 
     private void attachTaskGraphListener(BuildInternal build) {
         build.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
-            public void graphPrepared(TaskExecutionGraph graph) {
+            public void graphPopulated(TaskExecutionGraph graph) {
                 fireTaskGraphPrepared(graph);
             }
         });
@@ -189,7 +189,7 @@ public class Gradle {
 
     private void fireTaskGraphPrepared(TaskExecutionGraph graph) {
         for (BuildListener listener : buildListeners) {
-            listener.taskGraphPrepared(graph);
+            listener.taskGraphPopulated(graph);
         }
     }
 

@@ -215,10 +215,10 @@ public class GradleTest {
             one(buildListenerMock).settingsEvaluated(settingsMock);
             one(buildListenerMock).projectsLoaded(buildMock);
             one(buildListenerMock).projectsEvaluated(buildMock);
-//            one(buildListenerMock).taskGraphPrepared(buildExecuterMock);
+//            one(buildListenerMock).taskGraphPopulated(buildExecuterMock);
             one(buildListenerMock).projectsLoaded(buildMock);
             one(buildListenerMock).projectsEvaluated(buildMock);
-//            one(buildListenerMock).taskGraphPrepared(buildExecuterMock);
+//            one(buildListenerMock).taskGraphPopulated(buildExecuterMock);
             one(buildListenerMock).buildFinished(with(result(settingsMock, nullValue(Throwable.class))));
         }});
 

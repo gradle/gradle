@@ -59,12 +59,12 @@ public interface BuildListener {
     void projectsEvaluated(Build build);
 
     /**
-     * <p>Called when the task graph for the build has been prepared. The task graph is fully configured and is ready to
-     * use to execute the tasks which make up the build.</p>
+     * <p>Called when the task graph for the build has been populated. The task graph is fully configured and is ready
+     * to use to execute the tasks which make up the build.</p>
      *
      * @param graph The task graph
      */
-    void taskGraphPrepared(TaskExecutionGraph graph);
+    void taskGraphPopulated(TaskExecutionGraph graph);
 
     /**
      * <p>Called when the build is completed. All selected tasks have been executed.</p>

@@ -173,7 +173,7 @@ public class BuildExecuterTest {
         buildExecuter.addTasks(toList(a));
 
         context.checking(new Expectations() {{
-            one(listener).graphPrepared(buildExecuter);
+            one(listener).graphPopulated(buildExecuter);
         }});
 
         buildExecuter.execute();

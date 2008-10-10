@@ -12,5 +12,5 @@ public interface TaskExecutionGraphListener {
      *
      * @param graph The graph. Never null.
      */
-    void graphPrepared(TaskExecutionGraph graph);
+    void graphPopulated(TaskExecutionGraph graph);
 }

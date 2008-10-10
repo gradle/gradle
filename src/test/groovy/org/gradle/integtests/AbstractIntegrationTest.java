@@ -210,7 +210,7 @@ public class AbstractIntegrationTest {
             public void projectsEvaluated(Build build) {
             }
 
-            public void taskGraphPrepared(TaskExecutionGraph graph) {
+            public void taskGraphPopulated(TaskExecutionGraph graph) {
                 for (Task task : graph.getAllTasks()) {
                     tasks.add(task.getPath());
                 }

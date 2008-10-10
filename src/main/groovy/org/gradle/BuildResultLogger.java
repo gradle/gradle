@@ -63,7 +63,7 @@ public class BuildResultLogger implements BuildListener {
         logger.info("All projects evaluated.");
     }
 
-    public void taskGraphPrepared(TaskExecutionGraph graph) {
+    public void taskGraphPopulated(TaskExecutionGraph graph) {
         logger.info(String.format("Tasks to be executed: %s", graph.getAllTasks()));
     }
 
