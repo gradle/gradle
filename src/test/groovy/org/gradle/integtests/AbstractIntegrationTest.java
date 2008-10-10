@@ -21,8 +21,13 @@ import org.gradle.Gradle;
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.BuildResult;
+import org.gradle.BuildListener;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.initialization.Settings;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -34,6 +39,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Formatter;
+import java.util.List;
+import java.util.ArrayList;
 
 public class AbstractIntegrationTest {
     private File testDir;
@@ -145,7 +152,8 @@ public class AbstractIntegrationTest {
     }
     
     public static class GradleExecution {
-        protected final StartParameter parameter;
+        private final StartParameter parameter;
+        private final List<String> tasks = new ArrayList<String>();
 
         public GradleExecution(StartParameter parameter) {
             this.parameter = parameter;
@@ -156,11 +164,13 @@ public class AbstractIntegrationTest {
             return this;
         }
 
-        public GradleExecution runTasks(String... names) {
+        public GradleExecutionResult runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
-            BuildResult result = Gradle.newInstance(parameter).run();
+            Gradle gradle = Gradle.newInstance(parameter);
+            gradle.addBuildListener(new ListenerImpl());
+            BuildResult result = gradle.run();
             result.rethrowFailure();
-            return this;
+            return new GradleExecutionResult(tasks);
         }
 
         public GradleExecutionFailure runTasksAndExpectFailure(String... names) {
@@ -185,6 +195,42 @@ public class AbstractIntegrationTest {
         public GradleExecution usingBuildScript(String script) {
             parameter.useEmbeddedBuildFile(script);
             return this;
+        }
+
+        private class ListenerImpl implements BuildListener {
+            public void buildStarted(StartParameter startParameter) {
+            }
+
+            public void settingsEvaluated(Settings settings) {
+            }
+
+            public void projectsLoaded(Build build) {
+            }
+
+            public void projectsEvaluated(Build build) {
+            }
+
+            public void taskGraphPrepared(TaskExecutionGraph graph) {
+                for (Task task : graph.getAllTasks()) {
+                    tasks.add(task.getPath());
+                }
+            }
+
+            public void buildFinished(BuildResult result) {
+            }
+        }
+    }
+
+    public static class GradleExecutionResult {
+        private final List<String> plannedTasks;
+
+        public GradleExecutionResult(List<String> plannedTasks) {
+            this.plannedTasks = plannedTasks;
+        }
+
+        public void assertTasksExecuted(String... taskPaths) {
+            List<String> expected = Arrays.asList(taskPaths);
+            assertThat(plannedTasks, equalTo(expected));
         }
     }
 

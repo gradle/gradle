@@ -54,8 +54,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").write("createTask('do-stuff')");
         testFile("child/build.gradle").write("createTask('do-stuff')");
 
-        inDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff");
-        inDirectory(childDir).withSearchUpwards().runTasks(":do-stuff", "do-stuff");
+        inDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        inDirectory(childDir).withSearchUpwards().runTasks(":do-stuff", "do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
     }
 
     @Test

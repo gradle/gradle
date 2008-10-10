@@ -27,7 +27,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "    TaskExecutionIntegrationTest.graphChecked = true",
                 "}"
         );
-        usingBuildFile(buildFile).runTasks("a");
+        usingBuildFile(buildFile).runTasks("a").assertTasksExecuted(":a");
 
         assertTrue(graphChecked);
     }
