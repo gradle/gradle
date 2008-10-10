@@ -32,6 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 
 /**
  * @author Hans Dockter
@@ -146,7 +148,9 @@ public class BuildExecuter implements TaskExecutionGraph {
 
     public List<Task> getAllTasks() {
         assertPopulated();
-        return new ArrayList<Task>(accumulateTasks(dag.getSources()));
+        Set<Task> tasks = new LinkedHashSet<Task>();
+        accumulateTasks(new TreeSet<Task>(dag.getSources()), tasks);
+        return new ArrayList<Task>(tasks);
     }
 
     private void assertPopulated() {
@@ -156,13 +160,11 @@ public class BuildExecuter implements TaskExecutionGraph {
         }
     }
 
-    private Set<Task> accumulateTasks(Set<? extends Task> tasks) {
-        Set<Task> resultTasks = new TreeSet<Task>();
+    private void accumulateTasks(Set<? extends Task> tasks, Collection<Task> taskList) {
         for (Task task : tasks) {
-            resultTasks.addAll(accumulateTasks(dag.getChildren(task)));
-            resultTasks.add(task);
+            accumulateTasks(new TreeSet<Task>(dag.getChildren(task)), taskList);
+            taskList.add(task);
         }
-        return resultTasks;
     }
     
     public Set<Project> getProjects() {

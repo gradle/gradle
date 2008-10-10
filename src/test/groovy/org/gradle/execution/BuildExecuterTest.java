@@ -107,13 +107,13 @@ public class BuildExecuterTest {
 
     @Test
     public void testGetAllTasksReturnsTasksInExecutionOrder() {
-        Task a = createTask("a");
-        Task b = createTask("b");
-        Task c = createTask("c", b, a);
-        Task d = createTask("d", c);
-        buildExecuter.addTasks(toList(d));
+        Task d = createTask("d");
+        Task c = createTask("c");
+        Task b = createTask("b", d, c);
+        Task a = createTask("a", b);
+        buildExecuter.addTasks(toList(a));
 
-        assertThat(buildExecuter.getAllTasks(), equalTo(toList(a, b, c, d)));
+        assertThat(buildExecuter.getAllTasks(), equalTo(toList(c, d, b, a)));
     }
 
     @Test
