@@ -96,15 +96,15 @@ public class BaseSettings implements SettingsInternal {
         return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry);
     }
 
-    public DefaultProjectDescriptor findDescriptor(String path) {
+    public DefaultProjectDescriptor findProject(String path) {
         return projectDescriptorRegistry.getProjectDescriptor(path);
     }
 
-    public DefaultProjectDescriptor findDescriptor(File projectDir) {
+    public DefaultProjectDescriptor findProject(File projectDir) {
         return projectDescriptorRegistry.getProjectDescriptor(projectDir);
     }
 
-    public DefaultProjectDescriptor descriptor(String path) {
+    public DefaultProjectDescriptor project(String path) {
         DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(path);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", path));
@@ -112,7 +112,7 @@ public class BaseSettings implements SettingsInternal {
         return projectDescriptor;
     }
 
-    public DefaultProjectDescriptor descriptor(File projectDir) {
+    public DefaultProjectDescriptor project(File projectDir) {
         DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(projectDir);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectDir));
@@ -219,7 +219,7 @@ public class BaseSettings implements SettingsInternal {
         return dummyProjectForDepencencyManager;
     }
 
-    public ProjectDescriptor getRootProjectDescriptor() {
+    public ProjectDescriptor getRootProject() {
         return rootProjectDescriptor;
     }
 

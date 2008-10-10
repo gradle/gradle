@@ -80,13 +80,13 @@ class DefaultSettingsTest {
     }
 
     private void checkRootProjectDescriptor() {
-        assertNull(settings.getRootProjectDescriptor().getParent())
-        assertEquals(settingsDir, settings.getRootProjectDescriptor().getDir())
-        assertEquals(settings.getRootProjectDescriptor().getDir().getName(), settings.getRootProjectDescriptor().getName())
+        assertNull(settings.getRootProject().getParent())
+        assertEquals(settingsDir, settings.getRootProject().getDir())
+        assertEquals(settings.getRootProject().getDir().getName(), settings.getRootProject().getName())
     }
 
     @Test public void testInclude() {
-        ProjectDescriptor rootProjectDescriptor = settings.getRootProjectDescriptor();
+        ProjectDescriptor rootProjectDescriptor = settings.getRootProject();
         String projectA = "a"
         String projectB = "b"
         String projectC = "c"
@@ -99,7 +99,7 @@ class DefaultSettingsTest {
                 rootProjectDescriptor, projectA, new File(rootProjectDescriptor.getDir(), projectA), new DefaultProjectDescriptorRegistry())))
         assertTrue(rootProjectDescriptor.getChildren().contains(new DefaultProjectDescriptor(
                 rootProjectDescriptor, projectB, new File(rootProjectDescriptor.getDir(), projectB), new DefaultProjectDescriptorRegistry())))
-        DefaultProjectDescriptor projectBDescriptor = settings.descriptor(projectB)
+        DefaultProjectDescriptor projectBDescriptor = settings.project(projectB)
         assertTrue(projectBDescriptor.getChildren().contains(new DefaultProjectDescriptor(
                 projectBDescriptor, projectC, new File(projectBDescriptor.getDir(), projectC), new DefaultProjectDescriptorRegistry())))
         settings.include(paths2)
@@ -108,14 +108,14 @@ class DefaultSettingsTest {
     }
 
     @Test public void testIncludeFlat() {
-        ProjectDescriptor rootProjectDescriptor = settings.getRootProjectDescriptor();
+        ProjectDescriptor rootProjectDescriptor = settings.getRootProject();
         String projectA = "a"
         String projectB = "b"
         String[] paths = [projectA, projectB]
         settings.includeFlat(paths)
         assertEquals(2, rootProjectDescriptor.getChildren().size())
-        testDescriptor(settings.descriptor(":" + projectA), projectA, new File(settingsDir.parentFile, projectA))
-        testDescriptor(settings.descriptor(":" + projectB), projectB, new File(settingsDir.parentFile, projectB))
+        testDescriptor(settings.project(":" + projectA), projectA, new File(settingsDir.parentFile, projectA))
+        testDescriptor(settings.project(":" + projectB), projectB, new File(settingsDir.parentFile, projectB))
     }
 
     private void testDescriptor(DefaultProjectDescriptor descriptor, String name, File projectDir) {
@@ -126,8 +126,8 @@ class DefaultSettingsTest {
     @Test public void testCreateProjectDescriptor() {
         String testName = "testname"
         File testDir = new File("testDir")
-        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
-        assertSame(settings.getRootProjectDescriptor(), projectDescriptor.getParent())
+        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
+        assertSame(settings.getRootProject(), projectDescriptor.getParent())
         assertSame(settings.getProjectDescriptorRegistry(), projectDescriptor.getProjectDescriptorRegistry())
         assertEquals(testName, projectDescriptor.getName())
         assertEquals(testDir, projectDescriptor.getDir())
@@ -135,35 +135,35 @@ class DefaultSettingsTest {
 
     @Test public void testFindDescriptorByPath() {
         DefaultProjectDescriptor projectDescriptor =  createTestDescriptor();
-        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getPath())
+        DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getPath())
         assertSame(foundProjectDescriptor, projectDescriptor)
     }
 
     @Test public void testFindDescriptorByProjectDir() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
-        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getDir())
+        DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getDir())
         assertSame(foundProjectDescriptor, projectDescriptor)
     }
 
     @Test(expected = UnknownProjectException) public void testDescriptorByPath() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
-        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getPath())
+        DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getPath())
         assertSame(foundProjectDescriptor, projectDescriptor)
-        settings.descriptor("unknownPath")
+        settings.project("unknownPath")
     }
 
 
     @Test(expected = UnknownProjectException) public void testDescriptorByProjectDir() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
-        DefaultProjectDescriptor foundProjectDescriptor = settings.descriptor(projectDescriptor.getDir())
+        DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getDir())
         assertSame(foundProjectDescriptor, projectDescriptor)
-        settings.descriptor(new File("unknownPath"))
+        settings.project(new File("unknownPath"))
     }
 
     private DefaultProjectDescriptor createTestDescriptor() {
         String testName = "testname"
         File testDir = new File("testDir")
-        return settings.createProjectDescriptor(settings.getRootProjectDescriptor(), testName, testDir)
+        return settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
     }
 
 

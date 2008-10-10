@@ -132,7 +132,7 @@ public class GradleTest {
                 will(returnValue(expectedRootDir));
                 allowing(settingsMock).createClassLoader();
                 will(returnValue(expectedClassLoader));
-                allowing(settingsMock).getRootProjectDescriptor();
+                allowing(settingsMock).getRootProject();
                 will(returnValue(expectedRootProjectDescriptor));
                 allowing(buildMock).getRootProject();
                 will(returnValue(expectedRootProject));

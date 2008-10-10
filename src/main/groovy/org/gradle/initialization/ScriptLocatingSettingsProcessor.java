@@ -31,7 +31,7 @@ public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
         propertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter);
 
         SettingsInternal settings = processor.process(settingsFinder, startParameter, propertiesLoader);
-        if (settings.findDescriptor(startParameter.getCurrentDir()) != null) {
+        if (settings.findProject(startParameter.getCurrentDir()) != null) {
             return settings;
         }
 

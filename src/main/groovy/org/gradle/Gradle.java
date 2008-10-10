@@ -140,7 +140,7 @@ public class Gradle {
         TaskExecuter executer = startParameter.getTaskExecuter();
         while (executer.hasNext()) {
             if (rebuildDag) {
-                build = projectLoader.load(settings.getRootProjectDescriptor(), classLoader,
+                build = projectLoader.load(settings.getRootProject(), classLoader,
                         startParameter,
                         gradlePropertiesLoader.getGradleProperties());
                 fireProjectsLoaded(build);

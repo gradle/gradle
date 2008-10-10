@@ -23,6 +23,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
+import org.gradle.api.UnknownProjectException;
 import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
@@ -131,16 +132,16 @@ public interface Settings {
      *
      * @return The root project. Never returns null.
      */
-    ProjectDescriptor getRootProjectDescriptor();
+    ProjectDescriptor getRootProject();
 
     /**
      * <p>Returns the project with the given path.</p>
      *
      * @param path The path.
      * @return The project with the given path. Never returns null.
-     * @throws org.gradle.api.UnknownProjectException If no project with the given path exists.
+     * @throws UnknownProjectException If no project with the given path exists.
      */
-    ProjectDescriptor descriptor(String path);
+    ProjectDescriptor project(String path) throws UnknownProjectException;
 
     /**
      * <p>Returns the project with the given path.</p>
@@ -148,16 +149,16 @@ public interface Settings {
      * @param path The path
      * @return The project with the given path. Returns null if no such project exists.
      */
-    ProjectDescriptor findDescriptor(String path);
+    ProjectDescriptor findProject(String path);
 
     /**
      * <p>Returns the project with the given project directory.</p>
      *
      * @param projectDir The project directory.
      * @return The project with the given project directory. Never returns null.
-     * @throws org.gradle.api.UnknownProjectException If no project with the given path exists.
+     * @throws UnknownProjectException If no project with the given path exists.
      */
-    ProjectDescriptor descriptor(File projectDir);
+    ProjectDescriptor project(File projectDir) throws UnknownProjectException;
 
     /**
      * <p>Returns the project with the given project directory.</p>
@@ -165,7 +166,7 @@ public interface Settings {
      * @param projectDir The project directory.
      * @return The project with the given project directory. Returns null if no such project exists.
      */
-    ProjectDescriptor findDescriptor(File projectDir);
+    ProjectDescriptor findProject(File projectDir);
 
     StartParameter getStartParameter();
 

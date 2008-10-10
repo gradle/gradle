@@ -66,7 +66,7 @@ public class ScriptLocatingSettingsProcessorTest {
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
-            one(settings).findDescriptor(currentDir);
+            one(settings).findProject(currentDir);
             will(returnValue(context.mock(ProjectDescriptor.class)));
         }});
 
@@ -89,7 +89,7 @@ public class ScriptLocatingSettingsProcessorTest {
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
-            one(settings).findDescriptor(currentDir);
+            one(settings).findProject(currentDir);
             will(returnValue(null));
 
             one(startParameter).newInstance();
