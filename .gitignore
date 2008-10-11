@@ -1,7 +1,6 @@
 *~
 .gradle
 build
-buildSrc
 src/docs/userguide/*.aux
 src/docs/userguide/*.out
 src/docs/userguide/*.log
