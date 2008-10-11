@@ -31,9 +31,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import java.util.Collections;
 
 @RunWith(JMock.class)
-public class BuiltInTaskExecuterTest {
+public class BuiltInTasksBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final BuiltInTaskExecuter executer = new BuiltInTaskExecuter();
+    private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter();
     private final Project rootProject = context.mock(ProjectInternal.class, "root");
     private final Project project = context.mock(ProjectInternal.class, "project");
     private DefaultTaskExecuter taskExecuter;

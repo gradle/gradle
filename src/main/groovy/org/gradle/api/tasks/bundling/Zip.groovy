@@ -28,7 +28,7 @@ public class Zip extends AbstractArchiveTask {
     AntZip antZip = new AntZip()
 
     Zip(Project project, String name) {
-        super(project, name, null)
+        super(project, name)
         extension = ZIP_EXTENSION
     }
 

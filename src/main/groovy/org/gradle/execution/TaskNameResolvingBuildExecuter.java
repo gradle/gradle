@@ -24,18 +24,18 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * A {@link TaskExecuter} which selects tasks which match the provided names. For each name, selects all tasks in all
+ * A {@link BuildExecuter} which selects tasks which match the provided names. For each name, selects all tasks in all
  * projects whose name is the given name.
  */
-public class NameResolvingTaskExecuter implements TaskExecuter {
-    private static Logger logger = LoggerFactory.getLogger(NameResolvingTaskExecuter.class);
+public class TaskNameResolvingBuildExecuter implements BuildExecuter {
+    private static Logger logger = LoggerFactory.getLogger(TaskNameResolvingBuildExecuter.class);
     private final Iterable<String> names;
     private Iterator<String> current;
     private Set<Task> tasks;
     private String description;
     private boolean reloadProjects;
 
-    public NameResolvingTaskExecuter(Iterable<String> names) {
+    public TaskNameResolvingBuildExecuter(Iterable<String> names) {
         this.names = names;
     }
 

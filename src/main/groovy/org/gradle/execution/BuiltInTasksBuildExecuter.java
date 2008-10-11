@@ -22,9 +22,9 @@ import org.gradle.api.tasks.diagnostics.TaskListTask;
 import java.util.Collections;
 
 /**
- * A {@link TaskExecuter} which executes the built-in tasks. Currently, the only built-in task is {@link TaskListTask}.
+ * A {@link BuildExecuter} which executes the built-in tasks. Currently, the only built-in task is {@link TaskListTask}.
  */
-public class BuiltInTaskExecuter implements TaskExecuter {
+public class BuiltInTasksBuildExecuter implements BuildExecuter {
     private boolean selected;
     private TaskListTask task;
 

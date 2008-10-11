@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
-public class ProjectDefaultsTaskExecuterTest {
+public class ProjectDefaultsBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Project project = context.mock(Project.class);
 
@@ -43,7 +43,7 @@ public class ProjectDefaultsTaskExecuterTest {
             will(returnValue(WrapUtil.toSet(task)));
         }});
 
-        TaskExecuter executer = new ProjectDefaultsTaskExecuter();
+        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
         assertThat(executer.hasNext(), equalTo(true));
         executer.select(project);
     }
@@ -54,7 +54,7 @@ public class ProjectDefaultsTaskExecuterTest {
             will(returnValue(WrapUtil.toList()));
         }});
 
-        TaskExecuter executer = new ProjectDefaultsTaskExecuter();
+        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
         try {
             executer.select(project);
             fail();
@@ -79,7 +79,7 @@ public class ProjectDefaultsTaskExecuterTest {
             will(returnValue(WrapUtil.toSet(task)));
         }});
 
-        TaskExecuter executer = new ProjectDefaultsTaskExecuter();
+        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
         executer.select(project1);
         executer.select(project2);
     }

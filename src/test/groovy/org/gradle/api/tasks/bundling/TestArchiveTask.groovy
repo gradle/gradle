@@ -23,7 +23,7 @@ import org.gradle.api.Project
  */
 class TestArchiveTask extends AbstractArchiveTask {
     TestArchiveTask(Project project, String name) {
-        super(project, name, null)
+        super(project, name)
     }
 
     public Closure createAntArchiveTask() {

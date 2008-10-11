@@ -20,9 +20,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.execution.NameResolvingTaskExecuter;
-import org.gradle.execution.ProjectDefaultsTaskExecuter;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.TaskNameResolvingBuildExecuter;
+import org.gradle.execution.ProjectDefaultsBuildExecuter;
+import org.gradle.execution.BuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.GUtil;
@@ -52,7 +52,7 @@ public class StartParameter {
     private CacheUsage cacheUsage;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
-    private TaskExecuter taskExecuter = new ProjectDefaultsTaskExecuter();
+    private BuildExecuter buildExecuter = new ProjectDefaultsBuildExecuter();
 
     public StartParameter() {
     }
@@ -91,7 +91,7 @@ public class StartParameter {
         startParameter.buildResolverDir = buildResolverDir;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
-        startParameter.taskExecuter = taskExecuter;
+        startParameter.buildExecuter = buildExecuter;
 
         return startParameter;
     }
@@ -207,19 +207,19 @@ public class StartParameter {
     }
 
     /**
-     * <p>Returns the {@link TaskExecuter} to use for the build.</p>
+     * <p>Returns the {@link BuildExecuter} to use for the build.</p>
      *
-     * @return The {@link TaskExecuter}. Never returns null.
+     * @return The {@link BuildExecuter}. Never returns null.
      */
-    public TaskExecuter getTaskExecuter() {
-        return taskExecuter;
+    public BuildExecuter getBuildExecuter() {
+        return buildExecuter;
     }
 
     /**
-     * <p>Sets the {@link TaskExecuter} to use for the build.</p>
+     * <p>Sets the {@link BuildExecuter} to use for the build.</p>
      */
-    public void setTaskExecuter(TaskExecuter taskExecuter) {
-        this.taskExecuter = taskExecuter;
+    public void setBuildExecuter(BuildExecuter buildExecuter) {
+        this.buildExecuter = buildExecuter;
     }
 
     public List<String> getTaskNames() {
@@ -233,10 +233,10 @@ public class StartParameter {
     public void setTaskNames(List<String> taskNames) {
         if (!GUtil.isTrue(taskNames)) {
             this.taskNames = new ArrayList<String>();
-            taskExecuter = new ProjectDefaultsTaskExecuter();
+            buildExecuter = new ProjectDefaultsBuildExecuter();
         } else {
             this.taskNames = new ArrayList<String>(taskNames);
-            taskExecuter = new NameResolvingTaskExecuter(this.taskNames);
+            buildExecuter = new TaskNameResolvingBuildExecuter(this.taskNames);
         }
     }
 

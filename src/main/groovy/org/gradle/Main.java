@@ -27,7 +27,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.apache.ivy.util.Message;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.execution.BuiltInTaskExecuter;
+import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.logging.HighLevelFilter;
 import org.gradle.util.GUtil;
@@ -220,7 +220,7 @@ public class Main {
         }
 
         if (options.has(TASKS)) {
-            startParameter.setTaskExecuter(new BuiltInTaskExecuter());
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter());
         } else {
             startParameter.setTaskNames(options.nonOptionArguments());
         }

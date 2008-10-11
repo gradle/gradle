@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
-public class NameResolvingTaskExecuterTest {
+public class TaskNameResolvingBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Project project = context.mock(Project.class, "child");
 
@@ -50,7 +50,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(task));
         }});
 
-        NameResolvingTaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("a:b"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("a:b"));
         executer.select(project);
         assertThat(executer.getDescription(), equalTo("primary task 'a:b'"));
         assertThat(executer.getTasks(), equalTo((Iterable<Task>) WrapUtil.toSet(task)));
@@ -67,7 +67,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(tasks));
         }});
 
-        NameResolvingTaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("name"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name"));
         executer.select(project);
         assertThat(executer.getDescription(), equalTo("primary task 'name'"));
         assertThat(executer.getTasks(), equalTo((Iterable<Task>) tasks));
@@ -87,7 +87,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(false));
         }});
 
-        NameResolvingTaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("name"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name"));
         executer.select(project);
         executer.execute(taskExecuter);
         assertThat(executer.requiresProjectReload(), equalTo(false));
@@ -107,7 +107,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(WrapUtil.toSet(task2)));
         }});
 
-        NameResolvingTaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("name1", "name2"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
         executer.select(project1);
         assertThat(executer.getDescription(), equalTo("primary task 'name1'"));
         assertThat(executer.getTasks(), equalTo((Iterable<Task>) WrapUtil.toSet(task1)));
@@ -128,7 +128,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(WrapUtil.toSet(task)));
         }});
 
-        NameResolvingTaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("name1", "name2"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
 
         assertThat(executer.hasNext(), equalTo(true));
         executer.select(project);
@@ -153,7 +153,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(WrapUtil.toSet(task)));
         }});
 
-        TaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("name1", "name2"));
+        BuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
         try {
             executer.select(project);
             fail();
@@ -173,7 +173,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(WrapUtil.toSet(task)));
         }});
 
-        TaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("a:b", "name2"));
+        BuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("a:b", "name2"));
         try {
             executer.select(project);
             fail();
@@ -191,7 +191,7 @@ public class NameResolvingTaskExecuterTest {
             will(returnValue(WrapUtil.toSet()));
         }});
 
-        TaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("name1", "name2"));
+        BuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
         try {
             executer.select(project);
             fail();

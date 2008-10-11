@@ -21,10 +21,10 @@ import org.gradle.api.Project;
 import java.util.List;
 
 /**
- * A {@link TaskExecuter} which selects the default tasks for a project.
+ * A {@link BuildExecuter} which selects the default tasks for a project.
  */
-public class ProjectDefaultsTaskExecuter implements TaskExecuter {
-    private TaskExecuter executer;
+public class ProjectDefaultsBuildExecuter implements BuildExecuter {
+    private BuildExecuter executer;
 
     public boolean hasNext() {
         return executer == null || executer.hasNext();
@@ -37,7 +37,7 @@ public class ProjectDefaultsTaskExecuter implements TaskExecuter {
             if (defaultTasks.size() == 0) {
                 throw new InvalidUserDataException("No tasks have been specified and the project has not defined any default tasks.");
             }
-            executer = new NameResolvingTaskExecuter(defaultTasks);
+            executer = new TaskNameResolvingBuildExecuter(defaultTasks);
         }
 
         executer.select(project);

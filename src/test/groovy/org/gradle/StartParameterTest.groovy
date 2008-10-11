@@ -18,9 +18,9 @@ package org.gradle
 
 import org.gradle.CacheUsage
 import org.gradle.api.Project
-import org.gradle.execution.TaskExecuter
-import org.gradle.execution.NameResolvingTaskExecuter
-import org.gradle.execution.ProjectDefaultsTaskExecuter
+import org.gradle.execution.BuildExecuter
+import org.gradle.execution.TaskNameResolvingBuildExecuter
+import org.gradle.execution.ProjectDefaultsBuildExecuter
 import org.gradle.groovy.scripts.StringScriptSource
 import static org.gradle.util.ReflectionEqualsMatcher.*
 import static org.hamcrest.Matchers.*
@@ -28,8 +28,9 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.api.initialization.Settings
-import org.junit.After
 import org.gradle.util.HelperUtil
+import org.gradle.execution.TaskNameResolvingBuildExecuter
+import org.gradle.execution.ProjectDefaultsBuildExecuter
 
 /**
  * @author Hans Dockter
@@ -70,25 +71,25 @@ class StartParameterTest {
         assertThat(parameter.taskNames, notNullValue())
         assertThat(parameter.projectProperties, notNullValue())
         assertThat(parameter.systemPropertiesArgs, notNullValue())
-        assertThat(parameter.taskExecuter, instanceOf(ProjectDefaultsTaskExecuter))
+        assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
     }
 
     @Test public void testSetTaskNames() {
         StartParameter parameter = new StartParameter()
         parameter.setTaskNames(Arrays.asList("a", "b"))
-        assertThat(parameter.taskExecuter, reflectionEquals(new NameResolvingTaskExecuter(Arrays.asList("a", "b"))))
+        assertThat(parameter.buildExecuter, reflectionEquals(new TaskNameResolvingBuildExecuter(Arrays.asList("a", "b"))))
     }
 
     @Test public void testSetTaskNamesToEmptyOrNullListUsesProjectDefaultTasks() {
         StartParameter parameter = new StartParameter()
 
-        parameter.setTaskExecuter({} as TaskExecuter)
+        parameter.setBuildExecuter({} as BuildExecuter)
         parameter.setTaskNames(Collections.emptyList())
-        assertThat(parameter.taskExecuter, instanceOf(ProjectDefaultsTaskExecuter))
+        assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
 
-        parameter.setTaskExecuter({} as TaskExecuter)
+        parameter.setBuildExecuter({} as BuildExecuter)
         parameter.setTaskNames(null)
-        assertThat(parameter.taskExecuter, instanceOf(ProjectDefaultsTaskExecuter))
+        assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
     }
 
     @Test public void testUseEmbeddedBuildFile() {

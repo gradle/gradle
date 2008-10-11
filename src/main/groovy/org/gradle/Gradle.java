@@ -31,7 +31,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.configuration.ProjectTasksPrettyPrinter;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.BuildExecuter;
 import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
 import org.gradle.groovy.scripts.DefaultScriptHandler;
 import org.gradle.groovy.scripts.DefaultScriptProcessor;
@@ -137,7 +137,7 @@ public class Gradle {
         ClassLoader classLoader = settings.createClassLoader();
         Boolean rebuildDag = true;
         BuildInternal build = null;
-        TaskExecuter executer = startParameter.getTaskExecuter();
+        BuildExecuter executer = startParameter.getBuildExecuter();
         while (executer.hasNext()) {
             if (rebuildDag) {
                 build = projectLoader.load(settings.getRootProject(), classLoader,

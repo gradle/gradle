@@ -111,7 +111,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
 
     protected ArchiveDetector archiveDetector = new ArchiveDetector()
 
-    public AbstractArchiveTask(Project project, String name, Dag tasksGraph) {
+    public AbstractArchiveTask(Project project, String name) {
         super(project, name);
         doLast(this.&generateArchive)
     }

@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 /**
  * Selects and executes the groups of tasks requested for a build.
  */
-public interface TaskExecuter {
+public interface BuildExecuter {
     /**
      * Returns true if this selector has another group of tasks to execute.
      */
