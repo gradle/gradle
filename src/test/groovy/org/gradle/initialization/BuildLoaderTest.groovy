@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.IProjectRegistry
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.initialization.ProjectsLoader
+import org.gradle.initialization.BuildLoader
 import org.gradle.invocation.DefaultBuild
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
@@ -41,8 +41,8 @@ import org.junit.runner.RunWith
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-class ProjectsLoaderTest {
-    ProjectsLoader projectsLoader
+class BuildLoaderTest {
+    BuildLoader projectsLoader
     IProjectFactory projectFactory
     BuildScriptProcessor buildScriptProcessor
     PluginRegistry pluginRegistry
@@ -61,7 +61,7 @@ class ProjectsLoaderTest {
         projectFactory = context.mock(IProjectFactory)
         buildScriptProcessor = new BuildScriptProcessor()
         pluginRegistry = new PluginRegistry()
-        projectsLoader = new ProjectsLoader(projectFactory)
+        projectsLoader = new BuildLoader(projectFactory)
         testDir = HelperUtil.makeNewTestDir()
         (testRootProjectDir = new File(testDir, 'root')).mkdirs()
         (testParentProjectDir = new File(testRootProjectDir, 'parent')).mkdirs()

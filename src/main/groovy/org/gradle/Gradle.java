@@ -48,7 +48,7 @@ import org.gradle.initialization.ISettingsFileSearchStrategy;
 import org.gradle.initialization.ISettingsFinder;
 import org.gradle.initialization.MasterDirSettingsFinderStrategy;
 import org.gradle.initialization.ParentDirSettingsFinderStrategy;
-import org.gradle.initialization.ProjectsLoader;
+import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.ScriptLocatingSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
@@ -93,14 +93,14 @@ public class Gradle {
     private ISettingsFinder settingsFinder;
     private IGradlePropertiesLoader gradlePropertiesLoader;
     private SettingsProcessor settingsProcessor;
-    private ProjectsLoader projectLoader;
+    private BuildLoader projectLoader;
     private BuildConfigurer buildConfigurer;
 
     private final List<BuildListener> buildListeners = new ArrayList<BuildListener>();
 
     public Gradle(StartParameter startParameter, ISettingsFinder settingsFinder,
                   IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
-                  ProjectsLoader projectLoader, BuildConfigurer buildConfigurer) {
+                  BuildLoader projectLoader, BuildConfigurer buildConfigurer) {
         this.startParameter = startParameter;
         this.settingsFinder = settingsFinder;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
@@ -244,11 +244,11 @@ public class Gradle {
         this.settingsProcessor = settingsProcessor;
     }
 
-    public ProjectsLoader getProjectLoader() {
+    public BuildLoader getProjectLoader() {
         return projectLoader;
     }
 
-    public void setProjectLoader(ProjectsLoader projectLoader) {
+    public void setProjectLoader(BuildLoader projectLoader) {
         this.projectLoader = projectLoader;
     }
 
@@ -302,7 +302,7 @@ public class Gradle {
                                     dependencyManagerFactory,
                                     buildResolverDir)
                     ),
-                    new ProjectsLoader(
+                    new BuildLoader(
                             new ProjectFactory(
                                     new TaskFactory(),
                                     dependencyManagerFactory,
