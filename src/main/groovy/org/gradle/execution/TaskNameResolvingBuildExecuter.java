@@ -99,7 +99,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         return description;
     }
 
-    public void execute(DefaultTaskExecuter executer) {
+    public void execute(TaskExecuter executer) {
         logger.debug(String.format("Selected for execution: %s.", tasks));
         reloadProjects = executer.execute(tasks);
     }

@@ -27,7 +27,7 @@ class TestArchiveTask extends AbstractArchiveTask {
     }
 
     public Closure createAntArchiveTask() {
-        return null; //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
     
 }

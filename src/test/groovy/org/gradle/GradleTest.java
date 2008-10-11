@@ -25,7 +25,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.execution.DefaultTaskExecuter;
+import org.gradle.execution.TaskExecuter;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -80,7 +80,7 @@ public class GradleTest {
 
     private Gradle gradle;
 
-    private DefaultTaskExecuter taskExecuterMock;
+    private TaskExecuter taskExecuterMock;
 
     private ProjectDescriptor expectedRootProjectDescriptor;
     
@@ -93,7 +93,7 @@ public class GradleTest {
         settingsFinderMock = context.mock(ISettingsFinder.class);
         gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
         settingsMock = context.mock(SettingsInternal.class);
-        taskExecuterMock = context.mock(DefaultTaskExecuter.class);
+        taskExecuterMock = context.mock(TaskExecuter.class);
         settingsProcessorMock = context.mock(SettingsProcessor.class);
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);

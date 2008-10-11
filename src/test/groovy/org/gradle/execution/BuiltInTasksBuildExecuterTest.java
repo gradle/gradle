@@ -36,12 +36,12 @@ public class BuiltInTasksBuildExecuterTest {
     private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter();
     private final Project rootProject = context.mock(ProjectInternal.class, "root");
     private final Project project = context.mock(ProjectInternal.class, "project");
-    private DefaultTaskExecuter taskExecuter;
+    private TaskExecuter taskExecuter;
 
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        taskExecuter = context.mock(DefaultTaskExecuter.class);
+        taskExecuter = context.mock(TaskExecuter.class);
 
         context.checking(new Expectations(){{
             allowing(project).getRootProject();

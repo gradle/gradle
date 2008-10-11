@@ -38,7 +38,7 @@ import java.util.LinkedHashSet;
 /**
  * @author Hans Dockter
  */
-public class DefaultTaskExecuter implements TaskExecutionGraph {
+public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskExecuter.class);
 
     private Dag<Task> dag;

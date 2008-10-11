@@ -40,7 +40,7 @@ public interface BuildExecuter {
     /**
      * Executes the current group of tasks.
      */
-    void execute(DefaultTaskExecuter executer);
+    void execute(TaskExecuter executer);
 
     /**
      * Returns true if the project heirarchiy should be reloaded before executing the current group, false if not.

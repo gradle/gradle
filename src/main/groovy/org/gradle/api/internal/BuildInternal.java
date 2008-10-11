@@ -19,7 +19,7 @@ import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.StartParameter;
-import org.gradle.execution.DefaultTaskExecuter;
+import org.gradle.execution.TaskExecuter;
 
 public interface BuildInternal extends Build {
     /**
@@ -30,7 +30,7 @@ public interface BuildInternal extends Build {
     /**
      * {@inheritDoc}
      */
-    DefaultTaskExecuter getTaskGraph();
+    TaskExecuter getTaskGraph();
 
     /**
      * Returns the currently selected project.

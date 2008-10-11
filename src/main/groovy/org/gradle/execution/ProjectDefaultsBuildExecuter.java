@@ -47,7 +47,7 @@ public class ProjectDefaultsBuildExecuter implements BuildExecuter {
         return executer.getDescription();
     }
 
-    public void execute(DefaultTaskExecuter executer) {
+    public void execute(TaskExecuter executer) {
         this.executer.execute(executer);
     }
 

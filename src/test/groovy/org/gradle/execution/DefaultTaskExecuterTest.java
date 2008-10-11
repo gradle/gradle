@@ -45,7 +45,7 @@ import java.util.List;
 public class DefaultTaskExecuterTest {
     static File TEST_ROOT_DIR = new File("/path/root");
 
-    DefaultTaskExecuter taskExecuter;
+    TaskExecuter taskExecuter;
     DefaultProject root;
     JUnit4Mockery context = new JUnit4Mockery();
     List<Task> executedTasks = new ArrayList<Task>();

@@ -77,7 +77,7 @@ public class TaskNameResolvingBuildExecuterTest {
     public void executesAllSelectedTasks() {
         Task task1 = context.mock(Task.class, "task1");
         Task task2 = context.mock(Task.class, "task2");
-        final DefaultTaskExecuter taskExecuter = context.mock(DefaultTaskExecuter.class);
+        final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
         final Set<Task> tasks = WrapUtil.toSet(task1, task2);
 
         context.checking(new Expectations() {{

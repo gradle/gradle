@@ -3,6 +3,7 @@ package org.gradle.invocation;
 import org.gradle.StartParameter;
 import org.gradle.execution.Dag;
 import org.gradle.execution.DefaultTaskExecuter;
+import org.gradle.execution.TaskExecuter;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -15,7 +16,7 @@ import java.io.File;
 public class DefaultBuild implements BuildInternal {
     private ProjectInternal rootProject;
     private ProjectInternal currentProject;
-    private DefaultTaskExecuter taskGraph;
+    private TaskExecuter taskGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
     private DefaultProjectRegistry projectRegistry;
@@ -59,11 +60,11 @@ public class DefaultBuild implements BuildInternal {
         this.currentProject = currentProject;
     }
 
-    public DefaultTaskExecuter getTaskGraph() {
+    public TaskExecuter getTaskGraph() {
         return taskGraph;
     }
 
-    public void setTaskGraph(DefaultTaskExecuter taskGraph) {
+    public void setTaskGraph(TaskExecuter taskGraph) {
         this.taskGraph = taskGraph;
     }
 

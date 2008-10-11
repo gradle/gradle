@@ -24,7 +24,6 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.execution.Dag
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
