@@ -42,10 +42,10 @@ import java.util.List;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class BuildExecuterTest {
+public class DefaultTaskExecuterTest {
     static File TEST_ROOT_DIR = new File("/path/root");
 
-    BuildExecuter buildExecuter;
+    DefaultTaskExecuter taskExecuter;
     DefaultProject root;
     JUnit4Mockery context = new JUnit4Mockery();
     List<Task> executedTasks = new ArrayList<Task>();
@@ -53,7 +53,7 @@ public class BuildExecuterTest {
     @Before
     public void setUp() {
         root = HelperUtil.createRootProject(new File("root"));
-        buildExecuter = new BuildExecuter(new Dag<Task>());
+        taskExecuter = new DefaultTaskExecuter(new Dag<Task>());
     }
 
     @Test
@@ -63,7 +63,7 @@ public class BuildExecuterTest {
         Task c = createTask("c", b, a);
         Task d = createTask("d", c);
 
-        buildExecuter.execute(toList(d));
+        taskExecuter.execute(toList(d));
 
         assertThat(executedTasks, equalTo(toList(a, b, c, d)));
     }
@@ -74,7 +74,7 @@ public class BuildExecuterTest {
         Task b = createTask("b");
         Task c = createTask("c");
 
-        buildExecuter.execute(toList(b, c, a));
+        taskExecuter.execute(toList(b, c, a));
 
         assertThat(executedTasks, equalTo(toList(a, b, c)));
     }
@@ -86,8 +86,8 @@ public class BuildExecuterTest {
         Task notNeutral = createTask("b");
         notNeutral.setDagNeutral(false);
 
-        assertFalse(buildExecuter.execute(toList(neutral)));
-        assertTrue(buildExecuter.execute(toList(notNeutral)));
+        assertFalse(taskExecuter.execute(toList(neutral)));
+        assertTrue(taskExecuter.execute(toList(notNeutral)));
     }
 
     @Test
@@ -96,13 +96,13 @@ public class BuildExecuterTest {
         Task b = createTask("b", a);
         Task c = createTask("c", b, a);
         Task d = createTask("d", c);
-        buildExecuter.addTasks(toList(d));
+        taskExecuter.addTasks(toList(d));
 
-        assertTrue(buildExecuter.hasTask(":a"));
-        assertTrue(buildExecuter.hasTask(":b"));
-        assertTrue(buildExecuter.hasTask(":c"));
-        assertTrue(buildExecuter.hasTask(":d"));
-        assertThat(buildExecuter.getAllTasks(), equalTo(toList(a, b, c, d)));
+        assertTrue(taskExecuter.hasTask(":a"));
+        assertTrue(taskExecuter.hasTask(":b"));
+        assertTrue(taskExecuter.hasTask(":c"));
+        assertTrue(taskExecuter.hasTask(":d"));
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b, c, d)));
     }
 
     @Test
@@ -111,15 +111,15 @@ public class BuildExecuterTest {
         Task c = createTask("c");
         Task b = createTask("b", d, c);
         Task a = createTask("a", b);
-        buildExecuter.addTasks(toList(a));
+        taskExecuter.addTasks(toList(a));
 
-        assertThat(buildExecuter.getAllTasks(), equalTo(toList(c, d, b, a)));
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(c, d, b, a)));
     }
 
     @Test
     public void testCannotUseGetterMethodsWhenGraphHasNotBeenCalculated() {
         try {
-            buildExecuter.hasTask(":a");
+            taskExecuter.hasTask(":a");
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
@@ -127,7 +127,7 @@ public class BuildExecuterTest {
         }
 
         try {
-            buildExecuter.getAllTasks();
+            taskExecuter.getAllTasks();
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
@@ -140,13 +140,13 @@ public class BuildExecuterTest {
         Task a = createTask("a");
         Task b = createTask("b", a);
 
-        buildExecuter.addTasks(toList(b));
+        taskExecuter.addTasks(toList(b));
 
-        assertFalse(buildExecuter.getAllTasks().isEmpty());
+        assertFalse(taskExecuter.getAllTasks().isEmpty());
 
-        buildExecuter.execute();
+        taskExecuter.execute();
 
-        assertTrue(buildExecuter.getAllTasks().isEmpty());
+        assertTrue(taskExecuter.getAllTasks().isEmpty());
     }
 
     @Test
@@ -157,7 +157,7 @@ public class BuildExecuterTest {
         a.dependsOn(c);
 
         try {
-            buildExecuter.addTasks(toList(c));
+            taskExecuter.addTasks(toList(c));
             fail();
         } catch (CircularReferenceException e) {
             // Expected
@@ -169,14 +169,14 @@ public class BuildExecuterTest {
         final TaskExecutionGraphListener listener = context.mock(TaskExecutionGraphListener.class);
         Task a = createTask("a");
 
-        buildExecuter.addTaskExecutionGraphListener(listener);
-        buildExecuter.addTasks(toList(a));
+        taskExecuter.addTaskExecutionGraphListener(listener);
+        taskExecuter.addTasks(toList(a));
 
         context.checking(new Expectations() {{
-            one(listener).graphPopulated(buildExecuter);
+            one(listener).graphPopulated(taskExecuter);
         }});
 
-        buildExecuter.execute();
+        taskExecuter.execute();
     }
 
     @Test
@@ -184,15 +184,15 @@ public class BuildExecuterTest {
         final Runnable runnable = context.mock(Runnable.class);
         Task a = createTask("a");
 
-        buildExecuter.whenReady(BuildExecuterTestHelper.toClosure(runnable));
+        taskExecuter.whenReady(DefaultTaskExecuterTestHelper.toClosure(runnable));
 
-        buildExecuter.addTasks(toList(a));
+        taskExecuter.addTasks(toList(a));
 
         context.checking(new Expectations() {{
             one(runnable).run();
         }});
 
-        buildExecuter.execute();
+        taskExecuter.execute();
     }
 
     private Task createTask(String name, final Task... dependsOn) {

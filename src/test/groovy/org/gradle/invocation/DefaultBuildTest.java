@@ -1,10 +1,8 @@
 package org.gradle.invocation;
 
 import org.gradle.StartParameter;
-import org.gradle.execution.Dag;
-import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.util.GradleVersion;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -40,6 +38,6 @@ public class DefaultBuildTest {
     @Test
     public void createsATaskGraph() {
         DefaultBuild build = new DefaultBuild(null, null);
-        assertTrue(build.getTaskGraph().getClass().equals(BuildExecuter.class));
+        assertTrue(build.getTaskGraph().getClass().equals(DefaultTaskExecuter.class));
     }
 }

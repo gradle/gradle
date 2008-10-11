@@ -25,7 +25,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -80,7 +80,7 @@ public class GradleTest {
 
     private Gradle gradle;
 
-    private BuildExecuter buildExecuterMock;
+    private DefaultTaskExecuter taskExecuterMock;
 
     private ProjectDescriptor expectedRootProjectDescriptor;
     
@@ -93,7 +93,7 @@ public class GradleTest {
         settingsFinderMock = context.mock(ISettingsFinder.class);
         gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
         settingsMock = context.mock(SettingsInternal.class);
-        buildExecuterMock = context.mock(BuildExecuter.class);
+        taskExecuterMock = context.mock(DefaultTaskExecuter.class);
         settingsProcessorMock = context.mock(SettingsProcessor.class);
         projectsLoaderMock = context.mock(ProjectsLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
@@ -139,7 +139,7 @@ public class GradleTest {
                 allowing(buildMock).getCurrentProject();
                 will(returnValue(expectedCurrentProject));
                 allowing(buildMock).getTaskGraph();
-                will(returnValue(buildExecuterMock));
+                will(returnValue(taskExecuterMock));
             }
         });
     }
@@ -215,10 +215,10 @@ public class GradleTest {
             one(buildListenerMock).settingsEvaluated(settingsMock);
             one(buildListenerMock).projectsLoaded(buildMock);
             one(buildListenerMock).projectsEvaluated(buildMock);
-//            one(buildListenerMock).taskGraphPopulated(buildExecuterMock);
+//            one(buildListenerMock).taskGraphPopulated(taskExecuterMock);
             one(buildListenerMock).projectsLoaded(buildMock);
             one(buildListenerMock).projectsEvaluated(buildMock);
-//            one(buildListenerMock).taskGraphPopulated(buildExecuterMock);
+//            one(buildListenerMock).taskGraphPopulated(taskExecuterMock);
             one(buildListenerMock).buildFinished(with(result(settingsMock, nullValue(Throwable.class))));
         }});
 
@@ -274,14 +274,14 @@ public class GradleTest {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0));
+                one(taskExecuterMock).execute(expectedTasks.get(0));
                 will(returnValue(false));
-                one(buildExecuterMock).execute(expectedTasks.get(1));
+                one(taskExecuterMock).execute(expectedTasks.get(1));
                 will(returnValue(false));
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 will(returnValue(buildMock));
-                one(buildExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
+                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
             }
         });
     }
@@ -290,18 +290,18 @@ public class GradleTest {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0));
+                one(taskExecuterMock).execute(expectedTasks.get(0));
                 will(returnValue(true));
-                one(buildExecuterMock).execute(expectedTasks.get(1));
+                one(taskExecuterMock).execute(expectedTasks.get(1));
                 will(returnValue(true));
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 will(returnValue(buildMock));
-                one(buildExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
+                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(buildConfigurerMock).process(expectedRootProject);
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams, testGradleProperties);
                 will(returnValue(buildMock));
-                one(buildExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
+                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
             }
         });
     }
@@ -312,9 +312,9 @@ public class GradleTest {
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 will(returnValue(buildMock));
-                one(buildExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
+                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildExecuterMock).execute(expectedTasks.get(0));
+                one(taskExecuterMock).execute(expectedTasks.get(0));
                 will(throwException(failure));
             }
         });
@@ -328,7 +328,7 @@ public class GradleTest {
                 one(projectsLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 will(returnValue(buildMock));
-                one(buildExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
+                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(settingsProcessorMock).process(settingsFinderMock, expectedStartParams, gradlePropertiesLoaderMock);
                 will(returnValue(settingsMock));
                 one(buildConfigurerMock).process(expectedRootProject);

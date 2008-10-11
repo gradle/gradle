@@ -36,12 +36,12 @@ public class BuiltInTaskExecuterTest {
     private final BuiltInTaskExecuter executer = new BuiltInTaskExecuter();
     private final Project rootProject = context.mock(ProjectInternal.class, "root");
     private final Project project = context.mock(ProjectInternal.class, "project");
-    private BuildExecuter buildExecuter;
+    private DefaultTaskExecuter taskExecuter;
 
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        buildExecuter = context.mock(BuildExecuter.class);
+        taskExecuter = context.mock(DefaultTaskExecuter.class);
 
         context.checking(new Expectations(){{
             allowing(project).getRootProject();
@@ -64,11 +64,11 @@ public class BuiltInTaskExecuterTest {
         assertThat(executer.getTask(), instanceOf(TaskListTask.class));
 
         context.checking(new Expectations(){{
-            one(buildExecuter).execute(Collections.singleton(executer.getTask()));
+            one(taskExecuter).execute(Collections.singleton(executer.getTask()));
         }});
 
         assertThat(executer.getDescription(), equalTo("taskList"));
-        executer.execute(buildExecuter);
+        executer.execute(taskExecuter);
     }
 
     @Test

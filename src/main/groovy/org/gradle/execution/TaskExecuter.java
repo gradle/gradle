@@ -16,7 +16,6 @@
 package org.gradle.execution;
 
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 
 /**
  * Selects and executes the groups of tasks requested for a build.
@@ -41,7 +40,7 @@ public interface TaskExecuter {
     /**
      * Executes the current group of tasks.
      */
-    void execute(BuildExecuter executer);
+    void execute(DefaultTaskExecuter executer);
 
     /**
      * Returns true if the project heirarchiy should be reloaded before executing the current group, false if not.

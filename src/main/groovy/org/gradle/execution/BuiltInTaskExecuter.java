@@ -46,7 +46,7 @@ public class BuiltInTaskExecuter implements TaskExecuter {
         return task;
     }
 
-    public void execute(BuildExecuter executer) {
+    public void execute(DefaultTaskExecuter executer) {
         assert selected;
         executer.execute(Collections.singleton(task));
     }

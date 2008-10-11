@@ -77,19 +77,19 @@ public class NameResolvingTaskExecuterTest {
     public void executesAllSelectedTasks() {
         Task task1 = context.mock(Task.class, "task1");
         Task task2 = context.mock(Task.class, "task2");
-        final BuildExecuter buildExecuter = context.mock(BuildExecuter.class);
+        final DefaultTaskExecuter taskExecuter = context.mock(DefaultTaskExecuter.class);
         final Set<Task> tasks = WrapUtil.toSet(task1, task2);
 
         context.checking(new Expectations() {{
             atLeast(1).of(project).getTasksByName("name", true);
             will(returnValue(tasks));
-            one(buildExecuter).execute(tasks);
+            one(taskExecuter).execute(tasks);
             will(returnValue(false));
         }});
 
         NameResolvingTaskExecuter executer = new NameResolvingTaskExecuter(WrapUtil.toList("name"));
         executer.select(project);
-        executer.execute(buildExecuter);
+        executer.execute(taskExecuter);
         assertThat(executer.requiresProjectReload(), equalTo(false));
     }
     

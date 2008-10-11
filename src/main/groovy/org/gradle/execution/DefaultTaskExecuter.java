@@ -38,14 +38,14 @@ import java.util.LinkedHashSet;
 /**
  * @author Hans Dockter
  */
-public class BuildExecuter implements TaskExecutionGraph {
-    private static Logger logger = LoggerFactory.getLogger(BuildExecuter.class);
+public class DefaultTaskExecuter implements TaskExecutionGraph {
+    private static Logger logger = LoggerFactory.getLogger(DefaultTaskExecuter.class);
 
     private Dag<Task> dag;
     private boolean populated;
     private List<TaskExecutionGraphListener> listeners = new ArrayList<TaskExecutionGraphListener>();
 
-    public BuildExecuter(Dag<Task> dag) {
+    public DefaultTaskExecuter(Dag<Task> dag) {
         this.dag = dag;
     }
 
