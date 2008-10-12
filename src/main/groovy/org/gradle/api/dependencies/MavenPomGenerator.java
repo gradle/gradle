@@ -24,6 +24,8 @@ import java.io.File;
  * @author Hans Dockter
  */
 public interface MavenPomGenerator {
+    String JAR_PACKAGING = "jar";
+    String WAR_PACKAGING = "war";
     String PROVIDED = "provided";
     String COMPILE = "compile";
     String RUNTIME = "runtime";

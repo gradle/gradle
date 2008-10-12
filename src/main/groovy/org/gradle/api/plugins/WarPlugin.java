@@ -65,6 +65,7 @@ public class WarPlugin implements Plugin {
     }
 
     private void configureMavenScopeMappings(MavenPomGenerator mavenPomGenerator) {
+        mavenPomGenerator.setPackaging(MavenPomGenerator.WAR_PACKAGING);
         mavenPomGenerator.getScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, PROVIDED_COMPILE, MavenPomGenerator.PROVIDED);
         mavenPomGenerator.getScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, PROVIDED_RUNTIME, MavenPomGenerator.PROVIDED);
     }

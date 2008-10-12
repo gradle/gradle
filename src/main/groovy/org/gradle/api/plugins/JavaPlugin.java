@@ -257,6 +257,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureMavenScopeMappings(MavenPomGenerator mavenPomGenerator) {
+        mavenPomGenerator.setPackaging(MavenPomGenerator.JAR_PACKAGING);
         mavenPomGenerator.getScopeMappings().addMapping(COMPILE_PRIORITY, COMPILE, MavenPomGenerator.COMPILE);
         mavenPomGenerator.getScopeMappings().addMapping(RUNTIME_PRIORITY, RUNTIME, MavenPomGenerator.RUNTIME);
         mavenPomGenerator.getScopeMappings().addMapping(TEST_COMPILE_PRIORITY, TEST_COMPILE, MavenPomGenerator.TEST);
