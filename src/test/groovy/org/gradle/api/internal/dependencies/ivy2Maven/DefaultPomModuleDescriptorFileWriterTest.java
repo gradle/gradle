@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.FileUtil;
+import org.apache.commons.io.FileUtils;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
@@ -64,7 +65,7 @@ public class DefaultPomModuleDescriptorFileWriterTest {
                 conf2ScopeMappingContainerMock, _dest);
         assertTrue(_dest.exists());
 
-        String wrote = FileUtil.readEntirely(new BufferedReader(new FileReader(_dest)));
+        String wrote = FileUtils.readFileToString(_dest);
         assertEquals(expectedPomText + System.getProperty("line.separator"), wrote);
     }
 
