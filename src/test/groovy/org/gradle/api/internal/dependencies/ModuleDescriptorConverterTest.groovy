@@ -48,7 +48,7 @@ class ModuleDescriptorConverterTest {
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         moduleDescriptorConverter = new ModuleDescriptorConverter()
-        dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, new File('buildResolverDir'),
+        dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, null, new File('buildResolverDir'),
                 new DefaultExcludeRuleContainer())
         dependencyManager.project = new DefaultProject()
         createTestExcludeRules()

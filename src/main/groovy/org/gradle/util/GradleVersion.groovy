@@ -25,6 +25,7 @@ class GradleVersion {
     final static String BUILD_TIME = 'buildTime'
     final static String VERSION = 'version'
     final static String FILE_NAME = 'version.properties'
+    public final static String URL = 'http://www.gradle.org'
 
     Properties versionProperties
 

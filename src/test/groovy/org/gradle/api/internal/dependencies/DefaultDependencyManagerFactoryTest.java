@@ -42,6 +42,7 @@ public class DefaultDependencyManagerFactoryTest {
         assertNotNull(dependencyManager.getSettingsConverter());
         assertNotNull(dependencyManager.getModuleDescriptorConverter());
         assertNotNull(dependencyManager.getDependencyPublisher());
+        assertNotNull(dependencyManager.getMaven());
         assertNotNull(dependencyManager.getDependencyResolver());
         Set<IDependencyImplementationFactory> dependencyImplementationFactories =
                 dependencyManager.getDependencyFactory().getDependencyFactories();

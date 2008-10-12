@@ -37,6 +37,7 @@ import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.dependencies.MavenPomGenerator
 
 /**
  * @author Hans Dockter
@@ -50,6 +51,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     ModuleDescriptorConverter moduleDescriptorConverter
     IDependencyResolver dependencyResolverMock
     IDependencyPublisher dependencyPublisherMock
+    MavenPomGenerator mavenPomGeneratorMock
     IIvyFactory ivyFactoryMock
     File buildResolverDir
     ArtifactFactory artifactFactory
@@ -80,12 +82,13 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         artifactFactory = context.mock(ArtifactFactory)
         dependencyResolverMock = context.mock(IDependencyResolver)
         dependencyPublisherMock = context.mock(IDependencyPublisher)
+        mavenPomGeneratorMock = context.mock(MavenPomGenerator)
         testExcludeRuleContainer = new DefaultExcludeRuleContainer()
         settingsConverter = context.mock(SettingsConverter)
         buildResolverDir = new File('buildResolverDir')
         moduleDescriptorConverter = context.mock(ModuleDescriptorConverter)
         dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, artifactFactory, settingsConverter,
-                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir, testExcludeRuleContainer)
+                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, mavenPomGeneratorMock, buildResolverDir, testExcludeRuleContainer)
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
@@ -103,6 +106,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
         assert dependencyManager.dependencyResolver.is(dependencyResolverMock)
         assert dependencyManager.dependencyPublisher.is(dependencyPublisherMock)
+        assert dependencyManager.maven.is(mavenPomGeneratorMock)
         assert dependencyManager.excludeRules.is(testExcludeRuleContainer)
         assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.classpathResolvers
@@ -196,7 +200,6 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         List expectedConfigs = [TEST_CONFIG]
         ResolverContainer expectedResolvers = new ResolverContainer(null);
         boolean expectedUploadModuleDescriptor = false
-        File expectedIvyFile = new File(project.getBuildDir(), "ivy.xml")
         context.checking {
             allowing(settingsConverter).convert(
                     dependencyManager.classpathResolvers.resolverList,
@@ -209,7 +212,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
             allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
             allowing(moduleDescriptorConverter).convert(dependencyManager, true); will(returnValue(expectedModuleDescriptor))
             one(dependencyPublisherMock).publish(expectedConfigs, expectedResolvers, expectedModuleDescriptor,
-                    expectedUploadModuleDescriptor, expectedIvyFile, dependencyManager, expectedIvy.getPublishEngine());
+                    expectedUploadModuleDescriptor, project.getBuildDir(), dependencyManager, expectedIvy.getPublishEngine());
         }
         dependencyManager.publish(expectedConfigs, expectedResolvers, expectedUploadModuleDescriptor)
     }

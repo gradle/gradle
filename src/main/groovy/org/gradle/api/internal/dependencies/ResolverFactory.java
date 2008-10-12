@@ -55,7 +55,6 @@ public class ResolverFactory {
 
         for (File root : roots) {
             String pattern = root.getAbsolutePath() + "/" + DependencyManager.FLAT_DIR_RESOLVER_PATTERN;
-            resolver.addIvyPattern(pattern);
             resolver.addArtifactPattern(pattern);
         }
         resolver.setValidate(false);

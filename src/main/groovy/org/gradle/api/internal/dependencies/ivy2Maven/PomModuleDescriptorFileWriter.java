@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.dependencies;
+package org.gradle.api.internal.dependencies.ivy2Maven;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.publish.PublishEngine;
-import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.DependencyManager;
+import org.gradle.api.internal.dependencies.ivy2Maven.dependencies.Conf2ScopeMappingContainer;
 
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
 
 /**
  * @author Hans Dockter
  */
-public interface IDependencyPublisher {
-    void publish(List<String> configurations,
-                 ResolverContainer resolvers,
-                 ModuleDescriptor moduleDescriptor,
-                 boolean uploadModuleDescriptor,
-                 File parentDir,
-                 DependencyManager dependencyManager,
-                 PublishEngine publishEngine);
+public interface PomModuleDescriptorFileWriter {
+    void write(ModuleDescriptor md, String packaging, Conf2ScopeMappingContainer conf2ScopeMappingContainer, File output);
+
+    void write(ModuleDescriptor md, String packaging,
+            String licenseHeader, Conf2ScopeMappingContainer conf2ScopeMappingContainer, File output);
 }

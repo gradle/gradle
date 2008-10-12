@@ -25,10 +25,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -39,6 +36,8 @@ public class ResolverContainer {
     private List<String> resolverNames = new ArrayList<String>();
 
     private Map<String, DependencyResolver> resolvers = new HashMap<String, DependencyResolver>();
+
+    private Set<DependencyResolver> pomResolvers = new HashSet<DependencyResolver>();
 
     public ResolverContainer() {
     }
@@ -155,6 +154,28 @@ public class ResolverContainer {
         return resolverFactory.createMavenRepoResolver(name, root, jarRepoUrls);
     }
 
+    public boolean isPomResolver(DependencyResolver resolver) {
+        return pomResolvers.contains(resolver);
+    }
+
+    public boolean hasIvyResolvers() {
+        for (DependencyResolver dependencyResolver : resolvers.values()) {
+            if (!pomResolvers.contains(dependencyResolver)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasPomResolvers() {
+        for (DependencyResolver dependencyResolver : resolvers.values()) {
+            if (pomResolvers.contains(dependencyResolver)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static interface OrderAction {
         void apply(String resolverName);
     }
@@ -181,5 +202,15 @@ public class ResolverContainer {
 
     public void setResolvers(Map<String, DependencyResolver> resolvers) {
         this.resolvers = resolvers;
+    }
+
+    public ResolverContainer addPomResolvers(DependencyResolver[] resolvers) {
+        pomResolvers.addAll(Arrays.asList(resolvers));
+        return this;
+    }
+
+    public ResolverContainer removePomResolvers(DependencyResolver[] resolvers) {
+        pomResolvers.removeAll(Arrays.asList(resolvers));
+        return this;
     }
 }

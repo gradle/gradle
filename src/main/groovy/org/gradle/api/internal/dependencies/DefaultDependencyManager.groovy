@@ -21,6 +21,7 @@ import org.gradle.api.dependencies.ExcludeRuleContainer
 import org.gradle.util.WrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.dependencies.MavenPomGenerator
 
 /**
  * @author Hans Dockter
@@ -34,19 +35,10 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
 
     public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
                              SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
-                             IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
+                             IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher, MavenPomGenerator mavenPomGenerator,
                              File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(ivyFactory, dependencyFactory, artifactFactory, settingsConverter, moduleDescriptorConverter,
-                dependencyResolver, dependencyPublisher, buildResolverDir, excludeRuleContainer);
-        assert buildResolverDir != null;
-        this.ivyFactory = ivyFactory;
-        this.artifactFactory = artifactFactory;
-        this.settingsConverter = settingsConverter;
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
-        this.dependencyResolver = dependencyResolver;
-        this.dependencyPublisher = dependencyPublisher;
-        this.localReposCacheHandler.setBuildResolverDir(buildResolverDir);
-        this.buildResolverHandler.setBuildResolverDir(buildResolverDir);
+                dependencyResolver, dependencyPublisher, mavenPomGenerator, buildResolverDir, excludeRuleContainer);
     }
 
     public def methodMissing(String name, args) {

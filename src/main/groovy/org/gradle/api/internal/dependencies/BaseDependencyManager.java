@@ -28,6 +28,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.GradleArtifact;
 import org.gradle.api.dependencies.ResolverContainer;
+import org.gradle.api.dependencies.MavenPomGenerator;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +78,8 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     IDependencyPublisher dependencyPublisher;
 
+    MavenPomGenerator mavenPomGenerator;
+
     LocalReposCacheHandler localReposCacheHandler = new LocalReposCacheHandler();
 
     BuildResolverHandler buildResolverHandler = new BuildResolverHandler(localReposCacheHandler);
@@ -116,7 +119,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
     public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
                                  SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                                  IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                                 File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
+                                 MavenPomGenerator mavenPomGenerator, File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(dependencyFactory, new ArrayList());
         assert buildResolverDir != null;
         this.ivyFactory = ivyFactory;
@@ -125,6 +128,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
+        this.mavenPomGenerator = mavenPomGenerator;
         this.localReposCacheHandler.setBuildResolverDir(buildResolverDir);
         this.buildResolverHandler.setBuildResolverDir(buildResolverDir);
         this.excludeRules = excludeRuleContainer;
@@ -162,7 +166,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
                 resolvers,
                 moduleDescriptorConverter.convert(this, true),
                 uploadModuleDescriptor,
-                new File(getProject().getBuildDir(), "ivy.xml"),
+                getProject().getBuildDir(),
                 this,
                 ivy(resolvers.getResolverList()).getPublishEngine()
         );
@@ -427,6 +431,10 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     public ExcludeRuleContainer getExcludeRules() {
         return excludeRules;
+    }
+
+    public MavenPomGenerator getMaven() {
+        return mavenPomGenerator;
     }
 
     public void setExcludeRules(ExcludeRuleContainer excludeRules) {

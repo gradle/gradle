@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.gradle.api.*;
 import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.MavenPomGenerator;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
@@ -69,6 +70,10 @@ public class JavaPlugin implements Plugin {
     public static final String ECLIPSE_CLEAN = "eclipseClean";
     public static final String ECLIPSE_PROJECT = "eclipseProject";
     public static final String ECLIPSE_CP = "eclipseCp";
+    public static final int COMPILE_PRIORITY = 300;
+    public static final int RUNTIME_PRIORITY = 200;
+    public static final int TEST_COMPILE_PRIORITY = 150;
+    public static final int TEST_RUNTIME_PRIORITY = 100;
 
     public void apply(Project project, PluginRegistry pluginRegistry) {
         apply(project, pluginRegistry, new HashMap());
@@ -230,7 +235,7 @@ public class JavaPlugin implements Plugin {
         project.setProperty("status", "integration");
         DependencyManager dependencies = project.getDependencies();
         dependencies.addConfiguration(
-                new Configuration(JavaPlugin.COMPILE, Visibility.PRIVATE, null, null, false, null));
+                new Configuration(COMPILE, Visibility.PRIVATE, null, null, false, null));
         dependencies.addConfiguration(new Configuration(RUNTIME, Visibility.PRIVATE, null, new String[]{COMPILE}, true, null));
         dependencies.addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, new String[]{COMPILE}, false, null));
         dependencies.addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, new String[]{RUNTIME, TEST_COMPILE}, true, null));
@@ -248,6 +253,14 @@ public class JavaPlugin implements Plugin {
         dependencies.linkConfWithTask(TEST_COMPILE, TEST_COMPILE);
         dependencies.linkConfWithTask(TEST_RUNTIME, TEST);
 
+        configureMavenScopeMappings(dependencies.getMaven());
+    }
+
+    private void configureMavenScopeMappings(MavenPomGenerator mavenPomGenerator) {
+        mavenPomGenerator.getScopeMappings().addMapping(COMPILE_PRIORITY, COMPILE, MavenPomGenerator.COMPILE);
+        mavenPomGenerator.getScopeMappings().addMapping(RUNTIME_PRIORITY, RUNTIME, MavenPomGenerator.RUNTIME);
+        mavenPomGenerator.getScopeMappings().addMapping(TEST_COMPILE_PRIORITY, TEST_COMPILE, MavenPomGenerator.TEST);
+        mavenPomGenerator.getScopeMappings().addMapping(TEST_RUNTIME_PRIORITY, TEST_RUNTIME, MavenPomGenerator.TEST);
     }
 
     protected Compile configureTestCompile(Compile testCompile, final Compile compile, Map propertyMapping) {

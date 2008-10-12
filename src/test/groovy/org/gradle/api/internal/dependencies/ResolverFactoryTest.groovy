@@ -108,13 +108,14 @@ class ResolverFactoryTest {
         String expectedName = 'libs'
         FileSystemResolver resolver = factory.createFlatDirResolver(expectedName, [dir1, dir2] as File[])
         checkNoModuleRepository(resolver, expectedName,
-                [dir1, dir2].collect {"$it.absolutePath/$DependencyManager.FLAT_DIR_RESOLVER_PATTERN"})
+                [dir1, dir2].collect {"$it.absolutePath/$DependencyManager.FLAT_DIR_RESOLVER_PATTERN"}, [])
     }
 
-    private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedPatterns) {
+    private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedArtifactPatterns,
+                    List expectedIvyPatterns) {
         assertEquals(expectedName, resolver.name)
-        assert expectedPatterns == resolver.ivyPatterns
-        assert expectedPatterns == resolver.artifactPatterns
+        assertEquals(expectedIvyPatterns, resolver.ivyPatterns)
+        assert expectedArtifactPatterns == resolver.artifactPatterns
         assertTrue(resolver.allownomd)
         assert resolver.repositoryCacheManager == dummyCacheManager
     }

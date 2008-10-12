@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.dependencies.DependencyContainer;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.ResolverContainer;
+import org.gradle.api.dependencies.MavenPomGenerator;
 
 import java.io.File;
 import java.util.List;
@@ -312,4 +313,9 @@ public interface DependencyManager extends DependencyContainer {
     ModuleRevisionId createModuleRevisionId();
 
     ExcludeRuleContainer getExcludeRules();
+
+    /**
+     * Returns a MavenPom instance for creating a POM and reading and manipulating settings for its generation. 
+     */
+    MavenPomGenerator getMaven();
 }

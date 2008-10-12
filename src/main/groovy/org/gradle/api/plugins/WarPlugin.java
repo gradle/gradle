@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.dependencies.Filter;
+import org.gradle.api.dependencies.MavenPomGenerator;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.Bundle;
@@ -40,6 +41,8 @@ public class WarPlugin implements Plugin {
     public static final String PROVIDED_COMPILE = "providedCompile";
     public static final String PROVIDED_RUNTIME = "providedRuntime";
     public static final String ECLIPSE_WTP = "eclipseWtp";
+    public static final int PROVIDED_COMPILE_PRIORITY = JavaPlugin.COMPILE_PRIORITY + 100;
+    public static final int PROVIDED_RUNTIME_PRIORITY = JavaPlugin.COMPILE_PRIORITY + 150;
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
@@ -58,6 +61,12 @@ public class WarPlugin implements Plugin {
                 {PROVIDED_COMPILE}, false, null));
         dependencyManager.addConfiguration(new Configuration(JavaPlugin.RUNTIME, Configuration.Visibility.PRIVATE, null, new String[]
                 {JavaPlugin.COMPILE, PROVIDED_RUNTIME}, true, null));
+        configureMavenScopeMappings(dependencyManager.getMaven());
+    }
+
+    private void configureMavenScopeMappings(MavenPomGenerator mavenPomGenerator) {
+        mavenPomGenerator.getScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, PROVIDED_COMPILE, MavenPomGenerator.PROVIDED);
+        mavenPomGenerator.getScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, PROVIDED_RUNTIME, MavenPomGenerator.PROVIDED);
     }
 
     private void configureEclipse(Project project, War war) {

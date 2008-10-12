@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.internal.dependencies.LocalReposCacheHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,12 +48,14 @@ public class Upload extends DefaultTask {
     private List<String> configurations = new ArrayList<String>();
 
     /**
-     * The resolvers to delegate the uploads to. Usuallte a resolver corresponds to a repository.
+     * The resolvers to delegate the uploads to. Usually a resolver corresponds to a repository.
      */
-    private ResolverContainer uploadResolvers = new ResolverContainer();
+    private ResolverContainer uploadResolvers;
 
     public Upload(Project project, String name) {
         super(project, name);
+        uploadResolvers = new ResolverContainer(
+                new LocalReposCacheHandler(project.getDependencies().getBuildResolverDir()));
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 upload(task);
