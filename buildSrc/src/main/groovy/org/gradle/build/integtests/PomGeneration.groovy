@@ -26,7 +26,7 @@ import org.apache.commons.io.FileUtils;
  */
 class PomGeneration {
     static void execute(String gradleHome, String samplesDirName) {
-        File pomprojectDir = new File(samplesDirName, 'PomGeneration')
+        File pomprojectDir = new File(samplesDirName, 'pomGeneration')
         File pomFile = new File(pomprojectDir, "pomRepo/pom.xml");
         FileUtils.deleteQuietly(pomFile.parentFile)
         pomFile.parentFile.mkdirs()
