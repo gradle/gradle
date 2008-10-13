@@ -17,7 +17,6 @@
 package org.gradle.api.initialization;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
@@ -49,10 +48,24 @@ import java.io.File;
  *
  * <h3>Defining the Build Class-path</h3>
  *
- * <p>Using the <code>Settings</code> object, you can define the classpath which will be used to load the build files,
- * and all objects used by them. This includes the non-standard plugins which the build files will use.</p>
+ * <p>Using the <code>Settings</code> object, you can define the classpath which will be used to load the build scripts,
+ * and all objects used by them. This should also include the non-standard plugins which the build scripts will
+ * use.</p>
  *
- * <h3>Using Settings from the Settings File</h3>
+ * <h3>Using Settings from the Settings Script</h3>
+ *
+ * <p>In addition to the properties of this interface, the {@code Settings} code object makes some additional properties
+ * available to the settings script. This includes properties from the following sources:</p>
+ *
+ * <ul>
+ *
+ * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the settings directory of the build.</li>
+ *
+ * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the user's {@code .gradle} directory.</li>
+ *
+ * <li>Provided on the command-line</li>
+ *
+ * </ul>
  *
  * @author Hans Dockter
  */
@@ -70,7 +83,7 @@ public interface Settings {
      * <p>Adds paths of projects which should take part in this build, additional to the project containing the settings
      * file, which takes always in part in the build.</p>
      *
-     * <p>A project path in the settings file is slightly different from a project path you use in your build file. A
+     * <p>A project path in the settings file is slightly different from a project path you use in your build script. A
      * settings project path is always relative to the directory containing the settings file.</p>
      *
      * @param projectPaths the project paths to add
@@ -80,7 +93,7 @@ public interface Settings {
     void includeFlat(String[] projectNames);
 
     /**
-     * <p>Returns the {@link DependencyManager} which manages the classpath to use for the build files.</p>
+     * <p>Returns the {@link DependencyManager} which manages the classpath to use for the build scripts.</p>
      *
      * @return the dependency manager instance responsible for managing the dependencies for the users build script
      *         classpath.
@@ -88,18 +101,19 @@ public interface Settings {
     DependencyManager getDependencyManager();
 
     /**
-     * Delegates to the dependencies manager addDependencies method.
+     * <p>Adds dependencies to the build script classpath. See {@link DependencyManager#dependencies(java.util.List,
+     * Object[])} for more details.</p>
      *
-     * @param dependencies dependencies passed to the dependencies manager addDependencies method.
+     * @param dependencies The dependencies to add to the build script classpath.
      */
     void dependencies(Object[] dependencies);
 
     void dependency(String id, Closure configureClosure);
 
     /**
-     * Delegates to the dependencies manager getResolvers method.
+     * <p>Returns the set of resolvers used to resolve the build script classpath.</p>
      *
-     * @return the result of the dependencies manager getResolvers method.
+     * @return the resolvers. Never returns null.
      */
     ResolverContainer getResolvers();
 
@@ -168,6 +182,11 @@ public interface Settings {
      */
     ProjectDescriptor findProject(File projectDir);
 
+    /**
+     * <p>Returns the set of parameters used to invoke this instance of Gradle.</p>
+     *
+     * @return The parameters. Never returns null.
+     */
     StartParameter getStartParameter();
 
     void clientModule(String id, Closure configureClosure);

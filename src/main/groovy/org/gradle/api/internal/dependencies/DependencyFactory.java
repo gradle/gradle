@@ -27,14 +27,14 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DependencyFactory {
+public class DependencyFactory implements IDependencyImplementationFactory {
     private Set<IDependencyImplementationFactory> dependencyFactories;
 
     DependencyFactory(Set<IDependencyImplementationFactory> dependencyFactories) {
         this.dependencyFactories = dependencyFactories;
     }
 
-    Dependency createDependency(Set confs, Object userDependencyDescription, Project project) {
+    public Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project) {
         Dependency dependency = null;
         for (IDependencyImplementationFactory factory : dependencyFactories) {
             try {

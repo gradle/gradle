@@ -41,9 +41,9 @@ import java.util.LinkedHashSet;
 public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskExecuter.class);
 
-    private Dag<Task> dag;
+    private final Dag<Task> dag;
+    private final List<TaskExecutionGraphListener> listeners = new ArrayList<TaskExecutionGraphListener>();
     private boolean populated;
-    private List<TaskExecutionGraphListener> listeners = new ArrayList<TaskExecutionGraphListener>();
 
     public DefaultTaskExecuter(Dag<Task> dag) {
         this.dag = dag;

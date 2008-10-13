@@ -25,7 +25,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class ArtifactDependencyFactory implements IDependencyImplementationFactory {
-    public Dependency createDependency(Set confs, Object userDependencyDescription, Project project) {
+    public Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project) {
         return new ArtifactDependency(confs, userDependencyDescription);
     }
 }

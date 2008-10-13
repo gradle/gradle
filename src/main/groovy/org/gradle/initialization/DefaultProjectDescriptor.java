@@ -30,7 +30,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
     private String name;
     private File dir;
     private DefaultProjectDescriptor parent;
-    private Set<DefaultProjectDescriptor> children = new LinkedHashSet<DefaultProjectDescriptor>();
+    private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
     private IProjectDescriptorRegistry projectDescriptorRegistry;
     private String path;
 
@@ -88,7 +88,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
         return parent;
     }
 
-    public Set<DefaultProjectDescriptor> getChildren() {
+    public Set<ProjectDescriptor> getChildren() {
         return children;
     }
 

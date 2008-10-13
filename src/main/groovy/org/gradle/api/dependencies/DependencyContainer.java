@@ -23,22 +23,24 @@ import org.gradle.api.Project;
 import java.util.List;
 
 /**
+ * <p>A {@code DependencyContainer} maintains a set of dependencies.</p>
+ *
  * @author Hans Dockter
  */
 public interface DependencyContainer {
     /**
-     * Returns the default confs for this dependecy container.
+     * Returns the default configurations for this dependency container.
      *
-     * @return
+     * @return The default configurations. Returns an empty list if there are no default configurations.
      */
-    List getDefaultConfs();
+    List<String> getDefaultConfs();
 
     /**
-     * Sets the default confs for this dependecy container.
-     * @param defaultConfs
-     * @return
+     * Sets the default configurations for this dependency container.
+     *
+     * @param defaultConfs The default configurations. May be empty, should not be null.
      */
-    void setDefaultConfs(List defaultConfs);
+    void setDefaultConfs(List<String> defaultConfs);
 
     /**
      * The project associated with this DependencyManager
@@ -49,7 +51,7 @@ public interface DependencyContainer {
     void setProject(Project project);
     
     /**
-     * A list of all Gradle Dependency objectss.
+     * A list of all Gradle Dependency objects.
      *
      * @see #getDependencies(Filter) 
      */
@@ -65,7 +67,7 @@ public interface DependencyContainer {
     /**
      * A list for passing directly instances of Ivy DependencyDescriptor objects.
      */
-    List getDependencyDescriptors();
+    List<DependencyDescriptor> getDependencyDescriptors();
 
     /**
      * Adds dependency descriptors to confs.
@@ -73,7 +75,7 @@ public interface DependencyContainer {
      * @param confs
      * @param dependencies
      */
-    void dependencies(List confs, Object... dependencies);
+    void dependencies(List<String> confs, Object... dependencies);
 
     /**
      * Adds dependencies to the defaultConfs
@@ -91,6 +93,8 @@ public interface DependencyContainer {
      */
     void dependencyDescriptors(DependencyDescriptor... dependencyDescriptors);
 
+    Dependency dependency(List<String> confs, Object userDependencyDescription);
+    
     /**
      * Adds a dependency to the given confs. The configureClosure configures this dependency. 
      *
@@ -99,7 +103,9 @@ public interface DependencyContainer {
      * @param configureClosure
      * @return the added Dependency
      */
-    Dependency dependency(List confs, Object userDependencyDescription, Closure configureClosure);
+    Dependency dependency(List<String> confs, Object userDependencyDescription, Closure configureClosure);
+
+    Dependency dependency(String userDependencyDescription);
 
     /**
      * Adds a dependency to the default confs. The configureClosure configures this dependency.
@@ -110,6 +116,8 @@ public interface DependencyContainer {
      */
     Dependency dependency(String userDependencyDescription, Closure configureClosure);
 
+    ClientModule clientModule(List<String> confs, String id);
+
     /**
      * Adds a client module to the given confs. The configureClosure configures this client module.
      * See {@link ClientModule} for the API that can be used.
@@ -118,7 +126,9 @@ public interface DependencyContainer {
      * @param configureClosure
      * @return the added ClientModule
      */
-    ClientModule clientModule(List confs, String moduleName, Closure configureClosure);
+    ClientModule clientModule(List<String> confs, String moduleName, Closure configureClosure);
+
+    ClientModule clientModule(String moduleName);
 
     /**
      * Adds a client module to the default confs. The configureClosure configures this client module.

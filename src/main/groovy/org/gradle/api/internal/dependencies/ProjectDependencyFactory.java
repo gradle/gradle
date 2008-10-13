@@ -25,7 +25,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class ProjectDependencyFactory implements IDependencyImplementationFactory {
-    public Dependency createDependency(Set confs, Object userDependencyDescription, Project project) {
+    public Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project) {
         ProjectDependency projectDependency;
         if (userDependencyDescription instanceof ProjectDependency) {
             projectDependency = (ProjectDependency) userDependencyDescription;

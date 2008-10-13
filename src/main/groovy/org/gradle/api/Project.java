@@ -195,13 +195,30 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Returns the build directory of this project.  The build directory is the directory which all artifacts are
-     * generated into.  The default value for the build directory is <code><i>rootDir</i>/build</code></p>
+     * generated into.  The default value for the build directory is <code><i>projectDir</i>/build</code></p>
      *
      * <p>You can access this property in your build file using <code>buildDir</code></p>
      *
      * @return The build directory. Never returns null.
      */
     File getBuildDir();
+
+    /**
+     * <p>Returns the name of the build directory of this project. It is resolved relative to the project directory
+     * of this project to determine the build directory. The default value is {@value #DEFAULT_BUILD_DIR_NAME}.</p>
+     *
+     * <p>You can access this property in your build file using <code>buildDirName</code></p>
+     *
+     * @return The build dir name. Never returns null.
+     */
+    String getBuildDirName();
+
+    /**
+     * <p>Sets the build directory name of this project.</p>
+     *
+     * @param buildDirName The build dir name. Should not be null.
+     */
+    void setBuildDirName(String buildDirName);
 
     /**
      * <p>Returns the home directory for a Gradle user. Default's to <code><i>USER_HOME</i>/.gradle</code> </p>

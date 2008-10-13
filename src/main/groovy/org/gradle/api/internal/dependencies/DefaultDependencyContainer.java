@@ -22,8 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.dependencies.*;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -32,11 +30,9 @@ import java.util.*;
  */
 // todo: add addConfiguration method with map argument
 public class DefaultDependencyContainer implements DependencyContainer {
-    private static Logger logger = LoggerFactory.getLogger(DefaultDependencyContainer.class);
-
     private Map clientModuleRegistry = new HashMap();
 
-    private List defaultConfs = new ArrayList();
+    private List<String> defaultConfs = new ArrayList<String>();
 
     private List<Dependency> dependencies = new ArrayList<Dependency>();
 
@@ -54,9 +50,9 @@ public class DefaultDependencyContainer implements DependencyContainer {
         this.defaultConfs = defaultConfs;
     }
 
-    public void dependencies(List confs, Object... dependencies) {
+    public void dependencies(List<String> confs, Object... dependencies) {
         for (Object dependency : GUtil.flatten(Arrays.asList(dependencies))) {
-            this.dependencies.add(dependencyFactory.createDependency(new HashSet(confs), dependency, project));
+            this.dependencies.add(dependencyFactory.createDependency(new HashSet<String>(confs), dependency, project));
         }
     }
 
@@ -68,12 +64,12 @@ public class DefaultDependencyContainer implements DependencyContainer {
         this.dependencyDescriptors.addAll(Arrays.asList(dependencyDescriptors));
     }
 
-    public Dependency dependency(List confs, Object id) {
+    public Dependency dependency(List<String> confs, Object id) {
         return dependency(confs, id, null);
     }
 
-    public Dependency dependency(List confs, Object id, Closure configureClosure) {
-        Dependency dependency = dependencyFactory.createDependency(new HashSet(confs), id, project);
+    public Dependency dependency(List<String> confs, Object id, Closure configureClosure) {
+        Dependency dependency = dependencyFactory.createDependency(new HashSet<String>(confs), id, project);
         dependencies.add(dependency);
         ConfigureUtil.configure(configureClosure, dependency);
         return dependency;
@@ -87,13 +83,13 @@ public class DefaultDependencyContainer implements DependencyContainer {
         return dependency(defaultConfs, id, configureClosure);
     }
 
-    public ClientModule clientModule(List confs, String id) {
+    public ClientModule clientModule(List<String> confs, String id) {
         return clientModule(confs, id, null);
     }
 
-    public ClientModule clientModule(List confs, String id, Closure configureClosure) {
+    public ClientModule clientModule(List<String> confs, String id, Closure configureClosure) {
         // todo: We might better have a client module factory here
-        ClientModule clientModule = new ClientModule(dependencyFactory, new HashSet(confs), id, clientModuleRegistry);
+        ClientModule clientModule = new ClientModule(dependencyFactory, new HashSet<String>(confs), id, clientModuleRegistry);
         dependencies.add(clientModule);
         ConfigureUtil.configure(configureClosure, clientModule);
         return clientModule;
@@ -133,11 +129,11 @@ public class DefaultDependencyContainer implements DependencyContainer {
         this.clientModuleRegistry = clientModuleRegistry;
     }
 
-    public List getDefaultConfs() {
+    public List<String> getDefaultConfs() {
         return defaultConfs;
     }
 
-    public void setDefaultConfs(List defaultConfs) {
+    public void setDefaultConfs(List<String> defaultConfs) {
         this.defaultConfs = defaultConfs;
     }
 

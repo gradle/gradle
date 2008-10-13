@@ -77,7 +77,7 @@ class ClientModule extends DefaultDependencyContainer implements Dependency {
         // do nothing
     }
 
-    void dependencies(List confs, Object... dependencies) {
+    void dependencies(List<String> confs, Object... dependencies) {
         if (confs != defaultConfs) {
             throw new UnsupportedOperationException("You can assign confs " + confs + " to dependencies in a client module.")
         }

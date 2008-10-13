@@ -24,5 +24,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface IDependencyImplementationFactory {
-    Dependency createDependency(Set confs, Object userDependencyDescription, Project project);
+    Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project);
 }

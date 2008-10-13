@@ -120,7 +120,7 @@ public interface Task extends Comparable<Task> {
     void setActions(List<TaskAction> actions);
 
     /**
-     * <p>Returns the {@link TaskDependency} which contains all the tasks that this task depends on.</p>
+     * <p>Returns a {@link TaskDependency} which contains all the tasks that this task depends on.</p>
      *
      * @return The dependencies of this task. Never returns null.
      */
@@ -142,6 +142,15 @@ public interface Task extends Comparable<Task> {
     void setDependsOn(Set<?> dependsOnTasks);
 
     /**
+     * <p>Adds the given dependencies to this task. See <a href="#dependencies">here</a> for a description of the types
+     * of objects which can be used as task dependencies.</p>
+     *
+     * @param paths The dependencies to add to this task.
+     * @return the task object this method is applied to
+     */
+    Task dependsOn(Object... paths);
+
+    /**
      * <p>Returns true if this task has been executed.</p>
      *
      * @return true if this task has been executed already, false otherwise.
@@ -155,15 +164,6 @@ public interface Task extends Comparable<Task> {
      * @return the path of the task, which is equal to the path of the project plus the name of the task.
      */
     String getPath();
-
-    /**
-     * <p>Adds the given dependencies to this task. See <a href="#dependencies">here</a> for a description of the types
-     * of objects which can be used as task dependencies.</p>
-     *
-     * @param paths The dependencies to add to this task.
-     * @return the task object this method is applied to
-     */
-    Task dependsOn(Object... paths);
 
     /**
      * <p>Adds the given {@link TaskAction} to the beginning of this task's action list.</p>

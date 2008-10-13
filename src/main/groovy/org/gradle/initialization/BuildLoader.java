@@ -84,7 +84,7 @@ public class BuildLoader {
     private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor,
                              StartParameter startParameter,
                              Map<String, String> externalProjectProperties) {
-        for (DefaultProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
+        for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
             ProjectInternal childProject = (ProjectInternal) parent.addChildProject(childProjectDescriptor.getName(),
                     childProjectDescriptor.getDir());
             addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties,
