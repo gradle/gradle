@@ -32,7 +32,7 @@ import java.io.IOException;
 
 /**
  * Generates an eclipse <i>.project</i> file.
- * 
+ *
  * @author Hans Dockter
  */
 public class EclipseProject extends ConventionTask {
@@ -59,7 +59,7 @@ public class EclipseProject extends ConventionTask {
             writer.close();
 
         } catch (IOException e) {
-            throw new GradleException("Problem when writing Eclipse project file.", e); 
+            throw new GradleException("Problem when writing Eclipse project file.", e);
         }
     }
 
@@ -82,8 +82,10 @@ public class EclipseProject extends ConventionTask {
     }
 
     private void addNatures(Element root) {
-        Element buildCommand = root.addElement("buildSpec").addElement("buildCommand");
+        Element buildRoot = root.addElement("buildSpec");
+
         for (String buildCommandName : projectType.buildCommandNames()) {
+            Element buildCommand = buildRoot.addElement("buildCommand");
             buildCommand.addElement("name").setText(buildCommandName);
             buildCommand.addElement("arguments");
         }

@@ -78,6 +78,11 @@ dependencies {
         dependencies(":commons-codec:1.2", ":commons-logging:1.0.3")
     }
 
+    // Needed by the eclipse plugin
+    clientModule(['compile'], ":dom4j:1.6.1") {
+        dependencies(":jaxen:1.1@jar")
+    }
+
     dependency(['runtime'], ":ant-junit:1.7.0") {
         exclude(module: 'junit')
     }
@@ -90,8 +95,7 @@ dependencies {
             ":commons-lang:2.3@jar",
             ":webdavlib:2.0",
             ":logback-classic:0.9.8",
-            ":ivy:2.0.0-rc1@jar",
-            ":dom4j:1.6.1@jar"
+            ":ivy:2.0.0-rc1@jar"
     runtime ":ant-launcher:1.7.0",
             ":ant-nodeps:1.7.0",
             ":ant-trax:1.7.0",

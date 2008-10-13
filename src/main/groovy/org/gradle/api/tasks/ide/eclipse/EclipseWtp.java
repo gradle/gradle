@@ -21,6 +21,11 @@ import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.dom4j.io.SAXReader;
+import org.dom4j.tree.DefaultText;
+import org.dom4j.Attribute;
+import org.dom4j.tree.DefaultAttribute;
+
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -37,12 +42,12 @@ import java.util.Map;
 
 /**
  * Generates Eclipse configuration files for Eclipse WTP.
- * 
+ *
  * @author Hans Dockter
  */
 public class EclipseWtp extends ConventionTask {
     public static final String WTP_FILE_DIR = ".settings";
-    
+
     public static final String WTP_FILE_NAME = "org.eclipse.wst.common.component";
 
     private Object outputDirectory;
@@ -59,6 +64,7 @@ public class EclipseWtp extends ConventionTask {
 
     public EclipseWtp(Project project, String name) {
         super(project, name);
+
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generateWtp();
@@ -79,6 +85,32 @@ public class EclipseWtp extends ConventionTask {
             writer.write(createXmlDocument());
             writer.close();
 
+            createFacets(getProject());
+        } catch (IOException e) {
+            throw new GradleException("Problem when writing Eclipse project file.", e);
+        }
+    }
+
+    private void createFacets(Project project) {
+        Document document = DocumentFactory.getInstance().createDocument();
+
+        EclipseUtil.addFacet(document, "fixed", new DefaultAttribute("facet", "jst.java"));
+        EclipseUtil.addFacet(document, "fixed", new DefaultAttribute("facet", "jst.web"));
+
+        EclipseUtil.addFacet(document, "installed", new DefaultAttribute("facet", "jst.java"), new DefaultAttribute("version", "5.0"));
+        EclipseUtil.addFacet(document, "installed", new DefaultAttribute("facet", "jst.web"), new DefaultAttribute("version", "2.4"));
+
+        try {
+            File facetFile = project.file(".settings/org.eclipse.wst.common.project.facet.core.xml");
+            if (facetFile.exists()) {
+                facetFile.delete();
+            }
+            if (!facetFile.getParentFile().exists()) {
+                facetFile.getParentFile().mkdirs();
+            }
+            XMLWriter writer = new XMLWriter(new FileWriter(facetFile), OutputFormat.createPrettyPrint());
+            writer.write(document);
+            writer.close();
         } catch (IOException e) {
             throw new GradleException("Problem when writing Eclipse project file.", e);
         }
@@ -110,7 +142,7 @@ public class EclipseWtp extends ConventionTask {
         for (String libPath : EclipseUtil.getSortedStringList(getWarLibs())) {
             wbModule.addElement("dependent-module").
                     addAttribute("deploy-path", "/WEB-INF/lib").
-                    addAttribute("handle", "module:/classpath/" + FilenameUtils.separatorsToUnix(libPath)).
+                    addAttribute("handle", "module:/classpath/lib//" + FilenameUtils.separatorsToUnix(libPath)).
                     addElement("dependency-type").setText("uses");
         }
     }
@@ -119,7 +151,7 @@ public class EclipseWtp extends ConventionTask {
         for (Project project : EclipseUtil.getDependsOnProjects(getProjectDependencies())) {
             wbModule.addElement("dependent-module").
                     addAttribute("deploy-path", "/WEB-INF/lib").
-                    addAttribute("handle", "module:/resource/" + project.getName()).
+                    addAttribute("handle", "module:/resource/" + project.getName() + "/" + project.getName()).
                     addElement("dependency-type").setText("uses");
         }
     }
@@ -139,7 +171,7 @@ public class EclipseWtp extends ConventionTask {
 
     /**
      * Sets the java-output-path to be used by the wtp descriptor file.
-     *  
+     *
      * @param outputDirectory An object which toString value is interpreted as a path.
      */
     public void setOutputDirectory(Object outputDirectory) {
@@ -167,7 +199,7 @@ public class EclipseWtp extends ConventionTask {
     /**
      * Returns a list with library paths to be deployed as war lib dependencies.
      *
-     * @see #setWarLibs(java.util.List) 
+     * @see #setWarLibs(java.util.List)
      */
     public List<Object> getWarLibs() {
         return (List<Object>) conv(warLibs, "warLibs");
@@ -184,8 +216,8 @@ public class EclipseWtp extends ConventionTask {
 
     /**
      * Returns the war resource mappings
-     * 
-     * @see #setWarResourceMappings(java.util.Map) 
+     *
+     * @see #setWarResourceMappings(java.util.Map)
      */
     public Map<String, List<Object>> getWarResourceMappings() {
         return (Map<String, List<Object>>) conv(warResourceMappings, "warResourceMappings");
@@ -214,7 +246,7 @@ public class EclipseWtp extends ConventionTask {
 
     /**
      * Set the deploy name for this project.
-     *  
+     *
      * @param deployName An object which toString value is interpreted as a path.
      */
     public void setDeployName(Object deployName) {

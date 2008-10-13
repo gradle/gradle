@@ -5,7 +5,5 @@
   <comment/>
   <projects/>
   <natures/>
-  <buildSpec>
-    <buildCommand/>
-  </buildSpec>
+  <buildSpec/>
 </projectDescription>

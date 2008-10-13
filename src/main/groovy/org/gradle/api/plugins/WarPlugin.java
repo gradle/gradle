@@ -23,6 +23,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.MavenPomGenerator;
+import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.Bundle;
@@ -81,7 +83,7 @@ public class WarPlugin implements Plugin {
         eclipseWtp.conventionMapping(GUtil.map(
                 "warResourceMappings", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                Map resourceMappings =  WrapUtil.toMap("/WEB-INF/classes",  GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs()));
+                Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs()));
                 resourceMappings.put("/", WrapUtil.toList(java(convention).getWebAppDir()));
                 return resourceMappings;
             }
@@ -115,11 +117,21 @@ public class WarPlugin implements Plugin {
                 return task.getProject().getDependencies().getDependencies(Filter.PROJECTS_ONLY);
             }
         }));
+
+        // todo: When we refactor the way we resolve project dependencies this step might become obsolete
+        createDependencyOnEclipseProjectTaskOfDependentProjects(project, eclipseWtp);
+
         return eclipseWtp;
     }
 
     private JavaPluginConvention java(Convention convention) {
         return (JavaPluginConvention) convention.getPlugins().get("java");
+    }
+
+    private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {
+        for (Dependency dependentProject : project.getDependencies().getDependencies(Filter.PROJECTS_ONLY)) {
+            eclipseWtp.dependsOn(((ProjectDependency) dependentProject).getProject().getPath() + ":eclipseProject");
+        }
     }
 
 }
