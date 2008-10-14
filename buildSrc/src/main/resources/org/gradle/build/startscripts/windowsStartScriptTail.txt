@@ -1,0 +1,27 @@
+set STARTER_MAIN_CLASS=org.gradle.BootstrapMain
+
+set JAVA_EXE=%JAVA_HOME%\bin\java.exe
+set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
+
+if "%JAVA_OPTS%" == "" set JAVA_OPTS="-Xmx128m"
+set JAVA_OPTS=%JAVA_OPTS% -Dgradle.home="%GRADLE_HOME%"
+set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
+
+@rem Execute Gradle
+"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
+
+:end
+@rem End local scope for the variables with windows NT shell
+if "%ERRORLEVEL%"=="0" goto mainEnd
+
+if not "%OS%"=="Windows_NT" echo 1 > nul | choice /n /c:1
+
+rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
+rem the _cmd.exe /c_ return code!
+if  not "" == "%GRADLE_EXIT_CONSOLE%" exit "%ERRORLEVEL%"
+exit /b "%ERRORLEVEL%"
+
+:mainEnd
+if "%OS%"=="Windows_NT" endlocal
+
+:omega

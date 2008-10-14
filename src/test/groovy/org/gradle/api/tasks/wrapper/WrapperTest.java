@@ -50,8 +50,7 @@ public class WrapperTest extends AbstractTaskTest {
     public static final String TEST_FILE_NAME = "somefile";
 
     private Wrapper wrapper;
-    private UnixWrapperScriptGenerator unixWrapperScriptGeneratorMock;
-    private WindowsExeGenerator windowsExeGenerator;
+    private WrapperScriptGenerator wrapperScriptGeneratorMock;
     private File testDir;
     private File sourceWrapperJar;
     private String distributionPath;
@@ -64,8 +63,7 @@ public class WrapperTest extends AbstractTaskTest {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
         wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
-        unixWrapperScriptGeneratorMock = context.mock(UnixWrapperScriptGenerator.class);
-        windowsExeGenerator = context.mock(WindowsExeGenerator.class);
+        wrapperScriptGeneratorMock = context.mock(WrapperScriptGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
         wrapper.setGradleVersion("1.0");
         testDir = HelperUtil.makeNewTestDir();
@@ -80,8 +78,7 @@ public class WrapperTest extends AbstractTaskTest {
         distributionPath = "somepath";
         wrapper.setJarPath(targetWrapperJarPath);
         wrapper.setDistributionPath(distributionPath);
-        wrapper.setUnixWrapperScriptGenerator(unixWrapperScriptGeneratorMock);
-        wrapper.setWindowsExeGenerator(windowsExeGenerator);
+        wrapper.setUnixWrapperScriptGenerator(wrapperScriptGeneratorMock);
     }
 
     private void createSourceWrapperJar(File testGradleHomeLib) {
@@ -134,14 +131,9 @@ public class WrapperTest extends AbstractTaskTest {
     private void checkExecute() throws IOException {
         context.checking(new Expectations() {
             {
-                one(unixWrapperScriptGeneratorMock).generate(
+                one(wrapperScriptGeneratorMock).generate(
                         targetWrapperJarPath + "/" + Install.WRAPPER_JAR,
                         new File(getProject().getProjectDir(), wrapper.getScriptDestinationPath()));
-                one(windowsExeGenerator).generate(
-                        targetWrapperJarPath + "/" + Install.WRAPPER_JAR,
-                        new File(getProject().getProjectDir(), wrapper.getScriptDestinationPath()),
-                        getProject().getBuildDir(),
-                        getProject().getAnt());
             }
         });
         wrapper.execute();

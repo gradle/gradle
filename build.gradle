@@ -50,15 +50,13 @@ versionModifier = null
 webSrcDir = new File("$srcRoot", 'website')
 
 libDir = new File(rootDir, 'lib')
-launch4jVersion = '3.0.0'
 
 dependencies {
-    addFlatDirResolver('lib', libDir, "$libDir/launch4j")
+    addFlatDirResolver('lib', libDir)
     // todo: Improve dependency handling for xUnit jars
     addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
     addConfiguration('ftpAntTask')
     addConfiguration('retrotranslatorAntTask')
-    addConfiguration('launch4j')
 
     clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
         clientModule(":commons-net:1.4.1") {
@@ -107,8 +105,6 @@ dependencies {
         dependencies(':jmock-legacy:2.4.0', ':objenesis:1.0', ':cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
     }
     distLib ":junit:4.4"
-    launch4j ":launch4j-base:$launch4jVersion@zip", ":launch4j-bin-mac:$launch4jVersion@zip",
-            ":launch4j-bin-windows:$launch4jVersion@zip", ":launch4j-bin-unix:$launch4jVersion@zip"
 }
 
 build.taskGraph.whenReady {graph ->
@@ -170,14 +166,10 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
 
-    File explodedDistLaunch4jLibDir = mkdir(explodedDistLibDir, 'launch4j')
     ant {
         logger.info('Generate lib dir')
         dependencies.resolve('distLib').each {File file ->
             copy(file: file, todir: explodedDistLibDir)
-        }
-        dependencies.resolve('launch4j').each {File file ->
-            copy(file: file, todir: explodedDistLaunch4jLibDir)
         }
         // todo: find out why Ivy does not include the jar in the resolve
         copy(file: archive_jar.archivePath, toDir: explodedDistLibDir)
@@ -199,39 +191,10 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
             new SimpleTemplateEngine().createTemplate(new File(srcDocsDir, 'distGettingStartedSkeleton.html')).make(content: gettingStartedContent).toString()
         // Set permissions (important for running integration tests against the exploded dist)
         chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
-        logger.info('Generate launch4j windows exe.')
-        String launch4jDistName = "launch4j-" + launch4jVersion
-        createLaunch4j(explodedDistLaunch4jLibDir, launch4jDistName)
-        try {
-            ant.taskdef(
-                    name: "launch4j",
-                    classname: "net.sf.launch4j.ant.Launch4jTask",
-                    classpath: "$buildDir/$launch4jDistName/launch4j.jar:$buildDir/$launch4jDistName/lib/xstream.jar")
-            ant.launch4j() {
-                config(headerType: "console", outfile: "$explodedDistBinDir/gradle.exe",
-                        dontWrapJar: "true", jarPath: "../lib/" + archive_jar.archiveName) {
-                    jre(minVersion: "1.5.0", jdkPreference: 'jdkOnly')
-                }
-            }
-        } catch (Exception e) {
-            logger.warning("The windows start exe could not be generated. Possibly you run the build on a machine with an OS which is not Linux, Mac OS X or Windows.")
-            logger.warning(e.getMessage());
-        }
     }
 }
 
 createTask('explodedDist', dependsOn: ['userguide'])
-
-def createLaunch4j(File launch4jLibDir, String launch4jDistName) {
-    ant {
-        unzip(src: "$launch4jLibDir/launch4j-base-${launch4jVersion}.zip", dest: buildDir)
-        String os = [Os.FAMILY_WINDOWS, Os.FAMILY_MAC, Os.FAMILY_UNIX].find {String family ->
-            Os.isFamily(family)
-        }
-        unzip(src: "$launch4jLibDir/launch4j-bin-${os}-${launch4jVersion}.zip", dest: "$buildDir/$launch4jDistName")
-        chmod(dir: "$buildDir/$launch4jDistName/bin", perm: "ugo+rx", includes: "windres,ld")
-    }
-}
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 

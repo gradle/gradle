@@ -72,9 +72,7 @@ public class Wrapper extends DefaultTask {
 
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
 
-    private UnixWrapperScriptGenerator unixWrapperScriptGenerator = new UnixWrapperScriptGenerator();
-
-    private WindowsExeGenerator windowsExeGenerator = new WindowsExeGenerator();
+    private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();
 
     public Wrapper(Project project, String name) {
         super(project, name);
@@ -124,9 +122,7 @@ public class Wrapper extends DefaultTask {
         String wrapperJar = (GUtil.isTrue(jarPath) ? jarPath + "/" : "") + Install.WRAPPER_JAR;
         File scriptDestinationDir = new File(getProject().getProjectDir(), scriptDestinationPath);
 
-        unixWrapperScriptGenerator.generate(wrapperJar, scriptDestinationDir);
-
-        windowsExeGenerator.generate(wrapperJar, scriptDestinationDir, getProject().getBuildDir(), getProject().getAnt());
+        wrapperScriptGenerator.generate(wrapperJar, scriptDestinationDir);
     }
 
     /**
@@ -330,19 +326,11 @@ public class Wrapper extends DefaultTask {
         this.archiveClassifier = archiveClassifier;
     }
 
-    public UnixWrapperScriptGenerator getUnixWrapperScriptGenerator() {
-        return unixWrapperScriptGenerator;
+    public WrapperScriptGenerator getUnixWrapperScriptGenerator() {
+        return wrapperScriptGenerator;
     }
 
-    public void setUnixWrapperScriptGenerator(UnixWrapperScriptGenerator unixWrapperScriptGenerator) {
-        this.unixWrapperScriptGenerator = unixWrapperScriptGenerator;
-    }
-
-    public WindowsExeGenerator getWindowsExeGenerator() {
-        return windowsExeGenerator;
-    }
-
-    public void setWindowsExeGenerator(WindowsExeGenerator windowsExeGenerator) {
-        this.windowsExeGenerator = windowsExeGenerator;
+    public void setUnixWrapperScriptGenerator(WrapperScriptGenerator wrapperScriptGenerator) {
+        this.wrapperScriptGenerator = wrapperScriptGenerator;
     }
 }
