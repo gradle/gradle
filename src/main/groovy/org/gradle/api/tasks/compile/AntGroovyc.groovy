@@ -45,7 +45,7 @@ class AntGroovyc {
         verbose: true) {
         ${groovyIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
         ${groovyExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
-        javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)}) {
+        javac([includeAntRuntime: false, source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)}) {
             ${groovyJavaIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
             ${groovyJavaExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
         }
