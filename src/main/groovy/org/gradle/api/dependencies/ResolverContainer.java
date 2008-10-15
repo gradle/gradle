@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.LocalReposCacheHandler;
 import org.gradle.api.internal.dependencies.ResolverFactory;
+import org.gradle.api.dependencies.MavenUploadResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -36,8 +37,6 @@ public class ResolverContainer {
     private List<String> resolverNames = new ArrayList<String>();
 
     private Map<String, DependencyResolver> resolvers = new HashMap<String, DependencyResolver>();
-
-    private Set<DependencyResolver> pomResolvers = new HashSet<DependencyResolver>();
 
     public ResolverContainer() {
     }
@@ -155,12 +154,12 @@ public class ResolverContainer {
     }
 
     public boolean isPomResolver(DependencyResolver resolver) {
-        return pomResolvers.contains(resolver);
+        return resolver instanceof MavenUploadResolver;
     }
 
     public boolean hasIvyResolvers() {
         for (DependencyResolver dependencyResolver : resolvers.values()) {
-            if (!pomResolvers.contains(dependencyResolver)) {
+            if (!isPomResolver(dependencyResolver)) {
                 return true;
             }
         }
@@ -169,7 +168,7 @@ public class ResolverContainer {
 
     public boolean hasPomResolvers() {
         for (DependencyResolver dependencyResolver : resolvers.values()) {
-            if (pomResolvers.contains(dependencyResolver)) {
+            if (isPomResolver(dependencyResolver)) {
                 return true;
             }
         }
@@ -202,15 +201,5 @@ public class ResolverContainer {
 
     public void setResolvers(Map<String, DependencyResolver> resolvers) {
         this.resolvers = resolvers;
-    }
-
-    public ResolverContainer addPomResolvers(DependencyResolver[] resolvers) {
-        pomResolvers.addAll(Arrays.asList(resolvers));
-        return this;
-    }
-
-    public ResolverContainer removePomResolvers(DependencyResolver[] resolvers) {
-        pomResolvers.removeAll(Arrays.asList(resolvers));
-        return this;
     }
 }

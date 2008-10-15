@@ -30,6 +30,8 @@ import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.gradle.api.dependencies.MavenUploadResolver
+import org.gradle.api.dependencies.MavenUploadResolver
 
 /**
  * @author Hans Dockter
@@ -150,14 +152,14 @@ class ResolverContainerTest {
         checkHasIvyPomResolvers(false, false)
         resolverContainer.add(expectedUserDescription)
         checkHasIvyPomResolvers(true, false)
-        resolverContainer.add(expectedUserDescription2)
-        checkHasIvyPomResolvers(true, false)
-        assertSame(resolverContainer, resolverContainer.addPomResolvers(expectedResolver2))
+        MavenUploadResolver mavenUploadResolver = new MavenUploadResolver()
+        context.checking {
+            one(resolverFactoryMock).createResolver(mavenUploadResolver); will(returnValue(mavenUploadResolver))
+        }
+        resolverContainer.add(mavenUploadResolver)
         checkHasIvyPomResolvers(true, true)
         assertFalse(resolverContainer.isPomResolver(expectedResolver))
-        assertTrue(resolverContainer.isPomResolver(expectedResolver2))
-        assertSame(resolverContainer, resolverContainer.removePomResolvers(expectedResolver, expectedResolver2))
-        checkHasIvyPomResolvers(true, false)
+        assertTrue(resolverContainer.isPomResolver(mavenUploadResolver))
     }
 
     private def checkHasIvyPomResolvers(boolean ivy, boolean pom) {

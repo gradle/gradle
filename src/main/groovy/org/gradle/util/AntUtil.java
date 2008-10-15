@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.apache.tools.ant.*;
+import org.gradle.logging.AntLoggingAdapter;
 
 /**
  * @author Hans Dockter
@@ -31,13 +32,7 @@ public class AntUtil {
         project.addReference(ProjectHelper.PROJECTHELPER_REFERENCE, helper);
         helper.getImportStack().addElement("AntBuilder"); // import checks that stack is not empty
 
-        final BuildLogger logger = new NoBannerLogger();
-
-        logger.setMessageOutputLevel(org.apache.tools.ant.Project.MSG_INFO);
-        logger.setOutputPrintStream(System.out);
-        logger.setErrorPrintStream(System.err);
-
-        project.addBuildListener(logger);
+        project.addBuildListener(new AntLoggingAdapter());
 
         project.init();
         project.getBaseDir();

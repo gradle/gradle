@@ -18,8 +18,8 @@ package org.gradle.build.integtests
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
-import org.apache.commons.io.IOUtils
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FileUtils
+import org.junit.Assert;
 
 /**
  * @author Hans Dockter
@@ -27,12 +27,14 @@ import org.apache.commons.io.FileUtils;
 class PomGeneration {
     static void execute(String gradleHome, String samplesDirName) {
         File pomprojectDir = new File(samplesDirName, 'pomGeneration')
-        File pomFile = new File(pomprojectDir, "pomRepo/pom.xml");
-        FileUtils.deleteQuietly(pomFile.parentFile)
-        pomFile.parentFile.mkdirs()
+        File repoDir = new File(pomprojectDir, "pomRepo");
+        String repoPath = "gradle/pomGeneration/1.0"
+        File pomFile = new File(repoDir, "$repoPath/pomGeneration-1.0.pom");
+        FileUtils.deleteQuietly(repoDir)
         Executer.execute(gradleHome, pomprojectDir.absolutePath, ['clean', 'uploadLibs'], [], '', Executer.DEBUG)
         compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("pomGeneration/expectedPom.txt").text,
               pomFile.text)
+        Assert.assertTrue(new File(repoDir, "$repoPath/pomGeneration-1.0.war").exists())
     }
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
