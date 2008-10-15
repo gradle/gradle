@@ -35,7 +35,7 @@ class CompileOptions extends AbstractOptions {
     ForkOptions forkOptions = new ForkOptions()
 
     String compiler = null
-    boolean includeJavaRuntime
+    boolean includeJavaRuntime = false
     String bootClasspath = null
     String extensionDirs = null
 
