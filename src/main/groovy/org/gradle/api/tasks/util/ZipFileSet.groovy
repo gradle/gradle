@@ -59,7 +59,7 @@ class ZipFileSet extends FileSet {
     }
 
     def removeEmptyArgs(Map args) {
-        List emptyKeys = args.keySet().findAll { !args[it] }
+        Set emptyKeys = args.keySet().findAll { !args[it] }
         emptyKeys.each { args.remove(it) }
     }
 
