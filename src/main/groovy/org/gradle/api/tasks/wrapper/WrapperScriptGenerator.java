@@ -18,6 +18,7 @@ package org.gradle.api.tasks.wrapper;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.AntUtil;
@@ -25,6 +26,7 @@ import org.gradle.wrapper.WrapperMain;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 
 /**
  * @author Hans Dockter
@@ -50,7 +52,7 @@ public class WrapperScriptGenerator {
 
         String fillingUnix = "" + UNIX_NL +
                 "STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + UNIX_NL +
-                "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + jarPath + UNIX_NL;
+                "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(jarPath) + UNIX_NL;
 
         String unixScript = unixWrapperScriptHead + fillingUnix + unixWrapperScriptTail;
         File unixScriptFile = new File(scriptDestinationDir, "gradlew");
@@ -70,10 +72,23 @@ public class WrapperScriptGenerator {
         String windowsWrapperScriptHead = IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptHead.txt"));
         String windowsWrapperScriptTail = IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptTail.txt"));
         String fillingWindows = "" + WINDOWS_NL +
-                "STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + WINDOWS_NL +
-                "CLASSPATH=" + CURRENT_DIR_WINDOWS + "/" + jarPath + WINDOWS_NL;
+                "set STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + WINDOWS_NL +
+                "set CLASSPATH=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(jarPath) + WINDOWS_NL;
         String windowsScript = windowsWrapperScriptHead + fillingWindows + windowsWrapperScriptTail;
         File windowsScriptFile = new File(scriptDestinationDir, "gradlew.bat");
-        FileUtils.writeStringToFile(windowsScriptFile, windowsScript);
+        FileUtils.writeStringToFile(windowsScriptFile, transformIntoWindowsNewLines(windowsScript));
+    }
+
+    private String transformIntoWindowsNewLines(String s) {
+        StringWriter writer = new StringWriter();
+        for (char c : s.toCharArray()) {
+            if (c == '\n') {
+                writer.write('\r');
+                writer.write('\n');
+            } else if (c != '\r') {
+                writer.write(c);
+            }
+        }        
+        return writer.toString();
     }
 }
