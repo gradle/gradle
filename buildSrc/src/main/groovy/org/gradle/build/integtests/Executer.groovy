@@ -45,10 +45,7 @@ class Executer {
     static Map executeInternal(String windowsCommandSnippet, String unixCommandSnippet, String gradleHome,
                                   List envs, String currentDirName,
                                   List tasknames, String buildFileName, int outputType) {
-        def proc
-
-        def initialSize = 4096
-
+        Process proc
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
         ByteArrayOutputStream errStream = new ByteArrayOutputStream()
         String taskNameText = tasknames ? ' ' + tasknames.join(' ') : ''
