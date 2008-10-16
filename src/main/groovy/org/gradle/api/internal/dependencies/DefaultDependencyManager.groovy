@@ -41,6 +41,13 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
                 dependencyResolver, dependencyPublisher, mavenPomGenerator, buildResolverDir, excludeRuleContainer);
     }
 
+    public def propertyMissing(String name) {
+        if (configurations.get(name) != null) {
+            return configuration(name)
+        }
+        throw new MissingPropertyException("$name is unknown property!")
+    }
+    
     public def methodMissing(String name, args) {
         if (configurations.get(name) == null) {
             if (!getMetaClass().respondsTo(this, name, args.size())) {

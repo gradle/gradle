@@ -16,13 +16,16 @@
 
 package org.gradle.api;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.dependencies.DependencyContainer;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.dependencies.MavenPomGenerator;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.UnknownConfigurationException;
+import org.gradle.api.dependencies.GradleArtifact;
 
 import java.io.File;
 import java.util.List;
@@ -32,6 +35,12 @@ import java.util.Set;
 /**
  * <p>A <code>DependencyManager</code> represents the set of dependencies and artifacts for a {@link
  * org.gradle.api.Project}.</p>
+ *
+ * <h3>Using the DependencyManager from a build script</h3>
+ *
+ * <p>Each configuration added to this {@code DependencyManager} is made available as a property which can be used from
+ * your build script. You use the name of the configuration as the property name to refer to the {@link Configuration}
+ * object.</h3>
  *
  * @author Hans Dockter
  */
@@ -68,17 +77,17 @@ public interface DependencyManager extends DependencyContainer {
     /**
      * A map where the key is the name of the configuration and the values are Ivy configuration objects.
      */
-    Map getConfigurations();
+    Map<String, org.apache.ivy.core.module.descriptor.Configuration> getConfigurations();
 
     /**
      * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
      */
-    Map getArtifacts();
+    Map<String, List<GradleArtifact>> getArtifacts();
 
     /**
      * A map for passing directly instances of Ivy Artifact objects.
      */
-    Map getArtifactDescriptors();
+    Map<String, List<Artifact>> getArtifactDescriptors();
 
     /**
      * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
@@ -175,17 +184,28 @@ public interface DependencyManager extends DependencyContainer {
      * you need to add a configuration with special attributes. For example a configuration that extends another
      * configuration.
      *
-     * @param configuration
+     * @param configuration The configuration to add.
      */
-    DependencyManager addConfiguration(Configuration configuration);
+    DependencyManager addConfiguration(org.apache.ivy.core.module.descriptor.Configuration configuration);
 
     /**
      * Adds a configuration with the given name. Under the hood an ivy configuration is created with default
      * attributes.
      *
-     * @param configuration
+     * @param configuration The name of the configuration.
      */
     DependencyManager addConfiguration(String configuration);
+
+    /**
+     * <p>Locates a {@link Configuration} by name.</p>
+     *
+     * <p>You can call this method from your build script by using the name of the configuration.</p>
+     *
+     * @param name The name of the configuration.
+     * @return The configuration. Never returns null.
+     * @throws UnknownConfigurationException when a configuration with the given name cannot be found.
+     */
+    Configuration configuration(String name) throws UnknownConfigurationException;
 
     /**
      * Returns a list of file objects, denoting the path to the classpath elements belonging to this configuration.

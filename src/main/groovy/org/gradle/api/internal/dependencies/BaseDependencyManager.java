@@ -19,7 +19,6 @@ package org.gradle.api.internal.dependencies;
 import groovy.lang.Closure;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.*;
@@ -29,6 +28,8 @@ import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.GradleArtifact;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.dependencies.MavenPomGenerator;
+import org.gradle.api.dependencies.UnknownConfigurationException;
+import org.gradle.api.dependencies.Configuration;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,52 +46,52 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
     /**
      * A map where the key is the name of the configuration and the values are Ivy configuration objects.
      */
-    Map<String, Configuration> configurations = new HashMap<String, Configuration>();
+    private Map<String, DefaultConfiguration> configurations = new HashMap<String, DefaultConfiguration>();
 
     /**
      * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
      */
-    Map<String, List<GradleArtifact>> artifacts = new HashMap<String, List<GradleArtifact>>();
+    private Map<String, List<GradleArtifact>> artifacts = new HashMap<String, List<GradleArtifact>>();
 
     /**
      * A list for passing directly instances of Ivy Artifact objects.
      */
-    Map<String, List<Artifact>> artifactDescriptors = new HashMap<String, List<Artifact>>();
+    private Map<String, List<Artifact>> artifactDescriptors = new HashMap<String, List<Artifact>>();
 
     /**
      * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
      */
-    List<String> absoluteArtifactPatterns = new ArrayList<String>();
+    private List<String> absoluteArtifactPatterns = new ArrayList<String>();
 
-    Set<File> artifactParentDirs = new HashSet<File>();
+    private Set<File> artifactParentDirs = new HashSet<File>();
 
-    String defaultArtifactPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN;
+    private String defaultArtifactPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN;
 
-    ArtifactFactory artifactFactory;
+    private ArtifactFactory artifactFactory;
 
-    IIvyFactory ivyFactory;
+    private IIvyFactory ivyFactory;
 
-    SettingsConverter settingsConverter;
+    private SettingsConverter settingsConverter;
 
-    ModuleDescriptorConverter moduleDescriptorConverter;
+    private ModuleDescriptorConverter moduleDescriptorConverter;
 
-    IDependencyResolver dependencyResolver;
+    private IDependencyResolver dependencyResolver;
 
-    IDependencyPublisher dependencyPublisher;
+    private IDependencyPublisher dependencyPublisher;
 
-    MavenPomGenerator mavenPomGenerator;
+    private MavenPomGenerator mavenPomGenerator;
 
-    LocalReposCacheHandler localReposCacheHandler = new LocalReposCacheHandler();
+    private LocalReposCacheHandler localReposCacheHandler = new LocalReposCacheHandler();
 
-    BuildResolverHandler buildResolverHandler = new BuildResolverHandler(localReposCacheHandler);
+    private BuildResolverHandler buildResolverHandler = new BuildResolverHandler(localReposCacheHandler);
 
-    ResolverContainer classpathResolvers = new ResolverContainer(localReposCacheHandler);
+    private ResolverContainer classpathResolvers = new ResolverContainer(localReposCacheHandler);
 
     /**
      * The name of the task which produces the artifacts of this project. This is needed by other projects,
      * which have a dependency on a project.
      */
-    String artifactProductionTaskName;
+    private String artifactProductionTaskName;
 
     /**
      * A map where the key is the name of the configuration and the value is the name of a task. This is needed
@@ -99,16 +100,16 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
      * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
      * the mapping can be specified via this map.
      */
-    Map<String, Set<String>> confs4Task = new HashMap<String, Set<String>>();
-    Map<String, Set<String>> tasks4Conf = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> confs4Task = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> tasks4Conf = new HashMap<String, Set<String>>();
 
     /**
      * All the classpath resolvers are contained in an Ivy chain resolver. With this closure you can configure the
      * chain resolver if necessary.
      */
-    Closure chainConfigurer;
+    private Closure chainConfigurer;
 
-    boolean failForMissingDependencies = true;
+    private boolean failForMissingDependencies = true;
 
     private ExcludeRuleContainer excludeRules;
 
@@ -233,14 +234,13 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         }
     }
 
-    public DependencyManager addConfiguration(Configuration configuration) {
-        configurations.put(configuration.getName(), configuration);
+    public DependencyManager addConfiguration(org.apache.ivy.core.module.descriptor.Configuration configuration) {
+        configurations.put(configuration.getName(), new DefaultConfiguration(configuration.getName(), configuration));
         return this;
     }
 
     public DependencyManager addConfiguration(String configuration) {
-        configurations.put(configuration, new Configuration(configuration));
-        return this;
+        return addConfiguration(new org.apache.ivy.core.module.descriptor.Configuration(configuration));
     }
 
     public RepositoryResolver getBuildResolver() {
@@ -269,11 +269,16 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         return classpathResolvers.add(classpathResolvers.createMavenRepoResolver(name, root, jarRepoUrls));
     }
 
-    public Map<String, Configuration> getConfigurations() {
+    public Map<String, org.apache.ivy.core.module.descriptor.Configuration> getConfigurations() {
+        Map<String, org.apache.ivy.core.module.descriptor.Configuration> configurations
+                = new HashMap<String, org.apache.ivy.core.module.descriptor.Configuration>();
+        for (Map.Entry<String, DefaultConfiguration> entry : this.configurations.entrySet()) {
+            configurations.put(entry.getKey(), entry.getValue().getIvyConfiguration());
+        }
         return configurations;
     }
 
-    public void setConfigurations(Map<String, Configuration> configurations) {
+    public void setConfigurations(Map<String, DefaultConfiguration> configurations) {
         this.configurations = configurations;
     }
 
@@ -439,5 +444,13 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     public void setExcludeRules(ExcludeRuleContainer excludeRules) {
         this.excludeRules = excludeRules;
+    }
+
+    public Configuration configuration(String name) throws UnknownConfigurationException {
+        Configuration configuration = configurations.get(name);
+        if (configuration == null) {
+            throw new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
+        }
+        return configuration;
     }
 }

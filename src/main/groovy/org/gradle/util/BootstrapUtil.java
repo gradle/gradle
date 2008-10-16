@@ -32,7 +32,7 @@ public class BootstrapUtil {
     }
 
     public static List<File> getNonLoggingJars() {
-        List<File> pathElements = new ArrayList();
+        List<File> pathElements = new ArrayList<File>();
         for (File file : getGradleClasspath()) {
             if (!isLogLib(file)) {
                 pathElements.add(file);
@@ -42,7 +42,7 @@ public class BootstrapUtil {
     }
 
     public static List<File> getLoggingJars() {
-        List<File> pathElements = new ArrayList();
+        List<File> pathElements = new ArrayList<File>();
         for (File file : getGradleClasspath()) {
             if (isLogLib(file)) {
                 pathElements.add(file);
@@ -57,7 +57,7 @@ public class BootstrapUtil {
 
     public static List<File> getGradleClasspath() {
         File customGradleBin = null;
-        List<File> pathElements = new ArrayList();
+        List<File> pathElements = new ArrayList<File>();
         if (System.getProperty("gradle.bootstrap.gradleBin") != null) {
             customGradleBin = new File(System.getProperty("gradle.bootstrap.gradleBin"));
             pathElements.add(customGradleBin);

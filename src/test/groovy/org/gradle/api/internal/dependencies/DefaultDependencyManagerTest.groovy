@@ -30,10 +30,11 @@ import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.ExcludeRuleContainer
 import org.gradle.api.dependencies.GradleArtifact
 import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.dependencies.UnknownConfigurationException
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -322,13 +323,35 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testAddConfiguration() {
-        // todo: add test for String argument
-        Configuration testConfiguration = new Configuration('someconf')
-        assert dependencyManager.addConfiguration(testConfiguration).is(testObj)
-        assert dependencyManager.configurations.someconf.is(testConfiguration)
+        assertThat(dependencyManager.addConfiguration('someconf'), sameInstance(testObj))
+        assertThat(dependencyManager.configurations.someconf, notNullValue())
     }
 
+    @Test public void testAddConfigurationUsingIvyConfiguration() {
+        Configuration testConfiguration = new Configuration('someconf')
+        assertThat(dependencyManager.addConfiguration(testConfiguration), sameInstance(testObj))
+        assertThat(dependencyManager.configurations.someconf, sameInstance(testConfiguration))
+    }
 
+    @Test public void testGetConfiguration() {
+        dependencyManager.addConfiguration('someconf')
+        assertThat(dependencyManager.configuration('someconf'), notNullValue())
+    }
+
+    @Test public void testGetConfigurationFailsWhenConfigurationNotFound() {
+        try {
+            dependencyManager.configuration('someconf')
+            fail()
+        } catch (UnknownConfigurationException e ) {
+            assertThat(e.message, equalTo('Configuration with name \'someconf\' not found.'))
+        }
+    }
+
+    @Test public void testMakesConfigurationAvailableAsProperty() {
+        dependencyManager.addConfiguration('someconf')
+        assertThat(dependencyManager.someconf, sameInstance(dependencyManager.configuration('someconf')))
+    }
+    
     @Test public void testMethodMissingWithExistingConfiguration() {
         dependencyManager.addConfiguration(AbstractDependencyContainerTest.TEST_CONFIGURATION)
         DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory)

@@ -86,7 +86,8 @@ class ModuleDescriptorConverterTest {
         dependencyManager.project.version = '1.1'
         dependencyManager.project.name = 'someproject'
         dependencyManager.project.status = 'release'
-        dependencyManager.configurations = [conf1: new Configuration('conf1'), conf2: new Configuration('conf2')]
+        dependencyManager.addConfiguration('conf1')
+        dependencyManager.addConfiguration('conf2')
 
         dependencyManager.excludeRules.setRules([testExcludeRule1, testExcludeRule2])
 
@@ -119,7 +120,8 @@ class ModuleDescriptorConverterTest {
         dependencyManager.project.name = 'someproject'
         dependencyManager.project.group = 'group'
         dependencyManager.project.version = '1.1'
-        dependencyManager.configurations = [conf1: new Configuration('conf1'), conf2: new Configuration('conf2')]
+        dependencyManager.addConfiguration('conf1')
+        dependencyManager.addConfiguration('conf2')
 
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(dependencyManager, true)
         assertEquals(DependencyManager.DEFAULT_STATUS, moduleDescriptor.status)
