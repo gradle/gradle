@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.dependencies.ivy2Maven;
+package org.gradle.api.internal.dependencies.ivy2Maven.deploy;
 
-import org.junit.Test;
 import org.apache.maven.artifact.ant.DeployTask;
-import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DefaultDeployTaskFactory;
-import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DeployTaskWithVisibleContainerProperty;
-import static junit.framework.Assert.assertTrue;
 
 /**
  * @author Hans Dockter
  */
-public class DeployTaskFactoryTest {
-    @Test
-    public void create() {
-        assertTrue(new DefaultDeployTaskFactory().createDeployTask() instanceof DeployTaskWithVisibleContainerProperty);
-    }
+public interface DeployTaskFactory {
+    DeployTaskWithVisibleContainerProperty createDeployTask();
 }

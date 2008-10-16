@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.dependencies.ivy2Maven;
+package org.gradle.api.internal.dependencies.ivy2Maven.deploy;
 
-import org.junit.Test;
 import org.apache.maven.artifact.ant.DeployTask;
-import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DefaultDeployTaskFactory;
-import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DeployTaskWithVisibleContainerProperty;
-import static junit.framework.Assert.assertTrue;
+import org.codehaus.plexus.PlexusContainer;
 
 /**
+ * We could also use reflection to get hold of the container property. But this would make it harder
+ * to use a Mock for this class.
+ *
  * @author Hans Dockter
  */
-public class DeployTaskFactoryTest {
-    @Test
-    public void create() {
-        assertTrue(new DefaultDeployTaskFactory().createDeployTask() instanceof DeployTaskWithVisibleContainerProperty);
+public class DeployTaskWithVisibleContainerProperty extends DeployTask {
+    @Override
+    public synchronized PlexusContainer getContainer() {
+        return super.getContainer();
     }
 }

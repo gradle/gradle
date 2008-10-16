@@ -19,9 +19,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.dependencies.ivy2Maven.DeployTaskFactory;
-import org.gradle.BuildResult;
+import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DeployTaskFactory;
+import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DeployTaskWithVisibleContainerProperty;
+import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
@@ -29,15 +29,17 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.apache.maven.artifact.ant.DeployTask;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.tools.ant.Project;
 import org.hamcrest.Matcher;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.PlexusContainerException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -47,7 +49,8 @@ public class MavenUploadResolverTest {
     private MavenUploadResolver mavenUploadResolver;
 
     private DeployTaskFactory deployTaskFactoryMock;
-    private DeployTask deployTaskMock;
+    private DeployTaskWithVisibleContainerProperty deployTaskMock;
+    private PlexusContainer plexusContainerMock;
 
     private RemoteRepository testRepository;
     private RemoteRepository testSnapshotRepository;
@@ -57,20 +60,20 @@ public class MavenUploadResolverTest {
     }};
     private static final File TEST_JAR_FILE = new File("somejar.jar");
     private static final File TEST_POM_FILE = new File("somepom.xml");
+    private static final List<File> TEST_PROTOCOL_PROVIDER_JARS = WrapUtil.toList(new File("jar1"), new File("jar1"));
 
     @Before
     public void setUp() {
         deployTaskFactoryMock = context.mock(DeployTaskFactory.class);
-        deployTaskMock = context.mock(DeployTask.class);
-        context.checking(new Expectations() {{
-            allowing(deployTaskFactoryMock).createDeployTask(); will(returnValue(deployTaskMock));
-        }});
+        deployTaskMock = context.mock(DeployTaskWithVisibleContainerProperty.class);
+        plexusContainerMock = context.mock(PlexusContainer.class);
         mavenUploadResolver = new MavenUploadResolver();
         testRepository = new RemoteRepository();
         testSnapshotRepository = new RemoteRepository();
         mavenUploadResolver.setDeployTaskFactory(deployTaskFactoryMock);
         mavenUploadResolver.addRemoteRepository(testRepository);
         mavenUploadResolver.addRemoteRepository(testSnapshotRepository);
+        mavenUploadResolver.addProtocolProviderJars(TEST_PROTOCOL_PROVIDER_JARS);
     }
 
 
@@ -115,14 +118,14 @@ public class MavenUploadResolverTest {
     }
 
     @Test
-    public void validDeployWithNoFilters() throws IOException {
+    public void validDeployWithNoFilters() throws IOException, PlexusContainerException {
         publishTestPom();
         publishTestArtifact();
         checkTransaction();
     }
 
     @Test
-    public void validDeployWithFilters() throws IOException {
+    public void validDeployWithFilters() throws IOException, PlexusContainerException {
         publishTestPom();
         publishTestArtifact();
         final File testSrcFile = new File("anotherFile");
@@ -136,8 +139,13 @@ public class MavenUploadResolverTest {
         checkTransaction();
     }
 
-    private void checkTransaction() throws IOException {
+    private void checkTransaction() throws IOException, PlexusContainerException {
         context.checking(new Expectations() {{
+            allowing(deployTaskFactoryMock).createDeployTask(); will(returnValue(deployTaskMock));
+            allowing(deployTaskMock).getContainer(); will(returnValue(plexusContainerMock));
+            for (File protocolProviderJar : TEST_PROTOCOL_PROVIDER_JARS) {
+                one(plexusContainerMock).addJarResource(protocolProviderJar);
+            }
             one(deployTaskMock).addRemoteRepository(testRepository);
             one(deployTaskMock).addRemoteRepository(testSnapshotRepository);
             one(deployTaskMock).setFile(TEST_JAR_FILE);

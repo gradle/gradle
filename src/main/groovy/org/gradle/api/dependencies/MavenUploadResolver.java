@@ -36,15 +36,20 @@ import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.ant.DeployTask;
 import org.apache.maven.artifact.ant.Pom;
+import org.apache.maven.artifact.ant.AbstractArtifactTask;
 import org.gradle.util.AntUtil;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.ivy2Maven.DeployTaskFactory;
-import org.gradle.api.internal.dependencies.ivy2Maven.DefaultDeployTaskFactory;
+import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DeployTaskFactory;
+import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DefaultDeployTaskFactory;
+import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DeployTaskWithVisibleContainerProperty;
+import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.PlexusContainerException;
 
 import java.text.ParseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.lang.reflect.Method;
 
 /**
  * @author Hans Dockter
@@ -64,6 +69,8 @@ public class MavenUploadResolver implements DependencyResolver {
     private DeployTaskFactory deployTaskFactory = new DefaultDeployTaskFactory();
 
     private PublishFilter publishFilter;
+
+    private List<File> wagonProviderJars = new ArrayList<File>();
 
     public String getName() {
         return name;
@@ -135,11 +142,23 @@ public class MavenUploadResolver implements DependencyResolver {
 
     public void commitPublishTransaction() throws IOException {
         throwExceptionIfPomOrArtifactFileNotSpecified();
-        DeployTask deployTask = deployTaskFactory.createDeployTask();
+        DeployTaskWithVisibleContainerProperty deployTask = deployTaskFactory.createDeployTask();
         deployTask.setProject(AntUtil.createProject());
         addRemoteRepositories(deployTask);
         addPomAndArtifact(deployTask);
+        addProtocolProvider(deployTask);
         deployTask.execute();
+    }
+
+    private void addProtocolProvider(DeployTaskWithVisibleContainerProperty deployTask) {
+        PlexusContainer plexusContainer = deployTask.getContainer();
+        for (File wagonProviderJar : wagonProviderJars) {
+            try {
+                plexusContainer.addJarResource(wagonProviderJar);
+            } catch (PlexusContainerException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private void throwExceptionIfPomOrArtifactFileNotSpecified() {
@@ -233,5 +252,9 @@ public class MavenUploadResolver implements DependencyResolver {
 
     public void setPublishFilter(PublishFilter publishFilter) {
         this.publishFilter = publishFilter;
+    }
+
+    public void addProtocolProviderJars(List<File> jars) {
+        wagonProviderJars.addAll(jars);
     }
 }
