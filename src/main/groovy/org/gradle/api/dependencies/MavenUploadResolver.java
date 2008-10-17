@@ -36,7 +36,6 @@ import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.ant.DeployTask;
 import org.apache.maven.artifact.ant.Pom;
-import org.apache.maven.artifact.ant.AbstractArtifactTask;
 import org.gradle.util.AntUtil;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.ivy2Maven.deploy.DeployTaskFactory;
@@ -49,7 +48,6 @@ import java.text.ParseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.lang.reflect.Method;
 
 /**
  * @author Hans Dockter
@@ -63,14 +61,14 @@ public class MavenUploadResolver implements DependencyResolver {
 
     private File artifactFile;
 
-    private List<RemoteRepository> remoteRepositories = new ArrayList<RemoteRepository>();
-    private List<RemoteRepository> remoteSnapshotRepositories = new ArrayList<RemoteRepository>();
+    private RemoteRepository remoteRepository;
+    private RemoteRepository remoteSnapshotRepository;
 
     private DeployTaskFactory deployTaskFactory = new DefaultDeployTaskFactory();
 
     private PublishFilter publishFilter;
 
-    private List<File> wagonProviderJars = new ArrayList<File>();
+    private List<File> protocolProviderJars = new ArrayList<File>();
 
     public String getName() {
         return name;
@@ -152,7 +150,7 @@ public class MavenUploadResolver implements DependencyResolver {
 
     private void addProtocolProvider(DeployTaskWithVisibleContainerProperty deployTask) {
         PlexusContainer plexusContainer = deployTask.getContainer();
-        for (File wagonProviderJar : wagonProviderJars) {
+        for (File wagonProviderJar : protocolProviderJars) {
             try {
                 plexusContainer.addJarResource(wagonProviderJar);
             } catch (PlexusContainerException e) {
@@ -178,12 +176,8 @@ public class MavenUploadResolver implements DependencyResolver {
     }
 
     private void addRemoteRepositories(DeployTask deployTask) {
-        for (RemoteRepository remoteRepository : remoteRepositories) {
-            deployTask.addRemoteRepository(remoteRepository);
-        }
-        for (RemoteRepository remoteSnapshotRepository : remoteSnapshotRepositories) {
-            deployTask.addRemoteSnapshotRepository(remoteSnapshotRepository);
-        }
+        deployTask.addRemoteRepository(remoteRepository);
+        deployTask.addRemoteSnapshotRepository(remoteSnapshotRepository);
     }
 
     public void reportFailure() {
@@ -230,12 +224,20 @@ public class MavenUploadResolver implements DependencyResolver {
         return new DefaultRepositoryCacheManager();
     }
 
-    public void addRemoteRepository(RemoteRepository remoteRepository) {
-        remoteRepositories.add(remoteRepository);
+    public RemoteRepository getRemoteRepository() {
+        return remoteRepository;
     }
 
-    public void addRemoteSnapshotRepository(RemoteRepository remoteSnapshotRepository) {
-        remoteRepositories.add(remoteSnapshotRepository);
+    public void setRemoteRepository(RemoteRepository remoteRepository) {
+        this.remoteRepository = remoteRepository;
+    }
+
+    public RemoteRepository getRemoteSnapshotRepository() {
+        return remoteSnapshotRepository;
+    }
+
+    public void setRemoteSnapshotRepository(RemoteRepository remoteSnapshotRepository) {
+        this.remoteSnapshotRepository = remoteSnapshotRepository;
     }
 
     public DeployTaskFactory getDeployTaskFactory() {
@@ -255,6 +257,6 @@ public class MavenUploadResolver implements DependencyResolver {
     }
 
     public void addProtocolProviderJars(List<File> jars) {
-        wagonProviderJars.addAll(jars);
+        protocolProviderJars.addAll(jars);
     }
 }

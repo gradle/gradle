@@ -71,8 +71,8 @@ public class MavenUploadResolverTest {
         testRepository = new RemoteRepository();
         testSnapshotRepository = new RemoteRepository();
         mavenUploadResolver.setDeployTaskFactory(deployTaskFactoryMock);
-        mavenUploadResolver.addRemoteRepository(testRepository);
-        mavenUploadResolver.addRemoteRepository(testSnapshotRepository);
+        mavenUploadResolver.setRemoteRepository(testRepository);
+        mavenUploadResolver.setRemoteSnapshotRepository(testSnapshotRepository);
         mavenUploadResolver.addProtocolProviderJars(TEST_PROTOCOL_PROVIDER_JARS);
     }
 
@@ -147,7 +147,7 @@ public class MavenUploadResolverTest {
                 one(plexusContainerMock).addJarResource(protocolProviderJar);
             }
             one(deployTaskMock).addRemoteRepository(testRepository);
-            one(deployTaskMock).addRemoteRepository(testSnapshotRepository);
+            one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
             one(deployTaskMock).setFile(TEST_JAR_FILE);
             one(deployTaskMock).addPom(with(pomMatcher(TEST_POM_FILE)));
             one(deployTaskMock).setProject(with(any(Project.class)));
