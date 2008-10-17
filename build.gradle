@@ -93,7 +93,8 @@ dependencies {
             ":commons-lang:2.3@jar",
             ":webdavlib:2.0",
             ":logback-classic:0.9.8",
-            ":ivy:2.0.0-rc1@jar",
+            ":bndlib:0.0.278@jar",
+            ":ivy:2.1.x-20081015233855@jar",  
             ":maven-ant-tasks:2.0.9"
     runtime ":ant-launcher:1.7.0",
             ":ant-nodeps:1.7.0",
