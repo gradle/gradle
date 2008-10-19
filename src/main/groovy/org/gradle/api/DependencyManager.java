@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import groovy.lang.Closure;
+
 /**
  * <p>A <code>DependencyManager</code> represents the set of dependencies and artifacts for a {@link
  * org.gradle.api.Project}.</p>
@@ -75,9 +77,12 @@ public interface DependencyManager extends DependencyContainer {
     public static final String CLASSIFIER = "classifier";
 
     /**
-     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
+     * Returns the configurations that are managed by this dependency manager.
+     *
+     * @return The configurations, mapped from configuration name to the configuration. Returns an empty map when this
+     * dependency manager has no configurations.
      */
-    Map<String, org.apache.ivy.core.module.descriptor.Configuration> getConfigurations();
+    Map<String, Configuration> getConfigurations();
 
     /**
      * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
@@ -180,26 +185,49 @@ public interface DependencyManager extends DependencyContainer {
     void addArtifacts(String configurationName, Object... artifacts);
 
     /**
-     * Adds an <code>org.apache.ivy.core.module.descriptor.Configuration</code> You would use this method if
-     * you need to add a configuration with special attributes. For example a configuration that extends another
-     * configuration.
+     * Adds a configuration to this dependency manager, using the supplied ivy <code>Configuration</code> object
+     * as a template. You would use this method if you need to add a configuration with special attributes, such as a
+     * configuration that extends another configuration.
      *
      * @param configuration The configuration to add.
+     * @return The added configuration
+     * @throws InvalidUserDataException If a configuration with the given name already exists in this dependency
+     * manager.
      */
-    DependencyManager addConfiguration(org.apache.ivy.core.module.descriptor.Configuration configuration);
+    Configuration addConfiguration(org.apache.ivy.core.module.descriptor.Configuration configuration)
+            throws InvalidUserDataException;
 
     /**
-     * Adds a configuration with the given name. Under the hood an ivy configuration is created with default
-     * attributes.
+     * Adds a configuration to this dependency manager.
      *
      * @param configuration The name of the configuration.
+     * @return The added configuration
+     * @throws InvalidUserDataException If a configuration with the given name already exists in this dependency manager.
      */
-    DependencyManager addConfiguration(String configuration);
+    Configuration addConfiguration(String configuration) throws InvalidUserDataException;
+
+    /**
+     * Adds a configuration to this dependency manager, and configures it using the given closure.
+     *
+     * @param configuration The name of the configuration.
+     * @param configureClosure The closure to use to configure the new configuration.
+     * @return The added configuration
+     * @throws InvalidUserDataException If a configuration with the given name already exists in this dependency manager.
+     */
+    Configuration addConfiguration(String configuration, Closure configureClosure) throws InvalidUserDataException;
 
     /**
      * <p>Locates a {@link Configuration} by name.</p>
      *
-     * <p>You can call this method from your build script by using the name of the configuration.</p>
+     * @param name The name of the configuration.
+     * @return The configuration. Returns null if the configuration cannot be found.
+     */
+    Configuration findConfiguration(String name);
+
+    /**
+     * <p>Locates a {@link Configuration} by name.</p>
+     *
+     * <p>You can also call this method from your build script by using the name of the configuration.</p>
      *
      * @param name The name of the configuration.
      * @return The configuration. Never returns null.
@@ -216,7 +244,7 @@ public interface DependencyManager extends DependencyContainer {
      * @throws GradleException If not all dependencies can be resolved
      * @see #resolve(String, boolean, boolean) 
      */
-    List resolve(String conf);
+    List<File> resolve(String conf);
 
     /**
      * Returns a list of file objects, denoting the path to the classpath elements belonging to this configuration.
@@ -227,7 +255,7 @@ public interface DependencyManager extends DependencyContainer {
      * @return A list of file objects
      * @throws GradleException If not all dependencies can be resolved
      */
-    List resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies);
+    List<File> resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies);
 
     /**
      * Returns a list of file objects, denoting the path to the classpath elements belonging to this task. Not all tasks
@@ -237,7 +265,7 @@ public interface DependencyManager extends DependencyContainer {
      * @return
      * @throws InvalidUserDataException If no classpath is assigned to this tak
      */
-    List resolveTask(String taskName);
+    List<File> resolveTask(String taskName);
 
     /**
      * Returns a classpath String in ant notation for the configuration.

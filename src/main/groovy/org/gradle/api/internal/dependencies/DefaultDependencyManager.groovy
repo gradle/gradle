@@ -22,6 +22,7 @@ import org.gradle.util.WrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.dependencies.MavenPomGenerator
+import org.gradle.api.dependencies.Configuration
 
 /**
  * @author Hans Dockter
@@ -42,8 +43,9 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     }
 
     public def propertyMissing(String name) {
-        if (configurations.get(name) != null) {
-            return configuration(name)
+        Configuration configuration = findConfiguration(name)
+        if (configuration != null) {
+            return configuration
         }
         throw new MissingPropertyException("$name is unknown property!")
     }

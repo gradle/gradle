@@ -31,6 +31,7 @@ import org.gradle.api.dependencies.MavenPomGenerator;
 import org.gradle.api.dependencies.UnknownConfigurationException;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.util.GUtil;
+import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class BaseDependencyManager extends DefaultDependencyContainer implements DependencyManager {
+public class BaseDependencyManager extends DefaultDependencyContainer implements DependencyManagerInternal {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyManager.class);
 
     /**
@@ -135,22 +136,22 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         this.excludeRules = excludeRuleContainer;
     }
 
-    public List resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies) {
+    public List<File> resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies) {
         return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this, false),
                 failForMissingDependencies);
     }
 
-    public List resolve(String conf) {
+    public List<File> resolve(String conf) {
         return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this, true),
                 this.failForMissingDependencies);
     }
 
-    public List resolveTask(String taskName) {
+    public List<File> resolveTask(String taskName) {
         Set<String> confs = confs4Task.get(taskName);
         if (!GUtil.isTrue(confs)) {
             throw new InvalidUserDataException("Task $taskName is not mapped to any conf!");
         }
-        List paths = new ArrayList();
+        List<File> paths = new ArrayList<File>();
         for (String conf : confs) {
             paths.addAll(resolve(conf));
         }
@@ -161,7 +162,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         return GUtil.join(resolve(conf), ":");
     }
 
-    public void publish(List configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor) {
+    public void publish(List<String> configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor) {
         dependencyPublisher.publish(
                 configurations,
                 resolvers,
@@ -186,10 +187,10 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
     }
 
     Ivy getIvy() {
-        return ivy(new ArrayList());
+        return ivy(new ArrayList<DependencyResolver>());
     }
 
-    Ivy ivy(List resolvers) {
+    Ivy ivy(List<DependencyResolver> resolvers) {
         return ivyFactory.createIvy(settingsConverter.convert(classpathResolvers.getResolverList(),
                 resolvers,
                 new File(getProject().getGradleUserHome()), getBuildResolver(), getClientModuleRegistry(), chainConfigurer));
@@ -200,7 +201,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
             throw new InvalidUserDataException("Conf and tasks must be specified!");
         }
         if (tasks4Conf.get(conf) == null) {
-            tasks4Conf.put(conf, new HashSet());
+            tasks4Conf.put(conf, new HashSet<String>());
         }
         if (confs4Task.get(task) == null) {
             confs4Task.put(task, new HashSet<String>());
@@ -234,13 +235,29 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         }
     }
 
-    public DependencyManager addConfiguration(org.apache.ivy.core.module.descriptor.Configuration configuration) {
-        configurations.put(configuration.getName(), new DefaultConfiguration(configuration.getName(), configuration));
-        return this;
+    public Configuration addConfiguration(org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration) {
+        return addConfiguration(ivyConfiguration.getName(), null, ivyConfiguration);
     }
 
-    public DependencyManager addConfiguration(String configuration) {
-        return addConfiguration(new org.apache.ivy.core.module.descriptor.Configuration(configuration));
+    public Configuration addConfiguration(String configuration) {
+        return addConfiguration(configuration, null, null);
+    }
+
+    public Configuration addConfiguration(String configuration, Closure configureClosure)
+            throws InvalidUserDataException {
+        return addConfiguration(configuration, configureClosure, null);
+    }
+
+    private Configuration addConfiguration(String name, Closure configureClosure,
+                                           org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration) {
+        if (configurations.containsKey(name)) {
+            throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
+                    name));
+        }
+        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyConfiguration);
+        configurations.put(name, configuration);
+        ConfigureUtil.configure(configureClosure, configuration);
+        return configuration;
     }
 
     public RepositoryResolver getBuildResolver() {
@@ -269,13 +286,8 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         return classpathResolvers.add(classpathResolvers.createMavenRepoResolver(name, root, jarRepoUrls));
     }
 
-    public Map<String, org.apache.ivy.core.module.descriptor.Configuration> getConfigurations() {
-        Map<String, org.apache.ivy.core.module.descriptor.Configuration> configurations
-                = new HashMap<String, org.apache.ivy.core.module.descriptor.Configuration>();
-        for (Map.Entry<String, DefaultConfiguration> entry : this.configurations.entrySet()) {
-            configurations.put(entry.getKey(), entry.getValue().getIvyConfiguration());
-        }
-        return configurations;
+    public Map<String, Configuration> getConfigurations() {
+        return new HashMap<String, Configuration>(configurations);
     }
 
     public void setConfigurations(Map<String, DefaultConfiguration> configurations) {
@@ -446,8 +458,12 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         this.excludeRules = excludeRules;
     }
 
+    public Configuration findConfiguration(String name) {
+        return configurations.get(name);
+    }
+
     public Configuration configuration(String name) throws UnknownConfigurationException {
-        Configuration configuration = configurations.get(name);
+        Configuration configuration = findConfiguration(name);
         if (configuration == null) {
             throw new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
         }

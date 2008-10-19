@@ -17,7 +17,6 @@
 package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.Ivy
-import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.settings.IvySettings
@@ -35,10 +34,12 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import static org.gradle.util.WrapUtil.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.dependencies.MavenPomGenerator
+import org.gradle.api.dependencies.Configuration
 
 /**
  * @author Hans Dockter
@@ -323,19 +324,42 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testAddConfiguration() {
-        assertThat(dependencyManager.addConfiguration('someconf'), sameInstance(testObj))
-        assertThat(dependencyManager.configurations.someconf, notNullValue())
+        Configuration config = dependencyManager.addConfiguration('someconf')
+        assertThat(config, notNullValue())
+        assertThat(config.name, equalTo('someconf'))
+        assertThat(dependencyManager.configurations.someconf, sameInstance(config))
+    }
+
+    @Test public void testAddConfigurationWithConfigureClosure() {
+        Configuration config = dependencyManager.addConfiguration('someconf') {
+            extendsConfiguration 'other-config'
+        }
+        assertThat(config.name, equalTo('someconf'))
+        assertThat(config.extendsConfiguration, equalTo(toSet('other-config')))
     }
 
     @Test public void testAddConfigurationUsingIvyConfiguration() {
-        Configuration testConfiguration = new Configuration('someconf')
-        assertThat(dependencyManager.addConfiguration(testConfiguration), sameInstance(testObj))
-        assertThat(dependencyManager.configurations.someconf, sameInstance(testConfiguration))
+        org.apache.ivy.core.module.descriptor.Configuration testConfiguration = new org.apache.ivy.core.module.descriptor.Configuration('someconf')
+        Configuration config = dependencyManager.addConfiguration(testConfiguration)
+        assertThat(config, notNullValue())
+        assertThat(config.name, equalTo('someconf'))
+        assertThat(config.ivyConfiguration, equalTo(testConfiguration))
+        assertThat(dependencyManager.configurations.someconf, sameInstance(config))
+    }
+
+    @Test public void testAddConfigurationFailsWhenConfigurationWithSameNameAlreadyExists() {
+        dependencyManager.addConfiguration('config')
+        try {
+            dependencyManager.addConfiguration('config')
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo('Cannot add configuration \'config\' as a configuration with that name already exists.'))
+        }
     }
 
     @Test public void testGetConfiguration() {
-        dependencyManager.addConfiguration('someconf')
-        assertThat(dependencyManager.configuration('someconf'), notNullValue())
+        Configuration config = dependencyManager.addConfiguration('someconf')
+        assertThat(dependencyManager.configuration('someconf'), sameInstance(config))
     }
 
     @Test public void testGetConfigurationFailsWhenConfigurationNotFound() {
@@ -347,9 +371,18 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
+    @Test public void testFindConfiguration() {
+        Configuration config = dependencyManager.addConfiguration('someconf')
+        assertThat(dependencyManager.findConfiguration('someconf'), sameInstance(config))
+    }
+
+    @Test public void testFindConfigurationFailsWhenConfigurationNotFound() {
+        assertThat(dependencyManager.findConfiguration('someconf'), nullValue())
+    }
+
     @Test public void testMakesConfigurationAvailableAsProperty() {
-        dependencyManager.addConfiguration('someconf')
-        assertThat(dependencyManager.someconf, sameInstance(dependencyManager.configuration('someconf')))
+        Configuration config = dependencyManager.addConfiguration('someconf')
+        assertThat(dependencyManager.someconf, sameInstance(config))
     }
     
     @Test public void testMethodMissingWithExistingConfiguration() {

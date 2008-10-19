@@ -102,7 +102,7 @@ class ModuleDescriptorConverterTest {
         assertEquals(moduleRevisionId, moduleDescriptor.moduleRevisionId)
         assertEquals(dependencyManager.project.status, moduleDescriptor.status)
         assertEquals(expectedDepencencyDescriptors as HashSet, moduleDescriptor.dependencies as HashSet)
-        assertEquals(dependencyManager.configurations.values() as HashSet, moduleDescriptor.configurations as HashSet)
+        assertEquals(dependencyManager.configurations.values().collect {it.ivyConfiguration} as HashSet, moduleDescriptor.configurations as HashSet)
         assertEquals(expectedArtifactsDescriptors.conf1 as HashSet, moduleDescriptor.allArtifacts as HashSet)
         assertEquals([testExcludeRule1, testExcludeRule2], moduleDescriptor.getAllExcludeRules() as List)
 

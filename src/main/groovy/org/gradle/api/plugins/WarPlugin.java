@@ -59,10 +59,8 @@ public class WarPlugin implements Plugin {
                 new Configuration(PROVIDED_COMPILE, Configuration.Visibility.PRIVATE, null, null, true, null));
         dependencyManager.addConfiguration(
                 new Configuration(PROVIDED_RUNTIME, Configuration.Visibility.PRIVATE, null, new String[]{PROVIDED_COMPILE}, true, null));
-        dependencyManager.addConfiguration(new Configuration(JavaPlugin.COMPILE, Configuration.Visibility.PRIVATE, null, new String[]
-                {PROVIDED_COMPILE}, false, null));
-        dependencyManager.addConfiguration(new Configuration(JavaPlugin.RUNTIME, Configuration.Visibility.PRIVATE, null, new String[]
-                {JavaPlugin.COMPILE, PROVIDED_RUNTIME}, true, null));
+        dependencyManager.configuration(JavaPlugin.COMPILE).extendsConfiguration(new String[]{PROVIDED_COMPILE});
+        dependencyManager.configuration(JavaPlugin.RUNTIME).extendsConfiguration(new String[]{PROVIDED_RUNTIME});
         configureMavenScopeMappings(dependencyManager.getMaven());
     }
 

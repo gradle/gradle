@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.dependencies;
 
-import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
@@ -25,6 +29,7 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.GradleArtifact;
 import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.dependencies.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +44,7 @@ public class ModuleDescriptorConverter {
     public ModuleDescriptorConverter() {
     }
 
-    public ModuleDescriptor convert(BaseDependencyManager dependencyManager, boolean includeProjectDependencies) {
+    public ModuleDescriptor convert(DependencyManagerInternal dependencyManager, boolean includeProjectDependencies) {
         String status = DependencyManager.DEFAULT_STATUS;
         if (dependencyManager.getProject().hasProperty("status")) {
             status = (String) dependencyManager.getProject().property("status");
@@ -47,7 +52,7 @@ public class ModuleDescriptorConverter {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(dependencyManager.createModuleRevisionId(),
                 status, null);
         for (Configuration configuration : dependencyManager.getConfigurations().values()) {
-            moduleDescriptor.addConfiguration(configuration);
+            moduleDescriptor.addConfiguration(((DefaultConfiguration) configuration).getIvyConfiguration());
         }
         addDependencyDescriptors(moduleDescriptor, dependencyManager, includeProjectDependencies);
         addArtifacts(moduleDescriptor, dependencyManager);
@@ -58,13 +63,13 @@ public class ModuleDescriptorConverter {
         return moduleDescriptor;
     }
 
-    private void addExcludes(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
+    private void addExcludes(DefaultModuleDescriptor moduleDescriptor, DependencyManagerInternal dependencyManager) {
         for (ExcludeRule excludeRule : dependencyManager.getExcludeRules().getRules()) {
             moduleDescriptor.addExcludeRule(excludeRule);
         }
     }
 
-    private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager,
+    private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, DependencyManagerInternal dependencyManager,
                                           boolean includeProjectDependencies) {
         for (Dependency dependency : dependencyManager.getDependencies()) {
             if (includeProjectDependencies || !(dependency instanceof ProjectDependency)) {
@@ -76,7 +81,7 @@ public class ModuleDescriptorConverter {
         }
     }
 
-    private void addArtifacts(DefaultModuleDescriptor moduleDescriptor, BaseDependencyManager dependencyManager) {
+    private void addArtifacts(DefaultModuleDescriptor moduleDescriptor, DependencyManagerInternal dependencyManager) {
         for (String conf : dependencyManager.getArtifacts().keySet()) {
             List<GradleArtifact> gradleArtifacts = dependencyManager.getArtifacts().get(conf);
             for (GradleArtifact gradleArtifact : gradleArtifacts) {
