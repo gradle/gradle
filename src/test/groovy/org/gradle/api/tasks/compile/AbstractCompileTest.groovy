@@ -83,6 +83,11 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.execute()
     }
 
+    @Test public void testGetClasspath() {
+        setUpMocksAndAttributes(compile)
+        assertEquals(TEST_CONVERTED_UNMANAGED_CLASSPATH + TEST_DEPENDENCY_MANAGER_CLASSPATH, compile.getClasspath())
+    }
+
     @Test public void testUnmanagedClasspath() {
         List list1 = ['a', new Object()]
         assert compile.unmanagedClasspath(list1 as Object[]).is(compile)

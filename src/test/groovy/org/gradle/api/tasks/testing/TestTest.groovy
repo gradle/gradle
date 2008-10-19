@@ -132,6 +132,11 @@ class TestTest extends AbstractConventionTaskTest {
         }
     }
 
+    @org.junit.Test public void testGetClasspath() {
+        setUpMocks(test)
+        assertEquals([TEST_TEST_CLASSES_DIR] + TEST_CONVERTED_UNMANAGED_CLASSPATH + TEST_DEPENDENCY_MANAGER_CLASSPATH, test.getClasspath())
+    }
+
     @org.junit.Test public void testExecuteWithUnspecifiedCompiledTestsDir() {
         setUpMocks(test)
         test.testClassesDir = null

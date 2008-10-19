@@ -59,8 +59,8 @@ public class CompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(compile);
         context.checking(new Expectations() {{
             one(antCompileMock).execute(compile.getSrcDirs(), compile.getIncludes(), compile.getExcludes(), compile.getDestinationDir(),
-                    GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
-                    compile.getSourceCompatibility(), compile.getTargetCompatibility(), compile.getOptions(), compile.getProject().getAnt());
+                    compile.getClasspath(), compile.getSourceCompatibility(), compile.getTargetCompatibility(), compile.getOptions(),
+                    compile.getProject().getAnt());
         }});
         compile.execute();
     }

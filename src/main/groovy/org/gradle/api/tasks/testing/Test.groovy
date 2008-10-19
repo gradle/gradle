@@ -93,13 +93,17 @@ class Test extends ConventionTask {
 
         existingDirsFilter.checkExistenceAndThrowStopActionIfNot(getTestClassesDir())
 
-        List classpath = classpathConverter.createFileClasspath(
-                project.rootDir, [getTestClassesDir()] + getUnmanagedClasspath()) + getDependencyManager().resolveTask(name)
 
-        antJunit.execute(getTestClassesDir(), classpath, getTestResultsDir(), getTestReportDir(), includes, excludes, options, project.ant)
+        antJunit.execute(getTestClassesDir(), getClasspath(), getTestResultsDir(), getTestReportDir(), includes, excludes, options, project.ant)
         if (stopAtFailuresOrErrors && project.ant.project.getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY)) {
             throw new GradleException('There were failing tests. See the report at ' + getTestReportDir() + '.')
         }
+    }
+
+    List getClasspath() {
+        List classpath = classpathConverter.createFileClasspath(
+                project.rootDir, [getTestClassesDir()] + getUnmanagedClasspath()) + getDependencyManager().resolveTask(name)
+        return classpath
     }
 
     Test include(String[] includes) {

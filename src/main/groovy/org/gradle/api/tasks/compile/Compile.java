@@ -103,11 +103,15 @@ public class Compile extends ConventionTask {
         if (!GUtil.isTrue(getSourceCompatibility()) || !GUtil.isTrue(getTargetCompatibility())) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }
-        
+
+        antCompile.execute(existingSourceDirs, includes, excludes, getDestinationDir(), getClasspath(), getSourceCompatibility(),
+                getTargetCompatibility(), options, getProject().getAnt());
+    }
+
+    public List getClasspath() {
         List classpath = GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
                 getDependencyManager().resolveTask(getName()));
-        antCompile.execute(existingSourceDirs, includes, excludes, getDestinationDir(), classpath, getSourceCompatibility(),
-                getTargetCompatibility(), options, getProject().getAnt());
+        return classpath;
     }
 
     /**
