@@ -19,6 +19,9 @@ package org.gradle.api.plugins
 import org.gradle.api.Project
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.util.HelperUtil
+import static org.gradle.util.WrapUtil.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 import org.junit.Test
 
 /**
@@ -27,9 +30,28 @@ import org.junit.Test
 class WarPluginTest {
     @Test public void testApply() {
         // todo Make test stronger
-        // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
         Project project = HelperUtil.createRootProject(new File('path', 'root'))
         WarPlugin warPlugin = new WarPlugin()
         warPlugin.apply(project, new PluginRegistry(), [:])
+
+        def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
+        assertThat(configuration.extendsFrom, equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
+        assertFalse(configuration.visible)
+        assertFalse(configuration.transitive)
+
+        configuration = project.dependencies.configurations[JavaPlugin.RUNTIME]
+        assertThat(configuration.extendsFrom, equalTo(toSet(JavaPlugin.COMPILE, WarPlugin.PROVIDED_RUNTIME)))
+        assertFalse(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.dependencies.configurations[WarPlugin.PROVIDED_COMPILE]
+        assertThat(configuration.extendsFrom, equalTo(toSet()))
+        assertFalse(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.dependencies.configurations[WarPlugin.PROVIDED_RUNTIME]
+        assertThat(configuration.extendsFrom, equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
+        assertFalse(configuration.visible)
+        assertTrue(configuration.transitive)
     }
 }

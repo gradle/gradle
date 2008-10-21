@@ -52,7 +52,7 @@ public class DefaultConfiguration implements Configuration {
         return this;
     }
 
-    public Configuration extendsFrom(String[] superConfigs) {
+    public Configuration extendsFrom(String... superConfigs) {
         extendsFrom.addAll(Arrays.asList(superConfigs));
         return this;
     }
@@ -77,7 +77,7 @@ public class DefaultConfiguration implements Configuration {
         return new HashSet<File>(dependencyManager.resolve(name));
     }
 
-    public String asPath() {
+    public String getAsPath() {
         return dependencyManager.antpath(name);
     }
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.PluginRegistry;
@@ -55,8 +53,8 @@ public class GroovyPlugin extends JavaPlugin {
 
         configureGroovydoc(project);
 
-        project.getDependencies().addConfiguration(new Configuration(GROOVY, Visibility.PRIVATE, null, null, false, null));
-        project.getDependencies().configuration(JavaPlugin.COMPILE).extendsFrom(WrapUtil.toArray(GROOVY));
+        project.getDependencies().addConfiguration(GROOVY).setVisible(false).setTransitive(false);
+        project.getDependencies().configuration(JavaPlugin.COMPILE).extendsFrom(GROOVY);
     }
 
     private void configureGroovydoc(Project project) {

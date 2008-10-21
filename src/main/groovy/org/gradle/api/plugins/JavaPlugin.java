@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.gradle.api.*;
 import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.Dependency;
@@ -248,16 +246,14 @@ public class JavaPlugin implements Plugin {
     void configureDependencyManager(Project project, JavaPluginConvention javaPluginConvention) {
         project.setProperty("status", "integration");
         DependencyManager dependencies = project.getDependencies();
-        dependencies.addConfiguration(
-                new Configuration(COMPILE, Visibility.PRIVATE, null, null, false, null));
-        dependencies.addConfiguration(new Configuration(RUNTIME, Visibility.PRIVATE, null, new String[]{COMPILE}, true, null));
-        dependencies.addConfiguration(new Configuration(TEST_COMPILE, Visibility.PRIVATE, null, new String[]{COMPILE}, false, null));
-        dependencies.addConfiguration(new Configuration(TEST_RUNTIME, Visibility.PRIVATE, null, new String[]{RUNTIME, TEST_COMPILE}, true, null));
-        dependencies.addConfiguration(new Configuration(LIBS, Visibility.PUBLIC, null, null, true, null));
-        dependencies.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION, Visibility.PUBLIC, null,
-                new String[]{RUNTIME, Dependency.MASTER_CONFIGURATION}, true, null));
-        dependencies.addConfiguration(new Configuration(Dependency.MASTER_CONFIGURATION, Visibility.PUBLIC, null, null, true, null));
-        dependencies.addConfiguration(new Configuration(DISTS, Visibility.PUBLIC, null, null, true, null));
+        dependencies.addConfiguration(COMPILE).setVisible(false).setTransitive(false);
+        dependencies.addConfiguration(RUNTIME).setVisible(false).extendsFrom(COMPILE);
+        dependencies.addConfiguration(TEST_COMPILE).setVisible(false).setTransitive(false).extendsFrom(COMPILE);
+        dependencies.addConfiguration(TEST_RUNTIME).setVisible(false).extendsFrom(RUNTIME, TEST_COMPILE);
+        dependencies.addConfiguration(LIBS);
+        dependencies.addConfiguration(Dependency.DEFAULT_CONFIGURATION).extendsFrom(RUNTIME, Dependency.MASTER_CONFIGURATION);
+        dependencies.addConfiguration(Dependency.MASTER_CONFIGURATION);
+        dependencies.addConfiguration(DISTS);
         dependencies.setArtifactProductionTaskName(UPLOAD_INTERNAL_LIBS);
         dependencies.getArtifactParentDirs().add(project.getBuildDir());
         dependencies.getArtifactParentDirs().add(javaPluginConvention.getDistsDir());

@@ -18,7 +18,11 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
+import static org.gradle.util.WrapUtil.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 import org.junit.Test
+import org.gradle.api.dependencies.Dependency
 
 /**
  * @author Hans Dockter
@@ -30,5 +34,44 @@ class JavaPluginTest {
         Project project = HelperUtil.createRootProject(new File('path', 'root'))
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.apply(project, null)
+
+        def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
+        assertFalse(configuration.visible)
+        assertFalse(configuration.transitive)
+
+        configuration = project.dependencies.configurations[JavaPlugin.RUNTIME]
+        assertThat(configuration.extendsFrom, equalTo(toSet(JavaPlugin.COMPILE)))
+        assertFalse(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.dependencies.configurations[JavaPlugin.TEST_COMPILE]
+        assertThat(configuration.extendsFrom, equalTo(toSet(JavaPlugin.COMPILE)))
+        assertFalse(configuration.visible)
+        assertFalse(configuration.transitive)
+
+        configuration = project.dependencies.configurations[JavaPlugin.TEST_RUNTIME]
+        assertThat(configuration.extendsFrom, equalTo(toSet(JavaPlugin.TEST_COMPILE, JavaPlugin.RUNTIME)))
+        assertFalse(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.dependencies.configurations[JavaPlugin.LIBS]
+        assertThat(configuration.extendsFrom, equalTo(toSet()))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.dependencies.configurations[Dependency.DEFAULT_CONFIGURATION]
+        assertThat(configuration.extendsFrom, equalTo(toSet(Dependency.MASTER_CONFIGURATION, JavaPlugin.RUNTIME)))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.dependencies.configurations[Dependency.MASTER_CONFIGURATION]
+        assertThat(configuration.extendsFrom, equalTo(toSet()))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.dependencies.configurations[JavaPlugin.DISTS]
+        assertThat(configuration.extendsFrom, equalTo(toSet()))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
     }
 }

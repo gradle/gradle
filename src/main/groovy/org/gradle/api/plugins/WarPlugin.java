@@ -55,12 +55,10 @@ public class WarPlugin implements Plugin {
     }
 
     public void configureDependencyManager(DependencyManager dependencyManager) {
-        dependencyManager.addConfiguration(
-                new Configuration(PROVIDED_COMPILE, Configuration.Visibility.PRIVATE, null, null, true, null));
-        dependencyManager.addConfiguration(
-                new Configuration(PROVIDED_RUNTIME, Configuration.Visibility.PRIVATE, null, new String[]{PROVIDED_COMPILE}, true, null));
-        dependencyManager.configuration(JavaPlugin.COMPILE).extendsFrom(new String[]{PROVIDED_COMPILE});
-        dependencyManager.configuration(JavaPlugin.RUNTIME).extendsFrom(new String[]{PROVIDED_RUNTIME});
+        dependencyManager.addConfiguration(PROVIDED_COMPILE).setVisible(false);
+        dependencyManager.addConfiguration(PROVIDED_RUNTIME).setVisible(false).extendsFrom(PROVIDED_COMPILE);
+        dependencyManager.configuration(JavaPlugin.COMPILE).extendsFrom(PROVIDED_COMPILE);
+        dependencyManager.configuration(JavaPlugin.RUNTIME).extendsFrom(PROVIDED_RUNTIME);
         configureMavenScopeMappings(dependencyManager.getMaven());
     }
 

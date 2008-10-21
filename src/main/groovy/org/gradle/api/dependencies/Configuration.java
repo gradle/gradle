@@ -69,7 +69,7 @@ public interface Configuration {
      * @param superConfigs The super configurations.
      * @return this configuration
      */
-    Configuration extendsFrom(String[] superConfigs);
+    Configuration extendsFrom(String... superConfigs);
 
     /**
      * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its
@@ -102,5 +102,5 @@ public interface Configuration {
      *
      * @return The files of this configuration as a path.
      */
-    String asPath();
+    String getAsPath();
 }

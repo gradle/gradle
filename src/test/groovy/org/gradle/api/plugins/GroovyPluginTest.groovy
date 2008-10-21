@@ -16,15 +16,16 @@
  
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.PluginRegistry
-import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*;
-import org.junit.Test
 import org.gradle.api.Project
-import org.gradle.api.tasks.javadoc.Javadoc
-import org.gradle.api.tasks.javadoc.Groovydoc
+import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.tasks.compile.GroovyCompile
+import org.gradle.api.tasks.javadoc.Groovydoc
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.util.HelperUtil
+import static org.gradle.util.WrapUtil.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -36,6 +37,16 @@ class GroovyPluginTest {
         Project project = HelperUtil.createRootProject(new File('path', 'root'))
         GroovyPlugin groovyPlugin = new GroovyPlugin()
         groovyPlugin.apply(project, new PluginRegistry())
+
+        def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
+        assertThat(configuration.extendsFrom, equalTo(toSet(GroovyPlugin.GROOVY)))
+        assertFalse(configuration.visible)
+        assertFalse(configuration.transitive)
+
+        configuration = project.dependencies.configurations[GroovyPlugin.GROOVY]
+        assertThat(configuration.extendsFrom, equalTo(toSet()))
+        assertFalse(configuration.visible)
+        assertFalse(configuration.transitive)
 
         def task = project.tasks[JavaPlugin.COMPILE]
         assertThat(task, instanceOf(GroovyCompile.class))

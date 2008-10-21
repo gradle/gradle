@@ -59,7 +59,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void extendsOtherConfigurations() {
-        configuration.extendsFrom(toArray("a"));
+        configuration.extendsFrom("a");
 
         assertThat(configuration.getExtendsFrom(), equalTo(toSet("a")));
         assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a")));
@@ -78,7 +78,7 @@ public class DefaultConfigurationTest {
         assertThat(configuration.getIvyConfiguration().getDescription(), equalTo("description"));
         assertThat(configuration.getIvyConfiguration().getDeprecated(), equalTo("dep"));
 
-        configuration.extendsFrom(toArray("b"));
+        configuration.extendsFrom("b");
 
         assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a", "b")));
     }
@@ -101,7 +101,7 @@ public class DefaultConfigurationTest {
             will(returnValue("the path"));
         }});
 
-        assertThat(configuration.asPath(), equalTo("the path"));
+        assertThat(configuration.getAsPath(), equalTo("the path"));
     }
 
 }
