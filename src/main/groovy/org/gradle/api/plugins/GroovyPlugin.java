@@ -56,7 +56,7 @@ public class GroovyPlugin extends JavaPlugin {
         configureGroovydoc(project);
 
         project.getDependencies().addConfiguration(new Configuration(GROOVY, Visibility.PRIVATE, null, null, false, null));
-        project.getDependencies().configuration(JavaPlugin.COMPILE).extendsConfiguration(WrapUtil.toArray(GROOVY));
+        project.getDependencies().configuration(JavaPlugin.COMPILE).extendsFrom(WrapUtil.toArray(GROOVY));
     }
 
     private void configureGroovydoc(Project project) {

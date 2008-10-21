@@ -34,32 +34,36 @@ public class DefaultConfiguration implements Configuration {
         return name;
     }
 
-    public boolean isPrivate() {
-        return visibility == Visibility.PRIVATE;
+    public boolean isVisible() {
+        return visibility == Visibility.PUBLIC;
     }
 
-    public void setPrivate(boolean p) {
-        this.visibility = p ? Visibility.PRIVATE : Visibility.PUBLIC;
+    public Configuration setVisible(boolean visible) {
+        this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
+        return this;
     }
 
-    public Set<String> getExtendsConfiguration() {
+    public Set<String> getExtendsFrom() {
         return extendsFrom;
     }
 
-    public void setExtendsConfiguration(Set<String> superConfigs) {
+    public Configuration setExtendsFrom(Set<String> superConfigs) {
         extendsFrom = superConfigs;
+        return this;
     }
 
-    public void extendsConfiguration(String[] superConfigs) {
+    public Configuration extendsFrom(String[] superConfigs) {
         extendsFrom.addAll(Arrays.asList(superConfigs));
+        return this;
     }
 
     public boolean isTransitive() {
         return transitive;
     }
 
-    public void setTransitive(boolean t) {
+    public Configuration setTransitive(boolean t) {
         this.transitive = t;
+        return this;
     }
 
     public org.apache.ivy.core.module.descriptor.Configuration getIvyConfiguration() {

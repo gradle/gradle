@@ -31,41 +31,63 @@ public interface Configuration {
     String getName();
 
     /**
-     * Returns true if this is a private configuration. A private configuration is not visible outside the project it
-     * belongs to.
+     * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
+     * to.
      *
-     * @return true if this is a private configuration.
+     * @return true if this is a visible configuration.
      */
-    boolean isPrivate();
+    boolean isVisible();
 
     /**
-     * Sets the visibility of this configuration. When private is set to true, this configuration is not visibile
-     * outside the project it belongs to.
+     * Sets the visibility of this configuration. When visible is set to true, this configuration is visibile outside
+     * the project it belongs to.
      *
-     * @param p true if this is a private configuration
+     * @param visible true if this is a visible configuration
+     * @return this configuration
      */
-    void setPrivate(boolean p);
+    Configuration setVisible(boolean visible);
 
     /**
-     * Returns the names of the configurations which this configuration extends. The artifacts of the super
+     * Returns the names of the configurations which this configuration extends from. The artifacts of the super
      * configurations are also available in this configuration.
      *
      * @return The super configurations. Returns an empty set when this configuration does not extend any others.
      */
-    Set<String> getExtendsConfiguration();
+    Set<String> getExtendsFrom();
 
     /**
-     * Sets the configurations which this configuration extends.
+     * Sets the configurations which this configuration extends from.
      *
      * @param superConfigs The super configuration. Should not be null.
+     * @return this configuration
      */
-    void setExtendsConfiguration(Set<String> superConfigs);
+    Configuration setExtendsFrom(Set<String> superConfigs);
 
-    void extendsConfiguration(String[] superConfigs);
+    /**
+     * Adds the given configurations to the set of configuration which this configuration extends from.
+     *
+     * @param superConfigs The super configurations.
+     * @return this configuration
+     */
+    Configuration extendsFrom(String[] superConfigs);
 
+    /**
+     * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its
+     * direct dependencies, and all their dependencies. An intransitive configuration contains only the direct
+     * dependencies.
+     *
+     * @return true if this is a transitive configuration, false otherwise.
+     */
     boolean isTransitive();
 
-    void setTransitive(boolean t);
+    /**
+     * Sets the transitivity of this configuration. When set to true, this configuration will contain the transitive
+     * closure of its dependencies and their dependencies.
+     *
+     * @param t true if this is a transitive configuration.
+     * @return this configuration
+     */
+    Configuration setTransitive(boolean t);
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns

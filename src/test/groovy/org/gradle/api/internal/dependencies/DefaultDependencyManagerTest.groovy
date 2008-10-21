@@ -332,10 +332,10 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
     @Test public void testAddConfigurationWithConfigureClosure() {
         Configuration config = dependencyManager.addConfiguration('someconf') {
-            extendsConfiguration 'other-config'
+            extendsFrom 'other-config'
         }
         assertThat(config.name, equalTo('someconf'))
-        assertThat(config.extendsConfiguration, equalTo(toSet('other-config')))
+        assertThat(config.extendsFrom, equalTo(toSet('other-config')))
     }
 
     @Test public void testAddConfigurationUsingIvyConfiguration() {

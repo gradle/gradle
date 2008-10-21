@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.List;
 
 @RunWith (JMock.class)
 public class DefaultConfigurationTest {
@@ -46,8 +45,8 @@ public class DefaultConfigurationTest {
 
     @Test
     public void withPrivateVisibility() {
-        configuration.setPrivate(true);
-        assertTrue(configuration.isPrivate());
+        configuration.setVisible(false);
+        assertFalse(configuration.isVisible());
         assertThat(configuration.getIvyConfiguration().getVisibility(), equalTo(Configuration.Visibility.PRIVATE));
     }
 
@@ -60,9 +59,9 @@ public class DefaultConfigurationTest {
 
     @Test
     public void extendsOtherConfigurations() {
-        configuration.extendsConfiguration(toArray("a"));
+        configuration.extendsFrom(toArray("a"));
 
-        assertThat(configuration.getExtendsConfiguration(), equalTo(toSet("a")));
+        assertThat(configuration.getExtendsFrom(), equalTo(toSet("a")));
         assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a")));
     }
 
@@ -79,7 +78,7 @@ public class DefaultConfigurationTest {
         assertThat(configuration.getIvyConfiguration().getDescription(), equalTo("description"));
         assertThat(configuration.getIvyConfiguration().getDeprecated(), equalTo("dep"));
 
-        configuration.extendsConfiguration(toArray("b"));
+        configuration.extendsFrom(toArray("b"));
 
         assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a", "b")));
     }
