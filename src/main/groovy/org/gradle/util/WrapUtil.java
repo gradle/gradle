@@ -68,6 +68,17 @@ public class WrapUtil {
     }
 
     /**
+     * Wraps the given items in a mutable list.
+     */
+    public static <T> List<T> toList(Iterable<? extends T> items) {
+        ArrayList<T> coll = new ArrayList<T>();
+        for (T item : items) {
+            coll.add(item);
+        }
+        return coll;
+    }
+
+    /**
      * Wraps the given key and value in a mutable unordered map.
      */
     public static <K, V> Map<K, V> toMap(K key, V value) {

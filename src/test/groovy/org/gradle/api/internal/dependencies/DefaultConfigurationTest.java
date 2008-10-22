@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.dependencies;
 
+import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.Configuration;
+import org.gradle.api.internal.Transformer;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,6 +86,29 @@ public class DefaultConfigurationTest {
     }
 
     @Test
+    public void transformsIvyConfigurationObject() {
+        final Configuration transformed = new Configuration("other");
+        Transformer<Configuration> transformer = new Transformer<Configuration>() {
+            public Configuration transform(Configuration original) {
+                assertThat(original, notNullValue());
+                return transformed;
+            }
+        };
+
+        configuration.addIvyTransformer(transformer);
+        assertThat(configuration.getIvyConfiguration(), sameInstance(transformed));
+    }
+    
+    @Test
+    public void transformsIvyConfigurationObjectUsingClosure() {
+        final Configuration transformed = new Configuration("other");
+        Closure closure = DefaultConfigurationTestHelper.transformer(transformed);
+
+        configuration.addIvyTransformer(closure);
+        assertThat(configuration.getIvyConfiguration(), sameInstance(transformed));
+    }
+
+    @Test
     public void usesDependencyManagerToResolveConfiguration() {
         final File file = new File("lib.jar");
         context.checking(new Expectations() {{
@@ -92,6 +117,54 @@ public class DefaultConfigurationTest {
         }});
 
         assertThat(configuration.resolve(), equalTo(toSet(file)));
+    }
+
+    @Test
+    public void usesDependencyManagerToGetFiles() {
+        final File file = new File("lib.jar");
+        context.checking(new Expectations() {{
+            one(dependencyManager).resolve("name");
+            will(returnValue(toList(file)));
+        }});
+
+        assertThat(configuration.getFiles(), equalTo(toSet(file)));
+    }
+
+    @Test
+    public void usesDependencyManagerToGetFilesForIterator() {
+        final File expected = new File("lib.jar");
+        context.checking(new Expectations() {{
+            one(dependencyManager).resolve("name");
+            will(returnValue(toList(expected)));
+        }});
+
+        assertThat(toList(configuration), equalTo(toList(expected)));
+    }
+
+    @Test
+    public void usesDependencyManagerToGetSingleFile() {
+        final File file = new File("lib.jar");
+        context.checking(new Expectations() {{
+            one(dependencyManager).resolve("name");
+            will(returnValue(toList(file)));
+        }});
+
+        assertThat(configuration.getSingleFile(), equalTo(file));
+    }
+
+    @Test
+    public void getSingleFileFailsWhenThereIsNotExactlyOneFile() {
+        context.checking(new Expectations() {{
+            one(dependencyManager).resolve("name");
+            will(returnValue(toList(new File("a.jar"), new File("b.jar"))));
+        }});
+
+        try {
+            configuration.getSingleFile();
+            fail();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage(), equalTo("Configuration 'name' does not resolve to a single file."));
+        }
     }
 
     @Test

@@ -22,7 +22,7 @@ import java.io.File;
 /**
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
  */
-public interface Configuration {
+public interface Configuration extends FileCollection {
     /**
      * Returns the name of this configuration.
      *
@@ -96,11 +96,4 @@ public interface Configuration {
      * @return The files of this configuration.
      */
     Set<File> resolve();
-
-    /**
-     * Resolves this configuration as a path.
-     *
-     * @return The files of this configuration as a path.
-     */
-    String getAsPath();
 }

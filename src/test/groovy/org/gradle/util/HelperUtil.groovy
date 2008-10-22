@@ -154,6 +154,10 @@ class HelperUtil {
     static Script createTestScript() {
         new MyScript()        
     }
+
+    static Closure toClosure(String text) {
+        return new GroovyShell().evaluate("return " + text)
+    }
 }
 
 class MyScript extends Script {

@@ -30,7 +30,6 @@ public abstract class AbstractDependency implements Dependency {
     private Object userDependencyDescription;
 
     public AbstractDependency(Set confs, Object userDependencyDescription) {
-        boolean valid = true;
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
             throw new UnknownDependencyNotation("Description " + userDependencyDescription + " not valid!");
         }
