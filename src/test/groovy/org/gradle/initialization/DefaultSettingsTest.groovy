@@ -33,6 +33,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.UnknownProjectException
+import org.gradle.api.dependencies.Configuration
 
 /**
  * @author Hans Dockter
@@ -251,13 +252,17 @@ class DefaultSettingsTest {
     }
 
     private checkCreateClassLoader(def expectedDependency, boolean srcBuilderNull = false) {
-        List testFiles = [new File('/root/f1'), new File('/root/f2')]
+        Set testFiles = [new File('/root/f1'), new File('/root/f2')] as Set
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = settings.buildSrcStartParameter.newInstance();
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
+        Configuration configuration = context.mock(Configuration.class)
         context.checking {
             allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
-            one(dependencyManagerMock).resolve(DefaultSettings.BUILD_CONFIGURATION); will(returnValue(testFiles))
+            one(dependencyManagerMock).configuration(DefaultSettings.BUILD_CONFIGURATION)
+            will(returnValue(configuration))
+            one(configuration).getFiles()
+            will(returnValue(testFiles))
         }
         URLClassLoader createdClassLoader = null
 

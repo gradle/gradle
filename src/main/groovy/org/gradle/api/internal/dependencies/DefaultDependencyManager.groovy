@@ -57,6 +57,9 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
             }
             return getMetaClass().invokeMethod(this, name, args);
         }
+        if (args.length == 1 && args[0] instanceof Closure) {
+            return configuration(name, args[0])
+        }
         dependencies(WrapUtil.toList(name), args);
     }
 }

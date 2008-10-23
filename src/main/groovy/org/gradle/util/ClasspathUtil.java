@@ -30,7 +30,7 @@ import java.net.URL;
 public class ClasspathUtil {
     private static Logger logger = LoggerFactory.getLogger(ClasspathUtil.class);
 
-    public static void addUrl(URLClassLoader classLoader, List<File> classpathElements) {
+    public static void addUrl(URLClassLoader classLoader, Iterable<File> classpathElements) {
         try {
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);

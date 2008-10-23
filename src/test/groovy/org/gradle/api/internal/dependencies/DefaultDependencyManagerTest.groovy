@@ -332,10 +332,10 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
     @Test public void testAddConfigurationWithConfigureClosure() {
         Configuration config = dependencyManager.addConfiguration('someconf') {
-            extendsFrom 'other-config'
+            extendsFrom 'config-a', 'config-b'
         }
         assertThat(config.name, equalTo('someconf'))
-        assertThat(config.extendsFrom, equalTo(toSet('other-config')))
+        assertThat(config.extendsFrom, equalTo(toSet('config-a', 'config-b')))
     }
 
     @Test public void testAddConfigurationUsingIvyConfiguration() {
@@ -371,12 +371,21 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         }
     }
 
+    @Test public void testGetConfigurationWithConfigureClosure() {
+        Configuration config = dependencyManager.addConfiguration('someconf')
+        Configuration retval = dependencyManager.configuration('someconf') {
+            extendsFrom 'config-a', 'config-b'
+        }
+        assertThat(retval, sameInstance(config))
+        assertThat(config.extendsFrom, equalTo(toSet('config-a', 'config-b')))
+    }
+
     @Test public void testFindConfiguration() {
         Configuration config = dependencyManager.addConfiguration('someconf')
         assertThat(dependencyManager.findConfiguration('someconf'), sameInstance(config))
     }
 
-    @Test public void testFindConfigurationFailsWhenConfigurationNotFound() {
+    @Test public void testFindConfigurationReturnsNullWhenConfigurationNotFound() {
         assertThat(dependencyManager.findConfiguration('someconf'), nullValue())
     }
 
@@ -384,8 +393,17 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         Configuration config = dependencyManager.addConfiguration('someconf')
         assertThat(dependencyManager.someconf, sameInstance(config))
     }
+
+    @Test public void testAddsDynamicMethodToConfigureConfiguration() {
+        Configuration config = dependencyManager.addConfiguration('someconf')
+        Configuration retval = dependencyManager.someconf {
+            extendsFrom 'config-a', 'config-b'
+        }
+        assertThat(retval, sameInstance(config))
+        assertThat(config.extendsFrom, equalTo(toSet('config-a', 'config-b')))
+    }
     
-    @Test public void testMethodMissingWithExistingConfiguration() {
+    @Test public void testAddsDynamicMethodToAddDependenciesToConfiguration() {
         dependencyManager.addConfiguration(AbstractDependencyContainerTest.TEST_CONFIGURATION)
         DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory)
         dependencyManager.setDependencyFactory(dependencyFactoryMock)

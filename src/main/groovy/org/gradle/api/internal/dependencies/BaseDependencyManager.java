@@ -469,4 +469,10 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         }
         return configuration;
     }
+
+    public Configuration configuration(String name, Closure configureClosure) throws UnknownConfigurationException {
+        Configuration configuration = configuration(name);
+        ConfigureUtil.configure(configureClosure, configuration);
+        return configuration;
+    }
 }

@@ -38,8 +38,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -196,7 +196,7 @@ public class BaseSettings implements SettingsInternal {
         } else {
             logger.info("No build sources found.");
         }
-        List additionalClasspath = dependencyManager.resolve(BUILD_CONFIGURATION);
+        Set<File> additionalClasspath = dependencyManager.configuration(BUILD_CONFIGURATION).getFiles();
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
             additionalClasspath.add(toolsJar);

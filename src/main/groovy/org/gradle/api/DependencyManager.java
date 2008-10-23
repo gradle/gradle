@@ -236,6 +236,19 @@ public interface DependencyManager extends DependencyContainer {
     Configuration configuration(String name) throws UnknownConfigurationException;
 
     /**
+     * <p>Locates a {@link Configuration} by name and configures it.</p>
+     *
+     * <p>You can also call this method from your build script by using the name of the configuration followed by a
+     * closure.</p>
+     *
+     * @param name The name of the configuration.
+     * @param configureClosure The closure to use to configure the configuration.
+     * @return The configuration. Never returns null.
+     * @throws UnknownConfigurationException when a configuration with the given name cannot be found.
+     */
+    Configuration configuration(String name, Closure configureClosure) throws UnknownConfigurationException;
+
+    /**
      * Returns a list of file objects, denoting the path to the classpath elements belonging to this configuration.
      * If a dependency can't be resolved an exception is thrown. Resolves also project dependencies.
      *
