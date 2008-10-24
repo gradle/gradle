@@ -63,6 +63,7 @@ public class Bundle extends ConventionTask {
         archiveTask.conventionMapping(type.getConventionMapping());
         archiveTask.setBaseName(getProject().getArchivesBaseName() + (args.get(APPENDIX_KEY) != null ? "-" + args.get(APPENDIX_KEY) : ""));
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
+        archiveTask.setExtension(type.getDefaultExtension());
         setTaskDependsOn(archiveTask, getChildrenDependOn());
         setArchiveConfigurations(archiveTask, args);
         this.dependsOn(taskName);
