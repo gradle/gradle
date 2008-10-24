@@ -41,7 +41,7 @@ class GradleUtil {
 
     static void deleteDir(File dir) {
         assert !dir.isFile()
-        if (dir.isDirectory()) {GFileUtils.deleteQuietly(dir)}
+        if (dir.isDirectory()) {new AntBuilder().delete(dir: dir, quiet: true)}
     }
 
     static File makeNewDir(File dir) {
