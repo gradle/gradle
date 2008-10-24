@@ -18,8 +18,6 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
-import org.gradle.api.internal.dependencies.ivy2Maven.*;
-import org.gradle.api.internal.dependencies.ivy2Maven.dependencies.*;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -47,22 +45,11 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
                 new DefaultIvyFactory(),
                 new DependencyFactory(dependencyImpls),
                 new ArtifactFactory(),
+                new DefaultResolverFactory(new LocalReposCacheHandler(buildResolverDir)),
                 new SettingsConverter(),
                 new ModuleDescriptorConverter(),
                 new DefaultDependencyResolver(new Report2Classpath()),
                 new DefaultDependencyPublisher(),
-                new DefaultMavenPomGenerator(
-                        new DefaultPomModuleDescriptorFileWriter(
-                                new DefaultPomModuleDescriptorWriter(
-                                        new DefaultPomModuleDescriptorHeaderWriter(),
-                                        new DefaultPomModuleDescriptorModuleIdWriter(),
-                                        new DefaultPomModuleDescriptorDependenciesWriter(
-                                                new DefaultPomModuleDescriptorDependenciesConverter(
-                                                        new DefaultExcludeRuleConverter()
-                                                )
-                                        )
-                                )),
-                    new DefaultConf2ScopeMappingContainer()),
                 buildResolverDir,
                 new DefaultExcludeRuleContainer());
         dependencyManager.setProject(project);

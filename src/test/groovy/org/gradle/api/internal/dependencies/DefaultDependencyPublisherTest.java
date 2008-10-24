@@ -20,7 +20,6 @@ import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.core.publish.PublishOptions;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.dependencies.MavenPomGenerator;
 import org.gradle.api.DependencyManager;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
@@ -47,7 +46,6 @@ public class DefaultDependencyPublisherTest {
     private DefaultDependencyPublisher dependencyPublisher;
     private PublishEngine publishEngineMock;
     private DependencyManager dependencyManagerMock;
-    private MavenPomGenerator mavenMockPomGenerator;
     private List<String> expectedConfs;
     private ResolverContainer resolverContainerMock;
 
@@ -59,8 +57,6 @@ public class DefaultDependencyPublisherTest {
     };
     private ModuleDescriptor moduleDescriptorMock;
     private List<String> expectedSrcArtifactPatterns;
-    private File expectedPomFile;
-    private FileSystemResolver testPomDescriptorResolver;
     private FileSystemResolver testIvyDescriptorResolver;
 
     @Before
@@ -72,7 +68,6 @@ public class DefaultDependencyPublisherTest {
         expectedConfs = WrapUtil.toList("conf1");
         moduleDescriptorMock = context.mock(ModuleDescriptor.class);
         expectedIvyFile = new File(HelperUtil.makeNewTestDir(), "ivy.xml");
-        expectedPomFile = new File(HelperUtil.makeNewTestDir(), "pom.xml");
         expectedSrcArtifactPatterns = new ArrayList<String>();
         expectedSrcArtifactPatterns.addAll(dependencyManagerMock.getAbsoluteArtifactPatterns());
         expectedSrcArtifactPatterns.add(new File("a", TEST_DEFAULT_PATTERN).getAbsolutePath());
@@ -81,7 +76,6 @@ public class DefaultDependencyPublisherTest {
 
     private void prepareDependencyManagerMock() {
         dependencyManagerMock = context.mock(DependencyManager.class);
-        mavenMockPomGenerator = context.mock(MavenPomGenerator.class);
         context.checking(new Expectations() {
             {
                 allowing(dependencyManagerMock).getAbsoluteArtifactPatterns();
@@ -90,10 +84,6 @@ public class DefaultDependencyPublisherTest {
                 will(returnValue(WrapUtil.toSet(new File("a"), new File("b"))));
                 allowing(dependencyManagerMock).getDefaultArtifactPattern();
                 will(returnValue(TEST_DEFAULT_PATTERN));
-                allowing(dependencyManagerMock).getMaven();
-                will(returnValue(mavenMockPomGenerator));
-                allowing(mavenMockPomGenerator).getPackaging();
-                will(returnValue(TEST_MAVEN_PACKAGING));
             }
         });
     }
@@ -102,21 +92,11 @@ public class DefaultDependencyPublisherTest {
         resolverContainerMock = context.mock(ResolverContainer.class);
         testIvyDescriptorResolver = new FileSystemResolver();
         testIvyDescriptorResolver.setName("ivy");
-        testPomDescriptorResolver = new FileSystemResolver();
-        testPomDescriptorResolver.setName("pom");
-        final List<FileSystemResolver> expectedResolverList = WrapUtil.toList(testIvyDescriptorResolver, testPomDescriptorResolver);
+        final List<FileSystemResolver> expectedResolverList = WrapUtil.toList(testIvyDescriptorResolver);
         context.checking(new Expectations() {
             {
                 allowing(resolverContainerMock).getResolverList();
                 will(returnValue(expectedResolverList));
-                allowing(resolverContainerMock).isPomResolver(testIvyDescriptorResolver);
-                will(returnValue(false));
-                allowing(resolverContainerMock).isPomResolver(testPomDescriptorResolver);
-                will(returnValue(true));
-                allowing(resolverContainerMock).hasIvyResolvers();
-                will(returnValue(true));
-                allowing(resolverContainerMock).hasPomResolvers();
-                will(returnValue(true));
             }
         });
     }
@@ -130,13 +110,7 @@ public class DefaultDependencyPublisherTest {
                         with(equal(expectedSrcArtifactPatterns)),
                         with(equal(testIvyDescriptorResolver)),
                         with(reflectionEquals(createPublishOptions(expectedIvyFile))));
-                one(publishEngineMock).publish(
-                        with(same(moduleDescriptorMock)),
-                        with(equal(expectedSrcArtifactPatterns)),
-                        with(equal(testPomDescriptorResolver)),
-                        with(reflectionEquals(createPublishOptions(expectedPomFile))));
                 one(moduleDescriptorMock).toIvyFile(expectedIvyFile);
-                one(mavenMockPomGenerator).toPomFile(moduleDescriptorMock, expectedPomFile);
             }
         });
         dependencyPublisher.publish(expectedConfs, resolverContainerMock, moduleDescriptorMock,
@@ -162,11 +136,6 @@ public class DefaultDependencyPublisherTest {
                         with(same(moduleDescriptorMock)),
                         with(equal(expectedSrcArtifactPatterns)),
                         with(equal(testIvyDescriptorResolver)),
-                        with(reflectionEquals(publishOptions)));
-                one(publishEngineMock).publish(
-                        with(same(moduleDescriptorMock)),
-                        with(equal(expectedSrcArtifactPatterns)),
-                        with(equal(testPomDescriptorResolver)),
                         with(reflectionEquals(publishOptions)));
             }
         });

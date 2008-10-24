@@ -20,7 +20,6 @@ import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.core.publish.PublishOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.dependencies.MavenPomGenerator;
 import org.gradle.api.DependencyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.text.ParseException;
 
 /**
  * @author Hans Dockter
@@ -50,37 +50,23 @@ public class DefaultDependencyPublisher implements IDependencyPublisher {
         PublishOptions publishOptions = new PublishOptions();
         publishOptions.setOverwrite(true);
         publishOptions.setConfs(configurations.toArray(new String[configurations.size()]));
-        File pomFile = new File(parentDir, POM_FILE_NAME);
         File ivyFile = new File(parentDir, IVY_FILE_NAME);
         List<String> artifactPatterns = absoluteArtifactPatterns(
                 dependencyManager.getAbsoluteArtifactPatterns(), dependencyManager.getDefaultArtifactPattern(), dependencyManager.getArtifactParentDirs());
         try {
             if (uploadModuleDescriptor) {
-                createPomAndIvyFile(ivyFile, pomFile, resolvers, moduleDescriptor, dependencyManager.getMaven());
+                moduleDescriptor.toIvyFile(ivyFile);
+                publishOptions.setSrcIvyPattern(ivyFile.getAbsolutePath());
             }
             for (DependencyResolver resolver : resolvers.getResolverList()) {
                 logger.info("Publishing to Resolver {}", resolver);
                 logger.debug("Using artifact patterns: {}", artifactPatterns);
-                if (uploadModuleDescriptor) {
-                    publishOptions.setSrcIvyPattern(resolvers.isPomResolver(resolver) ? pomFile.getAbsolutePath() : ivyFile.getAbsolutePath());
-                }
                 publishEngine.publish(moduleDescriptor, artifactPatterns, resolver, publishOptions);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private void createPomAndIvyFile(File ivyFile, File pomFile, ResolverContainer resolvers, ModuleDescriptor moduleDescriptor, MavenPomGenerator mavenPomGenerator) {
-        if (resolvers.hasPomResolvers()) {
-            mavenPomGenerator.toPomFile(moduleDescriptor, pomFile);
-        }
-        if (resolvers.hasIvyResolvers()) {
-            try {
-                moduleDescriptor.toIvyFile(ivyFile);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -91,6 +77,4 @@ public class DefaultDependencyPublisher implements IDependencyPublisher {
         }
         return allArtifactPatterns;
     }
-
-
 }

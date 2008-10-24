@@ -38,7 +38,7 @@ import static org.gradle.util.WrapUtil.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.dependencies.MavenPomGenerator
+import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.dependencies.Configuration
 
 /**
@@ -53,10 +53,10 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     ModuleDescriptorConverter moduleDescriptorConverter
     IDependencyResolver dependencyResolverMock
     IDependencyPublisher dependencyPublisherMock
-    MavenPomGenerator mavenPomGeneratorMock
     IIvyFactory ivyFactoryMock
     File buildResolverDir
     ArtifactFactory artifactFactory
+    ResolverFactory resolverFactoryMock
     BuildResolverHandler mockSpecialResolverHandler
     RepositoryResolver expectedBuildResolver
 
@@ -82,15 +82,15 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         expectedIvy = new Ivy();
         ivyFactoryMock = context.mock(IIvyFactory)
         artifactFactory = context.mock(ArtifactFactory)
+        resolverFactoryMock = context.mock(ResolverFactory)
         dependencyResolverMock = context.mock(IDependencyResolver)
         dependencyPublisherMock = context.mock(IDependencyPublisher)
-        mavenPomGeneratorMock = context.mock(MavenPomGenerator)
         testExcludeRuleContainer = new DefaultExcludeRuleContainer()
         settingsConverter = context.mock(SettingsConverter)
         buildResolverDir = new File('buildResolverDir')
         moduleDescriptorConverter = context.mock(ModuleDescriptorConverter)
-        dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, artifactFactory, settingsConverter,
-                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, mavenPomGeneratorMock, buildResolverDir, testExcludeRuleContainer)
+        dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, artifactFactory, resolverFactoryMock, settingsConverter,
+                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir, testExcludeRuleContainer)
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
@@ -104,17 +104,18 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     @Test public void testInit() {
         assert dependencyManager.ivyFactory.is(ivyFactoryMock)
         assert dependencyManager.artifactFactory.is(artifactFactory)
+        assert dependencyManager.resolverFactory.is(resolverFactoryMock)
         assert dependencyManager.settingsConverter.is(settingsConverter)
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
         assert dependencyManager.dependencyResolver.is(dependencyResolverMock)
         assert dependencyManager.dependencyPublisher.is(dependencyPublisherMock)
-        assert dependencyManager.maven.is(mavenPomGeneratorMock)
         assert dependencyManager.excludeRules.is(testExcludeRuleContainer)
         assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.classpathResolvers
         assert dependencyManager.failForMissingDependencies
         assert dependencyManager.localReposCacheHandler.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.buildResolverHandler.buildResolverDir.is(buildResolverDir)
+        assertNotNull(dependencyManager.defaultMavenScopeMapping)
         assertEquals([], dependencyManager.getAbsoluteArtifactPatterns())
         assertEquals([] as Set, dependencyManager.getArtifactParentDirs())
         assertEquals(DependencyManager.DEFAULT_ARTIFACT_PATTERN, dependencyManager.defaultArtifactPattern)
@@ -432,5 +433,14 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assertEquals(dependencyManager.project.name, moduleRevisionId.name)
         assertEquals(dependencyManager.project.version, moduleRevisionId.revision)
         assertEquals(dependencyManager.project.group, moduleRevisionId.organisation)
+    }
+
+    @Test public void createModuleDescriptor() {
+        ModuleDescriptor testModuleDescriptor = [:] as ModuleDescriptor
+        context.checking {
+            one(moduleDescriptorConverter).convert(dependencyManager, true)
+            will(returnValue(testModuleDescriptor))
+        }
+        assertSame(testModuleDescriptor, dependencyManager.createModuleDescriptor(true))
     }
 }

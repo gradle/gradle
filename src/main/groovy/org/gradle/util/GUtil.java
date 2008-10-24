@@ -123,14 +123,14 @@ public class GUtil {
         return properties;
     }
 
-    public static Collection chooseCollection(Collection taskCollection, Collection conventionCollection) {
+    public static <T> List<T> chooseCollection(List<T> taskCollection, List<T> conventionCollection) {
         if (taskCollection != null) {
             return taskCollection;
         }
         if (conventionCollection != null) {
             taskCollection = conventionCollection;
         } else {
-            taskCollection = new ArrayList();
+            taskCollection = new ArrayList<T>();
         }
         return taskCollection;
     }

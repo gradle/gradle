@@ -21,7 +21,7 @@ import org.gradle.api.dependencies.ExcludeRuleContainer
 import org.gradle.util.WrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.dependencies.MavenPomGenerator
+import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.dependencies.Configuration
 
 /**
@@ -35,11 +35,11 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     }
 
     public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
-                             SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
-                             IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher, MavenPomGenerator mavenPomGenerator,
+                             ResolverFactory resolverFactory, SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
+                             IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
                              File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
-        super(ivyFactory, dependencyFactory, artifactFactory, settingsConverter, moduleDescriptorConverter,
-                dependencyResolver, dependencyPublisher, mavenPomGenerator, buildResolverDir, excludeRuleContainer);
+        super(ivyFactory, dependencyFactory, artifactFactory, resolverFactory, settingsConverter, moduleDescriptorConverter,
+                dependencyResolver, dependencyPublisher, buildResolverDir, excludeRuleContainer);
     }
 
     public def propertyMissing(String name) {

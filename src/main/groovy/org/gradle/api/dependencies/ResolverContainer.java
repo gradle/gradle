@@ -19,9 +19,10 @@ package org.gradle.api.dependencies;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.LocalReposCacheHandler;
+import org.gradle.api.DependencyManager;
+import org.gradle.api.dependencies.maven.GroovyMavenUploader;
+import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.dependencies.ResolverFactory;
-import org.gradle.api.dependencies.MavenUploadResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -32,17 +33,23 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class ResolverContainer {
-    private ResolverFactory resolverFactory = new ResolverFactory(new LocalReposCacheHandler());
+    private ResolverFactory resolverFactory;
 
     private List<String> resolverNames = new ArrayList<String>();
 
     private Map<String, DependencyResolver> resolvers = new HashMap<String, DependencyResolver>();
 
+    private File mavenPomDir;
+
+    private Conf2ScopeMappingContainer mavenConf2ScopeMappings;
+
+    private DependencyManager dependencyManager;
+
     public ResolverContainer() {
     }
 
-    public ResolverContainer(LocalReposCacheHandler localReposCacheHandler) {
-        resolverFactory = new ResolverFactory(localReposCacheHandler);
+    public ResolverContainer(ResolverFactory resolverFactory) {
+        this.resolverFactory = resolverFactory;
     }
 
     public DependencyResolver add(Object userDescription) {
@@ -153,28 +160,6 @@ public class ResolverContainer {
         return resolverFactory.createMavenRepoResolver(name, root, jarRepoUrls);
     }
 
-    public boolean isPomResolver(DependencyResolver resolver) {
-        return resolver instanceof MavenUploadResolver;
-    }
-
-    public boolean hasIvyResolvers() {
-        for (DependencyResolver dependencyResolver : resolvers.values()) {
-            if (!isPomResolver(dependencyResolver)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean hasPomResolvers() {
-        for (DependencyResolver dependencyResolver : resolvers.values()) {
-            if (isPomResolver(dependencyResolver)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static interface OrderAction {
         void apply(String resolverName);
     }
@@ -202,4 +187,42 @@ public class ResolverContainer {
     public void setResolvers(Map<String, DependencyResolver> resolvers) {
         this.resolvers = resolvers;
     }
+
+    public File getMavenPomDir() {
+        return mavenPomDir;
+    }
+
+    public void setMavenPomDir(File mavenPomDir) {
+        this.mavenPomDir = mavenPomDir;
+    }
+
+    public Conf2ScopeMappingContainer getMavenConf2ScopeMappings() {
+        return mavenConf2ScopeMappings;
+    }
+
+    public void setMavenConf2ScopeMappings(Conf2ScopeMappingContainer mavenConf2ScopeMappings) {
+        this.mavenConf2ScopeMappings = mavenConf2ScopeMappings;
+    }
+
+    public DependencyManager getDependencyManager() {
+        return dependencyManager;
+    }
+
+    public void setDependencyManager(DependencyManager dependencyManager) {
+        this.dependencyManager = dependencyManager;
+    }
+
+    public GroovyMavenUploader createMavenUploader(String name) {
+        return resolverFactory.createMavenUploader(name, mavenPomDir, mavenConf2ScopeMappings, dependencyManager);
+    }
+
+    public GroovyMavenUploader addMavenUploader(String name) {
+        return (GroovyMavenUploader) add(createMavenUploader(name));
+    }
+
+    public GroovyMavenUploader addMavenUploader(String name, Closure configureClosure) {
+        return (GroovyMavenUploader) add(createMavenUploader(name), configureClosure);
+    }
+
+
 }

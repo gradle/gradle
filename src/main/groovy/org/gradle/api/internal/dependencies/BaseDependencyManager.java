@@ -19,17 +19,15 @@ package org.gradle.api.internal.dependencies;
 import groovy.lang.Closure;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.dependencies.ExcludeRuleContainer;
-import org.gradle.api.dependencies.GradleArtifact;
-import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.dependencies.MavenPomGenerator;
-import org.gradle.api.dependencies.UnknownConfigurationException;
-import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.dependencies.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
@@ -44,24 +42,12 @@ import java.util.*;
 public class BaseDependencyManager extends DefaultDependencyContainer implements DependencyManagerInternal {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyManager.class);
 
-    /**
-     * A map where the key is the name of the configuration and the values are Ivy configuration objects.
-     */
     private Map<String, DefaultConfiguration> configurations = new HashMap<String, DefaultConfiguration>();
 
-    /**
-     * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
-     */
     private Map<String, List<GradleArtifact>> artifacts = new HashMap<String, List<GradleArtifact>>();
 
-    /**
-     * A list for passing directly instances of Ivy Artifact objects.
-     */
     private Map<String, List<Artifact>> artifactDescriptors = new HashMap<String, List<Artifact>>();
 
-    /**
-     * Ivy patterns to tell Ivy where to look for artifacts when publishing the module.
-     */
     private List<String> absoluteArtifactPatterns = new ArrayList<String>();
 
     private Set<File> artifactParentDirs = new HashSet<File>();
@@ -69,6 +55,8 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
     private String defaultArtifactPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN;
 
     private ArtifactFactory artifactFactory;
+
+    private ResolverFactory resolverFactory;
 
     private IIvyFactory ivyFactory;
 
@@ -80,28 +68,18 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     private IDependencyPublisher dependencyPublisher;
 
-    private MavenPomGenerator mavenPomGenerator;
-
     private LocalReposCacheHandler localReposCacheHandler = new LocalReposCacheHandler();
 
     private BuildResolverHandler buildResolverHandler = new BuildResolverHandler(localReposCacheHandler);
 
-    private ResolverContainer classpathResolvers = new ResolverContainer(localReposCacheHandler);
+    private ResolverContainer classpathResolvers;
 
-    /**
-     * The name of the task which produces the artifacts of this project. This is needed by other projects,
-     * which have a dependency on a project.
-     */
+    private Conf2ScopeMappingContainer defaultConf2ScopeMapping = new DefaultConf2ScopeMappingContainer();
+
     private String artifactProductionTaskName;
 
-    /**
-     * A map where the key is the name of the configuration and the value is the name of a task. This is needed
-     * to deal with project dependencies. In case of a project dependency, we need to establish a dependsOn relationship,
-     * between a task of the project and the task of the dependsOn project, which builds the artifacts. The default is,
-     * that the project task is used, which has the same name as the configuration. If this is not what is wanted,
-     * the mapping can be specified via this map.
-     */
     private Map<String, Set<String>> confs4Task = new HashMap<String, Set<String>>();
+
     private Map<String, Set<String>> tasks4Conf = new HashMap<String, Set<String>>();
 
     /**
@@ -119,21 +97,22 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
     }
 
     public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
-                                 SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
+                                 ResolverFactory resolverFactory, SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                                  IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                                 MavenPomGenerator mavenPomGenerator, File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
+                                 File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(dependencyFactory, new ArrayList());
         assert buildResolverDir != null;
         this.ivyFactory = ivyFactory;
         this.artifactFactory = artifactFactory;
+        this.resolverFactory = resolverFactory;
         this.settingsConverter = settingsConverter;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
-        this.mavenPomGenerator = mavenPomGenerator;
         this.localReposCacheHandler.setBuildResolverDir(buildResolverDir);
         this.buildResolverHandler.setBuildResolverDir(buildResolverDir);
         this.excludeRules = excludeRuleContainer;
+        this.classpathResolvers = new ResolverContainer(resolverFactory);
     }
 
     public List<File> resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies) {
@@ -440,8 +419,16 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         return excludeRules;
     }
 
-    public MavenPomGenerator getMaven() {
-        return mavenPomGenerator;
+    public ModuleDescriptor createModuleDescriptor(boolean includeProjectDependencies) {
+        return moduleDescriptorConverter.convert(this, includeProjectDependencies);
+    }
+
+    public Conf2ScopeMappingContainer getDefaultMavenScopeMapping() {
+        return defaultConf2ScopeMapping;
+    }
+
+    public void setDefaultConf2ScopeMapping(Conf2ScopeMappingContainer defaultConf2ScopeMapping) {
+        this.defaultConf2ScopeMapping = defaultConf2ScopeMapping;
     }
 
     public void setExcludeRules(ExcludeRuleContainer excludeRules) {
@@ -464,5 +451,9 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         Configuration configuration = configuration(name);
         ConfigureUtil.configure(configureClosure, configuration);
         return configuration;
+    }
+
+    public ResolverFactory getResolverFactory() {
+        return resolverFactory;
     }
 }

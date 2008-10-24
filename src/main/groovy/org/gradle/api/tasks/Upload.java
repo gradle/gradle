@@ -54,8 +54,7 @@ public class Upload extends DefaultTask {
 
     public Upload(Project project, String name) {
         super(project, name);
-        uploadResolvers = new ResolverContainer(
-                new LocalReposCacheHandler(project.getDependencies().getBuildResolverDir()));
+        uploadResolvers = new ResolverContainer(project.getDependencies().getResolverFactory());
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 upload(task);

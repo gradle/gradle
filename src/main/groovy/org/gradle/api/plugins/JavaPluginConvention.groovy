@@ -24,6 +24,7 @@ import org.gradle.api.tasks.bundling.*
  * @author Hans Dockter
  */
 // todo Think about moving the mkdir method to the project.
+// todo Refactor to Java
 class JavaPluginConvention {
     public static final Map DEFAULT_ARCHIVE_TYPES = [
             jar: new ArchiveType("jar", DefaultConventionsToPropertiesMapping.JAR, Jar),
@@ -56,6 +57,9 @@ class JavaPluginConvention {
     List floatingResourceDirs = []
     List floatingTestResourceDirs = []
 
+    String uploadDistsPomDirName
+    String uploadLibsPomDirName
+
     String sourceCompatibility
     String targetCompatibility
     Map archiveTypes
@@ -75,6 +79,8 @@ class JavaPluginConvention {
         docsDirName = 'docs'
         javadocDirName = 'javadoc'
         reportsDirName = 'reports'
+        uploadLibsPomDirName = 'libs-poms'
+        uploadDistsPomDirName = 'dists-poms'
         testResultsDirName = 'test-results'
         testReportDirName = 'tests'
         srcDirNames << 'main/java'
@@ -127,6 +133,14 @@ class JavaPluginConvention {
 
     File getTestClassesDir() {
         new File(project.buildDir, testClassesDirName)
+    }
+
+    File getUploadLibsPomDir() {
+        new File(project.buildDir, uploadLibsPomDirName)
+    }
+
+    File getUploadDistsPomDir() {
+        new File(project.buildDir, uploadDistsPomDirName)
     }
 
     File getDistsDir() {

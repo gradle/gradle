@@ -63,6 +63,8 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(['test/java'], convention.testSrcDirNames)
         assertEquals(['main/resources'], convention.resourceDirNames)
         assertEquals(['test/resources'], convention.testResourceDirNames)
+        assertEquals('libs-poms', convention.uploadLibsPomDirName)
+        assertEquals('dists-poms', convention.uploadDistsPomDirName)
     }
 
     @Test public void testDefaultDirs() {
@@ -95,6 +97,8 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(project.buildDir, convention.reportsDirName), convention.reportsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
+        assertEquals(new File(project.buildDir, convention.uploadLibsPomDirName), convention.uploadLibsPomDir)
+        assertEquals(new File(project.buildDir, convention.uploadDistsPomDirName), convention.uploadDistsPomDir)
     }
 
     @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {

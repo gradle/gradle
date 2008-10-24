@@ -16,16 +16,15 @@
 
 package org.gradle.api.plugins;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.dependencies.Filter;
-import org.gradle.api.dependencies.MavenPomGenerator;
 import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.War;
@@ -59,13 +58,12 @@ public class WarPlugin implements Plugin {
         dependencyManager.addConfiguration(PROVIDED_RUNTIME).setVisible(false).extendsFrom(PROVIDED_COMPILE);
         dependencyManager.configuration(JavaPlugin.COMPILE).extendsFrom(PROVIDED_COMPILE);
         dependencyManager.configuration(JavaPlugin.RUNTIME).extendsFrom(PROVIDED_RUNTIME);
-        configureMavenScopeMappings(dependencyManager.getMaven());
+        configureMavenScopeMappings(dependencyManager);
     }
 
-    private void configureMavenScopeMappings(MavenPomGenerator mavenPomGenerator) {
-        mavenPomGenerator.setPackaging(MavenPomGenerator.WAR_PACKAGING);
-        mavenPomGenerator.getScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, PROVIDED_COMPILE, MavenPomGenerator.PROVIDED);
-        mavenPomGenerator.getScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, PROVIDED_RUNTIME, MavenPomGenerator.PROVIDED);
+    private void configureMavenScopeMappings(DependencyManager dependencyManager) {
+        dependencyManager.getDefaultMavenScopeMapping().addMapping(PROVIDED_COMPILE_PRIORITY, PROVIDED_COMPILE, Conf2ScopeMappingContainer.PROVIDED);
+        dependencyManager.getDefaultMavenScopeMapping().addMapping(PROVIDED_RUNTIME_PRIORITY, PROVIDED_RUNTIME, Conf2ScopeMappingContainer.PROVIDED);
     }
 
     private void configureEclipse(Project project, War war) {

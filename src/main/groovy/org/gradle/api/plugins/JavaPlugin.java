@@ -19,8 +19,9 @@ package org.gradle.api.plugins;
 import org.gradle.api.*;
 import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.MavenPomGenerator;
+import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
@@ -111,15 +112,22 @@ public class JavaPlugin implements Plugin {
         configureLibs(project, javaConvention);
 
         configureUploadInternalLibs(project);
-        configureUploadLibs(project);
+        configureUploadLibs(project, javaConvention);
 
         configureDists(project);
 
-        Upload distsUpload = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", DISTS), UPLOAD_DISTS);
-        distsUpload.getConfigurations().add(DISTS);
+        configureUploadDists(project, javaConvention);
 
         configureEclipse(project);
         configureEclipseWtpModule(project);
+    }
+
+    private void configureUploadDists(Project project, JavaPluginConvention javaConvention) {
+        Upload uploadDists = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", DISTS), UPLOAD_DISTS);
+        uploadDists.getConfigurations().add(DISTS);
+        uploadDists.getUploadResolvers().setDependencyManager(project.getDependencies());
+        uploadDists.getUploadResolvers().setMavenPomDir(javaConvention.getUploadDistsPomDir());
+        uploadDists.getUploadResolvers().setMavenConf2ScopeMappings(new DefaultConf2ScopeMappingContainer());
     }
 
     private void configureEclipse(Project project) {
@@ -203,10 +211,13 @@ public class JavaPlugin implements Plugin {
         uploadInternalLibs.setUploadModuleDescriptor(true);
     }
 
-    private void configureUploadLibs(Project project) {
+    private void configureUploadLibs(Project project, JavaPluginConvention javaConvention) {
         Upload uploadLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_LIBS);
         uploadLibs.getConfigurations().add(LIBS);
         uploadLibs.setUploadModuleDescriptor(true);
+        uploadLibs.getUploadResolvers().setDependencyManager(project.getDependencies());
+        uploadLibs.getUploadResolvers().setMavenPomDir(javaConvention.getUploadLibsPomDir());
+        uploadLibs.getUploadResolvers().setMavenConf2ScopeMappings(project.getDependencies().getDefaultMavenScopeMapping());
     }
 
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
@@ -263,15 +274,14 @@ public class JavaPlugin implements Plugin {
         dependencies.linkConfWithTask(TEST_COMPILE, TEST_COMPILE);
         dependencies.linkConfWithTask(TEST_RUNTIME, TEST);
 
-        configureMavenScopeMappings(dependencies.getMaven());
+        configureMavenScopeMappings(dependencies);
     }
 
-    private void configureMavenScopeMappings(MavenPomGenerator mavenPomGenerator) {
-        mavenPomGenerator.setPackaging(MavenPomGenerator.JAR_PACKAGING);
-        mavenPomGenerator.getScopeMappings().addMapping(COMPILE_PRIORITY, COMPILE, MavenPomGenerator.COMPILE);
-        mavenPomGenerator.getScopeMappings().addMapping(RUNTIME_PRIORITY, RUNTIME, MavenPomGenerator.RUNTIME);
-        mavenPomGenerator.getScopeMappings().addMapping(TEST_COMPILE_PRIORITY, TEST_COMPILE, MavenPomGenerator.TEST);
-        mavenPomGenerator.getScopeMappings().addMapping(TEST_RUNTIME_PRIORITY, TEST_RUNTIME, MavenPomGenerator.TEST);
+    private void configureMavenScopeMappings(DependencyManager dependencyManager) {
+        dependencyManager.getDefaultMavenScopeMapping().addMapping(COMPILE_PRIORITY, COMPILE, Conf2ScopeMappingContainer.COMPILE);
+        dependencyManager.getDefaultMavenScopeMapping().addMapping(RUNTIME_PRIORITY, RUNTIME, Conf2ScopeMappingContainer.RUNTIME);
+        dependencyManager.getDefaultMavenScopeMapping().addMapping(TEST_COMPILE_PRIORITY, TEST_COMPILE, Conf2ScopeMappingContainer.TEST);
+        dependencyManager.getDefaultMavenScopeMapping().addMapping(TEST_RUNTIME_PRIORITY, TEST_RUNTIME, Conf2ScopeMappingContainer.TEST);
     }
 
     protected Compile configureTestCompile(Compile testCompile, final Compile compile, Map propertyMapping) {

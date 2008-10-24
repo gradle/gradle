@@ -18,14 +18,11 @@ package org.gradle.api;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.resolver.*;
-import org.gradle.api.dependencies.DependencyContainer;
-import org.gradle.api.dependencies.ExcludeRuleContainer;
-import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.dependencies.MavenPomGenerator;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.UnknownConfigurationException;
-import org.gradle.api.dependencies.GradleArtifact;
+import org.gradle.api.dependencies.*;
+import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.dependencies.ResolverFactory;
 
 import java.io.File;
 import java.util.List;
@@ -358,12 +355,32 @@ public interface DependencyManager extends DependencyContainer {
      */
     void publish(List<String> configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor);
 
+    // todo Move to DependencyManagerInternal
     ModuleRevisionId createModuleRevisionId();
 
+
+    /**
+     * Returns a container for adding exclude rules that apply to the transitive dependencies of all dependencies.
+     */
     ExcludeRuleContainer getExcludeRules();
 
     /**
-     * Returns a MavenPom instance for creating a POM and reading and manipulating settings for its generation. 
+     * Returns an ivy module descriptor containing all dependencies and configuration that have been added to this 
+     * dependency manager.
+     *
+     * @param includeProjectDependencies Whether project dependencies should be included in the module descriptor
      */
-    MavenPomGenerator getMaven();
+    ModuleDescriptor createModuleDescriptor(boolean includeProjectDependencies);
+
+    /**
+     * Returns the default mapping between configurations and Maven scopes. This default mapping is used by default
+     * a {@link org.gradle.api.internal.dependencies.maven.deploy.BaseMavenUploader} to create and deploy pom. If wished, a MavenUploadResolver
+     * sepcific setting can be defined.
+     */
+    Conf2ScopeMappingContainer getDefaultMavenScopeMapping();
+
+    /**
+     * Returns a factory for creating special resolvers like flat dir or maven resolvers.
+     */
+    ResolverFactory getResolverFactory();
 }
