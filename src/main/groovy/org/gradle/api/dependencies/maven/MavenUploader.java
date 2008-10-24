@@ -41,12 +41,34 @@ import java.util.List;
 public interface MavenUploader extends DependencyResolver {
     String DEFAULT_ARTIFACT_POM_NAME = "default";
 
+    /**
+     * Returns the repository o be used for uploading artifacts.
+     *
+     * @see #setRepository(org.apache.maven.artifact.ant.RemoteRepository) 
+     */
     RemoteRepository getRepository();
 
+    /**
+     * Sets the repository to be used for uploading artifacts. If {@link #getRepository()} is not set, this repository is
+     * also used for uploading snapshot artifacts.
+     *
+     * @param repository The repository to be used
+     */
     void setRepository(RemoteRepository repository);
 
+    /**
+     * Returns the repository o be used for uploading snapshot artifacts.
+     * 
+     * @see #setSnapshotRepository(org.apache.maven.artifact.ant.RemoteRepository)
+     */
     RemoteRepository getSnapshotRepository();
 
+    /**
+     * Sets the repository to be used for uploading snapshot artifacts. If this is not set, the {@link #getRepository()} is used
+     * for uploading snapshot artifacts.
+     *  
+     * @param snapshotRepository The repository to be used
+     */
     void setSnapshotRepository(RemoteRepository snapshotRepository);
 
     /**
@@ -91,6 +113,12 @@ public interface MavenUploader extends DependencyResolver {
      */
     void setPom(MavenPom defaultPom);
 
+    /**
+     * Out of the box only uploading to the filesysten and via http is supported. If other protocolls should be used, the
+     * appropriate Maven wagon jars have to be passed via this method.
+     * 
+     * @param jars
+     */
     void addProtocolProviderJars(List<File> jars);
 
     /**
