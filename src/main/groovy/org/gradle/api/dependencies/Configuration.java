@@ -90,6 +90,21 @@ public interface Configuration extends FileCollection {
     Configuration setTransitive(boolean t);
 
     /**
+     * Returns the description for this configuration.
+     *
+     * @return the description. May be null.
+     */
+    String getDescription();
+
+    /**
+     * Sets the description for this configuration.
+     *
+     * @param description the description. May be null
+     * @return this configuration
+     */
+    Configuration setDescription(String description);
+    
+    /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
      * the resulting set of files.
      *

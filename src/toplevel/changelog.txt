@@ -1,26 +1,10 @@
-Release Notes - Gradle - Version 0.4
+Release Notes - Gradle - Version 0.5
 
+** Incompatible Changes since 0.4
+    * DependencyManager.addConfiguration() no longer accepts an Ivy Configuration object.
 
 ** Bug
-    * [GRADLE-187] - unsupported operation when adding to project archive
-    * [GRADLE-192] - Javadoc task produces errors on package.html
-    * [GRADLE-210] - Gradle does not resolve version conflicts properly
 
 ** Improvement
-    * [GRADLE-45] - Add proper handling for path with spaces under windows for all relevant env variables
-    * [GRADLE-175] - Allow to specify a project name.
-    * [GRADLE-185] - Add test for correctness of line number in case of a build script error
-    * [GRADLE-189] - Add resolve method to dependency manager which allows to exclude project dependencies and to set failForMissingDependencies.
-    * [GRADLE-191] - Add a method to DependencyManager to get dependencies based on a libs/project filter
-    * [GRADLE-193] - Change convention value data structure from Closure to inner class.
-    * [GRADLE-202] - Provide more context in error logging for common failures
-    * [GRADLE-203] - The gradle properties should be also exposed to the settings.
-    * [GRADLE-207] - Allow exclude for project dependencies
-    * [GRADLE-214] - Consistent task and project lookup through the Project interface
-    * [GRADLE-216] - The Java Plugin should set the working dir of the forked JVM to the project dir.
-    * [GRADLE-217] - Tests should be run in forked mode as default.
-    * [GRADLE-224] - Allow 'changing' flag to be specified for a module dependency
 
 ** New Feature
-    * [GRADLE-28] - Add tasks for generating Eclipse files
-    * [GRADLE-158] - Allow an arbitray layout for a multi-project build.

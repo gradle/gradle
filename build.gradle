@@ -54,7 +54,10 @@ libDir = new File(rootDir, 'lib')
 dependencies {
     addFlatDirResolver('lib', libDir)
     // todo: Improve dependency handling for xUnit jars
-    addConfiguration(new Configuration('distLib', Visibility.PRIVATE, null, ['default'] as String[], true, null))
+    addConfiguration('distLib') {
+        visible = false
+        extendsFrom 'default'
+    }
     addConfiguration('ftpAntTask')
     addConfiguration('retrotranslatorAntTask')
 

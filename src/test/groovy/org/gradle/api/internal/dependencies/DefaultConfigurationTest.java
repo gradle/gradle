@@ -33,7 +33,7 @@ import java.io.File;
 public class DefaultConfigurationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final DependencyManagerInternal dependencyManager = context.mock(DependencyManagerInternal.class);
-    private final DefaultConfiguration configuration = new DefaultConfiguration("name", dependencyManager, null);
+    private final DefaultConfiguration configuration = new DefaultConfiguration("name", dependencyManager);
 
     @Test
     public void defaultValues() {
@@ -60,29 +60,18 @@ public class DefaultConfigurationTest {
     }
 
     @Test
+    public void withDescription() {
+        configuration.setDescription("description");
+        assertThat(configuration.getDescription(), equalTo("description"));
+        assertThat(configuration.getIvyConfiguration().getDescription(), equalTo("description"));
+    }
+
+    @Test
     public void extendsOtherConfigurations() {
         configuration.extendsFrom("a");
 
         assertThat(configuration.getExtendsFrom(), equalTo(toSet("a")));
         assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a")));
-    }
-
-    @Test
-    public void usesProvidedIvyConfigurationAsATemplate() {
-        Configuration ivyConfiguration = new Configuration("name", Configuration.Visibility.PRIVATE, "description",
-                toArray("a"), false, "dep");
-        DefaultConfiguration configuration = new DefaultConfiguration("name", dependencyManager, ivyConfiguration);
-
-        assertThat(configuration.getIvyConfiguration().getName(), equalTo("name"));
-        assertThat(configuration.getIvyConfiguration().getVisibility(), equalTo(Configuration.Visibility.PRIVATE));
-        assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a")));
-        assertThat(configuration.getIvyConfiguration().isTransitive(), equalTo(false));
-        assertThat(configuration.getIvyConfiguration().getDescription(), equalTo("description"));
-        assertThat(configuration.getIvyConfiguration().getDeprecated(), equalTo("dep"));
-
-        configuration.extendsFrom("b");
-
-        assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a", "b")));
     }
 
     @Test

@@ -235,26 +235,16 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         }
     }
 
-    public Configuration addConfiguration(org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration) {
-        return addConfiguration(ivyConfiguration.getName(), null, ivyConfiguration);
-    }
-
     public Configuration addConfiguration(String configuration) {
-        return addConfiguration(configuration, null, null);
+        return addConfiguration(configuration, null);
     }
 
-    public Configuration addConfiguration(String configuration, Closure configureClosure)
-            throws InvalidUserDataException {
-        return addConfiguration(configuration, configureClosure, null);
-    }
-
-    private Configuration addConfiguration(String name, Closure configureClosure,
-                                           org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration) {
+    public Configuration addConfiguration(String name, Closure configureClosure) {
         if (configurations.containsKey(name)) {
             throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
                     name));
         }
-        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyConfiguration);
+        DefaultConfiguration configuration = new DefaultConfiguration(name, this);
         configurations.put(name, configuration);
         ConfigureUtil.configure(configureClosure, configuration);
         return configuration;

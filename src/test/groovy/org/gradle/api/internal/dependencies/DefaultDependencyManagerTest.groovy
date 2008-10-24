@@ -338,15 +338,6 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assertThat(config.extendsFrom, equalTo(toSet('config-a', 'config-b')))
     }
 
-    @Test public void testAddConfigurationUsingIvyConfiguration() {
-        org.apache.ivy.core.module.descriptor.Configuration testConfiguration = new org.apache.ivy.core.module.descriptor.Configuration('someconf')
-        Configuration config = dependencyManager.addConfiguration(testConfiguration)
-        assertThat(config, notNullValue())
-        assertThat(config.name, equalTo('someconf'))
-        assertThat(config.ivyConfiguration, equalTo(testConfiguration))
-        assertThat(dependencyManager.configurations.someconf, sameInstance(config))
-    }
-
     @Test public void testAddConfigurationFailsWhenConfigurationWithSameNameAlreadyExists() {
         dependencyManager.addConfiguration('config')
         try {

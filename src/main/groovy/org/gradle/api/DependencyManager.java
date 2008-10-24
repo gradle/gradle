@@ -185,19 +185,6 @@ public interface DependencyManager extends DependencyContainer {
     void addArtifacts(String configurationName, Object... artifacts);
 
     /**
-     * Adds a configuration to this dependency manager, using the supplied ivy <code>Configuration</code> object
-     * as a template. You would use this method if you need to add a configuration with special attributes, such as a
-     * configuration that extends another configuration.
-     *
-     * @param configuration The configuration to add.
-     * @return The added configuration
-     * @throws InvalidUserDataException If a configuration with the given name already exists in this dependency
-     * manager.
-     */
-    Configuration addConfiguration(org.apache.ivy.core.module.descriptor.Configuration configuration)
-            throws InvalidUserDataException;
-
-    /**
      * Adds a configuration to this dependency manager.
      *
      * @param configuration The name of the configuration.

@@ -23,19 +23,10 @@ public class DefaultConfiguration implements Configuration {
     private boolean transitive = true;
     private Set<String> extendsFrom = new HashSet<String>();
     private String description;
-    private String deprecated;
 
-    public DefaultConfiguration(String name, DependencyManagerInternal dependencyManager,
-                                org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration) {
+    public DefaultConfiguration(String name, DependencyManagerInternal dependencyManager) {
         this.name = name;
         this.dependencyManager = dependencyManager;
-        if (ivyConfiguration != null) {
-            visibility = ivyConfiguration.getVisibility();
-            transitive = ivyConfiguration.isTransitive();
-            extendsFrom.addAll(Arrays.asList(ivyConfiguration.getExtends()));
-            description = ivyConfiguration.getDescription();
-            deprecated = ivyConfiguration.getDeprecated();
-        }
     }
 
     public String getName() {
@@ -74,12 +65,20 @@ public class DefaultConfiguration implements Configuration {
         return this;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public Configuration setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
     public org.apache.ivy.core.module.descriptor.Configuration getIvyConfiguration() {
         String[] superConfigs = extendsFrom.toArray(new String[extendsFrom.size()]);
         Arrays.sort(superConfigs);
         org.apache.ivy.core.module.descriptor.Configuration configuration = new org.apache.ivy.core.module.descriptor.Configuration(
-                name, visibility, description, superConfigs,
-                transitive, deprecated);
+                name, visibility, description, superConfigs, transitive, null);
         return transformer.transform(configuration);
     }
 
