@@ -17,7 +17,7 @@ package org.gradle.api.internal.dependencies.maven;
 
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.internal.dependencies.maven.PomModuleDescriptorFileWriter;
+import org.gradle.api.internal.dependencies.maven.PomFileWriter;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.io.File;
@@ -27,7 +27,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class DefaultMavenPom implements MavenPom {
-    private PomModuleDescriptorFileWriter pomModuleDescriptorFileWriter;
+    private PomFileWriter pomFileWriter;
     private Conf2ScopeMappingContainer scopeMappings;
     private String groupId;
     private String artifactId;
@@ -37,8 +37,8 @@ public class DefaultMavenPom implements MavenPom {
     private String licenseHeader;
     private List<DependencyDescriptor> dependencies;
 
-    public DefaultMavenPom(PomModuleDescriptorFileWriter pomModuleDescriptorFileWriter, Conf2ScopeMappingContainer scopeMappings, List<DependencyDescriptor> dependencies) {
-        this.pomModuleDescriptorFileWriter = pomModuleDescriptorFileWriter;
+    public DefaultMavenPom(PomFileWriter pomFileWriter, Conf2ScopeMappingContainer scopeMappings, List<DependencyDescriptor> dependencies) {
+        this.pomFileWriter = pomFileWriter;
         this.scopeMappings = scopeMappings;
         this.dependencies = dependencies;
     }
@@ -48,15 +48,15 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public void toPomFile(File pomFile) {
-        pomModuleDescriptorFileWriter.write(this, pomFile);
+        pomFileWriter.write(this, pomFile);
     }
 
-    public PomModuleDescriptorFileWriter getPomModuleDescriptorFileWriter() {
-        return pomModuleDescriptorFileWriter;
+    public PomFileWriter getPomModuleDescriptorFileWriter() {
+        return pomFileWriter;
     }
 
-    public void setPomModuleDescriptorFileWriter(PomModuleDescriptorFileWriter pomModuleDescriptorFileWriter) {
-        this.pomModuleDescriptorFileWriter = pomModuleDescriptorFileWriter;
+    public void setPomModuleDescriptorFileWriter(PomFileWriter pomFileWriter) {
+        this.pomFileWriter = pomFileWriter;
     }
 
     public String getGroupId() {

@@ -100,12 +100,12 @@ public class DefaultResolverFactory implements ResolverFactory {
         return new DefaultGroovyMavenUploader(name, new DefaultArtifactPomContainer(pomDir), new DefaultMavenPomFactory(
                 conf2ScopeMapping,
                 dependencyManager,
-                new DefaultPomModuleDescriptorFileWriter(
-                        new DefaultPomModuleDescriptorWriter(
-                                new DefaultPomModuleDescriptorHeaderWriter(),
-                                new DefaultPomModuleDescriptorModuleIdWriter(),
-                                new DefaultPomModuleDescriptorDependenciesWriter(
-                                        new DefaultPomModuleDescriptorDependenciesConverter(
+                new DefaultPomFileWriter(
+                        new DefaultPomWriter(
+                                new DefaultPomHeaderWriter(),
+                                new DefaultPomModuleIdWriter(),
+                                new DefaultPomDependenciesWriter(
+                                        new DefaultPomDependenciesConverter(
                                                 new DefaultExcludeRuleConverter()
                                         )
                                 )

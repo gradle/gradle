@@ -42,7 +42,7 @@ public class DefaultMavenPomTest {
     private static final String EXPECTED_CLASSIFIER = "classifier";
 
     DefaultMavenPom mavenPom;
-    PomModuleDescriptorFileWriter pomModuleDescriptorFileWriterMock;
+    PomFileWriter pomFileWriterMock;
     Conf2ScopeMappingContainer conf2ScopeMappingContainerMock;
     List<DependencyDescriptor> testDependencies;
 
@@ -50,10 +50,10 @@ public class DefaultMavenPomTest {
 
     @Before
     public void setUp() {
-        pomModuleDescriptorFileWriterMock = context.mock(PomModuleDescriptorFileWriter.class);
+        pomFileWriterMock = context.mock(PomFileWriter.class);
         conf2ScopeMappingContainerMock = context.mock(Conf2ScopeMappingContainer.class);
         testDependencies = new ArrayList<DependencyDescriptor>();
-        mavenPom = new DefaultMavenPom(pomModuleDescriptorFileWriterMock, conf2ScopeMappingContainerMock, testDependencies);
+        mavenPom = new DefaultMavenPom(pomFileWriterMock, conf2ScopeMappingContainerMock, testDependencies);
         mavenPom.setPackaging(EXPECTED_PACKAGING);
         mavenPom.setLicenseHeader(EXPECTED_LICENSE_HEADER);
         mavenPom.setGroupId(EXPECTED_GROUP_ID);
@@ -84,7 +84,7 @@ public class DefaultMavenPomTest {
     public void toPomFile() {
         final File expectedPomFile = new File("somefile");
         context.checking(new Expectations() {{
-            one(pomModuleDescriptorFileWriterMock).write(mavenPom, expectedPomFile);
+            one(pomFileWriterMock).write(mavenPom, expectedPomFile);
         }});
         mavenPom.toPomFile(expectedPomFile);
     }

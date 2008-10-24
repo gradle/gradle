@@ -17,7 +17,7 @@ package org.gradle.api.internal.dependencies.maven.dependencies;
 
 import org.gradle.api.internal.dependencies.maven.dependencies.MavenDependency;
 import org.gradle.api.internal.dependencies.maven.XmlHelper;
-import org.gradle.api.internal.dependencies.maven.PomModuleDescriptorWriter;
+import org.gradle.api.internal.dependencies.maven.PomWriter;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -87,25 +87,25 @@ public class DefaultMavenDependency implements MavenDependency {
     }
 
     public void write(PrintWriter writer) {
-        int elementIndent = START_INDENT + PomModuleDescriptorWriter.DEFAULT_INDENT;
-        writer.println(XmlHelper.openTag(START_INDENT, PomModuleDescriptorWriter.DEPENDENCY));
-        writeIfNotNull(writer, elementIndent, PomModuleDescriptorWriter.GROUP_ID, groupId);
-        writeIfNotNull(writer, elementIndent, PomModuleDescriptorWriter.ARTIFACT_ID, artifactId);
-        writeIfNotNull(writer, elementIndent, PomModuleDescriptorWriter.VERSION, version);
-        writeIfNotNull(writer, elementIndent, PomModuleDescriptorWriter.SCOPE, scope);
-        writeIfNotNull(writer, elementIndent, PomModuleDescriptorWriter.TYPE, type);
+        int elementIndent = START_INDENT + PomWriter.DEFAULT_INDENT;
+        writer.println(XmlHelper.openTag(START_INDENT, PomWriter.DEPENDENCY));
+        writeIfNotNull(writer, elementIndent, PomWriter.GROUP_ID, groupId);
+        writeIfNotNull(writer, elementIndent, PomWriter.ARTIFACT_ID, artifactId);
+        writeIfNotNull(writer, elementIndent, PomWriter.VERSION, version);
+        writeIfNotNull(writer, elementIndent, PomWriter.SCOPE, scope);
+        writeIfNotNull(writer, elementIndent, PomWriter.TYPE, type);
         if (optional) {
-            writer.println(XmlHelper.enclose(elementIndent, PomModuleDescriptorWriter.OPTIONAL, "" + optional));
+            writer.println(XmlHelper.enclose(elementIndent, PomWriter.OPTIONAL, "" + optional));
         }
-        writeIfNotNull(writer, elementIndent, PomModuleDescriptorWriter.CLASSIFIER, classifier);
+        writeIfNotNull(writer, elementIndent, PomWriter.CLASSIFIER, classifier);
         if (mavenExcludes.size() > 0) {
-            writer.println(XmlHelper.openTag(elementIndent, PomModuleDescriptorWriter.EXCLUDES));
+            writer.println(XmlHelper.openTag(elementIndent, PomWriter.EXCLUDES));
             for (MavenExclude mavenExclude : mavenExcludes) {
                 mavenExclude.write(writer);
             }
-            writer.println(XmlHelper.closeTag(elementIndent, PomModuleDescriptorWriter.EXCLUDES));
+            writer.println(XmlHelper.closeTag(elementIndent, PomWriter.EXCLUDES));
         }
-        writer.println(XmlHelper.closeTag(START_INDENT, PomModuleDescriptorWriter.DEPENDENCY));
+        writer.println(XmlHelper.closeTag(START_INDENT, PomWriter.DEPENDENCY));
     }
 
     private void writeIfNotNull(PrintWriter writer, int elementIndent, String elementName, String elementValue) {

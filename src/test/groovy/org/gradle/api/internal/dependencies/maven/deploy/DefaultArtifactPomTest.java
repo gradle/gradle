@@ -25,7 +25,7 @@ import org.gradle.api.dependencies.maven.PublishFilter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.dependencies.maven.DefaultMavenPom;
-import org.gradle.api.internal.dependencies.maven.PomModuleDescriptorFileWriter;
+import org.gradle.api.internal.dependencies.maven.PomFileWriter;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -52,7 +52,7 @@ public class DefaultArtifactPomTest {
 
     @Before
     public void setUp() {
-        testPom = new DefaultMavenPom(context.mock(PomModuleDescriptorFileWriter.class),
+        testPom = new DefaultMavenPom(context.mock(PomFileWriter.class),
                 new DefaultConf2ScopeMappingContainer(), new ArrayList<DependencyDescriptor>());
         testFilter = PublishFilter.ALWAYS_ACCEPT;
         artifactPom = new DefaultArtifactPom(TEST_NAME, testPom, testFilter);

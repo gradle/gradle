@@ -30,17 +30,17 @@ import java.util.Arrays;
 public class DefaultMavenPomFactory implements MavenPomFactory {
     private Conf2ScopeMappingContainer conf2ScopeMappingContainer;
     private DependencyManager dependencyManager;
-    private PomModuleDescriptorFileWriter pomModuleDescriptorFileWriter;
+    private PomFileWriter pomFileWriter;
 
-    public DefaultMavenPomFactory(Conf2ScopeMappingContainer conf2ScopeMappingContainer, DependencyManager dependencyManager, PomModuleDescriptorFileWriter pomModuleDescriptorFileWriter) {
+    public DefaultMavenPomFactory(Conf2ScopeMappingContainer conf2ScopeMappingContainer, DependencyManager dependencyManager, PomFileWriter pomFileWriter) {
         this.conf2ScopeMappingContainer = conf2ScopeMappingContainer;
         this.dependencyManager = dependencyManager;
-        this.pomModuleDescriptorFileWriter = pomModuleDescriptorFileWriter;
+        this.pomFileWriter = pomFileWriter;
     }
 
     public MavenPom createMavenPom() {
         return new DefaultMavenPom(
-                pomModuleDescriptorFileWriter,
+                pomFileWriter,
                 new DefaultConf2ScopeMappingContainer(conf2ScopeMappingContainer.getMappings()),
                 createDependencies());
     }
