@@ -124,7 +124,9 @@ public class WrapperTest extends AbstractTaskTest {
     public void testExecuteWithExistingWrapperJarParentDirAndExistingWrapperJar() throws IOException {
         File jarDir = new File(getProject().getProjectDir(), "lib");
         jarDir.mkdirs();
-        new File(getProject().getProjectDir(), targetWrapperJarPath).createNewFile();
+        File wrapperJar = new File(getProject().getProjectDir(), targetWrapperJarPath);
+        System.out.println("wrapperJar = " + wrapperJar.getAbsolutePath());
+        wrapperJar.createNewFile();
         checkExecute();
     }
 
