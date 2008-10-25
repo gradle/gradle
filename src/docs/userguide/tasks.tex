@@ -7,7 +7,7 @@ In the introductory tutorial (chapter \ref{cha:gradle_core_tutorial}) you have l
 \label{sec:configuring_tasks}
 As an example, let's look at the Resources task provided by Gradle. To create such a Resources task for your build, you may declare in your build script\footnote{If you use the JavaPlugin, this task is automatically created and added to your project}:
 \begin{Verbatim}
-createTask('resources', type: org.gradle.api.tasks.Resources)
+createTask('resources', type: Resources)
 \end{Verbatim}
 The resources task provides an API to configure it. See \href{\API tasks/Resources.html}{Resources Task API}. If you create the resources task like this, it has no default behavior.\footnote{This is different when added by the JavaPlugin}. We want now use the resources task to learn about different ways to configure it (the result is always the same for our examples).
 \begin{Verbatim}
@@ -27,7 +27,7 @@ resources.from(file('resources')).to(file('target')).
 You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task has to support this. The from, to and includes methods all return an instance of the resources object. All of Gradles build-in tasks usually support this configuration style.
 
 But there is yet another way of configuring the resources task. It also preserves the context and it possibly offers the best readability. It is usually our favorite.
-\begin{Verbatim}[numbers=left]
+\begin{Verbatim}
 Resources resources = createTask('resources', type: Resources)
 resources {
    from(file('resources'))
@@ -45,6 +45,20 @@ Resources resources = createTask('resources', type: Resources).configure {
 \end{Verbatim}
 If you pass a closure to the \texttt{createTask()} method, this closure gets added as an \emph{action} to the task. Every task has a configure method, which you can pass a closure for configuring the task. The above example works, because the \texttt{createTask} method returns the task object. Gradle uses this style for configuring objects in many places, not just for tasks.
 % section configuring_tasks (end)
+
+\section{Adding Dependencies to Tasks}
+\label{sec:adding_dependencies_to_tasks}
+There are several ways you can add dependencies to a task. In section \ref{sec:task_dependencies} you were introduced to
+using task names. You can also use \texttt{Task} objects as well:
+\codeInput{../../samples/userguide/tasks/addDependencyUsingTask/build.gradle}
+
+Task paths can be used to refer to tasks in other projects:
+\codeInput{../../samples/userguide/tasks/addDependencyUsingPath/build.gradle}
+
+You can use a closure to return a single \texttt{Task} or collections of \texttt{Task} objects:
+\codeInput{../../samples/userguide/tasks/addDependencyUsingClosure/build.gradle}
+
+% section adding_dependencies_to_tasks (end)
 
 \section{Replacing Tasks}
 Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin with a custom task of a different type. You can achieve this with:

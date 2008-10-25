@@ -338,7 +338,7 @@ createTask('userguideVersion', dependsOn: [userguideDir]) {
     new File(userguideData, 'javadocDir.tex').write('\\def \\JAVADOCDIR {' + javadocRemoteDir + '}')
 }
 
-createTask('userguide', dependsOn: [userguideDir, 'userguideVersion', 'explodedDistBase']) {
+createTask('userguide', dependsOn: [userguideDir, 'userguideVersion']) {
     File userguideSrc = new File(srcDocsDir, 'userguide')
     ant {
         if (!isLatexInstalled()) {

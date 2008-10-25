@@ -19,13 +19,15 @@ or
 \outputInputTutorial{count}
 
 \section{Task dependencies}
+\label{sec:task_dependencies}
 As you probably have guessed, you can declare dependencies between your tasks.
 \codeInput{../../samples/userguide/tutorial/intro/build.gradle}
 \outputInputTutorial{intro}
 To add a dependency, the corresponding task does not need to exist. 
 \codeInput{../../samples/userguide/tutorial/lazyDependsOn/build.gradle}
 \outputInputTutorial{lazyDependsOn}
-The dependency of targetX to targetY is declared before targetY is created. This is very important for multi-project builds.
+The dependency of \texttt{taskX} to \texttt{taskY} is declared before \texttt{taskY} is created. This is very important for multi-project builds.
+Task dependencies are discussed in more detail in section \ref{sec:adding_dependencies_to_tasks}.
 
 \section{Dynamic tasks}
 The power of Groovy can not only be used inside the tasks. You can use it for example to dynamically create tasks.
