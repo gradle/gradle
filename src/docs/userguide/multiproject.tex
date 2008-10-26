@@ -71,8 +71,8 @@ Other build systems use inheritance as the primary means for defining common beh
 \label{sub:adding_specific_behavior}
 You can add specific behavior on top of the common behavior. Usually we put the project specific behavior in the build script of the project where we want to apply this specific behavior. But as we have already seen, we don't have to do it this way. We could add project specific behavior for the bluewhale project like this:
 
-\codeGradleFile[water - ]{../../samples/userguide/multiproject/subProjectsAddFromTop/water/build.gradle}
-\outputInputGradle[userguide/multiproject/subProjectsAddFromTop/water]{../../samples/userguideOutput/multiprojectSubProjectsAddFromTop.out}
+\codeGradleFile[water - ]{../../samples/userguide/multiproject/subprojectsAddFromTop/water/build.gradle}
+\outputInputGradle[userguide/multiproject/subProjectsAddFromTop/water]{../../samples/userguideOutput/multiprojectSubprojectsAddFromTop.out}
 As we have said, we usually prefer to put project specific behavior into the build script of this project. Let's refactor and also add some project specific behavior to the krill project.
 \\
 
@@ -303,7 +303,7 @@ D- webDist
     F- src/main/java/org/gradle/sample/HelloServlet.java
 \end{Verbatim}
 \VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/dependencies/webDist/settings.gradle}
-\codeGradleFile[webDist - ]{../../samples/userguide/multiproject/dependencies/webdist/build.gradle}
+\codeGradleFile[webDist - ]{../../samples/userguide/multiproject/dependencies/webDist/build.gradle}
 We have an interesting set of dependencies. Obviously the \texttt{date} and \texttt{hello} task have a \emph{configuration} dependency on \texttt{webDist}, as all the build logic for the webapp projects is injected by \texttt{webDist}. The \emph{execution} dependency is in the other direction, as \texttt{webDist} depends on the build artifacts of \texttt{date} and \texttt{hello}. There is even a third dependency. \texttt{webDist} has a \emph{configuration} dependency on \texttt{date} and \texttt{hello} because it needs to know the \texttt{archivePath}. But it asks for this information at \emph{execution time}. Therefore we have no circular dependency.
 
 Such and other dependency patterns are daily bread in the problem space of multi-project builds. If a build system does not support such patterns, you either can't solve your problem or you need to do ugly hacks which are hard to maintain and massively afflict your productivity as a build master.
