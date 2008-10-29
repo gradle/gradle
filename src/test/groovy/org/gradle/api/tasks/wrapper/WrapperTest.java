@@ -126,6 +126,7 @@ public class WrapperTest extends AbstractTaskTest {
         jarDir.mkdirs();
         File wrapperJar = new File(getProject().getProjectDir(), targetWrapperJarPath);
         System.out.println("wrapperJar = " + wrapperJar.getAbsolutePath());
+        wrapperJar.getParentFile().mkdirs();
         wrapperJar.createNewFile();
         checkExecute();
     }
