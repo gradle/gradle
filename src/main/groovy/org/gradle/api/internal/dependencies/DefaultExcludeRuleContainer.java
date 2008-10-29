@@ -22,8 +22,8 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 
 import java.util.*;
 
@@ -31,31 +31,66 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
-    private List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>();
+    public static final ExcludeRuleContainer NO_RULES = new DefaultExcludeRuleContainer();
+
+    private List<ExcludeRule> nativeRules = new ArrayList<ExcludeRule>();
+    private Map<Map<String, String>, List<String>> addedRules = new HashMap<Map<String, String>, List<String>>();
 
     public void add(Map<String, String> args) {
-        add(args, Collections.EMPTY_SET);
+        add(args, Collections.EMPTY_LIST);
     }
 
-    public List<ExcludeRule> getRules() {
-        return excludeRules;
+    public List<ExcludeRule> getNativeRules() {
+        return nativeRules;
     }
 
-    public void setRules(List<ExcludeRule> excludeRules) {
-        this.excludeRules = excludeRules;
+    public void setNativeRules(List<ExcludeRule> excludeRules) {
+        this.nativeRules = excludeRules;
     }
 
-    public void add(Map<String, String> args, Set<String> confs) {
-        String org = GUtil.elvis(args.get("org"), PatternMatcher.ANY_EXPRESSION);
-        String module = GUtil.elvis(args.get("module"), PatternMatcher.ANY_EXPRESSION);
+    public void add(Map<String, String> args, List<String> confs) {
+        throwExceptionIfNull(confs, "The conf list");
+        checkConfsForNull(confs);
+        addedRules.put(args, confs);
+    }
+
+    private void checkConfsForNull(List<String> confs) {
+        for (String conf : confs) {
+            throwExceptionIfNull(conf, "A configuration element");
+        }
+    }
+
+    public List<ExcludeRule> getRules(List<String> masterConfs) {
+        List<ExcludeRule> allRules = new ArrayList<ExcludeRule>(nativeRules);
+        for (Map<String, String> ruleProperties : addedRules.keySet()) {
+            DefaultExcludeRule excludeRule = createExcludeRules(ruleProperties);
+            addConfsIfNecessary(masterConfs, addedRules.get(ruleProperties), excludeRule);
+            allRules.add(excludeRule);
+        }
+        return allRules;
+    }
+
+    private DefaultExcludeRule createExcludeRules(Map<String, String> ruleProperties) {
+        String org = GUtil.elvis(ruleProperties.get("org"), PatternMatcher.ANY_EXPRESSION);
+        String module = GUtil.elvis(ruleProperties.get("module"), PatternMatcher.ANY_EXPRESSION);
         DefaultExcludeRule excludeRule = new DefaultExcludeRule(new ArtifactId(
                 new ModuleId(org, module), PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION),
                 ExactPatternMatcher.INSTANCE, null);
-        excludeRules.add(excludeRule);
-        for (String conf : confs) {
-            excludeRule.addConfiguration(conf);   
+        return excludeRule;
+    }
+
+    private void addConfsIfNecessary(List<String> masterConfs, List<String> ruleConfs, DefaultExcludeRule excludeRule) {
+        List<String> confs = ruleConfs.isEmpty() ? masterConfs : ruleConfs;
+        for (String masterConf : confs) {
+            excludeRule.addConfiguration(masterConf);
+        }
+    }
+
+    private void throwExceptionIfNull(Object property, String text) {
+        if (property == null) {
+            throw new InvalidUserDataException(text + " must not be null.");
         }
     }
 }

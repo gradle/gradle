@@ -129,7 +129,7 @@ public class DefaultPomDependenciesConverterTest {
 
     @Test
     public void convertWithConvertableExcludes() {
-        final DefaultExcludeRule testExcludeRule = HelperUtil.getTestExcludeRules();
+        final DefaultExcludeRule testExcludeRule = HelperUtil.getTestExcludeRule();
         final DefaultMavenExclude mavenExclude = new DefaultMavenExclude("a", "b");
         dependencyDescriptor1.addExcludeRule("compileConf", testExcludeRule);
         context.checking(new Expectations() {{

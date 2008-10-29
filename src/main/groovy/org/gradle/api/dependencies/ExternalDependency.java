@@ -15,18 +15,39 @@
  */
 package org.gradle.api.dependencies;
 
-import org.gradle.api.Project;
-import org.gradle.api.internal.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.dependencies.DefaultModuleDependency;
+
+import java.util.List;
+
+import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
  */
-public interface ProjectDependency extends Dependency {
-    Project getDependencyProject();
+public interface ExternalDependency extends Dependency {
+    boolean isForce();
 
-    Project getProject();
+    ExternalDependency setForce(boolean force);
+
+    String getGroup();
+
+    ExternalDependency setGroup(String group);
+
+    String getName();
+
+    ExternalDependency setName(String name);
+
+    String getVersion();
+
+    ExternalDependency setVersion(String version);
 
     boolean isTransitive();
 
-    DefaultProjectDependency setTransitive(boolean transitive);
+    ExternalDependency setTransitive(boolean transitive);
+
+    List<Artifact> getArtifacts();
+
+    ExternalDependency addArtifact(Artifact artifact);
+
+    Artifact artifact(Closure configureClosure);
 }

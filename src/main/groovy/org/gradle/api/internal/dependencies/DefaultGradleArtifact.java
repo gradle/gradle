@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api.dependencies;
+
+package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.dependencies.GradleArtifact;
 import org.gradle.api.internal.dependencies.DependenciesUtil;
 import org.gradle.util.WrapUtil;
 

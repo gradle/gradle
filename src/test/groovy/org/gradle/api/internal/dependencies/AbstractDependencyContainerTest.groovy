@@ -42,8 +42,8 @@ public abstract class AbstractDependencyContainerTest {
     static final String TEST_DEPENDENCY_4 = 'spring:spring-mock:2.1'
     static final List TEST_DEPENDENCIES = [TEST_DEPENDENCY_1, TEST_DEPENDENCY_2, TEST_DEPENDENCY_3, TEST_DEPENDENCY_4]
 
-    protected ModuleDependency filterTestLibDependency;
-    protected ProjectDependency filterTestProjectDependency;
+    protected DefaultModuleDependency filterTestLibDependency;
+    protected DefaultProjectDependency filterTestProjectDependency;
 
     protected DependencyFactory dependencyFactory
     protected Project project
@@ -54,7 +54,7 @@ public abstract class AbstractDependencyContainerTest {
 
     public abstract DefaultDependencyContainer getTestObj()
 
-    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
@@ -64,8 +64,8 @@ public abstract class AbstractDependencyContainerTest {
         dependencyFactory = context.mock(DependencyFactory)
         testDefaultConfs = [DEFAULT_CONFIGURATION]
         testConfs = [TEST_CONFIGURATION]
-        filterTestLibDependency = context.mock(ModuleDependency)
-        filterTestProjectDependency = context.mock(ProjectDependency)
+        filterTestLibDependency = context.mock(DefaultModuleDependency)
+        filterTestProjectDependency = context.mock(DefaultProjectDependency)
     }
 
     @Test public void testDependencyContainerInit() {
@@ -148,14 +148,14 @@ public abstract class AbstractDependencyContainerTest {
     private void checkAddDependency(List expectedConfs, Closure addDependencyMethod) {
         String expectedId = 'someid'
 
-        ModuleDependency testModuleDependency = new ModuleDependency(null, 'org:name:1.0')
+        DefaultModuleDependency testModuleDependency = new DefaultModuleDependency([] as Set, 'org:name:1.0')
 
         context.checking {
             one(dependencyFactory).createDependency(expectedConfs as Set,
                     expectedId,
                     project); will(returnValue(testModuleDependency));
         }
-        ModuleDependency moduleDependency = addDependencyMethod(expectedConfs, expectedId) {
+        DefaultModuleDependency moduleDependency = addDependencyMethod(expectedConfs, expectedId) {
             exclude([:])
         }
         assert moduleDependency.is(testModuleDependency)
@@ -176,12 +176,12 @@ public abstract class AbstractDependencyContainerTest {
     }
 
     private void checkAddClientModule(List expectedConfs, Closure addDependencyMethod) {
-        String expectedId = 'someid'
+        String expectedId = 'org:name:1.2'
         DependencyFactory testDependencyFactory = [:] as DependencyFactory
         ClientModule clientModule = addDependencyMethod(expectedConfs, expectedId) {
             dependencyFactory = testDependencyFactory
         }
-        assertEquals(expectedConfs as Set, clientModule.confs)
+        assertEquals(expectedConfs as Set, clientModule.getDependencyConfigurationMappings().getMasterConfigurations())
         assertEquals(expectedId, clientModule.id)
         assert clientModule.dependencyFactory.is(testDependencyFactory)
     }

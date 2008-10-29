@@ -18,7 +18,7 @@ package org.gradle.api.tasks.ide.eclipse;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.internal.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.GFileUtils;
@@ -47,7 +47,7 @@ public class EclipseWtpTest extends AbstractTaskTest {
 
     private EclipseWtp eclipseWtp;
 
-    private ProjectDependency projectDependencyMock;
+    private DefaultProjectDependency projectDependencyMock;
 
     private Project testProject;
 
@@ -63,7 +63,7 @@ public class EclipseWtpTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         File projectDir = HelperUtil.makeNewTestDir();
-        projectDependencyMock = context.mock(ProjectDependency.class);
+        projectDependencyMock = context.mock(DefaultProjectDependency.class);
         testProject = HelperUtil.createRootProject(new File("dependent"));
         context.checking(new Expectations() {{
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));

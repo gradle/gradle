@@ -26,10 +26,11 @@ import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.internal.dependencies.ivy.IvyUtil;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.GradleArtifact;
-import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.ProjectDependency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ public class ModuleDescriptorConverter {
     }
 
     private void addExcludes(DefaultModuleDescriptor moduleDescriptor, DependencyManagerInternal dependencyManager) {
-        for (ExcludeRule excludeRule : dependencyManager.getExcludeRules().getRules()) {
+        for (ExcludeRule excludeRule : dependencyManager.getExcludeRules().getRules(IvyUtil.getAllMasterConfs(moduleDescriptor.getConfigurations()))) {
             moduleDescriptor.addExcludeRule(excludeRule);
         }
     }
@@ -73,7 +74,7 @@ public class ModuleDescriptorConverter {
                                           boolean includeProjectDependencies) {
         for (Dependency dependency : dependencyManager.getDependencies()) {
             if (includeProjectDependencies || !(dependency instanceof ProjectDependency)) {
-                moduleDescriptor.addDependency(dependency.createDepencencyDescriptor(moduleDescriptor));
+                moduleDescriptor.addDependency(dependency.createDependencyDescriptor(moduleDescriptor));
             }
         }
         for (DependencyDescriptor dependencyDescriptor : dependencyManager.getDependencyDescriptors()) {

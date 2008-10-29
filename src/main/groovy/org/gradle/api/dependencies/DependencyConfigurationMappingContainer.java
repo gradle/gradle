@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.dependencies;
+package org.gradle.api.dependencies;
 
-import org.gradle.api.Project;
-import org.gradle.api.dependencies.ArtifactDependency;
-import org.gradle.api.dependencies.Dependency;
-
+import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class ArtifactDependencyFactory implements IDependencyImplementationFactory {
-    public Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project) {
-        return new ArtifactDependency(confs, userDependencyDescription);
-    }
+public interface DependencyConfigurationMappingContainer {
+    String WILDCARD = "*";
+
+    void add(String... dependencyConfigurations);
+    void add(Map<String, List<String>> dependencyConfigurations);
+    Map<String, List<String>> getMappings();
+
+    void addMasters(String... masterConfigurations);
+
+    Set<String> getMasterConfigurations();
 }

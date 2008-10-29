@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
  */
 public class DependenciesUtil {
     public static final Pattern extensionSplitter = Pattern.compile("^(.+)\\@([^:]+$)");
+    public static final String CORE = "core";
 
     public static Map<String, String> splitExtension(String s) {
         Matcher matcher = extensionSplitter.matcher(s);
@@ -35,7 +36,7 @@ public class DependenciesUtil {
         if (!matches || matcher.groupCount() != 2) {
             throw new InvalidUserDataException("The description " + s + " is invalid");
         }
-        Map map = WrapUtil.toMap("core", matcher.group(1));
+        Map map = WrapUtil.toMap(CORE, matcher.group(1));
         map.put("extension", matcher.group(2));
         return map;
     }

@@ -16,15 +16,20 @@
 package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.IvyPatternHelper;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.HelperUtil;
+import org.gradle.api.InvalidUserDataException;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -35,6 +40,7 @@ public class DefaultExcludeRuleContainerTest {
     private String expectedModule;
     private String expectedOrg2;
     private String expectedModule2;
+    private static final List<String> TEST_CONF_SET = WrapUtil.toList("conf1", "conf2");
 
     @Before
     public void setUp() {
@@ -47,36 +53,67 @@ public class DefaultExcludeRuleContainerTest {
 
     @Test
     public void testInit() {
-        assertEquals(0, excludeRuleContainer.getRules().size());
+        assertEquals(0, excludeRuleContainer.getRules(TEST_CONF_SET).size());
     }
 
     @Test
     public void testAdd() {
         excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule));
-        checkAdd();
+        excludeRuleContainer.add(GUtil.map("org", expectedOrg2, "module", expectedModule2));
+        List<ExcludeRule> excludeRules = excludeRuleContainer.getRules(TEST_CONF_SET);
+        assertEquals(2, excludeRules.size());
+        checkContainsRule(excludeRules, expectedOrg, expectedModule);
+    }
+
+    private void checkContainsRule(List<ExcludeRule> excludeRules, String org, String module) {
+        boolean ruleFound = false;
+        for (ExcludeRule excludeRule : excludeRules) {
+            if (checkRule(excludeRule, expectedOrg, expectedModule)) {
+                ruleFound = true;
+            }
+        }
+        assertTrue(ruleFound);
     }
 
     @Test
     public void testAddWithConfigurations() {
-        Set<String> confs = WrapUtil.toSet("conf1", "conf2");
+        List<String> confs = WrapUtil.toList("conf3");
         excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule), confs);
-        assertEquals(Arrays.asList(excludeRuleContainer.getRules().get(0).getConfigurations()), new ArrayList(confs));
-        checkAdd();
+        List<ExcludeRule> excludeRules = excludeRuleContainer.getRules(TEST_CONF_SET);
+        assertEquals(1, excludeRules.size());
+        assertTrue(checkRule(excludeRuleContainer.getRules(TEST_CONF_SET).get(0), expectedOrg, expectedModule));
+        assertEquals(confs, Arrays.asList(excludeRuleContainer.getRules(TEST_CONF_SET).get(0).getConfigurations()));
     }
 
-    private void checkAdd() {
+    @Test
+    public void testAddWithNativeRule() {
+        excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule));
+        ExcludeRule nativeRule = HelperUtil.getTestExcludeRule();
+        excludeRuleContainer.getNativeRules().add(nativeRule);
+        List<ExcludeRule> excludeRules = excludeRuleContainer.getRules(TEST_CONF_SET);
+        assertEquals(2, excludeRules.size());
+        checkContainsRule(excludeRules, expectedOrg, expectedModule);
+        assertTrue(excludeRules.contains(nativeRule));
+    }
 
-        assertEquals(1, excludeRuleContainer.getRules().size());
-        assertEquals(excludeRuleContainer.getRules().get(0).getAttribute(IvyPatternHelper.ORGANISATION_KEY),
-                expectedOrg);
-        assertEquals(excludeRuleContainer.getRules().get(0).getAttribute(IvyPatternHelper.MODULE_KEY),
-                expectedModule);
-        excludeRuleContainer.add(GUtil.map("org", expectedOrg2, "module", expectedModule2));
-        assertEquals(2, excludeRuleContainer.getRules().size());
-        assertEquals(excludeRuleContainer.getRules().get(1).getAttribute(IvyPatternHelper.ORGANISATION_KEY),
-                expectedOrg2);
-        assertEquals(excludeRuleContainer.getRules().get(1).getAttribute(IvyPatternHelper.MODULE_KEY),
-                expectedModule2);
+    private boolean checkRule(ExcludeRule excludeRule, String group, String name) {
+        if (!excludeRule.getAttribute(IvyPatternHelper.ORGANISATION_KEY).equals(group)) {
+            return false;
+        };
+        if (!excludeRule.getAttribute(IvyPatternHelper.MODULE_KEY).equals(name)) {
+            return false;
+        };
+        return true;
+    }
+
+    @Test(expected= InvalidUserDataException.class)
+    public void confListNull() {
+        excludeRuleContainer.add(WrapUtil.<String, String>toMap("org", "jdjd"), null);
+    }
+
+    @Test(expected= InvalidUserDataException.class)
+    public void confListElementNull() {
+        excludeRuleContainer.add(WrapUtil.<String, String>toMap("org", "someValue"), WrapUtil.toList("conf", null));
     }
 
 

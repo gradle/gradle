@@ -25,7 +25,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.internal.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.GFileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -55,7 +55,7 @@ public class EclipseClasspath extends ConventionTask {
 
     private List<Object> classpathLibs;
 
-    private List<ProjectDependency> projectDependencies;
+    private List<DefaultProjectDependency> projectDependencies;
 
     private boolean failForMissingDependencies = true;
     private static final String SRC = "src";
@@ -251,7 +251,7 @@ public class EclipseClasspath extends ConventionTask {
      *
      * @see #setProjectDependencies(java.util.List)
      */
-    public List<ProjectDependency> getProjectDependencies() {
+    public List<DefaultProjectDependency> getProjectDependencies() {
         return (List) conv(projectDependencies, "projectDependencies");
     }
 
@@ -260,7 +260,7 @@ public class EclipseClasspath extends ConventionTask {
      * 
      * @param projectDependencies
      */
-    public void setProjectDependencies(List<ProjectDependency> projectDependencies) {
+    public void setProjectDependencies(List<DefaultProjectDependency> projectDependencies) {
         this.projectDependencies = projectDependencies;
     }
 

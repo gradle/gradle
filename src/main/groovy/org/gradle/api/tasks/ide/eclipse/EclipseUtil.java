@@ -21,6 +21,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.internal.dependencies.DefaultProjectDependency;
 
 import java.util.*;
 
@@ -28,7 +29,7 @@ import java.util.*;
  * @author Hans Dockter
  */
 class EclipseUtil {
-    static Set<Project> getDependsOnProjects(List<ProjectDependency> projectDependencies) {
+    static Set<Project> getDependsOnProjects(List<DefaultProjectDependency> projectDependencies) {
         Set<Project> dependsOnProjects = new HashSet<Project>();
         for (ProjectDependency projectDependency : projectDependencies) {
             dependsOnProjects.add(projectDependency.getDependencyProject());

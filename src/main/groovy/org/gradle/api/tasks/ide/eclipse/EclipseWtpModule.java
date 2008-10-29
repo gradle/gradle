@@ -21,23 +21,17 @@ import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
-import org.dom4j.io.SAXReader;
-import org.dom4j.tree.DefaultText;
 import org.dom4j.tree.DefaultAttribute;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.execution.Dag;
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Generates Eclipse configuration files for Eclipse WTP modules

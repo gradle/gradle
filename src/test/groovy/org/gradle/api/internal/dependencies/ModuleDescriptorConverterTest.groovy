@@ -24,7 +24,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.api.DependencyManager
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.GradleArtifact
-import org.gradle.api.dependencies.ProjectDependency
+import org.gradle.api.internal.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.JUnit4GroovyMockery
@@ -33,6 +33,8 @@ import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.hamcrest.Matchers
+import org.gradle.api.internal.dependencies.DefaultProjectDependency
+import org.gradle.api.dependencies.ExcludeRuleContainer
 
 /**
  * @author Hans Dockter
@@ -42,15 +44,18 @@ class ModuleDescriptorConverterTest {
     DependencyManager dependencyManager
     ExcludeRule testExcludeRule1;
     ExcludeRule testExcludeRule2;
+    ExcludeRuleContainer excludeRuleContainerMock;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
+        excludeRuleContainerMock = context.mock(ExcludeRuleContainer)
         moduleDescriptorConverter = new ModuleDescriptorConverter()
         dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, null, new File('buildResolverDir'),
                 new DefaultExcludeRuleContainer())
         dependencyManager.project = new DefaultProject()
+        dependencyManager.setExcludeRules(excludeRuleContainerMock)
         createTestExcludeRules()
     }
 
@@ -59,10 +64,15 @@ class ModuleDescriptorConverterTest {
                 ModuleId.newInstance("org", "name"), "name", "type", "ext"),
                 ExactPatternMatcher.INSTANCE,
                 [:])
+        testExcludeRule1.addConfiguration "conf1"
         testExcludeRule2 = new DefaultExcludeRule(new ArtifactId(
                 ModuleId.newInstance("org2", "name2"), "name", "type", "ext"),
                 ExactPatternMatcher.INSTANCE,
                 [:])
+        testExcludeRule2.addConfiguration "conf2"
+        context.checking {
+            allowing(excludeRuleContainerMock).getRules(withParam(Matchers.hasItems("conf1", "conf2"))); will(returnValue([testExcludeRule1, testExcludeRule2]))
+        }
     }
 
     @Test public void testConvert() {
@@ -71,9 +81,9 @@ class ModuleDescriptorConverterTest {
         Artifact ivyArtifact2 = [b: {}] as Artifact
 
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
-        ProjectDependency dependency = context.mock(ProjectDependency)
+        DefaultProjectDependency dependency = context.mock(DefaultProjectDependency)
         context.checking {
-            allowing(dependency).createDepencencyDescriptor(withParam(aNonNull(ModuleDescriptor))); will(returnValue(dependencyDescriptor))    
+            allowing(dependency).createDependencyDescriptor(withParam(aNonNull(ModuleDescriptor))); will(returnValue(dependencyDescriptor))
         }
         DependencyDescriptor dependencyDescriptor2 = [:] as DependencyDescriptor
 
@@ -88,8 +98,6 @@ class ModuleDescriptorConverterTest {
         dependencyManager.project.status = 'release'
         dependencyManager.addConfiguration('conf1')
         dependencyManager.addConfiguration('conf2')
-
-        dependencyManager.excludeRules.setRules([testExcludeRule1, testExcludeRule2])
 
         List expectedDepencencyDescriptors = [dependencyDescriptor, dependencyDescriptor2]
         Map expectedArtifactsDescriptors = [conf1: [ivyArtifact, ivyArtifact2]]
@@ -112,7 +120,10 @@ class ModuleDescriptorConverterTest {
     @Test public void testConvertWithDefaultStatus() {
         Artifact ivyArtifact = [a: {}] as Artifact
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
-        Dependency dependency = [createDepencencyDescriptor: {dependencyDescriptor}] as Dependency
+        DefaultProjectDependency dependency = context.mock(DefaultProjectDependency)
+        context.checking {
+            allowing(dependency).createDependencyDescriptor(withParam(aNonNull(ModuleDescriptor))); will(returnValue(dependencyDescriptor))
+        }
         GradleArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as GradleArtifact
         dependencyManager.dependencies = [dependency]
         dependencyManager.artifacts = [conf1: [gradleArtifact]]

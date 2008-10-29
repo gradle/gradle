@@ -18,6 +18,9 @@ package org.gradle.api.dependencies;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
+import java.util.Map;
+import java.util.List;
+
 /**
 * @author Hans Dockter
 */
@@ -25,5 +28,41 @@ public interface Dependency {
     public static final String DEFAULT_CONFIGURATION = "default";
     public static final String MASTER_CONFIGURATION = "master";
 
-    DependencyDescriptor createDepencencyDescriptor(ModuleDescriptor parent);
+    DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent);
+
+    /**
+     * Adds an exclude rule to exclude transitive dependencies of this dependency.
+     *
+     * @param excludeProperties the properties to define the exclude rule.
+     * @return this
+     * @see org.gradle.api.dependencies.ExcludeRuleContainer#add(java.util.Map)
+     * @see #exclude(java.util.Map, java.util.List)
+     */
+    Dependency exclude(Map<String, String> excludeProperties);
+
+    /**
+     * Adds an exclude rule to exclude transitive dependencies of this dependency.
+     *
+     * @param excludeProperties the properties to define the exclude rule.
+     * @param confs The confs against which the exclude rule should be applied.
+     * @return this
+     * @see org.gradle.api.dependencies.ExcludeRuleContainer#add(java.util.Map, java.util.List)
+     * @see #exclude(java.util.Map)
+     */
+    Dependency exclude(Map<String, String> excludeProperties, List<String> confs);
+
+    /**
+     * Returns the container with all the added exclude rules.
+     */
+    ExcludeRuleContainer getExcludeRules();
+
+    DependencyConfigurationMappingContainer getDependencyConfigurationMappings();
+
+    void dependencyConfigurations(String... dependencyConfigurations);
+
+    void dependencyConfigurations(Map<String, List<String>> dependencyConfigurations);
+
+    void setExcludeRules(ExcludeRuleContainer excludeRules);
+
+    void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings);
 }

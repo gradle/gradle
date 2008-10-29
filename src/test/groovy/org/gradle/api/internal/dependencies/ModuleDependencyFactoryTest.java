@@ -15,15 +15,11 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.dependencies.ExcludeRuleContainer;
-import org.gradle.api.dependencies.ModuleDependency;
+import org.gradle.api.internal.dependencies.DefaultModuleDependency;
 import org.gradle.util.WrapUtil;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.Set;
 
@@ -38,9 +34,8 @@ public class ModuleDependencyFactoryTest {
         Set<String> expectedConfs = WrapUtil.toSet("conf1");
         String expectedDescription = "junit:junit:4.0";
         moduleDependencyFactory = new ModuleDependencyFactory();
-        ModuleDependency moduleDependency = (ModuleDependency)
+        DefaultModuleDependency moduleDependency = (DefaultModuleDependency)
                 moduleDependencyFactory.createDependency(expectedConfs, expectedDescription, null);
-        assertEquals(expectedConfs, moduleDependency.getConfs());
         assertEquals(expectedDescription, moduleDependency.getUserDependencyDescription());
     }
 

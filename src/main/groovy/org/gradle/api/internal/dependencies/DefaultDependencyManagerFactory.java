@@ -39,7 +39,6 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
     public DependencyManager createDependencyManager(Project project) {
         Set<IDependencyImplementationFactory> dependencyImpls = WrapUtil.toSet(
                 new ModuleDependencyFactory(),
-                new ArtifactDependencyFactory(),
                 new ProjectDependencyFactory());
         DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
                 new DefaultIvyFactory(),

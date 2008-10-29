@@ -134,7 +134,7 @@ class HelperUtil {
         new File(TMP_DIR_FOR_TEST)
     }
 
-    static DefaultExcludeRule getTestExcludeRules() {
+    static DefaultExcludeRule getTestExcludeRule() {
         new DefaultExcludeRule(new ArtifactId(
                 new ModuleId('org', 'module'), PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION,
@@ -146,9 +146,10 @@ class HelperUtil {
         new DefaultDependencyDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), false)
     }
 
-    static DefaultModuleDescriptor getTestModuleDescriptor(String conf) {
-        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(ModuleRevisionId.newInstance('org', 'name', 'rev'))
-        moduleDescriptor.addConfiguration(new Configuration(conf))
+    static DefaultModuleDescriptor getTestModuleDescriptor(Set confs) {
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), "status", null)
+        confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
+        return moduleDescriptor;
     }
 
     static Script createTestScript() {

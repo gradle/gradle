@@ -27,7 +27,7 @@ class MavenRepo {
 
     static void execute(String gradleHome, String samplesDirName) {
         List expectedFiles = ['sillyexceptions-1.0.1.jar', 'repotest-1.0.jar', 'testdep-1.0.jar', 'testdep2-1.0.jar',
-                'classifier-1.0-jdk15.jar', 'jaronly-1.0.jar']
+                'classifier-1.0-jdk15.jar', 'classifier-dep-1.0.jar', 'jaronly-1.0.jar']
 
         File projectDir = new File(samplesDirName, PROJECT_NAME)
         Executer.execute(gradleHome, projectDir.absolutePath, ['retrieve'], [], '', Executer.DEBUG)

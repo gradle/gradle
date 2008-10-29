@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.dependencies
 
-import org.gradle.api.dependencies.DefaultGradleArtifact
+import org.gradle.api.internal.dependencies.DefaultGradleArtifact
 import org.gradle.api.internal.dependencies.ArtifactFactory
 import org.junit.Test
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter

@@ -17,6 +17,7 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.internal.dependencies.DefaultProjectDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
@@ -55,24 +56,9 @@ public class ProjectDependencyFactoryTest {
     @Test
     public void testCreateDependencyWithProjectUserDescription() {
         Project expectedDescription = HelperUtil.createRootProject(new File("root2"));
-        ProjectDependency projectDependency = (ProjectDependency)
+        DefaultProjectDependency projectDependency = (DefaultProjectDependency)
                 projectDependencyFactory.createDependency(expectedConfs, expectedDescription, expectedProject);
-        assertEquals(expectedConfs, projectDependency.getConfs());
         assertSame(expectedDescription, projectDependency.getUserDependencyDescription());
         assertSame(expectedProject, projectDependency.getProject());
     }
-
-    @Test
-    public void testCreateDependencyWithProjectDependencyUserDescription() {
-        final ProjectDependency expectedDescription = context.mock(ProjectDependency.class);
-        context.checking(new Expectations() {{
-            one(expectedDescription).initialize();
-            atLeast(1).of(expectedDescription).setConfs(expectedConfs);
-            atLeast(1).of(expectedDescription).setProject(with(same(expectedProject)));
-        }});
-        ProjectDependency projectDependency = (ProjectDependency)
-                projectDependencyFactory.createDependency(expectedConfs, expectedDescription, expectedProject);
-        assertSame(expectedDescription, projectDependency);
-    }
-
 }

@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dependencies;
+package org.gradle.api.internal.dependencies.ivy;
 
-import org.gradle.api.Project;
-import org.gradle.api.internal.dependencies.DefaultProjectDependency;
+import org.apache.ivy.core.module.descriptor.Configuration;
+
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
  */
-public interface ProjectDependency extends Dependency {
-    Project getDependencyProject();
-
-    Project getProject();
-
-    boolean isTransitive();
-
-    DefaultProjectDependency setTransitive(boolean transitive);
+public class IvyUtil {
+    public static List<String> getAllMasterConfs(Configuration[] allMasterConfigurationObjects) {
+        List<String> masterConfigurationNames = new ArrayList<String>();
+        for (Configuration masterConfigurationObject : allMasterConfigurationObjects) {
+            masterConfigurationNames.add(masterConfigurationObject.getName());
+        }
+        return masterConfigurationNames;
+    }
 }

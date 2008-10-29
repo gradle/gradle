@@ -50,20 +50,16 @@ public class DefaultDependencyManagerFactoryTest {
     }
 
     private void checkDependencyFactories(Set<IDependencyImplementationFactory> dependencyImplementationFactories) {
-        assertThat(dependencyImplementationFactories.size(), equalTo(3));
-        boolean containsArtifact = false;
+        assertThat(dependencyImplementationFactories.size(), equalTo(2));
         boolean containsModule = false;
         boolean containsProject = false;
         for (IDependencyImplementationFactory dependencyImplementationFactory : dependencyImplementationFactories) {
-            if (dependencyImplementationFactory instanceof ArtifactDependencyFactory) {
-                containsArtifact = true;
-            } else if (dependencyImplementationFactory instanceof ProjectDependencyFactory) {
+            if (dependencyImplementationFactory instanceof ProjectDependencyFactory) {
                 containsProject = true;
             } else if (dependencyImplementationFactory instanceof ModuleDependencyFactory) {
                 containsModule = true;
             }
         }
-        assertTrue(containsArtifact);
         assertTrue(containsModule);
         assertTrue(containsProject);
     }

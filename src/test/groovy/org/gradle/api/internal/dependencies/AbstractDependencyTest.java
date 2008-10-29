@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dependencies;
+package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.dependencies.AbstractDependency;
+import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import static org.junit.Assert.assertEquals;
@@ -37,25 +39,24 @@ abstract public class AbstractDependencyTest {
     protected abstract AbstractDependency getDependency();
     protected abstract Object getUserDescription();
 
-    private ModuleDescriptor parentModuleDescriptor;
+    private ModuleDescriptor parentModuleDescriptorMock;
 
-    private JUnit4Mockery context = new JUnit4GroovyMockery();
+    protected JUnit4Mockery context = new JUnit4GroovyMockery();
 
     public void setUp() {
-        parentModuleDescriptor = context.mock(ModuleDescriptor.class); 
+        parentModuleDescriptorMock = context.mock(ModuleDescriptor.class);
     }
 
     @Test
     public void testGenericInit() {
-        assertEquals(TEST_CONF_SET, getDependency().getConfs());
         assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
     }
 
-    protected ModuleDescriptor getParentModuleDescriptor() {
-        return parentModuleDescriptor;
+    protected ModuleDescriptor getParentModuleDescriptorMock() {
+        return parentModuleDescriptorMock;
     }
 
-    protected void setParentModuleDescriptor(ModuleDescriptor parentModuleDescriptor) {
-        this.parentModuleDescriptor = parentModuleDescriptor;
+    protected void setParentModuleDescriptorMock(ModuleDescriptor parentModuleDescriptorMock) {
+        this.parentModuleDescriptorMock = parentModuleDescriptorMock;
     }
 }

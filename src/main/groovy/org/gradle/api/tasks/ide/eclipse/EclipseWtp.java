@@ -21,16 +21,13 @@ import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
-import org.dom4j.io.SAXReader;
-import org.dom4j.tree.DefaultText;
-import org.dom4j.Attribute;
 import org.dom4j.tree.DefaultAttribute;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.internal.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.ConventionTask;
 import org.apache.commons.io.FilenameUtils;
 
@@ -52,7 +49,7 @@ public class EclipseWtp extends ConventionTask {
 
     private Object outputDirectory;
 
-    private List<ProjectDependency> projectDependencies;
+    private List<DefaultProjectDependency> projectDependencies;
 
     private List<Object> warLibs;
 
@@ -183,8 +180,8 @@ public class EclipseWtp extends ConventionTask {
      *
      * @see #setProjectDependencies(java.util.List)
      */
-    public List<ProjectDependency> getProjectDependencies() {
-        return (List<ProjectDependency>) conv(projectDependencies, "projectDependencies");
+    public List<DefaultProjectDependency> getProjectDependencies() {
+        return (List<DefaultProjectDependency>) conv(projectDependencies, "projectDependencies");
     }
 
     /**
@@ -192,7 +189,7 @@ public class EclipseWtp extends ConventionTask {
      *
      * @param projectDependencies
      */
-    public void setProjectDependencies(List<ProjectDependency> projectDependencies) {
+    public void setProjectDependencies(List<DefaultProjectDependency> projectDependencies) {
         this.projectDependencies = projectDependencies;
     }
 

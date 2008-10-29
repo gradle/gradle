@@ -14,14 +14,15 @@
  * limitations under the License.
  */
  
-package org.gradle.api.dependencies
+package org.gradle.api.internal.dependencies
 
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.DependencyManager
 import org.junit.Test
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
+import org.gradle.api.internal.dependencies.DefaultGradleArtifact;
 
 /**
 * @author Hans Dockter
