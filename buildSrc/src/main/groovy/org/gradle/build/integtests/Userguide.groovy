@@ -141,8 +141,10 @@ class Userguide {
                 run('tutorial', 'upper', 'upper'),
                 run('tutorial', 'zip', 'init'),
                 run('tutorial', 'zipWithCustomName', 'init'),
-                run('tutorial', 'zipWithArguments', 'init')
-
+                run('tutorial', 'zipWithArguments', 'init'),
+                run('tasks', 'addDependencyUsingTask', 'taskX'),
+                run('tasks', 'addDependencyUsingPath', 'taskX'),
+                run('tasks', 'addDependencyUsingClosure', 'taskX')
         ]
     }
 

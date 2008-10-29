@@ -1,4 +1,4 @@
-%!TEX root = master.tex
+%!TEX root = userguide.tex
 \chapter{More about Tasks} % (fold)
 \label{cha:more_about_tasks}
 In the introductory tutorial (chapter \ref{cha:gradle_core_tutorial}) you have learned how to create simple task. You have also learned how to add additional behavior to those tasks later on. And you have learned how to create dependencies between tasks. This was all about simple tasks. But Gradle takes the concept of tasks further. Gradle supports enhanced tasks. Tasks which have there own properties and methods. This is really different to what you are used from Ant targets. Such enhanced tasks are either provided by you or are provided by Gradle.
@@ -51,12 +51,15 @@ If you pass a closure to the \texttt{createTask()} method, this closure gets add
 There are several ways you can add dependencies to a task. In section \ref{sec:task_dependencies} you were introduced to
 using task names. You can also use \texttt{Task} objects as well:
 \codeInput{../../samples/userguide/tasks/addDependencyUsingTask/build.gradle}
+\outputInputTutorial{addDependencyUsingTask}
 
 Task paths can be used to refer to tasks in other projects:
 \codeInput{../../samples/userguide/tasks/addDependencyUsingPath/build.gradle}
+\outputInputTutorial{addDependencyUsingPath}
 
 You can use a closure to return a single \texttt{Task} or collections of \texttt{Task} objects:
 \codeInput{../../samples/userguide/tasks/addDependencyUsingClosure/build.gradle}
+\outputInputTutorial{addDependencyUsingClosure}
 
 % section adding_dependencies_to_tasks (end)
 
