@@ -245,6 +245,7 @@ public class JavaPlugin implements Plugin {
         test.getOptions().setFork(true);
         test.getOptions().getForkOptions().setForkMode(ForkMode.PER_TEST);
         test.getOptions().getForkOptions().setDir(project.getProjectDir());
+        test.include("**/*Tests.class", "**/*Test.class", "**/Abstract*.class");
         test.doFirst(new TaskAction() {
             public void execute(Task task) {
                 Test test = (Test) task;

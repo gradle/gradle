@@ -30,9 +30,9 @@ import org.slf4j.LoggerFactory
 class AntJunit {
     private static Logger logger = LoggerFactory.getLogger(AntJunit)
 
-    static final String CLASSPATH_ID = 'runtests.classpath'
+    private static final String CLASSPATH_ID = 'runtests.classpath'
 
-    static final String FAILURES_OR_ERRORS_PROPERTY = 'org.gradle.api.tasks.testing.failuresOrErrors'
+    public static final String FAILURES_OR_ERRORS_PROPERTY = 'org.gradle.api.tasks.testing.failuresOrErrors'
 
     void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, File testReportDir, List includes, List excludes, JunitOptions junitOptions, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)

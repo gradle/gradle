@@ -99,11 +99,12 @@ public class GUtil {
         return set;
     }
 
-    public static List addLists(List list1, List list2) {
-        ArrayList list = new ArrayList();
-        list.addAll(list1);
-        list.addAll(list2);
-        return list;
+    public static List addLists(List... lists) {
+        ArrayList newList = new ArrayList();
+        for (List list : lists) {
+            newList.addAll(list);
+        }
+        return newList;
     }
 
     public static Map addMaps(Map map1, Map map2) {
