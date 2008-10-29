@@ -74,32 +74,40 @@ public abstract class AbstractDependencyContainerTest {
         assertEquals([DEFAULT_CONFIGURATION], new DefaultDependencyContainer(dependencyFactory, [DEFAULT_CONFIGURATION]).defaultConfs)
     }
 
-    @Test public void testAddDepencenciesWithConfiguration() {
-        checkAddDependencies(testConfs, {List configurations, Object[] dependencies ->
+    @Test public void testAddDepencenciesWithConfigurationMappings() {
+        DefaultDependencyConfigurationMappingContainer mappings = HelperUtil.getConfMappings(testConfs)
+        checkAddDependencies(mappings, mappings.getMappings(), {def configurations, Object[] dependencies ->
+            testObj.dependencies(configurations, dependencies)
+        })
+    }
+
+    @Test public void testAddDepencenciesWithConfigurations() {
+        checkAddDependencies(HelperUtil.getConfMappings(testConfs), testConfs, {List configurations, Object[] dependencies ->
             testObj.dependencies(configurations, dependencies)
         })
     }
 
     @Test public void testAddDepencencies() {
-        checkAddDependencies(testDefaultConfs, {List configurations, Object[] dependencies ->
+        checkAddDependencies(HelperUtil.getConfMappings(testDefaultConfs), testConfs, {List configurations, Object[] dependencies ->
             testObj.dependencies(dependencies)
         })
     }
 
-    private void checkAddDependencies(List expectedConfigurations, Closure addDependencyMethod) {
+    private void checkAddDependencies(DefaultDependencyConfigurationMappingContainer expectedConfMappings, def expectedArgs,
+                                      Closure addDependencyMethod) {
         List dependencies = [[:] as Dependency, [:] as Dependency, [:] as Dependency, [:] as Dependency]
         context.checking {
             4.times {int i ->
-                one(dependencyFactory).createDependency(expectedConfigurations as Set,
+                one(dependencyFactory).createDependency(expectedConfMappings,
                         AbstractDependencyContainerTest.TEST_DEPENDENCIES[i],
                         project); will(returnValue(dependencies[i]));
             }
         }
-        testObj.dependencies(expectedConfigurations,
+        testObj.dependencies(expectedArgs,
                 AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
                 AbstractDependencyContainerTest.TEST_DEPENDENCY_2)
         assertEquals(dependencies[0..1], testObj.dependencies)
-        addDependencyMethod(expectedConfigurations,
+        addDependencyMethod(expectedArgs,
                 [AbstractDependencyContainerTest.TEST_DEPENDENCY_3, AbstractDependencyContainerTest.TEST_DEPENDENCY_4])
         assertEquals(dependencies[0..3], testObj.dependencies)
     }
@@ -113,14 +121,21 @@ public abstract class AbstractDependencyContainerTest {
         assertEquals([dependencyDescriptor, dependencyDescriptor2], testObj.dependencyDescriptors)
     }
 
+    @Test public void testAddDepencencyWithConfigurationMappings() {
+        DefaultDependencyConfigurationMappingContainer mappings = HelperUtil.getConfMappings(testConfs)
+        checkAddDependency(mappings, mappings.getMappings(), {def configurations, String dependency, Closure cl ->
+            testObj.dependency(configurations, dependency, cl)
+        })
+    }
+
     @Test public void testAddDepencencyWithConfiguration() {
-        checkAddDependency(testConfs, {List configurations, String dependency, Closure cl ->
+        checkAddDependency(HelperUtil.getConfMappings(testConfs), testConfs, {List configurations, String dependency, Closure cl ->
             testObj.dependency(configurations, dependency, cl)
         })
     }
 
     @Test public void testAddDependency() {
-        checkAddDependency(testDefaultConfs, {List configurations, String dependency, Closure cl ->
+        checkAddDependency(HelperUtil.getConfMappings(testDefaultConfs), testConfs, {List configurations, String dependency, Closure cl ->
             testObj.dependency(dependency, cl)
         })
     }
@@ -145,17 +160,17 @@ public abstract class AbstractDependencyContainerTest {
         testObj.getDependencies().add(filterTestProjectDependency)
     }
 
-    private void checkAddDependency(List expectedConfs, Closure addDependencyMethod) {
+    private void checkAddDependency(DefaultDependencyConfigurationMappingContainer expectedConfMappings, def args, Closure addDependencyMethod) {
         String expectedId = 'someid'
 
-        DefaultModuleDependency testModuleDependency = new DefaultModuleDependency([] as Set, 'org:name:1.0')
+        DefaultModuleDependency testModuleDependency = new DefaultModuleDependency(new DefaultDependencyConfigurationMappingContainer(), 'org:name:1.0')
 
         context.checking {
-            one(dependencyFactory).createDependency(expectedConfs as Set,
+            one(dependencyFactory).createDependency(expectedConfMappings,
                     expectedId,
                     project); will(returnValue(testModuleDependency));
         }
-        DefaultModuleDependency moduleDependency = addDependencyMethod(expectedConfs, expectedId) {
+        DefaultModuleDependency moduleDependency = addDependencyMethod(args, expectedId) {
             exclude([:])
         }
         assert moduleDependency.is(testModuleDependency)

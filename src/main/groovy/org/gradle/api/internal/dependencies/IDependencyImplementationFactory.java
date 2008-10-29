@@ -17,12 +17,14 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 
 import java.util.Set;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public interface IDependencyImplementationFactory {
-    Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project);
+    Dependency createDependency(DependencyConfigurationMappingContainer configurationMappings, Object userDependencyDescription, Project project);
 }

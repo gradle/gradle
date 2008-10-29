@@ -17,6 +17,7 @@
 package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.UnknownDependencyNotation;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
@@ -36,13 +37,16 @@ public abstract class AbstractDependency implements Dependency {
 
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
 
-    private DependencyConfigurationMappingContainer dependencyConfigurationMappings = new DefaultDependencyConfigurationMappingContainer();
+    private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
 
-    public AbstractDependency(Set<String> confs, Object userDependencyDescription) {
+    public AbstractDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDependencyDescription) {
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
             throw new UnknownDependencyNotation("Description " + userDependencyDescription + " not valid!");
         }
-        dependencyConfigurationMappings.addMasters(confs.toArray(new String[confs.size()]));
+        if (dependencyConfigurationMappings == null) {
+            throw new InvalidUserDataException("Configuration mapping must not be null.");
+        }
+        this.dependencyConfigurationMappings = dependencyConfigurationMappings;
         this.userDependencyDescription = userDependencyDescription;
     }
 

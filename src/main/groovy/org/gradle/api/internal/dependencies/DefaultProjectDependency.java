@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -38,8 +39,8 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
 
     private boolean transitive = true;
 
-    public DefaultProjectDependency(Set confs, Object dependencyProject, Project project) {
-        super(confs, dependencyProject);
+    public DefaultProjectDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object dependencyProject, Project project) {
+        super(dependencyConfigurationMappings, dependencyProject);
         this.project = project;
         this.dependencyProject = (Project) dependencyProject;
     }

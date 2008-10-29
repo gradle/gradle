@@ -27,6 +27,14 @@ import java.util.*;
 public class DefaultDependencyConfigurationMappingContainer implements DependencyConfigurationMappingContainer {
     private Map<String, List<String>> mappings = new HashMap<String, List<String>>();
 
+    public DefaultDependencyConfigurationMappingContainer(Map<String, List<String>> mappings) {
+        this.mappings = new HashMap<String, List<String>>(mappings);
+    }
+
+    public DefaultDependencyConfigurationMappingContainer() {
+        super();
+    }
+
     public void addMasters(String... masterConfigurations) {
         for (String masterConfiguration : masterConfigurations) {
             addToMapping(masterConfiguration, Arrays.asList(ModuleDescriptor.DEFAULT_CONFIGURATION));
@@ -69,5 +77,20 @@ public class DefaultDependencyConfigurationMappingContainer implements Dependenc
         Set<String> masterConfs = new HashSet<String>(getMappings().keySet());
         masterConfs.remove(WILDCARD);
         return masterConfs;
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DefaultDependencyConfigurationMappingContainer that = (DefaultDependencyConfigurationMappingContainer) o;
+
+        if (mappings != null ? !mappings.equals(that.mappings) : that.mappings != null) return false;
+
+        return true;
+    }
+
+    public int hashCode() {
+        return (mappings != null ? mappings.hashCode() : 0);
     }
 }

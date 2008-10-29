@@ -19,10 +19,7 @@ package org.gradle.api.dependencies;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.AbstractDependencyContainerTest;
-import org.gradle.api.internal.dependencies.DefaultDependencyContainer;
-import org.gradle.api.internal.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.dependencies.DefaultModuleDependency;
+import org.gradle.api.internal.dependencies.*;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JMock;
@@ -49,12 +46,15 @@ public class ClientModuleTest extends AbstractDependencyContainerTest {
     static final String TEST_CLASSIFIER = "jdk-1.4";
     static final String TEST_MODULE_DESCRIPTOR = String.format("%s:%s:%s", TEST_GROUP, TEST_NAME, TEST_VERSION);
     static final String TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER = TEST_MODULE_DESCRIPTOR + ":" + TEST_CLASSIFIER;
+
+    protected static final DefaultDependencyConfigurationMappingContainer TEST_CONF_MAPPING =
+        new DefaultDependencyConfigurationMappingContainer() {{
+            addMasters("someConf");
+    }};
     
     ClientModule clientModule;
 
     Map testModuleRegistry = WrapUtil.toMap("a", "a");
-
-    Set parentConfs = WrapUtil.toSet("parentConf");
 
     DependencyDescriptorFactory dependencyDescriptorFactoryMock;
 
@@ -67,7 +67,7 @@ public class ClientModuleTest extends AbstractDependencyContainerTest {
     @Before public void setUp() {
         super.setUp();
         dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
-        clientModule = new ClientModule(dependencyFactory, parentConfs, TEST_MODULE_DESCRIPTOR, testModuleRegistry);
+        clientModule = new ClientModule(dependencyFactory, TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR, testModuleRegistry);
         clientModule.setProject(project);
         testDefaultConfs = clientModule.getDefaultConfs();
         testConfs = clientModule.getDefaultConfs();
@@ -80,7 +80,7 @@ public class ClientModuleTest extends AbstractDependencyContainerTest {
     }
 
     @Test public void testInitWitClassifier() {
-        clientModule = new ClientModule(dependencyFactory, parentConfs, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, testModuleRegistry);
+        clientModule = new ClientModule(dependencyFactory, TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, testModuleRegistry);
         checkInit(TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
         Artifact artifact = clientModule.getArtifacts().get(0);
         assertEquals(TEST_NAME, artifact.getName());
@@ -91,7 +91,7 @@ public class ClientModuleTest extends AbstractDependencyContainerTest {
 
     private void checkInit(String id) {
         assertEquals(clientModule.getDefaultConfs(), WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION));
-        assertEquals(clientModule.getDependencyConfigurationMappings().getMasterConfigurations(), parentConfs);
+        assertEquals(clientModule.getDependencyConfigurationMappings(), TEST_CONF_MAPPING);
         assertEquals(clientModule.getDefaultConfs(), WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION));
         assertEquals(clientModule.getId(), id);
         assertEquals(clientModule.getClientModuleRegistry(), testModuleRegistry);
@@ -104,27 +104,27 @@ public class ClientModuleTest extends AbstractDependencyContainerTest {
 
     @Test (expected = InvalidUserDataException.class)
     public void testInitWithNull() {
-        new ClientModule(dependencyFactory, parentConfs, null, testModuleRegistry);
+        new ClientModule(dependencyFactory, TEST_CONF_MAPPING, null, testModuleRegistry);
     }
 
     @Test (expected = InvalidUserDataException.class)
     public void testInitWithFiveParts() {
-        new ClientModule(dependencyFactory, parentConfs, "1:2:3:4:5", testModuleRegistry);
+        new ClientModule(dependencyFactory, TEST_CONF_MAPPING, "1:2:3:4:5", testModuleRegistry);
     }
 
     @Test (expected = InvalidUserDataException.class)
     public void testInitWithTwoParts() {
-        new ClientModule(dependencyFactory, parentConfs, "1:2", testModuleRegistry);
+        new ClientModule(dependencyFactory, TEST_CONF_MAPPING, "1:2", testModuleRegistry);
     }
 
     @Test (expected = InvalidUserDataException.class)
     public void testInitWithOneParts() {
-        new ClientModule(dependencyFactory, parentConfs, "1", testModuleRegistry);
+        new ClientModule(dependencyFactory, TEST_CONF_MAPPING, "1", testModuleRegistry);
     }
 
 
     @Test public void testCreateDependencyDescriptor() {
-        clientModule = new ClientModule(dependencyFactory, parentConfs, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, testModuleRegistry);
+        clientModule = new ClientModule(dependencyFactory, TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, testModuleRegistry);
         clientModule.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock);
         final ModuleDescriptor parentModuleDescriptorMock = context.mock(ModuleDescriptor.class);
         context.checking(new Expectations() {{

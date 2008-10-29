@@ -24,6 +24,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.Artifact;
 import org.gradle.api.dependencies.ModuleDependency;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.ConfigureUtil;
 
@@ -49,8 +50,8 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
 
     private List<Artifact> artifacts = new ArrayList<Artifact>();
 
-    public DefaultModuleDependency(Set confs, Object userDescription) {
-        super(confs, userDescription);
+    public DefaultModuleDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDescription) {
+        super(dependencyConfigurationMappings, userDescription);
         initFromUserDescription(userDescription.toString());
     }
 

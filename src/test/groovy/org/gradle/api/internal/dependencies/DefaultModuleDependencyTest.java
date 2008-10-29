@@ -66,7 +66,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
     }
 
     @Before public void setUp() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, TEST_MODULE_DESCRIPTOR);
+        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR);
         context.setImposteriser(ClassImposteriser.INSTANCE);
         super.setUp();
         dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
@@ -76,32 +76,32 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
 
     @Test
     public void testInit() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, TEST_MODULE_DESCRIPTOR);
+        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR);
         assert !moduleDependency.isForce();
         assertNotNull(moduleDependency.getExcludeRules());
         assertNotNull(moduleDependency.getDependencyConfigurationMappings());
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testSingleString() {
-        new DefaultModuleDependency(TEST_CONF_SET, "singlestring");
+        new DefaultModuleDependency(TEST_CONF_MAPPING, "singlestring");
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testMissingVersion() {
-        new DefaultModuleDependency(TEST_CONF_SET, "junit:junit");
+        new DefaultModuleDependency(TEST_CONF_MAPPING, "junit:junit");
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testUnknownType() {
-        new DefaultModuleDependency(TEST_CONF_SET, new Point(3, 4));
+        new DefaultModuleDependency(TEST_CONF_MAPPING, new Point(3, 4));
     }
 
     @Test public void testWithModuleUserDescription() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, TEST_MODULE_DESCRIPTOR);
+        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR);
         checkCommonModuleProperties();
         assertTrue(moduleDependency.isTransitive());
     }
 
     @Test public void testWithArtifactUserDescription() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, TEST_ARTIFACT_DESCRIPTOR);
+        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_ARTIFACT_DESCRIPTOR);
         checkCommonModuleProperties();
         assertFalse(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
@@ -112,7 +112,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
     }
 
     @Test public void testWithModuleUserDescriptionWithClassifier() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
+        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
         checkCommonModuleProperties();
         assertTrue(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
@@ -124,7 +124,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
     }
 
     @Test public void testWithArtifactUserDescriptionWithClassifier() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, TEST_ARTIFACT_DESCRIPTOR_WITH_CLASSIFIER);
+        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_ARTIFACT_DESCRIPTOR_WITH_CLASSIFIER);
         checkCommonModuleProperties();
         assertFalse(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
@@ -145,7 +145,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
 
     @Test
     public void testCreateModuleDescriptor() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, TEST_MODULE_DESCRIPTOR).
+        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR).
                 setChanging(true).
                 setForce(true);
         moduleDependency.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock);

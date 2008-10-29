@@ -49,8 +49,12 @@ public class DefaultDependencyDescriptorFactoryTest {
     private static final String TEST_CONF = "conf";
     private static final String TEST_CONF_2 = "conf2";
     private static final String TEST_CONF_3 = "conf3";
-    private static final Set TEST_CONF_SET = WrapUtil.toSet(TEST_CONF, TEST_CONF_2, TEST_CONF_3);
-    private static final ModuleDescriptor TEST_PARENT = HelperUtil.getTestModuleDescriptor(TEST_CONF_SET);
+    protected static final DefaultDependencyConfigurationMappingContainer TEST_CONF_MAPPING =
+        new DefaultDependencyConfigurationMappingContainer() {{
+            addMasters(TEST_CONF);
+    }};
+    private static final Set<String> TEST_CONFS = WrapUtil.toSet(TEST_CONF, TEST_CONF_2, TEST_CONF_3);
+    private static final ModuleDescriptor TEST_PARENT = HelperUtil.getTestModuleDescriptor(TEST_CONFS);
     private static final String WILDCARD_CONF = "depconf4";;
 
     static final boolean TEST_CHANGING = true;
@@ -88,7 +92,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         };
         context.checking(new Expectations() {
             {
-                allowing(excludeRuleContainerMock).getRules(new ArrayList<String>(TEST_CONF_SET));
+                allowing(excludeRuleContainerMock).getRules(new ArrayList<String>(TEST_CONFS));
                 will(returnValue(WrapUtil.toList(excludeRuleWithConf, excludeRuleWithAllConf)));
                 allowing(dependencyConfigurationMappingContainerMock).getMappings();
                 will(returnValue(testDependencyConfigurations));
@@ -110,7 +114,7 @@ public class DefaultDependencyDescriptorFactoryTest {
             allowing(dependencyProjectMock).getDependencies(); will(returnValue(dependencyProjectDependencyManagerMock));
             allowing(dependencyProjectDependencyManagerMock).createModuleRevisionId(); will(returnValue(testModuleRevisionId));
         }});
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(TEST_CONF_SET, dependencyProjectMock, projectMock).
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(TEST_CONF_MAPPING, dependencyProjectMock, projectMock).
                 setTransitive(true);
         projectDependency.setExcludeRules(excludeRuleContainerMock);
         projectDependency.setDependencyConfigurationMappings(dependencyConfigurationMappingContainerMock);
@@ -128,7 +132,7 @@ public class DefaultDependencyDescriptorFactoryTest {
 
     @Test
     public void testCreateFromClientModule() {
-        ClientModule moduleDependency = new ClientModule(new DependencyFactory(new HashSet()), TEST_CONF_SET, "org.gradle:gradle-core:1.0", new HashMap()).
+        ClientModule moduleDependency = new ClientModule(new DependencyFactory(new HashSet()), TEST_CONF_MAPPING, "org.gradle:gradle-core:1.0", new HashMap()).
                 setForce(true).
                 addArtifact(artifact).
                 addArtifact(artifactWithClassifierAndConfs);
@@ -154,7 +158,7 @@ public class DefaultDependencyDescriptorFactoryTest {
 
     @Test
     public void testCreateFromModuleDependency() {
-        DefaultModuleDependency moduleDependency = new DefaultModuleDependency(TEST_CONF_SET, "org.gradle:gradle-core:1.0").
+        DefaultModuleDependency moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, "org.gradle:gradle-core:1.0").
                 setChanging(true).
                 setForce(true).
                 addArtifact(artifact).

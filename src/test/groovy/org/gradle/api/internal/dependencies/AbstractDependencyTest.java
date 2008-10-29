@@ -26,13 +26,19 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.jmock.integration.junit4.JUnit4Mockery;
 
 import java.util.Set;
+import java.util.Map;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 abstract public class AbstractDependencyTest {
     protected static final String TEST_CONF = "conf";
-    protected static final Set<String> TEST_CONF_SET = WrapUtil.toSet(TEST_CONF);
+//    protected static final Set<String> TEST_CONF_SET = WrapUtil.toSet(TEST_CONF);
+    public static final DefaultDependencyConfigurationMappingContainer TEST_CONF_MAPPING =
+        new DefaultDependencyConfigurationMappingContainer() {{
+            addMasters(TEST_CONF);
+    }};
 
     protected static final DefaultProject TEST_PROJECT = new DefaultProject();
 
@@ -50,6 +56,7 @@ abstract public class AbstractDependencyTest {
     @Test
     public void testGenericInit() {
         assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
+        assertEquals(TEST_CONF_MAPPING, getDependency().getDependencyConfigurationMappings());
     }
 
     protected ModuleDescriptor getParentModuleDescriptorMock() {

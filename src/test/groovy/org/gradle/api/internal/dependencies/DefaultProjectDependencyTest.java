@@ -83,7 +83,7 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         dependencyProject = HelperUtil.createRootProject(new File("dependency"));
         ((AbstractProject) dependencyProject).setDependencies(mockDependencyManager);
         dependencyProject.createTask(dependencyProjectArtifactProductionTaskName);
-        projectDependency = new DefaultProjectDependency(TEST_CONF_SET, dependencyProject, project);
+        projectDependency = new DefaultProjectDependency(TEST_CONF_MAPPING, dependencyProject, project);
         super.setUp();
         dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
         projectDependency.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock);
@@ -91,18 +91,18 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
     
     @Test
     public void init() {
-        projectDependency = new DefaultProjectDependency(TEST_CONF_SET, dependencyProject, project);
+        projectDependency = new DefaultProjectDependency(TEST_CONF_MAPPING, dependencyProject, project);
         assertTrue(projectDependency.isTransitive());
         assertNotNull(projectDependency.getExcludeRules());
         assertNotNull(projectDependency.getDependencyConfigurationMappings());
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testWithSingleString() {
-        new DefaultProjectDependency(TEST_CONF_SET, "string", project);
+        new DefaultProjectDependency(TEST_CONF_MAPPING, "string", project);
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testWithUnknownType() {
-        new DefaultProjectDependency(TEST_CONF_SET, new Point(3, 4), project);
+        new DefaultProjectDependency(TEST_CONF_MAPPING, new Point(3, 4), project);
     }
 
     @Test public void testCreateDependencyDescriptor() {
@@ -125,7 +125,7 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         final String expectedArtifactProductionTaskName = "artifactTask";
         final String expectedArtifactProductionTaskPath = "artifactTaskPath";
 
-        projectDependency = new DefaultProjectDependency(TEST_CONF_SET, dependencyProjectMock, projectMock);
+        projectDependency = new DefaultProjectDependency(TEST_CONF_MAPPING, dependencyProjectMock, projectMock);
 
         projectDependency.setUserDependencyDescription(dependencyProjectMock);
         tasks4conf.put(TEST_CONF, WrapUtil.toSet(TEST_CONF));

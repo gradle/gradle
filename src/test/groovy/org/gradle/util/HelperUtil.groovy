@@ -34,6 +34,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
+import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer
 
 
 
@@ -158,6 +159,12 @@ class HelperUtil {
 
     static Closure toClosure(String text) {
         return new GroovyShell().evaluate("return " + text)
+    }
+
+    static DefaultDependencyConfigurationMappingContainer getConfMappings(def confsCollection) {
+        DefaultDependencyConfigurationMappingContainer testConfigurationMappings = new DefaultDependencyConfigurationMappingContainer()
+        testConfigurationMappings.addMasters(confsCollection as String[])
+        testConfigurationMappings
     }
 }
 

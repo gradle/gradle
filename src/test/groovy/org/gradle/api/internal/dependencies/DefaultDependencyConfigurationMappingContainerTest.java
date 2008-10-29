@@ -36,6 +36,12 @@ public class DefaultDependencyConfigurationMappingContainerTest {
     public void setUp() {
         mappingContainer = new DefaultDependencyConfigurationMappingContainer();   
     }
+
+    @Test
+    public void initWithMap() {
+        Map<String, List<String>> map = WrapUtil.toMap("a", WrapUtil.toList("b", "c"));
+        assertEquals(map, new DefaultDependencyConfigurationMappingContainer(map).getMappings());
+    }
     
     @Test
     public void getMappings() {

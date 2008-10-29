@@ -36,7 +36,6 @@ import java.util.Set;
  */
 public class DependencyFactoryTest {
     private static final String TEST_CONFIGURATION = "testconf";
-    private static final Set TEST_CONFIGURATION_SET = WrapUtil.toSet(TEST_CONFIGURATION);
 
     private DependencyFactory dependencyFactory;
 
@@ -61,46 +60,46 @@ public class DependencyFactoryTest {
         final Dependency expectedStringDependency = context.mock(Dependency.class, "StringDependency");
         context.checking(new Expectations() {{
             allowing(testImplIntegerFactoryMock).createDependency(
-                    with(equal(TEST_CONFIGURATION_SET)),
+                    with(equal(AbstractDependencyTest.TEST_CONF_MAPPING)),
                     with(an(Integer.class)),
                     with(same(project)));
             will(returnValue(expectedIntegerDependency));
             allowing(testImplIntegerFactoryMock).createDependency(
-                    with(equal(TEST_CONFIGURATION_SET)),
+                    with(equal(AbstractDependencyTest.TEST_CONF_MAPPING)),
                     with(not(Integer.class)),
                     with(same(project)));
             will(throwException(new UnknownDependencyNotation()));
             allowing(testImplStringFactoryMock).createDependency(
-                    with(equal(TEST_CONFIGURATION_SET)),
+                    with(equal(AbstractDependencyTest.TEST_CONF_MAPPING)),
                     with(an(String.class)),
                     with(same(project)));
             will(returnValue(expectedStringDependency));
             allowing(testImplStringFactoryMock).createDependency(
-                    with(equal(TEST_CONFIGURATION_SET)),
+                    with(equal(AbstractDependencyTest.TEST_CONF_MAPPING)),
                     with(not(String.class)),
                     with(same(project)));
             will(throwException(new UnknownDependencyNotation()));
         }});
 
         assertSame(expectedIntegerDependency, dependencyFactory.createDependency(
-                TEST_CONFIGURATION_SET, new Integer(5), project));
+                AbstractDependencyTest.TEST_CONF_MAPPING, new Integer(5), project));
         assertSame(expectedStringDependency, dependencyFactory.createDependency(
-                TEST_CONFIGURATION_SET, "somestring", project));
+                AbstractDependencyTest.TEST_CONF_MAPPING, "somestring", project));
     }
 
     @Test (expected = InvalidUserDataException.class) public void testCreateDependencyWithInvalidDescription() {
         context.checking(new Expectations() {{
             allowing(testImplIntegerFactoryMock).createDependency(
-                    with(equal(TEST_CONFIGURATION_SET)),
+                    with(equal(AbstractDependencyTest.TEST_CONF_MAPPING)),
                     with(not(Integer.class)),
                     with(same(project)));
             will(throwException(new UnknownDependencyNotation()));
             allowing(testImplStringFactoryMock).createDependency(
-                    with(equal(TEST_CONFIGURATION_SET)),
+                    with(equal(AbstractDependencyTest.TEST_CONF_MAPPING)),
                     with(not(String.class)),
                     with(same(project)));
             will(throwException(new UnknownDependencyNotation()));
         }});
-        dependencyFactory.createDependency(TEST_CONFIGURATION_SET, new Point(3, 4), project);
+        dependencyFactory.createDependency(AbstractDependencyTest.TEST_CONF_MAPPING, new Point(3, 4), project);
     }
 }

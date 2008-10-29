@@ -42,16 +42,15 @@ public class GenericDependencyTest {
     protected DependencyConfigurationMappingContainer dependencyConfigurationMappingContainerMock;
 
     protected JUnit4Mockery context = new JUnit4Mockery();
-    private static final Set<String> TEST_CONFS = WrapUtil.toSet("conf1");
 
     @Parameterized.Parameters
     public static Collection data() {
         return Arrays.asList(new Object[][]{
-                {new DefaultModuleDependency(TEST_CONFS, "org:name:1.0")},
-                {new DefaultProjectDependency(TEST_CONFS,
+                {new DefaultModuleDependency(AbstractDependencyTest.TEST_CONF_MAPPING, "org:name:1.0")},
+                {new DefaultProjectDependency(AbstractDependencyTest.TEST_CONF_MAPPING,
                         HelperUtil.createRootProject(new File("a")),
                         HelperUtil.createRootProject(new File("a")))},
-                {new ClientModule(new DependencyFactory(new HashSet()), TEST_CONFS, "org:name:1.0", new HashMap())}
+                {new ClientModule(new DependencyFactory(new HashSet()), AbstractDependencyTest.TEST_CONF_MAPPING, "org:name:1.0", new HashMap())}
         });
     }
 

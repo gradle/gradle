@@ -21,8 +21,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 
 import java.util.Set;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -34,11 +36,11 @@ public class DependencyFactory implements IDependencyImplementationFactory {
         this.dependencyFactories = dependencyFactories;
     }
 
-    public Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project) {
+    public Dependency createDependency(DependencyConfigurationMappingContainer configurationMappings, Object userDependencyDescription, Project project) {
         Dependency dependency = null;
         for (IDependencyImplementationFactory factory : dependencyFactories) {
             try {
-                dependency = factory.createDependency(confs, userDependencyDescription, project);
+                dependency = factory.createDependency(configurationMappings, userDependencyDescription, project);
                 break;
             }
             catch (UnknownDependencyNotation e) {

@@ -17,6 +17,7 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.api.internal.dependencies.DefaultModuleDependency;
 
 import java.util.Set;
@@ -25,7 +26,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class ModuleDependencyFactory implements IDependencyImplementationFactory {
-    public Dependency createDependency(Set<String> confs, Object userDependencyDescription, Project project) {
-        return new DefaultModuleDependency(confs, userDependencyDescription);
+    public Dependency createDependency(DependencyConfigurationMappingContainer configurationMappings, Object userDependencyDescription, Project project) {
+        return new DefaultModuleDependency(configurationMappings, userDependencyDescription);
     }
 }

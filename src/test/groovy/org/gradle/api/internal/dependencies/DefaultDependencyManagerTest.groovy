@@ -40,6 +40,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.dependencies.Configuration
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
@@ -403,7 +404,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         context.checking {
             2.times {int i ->
                 one(dependencyFactoryMock).createDependency(
-                        [AbstractDependencyContainerTest.TEST_CONFIGURATION] as Set,
+                        HelperUtil.getConfMappings([AbstractDependencyContainerTest.TEST_CONFIGURATION]),
                         AbstractDependencyContainerTest.TEST_DEPENDENCIES[i],
                         this.project
                 ); will(returnValue(dependencies[i]))

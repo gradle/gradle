@@ -51,9 +51,7 @@ public class DefaultDependencyContainer implements DependencyContainer {
     }
 
     public void dependencies(List<String> confs, Object... dependencies) {
-        for (Object dependency : GUtil.flatten(Arrays.asList(dependencies))) {
-            this.dependencies.add(dependencyFactory.createDependency(new HashSet<String>(confs), dependency, project));
-        }
+        dependencies(getStandardConfigurationMapping(confs).getMappings(), dependencies);
     }
 
     public void dependencies(Object... dependencies) {
@@ -69,10 +67,7 @@ public class DefaultDependencyContainer implements DependencyContainer {
     }
 
     public Dependency dependency(List<String> confs, Object id, Closure configureClosure) {
-        Dependency dependency = dependencyFactory.createDependency(new HashSet<String>(confs), id, project);
-        dependencies.add(dependency);
-        ConfigureUtil.configure(configureClosure, dependency);
-        return dependency;
+        return dependency(getStandardConfigurationMapping(confs).getMappings(), id, configureClosure);
     }
 
     public Dependency dependency(String id) {
@@ -83,13 +78,31 @@ public class DefaultDependencyContainer implements DependencyContainer {
         return dependency(defaultConfs, id, configureClosure);
     }
 
+    public void dependencies(Map<String, List<String>> configurationMappings, Object... dependencies) {
+        for (Object dependency : GUtil.flatten(Arrays.asList(dependencies))) {
+            this.dependencies.add(dependencyFactory.createDependency(getStandardConfigurationMapping(configurationMappings), dependency, project));
+        }
+    }
+
+    public Dependency dependency(Map<String, List<String>> configurationMappings, Object userDependencyDescription) {
+        return dependency(configurationMappings, userDependencyDescription, null);
+    }
+
+    public Dependency dependency(Map<String, List<String>> configurationMappings, Object userDependencyDescription, Closure configureClosure) {
+        Dependency dependency = dependencyFactory.createDependency(getStandardConfigurationMapping(configurationMappings), userDependencyDescription, project);
+        dependencies.add(dependency);
+        ConfigureUtil.configure(configureClosure, dependency);
+        return dependency;
+    }
+
+
     public ClientModule clientModule(List<String> confs, String id) {
         return clientModule(confs, id, null);
     }
 
     public ClientModule clientModule(List<String> confs, String id, Closure configureClosure) {
         // todo: We might better have a client module factory here
-        ClientModule clientModule = new ClientModule(dependencyFactory, new HashSet<String>(confs), id, clientModuleRegistry);
+        ClientModule clientModule = new ClientModule(dependencyFactory, getStandardConfigurationMapping(confs), id, clientModuleRegistry);
         dependencies.add(clientModule);
         ConfigureUtil.configure(configureClosure, clientModule);
         return clientModule;
@@ -167,5 +180,15 @@ public class DefaultDependencyContainer implements DependencyContainer {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    private DependencyConfigurationMappingContainer getStandardConfigurationMapping(final List<String> masterConfs) {
+        DependencyConfigurationMappingContainer mappingContainer =  new DefaultDependencyConfigurationMappingContainer();
+        mappingContainer.addMasters((String[]) masterConfs.toArray(new String[masterConfs.size()]));
+        return mappingContainer;
+    }
+
+    private DependencyConfigurationMappingContainer getStandardConfigurationMapping(final Map<String, List<String>> confMapping) {
+        return new DefaultDependencyConfigurationMappingContainer(confMapping);
     }
 }

@@ -57,8 +57,9 @@ public class ProjectDependencyFactoryTest {
     public void testCreateDependencyWithProjectUserDescription() {
         Project expectedDescription = HelperUtil.createRootProject(new File("root2"));
         DefaultProjectDependency projectDependency = (DefaultProjectDependency)
-                projectDependencyFactory.createDependency(expectedConfs, expectedDescription, expectedProject);
+                projectDependencyFactory.createDependency(AbstractDependencyTest.TEST_CONF_MAPPING, expectedDescription, expectedProject);
         assertSame(expectedDescription, projectDependency.getUserDependencyDescription());
         assertSame(expectedProject, projectDependency.getProject());
+        assertSame(AbstractDependencyTest.TEST_CONF_MAPPING, projectDependency.getDependencyConfigurationMappings());
     }
 }

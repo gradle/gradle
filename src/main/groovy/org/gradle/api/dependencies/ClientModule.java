@@ -41,7 +41,7 @@ public class ClientModule extends DefaultDependencyContainer implements External
 
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
 
-    private DependencyConfigurationMappingContainer dependencyConfigurationMappings = new DefaultDependencyConfigurationMappingContainer();
+    private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
 
     private String id;
 
@@ -62,7 +62,7 @@ public class ClientModule extends DefaultDependencyContainer implements External
     public ClientModule() {
     }
 
-    public ClientModule(DependencyFactory dependencyFactory, Set<String> confs,
+    public ClientModule(DependencyFactory dependencyFactory, DependencyConfigurationMappingContainer dependencyConfigurationMappings,
                         String id, Map moduleRegistry) {
         super(dependencyFactory, WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION));
         if (id == null) {
@@ -70,7 +70,7 @@ public class ClientModule extends DefaultDependencyContainer implements External
         }
         this.id = id;
         setClientModuleRegistry(moduleRegistry);
-        dependencyConfigurationMappings.addMasters(confs.toArray(new String[confs.size()]));
+        this.dependencyConfigurationMappings = dependencyConfigurationMappings;
         initFromUserDescription(id);
     }
 

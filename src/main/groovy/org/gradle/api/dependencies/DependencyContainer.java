@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Project;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>A {@code DependencyContainer} maintains a set of dependencies.</p>
@@ -44,16 +45,17 @@ public interface DependencyContainer {
 
     /**
      * The project associated with this DependencyManager
+     *
      * @return an instance of a project
      */
     Project getProject();
 
     void setProject(Project project);
-    
+
     /**
      * A list of all Gradle Dependency objects.
      *
-     * @see #getDependencies(Filter) 
+     * @see #getDependencies(Filter)
      */
     List<Dependency> getDependencies();
 
@@ -70,12 +72,22 @@ public interface DependencyContainer {
     List<DependencyDescriptor> getDependencyDescriptors();
 
     /**
-     * Adds dependency descriptors to confs.
+     * Adds dependencies. The master confs are mapped to the default configuration of
+     * the dependency.
      *
      * @param confs
      * @param dependencies
      */
     void dependencies(List<String> confs, Object... dependencies);
+
+    /**
+     * Adds dependencies. The configurationMappings defines the mapping between master configurations (keys) and
+     * dependency configurations (value).
+     *
+     * @param configurationMappings
+     * @param dependencies
+     */
+    void dependencies(Map<String, List<String>> configurationMappings, Object... dependencies);
 
     /**
      * Adds dependencies to the defaultConfs
@@ -93,10 +105,28 @@ public interface DependencyContainer {
      */
     void dependencyDescriptors(DependencyDescriptor... dependencyDescriptors);
 
-    Dependency dependency(List<String> confs, Object userDependencyDescription);
-    
     /**
-     * Adds a dependency to the given confs. The configureClosure configures this dependency. 
+     * @param confs                     The master confs
+     * @param userDependencyDescription
+     * @return The added Dependency
+     * @see #dependency(java.util.List, Object, Closure)
+     */
+    Dependency dependency(List<String> confs, Object userDependencyDescription);
+
+    /**
+     * Adds a dependency. The configurationMappings defines the mapping between master configurations (keys) and
+     * dependency configurations (value).
+     *
+     * @param configurationMappings
+     * @param userDependencyDescription
+     * @return the added Dependency
+     */
+    Dependency dependency(Map<String, List<String>> configurationMappings, Object userDependencyDescription);
+
+
+    /**
+     * Adds a dependency. The master confs are mapped to the default configuration of
+     * the dependency. The configureClosure configures this dependency.
      *
      * @param confs
      * @param userDependencyDescription
@@ -105,17 +135,45 @@ public interface DependencyContainer {
      */
     Dependency dependency(List<String> confs, Object userDependencyDescription, Closure configureClosure);
 
-    Dependency dependency(String userDependencyDescription);
-
     /**
-     * Adds a dependency to the default confs. The configureClosure configures this dependency.
+     * Adds a dependency. The configurationMappings defines the mapping between master configurations (keys) and
+     * dependency configurations (value). The configureClosure configures this dependency.
      *
+     * @param configurationMappings
      * @param userDependencyDescription
      * @param configureClosure
      * @return the added Dependency
      */
+    Dependency dependency(Map<String, List<String>> configurationMappings, Object userDependencyDescription, Closure configureClosure);
+
+    /**
+     * Adds a dependency. The {@link #getDefaultConfs)} are used as master confs.
+     *
+     * @param userDependencyDescription
+     * @return The added dependency.
+     */
+    Dependency dependency(String userDependencyDescription);
+
+
+    /**
+     * Adds a dependency. The {@link #getDefaultConfs)} are used as master confs.
+     * The configureClosure configures this dependency.
+     *
+     * @param userDependencyDescription
+     * @param configureClosure
+     * @return The added Dependency
+     */
+
     Dependency dependency(String userDependencyDescription, Closure configureClosure);
 
+    /**
+     * Adds a client module. The given master confs are mapped to the default configuration of
+     * the dependency.
+     *
+     * @param confs
+     * @param id
+     * @return
+     */
     ClientModule clientModule(List<String> confs, String id);
 
     /**

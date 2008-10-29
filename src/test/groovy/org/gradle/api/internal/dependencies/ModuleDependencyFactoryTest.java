@@ -35,8 +35,9 @@ public class ModuleDependencyFactoryTest {
         String expectedDescription = "junit:junit:4.0";
         moduleDependencyFactory = new ModuleDependencyFactory();
         DefaultModuleDependency moduleDependency = (DefaultModuleDependency)
-                moduleDependencyFactory.createDependency(expectedConfs, expectedDescription, null);
+                moduleDependencyFactory.createDependency(AbstractDependencyTest.TEST_CONF_MAPPING, expectedDescription, null);
         assertEquals(expectedDescription, moduleDependency.getUserDependencyDescription());
+        assertEquals(AbstractDependencyTest.TEST_CONF_MAPPING, moduleDependency.getDependencyConfigurationMappings());
     }
 
 }
