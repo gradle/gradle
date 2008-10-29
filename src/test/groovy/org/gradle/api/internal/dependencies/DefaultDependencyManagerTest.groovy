@@ -27,7 +27,7 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.dependencies.Dependency
 import org.gradle.api.dependencies.ExcludeRuleContainer
-import org.gradle.api.dependencies.GradleArtifact
+import org.gradle.api.dependencies.PublishArtifact
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.dependencies.UnknownConfigurationException
 import org.gradle.util.JUnit4GroovyMockery
@@ -41,6 +41,7 @@ import org.junit.runner.RunWith
 import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.dependencies.Configuration
 import org.gradle.util.HelperUtil
+import org.gradle.api.dependencies.PublishArtifact
 
 /**
  * @author Hans Dockter
@@ -120,7 +121,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testAddArtifacts() {
-        List gradleArtifacts = [[:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact]
+        List gradleArtifacts = [[:] as PublishArtifact, [:] as PublishArtifact, [:] as PublishArtifact, [:] as PublishArtifact]
         testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, gradleArtifacts[0], gradleArtifacts[1])
         assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1]]], testObj.artifacts)
         testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, gradleArtifacts[2], gradleArtifacts[3])

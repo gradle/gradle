@@ -23,7 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.api.DependencyManager
 import org.gradle.api.dependencies.Dependency
-import org.gradle.api.dependencies.GradleArtifact
+import org.gradle.api.dependencies.PublishArtifact
 import org.gradle.api.internal.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.dependencies.ModuleDescriptorConverter
 import org.gradle.api.internal.project.DefaultProject
@@ -35,6 +35,7 @@ import org.junit.Test
 import org.hamcrest.Matchers
 import org.gradle.api.internal.dependencies.DefaultProjectDependency
 import org.gradle.api.dependencies.ExcludeRuleContainer
+import org.gradle.api.dependencies.PublishArtifact
 
 /**
  * @author Hans Dockter
@@ -77,7 +78,7 @@ class ModuleDescriptorConverterTest {
 
     @Test public void testConvert() {
         Artifact ivyArtifact = [a: {}] as Artifact
-        GradleArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as GradleArtifact
+        PublishArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as PublishArtifact
         Artifact ivyArtifact2 = [b: {}] as Artifact
 
         DependencyDescriptor dependencyDescriptor = [:] as DependencyDescriptor
@@ -124,7 +125,7 @@ class ModuleDescriptorConverterTest {
         context.checking {
             allowing(dependency).createDependencyDescriptor(withParam(aNonNull(ModuleDescriptor))); will(returnValue(dependencyDescriptor))
         }
-        GradleArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as GradleArtifact
+        PublishArtifact gradleArtifact = [createIvyArtifact: {ivyArtifact}] as PublishArtifact
         dependencyManager.dependencies = [dependency]
         dependencyManager.artifacts = [conf1: [gradleArtifact]]
 

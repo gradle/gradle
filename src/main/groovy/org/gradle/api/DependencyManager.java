@@ -84,7 +84,7 @@ public interface DependencyManager extends DependencyContainer {
     /**
      * A map where the key is the name of the configuration and the value are Gradles Artifact objects.
      */
-    Map<String, List<GradleArtifact>> getArtifacts();
+    Map<String, List<PublishArtifact>> getArtifacts();
 
     /**
      * A map for passing directly instances of Ivy Artifact objects.
@@ -179,7 +179,7 @@ public interface DependencyManager extends DependencyContainer {
      * @param configurationName
      * @param artifacts
      */
-    void addArtifacts(String configurationName, GradleArtifact... artifacts);
+    void addArtifacts(String configurationName, PublishArtifact... artifacts);
 
     /**
      * Adds a configuration to this dependency manager.

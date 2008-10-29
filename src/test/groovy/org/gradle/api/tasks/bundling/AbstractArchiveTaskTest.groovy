@@ -31,7 +31,8 @@ import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.internal.dependencies.DefaultGradleArtifact
+import org.gradle.api.internal.dependencies.DefaultPublishArtifact
+import org.gradle.api.internal.dependencies.DefaultPublishArtifact
 
 /**
  * @author Hans Dockter
@@ -87,7 +88,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     @Test public void testExecute() {
         context.checking {
             one(archiveTask.dependencyManager).addArtifacts(AbstractArchiveTaskTest.TEST_CONFIGURATION,
-                    new DefaultGradleArtifact(archiveTask.baseName, archiveTask.extension, archiveTask.extension, archiveTask.classifier))
+                    new DefaultPublishArtifact(archiveTask.baseName, archiveTask.extension, archiveTask.extension, archiveTask.classifier))
         }
 
         getAntMocker(true).use(ant) {
@@ -100,7 +101,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     @Test public void testExecuteWithEmptyClassifier() {
         context.checking {
             one(archiveTask.dependencyManager).addArtifacts(AbstractArchiveTaskTest.TEST_CONFIGURATION,
-                    new DefaultGradleArtifact(archiveTask.baseName, archiveTask.extension, archiveTask.extension, null))
+                    new DefaultPublishArtifact(archiveTask.baseName, archiveTask.extension, archiveTask.extension, null))
         }
 
         archiveTask.classifier = null

@@ -44,7 +44,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     private Map<String, DefaultConfiguration> configurations = new HashMap<String, DefaultConfiguration>();
 
-    private Map<String, List<GradleArtifact>> artifacts = new HashMap<String, List<GradleArtifact>>();
+    private Map<String, List<PublishArtifact>> artifacts = new HashMap<String, List<PublishArtifact>>();
 
     private Map<String, List<Artifact>> artifactDescriptors = new HashMap<String, List<Artifact>>();
 
@@ -200,11 +200,11 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         return this;
     }
 
-    public void addArtifacts(String configurationName, GradleArtifact... artifacts) {
+    public void addArtifacts(String configurationName, PublishArtifact... artifacts) {
         if (this.artifacts.get(configurationName) == null) {
-            this.artifacts.put(configurationName, new ArrayList<GradleArtifact>());
+            this.artifacts.put(configurationName, new ArrayList<PublishArtifact>());
         }
-        for (GradleArtifact artifact : artifacts) {
+        for (PublishArtifact artifact : artifacts) {
             this.artifacts.get(configurationName).add(artifact);
         }
     }
@@ -266,11 +266,11 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         this.failForMissingDependencies = failForMissingDependencies;
     }
 
-    public Map<String, List<GradleArtifact>> getArtifacts() {
+    public Map<String, List<PublishArtifact>> getArtifacts() {
         return artifacts;
     }
 
-    public void setArtifacts(Map<String, List<GradleArtifact>> artifacts) {
+    public void setArtifacts(Map<String, List<PublishArtifact>> artifacts) {
         this.artifacts = artifacts;
     }
 

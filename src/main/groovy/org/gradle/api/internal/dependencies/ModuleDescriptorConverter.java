@@ -28,7 +28,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.dependencies.ivy.IvyUtil;
 import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.GradleArtifact;
+import org.gradle.api.dependencies.PublishArtifact;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.ProjectDependency;
 import org.slf4j.Logger;
@@ -84,10 +84,10 @@ public class ModuleDescriptorConverter {
 
     private void addArtifacts(DefaultModuleDescriptor moduleDescriptor, DependencyManagerInternal dependencyManager) {
         for (String conf : dependencyManager.getArtifacts().keySet()) {
-            List<GradleArtifact> gradleArtifacts = dependencyManager.getArtifacts().get(conf);
-            for (GradleArtifact gradleArtifact : gradleArtifacts) {
-                logger.debug("Add gradleArtifact: {} to configuration={}", gradleArtifact, conf);
-                moduleDescriptor.addArtifact(conf, gradleArtifact.createIvyArtifact(dependencyManager.createModuleRevisionId()));
+            List<PublishArtifact> publishArtifacts = dependencyManager.getArtifacts().get(conf);
+            for (PublishArtifact publishArtifact : publishArtifacts) {
+                logger.debug("Add publishArtifact: {} to configuration={}", publishArtifact, conf);
+                moduleDescriptor.addArtifact(conf, publishArtifact.createIvyArtifact(dependencyManager.createModuleRevisionId()));
             }
         }
         for (String conf : dependencyManager.getArtifactDescriptors().keySet()) {

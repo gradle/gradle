@@ -38,20 +38,20 @@ public class DefaultGradleArtifactTest {
     private static final ModuleRevisionId TEST_MODULE_REVISION_ID = new ModuleRevisionId(new ModuleId("group", "name"), "version");
 
     @Test public void testCreateIvyArtifact() {
-        DefaultGradleArtifact defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME, TEST_EXT, TEST_TYPE, null);
+        DefaultPublishArtifact defaultGradleArtifact = new DefaultPublishArtifact(TEST_NAME, TEST_EXT, TEST_TYPE, null);
         Artifact artifact = defaultGradleArtifact.createIvyArtifact(TEST_MODULE_REVISION_ID);
         checkCommonProperties(artifact);
         assertEquals(new HashMap(), artifact.getExtraAttributes());
     }
 
     @Test public void testCreateIvyArtifactWithEmptyClassifier() {
-        DefaultGradleArtifact defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME, TEST_EXT, TEST_TYPE, "");
+        DefaultPublishArtifact defaultGradleArtifact = new DefaultPublishArtifact(TEST_NAME, TEST_EXT, TEST_TYPE, "");
         Artifact artifact = defaultGradleArtifact.createIvyArtifact(TEST_MODULE_REVISION_ID);
         assertEquals(new HashMap(), artifact.getExtraAttributes());
     }
 
     @Test public void testCreateIvyArtifactWithClassifier() {
-        DefaultGradleArtifact defaultGradleArtifact = new DefaultGradleArtifact(TEST_NAME, TEST_EXT, TEST_TYPE, TEST_CLASSIFIER);
+        DefaultPublishArtifact defaultGradleArtifact = new DefaultPublishArtifact(TEST_NAME, TEST_EXT, TEST_TYPE, TEST_CLASSIFIER);
         ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId("group", "name"), "version");
         Artifact artifact = defaultGradleArtifact.createIvyArtifact(moduleRevisionId);
         checkCommonProperties(artifact);
