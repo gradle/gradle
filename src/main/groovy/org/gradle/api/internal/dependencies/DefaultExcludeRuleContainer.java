@@ -60,7 +60,7 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
         }
     }
 
-    public List<ExcludeRule> getRules(List<String> masterConfs) {
+    public List<ExcludeRule> createRules(List<String> masterConfs) {
         List<ExcludeRule> allRules = new ArrayList<ExcludeRule>(nativeRules);
         for (Map<String, String> ruleProperties : addedRules.keySet()) {
             DefaultExcludeRule excludeRule = createExcludeRules(ruleProperties);

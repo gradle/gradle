@@ -27,8 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Set;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,14 +51,14 @@ public class DefaultExcludeRuleContainerTest {
 
     @Test
     public void testInit() {
-        assertEquals(0, excludeRuleContainer.getRules(TEST_CONF_SET).size());
+        assertEquals(0, excludeRuleContainer.createRules(TEST_CONF_SET).size());
     }
 
     @Test
     public void testAdd() {
         excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule));
         excludeRuleContainer.add(GUtil.map("org", expectedOrg2, "module", expectedModule2));
-        List<ExcludeRule> excludeRules = excludeRuleContainer.getRules(TEST_CONF_SET);
+        List<ExcludeRule> excludeRules = excludeRuleContainer.createRules(TEST_CONF_SET);
         assertEquals(2, excludeRules.size());
         checkContainsRule(excludeRules, expectedOrg, expectedModule);
     }
@@ -79,10 +77,10 @@ public class DefaultExcludeRuleContainerTest {
     public void testAddWithConfigurations() {
         List<String> confs = WrapUtil.toList("conf3");
         excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule), confs);
-        List<ExcludeRule> excludeRules = excludeRuleContainer.getRules(TEST_CONF_SET);
+        List<ExcludeRule> excludeRules = excludeRuleContainer.createRules(TEST_CONF_SET);
         assertEquals(1, excludeRules.size());
-        assertTrue(checkRule(excludeRuleContainer.getRules(TEST_CONF_SET).get(0), expectedOrg, expectedModule));
-        assertEquals(confs, Arrays.asList(excludeRuleContainer.getRules(TEST_CONF_SET).get(0).getConfigurations()));
+        assertTrue(checkRule(excludeRuleContainer.createRules(TEST_CONF_SET).get(0), expectedOrg, expectedModule));
+        assertEquals(confs, Arrays.asList(excludeRuleContainer.createRules(TEST_CONF_SET).get(0).getConfigurations()));
     }
 
     @Test
@@ -90,7 +88,7 @@ public class DefaultExcludeRuleContainerTest {
         excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule));
         ExcludeRule nativeRule = HelperUtil.getTestExcludeRule();
         excludeRuleContainer.getNativeRules().add(nativeRule);
-        List<ExcludeRule> excludeRules = excludeRuleContainer.getRules(TEST_CONF_SET);
+        List<ExcludeRule> excludeRules = excludeRuleContainer.createRules(TEST_CONF_SET);
         assertEquals(2, excludeRules.size());
         checkContainsRule(excludeRules, expectedOrg, expectedModule);
         assertTrue(excludeRules.contains(nativeRule));

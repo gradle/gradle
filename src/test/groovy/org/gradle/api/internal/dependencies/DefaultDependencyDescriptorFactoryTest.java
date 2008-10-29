@@ -92,7 +92,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         };
         context.checking(new Expectations() {
             {
-                allowing(excludeRuleContainerMock).getRules(new ArrayList<String>(TEST_CONFS));
+                allowing(excludeRuleContainerMock).createRules(new ArrayList<String>(TEST_CONFS));
                 will(returnValue(WrapUtil.toList(excludeRuleWithConf, excludeRuleWithAllConf)));
                 allowing(dependencyConfigurationMappingContainerMock).getMappings();
                 will(returnValue(testDependencyConfigurations));

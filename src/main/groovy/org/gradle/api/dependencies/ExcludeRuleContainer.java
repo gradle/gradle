@@ -32,7 +32,7 @@ public interface ExcludeRuleContainer {
      * returned.
      * @param allMasterConfs
      */
-    List<ExcludeRule> getRules(List<String> allMasterConfs);
+    List<ExcludeRule> createRules(List<String> allMasterConfs);
 
     /**
      * Adds an exclude rule to this container. The ExcludeRule object gets created internally based on the map values

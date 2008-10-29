@@ -65,7 +65,7 @@ public class ModuleDescriptorConverter {
     }
 
     private void addExcludes(DefaultModuleDescriptor moduleDescriptor, DependencyManagerInternal dependencyManager) {
-        for (ExcludeRule excludeRule : dependencyManager.getExcludeRules().getRules(IvyUtil.getAllMasterConfs(moduleDescriptor.getConfigurations()))) {
+        for (ExcludeRule excludeRule : dependencyManager.getExcludeRules().createRules(IvyUtil.getAllMasterConfs(moduleDescriptor.getConfigurations()))) {
             moduleDescriptor.addExcludeRule(excludeRule);
         }
     }

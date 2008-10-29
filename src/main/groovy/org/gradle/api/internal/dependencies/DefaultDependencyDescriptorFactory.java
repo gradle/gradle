@@ -17,7 +17,6 @@
 package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.module.descriptor.*;
-import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
@@ -113,7 +112,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     }
 
     private void addExcludes(ExcludeRuleContainer excludeRules, DefaultDependencyDescriptor dependencyDescriptor, List<String> allMasterConfs) {
-        for (ExcludeRule excludeRule : excludeRules.getRules(allMasterConfs)) {
+        for (ExcludeRule excludeRule : excludeRules.createRules(allMasterConfs)) {
             for (String masterConf : excludeRule.getConfigurations()) {
                 dependencyDescriptor.addExcludeRule(masterConf, excludeRule);
             }

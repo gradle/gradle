@@ -71,7 +71,7 @@ class ModuleDescriptorConverterTest {
                 [:])
         testExcludeRule2.addConfiguration "conf2"
         context.checking {
-            allowing(excludeRuleContainerMock).getRules(withParam(Matchers.hasItems("conf1", "conf2"))); will(returnValue([testExcludeRule1, testExcludeRule2]))
+            allowing(excludeRuleContainerMock).createRules(withParam(Matchers.hasItems("conf1", "conf2"))); will(returnValue([testExcludeRule1, testExcludeRule2]))
         }
     }
 
