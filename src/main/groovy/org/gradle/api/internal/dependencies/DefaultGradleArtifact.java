@@ -23,6 +23,8 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.GradleArtifact;
 import org.gradle.api.internal.dependencies.DependenciesUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.GradleUtil;
+import org.gradle.util.GUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,30 +33,63 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultGradleArtifact implements GradleArtifact {
-    private String userDescription;
+    private String name;
+    private String extension;
+    private String type;
+    private String classifier;
 
-    public DefaultGradleArtifact(String userDescription) {
-        this.userDescription = userDescription;
+    public DefaultGradleArtifact(String name, String extension, String type, String classifier) {
+        this.name = name;
+        this.extension = extension;
+        this.type = type;
+        this.classifier = classifier;
     }
 
     public Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId) {
-        Map<String, String> groups = DependenciesUtil.splitExtension(userDescription);
-        String[] coreSplit = groups.get("core").split(":");
-        String baseName = coreSplit[0];
-        Map extraAttributes = coreSplit.length > 1 ? WrapUtil.toMap(DependencyManager.CLASSIFIER, coreSplit[1]) : new HashMap();
-        return new DefaultArtifact(moduleRevisionId, null, baseName, groups.get("extension"), groups.get("extension"),
-                extraAttributes);
+        Map extraAttributes = GUtil.isTrue(classifier) ? WrapUtil.toMap(DependencyManager.CLASSIFIER, classifier) : new HashMap();
+        return new DefaultArtifact(moduleRevisionId, null, name, type, extension, extraAttributes);
     }
 
     public String toString() {
-        return String.format("Artifact type=%s value=%s", userDescription.getClass(), userDescription);
+        return String.format("Artifact $s:%s:%s:%s", name, type, extension, classifier);
     }
 
-    public String getUserDescription() {
-        return userDescription;
+    public String getName() {
+        return name;
     }
 
-    public void setUserDescription(String userDescription) {
-        this.userDescription = userDescription;
+    public String getExtension() {
+        return extension;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getClassifier() {
+        return classifier;
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DefaultGradleArtifact that = (DefaultGradleArtifact) o;
+
+        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) return false;
+        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+
+        return true;
+    }
+
+    public int hashCode() {
+        int result;
+        result = (name != null ? name.hashCode() : 0);
+        result = 31 * result + (extension != null ? extension.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
+        return result;
     }
 }

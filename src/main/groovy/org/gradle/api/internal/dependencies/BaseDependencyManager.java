@@ -54,8 +54,6 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     private String defaultArtifactPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN;
 
-    private ArtifactFactory artifactFactory;
-
     private ResolverFactory resolverFactory;
 
     private IIvyFactory ivyFactory;
@@ -96,14 +94,13 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     }
 
-    public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
+    public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
                                  ResolverFactory resolverFactory, SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                                  IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
                                  File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(dependencyFactory, new ArrayList());
         assert buildResolverDir != null;
         this.ivyFactory = ivyFactory;
-        this.artifactFactory = artifactFactory;
         this.resolverFactory = resolverFactory;
         this.settingsConverter = settingsConverter;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
@@ -203,14 +200,12 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         return this;
     }
 
-    public void addArtifacts(String configurationName, Object... artifacts) {
+    public void addArtifacts(String configurationName, GradleArtifact... artifacts) {
         if (this.artifacts.get(configurationName) == null) {
             this.artifacts.put(configurationName, new ArrayList<GradleArtifact>());
         }
-        for (Object artifact : GUtil.flatten(Arrays.asList(artifacts))) {
-            GradleArtifact gradleArtifact = artifactFactory.createGradleArtifact(artifact.toString());
-            logger.debug("Adding {} to configuration={}", gradleArtifact, configurationName);
-            this.artifacts.get(configurationName).add(gradleArtifact);
+        for (GradleArtifact artifact : artifacts) {
+            this.artifacts.get(configurationName).add(artifact);
         }
     }
 
@@ -309,14 +304,6 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     public void setDefaultArtifactPattern(String defaultArtifactPattern) {
         this.defaultArtifactPattern = defaultArtifactPattern;
-    }
-
-    public ArtifactFactory getArtifactFactory() {
-        return artifactFactory;
-    }
-
-    public void setArtifactFactory(ArtifactFactory artifactFactory) {
-        this.artifactFactory = artifactFactory;
     }
 
     public IIvyFactory getIvyFactory() {

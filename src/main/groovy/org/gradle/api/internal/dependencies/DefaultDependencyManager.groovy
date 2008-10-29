@@ -34,11 +34,11 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
         super();
     }
 
-    public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory, ArtifactFactory artifactFactory,
+    public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
                              ResolverFactory resolverFactory, SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                              IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
                              File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
-        super(ivyFactory, dependencyFactory, artifactFactory, resolverFactory, settingsConverter, moduleDescriptorConverter,
+        super(ivyFactory, dependencyFactory, resolverFactory, settingsConverter, moduleDescriptorConverter,
                 dependencyResolver, dependencyPublisher, buildResolverDir, excludeRuleContainer);
     }
 

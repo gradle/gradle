@@ -179,7 +179,7 @@ public interface DependencyManager extends DependencyContainer {
      * @param configurationName
      * @param artifacts
      */
-    void addArtifacts(String configurationName, Object... artifacts);
+    void addArtifacts(String configurationName, GradleArtifact... artifacts);
 
     /**
      * Adds a configuration to this dependency manager.

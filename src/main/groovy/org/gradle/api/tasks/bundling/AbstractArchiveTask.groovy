@@ -29,6 +29,8 @@ import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.dependencies.GradleArtifact
+import org.gradle.api.internal.dependencies.DefaultGradleArtifact
 
 /**
  * @author Hans Dockter
@@ -132,7 +134,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * @param publish the value assigned to the publish property
      * @return this
      */
-    public AbstractArchiveTask configurations(String... configurations) {
+    public AbstractArchiveTask configurations(String ... configurations) {
         this.configurations = GUtil.chooseCollection(this.configurations, getConfigurations())
         GUtil.flatten(Arrays.asList(configurations), this.configurations);
         return this;
@@ -146,8 +148,10 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         getDestinationDir().mkdirs()
         createAntArchiveTask().call()
         if (publish) {
-            String classifierSnippet = classifier ? ':' + classifier : ''
-            getConfigurations().each {getDependencyManager().addArtifacts(it, "${getBaseName()}${classifierSnippet}@${getExtension()}")}
+            getConfigurations().each {
+                getDependencyManager().addArtifacts(it, new DefaultGradleArtifact(getBaseName(),
+                        getExtension(), getExtension(), getClassifier()))
+            }
             getDependencyManager().getArtifactParentDirs() << destinationDir
         }
     }
@@ -253,7 +257,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         this
     }
 
-    public AbstractArchiveTask resourceCollections(Object... elements) {
+    public AbstractArchiveTask resourceCollections(Object ... elements) {
         resourceCollections = GUtil.chooseCollection(resourceCollections, getResourceCollections())
         GUtil.flatten(Arrays.asList(elements), resourceCollections);
         return this;

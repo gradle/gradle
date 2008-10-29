@@ -43,7 +43,6 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
         DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
                 new DefaultIvyFactory(),
                 new DependencyFactory(dependencyImpls),
-                new ArtifactFactory(),
                 new DefaultResolverFactory(new LocalReposCacheHandler(buildResolverDir)),
                 new SettingsConverter(),
                 new ModuleDescriptorConverter(),

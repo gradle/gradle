@@ -52,7 +52,7 @@ class ModuleDescriptorConverterTest {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         excludeRuleContainerMock = context.mock(ExcludeRuleContainer)
         moduleDescriptorConverter = new ModuleDescriptorConverter()
-        dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, null, new File('buildResolverDir'),
+        dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, new File('buildResolverDir'),
                 new DefaultExcludeRuleContainer())
         dependencyManager.project = new DefaultProject()
         dependencyManager.setExcludeRules(excludeRuleContainerMock)

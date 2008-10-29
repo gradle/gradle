@@ -56,7 +56,6 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     IDependencyPublisher dependencyPublisherMock
     IIvyFactory ivyFactoryMock
     File buildResolverDir
-    ArtifactFactory artifactFactory
     ResolverFactory resolverFactoryMock
     BuildResolverHandler mockSpecialResolverHandler
     RepositoryResolver expectedBuildResolver
@@ -82,7 +81,6 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         expectedSettings = new IvySettings();
         expectedIvy = new Ivy();
         ivyFactoryMock = context.mock(IIvyFactory)
-        artifactFactory = context.mock(ArtifactFactory)
         resolverFactoryMock = context.mock(ResolverFactory)
         dependencyResolverMock = context.mock(IDependencyResolver)
         dependencyPublisherMock = context.mock(IDependencyPublisher)
@@ -90,7 +88,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         settingsConverter = context.mock(SettingsConverter)
         buildResolverDir = new File('buildResolverDir')
         moduleDescriptorConverter = context.mock(ModuleDescriptorConverter)
-        dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, artifactFactory, resolverFactoryMock, settingsConverter,
+        dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, resolverFactoryMock, settingsConverter,
                 moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir, testExcludeRuleContainer)
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
@@ -104,7 +102,6 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
     @Test public void testInit() {
         assert dependencyManager.ivyFactory.is(ivyFactoryMock)
-        assert dependencyManager.artifactFactory.is(artifactFactory)
         assert dependencyManager.resolverFactory.is(resolverFactoryMock)
         assert dependencyManager.settingsConverter.is(settingsConverter)
         assert dependencyManager.moduleDescriptorConverter.is(moduleDescriptorConverter)
@@ -123,17 +120,10 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testAddArtifacts() {
-        List userArtifactDescriptions = ['a', 'b', 'c', 'd']
         List gradleArtifacts = [[:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact, [:] as GradleArtifact]
-        context.checking {
-            4.times {int i ->
-                one(artifactFactory).createGradleArtifact(userArtifactDescriptions[i]); will(returnValue(gradleArtifacts[i]))
-            }
-        }
-
-        testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, userArtifactDescriptions[0], userArtifactDescriptions[1])
+        testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, gradleArtifacts[0], gradleArtifacts[1])
         assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1]]], testObj.artifacts)
-        testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, [userArtifactDescriptions[2], userArtifactDescriptions[3]])
+        testObj.addArtifacts(AbstractDependencyContainerTest.TEST_CONFIGURATION, gradleArtifacts[2], gradleArtifacts[3])
         assertEquals([(AbstractDependencyContainerTest.TEST_CONFIGURATION): [gradleArtifacts[0], gradleArtifacts[1], gradleArtifacts[2], gradleArtifacts[3]]], testObj.artifacts)
     }
 

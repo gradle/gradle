@@ -38,7 +38,6 @@ public class DefaultDependencyManagerFactoryTest {
         //assertNotNull(dependencyManager.ivy)
         assertSame(expectedProject, dependencyManager.getProject());
         assertNotNull(dependencyManager.getDependencyFactory());
-        assertNotNull(dependencyManager.getArtifactFactory());
         assertNotNull(dependencyManager.getSettingsConverter());
         assertNotNull(dependencyManager.getModuleDescriptorConverter());
         assertNotNull(dependencyManager.getDependencyPublisher());
