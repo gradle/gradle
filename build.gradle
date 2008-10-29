@@ -61,7 +61,7 @@ dependencies {
     addConfiguration('ftpAntTask')
     addConfiguration('retrotranslatorAntTask')
 
-    clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
+    clientModule(['ftpAntTask'], ":ant-commons-net:1.7.1") {
         clientModule(":commons-net:1.4.1") {
             dependencies(":oro:2.0.8@jar")
         }
@@ -70,8 +70,8 @@ dependencies {
     retrotranslatorAntTask ':retrotranslator-runtime:1.2.7', ':retrotranslator-transformer:1.2.7', ':backport-util-concurrent:3.1'
 
     clientModule(['groovy'], ":groovy-all:1.5.6") {
-        clientModule(":ant:1.7.0") {
-            dependencies(":ant-junit:1.7.0@jar", ":ant-launcher:1.7.0")
+        clientModule(":ant:1.7.1") {
+            dependencies(":ant-junit:1.7.1@jar", ":ant-launcher:1.7.1")
         }
     }
 
@@ -84,11 +84,11 @@ dependencies {
         dependencies(":jaxen:1.1@jar")
     }
 
-    dependency(['runtime'], ":ant-junit:1.7.0") {
+    dependency(['runtime'], ":ant-junit:1.7.1") {
         exclude(module: 'junit')
     }
     compile ":jopt-simple:2.4.1",
-            ":ant:1.7.0",
+            ":ant:1.7.1",
             ":logback-classic:0.9.9",
             ":slf4j-api:1.5.3",
             ":logback-core:0.9.9",
@@ -99,9 +99,9 @@ dependencies {
             ":bndlib:0.0.278@jar",
             ":ivy:2.1.x-20081015233855@jar",  
             ":maven-ant-tasks:2.0.9"
-    runtime ":ant-launcher:1.7.0",
-            ":ant-nodeps:1.7.0",
-            ":ant-trax:1.7.0",
+    runtime ":ant-launcher:1.7.1",
+            ":ant-nodeps:1.7.1",
+            ":ant-trax:1.7.1",
             ":junit:4.4"
 
     def FIRST_LEVEL_JMOCK = [':hamcrest-core:1.1', ':hamcrest-library:1.1', ':jmock-junit4:2.4.0']
