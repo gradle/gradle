@@ -103,11 +103,11 @@ public class EclipseClasspath extends ConventionTask {
         Document document = DocumentFactory.getInstance().createDocument();
         Element root = document.addElement(CLASSPATH);
 
-        addLibs(root);
         addSrcDirs(root);
         addTestSrcDirs(root);
         classpathEntry(root, CON, DEFAULT_JRE_CONTAINER);
         addDependsOnProjects(root);
+        addLibs(root);
 
         return document;
     }

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <classpath>
+  <classpathentry kind="output" path="build/classes"/>
+  <classpathentry kind="src" path="src/main/java"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="src" path="/shared" combineaccessrules="false"/>
   <classpathentry kind="lib" path="$gradleHome/samples/javaproject/lib/commons-io-1.2.jar"/>
   <classpathentry kind="lib" path="$gradleHome/samples/javaproject/lib/commons-lang-2.4.jar"/>
   <classpathentry kind="lib" path="$gradleHome/samples/javaproject/lib/junit-4.4.jar"/>
-  <classpathentry kind="src" path="src/main/java"/>
-  <classpathentry kind="output" path="build/classes"/>
-  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-  <classpathentry kind="src" path="/shared" combineaccessrules="false"/>
 </classpath>
