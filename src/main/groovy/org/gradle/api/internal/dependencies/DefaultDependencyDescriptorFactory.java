@@ -53,21 +53,19 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     public DependencyDescriptor createFromProjectDependency(ModuleDescriptor parent, ProjectDependency dependency) {
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
                 parent,
-                dependency.getDependencyProject().getDependencies().createModuleRevisionId(),
+                createModuleRevisionIdFromDependency(dependency),
                 false,
                 true,
                 dependency.isTransitive());
         addExcludes(dependency.getExcludeRules(), dependencyDescriptor, IvyUtil.getAllMasterConfs(parent.getConfigurations()));
-        addDependencyConfigurations(dependency.getDependencyConfigurationMappings(), dependencyDescriptor); 
+        addDependencyConfigurations(dependency.getDependencyConfigurationMappings(), dependencyDescriptor);
         return dependencyDescriptor;
     }
 
     public DependencyDescriptor createFromModuleDependency(ModuleDescriptor parent, ModuleDependency moduleDependency) {
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
                 parent,
-                ModuleRevisionId.newInstance(moduleDependency.getGroup(),
-                        moduleDependency.getName(),
-                        moduleDependency.getVersion()),
+                createModuleRevisionIdFromDependency(moduleDependency),
                 moduleDependency.isForce(),
                 moduleDependency.isChanging(),
                 moduleDependency.isTransitive());
@@ -75,6 +73,12 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         addExcludes(moduleDependency.getExcludeRules(), dependencyDescriptor, IvyUtil.getAllMasterConfs(parent.getConfigurations()));
         addDependencyConfigurations(moduleDependency.getDependencyConfigurationMappings(), dependencyDescriptor);
         return dependencyDescriptor;
+    }
+
+    private ModuleRevisionId createModuleRevisionIdFromDependency(Dependency dependency) {
+        return ModuleRevisionId.newInstance(dependency.getGroup(),
+                        dependency.getName(),
+                        dependency.getVersion());
     }
 
     private void addArtifacts(List<Artifact> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
