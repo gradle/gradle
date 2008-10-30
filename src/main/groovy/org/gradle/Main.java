@@ -19,6 +19,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.filter.LevelFilter;
+import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.spi.FilterReply;
 import ch.qos.logback.core.filter.Filter;
@@ -266,6 +267,7 @@ public class Main {
             ConsoleAppender nonErrorConsoleAppender = new ConsoleAppender();
             nonErrorConsoleAppender.setContext(lc);
             nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.DENY, FilterReply.NEUTRAL));
+            nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.NEUTRAL));
             if (options.has(DEBUG)) {
                 level = Level.DEBUG;
                 nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
@@ -276,7 +278,6 @@ public class Main {
                 if (options.has(INFO)) {
                     nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.DENY));
                 } else {
-                    nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.NEUTRAL));
                     nonErrorConsoleAppender.addFilter(new HighLevelFilter());
                 }
             }
@@ -288,6 +289,10 @@ public class Main {
         Message.setDefaultLogger(new IvyLoggingAdaper());
 
         rootLogger.setLevel(level);
+//        System.setOut(new PrintStream(new SystemOutLoggingAdapter(
+//                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"), Level.INFO)));
+//        System.setErr(new PrintStream(new SystemOutLoggingAdapter(
+//                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console err"), Level.ERROR)));
     }
 
     private static Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
@@ -299,7 +304,7 @@ public class Main {
         levelFilter.start();
         return levelFilter;
     }
-
+    
     private static PatternLayout createPatternLayout(LoggerContext loggerContext, String pattern) {
         PatternLayout patternLayout = new PatternLayout();
         patternLayout.setPattern(pattern);
