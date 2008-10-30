@@ -20,14 +20,15 @@ package org.gradle.api.tasks.javadoc
  * @author Hans Dockter
  */
 class AntJavadoc {
-    void execute(List<File> sourceDirs, File destDir, List<File> classpathFiles, String windowTitle, String maxMemory, List<String> includes, List<String> excludes, AntBuilder ant) {
+    void execute(List<File> sourceDirs, File destDir, List<File> classpathFiles, String windowTitle, String maxMemory,
+                 List<String> includes, List<String> excludes, boolean verbose, AntBuilder ant) {
         Map otherArgs = [:]
         if (maxMemory) {otherArgs.maxmemory = maxMemory}
         if (windowTitle) {
             otherArgs.windowtitle = windowTitle
             otherArgs.doctitle = "<p>$windowTitle</p>"
         }
-        ant.javadoc([destdir: destDir, failonerror: true] + otherArgs) {
+        ant.javadoc([destdir: destDir, failonerror: true, verbose: verbose] + otherArgs) {
             sourceDirs.each {
                 fileset(dir: it) {
                     includes.each {

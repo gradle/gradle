@@ -54,6 +54,8 @@ public class Javadoc extends ConventionTask {
 
     private AntJavadoc antJavadoc = new AntJavadoc();
 
+    private boolean verbose = false;
+
     public Javadoc(Project project, String name) {
         super(project, name);
         doFirst(new TaskAction() {
@@ -66,7 +68,8 @@ public class Javadoc extends ConventionTask {
     private void generate() {
         List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs());
         try {
-            antJavadoc.execute(existingSourceDirs, getDestinationDir(), getClasspath(), getTitle(), getMaxMemory(), getIncludes(), getExcludes(), getProject().getAnt());
+            antJavadoc.execute(existingSourceDirs, getDestinationDir(), getClasspath(), getTitle(), getMaxMemory(), getIncludes(), getExcludes(),
+                    verbose, getProject().getAnt());
         } catch (BuildException e) {
             throw new GradleException("Javadoc generation failed.", e);
         }
@@ -113,10 +116,18 @@ public class Javadoc extends ConventionTask {
         return getDependencyManager().resolveTask(getName());
     }
 
+    /**
+     * Returns the amount of memory allocated to this task.
+     */
     public String getMaxMemory() {
         return maxMemory;
     }
 
+    /**
+     * Sets the amount of memory allocated to this task.
+     *
+     * @param maxMemory The amount of memory
+     */
     public void setMaxMemory(String maxMemory) {
         this.maxMemory = maxMemory;
     }
@@ -193,6 +204,25 @@ public class Javadoc extends ConventionTask {
      */
     public void setDependencyManager(DependencyManager dependencyManager) {
         this.dependencyManager = dependencyManager;
+    }
+
+    /**
+     * Returns whether javadoc generation is accompanied by verbose output.
+     *
+     * @see #setVerbose(boolean) 
+     */
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    /**
+     * Sets whether javadoc generation is accompanied by verbose output or not. The verbose output is done via println (by the
+     * underlying ant task). Thus it is not catched by our logging.
+     *
+     * @param verbose Whether the output should be verbose.
+     */
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 
     AntJavadoc getAntJavadoc() {

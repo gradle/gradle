@@ -50,7 +50,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
     @Before
     public void setUp() {
         super.setUp();
-
         context.setImposteriser(ClassImposteriser.INSTANCE);
 
         antJavadoc = context.mock(AntJavadoc.class);
@@ -78,7 +77,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
             will(returnValue(classpath));
 
-            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, getProject().getAnt());
+            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, false, getProject().getAnt());
         }});
 
         task.execute();
@@ -98,7 +97,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
             will(returnValue(classpath));
 
-            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, getProject().getAnt());
+            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, false, getProject().getAnt());
             will(throwException(failure));
         }});
 
@@ -116,6 +115,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
         task.setSrcDirs(srcDirs);
         task.setMaxMemory("max-memory");
         task.setTitle("title");
+        task.setVerbose(true);
 
         context.checking(new Expectations() {{
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
@@ -124,7 +124,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
             will(returnValue(classpath));
 
-            one(antJavadoc).execute(srcDirs, destDir, classpath, "title", "max-memory", EMPTY_LIST, EMPTY_LIST, getProject().getAnt());
+            one(antJavadoc).execute(srcDirs, destDir, classpath, "title", "max-memory", EMPTY_LIST, EMPTY_LIST, true, getProject().getAnt());
         }});
 
         task.execute();
@@ -143,7 +143,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
             will(returnValue(classpath));
 
-            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, WrapUtil.toList("include"), WrapUtil.toList("exclude"), getProject().getAnt());
+            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, WrapUtil.toList("include"), WrapUtil.toList("exclude"), false, getProject().getAnt());
         }});
 
         task.execute();
