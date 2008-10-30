@@ -207,7 +207,8 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
      private void prepateProjectMock(ArchiveType archiveType, Map args = [:]) {
-        String taskName = (args.baseName ?: getProject().archivesTaskBaseName) + (args.appendix ? "_" + args.appendix : "")
+        String baseName = args.baseName ?: getProject().archivesTaskBaseName
+        String taskName = baseName + (args.appendix ? "_" + args.appendix : "")
         String classifier = args.classifier ? '_' + args.classifier  : ''
         taskName =  "${taskName}${classifier}_${archiveType.defaultExtension}"
         Project projectMock = context.mock(ProjectInternal)
@@ -221,8 +222,9 @@ class BundleTest extends AbstractConventionTaskTest {
     }
 
     private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType, Map args = [:]) {
-        String taskName = (args.baseName ?: getProject().archivesTaskBaseName) + (args.appendix ? "_" + args.appendix : "")
-        String archiveBaseName = getProject().archivesBaseName + (args.appendix ? "-" + args.appendix : "")
+        String baseName = args.baseName ?: getProject().archivesTaskBaseName
+        String taskName = baseName + (args.appendix ? "_" + args.appendix : "")
+        String archiveBaseName = (args.baseName ?: getProject().archivesBaseName) + (args.appendix ? "-" + args.appendix : "")
         String classifier = args.classifier ? '_' + args.classifier  : ''
         List confs = []
         confs.addAll(args.confs != null ? args.confs : [Dependency.MASTER_CONFIGURATION])

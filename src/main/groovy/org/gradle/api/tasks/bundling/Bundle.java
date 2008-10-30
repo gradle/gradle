@@ -55,13 +55,12 @@ public class Bundle extends ConventionTask {
     }
 
     public AbstractArchiveTask createArchive(ArchiveType type, Map<String, Object> args, Closure configureClosure) {
-        String taskBaseName = GUtil.elvis(args.get(BASENAME_KEY), getProject().getArchivesTaskBaseName()) +
-                (args.get(APPENDIX_KEY) != null ? "_" + args.get(APPENDIX_KEY) : "");
+        String taskBaseName = GUtil.elvis(args.get(BASENAME_KEY), getProject().getArchivesTaskBaseName()).toString() + (args.get(APPENDIX_KEY) != null ? "_" + args.get(APPENDIX_KEY) : "");
         String classifier = args.get(CLASSIFIER_KEY) != null ? "_" + args.get(CLASSIFIER_KEY) : "";
         String taskName = taskBaseName + classifier + "_" + type.getDefaultExtension();
         AbstractArchiveTask archiveTask = (AbstractArchiveTask) getProject().createTask(WrapUtil.toMap("type", type.getTaskClass()), taskName);
         archiveTask.conventionMapping(type.getConventionMapping());
-        archiveTask.setBaseName(getProject().getArchivesBaseName() + (args.get(APPENDIX_KEY) != null ? "-" + args.get(APPENDIX_KEY) : ""));
+        archiveTask.setBaseName(GUtil.elvis(args.get(BASENAME_KEY), getProject().getArchivesBaseName()) + (args.get(APPENDIX_KEY) != null ? "-" + args.get(APPENDIX_KEY) : ""));
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
         archiveTask.setExtension(type.getDefaultExtension());
         setTaskDependsOn(archiveTask, getChildrenDependOn());
