@@ -95,6 +95,9 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         assertTrue(projectDependency.isTransitive());
         assertNotNull(projectDependency.getExcludeRules());
         assertNotNull(projectDependency.getDependencyConfigurationMappings());
+        assertEquals(dependencyProjectModuleRevisionId.getName(), projectDependency.getName());
+        assertEquals(dependencyProjectModuleRevisionId.getOrganisation(), projectDependency.getGroup());
+        assertEquals(dependencyProjectModuleRevisionId.getRevision(), projectDependency.getVersion());
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testWithSingleString() {

@@ -45,5 +45,4 @@ public class ArtifactTest {
         artifact.setConfs(testConfs);
         assertSame(testConfs, artifact.getConfs());
     }
-
 }

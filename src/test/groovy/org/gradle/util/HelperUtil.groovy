@@ -166,6 +166,12 @@ class HelperUtil {
         testConfigurationMappings.addMasters(confsCollection as String[])
         testConfigurationMappings
     }
+
+    static Closure createSetterClosure(String name, String value) {
+        return {
+            "set$name"(value)
+        }
+    }
 }
 
 class MyScript extends Script {

@@ -99,7 +99,7 @@ public class DefaultDependencyDescriptorFactoryTest {
             }
         });
 
-        artifact = new Artifact("name", "type", "ext", null, null);
+        artifact = new Artifact("name", "type", null, null, null);
         artifactWithClassifierAndConfs = new Artifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com");
         artifactWithClassifierAndConfs.setConfs(WrapUtil.toList(TEST_CONF_2, TEST_CONF_3));
     }
@@ -158,7 +158,7 @@ public class DefaultDependencyDescriptorFactoryTest {
 
     @Test
     public void testCreateFromModuleDependency() {
-        DefaultModuleDependency moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, "org.gradle:gradle-core:1.0").
+        DefaultModuleDependency moduleDependency = (DefaultModuleDependency) new DefaultModuleDependency(TEST_CONF_MAPPING, "org.gradle:gradle-core:1.0").
                 setChanging(true).
                 setForce(true).
                 addArtifact(artifact).
@@ -189,6 +189,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         assertEquals(new HashMap(), artifactDescriptor.getExtraAttributes());
         assertEquals(null, artifactDescriptor.getUrl());
         compareArtifacts(artifact, artifactDescriptor);
+        assertEquals(artifact.getType(), artifactDescriptor.getExt());
 
         DependencyArtifactDescriptor artifactDescriptorWithClassifierAndConfs = dependencyDescriptor.getDependencyArtifacts(TEST_CONF_2)[0];
         if (artifactDescriptorWithClassifierAndConfs == artifactDescriptor) {
@@ -197,6 +198,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         assertTrue(Arrays.asList(dependencyDescriptor.getDependencyArtifacts(TEST_CONF_3)).contains(artifactDescriptorWithClassifierAndConfs));
         assertEquals(WrapUtil.toMap(DependencyManager.CLASSIFIER, artifactWithClassifierAndConfs.getClassifier()), artifactDescriptorWithClassifierAndConfs.getExtraAttributes());
         compareArtifacts(artifactWithClassifierAndConfs, artifactDescriptorWithClassifierAndConfs);
+        assertEquals(artifactWithClassifierAndConfs.getExtension(), artifactDescriptorWithClassifierAndConfs.getExt());
         try {
             assertEquals(new URL(artifactWithClassifierAndConfs.getUrl()), artifactDescriptorWithClassifierAndConfs.getUrl());
         } catch (MalformedURLException e) {
@@ -207,7 +209,6 @@ public class DefaultDependencyDescriptorFactoryTest {
     private void compareArtifacts(Artifact artifact, DependencyArtifactDescriptor artifactDescriptor) {
         assertEquals(artifact.getName(), artifactDescriptor.getName());
         assertEquals(artifact.getType(), artifactDescriptor.getType());
-        assertEquals(artifact.getExtension(), artifactDescriptor.getExt());
     }
 
     private void checkExcludeRules(DefaultDependencyDescriptor dependencyDescriptor, ExcludeRule excludeRuleWithNoConf, ExcludeRule excludeRuleWithConf) {

@@ -21,11 +21,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
+import org.gradle.api.dependencies.Artifact;
+import org.gradle.util.ConfigureUtil;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
+
+import groovy.lang.Closure;
 
 /**
 * @author Hans Dockter
@@ -38,6 +39,7 @@ public abstract class AbstractDependency implements Dependency {
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
 
     private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
+    protected List<Artifact> artifacts = new ArrayList<Artifact>();
 
     public AbstractDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDependencyDescription) {
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
@@ -113,5 +115,24 @@ public abstract class AbstractDependency implements Dependency {
 
     public void dependencyConfigurations(Map<String, List<String>> dependencyConfigurations) {
         dependencyConfigurationMappings.add(dependencyConfigurations);
+    }
+
+    public List<Artifact> getArtifacts() {
+        return artifacts;
+    }
+
+    public void setArtifacts(List<Artifact> artifacts) {
+        this.artifacts = artifacts;
+    }
+
+    public AbstractDependency addArtifact(Artifact artifact) {
+        artifacts.add(artifact);
+        return this;
+    }
+
+    public Artifact artifact(Closure configureClosure) {
+        Artifact artifact =  (Artifact) ConfigureUtil.configure(configureClosure, new Artifact());
+        artifacts.add(artifact);
+        return artifact;
     }
 }

@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 /**
  * @author Hans Dockter
  */
-public class DefaultModuleDependency extends AbstractDependency implements ModuleDependency, Dependency {
+public class DefaultModuleDependency extends AbstractDependency implements ModuleDependency {
     private static final Pattern extensionSplitter = Pattern.compile("^(.+)\\@([^:]+$)");
 
     private String group;
@@ -47,8 +47,6 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     private boolean force = false;
     private boolean changing = false;
     private boolean transitive = true;
-
-    private List<Artifact> artifacts = new ArrayList<Artifact>();
 
     public DefaultModuleDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDescription) {
         super(dependencyConfigurationMappings, userDescription);
@@ -158,22 +156,5 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     public DefaultModuleDependency setChanging(boolean changing) {
         this.changing = changing;
         return this;
-    }
-
-    public List<Artifact> getArtifacts() {
-        return artifacts;
-    }
-
-    public void setArtifacts(List<Artifact> artifacts) {
-        this.artifacts = artifacts;
-    }
-
-    public DefaultModuleDependency addArtifact(Artifact artifact) {
-        artifacts.add(artifact);
-        return this;
-    }
-
-    public Artifact artifact(Closure configureClosure) {
-        return (Artifact) ConfigureUtil.configure(configureClosure, new Artifact());
     }
 }

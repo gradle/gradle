@@ -18,7 +18,7 @@ package org.gradle.api.dependencies;
 /**
  * @author Hans Dockter
  */
-public interface ModuleDependency extends ExternalDependency, Dependency {
+public interface ModuleDependency extends ExternalDependency {
     boolean isChanging();
 
     ModuleDependency setChanging(boolean changing);

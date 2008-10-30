@@ -21,6 +21,8 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import java.util.Map;
 import java.util.List;
 
+import groovy.lang.Closure;
+
 /**
 * @author Hans Dockter
 */
@@ -65,4 +67,20 @@ public interface Dependency {
     void setExcludeRules(ExcludeRuleContainer excludeRules);
 
     void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings);
+
+    String getGroup();
+
+    String getName();
+
+    String getVersion();
+
+    boolean isTransitive();
+
+    Dependency setTransitive(boolean transitive);
+
+    List<Artifact> getArtifacts();
+
+    Dependency addArtifact(Artifact artifact);
+
+    Artifact artifact(Closure configureClosure);
 }

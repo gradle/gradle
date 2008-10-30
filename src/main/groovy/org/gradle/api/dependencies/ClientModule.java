@@ -222,7 +222,9 @@ public class ClientModule extends DefaultDependencyContainer implements External
     }
 
     public Artifact artifact(Closure configureClosure) {
-        return (Artifact) ConfigureUtil.configure(configureClosure, new Artifact());
+        Artifact artifact =  (Artifact) ConfigureUtil.configure(configureClosure, new Artifact());
+        artifacts.add(artifact);
+        return artifact;
     }
 
     public DependencyDescriptorFactory getDependencyDescriptorFactory() {

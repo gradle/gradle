@@ -85,7 +85,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
                         dependencyDescriptor,
                         artifact.getName(),
                         artifact.getType(),
-                        artifact.getExtension(),
+                        artifact.getExtension() != null ? artifact.getExtension() : artifact.getType(),
                         artifact.getUrl() != null ? new URL(artifact.getUrl()) : null,
                         artifact.getClassifier() != null ? WrapUtil.toMap(DependencyManager.CLASSIFIER, artifact.getClassifier()) : null);
             } catch (MalformedURLException e) {

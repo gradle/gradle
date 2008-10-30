@@ -32,7 +32,7 @@ import java.util.Set;
 /**
 * @author Hans Dockter
 */
-public class DefaultProjectDependency extends AbstractDependency implements ProjectDependency, Dependency {
+public class DefaultProjectDependency extends AbstractDependency implements ProjectDependency {
     private Project project;
 
     private Project dependencyProject;
@@ -86,5 +86,17 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
     public DefaultProjectDependency setTransitive(boolean transitive) {
         this.transitive = transitive;
         return this;
+    }
+
+    public String getGroup() {
+        return dependencyProject.getDependencies().createModuleRevisionId().getOrganisation();
+    }
+
+    public String getName() {
+        return dependencyProject.getDependencies().createModuleRevisionId().getName();
+    }
+
+    public String getVersion() {
+        return dependencyProject.getDependencies().createModuleRevisionId().getRevision();
     }
 }

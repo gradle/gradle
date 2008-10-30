@@ -29,25 +29,9 @@ public interface ExternalDependency extends Dependency {
 
     ExternalDependency setForce(boolean force);
 
-    String getGroup();
-
     ExternalDependency setGroup(String group);
-
-    String getName();
 
     ExternalDependency setName(String name);
 
-    String getVersion();
-
     ExternalDependency setVersion(String version);
-
-    boolean isTransitive();
-
-    ExternalDependency setTransitive(boolean transitive);
-
-    List<Artifact> getArtifacts();
-
-    ExternalDependency addArtifact(Artifact artifact);
-
-    Artifact artifact(Closure configureClosure);
 }
