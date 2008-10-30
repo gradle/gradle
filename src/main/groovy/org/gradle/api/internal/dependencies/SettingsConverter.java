@@ -74,6 +74,7 @@ public class SettingsConverter {
             ((DefaultRepositoryCacheManager)dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
         }
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
+        ivySettings.setVariable("ivy.log.modules.in.use", "false");
         ConfigureUtil.configure(clientModuleChainConfigurer, chainResolver);
 
         return ivySettings;
