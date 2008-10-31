@@ -50,9 +50,11 @@ public class Install {
         }
         File localZipFile = new File(pathAssembler.distZip(zipBase, zipPath, distName, distVersion, distClassifier));
         if (alwaysDownload || !localZipFile.exists()) {
+            File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
             String downloadUrl = urlRoot + "/" + distName + "-" + distVersion + "-" + distClassifier + ".zip";
             System.out.println("Downloading " + downloadUrl);
-            download.download(downloadUrl, localZipFile);
+            download.download(downloadUrl, tmpZipFile);
+            tmpZipFile.renameTo(localZipFile);
         }
         if (gradleHomeFile.isDirectory()) {
             System.out.println("Deleting directory " + gradleHomeFile.getAbsolutePath());

@@ -69,7 +69,7 @@ class InstallTest {
     IDownload createDownloadMock() {
         [download: {String url, File destination ->
             assertEquals("$urlRoot/$testDistName-${testDistVersion}-${testDistClassifier}.zip" as String, url)
-            assertEquals(zipDestination.getAbsolutePath(), destination.getAbsolutePath())
+            assertEquals(zipDestination.getAbsolutePath() + '.part', destination.getAbsolutePath())
             zip = createTestZip()
             downloadCalled = true
         }] as IDownload
@@ -110,16 +110,17 @@ class InstallTest {
         someScript.write('something')
         zipStore.mkdirs()
         AntBuilder antBuilder = new AntBuilder()
-        antBuilder.zip(destfile: zipDestination) {
+        antBuilder.zip(destfile: zipDestination.absolutePath + '.part') {
             zipfileset(dir: explodedZipDir, prefix: "$testDistName-$testDistVersion")
         }
-        zipDestination
+        (zipDestination.absolutePath + '.part') as File
     }
 
     @Test public void testCreateDist() {
         assertEquals(gradleHomeDir.absolutePath, install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath))
         assert downloadCalled
         assert distributionDir.isDirectory()
+        assert zipDestination.exists()
         assert someScript.exists()
     }
 
@@ -141,7 +142,7 @@ class InstallTest {
 
     @Test public void testCreateDistWithExistingDistAndZipAndAlwaysUnpackTrue() {
         install = new Install(false, true, createDownloadMock(), createPathAssemblerMock())
-        createTestZip()
+        createTestZip().renameTo(zipDestination)
         gradleHomeDir.mkdirs()
         File testFile = new File(gradleHomeDir, 'testfile')
         install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
@@ -153,7 +154,7 @@ class InstallTest {
 
     @Test public void testCreateDistWithExistingZipAndDistAndAlwaysDownloadTrue() {
         install = new Install(true, false, createDownloadMock(), createPathAssemblerMock())
-        createTestZip()
+        createTestZip().renameTo(zipDestination)
         distributionDir.mkdirs()
         File testFile = new File(gradleHomeDir, 'testfile')
         install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
