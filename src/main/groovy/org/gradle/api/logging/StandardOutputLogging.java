@@ -42,11 +42,11 @@ public class StandardOutputLogging {
     static final StandardOutputLoggingAdapter ERR_LOGGING_ADAPTER = new StandardOutputLoggingAdapter(
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"), Level.ERROR);
 
-    static PrintStream outLoggingStream = new PrintStream(OUT_LOGGING_ADAPTER);
-    static PrintStream errLoggingStream = new PrintStream(ERR_LOGGING_ADAPTER);
+    static final PrintStream outLoggingStream = new PrintStream(OUT_LOGGING_ADAPTER);
+    static final PrintStream errLoggingStream = new PrintStream(ERR_LOGGING_ADAPTER);
 
-    static PrintStream defaultOut = System.out;
-    static PrintStream defaultErr = System.err;
+    static final PrintStream defaultOut = System.out;
+    static final PrintStream defaultErr = System.err;
 
     /**
      * Redirects the standard out to the Gradle logging.  The System.out is redirected to specified level.

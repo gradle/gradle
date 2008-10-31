@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.junit.Before;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import org.slf4j.Marker;
 import ch.qos.logback.classic.Level;
 
@@ -29,6 +30,7 @@ public class StandardOutputLoggingTest {
 
     @Before
     public void setUp() {
+        StandardOutputLogging.off();
     }
 
     private void setToNonDefaultValues(boolean out, boolean err) {
@@ -54,7 +56,7 @@ public class StandardOutputLoggingTest {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.INFO);
         checkOut(Level.INFO, null);
-        assertEquals(StandardOutputLogging.defaultErr, System.err);
+        assertSame(StandardOutputLogging.defaultErr, System.err);
     }
 
     @Test
