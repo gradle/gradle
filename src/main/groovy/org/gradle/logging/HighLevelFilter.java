@@ -30,7 +30,7 @@ public class HighLevelFilter extends Filter {
         if (loggingEvent.getMarker() == Logging.LIFECYCLE) {
             return FilterReply.ACCEPT;
         } else {
-            return FilterReply.DENY;
+            return FilterReply.NEUTRAL;
         }
     }
 }
