@@ -22,10 +22,12 @@ import ch.qos.logback.classic.Logger;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.slf4j.Marker;
+
 /**
  * @author Hans Dockter
  */
-public class SystemOutLoggingAdapter extends OutputStream {
+public class StandardOutputLoggingAdapter extends OutputStream {
     /**
      * Used to maintain the contract of [EMAIL PROTECTED] #close()}.
      */
@@ -63,7 +65,12 @@ public class SystemOutLoggingAdapter extends OutputStream {
     /**
      * The priority to use when writing to the Category.
      */
-    protected Level level;
+    private Level level;
+
+    /**
+     * The marker to use when writing to the Category.
+     */
+    private Marker marker;
 
 
     /**
@@ -74,7 +81,7 @@ public class SystemOutLoggingAdapter extends OutputStream {
      * @throws IllegalArgumentException if cat == null or priority ==
      *                                  null
      */
-    public SystemOutLoggingAdapter(Logger log, Level level)
+    public StandardOutputLoggingAdapter(Logger log, Level level)
             throws IllegalArgumentException {
         if (log == null) {
             throw new IllegalArgumentException("cat == null");
@@ -137,8 +144,10 @@ public class SystemOutLoggingAdapter extends OutputStream {
         }
 
         buf[count] = (byte) b;
-
         count++;
+        if ((b == '\n')) {
+		    flush();
+	    }
     }
 
 
@@ -157,9 +166,9 @@ public class SystemOutLoggingAdapter extends OutputStream {
             String message = new String(theBytes);
             String lineSeparator = System.getProperty("line.separator");
             if (message.endsWith(lineSeparator)) {
-                message = message.substring(0, message.length() - 1 - lineSeparator.length());
+                message = message.substring(0, message.length() - lineSeparator.length());
             }
-            logger.filterAndLog(null, null, level, message, null, null);
+            logger.filterAndLog(Logger.FQCN, marker, level, message, null, null);
         }
         reset();
     }
@@ -207,6 +216,22 @@ public class SystemOutLoggingAdapter extends OutputStream {
         // not resetting the buffer -- assuming that if it grew then it
         //   will likely grow similarly again
         count = 0;
+    }
+
+    public Level getLevel() {
+        return level;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
+    }
+
+    public Marker getMarker() {
+        return marker;
+    }
+
+    public void setMarker(Marker marker) {
+        this.marker = marker;
     }
 }
 

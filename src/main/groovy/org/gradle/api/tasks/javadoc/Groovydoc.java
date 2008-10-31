@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.BootstrapUtil;
 import org.gradle.util.GUtil;
+import org.gradle.api.logging.LogLevel;
 
 import java.util.List;
 import java.io.File;
@@ -49,6 +50,7 @@ public class Groovydoc extends ConventionTask {
 
     public Groovydoc(Project project, String name) {
         super(project, name);
+        captureStandardOutput(LogLevel.INFO);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generate(task);

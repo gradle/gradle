@@ -19,7 +19,7 @@ package org.gradle.initialization;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.StartParameter;
-import org.gradle.logging.Logging;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.DependencyManager;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;

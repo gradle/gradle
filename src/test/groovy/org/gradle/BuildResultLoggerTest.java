@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
-import org.gradle.logging.Logging;
+import org.gradle.api.logging.Logging;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BuildResultLoggerTest {

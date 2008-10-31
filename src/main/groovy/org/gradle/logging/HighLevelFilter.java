@@ -18,6 +18,7 @@ package org.gradle.logging;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import ch.qos.logback.classic.spi.LoggingEvent;
+import org.gradle.api.logging.Logging;
 
 /**
  * @author Hans Dockter

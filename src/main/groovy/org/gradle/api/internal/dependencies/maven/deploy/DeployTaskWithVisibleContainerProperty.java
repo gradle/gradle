@@ -16,7 +16,13 @@
 package org.gradle.api.internal.dependencies.maven.deploy;
 
 import org.apache.maven.artifact.ant.DeployTask;
+import org.apache.maven.artifact.ant.AntDownloadMonitor;
+import org.apache.maven.artifact.manager.WagonManager;
+import org.apache.maven.artifact.manager.DefaultWagonManager;
 import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+
+import java.lang.reflect.Field;
 
 /**
  * We could also use reflection to get hold of the container property. But this would make it harder
@@ -28,5 +34,27 @@ public class DeployTaskWithVisibleContainerProperty extends DeployTask {
     @Override
     public synchronized PlexusContainer getContainer() {
         return super.getContainer();
+    }
+
+    @Override
+    public void doExecute() {
+        plugIntoGradleLogging();
+        super.doExecute();
+    }
+
+    private void plugIntoGradleLogging() {
+        try {
+            WagonManager wagonManager = (WagonManager) getContainer().lookup(WagonManager.ROLE);
+            Field field = DefaultWagonManager.class.getDeclaredField("downloadMonitor");
+            field.setAccessible(true);
+            AntDownloadMonitor antDownloadMonitor = (AntDownloadMonitor) field.get(wagonManager);
+            antDownloadMonitor.setProject(getProject());
+        } catch (ComponentLookupException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

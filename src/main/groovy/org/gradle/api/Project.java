@@ -21,6 +21,7 @@ import groovy.util.AntBuilder;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.invocation.Build;
+import org.gradle.api.logging.LogLevel;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -962,4 +963,26 @@ public interface Project extends Comparable<Project> {
      * @return The build. Never returns null.
      */
     Build getBuild();
+
+    /**
+     * Sets whether the output send to standard out should be redirected to the Gradle logging. This applies to any output
+     * during the execution of this build. The System.out is redirected to the INFO level.
+     * System.err is always redirected to the ERROR level.
+     *
+     * For more fine-grained control see {@link org.gradle.api.logging.StandardOutputLogging}.
+     *
+     * @param enabled Whether the output should be redirected.
+     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
+     */
+    void captureStandardOutput(boolean enabled);
+
+    /**
+     * Sets that the output send to standard out should be redirected to a certain log level of the Gradle logging.
+     * This applies to any output during the execution of this build.  
+     * System.err is always redirected to the ERROR level.
+     *
+     * @param level The level standard out should be logged to.
+     * @see #captureStandardOutput(boolean)
+     */
+    void captureStandardOutput(LogLevel level);
 }

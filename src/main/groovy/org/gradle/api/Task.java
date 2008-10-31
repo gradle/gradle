@@ -24,6 +24,7 @@ import java.util.Set;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.logging.LogLevel;
 import org.slf4j.Logger;
 
 /**
@@ -272,5 +273,30 @@ public interface Task extends Comparable<Task> {
      * @return The logger. Never returns null.
      */
     Logger getLogger();
+
+    /**
+     * Sets whether the output send to standard out, during task execution, should be redirected to the Gradle
+     * logging system. If set to true, the System.out is redirected to the INFO level. System.err is always redirected to the
+     * ERROR level. Calling this method from the task itself during task execution has no effect.
+     *
+     * If the standard output is captured globally already, setting the task output capturing has no effect.
+     *
+     * For more fine-grained control see {@link org.gradle.api.logging.StandardOutputLogging}.
+     *
+     * @param enabled Whether the output should be redirected.
+     * @return this
+     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
+     */
+    Task captureStandardOutput(boolean enabled);
+
+    /**
+     * Sets that the standard output should be redirected to a certain log level of the Gradle logging system.
+     * System.err is always redirected to the ERROR level.
+     * 
+     * @param level The level standard out should be logged to.
+     * @return this
+     * @see #captureStandardOutput(boolean)
+     */
+    Task captureStandardOutput(LogLevel level);
 }
 

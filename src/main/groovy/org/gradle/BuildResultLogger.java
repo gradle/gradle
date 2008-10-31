@@ -17,7 +17,7 @@ package org.gradle;
 
 import org.slf4j.Logger;
 import org.gradle.util.Clock;
-import org.gradle.logging.Logging;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.execution.TaskExecutionGraph;

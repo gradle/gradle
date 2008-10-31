@@ -32,6 +32,7 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.BuildInternal;
@@ -42,6 +43,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.PathHelper;
+import org.gradle.api.logging.StandardOutputLogging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -820,5 +822,17 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public Logger getLogger() {
         return buildLogger;
+    }
+
+    public void captureStandardOutput(boolean enabled) {
+        if (enabled) {
+            StandardOutputLogging.on(LogLevel.INFO);
+        } else {
+            StandardOutputLogging.off();
+        }
+    }
+
+    public void captureStandardOutput(LogLevel level) {
+        StandardOutputLogging.on(level);
     }
 }

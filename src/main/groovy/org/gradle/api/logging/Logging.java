@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.api.logging;
 
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
@@ -26,13 +26,15 @@ import java.util.HashMap;
  * @author Hans Dockter
  */
 public class Logging {
-   public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
-   public static final Marker ANT_IVY = MarkerFactory.getDetachedMarker("ANT_IVY");
-   public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {{
-        put(Message.MSG_ERR, LogLevel.WARN);
-        put(Message.MSG_WARN, LogLevel.WARN);
-        put(Message.MSG_INFO, LogLevel.INFO);
-        put(Message.MSG_DEBUG, LogLevel.DEBUG);
-        put(Message.MSG_VERBOSE, LogLevel.DEBUG);
-    }};
+    public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
+
+    public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {
+        {
+            put(Message.MSG_ERR, LogLevel.WARN);
+            put(Message.MSG_WARN, LogLevel.WARN);
+            put(Message.MSG_INFO, LogLevel.INFO);
+            put(Message.MSG_DEBUG, LogLevel.DEBUG);
+            put(Message.MSG_VERBOSE, LogLevel.DEBUG);
+        }
+    };
 }

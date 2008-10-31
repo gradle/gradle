@@ -37,10 +37,13 @@ import org.apache.maven.artifact.ant.DeployTask;
 import org.apache.maven.artifact.ant.Pom;
 import org.gradle.util.AntUtil;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.dependencies.maven.PublishFilter;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.maven.MavenUploader;
 import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.StandardOutputCapture;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 
@@ -134,10 +137,19 @@ public class BaseMavenUploader implements MavenUploader {
         addRemoteRepositories(deployTask);
         addProtocolProvider(deployTask);
 
-        Map<File,File> deployableUnits = artifactPomContainer.createDeployableUnits();
+        Map<File, File> deployableUnits = artifactPomContainer.createDeployableUnits();
         for (File pomFile : deployableUnits.keySet()) {
             addPomAndArtifact(deployTask, pomFile, deployableUnits.get(pomFile));
+            execute(deployTask);
+        }
+    }
+
+    private void execute(DeployTaskWithVisibleContainerProperty deployTask) {
+        StandardOutputCapture outputCapture = new DefaultStandardOutputCapture(true, LogLevel.INFO).start();
+        try {
             deployTask.execute();
+        } finally {
+            outputCapture.stop();
         }
     }
 

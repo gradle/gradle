@@ -26,10 +26,16 @@ import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.test.util.Check;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.LogLevel;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import static org.hamcrest.Matchers.*;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.Expectations;
+import org.jmock.Sequence;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,6 +51,8 @@ public abstract class AbstractTaskTest {
     public static final String TEST_PROJECT_NAME = "/projectTestName";
 
     private AbstractProject project;
+
+    private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
     public void setUp() {
@@ -168,6 +176,13 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testBasicExecute() {
+        final Sequence captureOutput = context.sequence("captureOutput");
+        final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
+        getTask().setStandardOutputCapture(standardOutputCaptureMock);
+        context.checking(new Expectations() {{
+            one(standardOutputCaptureMock).start(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
+            one(standardOutputCaptureMock).stop(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
+        }});
         getTask().setActions(new ArrayList());
         assertFalse(getTask().isExecuted());
         final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
@@ -187,6 +202,31 @@ public abstract class AbstractTaskTest {
         assertTrue(getTask().isExecuted());
         assertTrue(actionsCalled.get(0));
         assertTrue(actionsCalled.get(1));
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCaptureOutputWithException() {
+        final Sequence captureOutput = context.sequence("captureOutput");
+        final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
+        getTask().setStandardOutputCapture(standardOutputCaptureMock);
+        context.checking(new Expectations() {{
+            one(standardOutputCaptureMock).start(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
+            one(standardOutputCaptureMock).stop(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
+        }});
+        getTask().setActions(new ArrayList());
+        TaskAction action1 = new TaskAction() {
+            public void execute(Task task) {
+                throw new RuntimeException();
+            }
+        };
+        getTask().doLast(action1);
+        try {
+            getTask().execute();
+        } catch (Exception e) {
+            // ignore
+        }
+        context.assertIsSatisfied();
     }
 
     @Test
@@ -378,5 +418,20 @@ public abstract class AbstractTaskTest {
 
     public void setProject(AbstractProject project) {
         this.project = project;
+    }
+
+    @Test
+    public void captureStandardOutWithBoolean() {
+        getTask().captureStandardOutput(true);
+        assertEquals(new DefaultStandardOutputCapture(true, LogLevel.INFO), getTask().getStandardOutputCapture());
+        getTask().captureStandardOutput(false);
+        assertFalse(getTask().getStandardOutputCapture().isEnabled());
+    }
+
+    @Test
+    public void captureStandardOutWithLevel() {
+        getTask().captureStandardOutput(false);
+        getTask().captureStandardOutput(LogLevel.DEBUG);
+        assertEquals(new DefaultStandardOutputCapture(true, LogLevel.DEBUG), getTask().getStandardOutputCapture());
     }
 }

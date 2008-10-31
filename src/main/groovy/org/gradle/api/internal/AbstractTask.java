@@ -27,7 +27,10 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.logging.Logging;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.StandardOutputCapture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +60,8 @@ public abstract class AbstractTask implements TaskInternal {
     private String path = null;
 
     private boolean dagNeutral = false;
+
+    private StandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture();
 
     private DefaultTaskDependency dependencies = new DefaultTaskDependency();
 
@@ -159,6 +164,32 @@ public abstract class AbstractTask implements TaskInternal {
 
     public void execute() {
         logger.debug("Starting to execute Task: {}", path);
+        if (!isSkipped()) {
+            logger.info(Logging.LIFECYCLE, "Executing Task: {}", path);
+            StandardOutputCapture finalCapture = standardOutputCapture;
+            finalCapture.start();
+            for (TaskAction action : actions) {
+                logger.debug("Executing Action:");
+                try {
+                    doExecute(action);
+                } catch (StopExecutionException e) {
+                    logger.info("Execution stopped by some action with message: {}", e.getMessage());
+                    break;
+                } catch (StopActionException e) {
+                    logger.debug("Action stopped by some action with message: {}", e.getMessage());
+                    continue;
+                } catch (Throwable t) {
+                    finalCapture.stop();
+                    throw new GradleScriptException(String.format("Execution failed for task %s.", getPath()), t, project.getBuildScriptSource());
+                }
+            }
+            finalCapture.stop();
+        }
+        executed = true;
+        logger.debug("Finished executing Task: {}", path);
+    }
+
+    private boolean isSkipped() {
         List trueSkips = new ArrayList();
         if (enabled) {
             List<String> allSkipProperties = new ArrayList<String>(skipProperties);
@@ -177,25 +208,9 @@ public abstract class AbstractTask implements TaskInternal {
         }
         if (!enabled || trueSkips.size() > 0) {
             logger.info(Logging.LIFECYCLE, "Skipping  Task: {}", path);
-        } else {
-            logger.info(Logging.LIFECYCLE, "Executing Task: {}", path);
-            for (TaskAction action : actions) {
-                logger.debug("Executing Action:");
-                try {
-                    doExecute(action);
-                } catch (StopExecutionException e) {
-                    logger.info("Execution stopped by some action with message: {}", e.getMessage());
-                    break;
-                } catch (StopActionException e) {
-                    logger.debug("Action stopped by some action with message: {}", e.getMessage());
-                    continue;
-                } catch (Throwable t) {
-                    throw new GradleScriptException(String.format("Execution failed for task %s.", getPath()), t, project.getBuildScriptSource());
-                }
-            }
+            return true;
         }
-        executed = true;
-        logger.debug("Finished executing Task: {}", path);
+        return false;
     }
 
     private void doExecute(TaskAction action) throws Throwable {
@@ -255,5 +270,23 @@ public abstract class AbstractTask implements TaskInternal {
 
     public Logger getLogger() {
         return buildLogger;
+    }
+
+    public Task captureStandardOutput(boolean enabled) {
+        standardOutputCapture = new DefaultStandardOutputCapture(enabled, LogLevel.INFO);
+        return this;
+    }
+
+    public Task captureStandardOutput(LogLevel level) {
+        standardOutputCapture = new DefaultStandardOutputCapture(true, level);
+        return this;
+    }
+
+    public StandardOutputCapture getStandardOutputCapture() {
+        return standardOutputCapture;
+    }
+
+    public void setStandardOutputCapture(StandardOutputCapture standardOutputCapture) {
+        this.standardOutputCapture = standardOutputCapture;
     }
 }

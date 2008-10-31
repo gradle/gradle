@@ -17,6 +17,7 @@ package org.gradle.logging;
 
 import org.apache.tools.ant.BuildLogger;
 import org.apache.tools.ant.BuildEvent;
+import org.gradle.api.logging.Logging;
 
 import java.io.PrintStream;
 
@@ -71,9 +72,9 @@ public class AntLoggingAdapter implements BuildLogger {
         }
         message.append(event.getMessage());
         if (event.getException() != null) {
-            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(Logging.ANT_IVY, message.toString(), event.getException());
+            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(message.toString(), event.getException());
         } else {
-            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(Logging.ANT_IVY, message.toString());
+            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(message.toString());
         }
     }
 }

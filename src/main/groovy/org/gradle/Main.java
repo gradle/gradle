@@ -266,21 +266,22 @@ public class Main {
         if (!options.has(QUIET)) {
             ConsoleAppender nonErrorConsoleAppender = new ConsoleAppender();
             nonErrorConsoleAppender.setContext(lc);
-            nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.DENY, FilterReply.NEUTRAL));
-            nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.NEUTRAL));
             if (options.has(DEBUG)) {
                 level = Level.DEBUG;
                 nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
                 errorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
-                nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT, FilterReply.DENY));
+                nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
+                nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT, FilterReply.NEUTRAL));
             } else {
                 nonErrorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
                 if (options.has(INFO)) {
-                    nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.DENY));
+                    level = Level.INFO;
+                    nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
                 } else {
                     nonErrorConsoleAppender.addFilter(new HighLevelFilter());
                 }
             }
+            nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
             rootLogger.addAppender(nonErrorConsoleAppender);
             nonErrorConsoleAppender.start();
         }
@@ -289,10 +290,6 @@ public class Main {
         Message.setDefaultLogger(new IvyLoggingAdaper());
 
         rootLogger.setLevel(level);
-//        System.setOut(new PrintStream(new SystemOutLoggingAdapter(
-//                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"), Level.INFO)));
-//        System.setErr(new PrintStream(new SystemOutLoggingAdapter(
-//                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console err"), Level.ERROR)));
     }
 
     private static Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
