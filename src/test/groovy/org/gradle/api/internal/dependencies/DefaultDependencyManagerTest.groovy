@@ -42,6 +42,9 @@ import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.dependencies.Configuration
 import org.gradle.util.HelperUtil
 import org.gradle.api.dependencies.PublishArtifact
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.gradle.api.internal.Transformer
+import org.apache.ivy.core.module.id.ModuleId
 
 /**
  * @author Hans Dockter
@@ -434,5 +437,24 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
             will(returnValue(testModuleDescriptor))
         }
         assertSame(testModuleDescriptor, dependencyManager.createModuleDescriptor(true))
+    }
+
+    @Test public void transformerCanModifyIvyDescriptor() {
+        Transformer<DefaultModuleDescriptor> transformer = context.mock(Transformer)
+        context.checking {
+            one(moduleDescriptorConverter).addIvyTransformer(transformer)
+        }
+
+        dependencyManager.addIvyTransformer(transformer)
+    }
+    
+    @Test public void tranformationClosureCanModifyIvyModuleDescriptor() {
+        Closure transformer = { it }
+
+        context.checking {
+            one(moduleDescriptorConverter).addIvyTransformer(transformer)
+        }
+
+        dependencyManager.addIvyTransformer(transformer)
     }
 }

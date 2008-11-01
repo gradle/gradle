@@ -15,23 +15,25 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.dependencies.AbstractDependency;
-import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.JUnit4GroovyMockery;
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.junit.Assert.*;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.internal.Transformer;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.HelperUtil;
+import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
+import org.jmock.integration.junit4.JMock;
+import org.junit.Test;
+import org.junit.Before;
+import org.junit.runner.RunWith;
 
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 abstract public class AbstractDependencyTest {
     protected static final String TEST_CONF = "conf";
 //    protected static final Set<String> TEST_CONF_SET = WrapUtil.toSet(TEST_CONF);
@@ -44,11 +46,13 @@ abstract public class AbstractDependencyTest {
 
     protected abstract AbstractDependency getDependency();
     protected abstract Object getUserDescription();
+    protected abstract void expectDescriptorBuilt(DependencyDescriptor descriptor);
 
     private ModuleDescriptor parentModuleDescriptorMock;
 
     protected JUnit4Mockery context = new JUnit4GroovyMockery();
 
+    @Before
     public void setUp() {
         parentModuleDescriptorMock = context.mock(ModuleDescriptor.class);
     }
@@ -57,6 +61,43 @@ abstract public class AbstractDependencyTest {
     public void testGenericInit() {
         assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
         assertEquals(TEST_CONF_MAPPING, getDependency().getDependencyConfigurationMappings());
+    }
+
+    @Test public void testCreateDependencyDescriptor() {
+        DependencyDescriptor expectedDependencyDescriptor = context.mock(DependencyDescriptor.class);
+        expectDescriptorBuilt(expectedDependencyDescriptor);
+        assertSame(expectedDependencyDescriptor, getDependency().createDependencyDescriptor(parentModuleDescriptorMock));
+    }
+
+    @Test
+    public void testTransformerCanModifyIvyDescriptor() {
+        final DependencyDescriptor original = context.mock(DependencyDescriptor.class, "original");
+        final DependencyDescriptor transformed = context.mock(DependencyDescriptor.class, "transformed");
+        final Transformer<DependencyDescriptor> transformer = context.mock(Transformer.class);
+
+        context.checking(new Expectations() {{
+            one(transformer).transform(with(sameInstance(original)));
+            will(returnValue(transformed));
+        }});
+        expectDescriptorBuilt(original);
+
+        getDependency().addIvyTransformer(transformer);
+
+        DependencyDescriptor descriptor = getDependency().createDependencyDescriptor(parentModuleDescriptorMock);
+        assertThat(descriptor, sameInstance(transformed));
+    }
+
+    @Test
+    public void testTransformationClosureCanModifyIvyDescriptor() {
+        final DependencyDescriptor original = context.mock(DependencyDescriptor.class, "original");
+        final DependencyDescriptor transformed = context.mock(DependencyDescriptor.class, "transformed");
+
+        getDependency().addIvyTransformer(HelperUtil.returns(transformed));
+
+        expectDescriptorBuilt(original);
+
+        DependencyDescriptor descriptor = getDependency().createDependencyDescriptor(parentModuleDescriptorMock);
+        assertThat(descriptor, sameInstance(transformed));
     }
 
     protected ModuleDescriptor getParentModuleDescriptorMock() {

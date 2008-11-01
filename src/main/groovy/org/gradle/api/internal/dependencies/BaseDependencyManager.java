@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.*;
@@ -27,6 +28,7 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.internal.Transformer;
 import org.gradle.api.dependencies.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.ConfigureUtil;
@@ -39,7 +41,8 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class BaseDependencyManager extends DefaultDependencyContainer implements DependencyManagerInternal {
+public class BaseDependencyManager extends DefaultDependencyContainer
+        implements DependencyManagerInternal, ModuleDescriptorContributor<DefaultModuleDescriptor> {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyManager.class);
 
     private Map<String, DefaultConfiguration> configurations = new HashMap<String, DefaultConfiguration>();
@@ -113,12 +116,12 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
     }
 
     public List<File> resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies) {
-        return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this, false),
+        return dependencyResolver.resolve(conf, getIvy(), createModuleDescriptor(false),
                 failForMissingDependencies);
     }
 
     public List<File> resolve(String conf) {
-        return dependencyResolver.resolve(conf, getIvy(), moduleDescriptorConverter.convert(this, true),
+        return dependencyResolver.resolve(conf, getIvy(), createModuleDescriptor(true),
                 this.failForMissingDependencies);
     }
 
@@ -142,7 +145,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
         dependencyPublisher.publish(
                 configurations,
                 resolvers,
-                moduleDescriptorConverter.convert(this, true),
+                createModuleDescriptor(true),
                 uploadModuleDescriptor,
                 getProject().getBuildDir(),
                 this,
@@ -442,5 +445,13 @@ public class BaseDependencyManager extends DefaultDependencyContainer implements
 
     public ResolverFactory getResolverFactory() {
         return resolverFactory;
+    }
+
+    public void addIvyTransformer(Transformer<DefaultModuleDescriptor> transformer) {
+        moduleDescriptorConverter.addIvyTransformer(transformer);
+    }
+
+    public void addIvyTransformer(Closure transformer) {
+        moduleDescriptorConverter.addIvyTransformer(transformer);
     }
 }

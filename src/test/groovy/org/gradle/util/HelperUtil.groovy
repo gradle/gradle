@@ -161,6 +161,10 @@ class HelperUtil {
         return new GroovyShell().evaluate("return " + text)
     }
 
+    static Closure returns(Object value) {
+        return { value }
+    }
+
     static DefaultDependencyConfigurationMappingContainer getConfMappings(def confsCollection) {
         DefaultDependencyConfigurationMappingContainer testConfigurationMappings = new DefaultDependencyConfigurationMappingContainer()
         testConfigurationMappings.addMasters(confsCollection as String[])

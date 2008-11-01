@@ -76,7 +76,7 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
             }
         }
         if (artifactType != null) {
-            artifacts.add(new Artifact(name, artifactType, artifactType, classifier, null));
+            addArtifact(new Artifact(name, artifactType, artifactType, classifier, null));
         }
     }
 
@@ -96,7 +96,8 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     }
 
     public DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent) {
-        return getDependencyDescriptorFactory().createFromModuleDependency(parent, this);
+        DependencyDescriptor descriptor = getDependencyDescriptorFactory().createFromModuleDependency(parent, this);
+        return getTransformer().transform(descriptor);
     }
 
     public DefaultModuleDependency force(boolean force) {

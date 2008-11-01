@@ -17,6 +17,7 @@
 package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.dependencies.Artifact;
 import org.gradle.api.internal.dependencies.DefaultDependencyDescriptorFactory;
@@ -63,6 +64,14 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
 
     protected Object getUserDescription() {
         return TEST_MODULE_DESCRIPTOR;
+    }
+
+    protected void expectDescriptorBuilt(final DependencyDescriptor descriptor) {
+        context.checking(new Expectations() {{
+            one(dependencyDescriptorFactoryMock).createFromModuleDependency(getParentModuleDescriptorMock(),
+                    moduleDependency);
+            will(returnValue(descriptor));
+        }});
     }
 
     @Before public void setUp() {
@@ -141,20 +150,6 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
         assertEquals(TEST_VERSION, moduleDependency.getVersion());
         assertFalse(moduleDependency.isForce());
         assertFalse(moduleDependency.isChanging());
-    }
-
-    @Test
-    public void testCreateModuleDescriptor() {
-        moduleDependency = new DefaultModuleDependency(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR).
-                setChanging(true).
-                setForce(true);
-        moduleDependency.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock);
-        context.checking(new Expectations() {{
-            one(dependencyDescriptorFactoryMock).createFromModuleDependency(getParentModuleDescriptorMock(),
-                    moduleDependency);
-            will(returnValue(expectedDependencyDescriptor));
-        }});
-        assertSame(expectedDependencyDescriptor, moduleDependency.createDependencyDescriptor(getParentModuleDescriptorMock()));
     }
 }
 

@@ -20,6 +20,8 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.internal.Transformer;
+import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.dependencies.PublishArtifact;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
@@ -27,10 +29,13 @@ import org.gradle.util.GUtil;
 import java.util.HashMap;
 import java.util.Map;
 
+import groovy.lang.Closure;
+
 /**
  * @author Hans Dockter
  */
-public class DefaultPublishArtifact implements PublishArtifact {
+public class DefaultPublishArtifact implements PublishArtifact, ModuleDescriptorContributor<Artifact> {
+    private final ChainingTransformer<Artifact> transformer = new ChainingTransformer<Artifact>();
     private String name;
     private String extension;
     private String type;
@@ -45,7 +50,8 @@ public class DefaultPublishArtifact implements PublishArtifact {
 
     public Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId) {
         Map extraAttributes = GUtil.isTrue(classifier) ? WrapUtil.toMap(DependencyManager.CLASSIFIER, classifier) : new HashMap();
-        return new DefaultArtifact(moduleRevisionId, null, name, type, extension, extraAttributes);
+        DefaultArtifact artifact = new DefaultArtifact(moduleRevisionId, null, name, type, extension, extraAttributes);
+        return transformer.transform(artifact);
     }
 
     public String toString() {
@@ -89,5 +95,13 @@ public class DefaultPublishArtifact implements PublishArtifact {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
         return result;
+    }
+
+    public void addIvyTransformer(Transformer<Artifact> transformer) {
+        this.transformer.add(transformer);
+    }
+
+    public void addIvyTransformer(Closure transformer) {
+        this.transformer.add(transformer);
     }
 }

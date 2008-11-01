@@ -54,7 +54,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
     }
 
     public DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent) {
-        return getDependencyDescriptorFactory().createFromProjectDependency(parent, this);
+        return getTransformer().transform(getDependencyDescriptorFactory().createFromProjectDependency(parent, this));
     }
 
     public Project getDependencyProject() {

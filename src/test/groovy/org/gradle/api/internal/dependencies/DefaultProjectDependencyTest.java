@@ -19,6 +19,7 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -68,7 +69,13 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         return dependencyProject;
     }
 
-    private JUnit4Mockery context = new JUnit4Mockery();
+    protected void expectDescriptorBuilt(final DependencyDescriptor descriptor) {
+        context.checking(new Expectations() {{
+            one(dependencyDescriptorFactoryMock).createFromProjectDependency(getParentModuleDescriptorMock(),
+                    projectDependency);
+            will(returnValue(descriptor));
+        }});
+    }
 
     @Before public void setUp() {
         project = HelperUtil.createRootProject(new File("root"));
@@ -106,16 +113,6 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
 
     @Test (expected = UnknownDependencyNotation.class) public void testWithUnknownType() {
         new DefaultProjectDependency(TEST_CONF_MAPPING, new Point(3, 4), project);
-    }
-
-    @Test public void testCreateDependencyDescriptor() {
-        final DefaultDependencyDescriptor expectedDependencyDescriptor = HelperUtil.getTestDescriptor();
-        context.checking(new Expectations() {{
-            one(dependencyDescriptorFactoryMock).createFromProjectDependency(getParentModuleDescriptorMock(),
-                    projectDependency);
-            will(returnValue(expectedDependencyDescriptor));
-        }});
-        assertSame(expectedDependencyDescriptor, projectDependency.createDependencyDescriptor(getParentModuleDescriptorMock()));
     }
 
     @Test public void testInitialize() {

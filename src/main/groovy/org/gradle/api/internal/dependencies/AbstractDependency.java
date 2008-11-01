@@ -18,11 +18,14 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.Transformer;
+import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.api.dependencies.Artifact;
 import org.gradle.util.ConfigureUtil;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.util.*;
 
@@ -31,15 +34,16 @@ import groovy.lang.Closure;
 /**
 * @author Hans Dockter
 */
-public abstract class AbstractDependency implements Dependency {
+public abstract class AbstractDependency implements Dependency, ModuleDescriptorContributor<DependencyDescriptor> {
     private Object userDependencyDescription;
 
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
+    private ChainingTransformer<DependencyDescriptor> transformer = new ChainingTransformer<DependencyDescriptor>();
 
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
 
     private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
-    protected List<Artifact> artifacts = new ArrayList<Artifact>();
+    private List<Artifact> artifacts = new ArrayList<Artifact>();
 
     public AbstractDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDependencyDescription) {
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
@@ -134,5 +138,17 @@ public abstract class AbstractDependency implements Dependency {
         Artifact artifact =  (Artifact) ConfigureUtil.configure(configureClosure, new Artifact());
         artifacts.add(artifact);
         return artifact;
+    }
+
+    public void addIvyTransformer(Transformer<DependencyDescriptor> transformer) {
+        this.transformer.add(transformer);
+    }
+
+    public void addIvyTransformer(Closure transformer) {
+        this.transformer.add(transformer);
+    }
+
+    public Transformer<DependencyDescriptor> getTransformer() {
+        return transformer;
     }
 }

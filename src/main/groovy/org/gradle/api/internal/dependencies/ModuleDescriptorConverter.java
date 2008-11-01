@@ -27,6 +27,8 @@ import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.dependencies.ivy.IvyUtil;
+import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.Transformer;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.PublishArtifact;
 import org.gradle.api.dependencies.Configuration;
@@ -36,11 +38,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import groovy.lang.Closure;
+
 /**
  * @author Hans Dockter
  */
 public class ModuleDescriptorConverter {
     private static Logger logger = LoggerFactory.getLogger(ModuleDescriptorConverter.class);
+    private ChainingTransformer<DefaultModuleDescriptor> transformer
+            = new ChainingTransformer<DefaultModuleDescriptor>();
 
     public ModuleDescriptorConverter() {
     }
@@ -61,9 +67,17 @@ public class ModuleDescriptorConverter {
         moduleDescriptor.addConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION,
                     ExactPatternMatcher.ANY_EXPRESSION), ExactPatternMatcher.INSTANCE,
                 new LatestConflictManager(new LatestRevisionStrategy()));
-        return moduleDescriptor;
+        return transformer.transform(moduleDescriptor);
     }
 
+    public void addIvyTransformer(Transformer<DefaultModuleDescriptor> transformer) {
+        this.transformer.add(transformer);
+    }
+
+    public void addIvyTransformer(Closure tranformer) {
+        this.transformer.add(tranformer);
+    }
+    
     private void addExcludes(DefaultModuleDescriptor moduleDescriptor, DependencyManagerInternal dependencyManager) {
         for (ExcludeRule excludeRule : dependencyManager.getExcludeRules().createRules(IvyUtil.getAllMasterConfs(moduleDescriptor.getConfigurations()))) {
             moduleDescriptor.addExcludeRule(excludeRule);
