@@ -22,6 +22,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.DependencyManager;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
@@ -56,6 +57,10 @@ public class SettingsConverter {
         ChainResolver chainResolver = new ChainResolver();
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.add(buildResolver);
+        // todo Figure out why Ivy thinks this is necessary. The IBiblio resolver has already this pattern which should be good enough. By doing this we let Maven semantics seep into our whole system.
+        chainResolver.setChangingPattern(".*-SNAPSHOT");
+        chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
+        
         for (Object classpathResolver : classpathResolvers) {
             chainResolver.add((DependencyResolver) classpathResolver);
         }
