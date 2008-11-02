@@ -54,8 +54,8 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     static final String TEST_CONFIG = 'testConfig';
 
     DefaultDependencyManager dependencyManager
-    SettingsConverter settingsConverter
-    ModuleDescriptorConverter moduleDescriptorConverter
+    DefaultSettingsConverter settingsConverter
+    DefaultModuleDescriptorConverter moduleDescriptorConverter
     IDependencyResolver dependencyResolverMock
     IDependencyPublisher dependencyPublisherMock
     IIvyFactory ivyFactoryMock
@@ -89,15 +89,14 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         dependencyResolverMock = context.mock(IDependencyResolver)
         dependencyPublisherMock = context.mock(IDependencyPublisher)
         testExcludeRuleContainer = new DefaultExcludeRuleContainer()
-        settingsConverter = context.mock(SettingsConverter)
+        settingsConverter = context.mock(DefaultSettingsConverter)
         buildResolverDir = new File('buildResolverDir')
-        moduleDescriptorConverter = context.mock(ModuleDescriptorConverter)
+        moduleDescriptorConverter = context.mock(DefaultModuleDescriptorConverter)
         dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, resolverFactoryMock, settingsConverter,
                 moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir, testExcludeRuleContainer)
         dependencyManager.project = project
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
-        dependencyManager.chainConfigurer = {}
         expectedBuildResolver = new FileSystemResolver()
         mockSpecialResolverHandler = [getBuildResolver: {expectedBuildResolver},
                 getBuildResolverDir: {buildResolverDir}] as BuildResolverHandler
@@ -184,8 +183,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
                     [],
                     new File(project.getGradleUserHome()),
                     dependencyManager.getBuildResolver(),
-                    dependencyManager.getClientModuleRegistry(),
-                    dependencyManager.getChainConfigurer());
+                    dependencyManager.getClientModuleRegistry());
             will(returnValue(expectedSettings))
             allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
             one(dependencyResolverMock).resolve(TEST_CONFIG, expectedIvy, expectedModuleDescriptor,
@@ -204,8 +202,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
                     [],
                     new File(project.getGradleUserHome()),
                     dependencyManager.getBuildResolver(),
-                    dependencyManager.getClientModuleRegistry(),
-                    dependencyManager.getChainConfigurer());
+                    dependencyManager.getClientModuleRegistry());
             will(returnValue(expectedSettings))
             allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
             allowing(moduleDescriptorConverter).convert(dependencyManager, true); will(returnValue(expectedModuleDescriptor))

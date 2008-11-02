@@ -19,13 +19,20 @@ package org.gradle.api.internal.dependencies
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
-import org.gradle.api.internal.dependencies.SettingsConverter
+import org.gradle.api.internal.dependencies.DefaultSettingsConverter
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.DependencyManager
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.gradle.api.internal.Transformer
+import org.hamcrest.Matchers
+import org.gradle.util.HelperUtil;
+import static org.hamcrest.Matchers.sameInstance
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser
 
 /**
  * @author Hans Dockter
@@ -46,36 +53,39 @@ class SettingsConverterTest {
         TEST_BUILD_RESOLVER.name = 'buildResolver'
     }
 
-    SettingsConverter converter
+    DefaultSettingsConverter converter
 
     Map clientModuleRegistry
 
     File testGradleUserHome
 
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     @Before public void setUp()  {
-        converter = new SettingsConverter()
+        context.setImposteriser(ClassImposteriser.INSTANCE)
+        converter = new DefaultSettingsConverter()
         clientModuleRegistry = [a: 'b']
         testGradleUserHome = new File('gradleUserHome')
     }
 
     @Test public void testConvert() {
         IvySettings settings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
-                TEST_BUILD_RESOLVER, clientModuleRegistry, null)
-        ChainResolver chainResolver = settings.getResolver(SettingsConverter.CHAIN_RESOLVER_NAME)
+                TEST_BUILD_RESOLVER, clientModuleRegistry)
+        ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
         assertEquals(2, chainResolver.resolvers.size())
         assert chainResolver.resolvers[0].name.is(TEST_BUILD_RESOLVER.name)
         assert chainResolver.resolvers[1].is(TEST_RESOLVER)
         assertTrue chainResolver.returnFirst
 
-        ClientModuleResolver clientModuleResolver = settings.getResolver(SettingsConverter.CLIENT_MODULE_NAME)
-        ChainResolver clientModuleChain = settings.getResolver(SettingsConverter.CLIENT_MODULE_CHAIN_NAME)
+        ClientModuleResolver clientModuleResolver = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
+        ChainResolver clientModuleChain = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME)
         assertTrue clientModuleChain.returnFirst
         assert clientModuleChain.resolvers[0].is(clientModuleResolver)
         assert clientModuleChain.resolvers[1].is(chainResolver)
         assert settings.defaultResolver.is(clientModuleChain)
 
-        [TEST_BUILD_RESOLVER.name, TEST_RESOLVER.name, SettingsConverter.CHAIN_RESOLVER_NAME,
-                SettingsConverter.CLIENT_MODULE_NAME, SettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
+        [TEST_BUILD_RESOLVER.name, TEST_RESOLVER.name, DefaultSettingsConverter.CHAIN_RESOLVER_NAME,
+                DefaultSettingsConverter.CLIENT_MODULE_NAME, DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
         }
@@ -86,18 +96,38 @@ class SettingsConverterTest {
         assertEquals(settings.defaultCacheArtifactPattern, DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN)
     }
 
-    @Test public void testConvertWithClientChainConfigurer() {
-        IvySettings settings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
-                TEST_BUILD_RESOLVER, clientModuleRegistry) {
-            returnFirst = false
-        }
-        assertFalse settings.getResolver(SettingsConverter.CHAIN_RESOLVER_NAME).returnFirst
-    }
-
     @Test public void testWithGivenSettings() {
         IvySettings ivySettings = [:] as IvySettings
         converter.ivySettings = ivySettings
         assert ivySettings.is(converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], new File(''),
-                TEST_BUILD_RESOLVER, clientModuleRegistry, null))
+                TEST_BUILD_RESOLVER, clientModuleRegistry))
+    }
+
+    @Test
+    public void testTransformerCanModifyIvyDescriptor() {
+        final IvySettings original = context.mock(IvySettings.class, "original");
+        final IvySettings transformed = context.mock(IvySettings.class, "transformed");
+        final Transformer<IvySettings> transformer = context.mock(Transformer.class);
+        context.checking {
+            one(transformer).transform(with(sameInstance(original)));
+            will(returnValue(transformed));
+        };
+
+        converter.addIvyTransformer(transformer);
+
+        IvySettings ivySettings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
+                TEST_BUILD_RESOLVER, clientModuleRegistry)
+        assertThat(ivySettings, sameInstance(ivySettings));
+    }
+
+    @Test
+    public void testTransformationClosureCanModifyIvyDescriptor() {
+        final DependencyDescriptor transformed = context.mock(DependencyDescriptor.class, "transformed");
+
+        converter.addIvyTransformer(HelperUtil.returns(transformed));
+
+        IvySettings ivySettings = converter.convert([TEST_RESOLVER], [TEST_UPLOAD_RESOLVER], testGradleUserHome,
+                TEST_BUILD_RESOLVER, clientModuleRegistry)
+        assertThat(ivySettings, sameInstance(ivySettings));
     }
 }

@@ -61,7 +61,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
 
     private IIvyFactory ivyFactory;
 
-    private SettingsConverter settingsConverter;
+    private DefaultSettingsConverter settingsConverter;
 
     private ModuleDescriptorConverter moduleDescriptorConverter;
 
@@ -83,12 +83,6 @@ public class BaseDependencyManager extends DefaultDependencyContainer
 
     private Map<String, Set<String>> tasks4Conf = new HashMap<String, Set<String>>();
 
-    /**
-     * All the classpath resolvers are contained in an Ivy chain resolver. With this closure you can configure the
-     * chain resolver if necessary.
-     */
-    private Closure chainConfigurer;
-
     private boolean failForMissingDependencies = true;
 
     private ExcludeRuleContainer excludeRules;
@@ -98,7 +92,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     }
 
     public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
-                                 ResolverFactory resolverFactory, SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
+                                 ResolverFactory resolverFactory, DefaultSettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                                  IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
                                  File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(dependencyFactory, new ArrayList());
@@ -172,7 +166,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     Ivy ivy(List<DependencyResolver> resolvers) {
         return ivyFactory.createIvy(settingsConverter.convert(classpathResolvers.getResolverList(),
                 resolvers,
-                new File(getProject().getGradleUserHome()), getBuildResolver(), getClientModuleRegistry(), chainConfigurer));
+                new File(getProject().getGradleUserHome()), getBuildResolver(), getClientModuleRegistry()));
     }
 
     public DependencyManager linkConfWithTask(String conf, String task) {
@@ -321,7 +315,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
         return settingsConverter;
     }
 
-    public void setSettingsConverter(SettingsConverter settingsConverter) {
+    public void setSettingsConverter(DefaultSettingsConverter settingsConverter) {
         this.settingsConverter = settingsConverter;
     }
 
@@ -395,14 +389,6 @@ public class BaseDependencyManager extends DefaultDependencyContainer
 
     public void setTasks4Conf(Map<String, Set<String>> tasks4Conf) {
         this.tasks4Conf = tasks4Conf;
-    }
-
-    public Closure getChainConfigurer() {
-        return chainConfigurer;
-    }
-
-    public void setChainConfigurer(Closure chainConfigurer) {
-        this.chainConfigurer = chainConfigurer;
     }
 
     public ExcludeRuleContainer getExcludeRules() {

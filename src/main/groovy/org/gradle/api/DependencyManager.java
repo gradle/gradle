@@ -355,7 +355,7 @@ public interface DependencyManager extends DependencyContainer {
      */
     void publish(List<String> configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor);
 
-    // todo Move to DependencyManagerInternal
+    // todo Should we move this to DependencyManagerInternal?
     ModuleRevisionId createModuleRevisionId();
 
 
@@ -383,4 +383,14 @@ public interface DependencyManager extends DependencyContainer {
      * Returns a factory for creating special resolvers like flat dir or maven resolvers.
      */
     ResolverFactory getResolverFactory();
+
+    /**
+     * Returns the converter used for creating the IvySettings object.
+     */
+    SettingsConverter getSettingsConverter();
+
+    /**
+     * Returnes the converter used for creating an Ivy ModuleDescriptor.
+     */
+    ModuleDescriptorConverter getModuleDescriptorConverter();
 }

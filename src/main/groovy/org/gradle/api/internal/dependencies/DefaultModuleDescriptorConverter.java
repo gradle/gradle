@@ -29,10 +29,7 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.dependencies.ivy.IvyUtil;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.Transformer;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.dependencies.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +40,12 @@ import groovy.lang.Closure;
 /**
  * @author Hans Dockter
  */
-public class ModuleDescriptorConverter {
-    private static Logger logger = LoggerFactory.getLogger(ModuleDescriptorConverter.class);
+public class DefaultModuleDescriptorConverter implements ModuleDescriptorConverter {
+    private static Logger logger = LoggerFactory.getLogger(DefaultModuleDescriptorConverter.class);
     private ChainingTransformer<DefaultModuleDescriptor> transformer
             = new ChainingTransformer<DefaultModuleDescriptor>();
 
-    public ModuleDescriptorConverter() {
+    public DefaultModuleDescriptorConverter() {
     }
 
     public ModuleDescriptor convert(DependencyManagerInternal dependencyManager, boolean includeProjectDependencies) {
