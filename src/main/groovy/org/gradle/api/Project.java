@@ -965,24 +965,25 @@ public interface Project extends Comparable<Project> {
     Build getBuild();
 
     /**
-     * Sets whether the output send to standard out should be redirected to the Gradle logging. This applies to any output
-     * during the execution of this build. The System.out is redirected to the INFO level.
-     * System.err is always redirected to the ERROR level.
+     * Disables redirection of standard output during project evaluation. By default redirection is enabled.
      *
-     * For more fine-grained control see {@link org.gradle.api.logging.StandardOutputLogging}.
-     *
-     * @param enabled Whether the output should be redirected.
      * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
      */
-    void captureStandardOutput(boolean enabled);
+    void disableStandardOutputCapture();
 
     /**
-     * Sets that the output send to standard out should be redirected to a certain log level of the Gradle logging.
-     * This applies to any output during the execution of this build.  
-     * System.err is always redirected to the ERROR level.
+     * Starts redirection of standard output during to the logging system during project evaluation.
+     * By default redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected
+     * to the ERROR level. Redirection of output at execution time can be configured via the tasks.
+     *
+     * In a multi-project this is a per-project setting.
+     *
+     * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
      *
      * @param level The level standard out should be logged to.
-     * @see #captureStandardOutput(boolean)
+     * @see #disableStandardOutputCapture()
+     * @see Task#captureStandardOutput(org.gradle.api.logging.LogLevel)
+     * @see org.gradle.api.Task#disableStandardOutputCapture() 
      */
     void captureStandardOutput(LogLevel level);
 }

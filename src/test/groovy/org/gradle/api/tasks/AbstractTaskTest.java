@@ -77,6 +77,7 @@ public abstract class AbstractTaskTest {
         assertEquals(TEST_TASK_NAME, getTask().getName());
         assertSame(project, getTask().getProject());
         assertNotNull(getTask().getSkipProperties());
+        assertEquals(new DefaultStandardOutputCapture(true, LogLevel.QUIET), getTask().getStandardOutputCapture());
     }
 
     // We do it in an own method, so that its easy to overwrite the test for getTask() which deviate from default.
@@ -397,21 +398,6 @@ public abstract class AbstractTaskTest {
         System.getProperties().remove("skip." + getTask().getName());
     }
 
-//    private void checkConfigureEvent(Closure addMethod, Closure applyMethod) {
-//        TaskAction action1 = {} as TaskAction
-//        TaskAction action2 = {} as TaskAction
-//        assert addMethod {
-//            doFirst(action2)
-//        }.is(task)
-//        addMethod {
-//            doFirst(action1)
-//        }
-//        assert !task.actions[0].is(action1)
-//        assert applyMethod().is(task)
-//        assert task.actions[0].is(action1)
-//        assert task.actions[1].is(action2)
-//    }
-
     public AbstractProject getProject() {
         return project;
     }
@@ -421,17 +407,32 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void captureStandardOutWithBoolean() {
-        getTask().captureStandardOutput(true);
-        assertEquals(new DefaultStandardOutputCapture(true, LogLevel.INFO), getTask().getStandardOutputCapture());
-        getTask().captureStandardOutput(false);
-        assertFalse(getTask().getStandardOutputCapture().isEnabled());
+    public void disableStandardOutCapture() {
+        getTask().disableStandardOutputCapture();
+        assertEquals(new DefaultStandardOutputCapture(), getTask().getStandardOutputCapture());
     }
 
     @Test
-    public void captureStandardOutWithLevel() {
-        getTask().captureStandardOutput(false);
+    public void captureStandardOut() {
         getTask().captureStandardOutput(LogLevel.DEBUG);
         assertEquals(new DefaultStandardOutputCapture(true, LogLevel.DEBUG), getTask().getStandardOutputCapture());
+    }
+
+    @Test(expected=GradleScriptException.class)
+    public void disabledStandardOutCaptureDuringExecution() {
+        ((AbstractTask)getTask().doFirst(new TaskAction() {
+            public void execute(Task task) {
+                task.disableStandardOutputCapture();
+            }
+        })).execute();
+    }
+
+    @Test(expected=GradleScriptException.class)
+    public void captureStandardOutDuringExecution() {
+        ((AbstractTask)getTask().doFirst(new TaskAction() {
+            public void execute(Task task) {
+                task.captureStandardOutput(LogLevel.DEBUG);
+            }
+        })).execute();
     }
 }

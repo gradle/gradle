@@ -23,8 +23,10 @@ import org.apache.tools.ant.taskdefs.condition.Os
  */
 class Executer {
     static final int QUIET = 0
-    static final int INFO = 1
-    static final int DEBUG = 2
+    static final int LIFECYCLE = 1
+    static final int INFO = 2
+    static final int DEBUG = 3
+    
     static Map execute(String gradleHome, String currentDirName, List tasknames, List envs = [], String buildFileName = '', int outputType = QUIET) {
         executeInternal('gradle', "${gradleHome}/bin/gradle", gradleHome, envs + ["GRADLE_HOME=$gradleHome"],
                 currentDirName, tasknames, buildFileName, outputType)
@@ -48,14 +50,15 @@ class Executer {
         Process proc
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
         ByteArrayOutputStream errStream = new ByteArrayOutputStream()
-        String taskNameText = tasknames ? ' ' + tasknames.join(' ') : ''
-        String buildFileSpecifier = buildFileName ? "-b$buildFileName" : ''
+        String taskNameText = tasknames ? tasknames.join(' ') : ''
+        String buildFileSpecifier = buildFileName ? "-b$buildFileName " : ''
         long runBeforeKill = 30 * 60 * 1000
         List additionalEnvs = []
         if (System.getenv('JAVA_HOME')) {additionalEnvs << "JAVA_HOME=${System.getenv('JAVA_HOME')}"}
         String actualCommand
-        String windowsCommand = "cmd /c ${windowsCommandSnippet} ${outputOption(outputType)}" + "$buildFileSpecifier$taskNameText"
-        String unixCommand = "$unixCommandSnippet ${outputOption(outputType)}$buildFileSpecifier$taskNameText"
+        String outLevel = outputOption(outputType)
+        String windowsCommand = "cmd /c ${windowsCommandSnippet} $outLevel" + "$buildFileSpecifier$taskNameText"
+        String unixCommand = "$unixCommandSnippet $outLevel$buildFileSpecifier$taskNameText"
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             Execute execute = new Execute()
             actualCommand = windowsCommand
@@ -78,7 +81,7 @@ class Executer {
         if (exitValue) {
             throw new RuntimeException("Integrationtests failed with: $output $error")
         }
-        return [output: output, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand]
+        return [output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand]
     }
 
     static String stripGradlePath(String unixCommand, String gradleWithPath) {
@@ -87,9 +90,10 @@ class Executer {
 
     static String outputOption(int outputType) {
         switch (outputType) {
-            case QUIET: return '-q'
-            case INFO: return ''
-            case DEBUG: return '-d'
+            case QUIET: return '-q '
+            case LIFECYCLE: return ''
+            case INFO: return '-i '
+            case DEBUG: return '-d '
         }
     }
 }

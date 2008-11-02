@@ -15,20 +15,12 @@
  */
 package org.gradle.api.logging;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.After;
-import org.junit.Assert;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertSame;import static org.junit.Assert.assertThat;
-import org.gradle.logging.StandardOutputLoggingAdapter;
-import org.hamcrest.Matchers;
-
-import java.io.PrintStream;
-
 import ch.qos.logback.classic.Level;
+import org.gradle.api.InvalidUserDataException;
+import org.hamcrest.Matchers;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -52,6 +44,11 @@ public class DefaultStandardOutputCaptureTest {
         assertTrue(standardOutputCapture.isEnabled());
         assertEquals(LogLevel.ERROR, standardOutputCapture.getLevel());
     }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void initWithArgsAndNullLevel() {
+        new DefaultStandardOutputCapture(true, null);
+    }
     
     @Test
     public void startStopWithDisabled() {
@@ -59,7 +56,8 @@ public class DefaultStandardOutputCaptureTest {
         standardOutputCapture = new DefaultStandardOutputCapture();
         StandardOutputState state = StandardOutputLogging.getStateSnapshot();
         standardOutputCapture.start();
-        assertEquals(state, StandardOutputLogging.getStateSnapshot());
+        assertSame(StandardOutputLogging.DEFAULT_OUT, System.out);
+        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
         standardOutputCapture.stop();
         assertEquals(state, StandardOutputLogging.getStateSnapshot());
     }
@@ -71,10 +69,10 @@ public class DefaultStandardOutputCaptureTest {
         standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.DEBUG);
         StandardOutputState oldState = StandardOutputLogging.getStateSnapshot();
         standardOutputCapture.start();
-        assertSame(StandardOutputLogging.outLoggingStream, System.out);
-        assertSame(StandardOutputLogging.errLoggingStream, System.err);
-        assertEquals(StandardOutputLogging.OUT_LOGGING_ADAPTER.getLevel(), Level.DEBUG);
-        assertEquals(StandardOutputLogging.ERR_LOGGING_ADAPTER.getLevel(), Level.ERROR);
+        assertSame(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
+        assertSame(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), Level.DEBUG);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), Level.ERROR);
         standardOutputCapture.stop();
         assertEquals(oldState, StandardOutputLogging.getStateSnapshot());
     }

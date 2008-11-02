@@ -29,76 +29,120 @@ import org.gradle.api.logging.StandardOutputState;
  * @author Hans Dockter
  */
 public class StandardOutputLogging {
-    private static Map<LogLevel, Level> logLevelToLevel = new HashMap() {{
-        put(LogLevel.DEBUG, Level.DEBUG);
-        put(LogLevel.INFO, Level.INFO);        
-        put(LogLevel.WARN, Level.WARN);
-        put(LogLevel.ERROR, Level.ERROR);
-        put(LogLevel.LIFECYCLE, Level.INFO);
-    }};
-    static final StandardOutputLoggingAdapter OUT_LOGGING_ADAPTER = new StandardOutputLoggingAdapter(
-            (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"), Level.INFO);
+    private static Map<LogLevel, Level> logLevelToLevel = new HashMap() {
+        {
+            put(LogLevel.DEBUG, Level.DEBUG);
+            put(LogLevel.INFO, Level.INFO);
+            put(LogLevel.WARN, Level.WARN);
+            put(LogLevel.ERROR, Level.ERROR);
+            put(LogLevel.LIFECYCLE, Level.INFO);
+            put(LogLevel.QUIET, Level.INFO);
+        }
+    };
 
-    static final StandardOutputLoggingAdapter ERR_LOGGING_ADAPTER = new StandardOutputLoggingAdapter(
-            (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"), Level.ERROR);
+    public static class LoggingPrintStream extends PrintStream {
+        private StandardOutputLoggingAdapter standardOutputLoggingAdapter;
 
-    static final PrintStream outLoggingStream = new PrintStream(OUT_LOGGING_ADAPTER);
-    static final PrintStream errLoggingStream = new PrintStream(ERR_LOGGING_ADAPTER);
+        public LoggingPrintStream(StandardOutputLoggingAdapter out) {
+            super(out);
+            this.standardOutputLoggingAdapter = out;
+        }
 
-    static final PrintStream defaultOut = System.out;
-    static final PrintStream defaultErr = System.err;
+        public StandardOutputLoggingAdapter getStandardOutputLoggingAdapter() {
+            return standardOutputLoggingAdapter;
+        }
+
+        void setStandardOutputLoggingAdapter(StandardOutputLoggingAdapter standardOutputLoggingAdapter) {
+            this.standardOutputLoggingAdapter = standardOutputLoggingAdapter;
+        }
+    }
+
+    public static final ThreadLocal<LoggingPrintStream> OUT_LOGGING_STREAM = new ThreadLocal<LoggingPrintStream>() {
+        @Override
+        protected LoggingPrintStream initialValue() {
+            return new LoggingPrintStream(new StandardOutputLoggingAdapter((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"),
+                    Level.INFO));
+        }
+
+    };
+
+    public static final ThreadLocal<LoggingPrintStream> ERR_LOGGING_STREAM = new ThreadLocal<LoggingPrintStream>() {
+        @Override
+        protected LoggingPrintStream initialValue() {
+            return new LoggingPrintStream(
+                    new StandardOutputLoggingAdapter((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"),
+                            Level.ERROR));
+        }
+
+    };
+
+    static StandardOutputLoggingAdapter getOutAdapter() {
+        return OUT_LOGGING_STREAM.get().getStandardOutputLoggingAdapter();
+    }
+
+    static StandardOutputLoggingAdapter getErrAdapter() {
+        return ERR_LOGGING_STREAM.get().getStandardOutputLoggingAdapter();
+    }
+
+    public static final PrintStream DEFAULT_OUT = System.out;
+    public static final PrintStream DEFAULT_ERR = System.err;
 
     /**
      * Redirects the standard out to the Gradle logging.  The System.out is redirected to specified level.
      * System.err is always redirected to the ERROR level.
      *
-     *  @param outLogLevel Log level for System.out
+     * @param outLogLevel Log level for System.out
      */
     public static void on(LogLevel outLogLevel) {
-        convert(OUT_LOGGING_ADAPTER, outLogLevel);
-        convert(ERR_LOGGING_ADAPTER, LogLevel.ERROR);
-        redirect(outLoggingStream, errLoggingStream);
+        convert(getOutAdapter(), outLogLevel);
+        convert(getErrAdapter(), LogLevel.ERROR);
+        redirect(OUT_LOGGING_STREAM.get(), ERR_LOGGING_STREAM.get());
     }
 
     /**
      * Redirects only System.out to the specified level. System.err is not redirected.
      *
-     *  @param outLogLevel Log level for System.out
+     * @param outLogLevel Log level for System.out
      */
     public static void onOut(LogLevel outLogLevel) {
-        convert(OUT_LOGGING_ADAPTER, outLogLevel);
-        System.setOut(outLoggingStream);
+        convert(getOutAdapter(), outLogLevel);
+        System.setOut(OUT_LOGGING_STREAM.get());
     }
 
     /**
      * Redirects only System.err to the specified level. System.out is not redirected.
      *
-     *  @param errLogLevel Log level for System.err
+     * @param errLogLevel Log level for System.err
      */
     public static void onErr(LogLevel errLogLevel) {
-        convert(ERR_LOGGING_ADAPTER, errLogLevel);
-        System.setErr(errLoggingStream);
+        convert(getErrAdapter(), errLogLevel);
+        System.setErr(ERR_LOGGING_STREAM.get());
+    }
+
+    public static void flush() {
+        OUT_LOGGING_STREAM.get().flush();
+        ERR_LOGGING_STREAM.get().flush();
     }
 
     /**
      * Sets System.err and System.out to the values they had before Gradle has been started.
      */
     public static void off() {
-        redirect(defaultOut, defaultErr);
+        redirect(DEFAULT_OUT, DEFAULT_ERR);
     }
 
     /**
      * Sets System.out to the values it had before Gradle has been started.
      */
     public static void offOut() {
-        System.setOut(defaultOut);
+        System.setOut(DEFAULT_OUT);
     }
 
     /**
      * Sets System.err to the values it had before Gradle has been started.
      */
     public static void offErr() {
-        System.setErr(defaultErr);
+        System.setErr(DEFAULT_ERR);
     }
 
     /**
@@ -123,9 +167,11 @@ public class StandardOutputLogging {
     private static void convert(StandardOutputLoggingAdapter adapter, LogLevel logLevel) {
         if (logLevel == LogLevel.LIFECYCLE) {
             adapter.setMarker(Logging.LIFECYCLE);
+        } else if (logLevel == LogLevel.QUIET) {
+            adapter.setMarker(Logging.QUIET);
         } else {
             adapter.setMarker(null);
         }
-        adapter.setLevel(logLevelToLevel.get(logLevel));    
+        adapter.setLevel(logLevelToLevel.get(logLevel));
     }
 }

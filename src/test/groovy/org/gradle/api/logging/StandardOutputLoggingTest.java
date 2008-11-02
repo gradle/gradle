@@ -56,7 +56,23 @@ public class StandardOutputLoggingTest {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.INFO);
         checkOut(Level.INFO, null);
-        assertSame(StandardOutputLogging.defaultErr, System.err);
+        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+    }
+
+    @Test
+    public void onOutWithLifecycle() {
+        setToNonDefaultValues(true, false);
+        StandardOutputLogging.onOut(LogLevel.LIFECYCLE);
+        checkOut(Level.INFO, Logging.LIFECYCLE);
+        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+    }
+
+    @Test
+    public void onOutWithQuiet() {
+        setToNonDefaultValues(true, false);
+        StandardOutputLogging.onOut(LogLevel.QUIET);
+        checkOut(Level.INFO, Logging.QUIET);
+        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
     @Test
@@ -64,59 +80,59 @@ public class StandardOutputLoggingTest {
         setToNonDefaultValues(false, true);
         StandardOutputLogging.onErr(LogLevel.ERROR);
         checkErr(Level.ERROR);
-        assertEquals(StandardOutputLogging.defaultOut, System.out);
+        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
     }
 
     @Test
     public void off() {
         StandardOutputLogging.off();
-        assertEquals(StandardOutputLogging.defaultOut, System.out);
-        assertEquals(StandardOutputLogging.defaultErr, System.err);
+        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
+        assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
     @Test
     public void offOut() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputLogging.offOut();
-        assertEquals(StandardOutputLogging.defaultOut, System.out);
-        assertEquals(StandardOutputLogging.errLoggingStream, System.err);
+        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
+        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
     }
 
     @Test
     public void offErr() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputLogging.offErr();
-        assertEquals(StandardOutputLogging.outLoggingStream, System.out);
-        assertEquals(StandardOutputLogging.defaultErr, System.err);
+        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
+        assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
     @Test
     public void init() {
-        assertEquals(StandardOutputLogging.defaultOut, System.out);
-        assertEquals(StandardOutputLogging.defaultErr, System.err);
+        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
+        assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
     @Test
     public void testGetAndRestoreState() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputState state = StandardOutputLogging.getStateSnapshot();
-        assertEquals(StandardOutputLogging.outLoggingStream, state.getOutStream());
-        assertEquals(StandardOutputLogging.errLoggingStream, state.getErrStream());
+        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), state.getOutStream());
+        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), state.getErrStream());
         StandardOutputLogging.off();
         StandardOutputLogging.restoreState(state);
-        assertEquals(StandardOutputLogging.outLoggingStream, System.out);
-        assertEquals(StandardOutputLogging.errLoggingStream, System.err);
+        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
+        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
     }
 
     private void checkOut(Level expectedOut, Marker expectedOutMarker) {
-        assertEquals(StandardOutputLogging.outLoggingStream, System.out);
-        assertEquals(StandardOutputLogging.OUT_LOGGING_ADAPTER.getLevel(), expectedOut);
-        assertEquals(StandardOutputLogging.OUT_LOGGING_ADAPTER.getMarker(), expectedOutMarker);
+        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), expectedOut);
+        assertEquals(StandardOutputLogging.getOutAdapter().getMarker(), expectedOutMarker);
     }
 
     private void checkErr(Level expectedErr) {
-        assertEquals(StandardOutputLogging.errLoggingStream, System.err);
-        assertEquals(StandardOutputLogging.ERR_LOGGING_ADAPTER.getLevel(), expectedErr);
-        assertEquals(StandardOutputLogging.ERR_LOGGING_ADAPTER.getMarker(), null);
+        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), expectedErr);
+        assertEquals(StandardOutputLogging.getErrAdapter().getMarker(), null);
     }
 }

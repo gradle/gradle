@@ -56,8 +56,8 @@ public class DefaultTask extends AbstractTask {
     }
 
     private TaskAction convertClosureToAction(final Closure actionClosure) {
-        actionClosure.setDelegate(this);
-        actionClosure.setResolveStrategy(Closure.DELEGATE_FIRST);
+        actionClosure.setDelegate(getProject());
+        actionClosure.setResolveStrategy(Closure.OWNER_FIRST);
         return new TaskAction() {
             public void execute(Task task) {
                 actionClosure.call(new Object[] {task});

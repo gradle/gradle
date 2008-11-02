@@ -22,6 +22,13 @@ import org.slf4j.Logger;
  * @author Hans Dockter
  */
 public enum LogLevel {
+    QUIET {
+        public void log(String message) {
+            logger.info(Logging.QUIET, message);
+        }
+        public void log(String message, Throwable t) {
+            logger.debug(Logging.QUIET, message, t);
+        }},
     LIFECYCLE {
         public void log(String message) {
             logger.info(Logging.LIFECYCLE, message);

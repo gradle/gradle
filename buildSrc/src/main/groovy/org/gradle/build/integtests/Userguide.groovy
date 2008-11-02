@@ -99,7 +99,7 @@ class Userguide {
                 runMp('tropicalWithProperties/water', 'TropicalWithProperties', 'hello'),
                 runMp('tropicalWithProperties/water/bluewhale', 'SubBuild', 'hello'),
                 runMp('partialTasks/water', 'PartialTasks', 'distanceToIceberg'),
-//                runMp('partialTasks/water', 'PartialTasksNotQuiet', 'distanceToIceberg', Executer.INFO),
+//                runMp('partialTasks/water', 'PartialTasksNotQuiet', 'distanceToIceberg', Executer.LIFECYCLE),
                 runMp('partialTasks/water/tropicalFish', 'AbsoluteTaskPaths', ':hello :krill:hello hello'),
                 runMp('dependencies/firstMessages/messages', 'FirstMessages', 'action'),
                 runMp('dependencies/messagesHack/messages', 'MessagesHack', 'action'),

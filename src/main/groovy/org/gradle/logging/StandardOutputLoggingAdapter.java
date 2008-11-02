@@ -146,8 +146,8 @@ public class StandardOutputLoggingAdapter extends OutputStream {
         buf[count] = (byte) b;
         count++;
         if ((b == '\n')) {
-		    flush();
-	    }
+            flush();
+        }
     }
 
 

@@ -141,6 +141,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private IProjectFactory projectFactory;
 
+    private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
+
     public AbstractProject() {
         convention = new Convention(this);
     }
@@ -155,7 +157,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
         this.parent = parent;
-        this.name = name;
+        this.name = name;                                    
         this.buildFileName = buildFileName;
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.taskFactory = taskFactory;
@@ -526,8 +528,11 @@ public abstract class AbstractProject implements ProjectInternal {
         state = STATE_INITIALIZING;
         buildScript = buildScriptProcessor.createScript(this);
         try {
+            standardOutputRedirector.on(LogLevel.QUIET);
             buildScript.run();
+            standardOutputRedirector.flush();
         } catch (Throwable t) {
+            standardOutputRedirector.flush();
             throw new GradleScriptException(String.format("A problem occurred evaluating project %s.", path), t, getBuildScriptSource());
         }
         logger.debug("Timing: Running the build script took " + clock.getTime());
@@ -824,15 +829,20 @@ public abstract class AbstractProject implements ProjectInternal {
         return buildLogger;
     }
 
-    public void captureStandardOutput(boolean enabled) {
-        if (enabled) {
-            StandardOutputLogging.on(LogLevel.INFO);
-        } else {
-            StandardOutputLogging.off();
-        }
+    public StandardOutputRedirector getStandardOutputRedirector() {
+        return standardOutputRedirector;
+    }
+
+    public void setStandardOutputRedirector(StandardOutputRedirector standardOutputRedirector) {
+        this.standardOutputRedirector = standardOutputRedirector;
+    }
+
+    public void disableStandardOutputCapture() {
+        standardOutputRedirector.flush();
+        standardOutputRedirector.off();
     }
 
     public void captureStandardOutput(LogLevel level) {
-        StandardOutputLogging.on(level);
+        standardOutputRedirector.on(level);
     }
 }

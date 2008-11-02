@@ -274,28 +274,25 @@ public interface Task extends Comparable<Task> {
      */
     Logger getLogger();
 
+
     /**
-     * Sets whether the output send to standard out, during task execution, should be redirected to the Gradle
-     * logging system. If set to true, the System.out is redirected to the INFO level. System.err is always redirected to the
-     * ERROR level. Calling this method from the task itself during task execution has no effect.
+     * Disables redirection of standard output during task execution. By default redirection is enabled.
      *
-     * If the standard output is captured globally already, setting the task output capturing has no effect.
-     *
-     * For more fine-grained control see {@link org.gradle.api.logging.StandardOutputLogging}.
-     *
-     * @param enabled Whether the output should be redirected.
      * @return this
      * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
      */
-    Task captureStandardOutput(boolean enabled);
+    Task disableStandardOutputCapture();
 
     /**
-     * Sets that the standard output should be redirected to a certain log level of the Gradle logging system.
-     * System.err is always redirected to the ERROR level.
+     * Enables redirection of standard output during task execution to the logging system. By default redirection is
+     * enabled and the task output is redirected to the QUIET level. System.err is always redirected to the ERROR level.
+     * An exception is thrown, if this method is called during the execution of the task
+     *
+     * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
      * 
      * @param level The level standard out should be logged to.
      * @return this
-     * @see #captureStandardOutput(boolean)
+     * @see #disableStandardOutputCapture() 
      */
     Task captureStandardOutput(LogLevel level);
 }

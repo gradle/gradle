@@ -15,10 +15,7 @@
  */
 package org.gradle.api.logging;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.logging.StandardOutputLogging;
-import org.gradle.api.logging.StandardOutputState;
+import org.gradle.api.InvalidUserDataException;
 
 /**
  * @author Hans Dockter
@@ -31,24 +28,30 @@ public class DefaultStandardOutputCapture implements StandardOutputCapture {
     private StandardOutputState globalState;
 
     /**
-     * Creates and instance with enabled set to false.
+     * Creates and instance with enabled set to false and LogLevel set to null.
      */
     public DefaultStandardOutputCapture() {
         this.enabled = false;
+        level = null;
     }
-    
+
     public DefaultStandardOutputCapture(boolean enabled, LogLevel level) {
+        if (level == null) {
+            throw new InvalidUserDataException("Log level must not be null");
+        }
         this.level = level;
         this.enabled = enabled;
     }
 
     /**
-     * @see StandardOutputCapture#start() 
+     * @see StandardOutputCapture#start()
      */
     public DefaultStandardOutputCapture start() {
+        globalState = StandardOutputLogging.getStateSnapshot();
         if (enabled) {
-            globalState = StandardOutputLogging.getStateSnapshot();
             StandardOutputLogging.on(level);
+        } else {
+            StandardOutputLogging.off();
         }
         return this;
     }
@@ -57,9 +60,8 @@ public class DefaultStandardOutputCapture implements StandardOutputCapture {
      * @see org.gradle.api.logging.StandardOutputCapture#stop() ()
      */
     public DefaultStandardOutputCapture stop() {
-        if (enabled) {
-            StandardOutputLogging.restoreState(globalState);
-        }
+        StandardOutputLogging.flush();
+        StandardOutputLogging.restoreState(globalState);
         return this;
     }
 
@@ -71,7 +73,7 @@ public class DefaultStandardOutputCapture implements StandardOutputCapture {
     }
 
     /**
-     * @see org.gradle.api.logging.StandardOutputCapture#getLevel() () 
+     * @see org.gradle.api.logging.StandardOutputCapture#getLevel() ()
      */
     public LogLevel getLevel() {
         return level;

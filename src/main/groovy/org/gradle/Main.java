@@ -19,7 +19,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.filter.LevelFilter;
-import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.spi.FilterReply;
 import ch.qos.logback.core.filter.Filter;
@@ -28,9 +27,10 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.apache.ivy.util.Message;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.logging.Logging;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.logging.IvyLoggingAdaper;
-import org.gradle.logging.HighLevelFilter;
+import org.gradle.logging.MarkerFilter;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
@@ -196,7 +196,7 @@ public class Main {
         if (options.hasArgument(PLUGIN_PROPERTIES_FILE)) {
             startParameter.setPluginPropertiesFile(new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)));
         }
-        
+
         if (options.has(CACHE_OFF)) {
             if (options.has(REBUILD_CACHE)) {
                 logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",
@@ -250,9 +250,6 @@ public class Main {
     }
 
     private static void configureLogger(OptionSet options) throws Throwable {
-        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
-        String infoLayout = "%msg%n";
-
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         lc.shutdownAndReset();
         ch.qos.logback.classic.Logger rootLogger = lc.getLogger(LoggerContext.ROOT_NAME);
@@ -260,36 +257,49 @@ public class Main {
         ConsoleAppender errorConsoleAppender = new ConsoleAppender();
         errorConsoleAppender.setContext(lc);
         errorConsoleAppender.setTarget("System.err");
-        errorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
         errorConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.ACCEPT, FilterReply.DENY));
         Level level = Level.INFO;
+        ConsoleAppender nonErrorConsoleAppender = new ConsoleAppender();
+        nonErrorConsoleAppender.setContext(lc);
+
+        setLayouts(options, errorConsoleAppender, nonErrorConsoleAppender, lc);
+
+        MarkerFilter quietFilter = new MarkerFilter(Logging.QUIET, FilterReply.DENY);
+        nonErrorConsoleAppender.addFilter(quietFilter);
         if (!options.has(QUIET)) {
-            ConsoleAppender nonErrorConsoleAppender = new ConsoleAppender();
-            nonErrorConsoleAppender.setContext(lc);
+            quietFilter.setOnMismatch(FilterReply.NEUTRAL);
             if (options.has(DEBUG)) {
                 level = Level.DEBUG;
-                nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
-                errorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
                 nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
                 nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT, FilterReply.NEUTRAL));
             } else {
-                nonErrorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
                 if (options.has(INFO)) {
                     level = Level.INFO;
                     nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
                 } else {
-                    nonErrorConsoleAppender.addFilter(new HighLevelFilter());
+                    nonErrorConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE));
                 }
             }
             nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
-            rootLogger.addAppender(nonErrorConsoleAppender);
-            nonErrorConsoleAppender.start();
-        }
+        } 
+        rootLogger.addAppender(nonErrorConsoleAppender);
+        nonErrorConsoleAppender.start();
         rootLogger.addAppender(errorConsoleAppender);
         errorConsoleAppender.start();
         Message.setDefaultLogger(new IvyLoggingAdaper());
-
         rootLogger.setLevel(level);
+    }
+
+    private static void setLayouts(OptionSet options, ConsoleAppender errorConsoleAppender, ConsoleAppender nonErrorConsoleAppender, LoggerContext lc) {
+        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
+        String infoLayout = "%msg%n";
+        if (options.has(DEBUG)) {
+            nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
+            errorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
+        } else {
+            nonErrorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
+            errorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout)); 
+        }
     }
 
     private static Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
@@ -301,7 +311,7 @@ public class Main {
         levelFilter.start();
         return levelFilter;
     }
-    
+
     private static PatternLayout createPatternLayout(LoggerContext loggerContext, String pattern) {
         PatternLayout patternLayout = new PatternLayout();
         patternLayout.setPattern(pattern);

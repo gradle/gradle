@@ -19,18 +19,48 @@ import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import org.gradle.api.logging.Logging;
+import org.slf4j.Marker;
 
 /**
  * @author Hans Dockter
  */
-public class HighLevelFilter extends Filter {
+public class MarkerFilter extends Filter {
+    private Marker marker;
+
+    private FilterReply onMismatch = FilterReply.NEUTRAL;
+
+    public MarkerFilter(Marker marker) {
+        this.marker = marker;
+    }
+
+    public MarkerFilter(Marker marker, FilterReply onMismatch) {
+        this.marker = marker;
+        this.onMismatch = onMismatch;
+    }
+
     @Override
     public FilterReply decide(Object event) {
         LoggingEvent loggingEvent = (LoggingEvent) event;
-        if (loggingEvent.getMarker() == Logging.LIFECYCLE) {
+        if (loggingEvent.getMarker() == marker) {
             return FilterReply.ACCEPT;
         } else {
-            return FilterReply.NEUTRAL;
+            return onMismatch;
         }
+    }
+
+    public FilterReply getOnMismatch() {
+        return onMismatch;
+    }
+
+    public void setOnMismatch(FilterReply onMismatch) {
+        this.onMismatch = onMismatch;
+    }
+
+    public Marker getMarker() {
+        return marker;
+    }
+
+    public void setMarker(Marker marker) {
+        this.marker = marker;
     }
 }
