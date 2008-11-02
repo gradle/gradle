@@ -2,6 +2,11 @@ Release Notes - Gradle - Version 0.5
 
 ** Incompatible Changes since 0.4
     * DependencyManager.addConfiguration() no longer accepts an Ivy Configuration object.
+    * The tasksGraph property has been removed from tasks. You can access the task execution graph using the
+      'project.build.taskGraph' property. See the javadoc for class TaskExecutionGraph for more details.
+    * Tasks are no longer constructed with a Dag parameter as the 3rd constructor parameter. Task constructors are
+      now called with the task name, and project.
+    * The Dag parameter has been removed from TaskAction.execute().
 
 ** Bug
 

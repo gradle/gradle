@@ -28,7 +28,7 @@ You might know this approach from the Hibernates Criteria Query API or JMock. Of
 
 But there is yet another way of configuring the resources task. It also preserves the context and it possibly offers the best readability. It is usually our favorite.
 \begin{Verbatim}
-Resources resources = createTask('resources', type: Resources)
+createTask('resources', type: Resources)
 resources {
    from(file('resources'))
    to(file('target'))
@@ -48,18 +48,26 @@ If you pass a closure to the \texttt{createTask()} method, this closure gets add
 
 \section{Adding Dependencies to Tasks}
 \label{sec:adding_dependencies_to_tasks}
-There are several ways you can add dependencies to a task. In section \ref{sec:task_dependencies} you were introduced to
-using task names. You can also use \texttt{Task} objects as well:
-\codeInput{../../samples/userguide/tasks/addDependencyUsingTask/build.gradle}
-\outputInputTutorial{addDependencyUsingTask}
-
-Task paths can be used to refer to tasks in other projects:
+There are several ways you can define the dependencies of a task. In section \ref{sec:task_dependencies} you were
+introduced to defining dependencies using task names. Task names can refer to tasks the same project as the task, or
+to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the
+project it belongs to. Below is an example which adds a dependency from \texttt{projectA:taskX} to
+\texttt{projectB:taskY}:
 \codeInput{../../samples/userguide/tasks/addDependencyUsingPath/build.gradle}
 \outputInputTutorial{addDependencyUsingPath}
 
-You can use a closure to return a single \texttt{Task} or collections of \texttt{Task} objects:
+Instead of using a task name, you can define a dependency using a \texttt{Task} object, as shown in this example:
+\codeInput{../../samples/userguide/tasks/addDependencyUsingTask/build.gradle}
+\outputInputTutorial{addDependencyUsingTask}
+
+For more advanced uses, you can define a task dependency using a closure. When evaluated, the closure is passed the task
+whose dependencies are being calculated. The closure should return a single \texttt{Task} or collection of \texttt{Task}
+objects, which are then treated as dependencies of the task.  The following example adds a dependency from \texttt{taskX}
+to all the tasks in the project whose name starts with \texttt{lib}:
 \codeInput{../../samples/userguide/tasks/addDependencyUsingClosure/build.gradle}
 \outputInputTutorial{addDependencyUsingClosure}
+
+For more information about task dependencies, see the \href{\API Task.html}{org.gradle.api.Task} API.
 
 % section adding_dependencies_to_tasks (end)
 
