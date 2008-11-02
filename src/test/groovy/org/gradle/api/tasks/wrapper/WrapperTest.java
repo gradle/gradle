@@ -126,8 +126,14 @@ public class WrapperTest extends AbstractTaskTest {
         jarDir.mkdirs();
         File wrapperJar = new File(getProject().getProjectDir(), targetWrapperJarPath);
         System.out.println("wrapperJar = " + wrapperJar.getAbsolutePath());
-        wrapperJar.getParentFile().mkdirs();
-        wrapperJar.createNewFile();
+        System.out.println("wrapper exists = " + wrapperJar.exists());
+        System.out.println("wrapper is dir = " + wrapperJar.isDirectory());
+        assertTrue(wrapperJar.getParentFile().mkdirs());
+        try {
+            wrapperJar.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Could not create %s.", wrapperJar), e);
+        }
         checkExecute();
     }
 
