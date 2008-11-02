@@ -91,7 +91,7 @@ public class DefaultResolverFactory implements ResolverFactory {
             urlResolver.addArtifactPattern(jarRepoUrl + '/' + DependencyManager.MAVEN_REPO_PATTERN);
         }
         dualResolver.setArtifactResolver(urlResolver);
-        dualResolver.setAllownomd(true);
+        dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
         return dualResolver;
     }
 
