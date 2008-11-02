@@ -128,7 +128,8 @@ public class WrapperTest extends AbstractTaskTest {
         System.out.println("wrapperJar = " + wrapperJar.getAbsolutePath());
         System.out.println("wrapper exists = " + wrapperJar.exists());
         System.out.println("wrapper is dir = " + wrapperJar.isDirectory());
-        assertTrue(wrapperJar.getParentFile().mkdirs());
+        File parentFile = wrapperJar.getParentFile();
+        assertTrue(parentFile.isDirectory() || parentFile.mkdirs());
         try {
             wrapperJar.createNewFile();
         } catch (IOException e) {
