@@ -40,6 +40,9 @@ import org.gradle.api.invocation.Build
 import org.gradle.StartParameter
 import org.gradle.api.internal.BuildInternal
 import org.gradle.invocation.DefaultBuild
+import org.gradle.api.logging.StandardOutputLogging
+import org.gradle.api.logging.LogLevel
+import ch.qos.logback.classic.Level
 
 /**
  * @author Hans Dockter
@@ -78,16 +81,24 @@ class DefaultProjectTest {
     DependencyManager dependencyManagerMock;
     Build build;
 
+    StandardOutputRedirector outputRedirectorMock;
+    StandardOutputRedirector outputRedirectorOtherProjectsMock;
+
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
 
     @Before
     void setUp() {
         context.imposteriser = ClassImposteriser.INSTANCE
+        outputRedirectorMock = context.mock(StandardOutputRedirector.class)
+        outputRedirectorOtherProjectsMock = context.mock(StandardOutputRedirector.class, "otherProjects")
         taskFactoryMock = context.mock(ITaskFactory.class);
         antBuilderFactoryMock = context.mock(AntBuilderFactory)
         testAntBuilder = new AntBuilder()
         context.checking {
+            allowing(outputRedirectorOtherProjectsMock).flush();
+            allowing(outputRedirectorOtherProjectsMock).off();
+            allowing(outputRedirectorOtherProjectsMock).on(withParam(any(LogLevel)));
             allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
         }
         dependencyManagerMock = context.mock(DependencyManager)
@@ -111,12 +122,18 @@ class DefaultProjectTest {
         childchild = child1.addChildProject("childchild", new File("childchild"))
         child2 = project.addChildProject("child2", new File("child2"))
         testTask = new DefaultTask(project, TEST_TASK_NAME)
+        project.standardOutputRedirector = outputRedirectorMock
+        listWithAllChildProjects*.standardOutputRedirector = outputRedirectorOtherProjectsMock
+        StandardOutputLogging.off()
     }
 
     @Test void testProject() {
         assertSame project, child1.parent
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
+        assertNotNull(new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
+                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, new DefaultProjectRegistry(),
+                null, build).standardOutputRedirector)
     }
 
     private void checkProject(Project project, Project parent, String name, File projectDir) {
@@ -181,6 +198,8 @@ class DefaultProjectTest {
         project.buildScriptProcessor = buildScriptProcessorMocker
         context.checking {
             one(buildScriptProcessorMocker).createScript(project); will(returnValue(testScript))
+            one(outputRedirectorMock).on(LogLevel.QUIET)
+            one(outputRedirectorMock).flush()
         }
         assertSame(project, project.evaluate())
         assertEquals(DefaultProject.STATE_INITIALIZED, project.state)
@@ -240,6 +259,10 @@ class DefaultProjectTest {
                 }] as BuildScriptProcessor
         project.buildScriptProcessor = mockReader1
         child1.buildScriptProcessor = mockReader2
+        context.checking {
+            allowing(outputRedirectorMock).on(LogLevel.QUIET)
+            allowing(outputRedirectorMock).flush()
+        }
         project.evaluate()
         assertTrue mockReader1Called
     }
@@ -276,6 +299,8 @@ class DefaultProjectTest {
             will(returnValue(mockScript))
             one(mockScript)
             will(throwException(failure))
+            one(outputRedirectorMock).on(LogLevel.QUIET)
+            one(outputRedirectorMock).flush()
         }
         try {
             project.evaluate()
@@ -826,10 +851,10 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testCompareTo() {
-        assertThat(project, lessThan(child1)) 
+        assertThat(project, lessThan(child1))
         assertThat(child1, lessThan(child2))
         assertThat(child1, lessThan(childchild))
-        assertThat(child2, lessThan(childchild)) 
+        assertThat(child2, lessThan(childchild))
     }
 
     @Test void testDepthCompare() {
@@ -861,7 +886,7 @@ def scriptMethod(Closure closure) {
         checkRelativePath(project.&relativePath)
     }
 
-    @Test(expected = GradleException) void testRelativePathWithUncontainedAbsolutePath() {
+    @Test (expected = GradleException) void testRelativePathWithUncontainedAbsolutePath() {
         File uncontainedAbsoluteFile = new File("abc").absoluteFile;
         project.relativePath(uncontainedAbsoluteFile)
     }
@@ -903,6 +928,23 @@ def scriptMethod(Closure closure) {
         projectsToCheck.each {
             assertEquals(propValue, it.testSubProp)
         }
+    }
+
+    @Test
+    void disableStandardOutputCapture() {
+        context.checking {
+            one(outputRedirectorMock).off()
+            one(outputRedirectorMock).flush()
+        }
+        project.disableStandardOutputCapture()
+    }
+
+    @Test
+    void captureStandardOutput() {
+        context.checking {
+            one(outputRedirectorMock).on(LogLevel.DEBUG)
+        }
+        project.captureStandardOutput(LogLevel.DEBUG)
     }
 }
 

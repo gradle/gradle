@@ -45,7 +45,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test public void testDoFirstWithClosure() {
         Closure testAction = {}
         defaultTask.doFirst(testAction)
-        assertSame(defaultTask, testAction.delegate)
-        assertEquals(Closure.DELEGATE_FIRST, testAction.getResolveStrategy())
+        assertSame(getProject(), testAction.delegate)
+        assertEquals(Closure.OWNER_FIRST, testAction.getResolveStrategy())
     }
 }
