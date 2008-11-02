@@ -41,4 +41,11 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertEquals new TreeSet(), defaultTask.dependsOn
         assertEquals([], defaultTask.actions)
     }
+
+    @Test public void testDoFirstWithClosure() {
+        Closure testAction = {}
+        defaultTask.doFirst(testAction)
+        assertSame(defaultTask, testAction.delegate)
+        assertEquals(Closure.DELEGATE_FIRST, testAction.getResolveStrategy())
+    }
 }
