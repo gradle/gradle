@@ -124,11 +124,11 @@ public class BaseDependencyManager extends DefaultDependencyContainer
         if (!GUtil.isTrue(confs)) {
             throw new InvalidUserDataException("Task $taskName is not mapped to any conf!");
         }
-        List<File> paths = new ArrayList<File>();
+        Set<File> paths = new HashSet<File>();
         for (String conf : confs) {
             paths.addAll(resolve(conf));
         }
-        return paths;
+        return new ArrayList<File>(paths);
     }
 
     public String antpath(String conf) {
