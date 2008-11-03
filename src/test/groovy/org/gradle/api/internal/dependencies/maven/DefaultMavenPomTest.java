@@ -44,16 +44,16 @@ public class DefaultMavenPomTest {
     DefaultMavenPom mavenPom;
     PomFileWriter pomFileWriterMock;
     Conf2ScopeMappingContainer conf2ScopeMappingContainerMock;
-    List<DependencyDescriptor> testDependencies;
 
     private JUnit4Mockery context = new JUnit4Mockery();
+
+    private List<DependencyDescriptor> testDependencies;
 
     @Before
     public void setUp() {
         pomFileWriterMock = context.mock(PomFileWriter.class);
         conf2ScopeMappingContainerMock = context.mock(Conf2ScopeMappingContainer.class);
-        testDependencies = new ArrayList<DependencyDescriptor>();
-        mavenPom = new DefaultMavenPom(pomFileWriterMock, conf2ScopeMappingContainerMock, testDependencies);
+        mavenPom = new DefaultMavenPom(pomFileWriterMock, conf2ScopeMappingContainerMock);
         mavenPom.setPackaging(EXPECTED_PACKAGING);
         mavenPom.setLicenseHeader(EXPECTED_LICENSE_HEADER);
         mavenPom.setGroupId(EXPECTED_GROUP_ID);
@@ -65,7 +65,6 @@ public class DefaultMavenPomTest {
     @Test
     public void initAndSetter() {
         assertSame(conf2ScopeMappingContainerMock, mavenPom.getScopeMappings());
-        assertSame(testDependencies, mavenPom.getDependencies());
         assertEquals(EXPECTED_PACKAGING, mavenPom.getPackaging());
         assertEquals(EXPECTED_ARTIFACT_ID, mavenPom.getArtifactId());
         assertEquals(EXPECTED_CLASSIFIER, mavenPom.getClassifier());
@@ -84,8 +83,8 @@ public class DefaultMavenPomTest {
     public void toPomFile() {
         final File expectedPomFile = new File("somefile");
         context.checking(new Expectations() {{
-            one(pomFileWriterMock).write(mavenPom, expectedPomFile);
+            one(pomFileWriterMock).write(mavenPom, testDependencies, expectedPomFile);
         }});
-        mavenPom.toPomFile(expectedPomFile);
+        mavenPom.toPomFile(expectedPomFile, testDependencies);
     }
 }

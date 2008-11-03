@@ -29,10 +29,7 @@ import org.gradle.api.internal.dependencies.maven.dependencies.DefaultMavenDepen
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.ArtifactDependency;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -91,12 +88,11 @@ public class DefaultPomDependenciesConverterTest {
 
     @Test
     public void convert() {
+        List<DependencyDescriptor> testDependencies = WrapUtil.<DependencyDescriptor>toList(dependencyDescriptor1, dependencyDescriptor2, dependencyDescriptor3);
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
-            allowing(pomMock).getDependencies();
-            will(returnValue(WrapUtil.toList(dependencyDescriptor1, dependencyDescriptor2, dependencyDescriptor3)));
         }});
-        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock);
+        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, testDependencies);
         assertEquals(4, actualMavenDependencies.size());
         chechCommonMavenDependencies(actualMavenDependencies);
     }
@@ -104,13 +100,13 @@ public class DefaultPomDependenciesConverterTest {
     @Test
     public void convertWithUnMappedConfAndSkipTrue() {
         final DefaultDependencyDescriptor dependencyDescriptor4 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org3", "name3", "rev3"), false);
+        List<DependencyDescriptor> testDependencies = WrapUtil.<DependencyDescriptor>toList(dependencyDescriptor1, dependencyDescriptor2,
+                dependencyDescriptor3, dependencyDescriptor4);
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(true));
-            allowing(pomMock).getDependencies();
-            will(returnValue(WrapUtil.toList(dependencyDescriptor1, dependencyDescriptor2, dependencyDescriptor3, dependencyDescriptor4)));
             allowing(conf2ScopeMappingContainerMock).getScope(dependencyDescriptor4.getModuleConfigurations()); will(returnValue(null));
         }});
-        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock);
+        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, testDependencies);
         assertEquals(4, actualMavenDependencies.size());
         chechCommonMavenDependencies(actualMavenDependencies);
     }
@@ -118,13 +114,13 @@ public class DefaultPomDependenciesConverterTest {
     @Test
     public void convertWithUnMappedConfAndSkipFalse() {
         final DefaultDependencyDescriptor dependencyDescriptor4 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org3", "name3", "rev3"), false);
+        List<DependencyDescriptor> testDependencies = WrapUtil.<DependencyDescriptor>toList(dependencyDescriptor1, dependencyDescriptor2,
+                dependencyDescriptor3, dependencyDescriptor4);
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
             allowing(conf2ScopeMappingContainerMock).getScope(dependencyDescriptor4.getModuleConfigurations()); will(returnValue(null));
-            allowing(pomMock).getDependencies();
-            will(returnValue(WrapUtil.toList(dependencyDescriptor1, dependencyDescriptor2, dependencyDescriptor3, dependencyDescriptor4)));
         }});
-        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock);
+        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, testDependencies);
         assertEquals(5, actualMavenDependencies.size());
         chechCommonMavenDependencies(actualMavenDependencies);
         Assert.assertThat(actualMavenDependencies,
@@ -144,15 +140,15 @@ public class DefaultPomDependenciesConverterTest {
 
     @Test
     public void convertWithConvertableExcludes() {
+        List<DependencyDescriptor> testDependencies = WrapUtil.<DependencyDescriptor>toList(dependencyDescriptor1);
         final DefaultExcludeRule testExcludeRule = HelperUtil.getTestExcludeRule();
         final DefaultMavenExclude mavenExclude = new DefaultMavenExclude("a", "b");
         dependencyDescriptor1.addExcludeRule("compileConf", testExcludeRule);
         context.checking(new Expectations() {{
            allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
            allowing(excludeRuleConverterMock).convert(testExcludeRule); will(returnValue(mavenExclude));
-           allowing(pomMock).getDependencies(); will(returnValue(WrapUtil.toList(dependencyDescriptor1)));
         }});
-        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock);
+        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, testDependencies);
         assertEquals(1, actualMavenDependencies.size());
         Assert.assertThat(actualMavenDependencies,
                 Matchers.hasItem((MavenDependency) DefaultMavenDependency.newInstance("org1", "name1", "rev1", null, "compile")));

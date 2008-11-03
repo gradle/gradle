@@ -16,6 +16,7 @@
 package org.gradle.api.internal.dependencies.maven;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
@@ -30,6 +31,8 @@ import org.hamcrest.Description;
 import org.gradle.api.dependencies.maven.MavenPom;
 
 import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -40,20 +43,23 @@ public class DefaultPomFileWriterTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
+    private List<DependencyDescriptor> testDependencies;
+
     @Test
     public void testOptional() throws Exception {
+        testDependencies = new ArrayList<DependencyDescriptor>();
         final PomWriter writerMock = context.mock(PomWriter.class);
         
         final MavenPom testPom = context.mock(MavenPom.class);
         final String expectedPomText = "somePomXml";
         context.checking(new Expectations() {
             {
-                one(writerMock).convert(with(same(testPom)), with(any(PrintWriter.class)));
+                one(writerMock).convert(with(same(testPom)), with(same(testDependencies)), with(any(PrintWriter.class)));
                 will(new WriteAction(expectedPomText));
             }
         });
 
-        new DefaultPomFileWriter(writerMock).write(testPom, _dest);
+        new DefaultPomFileWriter(writerMock).write(testPom, testDependencies, _dest);
         assertTrue(_dest.exists());
 
         String wrote = FileUtils.readFileToString(_dest);
@@ -89,7 +95,7 @@ public class DefaultPomFileWriterTest {
         }
 
         public Object invoke(Invocation invocation) throws Throwable {
-            PrintWriter printWriter = (PrintWriter) invocation.getParameter(1);
+            PrintWriter printWriter = (PrintWriter) invocation.getParameter(2);
             printWriter.println(textToWrite);
             return null;
         }

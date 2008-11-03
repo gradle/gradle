@@ -26,9 +26,12 @@ import static org.junit.Assert.assertSame;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.dependencies.maven.dependencies.PomDependenciesWriter;
 import org.gradle.api.dependencies.maven.MavenPom;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -44,8 +47,11 @@ public class DefaultPomWriterTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
+    private List<DependencyDescriptor> testDependencies;
+
     @Before
     public void setUp() {
+        testDependencies = new ArrayList<DependencyDescriptor>();
         headerWriterMock = context.mock(PomHeaderWriter.class);
         moduleIdWriterMock = context.mock(PomModuleIdWriter.class);
         conf2ScopeMappingContainerMock = context.mock(Conf2ScopeMappingContainer.class);
@@ -72,11 +78,11 @@ public class DefaultPomWriterTest {
                 allowing(pomMock).getLicenseHeader(); will(returnValue(testLicenseText));
                 one(headerWriterMock).convert(testLicenseText, testPrintWriter);
                 one(moduleIdWriterMock).convert(pomMock, testPrintWriter);
-                one(dependenciesWriterMock).convert(with(same(pomMock)),
+                one(dependenciesWriterMock).convert(with(same(pomMock)), with(same(testDependencies)),
                         with(same(testPrintWriter)));
             }
         });
-        pomModuleDescriptorWriter.convert(pomMock, testPrintWriter);
+        pomModuleDescriptorWriter.convert(pomMock, testDependencies, testPrintWriter);
         assertEquals(String.format("</" + PomWriter.ROOT_ELEMENT_NAME + ">%n"), stringWriter.toString());
     }
 }

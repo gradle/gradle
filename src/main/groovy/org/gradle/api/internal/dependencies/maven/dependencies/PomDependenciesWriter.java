@@ -16,8 +16,10 @@
 package org.gradle.api.internal.dependencies.maven.dependencies;
 
 import org.gradle.api.dependencies.maven.MavenPom;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -25,5 +27,5 @@ import java.io.PrintWriter;
 public interface PomDependenciesWriter {
     String DEPENDENCIES = "dependencies";
 
-    void convert(MavenPom pom, PrintWriter testPrintWriter);
+    void convert(MavenPom pom, List<DependencyDescriptor> dependencies, PrintWriter printWriter);
 }

@@ -16,12 +16,14 @@
 package org.gradle.api.internal.dependencies.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.dependencies.maven.PublishFilter;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.DependencyManager;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -119,7 +121,7 @@ public class DefaultArtifactPom implements ArtifactPom {
         }
     }
 
-    public void toPomFile(File pomFile) {
-        pom.toPomFile(pomFile);
+    public void toPomFile(File pomFile, List<DependencyDescriptor> dependencies) {
+        pom.toPomFile(pomFile, dependencies);
     }
 }

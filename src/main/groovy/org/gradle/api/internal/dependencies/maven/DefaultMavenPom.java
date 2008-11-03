@@ -35,20 +35,18 @@ public class DefaultMavenPom implements MavenPom {
     private String classifier;
     private String packaging;
     private String licenseHeader;
-    private List<DependencyDescriptor> dependencies;
 
-    public DefaultMavenPom(PomFileWriter pomFileWriter, Conf2ScopeMappingContainer scopeMappings, List<DependencyDescriptor> dependencies) {
+    public DefaultMavenPom(PomFileWriter pomFileWriter, Conf2ScopeMappingContainer scopeMappings) {
         this.pomFileWriter = pomFileWriter;
         this.scopeMappings = scopeMappings;
-        this.dependencies = dependencies;
     }
 
     public Conf2ScopeMappingContainer getScopeMappings() {
         return scopeMappings;
     }
 
-    public void toPomFile(File pomFile) {
-        pomFileWriter.write(this, pomFile);
+    public void toPomFile(File pomFile, List<DependencyDescriptor> dependencies) {
+        pomFileWriter.write(this, dependencies, pomFile);
     }
 
     public PomFileWriter getPomModuleDescriptorFileWriter() {
@@ -105,13 +103,5 @@ public class DefaultMavenPom implements MavenPom {
 
     public void setLicenseHeader(String licenseHeader) {
         this.licenseHeader = licenseHeader;
-    }
-
-    public List<DependencyDescriptor> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies(List<DependencyDescriptor> dependencies) {
-        this.dependencies = dependencies;
     }
 }

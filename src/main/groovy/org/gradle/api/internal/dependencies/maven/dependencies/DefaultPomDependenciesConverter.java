@@ -38,9 +38,9 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    public List<MavenDependency> convert(MavenPom pom) {
+    public List<MavenDependency> convert(MavenPom pom, List<DependencyDescriptor> dependencies) {
         List<MavenDependency> mavenDependencies = new ArrayList<MavenDependency>();
-        for (DependencyDescriptor dependencyDescriptor : pom.getDependencies()) {
+        for (DependencyDescriptor dependencyDescriptor : dependencies) {
             if (dependencyDescriptor.getAllDependencyArtifacts().length == 0) {
                 addFromDependencyDescriptor(mavenDependencies, pom, dependencyDescriptor);
             } else {

@@ -16,9 +16,11 @@
 package org.gradle.api.internal.dependencies.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.io.File;
 import java.util.Map;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -35,5 +37,5 @@ public interface ArtifactPomContainer {
     ArtifactPom getArtifactPom(String name);
 
 
-    Map<File, File> createDeployableUnits();
+    Map<File, File> createDeployableUnits(List<DependencyDescriptor> dependencies);
 }

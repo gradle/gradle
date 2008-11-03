@@ -16,12 +16,14 @@
 package org.gradle.api.internal.dependencies.maven;
 
 import org.gradle.api.dependencies.maven.MavenPom;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public interface PomFileWriter {
-    void write(MavenPom pom, File output);
+    void write(MavenPom pom, List<DependencyDescriptor> dependencies, File output);
 }

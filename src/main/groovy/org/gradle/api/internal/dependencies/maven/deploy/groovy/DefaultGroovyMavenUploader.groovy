@@ -23,6 +23,7 @@ import org.gradle.api.internal.dependencies.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenUploader
 import org.gradle.util.ConfigureUtil
 import org.codehaus.groovy.runtime.InvokerHelper
+import org.gradle.api.DependencyManager
 
 /**
  * @author Hans Dockter
@@ -33,8 +34,8 @@ class DefaultGroovyMavenUploader extends BaseMavenUploader implements GroovyMave
     
     private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
-    DefaultGroovyMavenUploader(String name, ArtifactPomContainer artifactPomContainer, MavenPomFactory mavenPomFactory) {
-        super(name, artifactPomContainer, mavenPomFactory)
+    DefaultGroovyMavenUploader(String name, ArtifactPomContainer artifactPomContainer, MavenPomFactory mavenPomFactory, DependencyManager dependencyManager) {
+        super(name, artifactPomContainer, mavenPomFactory, dependencyManager)
     }
 
     void filter(Closure filter) {

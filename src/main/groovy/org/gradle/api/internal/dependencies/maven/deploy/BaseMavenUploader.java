@@ -37,6 +37,7 @@ import org.apache.maven.artifact.ant.DeployTask;
 import org.apache.maven.artifact.ant.Pom;
 import org.gradle.util.AntUtil;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.DependencyManager;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.dependencies.maven.PublishFilter;
 import org.gradle.api.dependencies.maven.MavenPom;
@@ -71,13 +72,16 @@ public class BaseMavenUploader implements MavenUploader {
 
     private List<File> protocolProviderJars = new ArrayList<File>();
 
-    public BaseMavenUploader(String name, ArtifactPomContainer artifactPomContainer, MavenPomFactory mavenPomFactory) {
+    private DependencyManager dependencyManager;
+
+    public BaseMavenUploader(String name, ArtifactPomContainer artifactPomContainer, MavenPomFactory mavenPomFactory, DependencyManager dependencyManager) {
         this.name = name;
         this.artifactPomContainer = artifactPomContainer;
         this.mavenPomFactory = mavenPomFactory;
         this.artifactPomContainer.setDefaultArtifactPom(new DefaultArtifactPom(DEFAULT_ARTIFACT_POM_NAME,
                 mavenPomFactory.createMavenPom(),
                 PublishFilter.ALWAYS_ACCEPT));
+        this.dependencyManager = dependencyManager;
     }
 
     public String getName() {
@@ -137,7 +141,8 @@ public class BaseMavenUploader implements MavenUploader {
         addRemoteRepositories(deployTask);
         addProtocolProvider(deployTask);
 
-        Map<File, File> deployableUnits = artifactPomContainer.createDeployableUnits();
+        Map<File, File> deployableUnits = artifactPomContainer.createDeployableUnits(
+                Arrays.asList(dependencyManager.createModuleDescriptor(true).getDependencies()));
         for (File pomFile : deployableUnits.keySet()) {
             addPomAndArtifact(deployTask, pomFile, deployableUnits.get(pomFile));
             execute(deployTask);
@@ -266,6 +271,14 @@ public class BaseMavenUploader implements MavenUploader {
 
     public void setMavenPomFactory(MavenPomFactory mavenPomFactory) {
         this.mavenPomFactory = mavenPomFactory;
+    }
+
+    public DependencyManager getDependencyManager() {
+        return dependencyManager;
+    }
+
+    public void setDependencyManager(DependencyManager dependencyManager) {
+        this.dependencyManager = dependencyManager;
     }
 
     public void addProtocolProviderJars(List<File> jars) {

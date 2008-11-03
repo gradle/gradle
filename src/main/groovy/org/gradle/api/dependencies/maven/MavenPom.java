@@ -36,8 +36,9 @@ public interface MavenPom {
     /**
      * Generates the pom and writes it into a file.
      * @param pomFile The file to write the generated pom to.
+     * @param dependencies All dependencies
      */
-    void toPomFile(File pomFile);
+    void toPomFile(File pomFile, List<DependencyDescriptor> dependencies);
 
     /**
      * @see #setGroupId(String)
@@ -98,15 +99,4 @@ public interface MavenPom {
      * Sets the licenseHeader property of the to be generated Maven pom.
      */
     void setLicenseHeader(String licenseHeader);
-
-    /**
-     * @see #setDependencies(java.util.List)
-     */
-    List<DependencyDescriptor> getDependencies();
-
-    /**
-     * Sets the Ivy dependency descriptors as the dependencies to be transformed into pom dependencies.
-     */
-    //todo Use Gradle dependency objects instead of Ivy ones
-    void setDependencies(List<DependencyDescriptor> dependencyDescriptors);
 }

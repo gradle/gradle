@@ -99,7 +99,6 @@ public class DefaultResolverFactory implements ResolverFactory {
                                       DependencyManager dependencyManager) {
         return new DefaultGroovyMavenUploader(name, new DefaultArtifactPomContainer(pomDir), new DefaultMavenPomFactory(
                 conf2ScopeMapping,
-                dependencyManager,
                 new DefaultPomFileWriter(
                         new DefaultPomWriter(
                                 new DefaultPomHeaderWriter(),
@@ -109,7 +108,8 @@ public class DefaultResolverFactory implements ResolverFactory {
                                                 new DefaultExcludeRuleConverter()
                                         )
                                 )
-                        )))
+                        ))),
+                dependencyManager
         );
     }
 }

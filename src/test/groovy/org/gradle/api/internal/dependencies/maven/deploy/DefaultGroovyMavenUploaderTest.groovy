@@ -42,7 +42,7 @@ class DefaultGroovyMavenUploaderTest extends BaseMavenUploaderTest {
     private DefaultGroovyMavenUploader defaultMavenUploader;
 
     protected BaseMavenUploader createMavenUploader() {
-        defaultMavenUploader = new DefaultGroovyMavenUploader(TEST_NAME, artifactPomContainerMock, mavenPomFactoryMock)
+        defaultMavenUploader = new DefaultGroovyMavenUploader(TEST_NAME, artifactPomContainerMock, mavenPomFactoryMock, dependencyManagerMock)
     }
 
     JUnit4GroovyMockery groovyContext = new JUnit4GroovyMockery()

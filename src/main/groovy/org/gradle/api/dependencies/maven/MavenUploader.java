@@ -92,7 +92,7 @@ public interface MavenUploader extends DependencyResolver {
     void setFilter(PublishFilter defaultFilter);
 
     /**
-     * Those properties allow you to specify a filter to select the artifact to deploy. By default the filter accepts any artifact.
+     * Returns the pom property of the custom filter. 
      * The pom property can be used to customize the pom generation. By default the properties of such a pom object are all null.
      * Null means that Gradle will use default values for generating the Maven pom. Those default values are derived from the deployable artifact
      * and from the project type (e.g. java, war, ...). If you explicitly set a pom property, Gradle will use those instead.

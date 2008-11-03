@@ -21,6 +21,7 @@ import org.gradle.api.internal.dependencies.maven.dependencies.PomDependenciesCo
 import org.gradle.api.internal.dependencies.maven.XmlHelper;
 import org.gradle.api.internal.dependencies.maven.PomWriter;
 import org.gradle.api.dependencies.maven.MavenPom;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.util.List;
 import java.io.PrintWriter;
@@ -35,8 +36,8 @@ public class DefaultPomDependenciesWriter implements PomDependenciesWriter {
         this.dependenciesConverter = dependenciesConverter;
     }
 
-    public void convert(MavenPom pom, PrintWriter printWriter) {
-        List<MavenDependency> mavenDependencies = dependenciesConverter.convert(pom);
+    public void convert(MavenPom pom, List<DependencyDescriptor> dependencies, PrintWriter printWriter) {
+        List<MavenDependency> mavenDependencies = dependenciesConverter.convert(pom, dependencies);
         if (mavenDependencies.size() == 0) {
             return;
         }

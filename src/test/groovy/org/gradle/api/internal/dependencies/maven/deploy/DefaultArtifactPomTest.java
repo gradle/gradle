@@ -37,6 +37,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -50,10 +51,13 @@ public class DefaultArtifactPomTest {
     private JUnit4Mockery context = new JUnit4Mockery();
     private static final String TEST_NAME = "name";
 
+    private List<DependencyDescriptor> testDependencies;
+
     @Before
     public void setUp() {
+        testDependencies = new ArrayList<DependencyDescriptor>();
         testPom = new DefaultMavenPom(context.mock(PomFileWriter.class),
-                new DefaultConf2ScopeMappingContainer(), new ArrayList<DependencyDescriptor>());
+                new DefaultConf2ScopeMappingContainer());
         testFilter = PublishFilter.ALWAYS_ACCEPT;
         artifactPom = new DefaultArtifactPom(TEST_NAME, testPom, testFilter);
     }
@@ -146,9 +150,9 @@ public class DefaultArtifactPomTest {
         artifactPom.setPom(testPom = context.mock(MavenPom.class));
         context.checking(new Expectations() {
             {
-                one(testPom).toPomFile(pomFile);
+                one(testPom).toPomFile(pomFile, testDependencies);
             }
         });
-        artifactPom.toPomFile(pomFile);
+        artifactPom.toPomFile(pomFile, testDependencies);
     }
 }

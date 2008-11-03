@@ -22,6 +22,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertEquals;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -31,6 +32,8 @@ import org.gradle.api.InvalidUserDataException;
 import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -45,6 +48,8 @@ public class DefaultArtifactPomContainerTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
+    private List<DependencyDescriptor> testDependencies;
+
     @Before
     public void setUp() {
         artifactPomContainer = new DefaultArtifactPomContainer(TEST_POM_DIR);
@@ -57,6 +62,7 @@ public class DefaultArtifactPomContainerTest {
 
     @Test
     public void addArtifactPom() {
+        testDependencies = new ArrayList<DependencyDescriptor>();
         final ArtifactPom artifactPom = context.mock(ArtifactPom.class);
         final String pomName = "pomName";
         context.checking(new Expectations() {{
@@ -114,7 +120,7 @@ public class DefaultArtifactPomContainerTest {
 
     @Test
     public void createDeployableUnitsWithNoArtifacts() {
-        assertEquals(0, artifactPomContainer.createDeployableUnits().size());   
+        assertEquals(0, artifactPomContainer.createDeployableUnits(testDependencies).size());   
     }
 
     @Test
@@ -122,7 +128,7 @@ public class DefaultArtifactPomContainerTest {
         Map<File, File> expectedDeployableUnits = new HashMap<File, File>();
         addPomArtifactFile(expectedDeployableUnits, true, "customPom1", "customPom2");
         addPomArtifactFile(expectedDeployableUnits, false, "customPom3");
-        assertEquals(expectedDeployableUnits, artifactPomContainer.createDeployableUnits());
+        assertEquals(expectedDeployableUnits, artifactPomContainer.createDeployableUnits(testDependencies));
     }
 
     private void addPomArtifactFile(Map<File, File> deployableUnits, final boolean addArtifactFile, String... names) {
@@ -140,7 +146,7 @@ public class DefaultArtifactPomContainerTest {
                 allowing(artifactPomMock).getArtifactFile(); will(returnValue(artifactFile));
                 allowing(artifactPomMock).getName(); will(returnValue(artifactFile == null ? pomFile.getName() : artifactFile.getName()));
                 if (artifactFile != null) {
-                    one(artifactPomMock).toPomFile(pomFile);
+                    one(artifactPomMock).toPomFile(pomFile, testDependencies);
                 }
             }});
             artifactPomContainer.addArtifactPom(artifactPomMock);

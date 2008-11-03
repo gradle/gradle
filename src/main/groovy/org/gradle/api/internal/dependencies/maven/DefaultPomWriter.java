@@ -17,8 +17,10 @@ package org.gradle.api.internal.dependencies.maven;
 
 import org.gradle.api.internal.dependencies.maven.dependencies.PomDependenciesWriter;
 import org.gradle.api.dependencies.maven.MavenPom;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -37,10 +39,10 @@ public class DefaultPomWriter implements PomWriter {
         this.dependenciesWriter = dependenciesWriter;
     }
 
-    public void convert(MavenPom pom, PrintWriter out) {
+    public void convert(MavenPom pom, List<DependencyDescriptor> dependencies, PrintWriter out) {
         headerWriter.convert(pom.getLicenseHeader(), out);
         moduleIdWriter.convert(pom, out);
-        dependenciesWriter.convert(pom, out);
+        dependenciesWriter.convert(pom, dependencies, out);
         out.println("</" + ROOT_ELEMENT_NAME + ">");
     }
 

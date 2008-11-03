@@ -21,6 +21,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertNotNull;
 import org.junit.runner.RunWith;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.maven.PublishFilter;
 import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
@@ -30,6 +31,8 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.ant.Pom;
@@ -45,6 +48,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -68,6 +72,8 @@ public class BaseMavenUploaderTest {
     private RemoteRepository testSnapshotRepository;
     protected ArtifactPomContainer artifactPomContainerMock;
     private ArtifactPom defaultArtifactPomMock;
+    protected DependencyManager dependencyManagerMock;
+    private List<DependencyDescriptor> testDependencies;
     protected MavenPomFactory mavenPomFactoryMock;
     protected JUnit4Mockery context = new JUnit4Mockery() {
         {
@@ -77,11 +83,13 @@ public class BaseMavenUploaderTest {
     protected MavenPom pomMock;
 
     protected BaseMavenUploader createMavenUploader() {
-        return new BaseMavenUploader(TEST_NAME, artifactPomContainerMock, mavenPomFactoryMock);
+        return new BaseMavenUploader(TEST_NAME, artifactPomContainerMock, mavenPomFactoryMock, dependencyManagerMock);
     }
 
     @Before
     public void setUp() {
+        testDependencies = new ArrayList<DependencyDescriptor>();
+        dependencyManagerMock = context.mock(DependencyManager.class);
         artifactPomContainerMock = context.mock(ArtifactPomContainer.class);
         defaultArtifactPomMock = context.mock(ArtifactPom.class);
         mavenPomFactoryMock = context.mock(MavenPomFactory.class);
@@ -91,6 +99,7 @@ public class BaseMavenUploaderTest {
         pomMock = context.mock(MavenPom.class);
         testRepository = new RemoteRepository();
         testSnapshotRepository = new RemoteRepository();
+        final ModuleDescriptor moduleDescriptorMock = context.mock(ModuleDescriptor.class);
         context.checking(new Expectations() {
             {
                 allowing(mavenPomFactoryMock).createMavenPom();
@@ -98,6 +107,8 @@ public class BaseMavenUploaderTest {
                 one(artifactPomContainerMock).setDefaultArtifactPom(with(artifactPomMatcher(BaseMavenUploader.DEFAULT_ARTIFACT_POM_NAME,
                         pomMock,
                         PublishFilter.ALWAYS_ACCEPT)));
+                allowing(dependencyManagerMock).createModuleDescriptor(true); will(returnValue(moduleDescriptorMock));
+                allowing(moduleDescriptorMock).getDependencies(); will(returnValue(testDependencies.toArray(new DependencyDescriptor[testDependencies.size()])));
             }
         });
         mavenUploader = createMavenUploader();
@@ -118,7 +129,7 @@ public class BaseMavenUploaderTest {
         context.checking(new Expectations() {
             {
                 one(artifactPomContainerMock).addArtifact(TEST_ARTIFACT, TEST_JAR_FILE);
-                allowing(artifactPomContainerMock).createDeployableUnits();
+                allowing(artifactPomContainerMock).createDeployableUnits(testDependencies);
                 will(returnValue(testDeployableUnits));
             }
         });

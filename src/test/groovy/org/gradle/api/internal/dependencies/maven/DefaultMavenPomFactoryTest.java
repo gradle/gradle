@@ -39,19 +39,14 @@ public class DefaultMavenPomFactoryTest {
     @Test
     public void createMavenPom() {
         PomFileWriter pomFileWriterMock = context.mock(PomFileWriter.class);
-        final DependencyManager dependencyManagerMock = context.mock(DependencyManager.class);
         DefaultConf2ScopeMappingContainer scopeMappings = new DefaultConf2ScopeMappingContainer();
         final DefaultModuleDescriptor testModuleDescriptor = DefaultModuleDescriptor.newBasicInstance(ModuleRevisionId.newInstance("org", "name","version"), null);
         testModuleDescriptor.addDependency(new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org1", "name1", "rev1"), false));
-        context.checking(new Expectations() {{
-            allowing(dependencyManagerMock).createModuleDescriptor(true); will(returnValue(testModuleDescriptor));
-        }});
         scopeMappings.addMapping(10, "conf", "scope");
-        DefaultMavenPomFactory mavenPomFactory = new DefaultMavenPomFactory(scopeMappings, dependencyManagerMock, pomFileWriterMock);
+        DefaultMavenPomFactory mavenPomFactory = new DefaultMavenPomFactory(scopeMappings, pomFileWriterMock);
         DefaultMavenPom mavenPom = (DefaultMavenPom) mavenPomFactory.createMavenPom();
         assertNotSame(scopeMappings, mavenPom.getScopeMappings());
         assertEquals(scopeMappings, mavenPom.getScopeMappings());
-        assertEquals(Arrays.asList(testModuleDescriptor.getDependencies()), mavenPom.getDependencies());
         assertSame(pomFileWriterMock, mavenPom.getPomModuleDescriptorFileWriter());
     }
 }
