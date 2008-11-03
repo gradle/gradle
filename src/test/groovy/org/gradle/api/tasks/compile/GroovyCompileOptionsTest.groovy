@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,61 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 package org.gradle.api.tasks.compile
 
-import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
+import org.junit.Before
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
-class CompileOptionsTest {
-    static final Map TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
+class GroovyCompileOptionsTest {
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
-    CompileOptions compileOptions
+    GroovyCompileOptions compileOptions
 
     @Before public void setUp()  {
-        compileOptions = new CompileOptions()
-        compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
-        compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
+        compileOptions = new GroovyCompileOptions()
+        compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as GroovyForkOptions
     }
 
     @Test public void testCompileOptions() {
-        assertTrue(compileOptions.debug)
         assertTrue(compileOptions.failOnError)
-        assertTrue(compileOptions.warnings)
-
         assertFalse(compileOptions.includeJavaRuntime)
-        assertFalse(compileOptions.deprecation)
+        assertFalse(compileOptions.stacktrace)
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
-        assertFalse(compileOptions.fork)
-
+        assertTrue(compileOptions.fork)
         assertNull(compileOptions.encoding)
-        assertNull(compileOptions.compiler)
-        assertNull(compileOptions.bootClasspath)
-        assertNull(compileOptions.extensionDirs)
-
         assertNotNull(compileOptions.forkOptions)
-        assertNotNull(compileOptions.debugOptions)
     }
 
-    @Test public void testOptionMapForDebugAndForkOptions() {
+    @Test public void testOptionMapForForkOptions() {
         Map optionMap = compileOptions.optionMap()
-        assertEquals(optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()), TEST_DEBUG_OPTION_MAP)
         assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
     }
 
     @Test public void testOptionMapWithNullables() {
         Map optionMap = compileOptions.optionMap()
         Map nullables = [
-                encoding: 'encoding',
-                compiler: 'compiler',
-                bootClasspath: 'bootclasspath',
-                extensionDirs: 'extdirs'
+                encoding: 'encoding'
         ]
         nullables.each {String field, String antProperty ->
             assertFalse(optionMap.keySet().contains(antProperty))
@@ -85,10 +70,6 @@ class CompileOptionsTest {
                 failOnError: 'failonerror',
                 verbose: 'verbose',
                 listFiles: 'listfiles',
-                deprecation: 'deprecation',
-                warnings: 'nowarn',
-                dependencyTracking: 'depend',
-                debug: 'debug',
                 fork: 'fork',
                 includeJavaRuntime: 'includeJavaRuntime'
         ]
@@ -118,33 +99,20 @@ class CompileOptionsTest {
         compileOptions.forkOptions = [define: {Map args ->
             forkUseCalled = true
             assertEquals(TEST_FORK_OPTION_MAP, args)
-        }] as ForkOptions
+        }] as GroovyForkOptions
         assert compileOptions.fork(TEST_FORK_OPTION_MAP).is(compileOptions)
         assertTrue(compileOptions.fork)
         assertTrue(forkUseCalled)
     }
 
-    @Test public void testDebug() {
-        compileOptions.debug = false
-        boolean debugUseCalled = false
-        compileOptions.debugOptions = [define: {Map args ->
-            debugUseCalled = true
-            assertEquals(TEST_DEBUG_OPTION_MAP, args)
-        }] as DebugOptions
-        assert compileOptions.debug(TEST_DEBUG_OPTION_MAP).is(compileOptions)
-        assertTrue(compileOptions.debug)
-        assertTrue(debugUseCalled)
-    }
-
     @Test public void testDefine() {
-        compileOptions.debug = false
-        compileOptions.compiler = null
-        compileOptions.bootClasspath = 'xxxx'
+        compileOptions.stacktrace = false
+        compileOptions.verbose = false
+        compileOptions.encoding = 'xxxx'
         compileOptions.fork = false
-        compileOptions.define(debug: true, compiler: 'compiler', bootClasspath: null)
-        assertTrue(compileOptions.debug)
-        assertEquals('compiler', compileOptions.compiler)
-        assertNull(compileOptions.bootClasspath)
-        assertFalse(compileOptions.fork)
+        compileOptions.define(stacktrace: true, encoding: 'encoding')
+        assertTrue(compileOptions.stacktrace)
+        assertEquals('encoding', compileOptions.encoding)
+        assertFalse(compileOptions.verbose)
     }
 }

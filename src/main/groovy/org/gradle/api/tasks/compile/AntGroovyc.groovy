@@ -16,10 +16,10 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.util.GradleUtil
-import org.apache.commons.io.FilenameUtils
+import org.gradle.util.BootstrapUtil
 
 /**
  * @author Hans Dockter
@@ -27,25 +27,23 @@ import org.apache.commons.io.FilenameUtils
 class AntGroovyc {
     private static Logger logger = LoggerFactory.getLogger(AntGroovyc)
 
-    // todo check this list after http://jira.codehaus.org/browse/GROOVY-2809 is resolved
-    List nonGroovycJavacOptions = ['includeJavaRuntime', 'optimize', 'failonerror', 'deprecation', 'fork', 'listfiles', 'nowarn', 'verbose', 'depend']
-
+    List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']
 
     public void execute(antNode, List sourceDirs, List groovyIncludes, List groovyExcludes, List groovyJavaIncludes,
                         List groovyJavaExcludes, File targetDir, List classpath, String sourceCompatibility,
-                        String targetCompatibility, CompileOptions compileOptions, List taskClasspath) {
+                        String targetCompatibility, GroovyCompileOptions groovyOptions, CompileOptions compileOptions, List taskClasspath) {
 
         String groovyc = """taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
     mkdir(dir: '${GradleUtil.unbackslash(targetDir.absolutePath)}')
     groovyc(
-        includeAntRuntime: false,
+        [includeAntRuntime: false,
         srcdir: '${sourceDirs.collect {GradleUtil.unbackslash(it)}.join(':')}',
         destdir: '${GradleUtil.unbackslash(targetDir)}',
-        classpath: '${classpath.collect {GradleUtil.unbackslash(it)}.join(':')}',
-        verbose: true) {
+        classpath: '${(classpath + BootstrapUtil.antJarFiles).collect {GradleUtil.unbackslash(it)}.join(':')}'] +
+        ${groovyOptions.optionMap()}) {
         ${groovyIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
         ${groovyExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
-        javac([includeAntRuntime: false, source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)}) {
+        javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)}) {
             ${groovyJavaIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
             ${groovyJavaExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
         }
