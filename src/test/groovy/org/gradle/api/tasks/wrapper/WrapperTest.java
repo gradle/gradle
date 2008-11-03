@@ -56,7 +56,7 @@ public class WrapperTest extends AbstractTaskTest {
     private String distributionPath;
     private String targetWrapperJarPath;
     private Mockery context = new Mockery();
-    private String expectedTargetWrapperJar;
+    private File expectedTargetWrapperJar;
 
     @Before
     public void setUp() {
@@ -73,7 +73,8 @@ public class WrapperTest extends AbstractTaskTest {
         createSourceWrapperJar(testGradleHomeLib);
         ((DefaultBuild) getProject().getBuild()).getStartParameter().setGradleHomeDir(testGradleHome);
         targetWrapperJarPath = "jarPath";
-        expectedTargetWrapperJar = targetWrapperJarPath + "/" + Install.WRAPPER_JAR;
+        expectedTargetWrapperJar = new File(getProject().getProjectDir(),
+                targetWrapperJarPath + "/" + Install.WRAPPER_JAR);
         new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs();
         distributionPath = "somepath";
         wrapper.setJarPath(targetWrapperJarPath);
@@ -128,10 +129,10 @@ public class WrapperTest extends AbstractTaskTest {
         System.out.println("wrapperJar = " + wrapperJar.getAbsolutePath());
         System.out.println("wrapper exists = " + wrapperJar.exists());
         System.out.println("wrapper is dir = " + wrapperJar.isDirectory());
-        File parentFile = wrapperJar.getParentFile();
+        File parentFile = expectedTargetWrapperJar.getParentFile();
         assertTrue(parentFile.isDirectory() || parentFile.mkdirs());
         try {
-            wrapperJar.createNewFile();
+            assertTrue(expectedTargetWrapperJar.createNewFile());
         } catch (IOException e) {
             throw new RuntimeException(String.format("Could not create %s.", wrapperJar), e);
         }
@@ -148,7 +149,7 @@ public class WrapperTest extends AbstractTaskTest {
         });
         wrapper.execute();
         File unjarDir = HelperUtil.makeNewTestDir("unjar");
-        CompressUtil.unzip(new File(getProject().getProjectDir(), expectedTargetWrapperJar), unjarDir);
+        CompressUtil.unzip(expectedTargetWrapperJar, unjarDir);
         assertEquals(TEST_TEXT, FileUtils.readFileToString(new File(unjarDir, TEST_FILE_NAME)));
         Properties properties = GUtil.createProperties(new File(unjarDir.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties"));
 

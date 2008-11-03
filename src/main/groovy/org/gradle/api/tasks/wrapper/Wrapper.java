@@ -117,6 +117,7 @@ public class Wrapper extends DefaultTask {
             throw new UncheckedIOException(e);
         }
         jarFileDestination.getParentFile().mkdirs();
+        jarFileDestination.delete();
         CompressUtil.zip(tmpExplodedSourceJar, jarFileDestination);
 
         String wrapperJar = (GUtil.isTrue(jarPath) ? jarPath + "/" : "") + Install.WRAPPER_JAR;
