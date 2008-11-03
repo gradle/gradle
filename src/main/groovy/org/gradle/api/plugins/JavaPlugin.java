@@ -114,7 +114,7 @@ public class JavaPlugin implements Plugin {
         configureUploadInternalLibs(project);
         configureUploadLibs(project, javaConvention);
 
-        configureDists(project);
+        configureDists(project, javaConvention);
 
         configureUploadDists(project, javaConvention);
 
@@ -223,6 +223,7 @@ public class JavaPlugin implements Plugin {
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
         Bundle libsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", TEST), LIBS);
         libsBundle.setDefaultConfigurations(WrapUtil.toList(LIBS));
+        libsBundle.setDefaultDestinationDir(project.getBuildDir());
         libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
         Jar jar = libsBundle.jar();
         jar.conventionMapping(WrapUtil.<String, ConventionValue>toMap("resourceCollections",
@@ -233,9 +234,10 @@ public class JavaPlugin implements Plugin {
                 }));
     }
 
-    private void configureDists(Project project) {
+    private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
         Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", UPLOAD_LIBS), DISTS);
         distsBundle.setDefaultConfigurations(WrapUtil.toList(DISTS));
+        distsBundle.setDefaultDestinationDir(javaPluginConvention.getDistsDir());
         distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
     }
 

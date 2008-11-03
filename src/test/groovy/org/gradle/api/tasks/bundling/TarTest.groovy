@@ -45,7 +45,7 @@ class TarTest extends AbstractArchiveTaskTest {
         assert tar.compression.is(Compression.NONE)
         assert tar.longFile.is(LongFile.WARN)
         tar.compression = Compression.BZIP2
-        assertEquals(Tar.TAR_EXTENSION + Compression.BZIP2.extension, tar.extension)
+        assertEquals(Tar.TAR_EXTENSION, tar.extension)
     }
 
     MockFor getAntMocker(boolean toBeCalled) {

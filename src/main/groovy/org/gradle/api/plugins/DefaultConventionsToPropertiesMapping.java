@@ -160,11 +160,6 @@ public class DefaultConventionsToPropertiesMapping {
     });
 
     public final static Map ARCHIVE = GUtil.map(
-            "destinationDir", new ConventionValue() {
-        public Object getValue(Convention convention, Task task) {
-            return task.getProject().getBuildDir();
-        }
-    },
             "version", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
             return "" + task.getProject().property("version");
@@ -176,16 +171,6 @@ public class DefaultConventionsToPropertiesMapping {
     });
 
     public final static Map ZIP = new HashMap(ARCHIVE);
-
-    static {
-        ZIP.putAll(GUtil.map(
-                "destinationDir", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return ((JavaPluginConvention) convention.getPlugins().get("java")).getDistsDir();
-            }
-        }));
-    }
-
 
     public final static Map TAR = new HashMap(ZIP);
 

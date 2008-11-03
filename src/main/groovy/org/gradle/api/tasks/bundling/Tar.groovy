@@ -38,10 +38,6 @@ public class Tar extends Zip {
         longFile = LongFile.WARN
     }
 
-    String getExtension() {
-        super.getExtension() + compression.extension
-    }
-
     Closure createAntArchiveTask() {
         {->
             antTar.execute(new AntArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(),

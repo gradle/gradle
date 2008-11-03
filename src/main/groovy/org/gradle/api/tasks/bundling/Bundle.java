@@ -24,6 +24,7 @@ import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.util.*;
+import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -41,6 +42,8 @@ public class Bundle extends ConventionTask {
     private List<AbstractArchiveTask> archiveTasks = new ArrayList<AbstractArchiveTask>();
 
     private List<String> defaultConfigurations = new ArrayList<String>();
+
+    private File defaultDestinationDir;
 
     public Bundle(Project project, String name) {
         super(project, name);
@@ -63,6 +66,7 @@ public class Bundle extends ConventionTask {
         archiveTask.setBaseName(GUtil.elvis(args.get(BASENAME_KEY), getProject().getArchivesBaseName()) + (args.get(APPENDIX_KEY) != null ? "-" + args.get(APPENDIX_KEY) : ""));
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
         archiveTask.setExtension(type.getDefaultExtension());
+        archiveTask.setDestinationDir(defaultDestinationDir);
         setTaskDependsOn(archiveTask, getChildrenDependOn());
         setArchiveConfigurations(archiveTask, args);
         this.dependsOn(taskName);
@@ -240,5 +244,13 @@ public class Bundle extends ConventionTask {
 
     public void setDefaultConfigurations(List<String> defaultConfigurations) {
         this.defaultConfigurations = defaultConfigurations;
+    }
+
+    public File getDefaultDestinationDir() {
+        return defaultDestinationDir;
+    }
+
+    public void setDefaultDestinationDir(Object defaultDestinationDir) {
+        this.defaultDestinationDir = new File(defaultDestinationDir.toString());
     }
 }

@@ -35,10 +35,9 @@ import org.gradle.api.dependencies.Dependency
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock)
+@RunWith (org.jmock.integration.junit4.JMock)
 class BundleTest extends AbstractConventionTaskTest {
-    static final File TEST_DESTINATION_DIR = new File('testdestdir')
-    
+
     Bundle bundle
 
     ArchiveType testArchiveType
@@ -60,7 +59,7 @@ class BundleTest extends AbstractConventionTaskTest {
     String expectedDefaultArchiveName
 
     List testDefaultConfigurations
-    
+
     List testCustomConfigurations
 
     Map testArgs
@@ -73,18 +72,21 @@ class BundleTest extends AbstractConventionTaskTest {
 
     ITaskFactory taskFactoryMock;
 
+    File testDefaultDestinationDir
+
     AbstractTask getTask() {bundle}
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
+        testDefaultDestinationDir = 'someDestDir' as File
         taskMock = context.mock(Task)
         taskFactoryMock = context.mock(ITaskFactory)
         getProject().setTaskFactory(taskFactoryMock)
         testCustomConfigurations = ['customConf1', 'customConf2']
         testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier', confs: testCustomConfigurations]
         testClosure = {
-            destinationDir = TEST_DESTINATION_DIR
+            enabled = false
         }
         testChildrenDependsOn = ['othertaskpath', 'othertaskpath2']
         testBundleDependsOn = ['othertaskpath10', "othertaskpath11"]
@@ -94,6 +96,7 @@ class BundleTest extends AbstractConventionTaskTest {
         bundle.dependsOn = testBundleDependsOn
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
         bundle.defaultConfigurations = testDefaultConfigurations
+        bundle.defaultDestinationDir = testDefaultDestinationDir
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
         expectedDefaultArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
@@ -150,7 +153,7 @@ class BundleTest extends AbstractConventionTaskTest {
         (Tar) checkForDefaultValues(bundle.tarGz(testClosure), bundle.defaultArchiveTypes['tar.gz'])
     }
 
-    @Test public void testTarGzWithArgs() {
+    @Test public void xtestTarGzWithArgs() {
         prepateProjectMock(bundle.defaultArchiveTypes['tar.gz'], testArgs)
         (Tar) checkForDefaultValues(bundle.tarGz(testArgs, testClosure), bundle.defaultArchiveTypes['tar.gz'], testArgs)
     }
@@ -206,11 +209,11 @@ class BundleTest extends AbstractConventionTaskTest {
         }
     }
 
-     private void prepateProjectMock(ArchiveType archiveType, Map args = [:]) {
+    private void prepateProjectMock(ArchiveType archiveType, Map args = [:]) {
         String baseName = args.baseName ?: getProject().archivesTaskBaseName
         String taskName = baseName + (args.appendix ? "_" + args.appendix : "")
-        String classifier = args.classifier ? '_' + args.classifier  : ''
-        taskName =  "${taskName}${classifier}_${archiveType.defaultExtension}"
+        String classifier = args.classifier ? '_' + args.classifier : ''
+        taskName = "${taskName}${classifier}_${archiveType.defaultExtension}"
         Project projectMock = context.mock(ProjectInternal)
         bundle.setProject(projectMock)
         context.checking {
@@ -225,7 +228,7 @@ class BundleTest extends AbstractConventionTaskTest {
         String baseName = args.baseName ?: getProject().archivesTaskBaseName
         String taskName = baseName + (args.appendix ? "_" + args.appendix : "")
         String archiveBaseName = (args.baseName ?: getProject().archivesBaseName) + (args.appendix ? "-" + args.appendix : "")
-        String classifier = args.classifier ? '_' + args.classifier  : ''
+        String classifier = args.classifier ? '_' + args.classifier : ''
         List confs = []
         confs.addAll(args.confs != null ? args.confs : [Dependency.MASTER_CONFIGURATION])
         confs.addAll(testDefaultConfigurations)
@@ -235,16 +238,23 @@ class BundleTest extends AbstractConventionTaskTest {
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
                                                  Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveClassifier,
-                                                    List expectedConfigurations) {
-        assertEquals(TEST_DESTINATION_DIR, archiveTask.destinationDir)
+                                                 List expectedConfigurations) {
+        assertEquals(false, archiveTask.enabled)
         assertEquals(conventionMapping, archiveTask.conventionMapping)
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
         assertEquals(expectedConfigurations, archiveTask.configurations)
+        assertEquals(testDefaultDestinationDir, archiveTask.getDestinationDir())
         assert bundle.archiveTasks.contains(archiveTask)
         archiveTask
+    }
+
+    @Test
+    void setDefaultDestinationDirWithString() {
+        bundle.setDefaultDestinationDir(testDefaultDestinationDir.absolutePath)
+        assertEquals(testDefaultDestinationDir.absolutePath, bundle.getDefaultDestinationDir().absolutePath)
     }
 
 }
