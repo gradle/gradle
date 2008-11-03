@@ -2,8 +2,6 @@ import groovy.text.SimpleTemplateEngine
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.Configuration.Visibility
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.WebdavResolver
@@ -141,11 +139,12 @@ resources.doLast {
     versionProperties.store(new FileOutputStream(new File(classesDir, GradleVersion.FILE_NAME)), '')
 }
 
+[compile, testCompile]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+
+
 test {
-    include '**/*Test.class'
-    exclude '**/Abstract*'
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere"])
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere", '-Xms128m', '-Xmx1g'])
 }
 
 libs {
@@ -297,10 +296,10 @@ dists {
     zip(classifier: 'src').doFirst {Task task ->
         task.configure {
             destinationDir = distsDir
-            zipFileSet(dir: projectDir, prefix: archiveName, fileMode: '775') {
+            zipFileSet(dir: projectDir, prefix: zipRootFolder, fileMode: '775') {
                 include 'gradlew'
             }
-            zipFileSet(dir: projectDir, prefix: archiveName) {
+            zipFileSet(dir: projectDir, prefix: zipRootFolder) {
                 include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
             }
         }
