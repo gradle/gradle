@@ -17,12 +17,13 @@
 package org.gradle.api.internal.dependencies
 
 import org.gradle.api.DependencyManager
+import org.gradle.api.dependencies.Configuration
 import org.gradle.api.dependencies.ExcludeRuleContainer
+import org.gradle.api.dependencies.SettingsConverter
 import org.gradle.util.WrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.dependencies.maven.MavenPom
-import org.gradle.api.dependencies.Configuration
+
 
 /**
  * @author Hans Dockter
@@ -35,7 +36,7 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     }
 
     public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
-                             ResolverFactory resolverFactory, DefaultSettingsConverter settingsConverter, DefaultModuleDescriptorConverter moduleDescriptorConverter,
+                             ResolverFactory resolverFactory, SettingsConverter settingsConverter, DefaultModuleDescriptorConverter moduleDescriptorConverter,
                              IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
                              File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(ivyFactory, dependencyFactory, resolverFactory, settingsConverter, moduleDescriptorConverter,
