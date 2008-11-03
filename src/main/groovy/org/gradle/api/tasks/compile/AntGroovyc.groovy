@@ -22,6 +22,10 @@ import org.slf4j.LoggerFactory
 import org.gradle.util.BootstrapUtil
 
 /**
+ * Please not: includeAntRuntime=false is ignored if groovyc is used in non fork mode. In this case the runtime classpath is
+ * added to the compile classpath.
+ * See: http://jira.codehaus.org/browse/GROOVY-2717
+ *
  * @author Hans Dockter
  */
 class AntGroovyc {
