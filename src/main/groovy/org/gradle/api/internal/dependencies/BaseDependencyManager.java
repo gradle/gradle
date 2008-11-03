@@ -159,7 +159,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
         return new ModuleRevisionId(new ModuleId(group.toString(), getProject().getName()), version.toString());
     }
 
-    Ivy getIvy() {
+    public Ivy getIvy() {
         return ivy(new ArrayList<DependencyResolver>());
     }
 
