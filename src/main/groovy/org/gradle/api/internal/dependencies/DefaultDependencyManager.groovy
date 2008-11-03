@@ -61,6 +61,9 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
         if (args.length == 1 && args[0] instanceof Closure) {
             return configuration(name, args[0])
         }
+        if (args.length == 2 && (args[0] instanceof String || args[0] instanceof GString) && args[1] instanceof Closure) {
+            return dependency(WrapUtil.toList(name), (String) args[0], (Closure) args[1])
+        }
         dependencies(WrapUtil.toList(name), args);
     }
 }

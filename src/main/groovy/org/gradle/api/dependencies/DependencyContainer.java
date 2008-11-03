@@ -151,9 +151,9 @@ public interface DependencyContainer {
      *
      * @param userDependencyDescription
      * @return The added dependency.
+     * @deprecated Since Gradle 0.5, use <code>compile("org:junit:4.4")</code> instead.
      */
     Dependency dependency(String userDependencyDescription);
-
 
     /**
      * Adds a dependency. The {@link #getDefaultConfs)} are used as master confs.
@@ -162,8 +162,8 @@ public interface DependencyContainer {
      * @param userDependencyDescription
      * @param configureClosure
      * @return The added Dependency
+     * @deprecated Since Gradle 0.5, use <code>compile("org:junit:4.4") {}</code> instead.
      */
-
     Dependency dependency(String userDependencyDescription, Closure configureClosure);
 
     /**

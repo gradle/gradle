@@ -350,7 +350,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         try {
             dependencyManager.configuration('someconf')
             fail()
-        } catch (UnknownConfigurationException e ) {
+        } catch (UnknownConfigurationException e) {
             assertThat(e.message, equalTo('Configuration with name \'someconf\' not found.'))
         }
     }
@@ -378,7 +378,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assertThat(dependencyManager.someconf, sameInstance(config))
     }
 
-    @Test public void testAddsDynamicMethodToConfigureConfiguration() {
+    @Test public void testDynamicMethodToConfigureConfiguration() {
         Configuration config = dependencyManager.addConfiguration('someconf')
         Configuration retval = dependencyManager.someconf {
             extendsFrom 'config-a', 'config-b'
@@ -386,8 +386,29 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assertThat(retval, sameInstance(config))
         assertThat(config.extendsFrom, equalTo(toSet('config-a', 'config-b')))
     }
-    
-    @Test public void testAddsDynamicMethodToAddDependenciesToConfiguration() {
+
+    @Test public void testDynamicMethodForAddDependencyWithClosure() {
+        dependencyManager.addConfiguration(AbstractDependencyContainerTest.TEST_CONFIGURATION)
+        DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory)
+        dependencyManager.setDependencyFactory(dependencyFactoryMock)
+        boolean methodCalled = false;
+        Dependency testDependency = [exclude: { arg -> methodCalled = true; null}] as Dependency
+        context.checking {
+            one(dependencyFactoryMock).createDependency(
+                    HelperUtil.getConfMappings([AbstractDependencyContainerTest.TEST_CONFIGURATION]),
+                    AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
+                    this.project
+            ); will(returnValue(testDependency))
+        }
+        testDependency.exclude([:])
+        Closure configureClosure = { exclude([:]) }
+        testObj."$AbstractDependencyContainerTest.TEST_CONFIGURATION"(
+                AbstractDependencyContainerTest.TEST_DEPENDENCY_1, configureClosure)
+        assertEquals(testObj.dependencies, [testDependency])
+        assertTrue(methodCalled)
+    }
+
+    @Test public void testDynamicMethodForAddDependencies() {
         dependencyManager.addConfiguration(AbstractDependencyContainerTest.TEST_CONFIGURATION)
         DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory)
         dependencyManager.setDependencyFactory(dependencyFactoryMock)
@@ -444,7 +465,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
 
         dependencyManager.addIvyTransformer(transformer)
     }
-    
+
     @Test public void tranformationClosureCanModifyIvyModuleDescriptor() {
         Closure transformer = { it }
 

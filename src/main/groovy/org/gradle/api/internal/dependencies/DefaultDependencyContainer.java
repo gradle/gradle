@@ -28,7 +28,6 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-// todo: add addConfiguration method with map argument
 public class DefaultDependencyContainer implements DependencyContainer {
     private Map clientModuleRegistry = new HashMap();
 

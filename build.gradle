@@ -84,9 +84,10 @@ dependencies {
         dependencies(":jaxen:1.1@jar")
     }
 
-    dependency(['runtime'], ":ant-junit:1.7.1") {
+    runtime(":ant-junit:1.7.1") {
         exclude(module: 'junit')
     }
+    
     compile ":jopt-simple:2.4.1",
             ":ant:1.7.1",
             ":logback-classic:0.9.9",
