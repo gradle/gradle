@@ -300,7 +300,7 @@ dists {
                 include 'gradlew'
             }
             zipFileSet(dir: projectDir, prefix: zipRootFolder) {
-                include 'buildSrc/', 'gradle-wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
+                include 'buildSrc/', 'wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
             }
         }
     }
