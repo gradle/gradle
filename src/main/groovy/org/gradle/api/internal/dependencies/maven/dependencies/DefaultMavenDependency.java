@@ -99,11 +99,11 @@ public class DefaultMavenDependency implements MavenDependency {
         }
         writeIfNotNull(writer, elementIndent, PomWriter.CLASSIFIER, classifier);
         if (mavenExcludes.size() > 0) {
-            writer.println(XmlHelper.openTag(elementIndent, PomWriter.EXCLUDES));
+            writer.println(XmlHelper.openTag(elementIndent, PomWriter.EXCLUSIONS));
             for (MavenExclude mavenExclude : mavenExcludes) {
                 mavenExclude.write(writer);
             }
-            writer.println(XmlHelper.closeTag(elementIndent, PomWriter.EXCLUDES));
+            writer.println(XmlHelper.closeTag(elementIndent, PomWriter.EXCLUSIONS));
         }
         writer.println(XmlHelper.closeTag(START_INDENT, PomWriter.DEPENDENCY));
     }

@@ -42,10 +42,10 @@ public class DefaultMavenExclude implements MavenExclude {
     }
 
     public void write(PrintWriter writer) {
-        writer.println(XmlHelper.openTag(6, "exclude"));
-        writer.println(XmlHelper.enclose(8, PomWriter.GROUP_ID, groupId));
-        writer.println(XmlHelper.enclose(8, PomWriter.ARTIFACT_ID, artifactId));
-        writer.println(XmlHelper.closeTag(6, "exclude"));
+        writer.println(XmlHelper.openTag(8, PomWriter.EXCLUSION));
+        writer.println(XmlHelper.enclose(10, PomWriter.GROUP_ID, groupId));
+        writer.println(XmlHelper.enclose(10, PomWriter.ARTIFACT_ID, artifactId));
+        writer.println(XmlHelper.closeTag(8, PomWriter.EXCLUSION));
     }
 
     public boolean equals(Object o) {

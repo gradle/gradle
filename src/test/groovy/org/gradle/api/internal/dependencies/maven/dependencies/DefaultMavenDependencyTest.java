@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
 import org.gradle.util.WrapUtil;
+import org.gradle.api.internal.dependencies.maven.PomWriter;
 
 import java.util.List;
 import java.io.StringWriter;
@@ -119,8 +120,8 @@ public class DefaultMavenDependencyTest {
                 "      <type>%s</type>%n" +
                 "      <optional>%s</optional>%n" +
                 "      <classifier>%s</classifier>%n" +
-                "      <excludes>%n      </excludes>%n    </dependency>%n", TEST_GROUP_ID, TEST_ARTIFACT_ID, TEST_VERSION, TEST_SCOPE,
-                TEST_TYPE, TEST_OPTIONAL, TEST_CLASSIFIER);
+                "      <%s>%n      </%s>%n    </dependency>%n", TEST_GROUP_ID, TEST_ARTIFACT_ID, TEST_VERSION, TEST_SCOPE,
+                TEST_TYPE, TEST_OPTIONAL, TEST_CLASSIFIER, PomWriter.EXCLUSIONS, PomWriter.EXCLUSIONS);
         return expectedXmlBegin;
     }
 

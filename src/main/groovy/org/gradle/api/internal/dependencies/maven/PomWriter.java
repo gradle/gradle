@@ -35,7 +35,8 @@ public interface PomWriter {
     String OPTIONAL = "optional";
     String CLASSIFIER = "classifier";
     String DEPENDENCY = "dependency";
-    String EXCLUDES = "excludes";
+    String EXCLUSIONS = "exclusions";
+    String EXCLUSION = "exclusion";
     String ROOT_ELEMENT_NAME = "project";
     
     String DEFAULT_PACKAGING = "jar";

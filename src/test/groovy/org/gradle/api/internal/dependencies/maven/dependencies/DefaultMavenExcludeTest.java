@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.gradle.api.internal.dependencies.maven.PomWriter;
 
 import java.io.StringWriter;
 import java.io.PrintWriter;
@@ -56,8 +57,9 @@ public class DefaultMavenExcludeTest {
     public void write() {
         StringWriter stringWriter = new StringWriter();
         mavenExclude.write(new PrintWriter(stringWriter));
-        assertEquals(String.format("      <exclude>%n        <groupId>%s</groupId>%n        <artifactId>%s</artifactId>%n      </exclude>%n",
-                TEST_GROUPID, TEST_ARTIFACTID),
+        assertEquals(String.format("        <%s>%n          <groupId>%s</groupId>%n          <artifactId>%s</artifactId>%n        </%s>%n",
+                PomWriter.EXCLUSION,
+                TEST_GROUPID, TEST_ARTIFACTID, PomWriter.EXCLUSION),
                 stringWriter.toString());
     }
 }
