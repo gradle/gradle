@@ -164,9 +164,15 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     }
 
     Ivy ivy(List<DependencyResolver> resolvers) {
-        return ivyFactory.createIvy(settingsConverter.convert(classpathResolvers.getResolverList(),
-                resolvers,
-                new File(getProject().getGradleUserHome()), getBuildResolver(), getClientModuleRegistry()));
+        return ivyFactory.createIvy(
+                settingsConverter.convert(
+                        classpathResolvers.getResolverList(),
+                        resolvers,
+                        new File(getProject().getGradleUserHome()),
+                        getBuildResolver(),
+                        getClientModuleRegistry()
+                )
+        );
     }
 
     public DependencyManager linkConfWithTask(String conf, String task) {

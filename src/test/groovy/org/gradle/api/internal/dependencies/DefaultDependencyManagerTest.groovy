@@ -98,9 +98,12 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         dependencyManager.clientModuleRegistry = [a: 'b']
         dependencyManager.defaultConfs = testDefaultConfs
         expectedBuildResolver = new FileSystemResolver()
-        mockSpecialResolverHandler = [getBuildResolver: {expectedBuildResolver},
-                getBuildResolverDir: {buildResolverDir}] as BuildResolverHandler
+        mockSpecialResolverHandler = context.mock(BuildResolverHandler)
         dependencyManager.buildResolverHandler = mockSpecialResolverHandler
+        context.checking {
+            allowing(mockSpecialResolverHandler).getBuildResolverDir(); will(returnValue(buildResolverDir))
+            allowing(mockSpecialResolverHandler).getBuildResolver(); will(returnValue(expectedBuildResolver))
+        }
     }
 
     @Test public void testInit() {
@@ -182,7 +185,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
                     dependencyManager.classpathResolvers.resolverList,
                     [],
                     new File(project.getGradleUserHome()),
-                    dependencyManager.getBuildResolver(),
+                    expectedBuildResolver,
                     dependencyManager.getClientModuleRegistry());
             will(returnValue(expectedSettings))
             allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
@@ -201,7 +204,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
                     dependencyManager.classpathResolvers.resolverList,
                     [],
                     new File(project.getGradleUserHome()),
-                    dependencyManager.getBuildResolver(),
+                    expectedBuildResolver,
                     dependencyManager.getClientModuleRegistry());
             will(returnValue(expectedSettings))
             allowing(ivyFactoryMock).createIvy(expectedSettings); will(returnValue(expectedIvy))
