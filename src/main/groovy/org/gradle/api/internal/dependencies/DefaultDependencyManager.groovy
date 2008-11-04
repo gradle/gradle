@@ -36,9 +36,9 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     }
 
     public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
-                             ResolverFactory resolverFactory, SettingsConverter settingsConverter, DefaultModuleDescriptorConverter moduleDescriptorConverter,
-                             IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                             File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
+                                    ResolverFactory resolverFactory, SettingsConverter settingsConverter, DefaultModuleDescriptorConverter moduleDescriptorConverter,
+                                    IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
+                                    File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
         super(ivyFactory, dependencyFactory, resolverFactory, settingsConverter, moduleDescriptorConverter,
                 dependencyResolver, dependencyPublisher, buildResolverDir, excludeRuleContainer);
     }
@@ -52,7 +52,7 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     }
 
     public def methodMissing(String name, args) {
-        if (configurations.get(name) == null) {
+        if (findConfiguration(name) == null) {
             if (!getMetaClass().respondsTo(this, name, args.size())) {
                 throw new MissingMethodException(name, this.getClass(), args);
             }
@@ -61,8 +61,8 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
         if (args.length == 1 && args[0] instanceof Closure) {
             return configuration(name, args[0])
         }
-        if (args.length == 2 && (args[0] instanceof String || args[0] instanceof GString) && args[1] instanceof Closure) {
-            return dependency(WrapUtil.toList(name), (String) args[0], (Closure) args[1])
+        if (args.length == 2 && args[1] instanceof Closure) {
+            return dependency(WrapUtil.toList(name), args[0], (Closure) args[1])
         }
         dependencies(WrapUtil.toList(name), args);
     }

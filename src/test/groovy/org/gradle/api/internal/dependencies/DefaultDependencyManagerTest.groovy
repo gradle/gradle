@@ -388,6 +388,7 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
     }
 
     @Test public void testDynamicMethodForAddDependencyWithClosure() {
+        Object testDependencyDescription = new Object();
         dependencyManager.addConfiguration(AbstractDependencyContainerTest.TEST_CONFIGURATION)
         DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory)
         dependencyManager.setDependencyFactory(dependencyFactoryMock)
@@ -396,14 +397,14 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         context.checking {
             one(dependencyFactoryMock).createDependency(
                     HelperUtil.getConfMappings([AbstractDependencyContainerTest.TEST_CONFIGURATION]),
-                    AbstractDependencyContainerTest.TEST_DEPENDENCY_1,
+                    testDependencyDescription,
                     this.project
             ); will(returnValue(testDependency))
         }
         testDependency.exclude([:])
         Closure configureClosure = { exclude([:]) }
         testObj."$AbstractDependencyContainerTest.TEST_CONFIGURATION"(
-                AbstractDependencyContainerTest.TEST_DEPENDENCY_1, configureClosure)
+                testDependencyDescription, configureClosure)
         assertEquals(testObj.dependencies, [testDependency])
         assertTrue(methodCalled)
     }
