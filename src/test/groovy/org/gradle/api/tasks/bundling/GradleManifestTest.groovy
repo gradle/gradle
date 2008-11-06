@@ -19,15 +19,17 @@ package org.gradle.api.tasks.bundling
 import java.util.jar.Manifest
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import java.util.jar.Attributes
+import hidden.org.codehaus.plexus.util.StringOutputStream;
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 class GradleManifestTest {
     GradleManifest gradleManifest = new GradleManifest()
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
         gradleManifest = new GradleManifest()
     }
 
@@ -51,7 +53,7 @@ class GradleManifestTest {
         Manifest manifest = gradleManifest.manifest
         assertEquals(3, manifest.mainAttributes.size())
         (attributes + attributes2).each {String key, String value ->
-            assertEquals(value, manifest.mainAttributes.getValue(key))       
+            assertEquals(value, manifest.mainAttributes.getValue(key))
         }
     }
 
@@ -75,6 +77,32 @@ class GradleManifestTest {
         attributes3.each {String key, String value ->
             assertEquals(value, manifest.entries[section2].getValue(key))
         }
+    }
+
+    @Test public void createManifest() {
+        Map testMainAttributes = [key1: 'value1', key2: 'value2']
+        Map testSectionAttributes = [key3: 'value3', key4: 'value4']
+        String testSection = 'section1'
+        Manifest testManifest = new Manifest()
+        testManifest.getMainAttributes().putValue("key5", "value5")
+        testManifest.getMainAttributes().putValue("key1", "value1")
+        Attributes attributes = new Attributes();
+        attributes.putValue("key3", "value3")
+        attributes.putValue("key6", "value6")
+        testManifest.getEntries().put(testSection, attributes)
+        
+        GradleManifest gradleManifest = new GradleManifest(testManifest)
+        gradleManifest.mainAttributes(testMainAttributes)
+        gradleManifest.sections(testSectionAttributes, testSection)
+
+        Manifest expectedManifest = new Manifest(testManifest)
+        testMainAttributes.each {key, value -> expectedManifest.getMainAttributes().putValue(key, value) }
+        expectedManifest.getEntries().put(testSection, new Attributes(testManifest.entries[testSection]))
+        testSectionAttributes.each {key, value -> expectedManifest.entries[testSection].putValue(key, value) }
+
+        assertEquals(expectedManifest, gradleManifest.createManifest());
+
+
     }
 
     @Test public void testAddToAntBuilder() {
