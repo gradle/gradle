@@ -40,8 +40,6 @@ class ResolverContainerTest {
     static final String TEST_REPO_URL = 'http://www.gradle.org'
     ResolverContainer resolverContainer
 
-    LocalReposCacheHandler localReposCacheHandler
-
     RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
 
     def expectedUserDescription
@@ -80,10 +78,6 @@ class ResolverContainerTest {
             allowing(resolverFactoryMock).createResolver(expectedUserDescription3); will(returnValue(expectedResolver3))
         }
         resolverContainer = new ResolverContainer(resolverFactoryMock)
-    }
-
-    @Test public void testInit() {
-        assert resolverContainer.localReposCacheHandler.is(localReposCacheHandler)
     }
 
     @Test public void testAddResolver() {
