@@ -161,6 +161,10 @@ class HelperUtil {
         return new GroovyShell().evaluate("return " + text)
     }
 
+    static Closure toClosure(TestClosure closure) {
+        return { param -> closure.call(param) }
+    }
+
     static Closure returns(Object value) {
         return { value }
     }
@@ -176,6 +180,10 @@ class HelperUtil {
             "set$name"(value)
         }
     }
+}
+
+public interface TestClosure {
+    Object call(Object param);
 }
 
 class MyScript extends Script {

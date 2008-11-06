@@ -46,7 +46,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canDeterminesRootProjectAndCurrentProjecBasedOnCurrentDirectory() throws IOException {
+    public void canDeterminesRootProjectAndCurrentProjectBasedOnCurrentDirectory() throws IOException {
         File rootDir = getTestDir();
         File childDir = new File(rootDir, "child");
 

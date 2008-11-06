@@ -19,11 +19,14 @@ package org.gradle.execution;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
+import org.gradle.api.GradleScriptException;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.util.HelperUtil;
+import org.gradle.api.internal.project.ProjectInternal;
+import static org.gradle.util.HelperUtil.*;
+import org.gradle.util.TestClosure;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -46,13 +49,13 @@ public class DefaultTaskExecuterTest {
     static File TEST_ROOT_DIR = new File("/path/root");
 
     TaskExecuter taskExecuter;
-    DefaultProject root;
+    ProjectInternal root;
     JUnit4Mockery context = new JUnit4Mockery();
     List<Task> executedTasks = new ArrayList<Task>();
 
     @Before
     public void setUp() {
-        root = HelperUtil.createRootProject(new File("root"));
+        root = createRootProject(new File("root"));
         taskExecuter = new DefaultTaskExecuter(new Dag<Task>());
     }
 
@@ -136,17 +139,35 @@ public class DefaultTaskExecuterTest {
     }
 
     @Test
-    public void testDiscardsTasksAfterExecute() {
+    public void testKeepsTasksAfterExecute() {
         Task a = createTask("a");
         Task b = createTask("b", a);
 
         taskExecuter.addTasks(toList(b));
+        taskExecuter.execute();
 
-        assertFalse(taskExecuter.getAllTasks().isEmpty());
+        assertTrue(taskExecuter.hasTask(":a"));
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b)));
+    }
+
+    @Test
+    public void testCanExecuteMultipleTimes() {
+        Task a = createTask("a");
+        Task b = createTask("b", a);
+        Task c = createTask("c", a);
+
+        taskExecuter.addTasks(toList(b));
+        taskExecuter.execute();
+
+        executedTasks.clear();
+        taskExecuter.addTasks(toList(c));
+
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b, c)));
 
         taskExecuter.execute();
 
-        assertTrue(taskExecuter.getAllTasks().isEmpty());
+        assertThat(executedTasks, equalTo(toList(c)));
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b, c)));
     }
 
     @Test
@@ -165,7 +186,7 @@ public class DefaultTaskExecuterTest {
     }
 
     @Test
-    public void testNotifiesListenerBeforeExecute() {
+    public void testNotifiesGraphListenerBeforeExecute() {
         final TaskExecutionGraphListener listener = context.mock(TaskExecutionGraphListener.class);
         Task a = createTask("a");
 
@@ -180,16 +201,98 @@ public class DefaultTaskExecuterTest {
     }
 
     @Test
-    public void testExecutesClosureBeforeExecute() {
-        final Runnable runnable = context.mock(Runnable.class);
+    public void testExecutesWhenReadyClosureBeforeExecute() {
+        final TestClosure runnable = context.mock(TestClosure.class);
         Task a = createTask("a");
 
-        taskExecuter.whenReady(DefaultTaskExecuterTestHelper.toClosure(runnable));
+        taskExecuter.whenReady(toClosure(runnable));
 
         taskExecuter.addTasks(toList(a));
 
         context.checking(new Expectations() {{
-            one(runnable).run();
+            one(runnable).call(taskExecuter);
+        }});
+
+        taskExecuter.execute();
+    }
+
+    @Test
+    public void testNotifiesTaskListenerAsTasksAreExecuted() {
+        final TaskExecutionListener listener = context.mock(TaskExecutionListener.class);
+        final Task a = createTask("a");
+        final Task b = createTask("b");
+
+        taskExecuter.addTaskExecutionListener(listener);
+        taskExecuter.addTasks(toList(a, b));
+
+        context.checking(new Expectations() {{
+            one(listener).beforeExecute(a);
+            one(listener).afterExecute(a, null);
+            one(listener).beforeExecute(b);
+            one(listener).afterExecute(b, null);
+        }});
+
+        taskExecuter.execute();
+    }
+
+    @Test
+    public void testNotifiesTaskListenerWhenTaskFails() {
+        final TaskExecutionListener listener = context.mock(TaskExecutionListener.class);
+        final RuntimeException failure = new RuntimeException();
+        final Task a = createTask("a");
+        a.doLast(new TaskAction() {
+            public void execute(Task task) {
+                throw failure;
+            }
+        });
+
+        taskExecuter.addTaskExecutionListener(listener);
+        taskExecuter.addTasks(toList(a));
+
+        context.checking(new Expectations() {{
+            one(listener).beforeExecute(a);
+            one(listener).afterExecute(with(sameInstance(a)), with(notNullValue(GradleScriptException.class)));
+        }});
+
+        try {
+            taskExecuter.execute();
+            fail();
+        } catch (GradleScriptException e) {
+            assertThat(e.getCause(), sameInstance((Throwable) failure));
+        }
+    }
+
+    @Test
+    public void testNotifiesBeforeTaskClosureAsTasksAreExecuted() {
+        final TestClosure runnable = context.mock(TestClosure.class);
+        final Task a = createTask("a");
+        final Task b = createTask("b");
+
+        taskExecuter.beforeTask(toClosure(runnable));
+
+        taskExecuter.addTasks(toList(a, b));
+
+        context.checking(new Expectations() {{
+            one(runnable).call(a);
+            one(runnable).call(b);
+        }});
+
+        taskExecuter.execute();
+    }
+    
+    @Test
+    public void testNotifiesAfterTaskClosureAsTasksAreExecuted() {
+        final TestClosure runnable = context.mock(TestClosure.class);
+        final Task a = createTask("a");
+        final Task b = createTask("b");
+
+        taskExecuter.afterTask(toClosure(runnable));
+
+        taskExecuter.addTasks(toList(a, b));
+
+        context.checking(new Expectations() {{
+            one(runnable).call(a);
+            one(runnable).call(b);
         }});
 
         taskExecuter.execute();

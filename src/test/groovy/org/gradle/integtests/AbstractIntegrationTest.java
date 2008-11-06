@@ -26,6 +26,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
 import org.gradle.util.HelperUtil;
@@ -154,6 +155,7 @@ public class AbstractIntegrationTest {
     public static class GradleExecution {
         private final StartParameter parameter;
         private final List<String> tasks = new ArrayList<String>();
+        private final List<Task> planned = new ArrayList<Task>();
 
         public GradleExecution(StartParameter parameter) {
             this.parameter = parameter;
@@ -198,6 +200,8 @@ public class AbstractIntegrationTest {
         }
 
         private class ListenerImpl implements BuildListener {
+            private TaskListenerImpl listener = new TaskListenerImpl();
+
             public void buildStarted(StartParameter startParameter) {
             }
 
@@ -211,12 +215,28 @@ public class AbstractIntegrationTest {
             }
 
             public void taskGraphPopulated(TaskExecutionGraph graph) {
-                for (Task task : graph.getAllTasks()) {
-                    tasks.add(task.getPath());
-                }
+                planned.clear();
+                planned.addAll(graph.getAllTasks());
+                graph.addTaskExecutionListener(listener);
             }
 
             public void buildFinished(BuildResult result) {
+            }
+        }
+
+        private class TaskListenerImpl implements TaskExecutionListener {
+            private Task current;
+
+            public void beforeExecute(Task task) {
+                assertThat(current, nullValue());
+                assertTrue(planned.contains(task));
+                current = task;
+            }
+
+            public void afterExecute(Task task, Throwable failure) {
+                assertThat(task, sameInstance(current));
+                current = null;
+                tasks.add(task.getPath());
             }
         }
     }

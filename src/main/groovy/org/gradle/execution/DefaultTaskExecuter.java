@@ -20,8 +20,10 @@ import groovy.lang.Closure;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
@@ -42,7 +44,9 @@ public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskExecuter.class);
 
     private final Dag<Task> dag;
-    private final List<TaskExecutionGraphListener> listeners = new ArrayList<TaskExecutionGraphListener>();
+    private final Set<TaskExecutionGraphListener> graphListeners = new LinkedHashSet<TaskExecutionGraphListener>();
+    private final Set<TaskExecutionListener> taskListeners = new LinkedHashSet<TaskExecutionListener>();
+    private final Set<Task> executed = new LinkedHashSet<Task>();
     private boolean populated;
 
     public DefaultTaskExecuter(Dag<Task> dag) {
@@ -62,15 +66,19 @@ public class DefaultTaskExecuter implements TaskExecuter {
     public boolean execute() {
         Clock clock = new Clock();
 
-        for (TaskExecutionGraphListener listener : listeners) {
+        for (TaskExecutionGraphListener listener : graphListeners) {
             listener.graphPopulated(this);
         }
 
+        Set<Task> tasks = new LinkedHashSet<Task>();
+        accumulateTasks(new TreeSet<Task>(dag.getSources()), tasks);
+
         try {
-            boolean dagNeutral = execute(new TreeSet<Task>(dag.getSources()));
+            boolean dagNeutral = execute(tasks);
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
             return !dagNeutral;
         } finally {
+            executed.addAll(tasks);
             dag.reset();
         }
     }
@@ -95,17 +103,47 @@ public class DefaultTaskExecuter implements TaskExecuter {
     }
 
     public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        listeners.add(listener);
+        graphListeners.add(listener);
     }
 
     public void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        listeners.remove(listener);
+        graphListeners.remove(listener);
     }
 
     public void whenReady(final Closure closure) {
-        listeners.add(new TaskExecutionGraphListener() {
+        graphListeners.add(new TaskExecutionGraphListener() {
             public void graphPopulated(TaskExecutionGraph graph) {
                 closure.call(graph);
+            }
+        });
+    }
+
+    public void addTaskExecutionListener(TaskExecutionListener listener) {
+        taskListeners.add(listener);
+    }
+
+    public void removeTaskExecutionListener(TaskExecutionListener listener) {
+        taskListeners.remove(listener);
+    }
+
+    public void beforeTask(final Closure closure) {
+        addTaskExecutionListener(new TaskExecutionListener() {
+            public void beforeExecute(Task task) {
+                closure.call(task);
+            }
+
+            public void afterExecute(Task task, Throwable failure) {
+            }
+        });
+    }
+
+    public void afterTask(final Closure closure) {
+        addTaskExecutionListener(new TaskExecutionListener() {
+            public void beforeExecute(Task task) {
+            }
+
+            public void afterExecute(Task task, Throwable failure) {
+                closure.call(task);
             }
         });
     }
@@ -115,7 +153,8 @@ public class DefaultTaskExecuter implements TaskExecuter {
         dag.addVertex(task);
         for (Task dependsOnTask : dependsOnTasks) {
             if (!dag.addEdge(task, dependsOnTask)) {
-                throw new CircularReferenceException(String.format("Can't establish dependency %s ==> %s", task, dependsOnTask));
+                throw new CircularReferenceException(String.format("Can't establish dependency %s ==> %s", task,
+                        dependsOnTask));
             }
         }
     }
@@ -123,16 +162,44 @@ public class DefaultTaskExecuter implements TaskExecuter {
     private boolean execute(Set<? extends Task> tasks) {
         boolean dagNeutral = true;
         for (Task task : tasks) {
-            dagNeutral = execute(new TreeSet<Task>(dag.getChildren(task)));
             if (!task.getExecuted()) {
-                logger.info("Executing: " + task);
-                ((TaskInternal) task).execute();
+                executeTask(task);
                 if (dagNeutral) {
                     dagNeutral = task.isDagNeutral();
                 }
             }
         }
         return dagNeutral;
+    }
+
+    private void executeTask(Task task) {
+        fireBeforeTask(task);
+        Throwable failure = null;
+        try {
+            ((TaskInternal) task).execute();
+        } catch (Throwable e) {
+            failure = e;
+        }
+        fireAfterTask(task, failure);
+        if (failure == null) {
+            return;
+        }
+        if (failure instanceof RuntimeException) {
+            throw (RuntimeException) failure;
+        }
+        throw new GradleException(String.format("Task %s failed with an exception.", task), failure);
+    }
+
+    private void fireBeforeTask(Task task) {
+        for (TaskExecutionListener listener : taskListeners) {
+            listener.beforeExecute(task);
+        }
+    }
+
+    private void fireAfterTask(Task task, Throwable failure) {
+        for (TaskExecutionListener listener : taskListeners) {
+            listener.afterExecute(task, failure);
+        }
     }
 
     public boolean hasTask(String path) {
@@ -148,7 +215,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
 
     public List<Task> getAllTasks() {
         assertPopulated();
-        Set<Task> tasks = new LinkedHashSet<Task>();
+        Set<Task> tasks = new LinkedHashSet<Task>(executed);
         accumulateTasks(new TreeSet<Task>(dag.getSources()), tasks);
         return new ArrayList<Task>(tasks);
     }
@@ -166,7 +233,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
             taskList.add(task);
         }
     }
-    
+
     public Set<Project> getProjects() {
         assertPopulated();
         HashSet<Project> projects = new HashSet<Project>();

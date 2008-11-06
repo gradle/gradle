@@ -30,7 +30,7 @@ import java.util.List;
  * use {@code build.taskGraph} to access it.</p>
  *
  * <p>The <code>TaskExecutionGraph</code> is populated only after all the projects in the build have been evaulated. It
- * is empty before then. You can receive notification when the graph is populated, using {@link
+ * is empty before then. You can receive a notification when the graph is populated, using {@link
  * #whenReady(groovy.lang.Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
  */
 public interface TaskExecutionGraph {
@@ -49,12 +49,42 @@ public interface TaskExecutionGraph {
     void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener);
 
     /**
-     * <p>Adds a closure to be called when this graph has been populated. This graph is passed to the graph as a
+     * <p>Adds a listener to this graph.</p>
+     *
+     * @param listener The listener to add. Does nothing if this listener has already been added.
+     */
+    void addTaskExecutionListener(TaskExecutionListener listener);
+
+    /**
+     * <p>Remove a listener from this graph.</p>
+     *
+     * @param listener The listener to remove. Does nothing if this listener was never added to this graph.
+     */
+    void removeTaskExecutionListener(TaskExecutionListener listener);
+
+    /**
+     * <p>Adds a closure to be called when this graph has been populated. This graph is passed to the closure as a
      * parameter.</p>
      *
      * @param closure The closure to execute when this graph has been populated.
      */
     void whenReady(Closure closure);
+
+    /**
+     * <p>Adds a closure to be called immediately before a task is executed by this graph. The task is passed to the
+     * closure as a parameter.
+     *
+     * @param closure The closure to execute when a task is about to be executed.
+     */
+    void beforeTask(Closure closure);
+
+    /**
+     * <p>Adds a closure to be called immediately after a task is executed by this graph. The task is passed to the
+     * closure as a parameter.
+     *
+     * @param closure The closure to execute when a task has been executed
+     */
+    void afterTask(Closure closure);
 
     /**
      * <p>Determines whether the given task is included in the execution plan.</p>
