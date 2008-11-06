@@ -35,7 +35,7 @@ class GradleManifest implements AntBuilderAware {
     Manifest manifest = new Manifest()
 
     GradleManifest() {}
-    
+
     GradleManifest(Manifest baseManifest) {
         assert baseManifest
         this.baseManifest = baseManifest
@@ -59,23 +59,26 @@ class GradleManifest implements AntBuilderAware {
         this
     }
 
+    Manifest createManifest() {
+        Manifest mergedManifest = new Manifest(baseManifest);
+        mergedManifest.getEntries().putAll(manifest.getEntries())
+        mergedManifest.getMainAttributes().putAll(manifest.getMainAttributes())
+        mergedManifest
+    }
+
     public addToAntBuilder(node, String childNodeName = null) {
+        Manifest manifest = createManifest()
         node."${childNodeName ?: 'manifest'}"() {
-            [manifest, baseManifest].each { manifest ->
-                manifest.mainAttributes.keySet().each {Attributes.Name name ->
-                    attribute(name: name.name, value: manifest.mainAttributes.getValue(name))
-                }
+            manifest.mainAttributes.keySet().each {Attributes.Name name ->
+                attribute(name: name.name, value: manifest.mainAttributes.getValue(name))
             }
-            [manifest, baseManifest].each { manifest ->
-                manifest.entries.each {String sectionName, Attributes attributes ->
-                    section(name: sectionName) {
-                        attributes.keySet().each {Attributes.Name name ->
-                            attribute(name: name.name, value: attributes.getValue(name))
-                        }
+            manifest.entries.each {String sectionName, Attributes attributes ->
+                section(name: sectionName) {
+                    attributes.keySet().each {Attributes.Name name ->
+                        attribute(name: name.name, value: attributes.getValue(name))
                     }
                 }
             }
         }
     }
-
 }
