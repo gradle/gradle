@@ -28,8 +28,11 @@ import org.junit.Test
 class DefaultTaskTest extends AbstractTaskTest {
     DefaultTask defaultTask
 
+    Object testCustomPropValue;
+
     @Before public void setUp()  {
         super.setUp()
+        testCustomPropValue = new Object()
         defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME)
     }
 
@@ -48,4 +51,30 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertSame(getProject(), testAction.delegate)
         assertEquals(Closure.OWNER_FIRST, testAction.getResolveStrategy())
     }
+
+    @Test
+    void getAdditonalProperties() {
+        defaultTask.additionalProperties.customProp = testCustomPropValue
+        assertSame(testCustomPropValue, defaultTask."customProp")
+    }
+
+    @Test
+    void setAdditonalProperties() {
+        defaultTask."customProp" = testCustomPropValue
+        assertSame(testCustomPropValue, defaultTask.additionalProperties.customProp)
+    }
+
+    @Test
+    void getProperty() {
+        defaultTask.additionalProperties.customProp = testCustomPropValue
+        assertSame(testCustomPropValue, defaultTask.property("customProp"))
+        assertSame(AbstractTaskTest.TEST_TASK_NAME, defaultTask.property("name"))
+    }
+
+    @Test(expected = MissingPropertyException)
+    void accessNonExistingProperty() {
+        defaultTask."unknownProp"
+    }
+
+
 }

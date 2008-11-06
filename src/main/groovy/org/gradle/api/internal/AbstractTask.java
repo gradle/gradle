@@ -30,9 +30,7 @@ import org.gradle.api.logging.StandardOutputCapture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -62,6 +60,11 @@ public abstract class AbstractTask implements TaskInternal {
     private StandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
 
     private DefaultTaskDependency dependencies = new DefaultTaskDependency();
+
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+
+    protected AbstractTask() {
+    }
 
     public AbstractTask(Project project, String name) {
         assert project != null;
@@ -296,5 +299,13 @@ public abstract class AbstractTask implements TaskInternal {
         if (executing) {
             throw new IllegalOperationAtExecutionTimeException("The operation " + operation + " must not be called at execution time.");
         }
+    }
+
+    public Map<String, Object> getAdditionalProperties() {
+        return additionalProperties;
+    }
+
+    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
+        this.additionalProperties = additionalProperties;
     }
 }

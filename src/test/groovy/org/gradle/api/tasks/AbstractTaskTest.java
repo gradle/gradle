@@ -78,6 +78,7 @@ public abstract class AbstractTaskTest {
         assertSame(project, getTask().getProject());
         assertNotNull(getTask().getSkipProperties());
         assertEquals(new DefaultStandardOutputCapture(true, LogLevel.QUIET), getTask().getStandardOutputCapture());
+        assertEquals(new HashMap(), getTask().getAdditionalProperties());
     }
 
     // We do it in an own method, so that its easy to overwrite the test for getTask() which deviate from default.

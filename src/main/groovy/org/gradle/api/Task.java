@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
 
 import java.util.List;
@@ -289,11 +290,59 @@ public interface Task extends Comparable<Task> {
      * An exception is thrown, if this method is called during the execution of the task
      *
      * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
-     * 
+     *
      * @param level The level standard out should be logged to.
      * @return this
-     * @see #disableStandardOutputCapture() 
+     * @see #disableStandardOutputCapture()
      */
     Task captureStandardOutput(LogLevel level);
+
+    /**
+     * Returns the value of the given property.  This method locates a property as follows:</p>
+     *
+     * <ol>
+     *
+     * <li>If this task object has a property with the given name, return the value of the property.</li>
+     *
+     * <li>If this task has an additional property with the given name, return the value of the property.</li>
+     *
+     * <li>If not found, throw {@link groovy.lang.MissingPropertyException}</li>
+     *
+     * </ol>
+     *
+     * @param propertyName The name of the property.
+     * @return The value of the property, possibly null.
+     * @throws groovy.lang.MissingPropertyException When the given property is unknown.
+     */
+    Object property(String propertyName) throws MissingPropertyException;
+
+    /**
+     * <p>Determines if this task has the given property. See <a href="#properties">here</a> for details of the
+     * properties which are available for a task.</p>
+     *
+     * @param propertyName The name of the property to locate.
+     * @return True if this project has the given property, false otherwise.
+     */
+    boolean hasProperty(String propertyName);
+
+    /**
+     * <p>Sets a property of this task.  This method searches for a property with the given name in the following
+     * locations, and sets the property on the first location where it finds the property.</p>
+     *
+     * <ol>
+     *
+     * <li>The task object itself.  For example, the <code>enabled</code> project property.</li>
+     *
+     * <li>The task's additional properties.</li>
+     *
+     * </ol>
+     *
+     * <p>If the property is not found in any of these locations, it is added to the project's additional
+     * properties.</p>
+     *
+     * @param name The name of the property
+     * @param value The value of the property
+     */
+    void defineProperty(String name, Object value); // We can't call this method setProperty as this lead to polymorphism problems with Groovy.
 }
 

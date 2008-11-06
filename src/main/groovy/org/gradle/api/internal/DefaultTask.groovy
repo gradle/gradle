@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,16 +26,16 @@ import org.gradle.util.ConfigureUtil;
 /**
  * @author Hans Dockter
  */
-public class DefaultTask extends AbstractTask {
-    public DefaultTask() {
-        this(null, null);
+class DefaultTask extends AbstractTask {
+    DefaultTask() {
+        super();
     }
 
-    public DefaultTask(Project project, String name) {
+    DefaultTask(Project project, String name) {
         super(project, name);
     }
 
-    public Task doFirst(Closure action) {
+    Task doFirst(Closure action) {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -43,7 +43,7 @@ public class DefaultTask extends AbstractTask {
         return this;
     }
 
-    public Task doLast(Closure action) {
+    Task doLast(Closure action) {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -51,17 +51,45 @@ public class DefaultTask extends AbstractTask {
         return this;
     }
 
-    public Task configure(Closure closure) {
+    Task configure(Closure closure) {
         return (Task) ConfigureUtil.configure(closure, this);
     }
 
     private TaskAction convertClosureToAction(final Closure actionClosure) {
         actionClosure.setDelegate(getProject());
         actionClosure.setResolveStrategy(Closure.OWNER_FIRST);
-        return new TaskAction() {
-            public void execute(Task task) {
-                actionClosure.call(new Object[] {task});
-            }
-        };
+        actionClosure as TaskAction
+    }
+
+    def property(String name) {
+        if (this.metaClass.hasProperty(this, name)) {
+            return this.metaClass.getProperty(this, name)
+        }
+        return propertyMissing(name);
+    }
+
+    def propertyMissing(String name) {
+        if (additionalProperties.keySet().contains(name)) {
+            return additionalProperties[name]
+        }
+        throw new MissingPropertyException("$name is unknown property!")
+    }
+
+    boolean hasProperty(String name) {
+        if (this.metaClass.hasProperty(this, name)) {return true}
+        if (additionalProperties.keySet().contains(name)) {return true}
+        false
+    }
+
+    void defineProperty(String name, Object value) {
+        if (this.metaClass.hasProperty(this, name)) {
+            this.metaClass.setProperty(this, name, value)
+            return
+        }
+        additionalProperties[name] = value
+    }
+
+    void setProperty(String name, Object value) {
+        defineProperty(name, value)
     }
 }

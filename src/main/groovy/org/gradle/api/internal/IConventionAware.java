@@ -26,7 +26,7 @@ import java.util.Map;
 public interface IConventionAware {
     Object conventionMapping(Map<String, ConventionValue> mapping);
 
-    Object getProperty(String name);
+    Object conventionProperty(String name);
 
     void setConventionMapping(Map<String, ConventionValue> conventionMapping);
 

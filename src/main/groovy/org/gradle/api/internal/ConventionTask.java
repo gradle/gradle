@@ -38,8 +38,8 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
         return (Task) conventionAwareHelper.conventionMapping(mapping);
     }
 
-    public Object getProperty(String name) {
-        return (Object) conventionAwareHelper.getConventionValue(name);
+    public Object conventionProperty(String name) {
+        return conventionAwareHelper.getConventionValue(name);
     }
 
     public void setConventionMapping(Map<String, ConventionValue> conventionMapping) {
