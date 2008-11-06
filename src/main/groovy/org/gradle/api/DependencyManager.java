@@ -295,7 +295,7 @@ public interface DependencyManager extends DependencyContainer {
     RepositoryResolver getBuildResolver();
 
     /**
-     * Set's the fail behavior for resolving dependencies.
+     * Sets the fail behavior for resolving dependencies.
      * 
      * @see #isFailForMissingDependencies() 
      */
@@ -303,7 +303,8 @@ public interface DependencyManager extends DependencyContainer {
 
     /**
      * If true an exception is thrown if a dependency can't be resolved. This usually leads to a build failure (unless
-     * there is custom logic which catches the exception).
+     * there is custom logic which catches the exception). If false, missing dependencies are ignored. The default
+     * value is true.
      */
     boolean isFailForMissingDependencies();
 

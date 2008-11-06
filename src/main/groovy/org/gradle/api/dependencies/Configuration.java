@@ -32,7 +32,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
-     * to.
+     * to. The default value is true.
      *
      * @return true if this is a visible configuration.
      */
@@ -40,7 +40,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Sets the visibility of this configuration. When visible is set to true, this configuration is visibile outside
-     * the project it belongs to.
+     * the project it belongs to. The default value is true.
      *
      * @param visible true if this is a visible configuration
      * @return this configuration
@@ -74,7 +74,7 @@ public interface Configuration extends FileCollection {
     /**
      * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its
      * direct dependencies, and all their dependencies. An intransitive configuration contains only the direct
-     * dependencies.
+     * dependencies. The default value is true.
      *
      * @return true if this is a transitive configuration, false otherwise.
      */
@@ -82,7 +82,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Sets the transitivity of this configuration. When set to true, this configuration will contain the transitive
-     * closure of its dependencies and their dependencies.
+     * closure of its dependencies and their dependencies. The default value is true.
      *
      * @param t true if this is a transitive configuration.
      * @return this configuration
