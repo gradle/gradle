@@ -61,7 +61,13 @@ class GradleManifest implements AntBuilderAware {
 
     Manifest createManifest() {
         Manifest mergedManifest = new Manifest(baseManifest);
-        mergedManifest.getEntries().putAll(manifest.getEntries())
+        manifest.entries.each { key, value ->
+            if (mergedManifest.entries[key]) {
+                mergedManifest.entries[key].putAll(value)
+            } else {
+                mergedManifest.entries[key] = value
+            }
+        }
         mergedManifest.getMainAttributes().putAll(manifest.getMainAttributes())
         mergedManifest
     }
