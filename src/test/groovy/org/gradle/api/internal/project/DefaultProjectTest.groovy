@@ -43,6 +43,7 @@ import org.gradle.invocation.DefaultBuild
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.logging.LogLevel
 import ch.qos.logback.classic.Level
+import java.awt.Point
 
 /**
  * @author Hans Dockter
@@ -945,6 +946,15 @@ def scriptMethod(Closure closure) {
             one(outputRedirectorMock).on(LogLevel.DEBUG)
         }
         project.captureStandardOutput(LogLevel.DEBUG)
+    }
+
+    @Test
+    void configure() {
+        Point expectedPoint = new Point(4, 3)
+        Point actualPoint = project.configure(new Point()) {
+            setLocation(expectedPoint.x, expectedPoint.y)
+        }
+        assertEquals(expectedPoint, actualPoint)
     }
 }
 

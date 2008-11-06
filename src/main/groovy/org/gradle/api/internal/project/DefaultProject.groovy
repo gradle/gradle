@@ -162,5 +162,9 @@ class DefaultProject extends AbstractProject {
         addAfterEvaluateListener(afterEvaluateListener as AfterEvaluateListener)
     }
 
+    public Object configure(Object object, Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, object)
+    }
+
 
 }

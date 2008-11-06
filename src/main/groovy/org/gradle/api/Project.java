@@ -986,4 +986,30 @@ public interface Project extends Comparable<Project> {
      * @see org.gradle.api.Task#disableStandardOutputCapture() 
      */
     void captureStandardOutput(LogLevel level);
+
+    /**
+     * Allows to configure an object via an closure. That way you don't have to specify the context of a configuration
+     * statement multiple times.
+     *
+     * Instead of:
+     * <pre>
+     * MyType myType = new MyType()
+     * myType.doThis()
+     * myType.doThat()
+     * </pre>
+     *
+     * you can do:
+     * <pre>
+     * MyType myType = configure(new MyType()) {
+     *     doThis()
+     *     doThat()
+     * }
+     * </pre>
+     *
+     *
+     * @param object The object to configure
+     * @param configureClosure The closure with configure statements
+     * @return The configured object
+     */
+    Object configure(Object object, Closure configureClosure);
 }
