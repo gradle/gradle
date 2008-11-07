@@ -63,23 +63,28 @@ public class BuildSourceBuilder {
             logger.debug("No task names specified. We leave..");
             return null;
         }
-        logger.info(Logging.LIFECYCLE, "================================================" + " Start building buildSrc");
-        StartParameter startParameterArg = startParameter.newInstance();
-        startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
-        startParameterArg.setSearchUpwards(false);
-        startParameterArg.setBuildResolverDir(buildResolverDir);
+        logger.info("================================================" + " Start building buildSrc");
+        try {
+            Logging.LIFECYCLE.add(Logging.DISABLED);
+            StartParameter startParameterArg = startParameter.newInstance();
+            startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
+            startParameterArg.setSearchUpwards(false);
+            startParameterArg.setBuildResolverDir(buildResolverDir);
 
-        if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
-            logger.debug("Build script file does not exists. Using default one.");
-            startParameterArg.useEmbeddedBuildFile(getDefaultScript());
+            if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
+                logger.debug("Build script file does not exists. Using default one.");
+                startParameterArg.useEmbeddedBuildFile(getDefaultScript());
+            }
+            embeddedBuildExecuter.execute(startParameterArg);
+            logger.info("Check if build artifact exists: ${buildArtifactFile(buildResolverDir)}");
+            if (!buildArtifactFile(buildResolverDir).exists()) {
+                logger.info("Building buildSrc has not produced any artifact!");
+                return null;
+            }
+        } finally {
+            Logging.LIFECYCLE.remove(Logging.DISABLED);
         }
-        embeddedBuildExecuter.execute(startParameterArg);
-        logger.info("Check if build artifact exists: ${buildArtifactFile(buildResolverDir)}");
-        if (!buildArtifactFile(buildResolverDir).exists()) {
-            logger.info("Building buildSrc has not produced any artifact!");
-            return null;
-        }
-        logger.info(Logging.LIFECYCLE, "================================================" + " Finished building buildSrc");
+        logger.info("================================================" + " Finished building buildSrc");
         return BUILD_SRC_ID;
     }
 

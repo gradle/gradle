@@ -167,7 +167,7 @@ public abstract class AbstractTask implements TaskInternal {
         executing = true;
         logger.debug("Starting to execute Task: {}", path);
         if (!isSkipped()) {
-            logger.info(Logging.LIFECYCLE, "Executing Task: {}", path);
+            logger.info(Logging.LIFECYCLE, "{}", path);
             standardOutputCapture.start();
             for (TaskAction action : actions) {
                 logger.debug("Executing Action:");
@@ -210,7 +210,7 @@ public abstract class AbstractTask implements TaskInternal {
             logger.info("Skipping execution as task is disabled.");
         }
         if (!enabled || trueSkips.size() > 0) {
-            logger.info(Logging.LIFECYCLE, "Skipping  Task: {}", path);
+            logger.info(Logging.LIFECYCLE, "{} SKIPPED", path);
             return true;
         }
         return false;

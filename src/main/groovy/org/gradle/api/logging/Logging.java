@@ -17,6 +17,7 @@ package org.gradle.api.logging;
 
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.slf4j.helpers.BasicMarker;
 import org.apache.ivy.util.Message;
 
 import java.util.Map;
@@ -26,7 +27,8 @@ import java.util.HashMap;
  * @author Hans Dockter
  */
 public class Logging {
-    public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
+    public static final BasicMarker LIFECYCLE = (BasicMarker) MarkerFactory.getDetachedMarker("LIFECYCLE");
+    public static final Marker DISABLED = MarkerFactory.getDetachedMarker("DISABLED");
     public static final Marker QUIET = MarkerFactory.getDetachedMarker("QUIET");
 
     public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {

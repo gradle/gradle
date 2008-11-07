@@ -41,7 +41,7 @@ public class MarkerFilter extends Filter {
     @Override
     public FilterReply decide(Object event) {
         LoggingEvent loggingEvent = (LoggingEvent) event;
-        if (loggingEvent.getMarker() == marker) {
+        if (loggingEvent.getMarker() == marker && !marker.contains(Logging.DISABLED)) {
             return FilterReply.ACCEPT;
         } else {
             return onMismatch;

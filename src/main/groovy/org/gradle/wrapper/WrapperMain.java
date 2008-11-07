@@ -22,6 +22,7 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class WrapperMain {
+    public static final String WRAPPER_DEBUG_ENV = "GRADLE_WRAPPER_DEBUG_ENV";
     public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
     public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
@@ -30,8 +31,10 @@ public class WrapperMain {
     public static final String DEBUG_PROPERTY_KEY = "gradle.bootstrap.debug";
 
     public static void main(String[] args) throws Exception {
-        System.out.println(ALWAYS_UNPACK_ENV + " env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
-        System.out.println(ALWAYS_DOWNLOAD_ENV + " env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
+        if (System.getenv(WRAPPER_DEBUG_ENV) != null) {
+            System.out.println(ALWAYS_UNPACK_ENV + " env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
+            System.out.println(ALWAYS_DOWNLOAD_ENV + " env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
+        }
         boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
         boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
 
