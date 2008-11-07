@@ -23,6 +23,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.execution.TaskNameResolvingBuildExecuter;
 import org.gradle.execution.ProjectDefaultsBuildExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.MergingBuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.GUtil;
@@ -34,6 +35,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * <p>{@code StartParameter} defines the configuration used by a {@link Gradle} instance to execute a build. You
+ * pass an instance of this class to {@link Gradle#newInstance(StartParameter)} when you create a new {@code Gradle}
+ * instance.</p>
+ *
  * @author Hans Dockter
  */
 public class StartParameter {
@@ -52,7 +57,8 @@ public class StartParameter {
     private CacheUsage cacheUsage;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
-    private BuildExecuter buildExecuter = new ProjectDefaultsBuildExecuter();
+    private BuildExecuter buildExecuter;
+    private boolean mergedBuild;
 
     public StartParameter() {
     }
@@ -92,6 +98,7 @@ public class StartParameter {
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.buildExecuter = buildExecuter;
+        startParameter.mergedBuild = mergedBuild;
 
         return startParameter;
     }
@@ -212,11 +219,25 @@ public class StartParameter {
      * @return The {@link BuildExecuter}. Never returns null.
      */
     public BuildExecuter getBuildExecuter() {
-        return buildExecuter;
+        if (buildExecuter != null) {
+            return buildExecuter;
+        }
+        BuildExecuter executer = GUtil.isTrue(taskNames) ? new TaskNameResolvingBuildExecuter(taskNames)
+                : new ProjectDefaultsBuildExecuter();
+        if (mergedBuild) {
+            executer = new MergingBuildExecuter(executer);
+        }
+        return executer;
     }
 
     /**
-     * <p>Sets the {@link BuildExecuter} to use for the build.</p>
+     * <p>Sets the {@link BuildExecuter} to use for the build. You can use the method to change the algorithm used to
+     * execute the build, by providing your own {@code BuildExecuter} implementation.</p>
+     *
+     * <p> Set to null to use the default executer. When this property is set to a non-null value, the taskNames and
+     * mergedBuild properties are ignored.</p>
+     *
+     * @param buildExecuter The executer to use, or null to use the default executer.
      */
     public void setBuildExecuter(BuildExecuter buildExecuter) {
         this.buildExecuter = buildExecuter;
@@ -231,13 +252,8 @@ public class StartParameter {
      * project.</p>
      */
     public void setTaskNames(List<String> taskNames) {
-        if (!GUtil.isTrue(taskNames)) {
-            this.taskNames = new ArrayList<String>();
-            buildExecuter = new ProjectDefaultsBuildExecuter();
-        } else {
-            this.taskNames = new ArrayList<String>(taskNames);
-            buildExecuter = new TaskNameResolvingBuildExecuter(this.taskNames);
-        }
+        this.taskNames = !GUtil.isTrue(taskNames) ? new ArrayList<String>() : new ArrayList<String>(taskNames);
+        buildExecuter = null;
     }
 
     public File getCurrentDir() {
@@ -310,5 +326,13 @@ public class StartParameter {
 
     public void setSettingsFileName(String settingsFileName) {
         this.settingsFileName = settingsFileName;
+    }
+
+    public boolean isMergedBuild() {
+        return mergedBuild;
+    }
+
+    public void setMergedBuild(boolean merged) {
+        this.mergedBuild = merged;
     }
 }

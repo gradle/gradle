@@ -220,6 +220,10 @@ public class Gradle {
         public Gradle newInstance(StartParameter startParameter);
     }
 
+    public StartParameter getStartParameter() {
+        return startParameter;
+    }
+
     public ISettingsFinder getSettingsFinder() {
         return settingsFinder;
     }

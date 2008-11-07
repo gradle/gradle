@@ -59,7 +59,7 @@ public class ProjectDefaultsBuildExecuterTest {
             executer.select(project);
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("No tasks have been specified and the project has not defined any default tasks."));
+            assertThat(e.getMessage(), equalTo("No tasks have been specified and project project has not defined any default tasks."));
         }
     }
 

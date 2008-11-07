@@ -166,6 +166,11 @@ public class AbstractIntegrationTest {
             return this;
         }
 
+        public GradleExecution inMergedBuild() {
+            parameter.setMergedBuild(true);
+            return this;
+        }
+
         public GradleExecutionResult runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
             Gradle gradle = Gradle.newInstance(parameter);

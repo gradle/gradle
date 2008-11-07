@@ -23,35 +23,22 @@ import java.util.List;
 /**
  * A {@link BuildExecuter} which selects the default tasks for a project.
  */
-public class ProjectDefaultsBuildExecuter implements BuildExecuter {
-    private BuildExecuter executer;
-
+public class ProjectDefaultsBuildExecuter extends  DelegatingBuildExecuter {
     public boolean hasNext() {
-        return executer == null || executer.hasNext();
+        return getDelegate() == null || getDelegate().hasNext();
     }
 
     public void select(Project project) {
-        if (executer == null) {
+        if (getDelegate() == null) {
             // Gather the default tasks from this first group project
             List<String> defaultTasks = project.getDefaultTasks();
             if (defaultTasks.size() == 0) {
-                throw new InvalidUserDataException("No tasks have been specified and the project has not defined any default tasks.");
+                throw new InvalidUserDataException(String.format(
+                        "No tasks have been specified and project %s has not defined any default tasks.", project));
             }
-            executer = new TaskNameResolvingBuildExecuter(defaultTasks);
+            setDelegate(new TaskNameResolvingBuildExecuter(defaultTasks));
         }
 
-        executer.select(project);
-    }
-
-    public String getDescription() {
-        return executer.getDescription();
-    }
-
-    public void execute(TaskExecuter executer) {
-        this.executer.execute(executer);
-    }
-
-    public boolean requiresProjectReload() {
-        return executer.requiresProjectReload();
+        super.select(project);
     }
 }

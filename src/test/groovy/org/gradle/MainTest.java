@@ -64,6 +64,7 @@ public class MainTest {
     private boolean expectedSearchUpwards;
     private String expectedEmbeddedScript;
     private StartParameter actualStartParameter;
+    private boolean expectedMergedBuild;
 
     private Gradle gradleMock;
     private JUnit4Mockery context = new JUnit4Mockery();
@@ -114,26 +115,6 @@ public class MainTest {
         void execute() throws Throwable;
     }
 
-    private class StartParameterMatcher extends BaseMatcher<StartParameter> {
-        boolean emptyTasks;
-
-        public StartParameterMatcher(boolean emptyTasks) {
-            this.emptyTasks = emptyTasks;
-        }
-
-        public boolean matches(Object o) {
-            StartParameter parameter = (StartParameter) o;
-            checkStartParameter(parameter, emptyTasks);
-            return true;
-        }
-
-        public void describeTo(Description description) {
-            description.appendText("Check StartParameter");
-        }
-
-
-    }
-
     @Test
     public void testMainWithoutAnyOptions() throws Throwable {
         checkMain(new MainCall() {
@@ -160,6 +141,7 @@ public class MainTest {
         assertEquals(expectedGradleImportsFile, startParameter.getDefaultImportsFile());
         assertEquals(expectedPluginPropertiesFile, startParameter.getPluginPropertiesFile());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
+        assertEquals(expectedMergedBuild, startParameter.isMergedBuild());
     }
 
     private void checkMain(final boolean embedded, final boolean noTasks, MainCall mainCall) throws Throwable {
@@ -328,6 +310,16 @@ public class MainTest {
         checkMain(new MainCall() {
             public void execute() throws Throwable {
                 Main.main(args("-Su"));
+            }
+        });
+    }
+
+    @Test
+    public void testMainWithMergedBuild() throws Throwable {
+        expectedMergedBuild = true;
+        checkMain(new MainCall() {
+            public void execute() throws Throwable {
+                Main.main(args("-Sm"));
             }
         });
     }

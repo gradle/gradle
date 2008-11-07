@@ -57,6 +57,23 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).runTasks("c", "a").assertTasksExecuted(":a", ":c");
     }
 
+    @Test
+    public void buildIsReusedForMergedBuild() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                "createTask('a') { task -> project.executedA = task }",
+                "createTask('b') { ",
+                "    assertSame(a, project.executedA);",
+                "    assertTrue(build.taskGraph.hasTask(':a'))",
+                "}",
+                "createTask('c', dependsOn: 'a')"
+                );
+        usingBuildFile(buildFile).inMergedBuild().runTasks("a", "b").assertTasksExecuted(":a", ":b");
+        // does not execute task more than once
+        usingBuildFile(buildFile).inMergedBuild().runTasks("a", "a").assertTasksExecuted(":a");
+        usingBuildFile(buildFile).inMergedBuild().runTasks("c", "a").assertTasksExecuted(":a", ":c");
+    }
+
     @Test @Ignore
     public void archiveWithImplicitAndExplicitDependencies() {
         testFile("settings.gradle").write("include ('a', 'b')");

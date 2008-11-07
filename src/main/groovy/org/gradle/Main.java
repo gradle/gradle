@@ -77,6 +77,7 @@ public class Main {
     private static final String CACHE_OFF = "x";
     private static final String REBUILD_CACHE = "r";
     private static final String HELP = "h";
+    private static final String MERGED_BUILD = "m";
 
     public static void main(String[] args) throws Throwable {
         BuildResultLogger resultLogger = new BuildResultLogger(logger);
@@ -89,6 +90,7 @@ public class Main {
                 acceptsAll(WrapUtil.toList(NO_JVM_TERMINATION), "Don't trigger a System.exit(0) for normal termination. Used for Gradle's internal testing.");
                 acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS, "no-imports"), "Disable usage of default imports for build script files.");
                 acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), "Don't search in parent folders for a settings.gradle file.");
+                acceptsAll(WrapUtil.toList(MERGED_BUILD, "merged-build"), "Merge all tasks into a single build.");
                 acceptsAll(WrapUtil.toList(CACHE_OFF, "cache-off"), "No caching of compiled build scripts.");
                 acceptsAll(WrapUtil.toList(REBUILD_CACHE, "rebuild-cache"), "Rebuild the cache of compiled build scripts.");
                 acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
@@ -225,6 +227,7 @@ public class Main {
         } else {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
+        startParameter.setMergedBuild(options.has(MERGED_BUILD));
 
         try {
             Gradle gradle = Gradle.newInstance(startParameter);
