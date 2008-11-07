@@ -27,10 +27,10 @@ public class ParentDirSettingsFinderStrategy extends AbstractSettingsFileSearchS
     protected File findBeyondCurrentDir(StartParameter startParameter) {
         File searchDir = startParameter.getCurrentDir().getParentFile();
         while (searchDir != null && startParameter.isSearchUpwards()) {
-            for (File file : searchDir.listFiles()) {
-                if (isSettingsFile(startParameter, file)) {
-                    return file;
-                }
+            File settingsFile = new File(searchDir,
+                    startParameter.getSettingsFileName());
+            if (settingsFile.exists() && settingsFile.isFile()) {
+                return settingsFile;
             }
             searchDir = searchDir.getParentFile();
         }
