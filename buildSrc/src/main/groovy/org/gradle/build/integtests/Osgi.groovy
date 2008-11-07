@@ -36,11 +36,12 @@ class Osgi {
 
     static void checkManifest(Manifest manifest, start) {
         assertEquals('osgi', manifest.mainAttributes.getValue('Bundle-Name'))
-        assertEquals('org;version="1.0"', manifest.mainAttributes.getValue('Private-Package'))
+        assertEquals('org;version="1.0.0"', manifest.mainAttributes.getValue('Private-Package'))
         assertEquals('2', manifest.mainAttributes.getValue('Bundle-ManifestVersion'))
         assertEquals('Bnd-0.0.255', manifest.mainAttributes.getValue('Tool'))
         assertTrue(start <= Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')))
-        assertEquals('1.0', manifest.mainAttributes.getValue('Bundle-Version'))
+        assertEquals('1.0.0', manifest.mainAttributes.getValue('Bundle-Version'))
+        assertEquals('gradle.osgi', manifest.mainAttributes.getValue('Bundle-SymbolicName'))
     }
 
     static void main(String[] args) {

@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
+import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -62,10 +63,12 @@ public class OsgiPlugin implements Plugin {
     }
 
     private OsgiManifest createDefaultOsgiManifest(Project project) {
+        OsgiHelper osgiHelper = new OsgiHelper();
         OsgiManifest osgiManifest = new DefaultOsgiManifest();
         osgiManifest.setClassesDir(((JavaPluginConvention) project.getConvention().getPlugins().get("java")).getClassesDir());
-        osgiManifest.setVersion((String) project.property("version"));
+        osgiManifest.setVersion(osgiHelper.getVersion((String) project.property("version")));
         osgiManifest.setName(project.getArchivesBaseName());
+        osgiManifest.setSymbolicName(osgiHelper.getBundleSymbolicName(project));
         return osgiManifest;
     }
 }
