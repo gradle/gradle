@@ -22,6 +22,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 /**
 * @author Hans Dockter
 */
-public interface PublishArtifact {
+public interface PublishArtifact extends IvyObjectBuilder<Artifact> {
    Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId);
 }

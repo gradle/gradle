@@ -18,7 +18,6 @@ package org.gradle.api.internal.dependencies;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.ChainResolver;
@@ -27,8 +26,7 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.SettingsConverter;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.Transformer;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.Transformer;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -43,8 +41,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     private IvySettings ivySettings;
 
-    private ChainingTransformer<IvySettings> transformer
-            = new ChainingTransformer<IvySettings>();
+    private ChainingTransformer<IvySettings> transformer = new ChainingTransformer<IvySettings>(IvySettings.class);
 
     public void addIvyTransformer(Transformer<IvySettings> transformer) {
         this.transformer.add(transformer);

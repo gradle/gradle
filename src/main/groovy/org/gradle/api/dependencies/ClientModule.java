@@ -24,19 +24,20 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.dependencies.*;
+import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModule extends DefaultDependencyContainer implements ExternalDependency, Dependency {
+public class ClientModule extends DefaultDependencyContainer implements ExternalDependency {
     public static final String CLIENT_MODULE_KEY = "org.gradle.clientModule";
 
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
@@ -58,6 +59,9 @@ public class ClientModule extends DefaultDependencyContainer implements External
     private List<Artifact> artifacts = new ArrayList<Artifact>();
 
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
+
+    private ChainingTransformer<DependencyDescriptor> transformer
+            = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
 
     public ClientModule() {
     }
@@ -98,12 +102,20 @@ public class ClientModule extends DefaultDependencyContainer implements External
         version = dependencyParts[2];
     }
 
+    public void addIvyTransformer(Transformer<DependencyDescriptor> dependencyDescriptorTransformer) {
+        this.transformer.add(dependencyDescriptorTransformer);
+    }
+
+    public void addIvyTransformer(Closure transformer) {
+        this.transformer.add(transformer);
+    }
+
     public DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent) {
 //        DependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor(parent, id, false, true, true, confs, DefaultExcludeRuleContainer.NO_RULES,
 //                WrapUtil.toMap(CLIENT_MODULE_KEY, id));
         DependencyDescriptor dd = dependencyDescriptorFactory.createFromClientModule(parent, this);
         addModuleDescriptors(dd.getDependencyRevisionId());
-        return dd;
+        return transformer.transform(dd);
     }
 
     private void addModuleDescriptors(ModuleRevisionId moduleRevisionId) {

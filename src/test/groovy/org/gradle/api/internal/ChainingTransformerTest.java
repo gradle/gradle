@@ -20,16 +20,16 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.util.HelperUtil;
+import org.gradle.api.Transformer;
 import groovy.lang.Closure;
 
 @RunWith(JMock.class)
 public class ChainingTransformerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ChainingTransformer<String> transformer = new ChainingTransformer<String>();
+    private final ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
 
     @Test
     public void doesNothingWhenNoTransformersAdded() {
@@ -62,5 +62,32 @@ public class ChainingTransformerTest {
         transformer.add(closure);
 
         assertThat(transformer.transform("original"), equalTo("original transformed"));
+    }
+
+    @Test
+    public void usesOriginalObjectWhenClosureReturnsNull() {
+        Closure closure = HelperUtil.toClosure("{ null }");
+
+        transformer.add(closure);
+
+        assertThat(transformer.transform("original"), equalTo("original"));
+    }
+
+    @Test
+    public void usesOriginalObjectWhenClosureReturnsObjectOfUnexpectedType() {
+        Closure closure = HelperUtil.toClosure("{ 9 }");
+
+        transformer.add(closure);
+
+        assertThat(transformer.transform("original"), equalTo("original"));
+    }
+
+    @Test
+    public void originalObjectIsSetAsDelegateForClosure() {
+        Closure closure = HelperUtil.toClosure("{ substring(1, 3) }");
+
+        transformer.add(closure);
+
+        assertThat(transformer.transform("original"), equalTo("ri"));
     }
 }

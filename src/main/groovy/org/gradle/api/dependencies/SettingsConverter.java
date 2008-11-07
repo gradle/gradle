@@ -15,7 +15,7 @@
  */
 package org.gradle.api.dependencies;
 
-import org.gradle.api.internal.dependencies.ModuleDescriptorContributor;
+import org.gradle.api.dependencies.IvyObjectBuilder;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
@@ -27,7 +27,7 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public interface SettingsConverter extends ModuleDescriptorContributor<IvySettings> {
+public interface SettingsConverter extends IvyObjectBuilder<IvySettings> {
     String CHAIN_RESOLVER_NAME = "chain";
     String CLIENT_MODULE_CHAIN_NAME = "clientModuleChain";
     String CLIENT_MODULE_NAME = "clientModule";

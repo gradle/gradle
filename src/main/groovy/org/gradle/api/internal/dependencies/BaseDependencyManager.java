@@ -26,9 +26,9 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.api.internal.Transformer;
 import org.gradle.api.dependencies.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.ConfigureUtil;
@@ -42,7 +42,7 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class BaseDependencyManager extends DefaultDependencyContainer
-        implements DependencyManagerInternal, ModuleDescriptorContributor<DefaultModuleDescriptor> {
+        implements DependencyManagerInternal, IvyObjectBuilder<DefaultModuleDescriptor> {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyManager.class);
 
     private Map<String, DefaultConfiguration> configurations = new HashMap<String, DefaultConfiguration>();

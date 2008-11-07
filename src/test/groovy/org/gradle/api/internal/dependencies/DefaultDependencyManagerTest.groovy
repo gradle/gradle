@@ -43,8 +43,9 @@ import org.gradle.api.dependencies.Configuration
 import org.gradle.util.HelperUtil
 import org.gradle.api.dependencies.PublishArtifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.gradle.api.internal.Transformer
+import org.gradle.api.Transformer
 import org.apache.ivy.core.module.id.ModuleId
+import org.gradle.api.Transformer
 
 /**
  * @author Hans Dockter

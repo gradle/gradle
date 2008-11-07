@@ -26,7 +26,7 @@ import groovy.lang.Closure;
 /**
 * @author Hans Dockter
 */
-public interface Dependency {
+public interface Dependency extends IvyObjectBuilder<DependencyDescriptor> {
     public static final String DEFAULT_CONFIGURATION = "default";
     public static final String MASTER_CONFIGURATION = "master";
 

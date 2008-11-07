@@ -18,12 +18,13 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.Transformer;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.ExcludeRuleContainer;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.api.dependencies.Artifact;
+import org.gradle.api.dependencies.IvyObjectBuilder;
 import org.gradle.util.ConfigureUtil;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
@@ -34,11 +35,12 @@ import groovy.lang.Closure;
 /**
 * @author Hans Dockter
 */
-public abstract class AbstractDependency implements Dependency, ModuleDescriptorContributor<DependencyDescriptor> {
+public abstract class AbstractDependency implements Dependency {
     private Object userDependencyDescription;
 
     private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
-    private ChainingTransformer<DependencyDescriptor> transformer = new ChainingTransformer<DependencyDescriptor>();
+    private ChainingTransformer<DependencyDescriptor> transformer 
+            = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
 
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
 

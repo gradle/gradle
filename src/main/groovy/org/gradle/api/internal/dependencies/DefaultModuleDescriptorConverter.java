@@ -28,7 +28,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.dependencies.ivy.IvyUtil;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.Transformer;
+import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ import groovy.lang.Closure;
 public class DefaultModuleDescriptorConverter implements ModuleDescriptorConverter {
     private static Logger logger = LoggerFactory.getLogger(DefaultModuleDescriptorConverter.class);
     private ChainingTransformer<DefaultModuleDescriptor> transformer
-            = new ChainingTransformer<DefaultModuleDescriptor>();
+            = new ChainingTransformer<DefaultModuleDescriptor>(DefaultModuleDescriptor.class);
 
     public DefaultModuleDescriptorConverter() {
     }

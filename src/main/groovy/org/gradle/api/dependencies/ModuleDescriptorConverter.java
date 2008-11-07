@@ -17,18 +17,14 @@ package org.gradle.api.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.internal.dependencies.ModuleDescriptorContributor;
+import org.gradle.api.dependencies.IvyObjectBuilder;
 import org.gradle.api.internal.dependencies.DependencyManagerInternal;
-import org.gradle.api.internal.Transformer;
+import org.gradle.api.Transformer;
 import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
  */
-public interface ModuleDescriptorConverter extends ModuleDescriptorContributor<DefaultModuleDescriptor> {
+public interface ModuleDescriptorConverter extends IvyObjectBuilder<DefaultModuleDescriptor> {
     ModuleDescriptor convert(DependencyManagerInternal dependencyManager, boolean includeProjectDependencies);
-
-    void addIvyTransformer(Transformer<DefaultModuleDescriptor> transformer);
-
-    void addIvyTransformer(Closure tranformer);
 }

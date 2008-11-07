@@ -2,7 +2,7 @@ package org.gradle.api.internal.dependencies;
 
 import static org.apache.ivy.core.module.descriptor.Configuration.*;
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.internal.Transformer;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ChainingTransformer;
 
 import java.io.File;
@@ -17,7 +17,7 @@ import groovy.lang.Closure;
 public class DefaultConfiguration implements Configuration {
     private final String name;
     private final ChainingTransformer<org.apache.ivy.core.module.descriptor.Configuration> transformer
-            = new ChainingTransformer<org.apache.ivy.core.module.descriptor.Configuration>();
+            = new ChainingTransformer<org.apache.ivy.core.module.descriptor.Configuration>(org.apache.ivy.core.module.descriptor.Configuration.class);
     private DependencyManagerInternal dependencyManager;
     private Visibility visibility = Visibility.PUBLIC;
     private boolean transitive = true;

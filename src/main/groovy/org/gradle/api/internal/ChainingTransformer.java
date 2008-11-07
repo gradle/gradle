@@ -20,13 +20,20 @@ import groovy.lang.Closure;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.gradle.api.Transformer;
+
 public class ChainingTransformer<T> implements Transformer<T> {
     private final List<Transformer<T>> transformers = new ArrayList<Transformer<T>>();
+    private final Class<T> type;
+
+    public ChainingTransformer(Class<T> type) {
+        this.type = type;
+    }
 
     public T transform(T original) {
         T value = original;
         for (Transformer<T> transformer : transformers) {
-            value = transformer.transform(value);
+            value = type.cast(transformer.transform(value));
         }
         return value;
     }
@@ -38,7 +45,10 @@ public class ChainingTransformer<T> implements Transformer<T> {
     public void add(final Closure transformer) {
         transformers.add(new Transformer<T>() {
             public T transform(T original) {
-                return (T) transformer.call(original);
+                transformer.setDelegate(original);
+                transformer.setResolveStrategy(Closure.DELEGATE_FIRST);
+                Object value = transformer.call(original);
+                return value == null || !type.isInstance(value) ? original : type.cast(value);
             }
         });
     }

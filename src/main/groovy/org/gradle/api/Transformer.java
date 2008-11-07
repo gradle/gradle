@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.api;
 
+/**
+ * <p>A {@code Transformer} transforms objects of type T.</p>
+ */
 public interface Transformer<T> {
+    /**
+     * Transforms the given object, and returns the transformed value.
+     *
+     * @param original The object to transform.
+     * @return The transformed object.
+     */
     T transform(T original);
 }

@@ -20,9 +20,10 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.internal.Transformer;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.dependencies.PublishArtifact;
+import org.gradle.api.dependencies.IvyObjectBuilder;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
 
@@ -34,8 +35,8 @@ import groovy.lang.Closure;
 /**
  * @author Hans Dockter
  */
-public class DefaultPublishArtifact implements PublishArtifact, ModuleDescriptorContributor<Artifact> {
-    private final ChainingTransformer<Artifact> transformer = new ChainingTransformer<Artifact>();
+public class DefaultPublishArtifact implements PublishArtifact {
+    private final ChainingTransformer<Artifact> transformer = new ChainingTransformer<Artifact>(Artifact.class);
     private String name;
     private String extension;
     private String type;

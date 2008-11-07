@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.internal.Transformer;
+import org.gradle.api.Transformer;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.HelperUtil;

@@ -27,12 +27,13 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.internal.Transformer
+import org.gradle.api.Transformer
 import org.hamcrest.Matchers
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.sameInstance
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
+import org.gradle.api.Transformer
 
 /**
  * @author Hans Dockter

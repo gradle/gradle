@@ -17,7 +17,7 @@ package org.gradle.api.internal.dependencies;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.Configuration;
-import org.gradle.api.internal.Transformer;
+import org.gradle.api.Transformer;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
