@@ -1,0 +1,1 @@
+addFlatDirResolver('lib', new File(rootDir, 'lib'))

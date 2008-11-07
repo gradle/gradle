@@ -22,14 +22,3 @@ test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)
 }
-
-uploadInternalLibs.doLast {
-    InstallOptions installOptions = new InstallOptions()
-    installOptions.overwrite = true
-    installOptions.validate = false
-    def ivy = dependencies.ivy
-    DefaultModuleDescriptor moduleDescriptor = dependencies.moduleDescriptorConverter.convert(dependencies, true)
-    moduleDescriptor.dependencies.each { DependencyDescriptor dependencyDescriptor ->
-        ivy.install(dependencyDescriptor.dependencyRevisionId, 'lib', DependencyManager.BUILD_RESOLVER_NAME, installOptions)
-    }
-}
