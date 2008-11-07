@@ -26,6 +26,7 @@ class IntegTestSuite {
         GroovyProject.execute(distDirPath, samplesDirPath)
         WebProject.execute(distDirPath, samplesDirPath)
         Logging.execute(distDirPath, samplesDirPath)
+        Osgi.execute(distDirPath, samplesDirPath)
         PomGeneration.execute(distDirPath, samplesDirPath)
         WaterProject.execute(distDirPath, samplesDirPath)
         org.gradle.build.integtests.Version.execute(distDirPath)
