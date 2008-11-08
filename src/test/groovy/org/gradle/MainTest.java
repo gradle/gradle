@@ -22,8 +22,6 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -74,7 +72,7 @@ public class MainTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         gradleMock = context.mock(Gradle.class);
 
-        Gradle.injectCustomFactory(new Gradle.GradleFactory() {
+        Gradle.injectCustomFactory(new GradleFactory() {
             public Gradle newInstance(StartParameter startParameter) {
                 actualStartParameter = startParameter;
                 return gradleMock;
@@ -161,7 +159,6 @@ public class MainTest {
         mainCall.execute();
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter, noTasks);
-        assertNull(actualStartParameter.getBuildResolverDir());
         if (embedded) {
             assertThat(actualStartParameter.getBuildScriptSource().getText(), equalTo(expectedEmbeddedScript));
         } else {

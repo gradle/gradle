@@ -45,18 +45,10 @@ class DefaultResolverFactoryTest {
     static final String TEST_REPO_NAME = 'reponame'
     static final String TEST_REPO_URL = 'http://www.gradle.org'
 
-    LocalReposCacheHandler localReposCacheHandler
-
-    RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
-
     DefaultResolverFactory factory
 
     @Before public void setUp() {
         factory = new DefaultResolverFactory()
-    }
-
-    @Test public void testInit() {
-        assert factory.localReposCacheHandler.is(localReposCacheHandler)
     }
 
     @Test (expected = InvalidUserDataException) public void testCreateResolver() {
@@ -102,7 +94,6 @@ class DefaultResolverFactoryTest {
     }
 
     @Test public void testCreateFlatDirResolver() {
-        factory.localReposCacheHandler = [getCacheManager: {dummyCacheManager}] as LocalReposCacheHandler
         File dir1 = new File('/rootFolder')
         File dir2 = new File('/rootFolder2')
         String expectedName = 'libs'
@@ -117,7 +108,6 @@ class DefaultResolverFactoryTest {
         assertEquals(expectedIvyPatterns, resolver.ivyPatterns)
         assert expectedArtifactPatterns == resolver.artifactPatterns
         assertTrue(resolver.allownomd)
-        assert resolver.repositoryCacheManager == dummyCacheManager
     }
 
 }

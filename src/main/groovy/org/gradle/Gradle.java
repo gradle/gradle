@@ -18,47 +18,17 @@ package org.gradle;
 
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
-import org.gradle.api.internal.project.BuildScriptProcessor;
-import org.gradle.api.internal.project.DefaultAntBuilderFactory;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.configuration.ProjectDependencies2TaskResolver;
-import org.gradle.configuration.ProjectTasksPrettyPrinter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.groovy.scripts.DefaultProjectScriptMetaData;
-import org.gradle.groovy.scripts.DefaultScriptHandler;
-import org.gradle.groovy.scripts.DefaultScriptProcessor;
-import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData;
-import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.initialization.BuildSourceBuilder;
-import org.gradle.initialization.DefaultGradlePropertiesLoader;
-import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.DefaultSettingsFinder;
-import org.gradle.initialization.EmbeddedBuildExecuter;
-import org.gradle.initialization.EmbeddedScriptSettingsFinder;
 import org.gradle.initialization.IGradlePropertiesLoader;
-import org.gradle.initialization.ISettingsFileSearchStrategy;
 import org.gradle.initialization.ISettingsFinder;
-import org.gradle.initialization.MasterDirSettingsFinderStrategy;
-import org.gradle.initialization.ParentDirSettingsFinderStrategy;
 import org.gradle.initialization.BuildLoader;
-import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
-import org.gradle.initialization.ScriptLocatingSettingsProcessor;
-import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsProcessor;
-import org.gradle.logging.AntLoggingAdapter;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -216,10 +186,6 @@ public class Gradle {
         factory = gradleFactory == null ? new DefaultGradleFactory() : gradleFactory;
     }
 
-    public static interface GradleFactory {
-        public Gradle newInstance(StartParameter startParameter);
-    }
-
     public StartParameter getStartParameter() {
         return startParameter;
     }
@@ -278,57 +244,4 @@ public class Gradle {
         buildListeners.add(buildListener);
     }
 
-    private static class DefaultGradleFactory implements GradleFactory {
-        public Gradle newInstance(StartParameter startParameter) {
-            DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory();
-            ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
-            IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(),
-                    startParameter.getCacheUsage());
-            File buildResolverDir = startParameter.getBuildResolverDir();
-            ISettingsFinder settingsFinder = startParameter.getSettingsScriptSource() == null
-                    ? new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
-                    new MasterDirSettingsFinderStrategy(),
-                    new ParentDirSettingsFinderStrategy()))
-                    : new EmbeddedScriptSettingsFinder();
-            Gradle gradle = new Gradle(
-                    startParameter,
-                    settingsFinder,
-                    new DefaultGradlePropertiesLoader(),
-                    new ScriptLocatingSettingsProcessor(
-                            new ScriptEvaluatingSettingsProcessor(
-                                    new DefaultSettingsScriptMetaData(),
-                                    scriptProcessor,
-                                    importsReader,
-                                    new SettingsFactory(
-                                            new DefaultProjectDescriptorRegistry(),
-                                            dependencyManagerFactory,
-                                            new BuildSourceBuilder(new EmbeddedBuildExecuter(this))),
-                                    dependencyManagerFactory,
-                                    buildResolverDir)
-                    ),
-                    new BuildLoader(
-                            new ProjectFactory(
-                                    new TaskFactory(),
-                                    dependencyManagerFactory,
-                                    new BuildScriptProcessor(
-                                            scriptProcessor,
-                                            new DefaultProjectScriptMetaData(),
-                                            importsReader
-                                    ),
-                                    new PluginRegistry(
-                                            startParameter.getPluginPropertiesFile()),
-                                    startParameter,
-                                    startParameter.getBuildScriptSource(),
-                                    new DefaultAntBuilderFactory(new AntLoggingAdapter()))
-                    ),
-                    new BuildConfigurer(
-                            new ProjectDependencies2TaskResolver(),
-                            new ProjectTasksPrettyPrinter()));
-
-            if (buildResolverDir == null) {
-                gradle.addBuildListener(new BuildCleanupListener());
-            }
-            return gradle;
-        }
-    }
 }

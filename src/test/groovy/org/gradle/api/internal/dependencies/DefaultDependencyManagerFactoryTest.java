@@ -17,10 +17,14 @@
 package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.Project;
+import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.initialization.ISettingsFinder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.Expectations;
 
 import java.io.File;
 import java.util.Set;
@@ -29,11 +33,17 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultDependencyManagerFactoryTest {
+    private JUnit4Mockery context = new JUnit4Mockery();
     @Test public void testCreate() {
-        File rootDir = new File("root");
         Project expectedProject = new DefaultProject();
+        final File testRootDir = new File("root");
+        final File expectedBuildResolverDir = new File(testRootDir, Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
+        final ISettingsFinder settingsFinderMock = context.mock(ISettingsFinder.class);
+        context.checking(new Expectations() {{
+            allowing(settingsFinderMock).getSettingsDir(); will(returnValue(testRootDir));
+        }});
         DefaultDependencyManager dependencyManager = (DefaultDependencyManager)
-                new DefaultDependencyManagerFactory(new File("root")).createDependencyManager(expectedProject);
+                new DefaultDependencyManagerFactory(settingsFinderMock).createDependencyManager(expectedProject);
         // todo: check when ivy management has improved
         //assertNotNull(dependencyManager.ivy)
         assertSame(expectedProject, dependencyManager.getProject());
@@ -42,10 +52,10 @@ public class DefaultDependencyManagerFactoryTest {
         assertNotNull(dependencyManager.getModuleDescriptorConverter());
         assertNotNull(dependencyManager.getDependencyPublisher());
         assertNotNull(dependencyManager.getDependencyResolver());
+        assertEquals(expectedBuildResolverDir, dependencyManager.getBuildResolverHandler().getBuildResolverDir());
         Set<IDependencyImplementationFactory> dependencyImplementationFactories =
                 dependencyManager.getDependencyFactory().getDependencyFactories();
         checkDependencyFactories(dependencyImplementationFactories);
-        assertEquals(rootDir, dependencyManager.getBuildResolverDir());
     }
 
     private void checkDependencyFactories(Set<IDependencyImplementationFactory> dependencyImplementationFactories) {

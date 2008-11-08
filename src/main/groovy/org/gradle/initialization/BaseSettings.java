@@ -37,9 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -183,20 +181,10 @@ public class BaseSettings implements SettingsInternal {
     // adds simply the build script jars to the context classloader we can remove the return argument and simplify our design.
     public URLClassLoader createClassLoader() {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-        Object dependency = null;
         StartParameter startParameter = buildSrcStartParameter.newInstance();
         startParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
-        if (buildSourceBuilder != null) {
-            dependency = buildSourceBuilder.createDependency(dependencyManager.getBuildResolverDir(),
-                    startParameter);
-        }
-        logger.debug("Build src dependency: {}", dependency);
-        if (dependency != null) {
-            dependencyManager.dependencies(WrapUtil.toList(BUILD_CONFIGURATION), dependency);
-        } else {
-            logger.info("No build sources found.");
-        }
-        Set<File> additionalClasspath = dependencyManager.configuration(BUILD_CONFIGURATION).getFiles();
+        Set<File> additionalClasspath = new HashSet(buildSourceBuilder.createBuildSourceClasspath(startParameter));
+        additionalClasspath.addAll(dependencyManager.configuration(BUILD_CONFIGURATION).getFiles());
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
             additionalClasspath.add(toolsJar);

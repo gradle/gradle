@@ -33,12 +33,6 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultResolverFactory implements ResolverFactory {
-    private LocalReposCacheHandler localReposCacheHandler;
-
-    public DefaultResolverFactory(LocalReposCacheHandler localReposCacheHandler) {
-        this.localReposCacheHandler = localReposCacheHandler;
-    }
-
     public DependencyResolver createResolver(Object userDescription) {
         DependencyResolver result;
         if (userDescription instanceof String) {
@@ -57,7 +51,6 @@ public class DefaultResolverFactory implements ResolverFactory {
     public FileSystemResolver createFlatDirResolver(String name, File... roots) {
         FileSystemResolver resolver = new FileSystemResolver();
         resolver.setName(name);
-        resolver.setRepositoryCacheManager(localReposCacheHandler.getCacheManager());
 
         for (File root : roots) {
             String pattern = root.getAbsolutePath() + "/" + DependencyManager.FLAT_DIR_RESOLVER_PATTERN;

@@ -18,9 +18,15 @@ package org.gradle.initialization;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
-import org.gradle.StartParameter;
+import org.gradle.*;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.Project;
+import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.initialization.Settings;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -41,27 +49,27 @@ public class BuildSourceBuilder {
     public static final String BUILD_SRC_TYPE = "jar";
     public static final String BUILD_SRC_ID = String.format("%s:%s:%s", BUILD_SRC_ORG, BUILD_SRC_MODULE, BUILD_SRC_REVISION);
 
-    private EmbeddedBuildExecuter embeddedBuildExecuter;
+    private GradleFactory gradleFactory;
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
     public BuildSourceBuilder() {
     }
 
-    public BuildSourceBuilder(EmbeddedBuildExecuter embeddedBuildExecuter) {
-        this.embeddedBuildExecuter = embeddedBuildExecuter;
+    public BuildSourceBuilder(GradleFactory gradleFactory) {
+        this.gradleFactory = gradleFactory;
     }
 
-    public Object createDependency(File buildResolverDir, StartParameter startParameter) {
-        assert startParameter.getCurrentDir() != null && GUtil.isTrue(startParameter.getBuildFileName()) && buildResolverDir != null;
+    public List<File> createBuildSourceClasspath(StartParameter startParameter) {
+        assert startParameter.getCurrentDir() != null && GUtil.isTrue(startParameter.getBuildFileName());
 
         logger.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
             logger.debug("Build source dir does not exists!. We leave.");
-            return null;
+            return new ArrayList<File>();
         }
         if (!GUtil.isTrue(startParameter.getTaskNames())) {
             logger.debug("No task names specified. We leave..");
-            return null;
+            return new ArrayList<File>();
         }
         logger.info("================================================" + " Start building buildSrc");
         try {
@@ -69,23 +77,31 @@ public class BuildSourceBuilder {
             StartParameter startParameterArg = startParameter.newInstance();
             startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
             startParameterArg.setSearchUpwards(false);
-            startParameterArg.setBuildResolverDir(buildResolverDir);
 
             if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
                 logger.debug("Build script file does not exists. Using default one.");
                 startParameterArg.useEmbeddedBuildFile(getDefaultScript());
             }
-            embeddedBuildExecuter.execute(startParameterArg);
-            logger.info("Check if build artifact exists: ${buildArtifactFile(buildResolverDir)}");
-            if (!buildArtifactFile(buildResolverDir).exists()) {
+            Gradle gradle = gradleFactory.newInstance(startParameterArg);
+            BuildSourceBuildListener buildListener = new BuildSourceBuildListener();
+            gradle.addBuildListener(buildListener);
+            gradle.run().rethrowFailure();
+            DependencyManager dependencyManager = buildListener.getRootProject().getDependencies();
+            File artifactFile = buildArtifactFile(dependencyManager.getBuildResolverDir());
+            if (!artifactFile.exists()) {
                 logger.info("Building buildSrc has not produced any artifact!");
-                return null;
+                return new ArrayList<File>();
             }
+            List<File> buildSourceClasspath =
+                    dependencyManager.resolve(JavaPlugin.RUNTIME);
+            buildSourceClasspath.add(artifactFile);
+            logger.debug("Build source classpath is: {}", buildSourceClasspath);
+            logger.info("================================================" + " Finished building buildSrc");
+            return buildSourceClasspath;
         } finally {
             Logging.LIFECYCLE.remove(Logging.DISABLED);
         }
-        logger.info("================================================" + " Finished building buildSrc");
-        return BUILD_SRC_ID;
+
     }
 
     static String getDefaultScript() {
@@ -109,11 +125,37 @@ public class BuildSourceBuilder {
                 "type", "jar");
     }
 
-    public EmbeddedBuildExecuter getEmbeddedBuildExecuter() {
-        return embeddedBuildExecuter;
+    public GradleFactory getGradleFactory() {
+        return gradleFactory;
     }
 
-    public void setEmbeddedBuildExecuter(EmbeddedBuildExecuter embeddedBuildExecuter) {
-        this.embeddedBuildExecuter = embeddedBuildExecuter;
+    public void setGradleFactory(GradleFactory gradleFactory) {
+        this.gradleFactory = gradleFactory;
+    }
+
+    public static class BuildSourceBuildListener implements BuildListener {
+        private Project rootProject;
+
+        public void buildStarted(StartParameter startParameter) {}
+
+        public void settingsEvaluated(Settings settings) {}
+
+        public void projectsLoaded(Build build) {}
+
+        public void projectsEvaluated(Build build) {
+            rootProject = build.getRootProject();
+        }
+
+        public void taskGraphPopulated(TaskExecutionGraph graph) {}
+
+        public void buildFinished(BuildResult result) {}
+
+        public Project getRootProject() {
+            return rootProject;
+        }
+
+        public void setRootProject(Project rootProject) {
+            this.rootProject = rootProject;
+        }
     }
 }

@@ -135,7 +135,7 @@ class DefaultSettingsTest {
     }
 
     @Test public void testFindDescriptorByPath() {
-        DefaultProjectDescriptor projectDescriptor =  createTestDescriptor();
+        DefaultProjectDescriptor projectDescriptor = createTestDescriptor();
         DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getPath())
         assertSame(foundProjectDescriptor, projectDescriptor)
     }
@@ -146,7 +146,7 @@ class DefaultSettingsTest {
         assertSame(foundProjectDescriptor, projectDescriptor)
     }
 
-    @Test(expected = UnknownProjectException) public void testDescriptorByPath() {
+    @Test (expected = UnknownProjectException) public void testDescriptorByPath() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
         DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getPath())
         assertSame(foundProjectDescriptor, projectDescriptor)
@@ -154,7 +154,7 @@ class DefaultSettingsTest {
     }
 
 
-    @Test(expected = UnknownProjectException) public void testDescriptorByProjectDir() {
+    @Test (expected = UnknownProjectException) public void testDescriptorByProjectDir() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
         DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getDir())
         assertSame(foundProjectDescriptor, projectDescriptor)
@@ -235,23 +235,16 @@ class DefaultSettingsTest {
         assert settings.resolvers.is(expectedResolverContainer)
     }
 
-    @Test public void testCreateClassLoaderWithNullBuildSourceBuilder() {
-        checkCreateClassLoader(null, true)
-    }
-
     @Test public void testCreateClassLoaderWithNonExistingBuildSource() {
-        checkCreateClassLoader(null)
+        checkCreateClassLoader([])
     }
 
     @Test public void testCreateClassLoaderWithExistingBuildSource() {
-        String testDependency = 'org.gradle:somedep:1.0'
-        context.checking {
-            one(dependencyManagerMock).dependencies([DefaultSettings.BUILD_CONFIGURATION], [testDependency] as Object[])
-        }
-        checkCreateClassLoader(testDependency)
+        List testBuildSourceDependencies = ['dep1' as File]
+        checkCreateClassLoader(testBuildSourceDependencies)
     }
 
-    private checkCreateClassLoader(def expectedDependency, boolean srcBuilderNull = false) {
+    private checkCreateClassLoader(List expectedTestDependencies) {
         Set testFiles = [new File('/root/f1'), new File('/root/f2')] as Set
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = settings.buildSrcStartParameter.newInstance();
@@ -259,26 +252,22 @@ class DefaultSettingsTest {
         Configuration configuration = context.mock(Configuration.class)
         context.checking {
             allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
-            one(dependencyManagerMock).configuration(DefaultSettings.BUILD_CONFIGURATION)
+            allowing(dependencyManagerMock).configuration(DefaultSettings.BUILD_CONFIGURATION)
             will(returnValue(configuration))
-            one(configuration).getFiles()
+            allowing(configuration).getFiles()
             will(returnValue(testFiles))
         }
         URLClassLoader createdClassLoader = null
 
-        if (srcBuilderNull) {
-            settings.buildSourceBuilder = null
-            createdClassLoader = settings.createClassLoader()
-        } else {
-            context.checking {
-                one(buildSourceBuilderMock).createDependency(expectedBuildResolverDir, expectedStartParameter)
-                will(returnValue(expectedDependency))
-            }
-            createdClassLoader = settings.createClassLoader()
+        context.checking {
+            one(buildSourceBuilderMock).createBuildSourceClasspath(expectedStartParameter)
+            will(returnValue(expectedTestDependencies))
         }
+        createdClassLoader = settings.createClassLoader()
+
 
         Set urls = createdClassLoader.URLs as HashSet
-        testFiles.collect() {File file -> file.toURI().toURL()}.each {
+        (testFiles + expectedTestDependencies).collect() {File file -> file.toURI().toURL()}.each {
             assert urls.contains(it)
         }
     }

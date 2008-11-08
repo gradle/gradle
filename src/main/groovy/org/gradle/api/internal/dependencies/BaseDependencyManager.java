@@ -69,9 +69,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
 
     private IDependencyPublisher dependencyPublisher;
 
-    private LocalReposCacheHandler localReposCacheHandler = new LocalReposCacheHandler();
-
-    private BuildResolverHandler buildResolverHandler = new BuildResolverHandler(localReposCacheHandler);
+    private BuildResolverHandler buildResolverHandler;
 
     private ResolverContainer classpathResolvers;
 
@@ -94,17 +92,15 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
                                  ResolverFactory resolverFactory, DefaultSettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                                  IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                                 File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
+                                 BuildResolverHandler buildResolverHandler, ExcludeRuleContainer excludeRuleContainer) {
         super(dependencyFactory, new ArrayList());
-        assert buildResolverDir != null;
         this.ivyFactory = ivyFactory;
         this.resolverFactory = resolverFactory;
         this.settingsConverter = settingsConverter;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
-        this.localReposCacheHandler.setBuildResolverDir(buildResolverDir);
-        this.buildResolverHandler.setBuildResolverDir(buildResolverDir);
+        this.buildResolverHandler = buildResolverHandler;
         this.excludeRules = excludeRuleContainer;
         this.classpathResolvers = new ResolverContainer(resolverFactory);
     }
@@ -347,14 +343,6 @@ public class BaseDependencyManager extends DefaultDependencyContainer
 
     public void setDependencyPublisher(IDependencyPublisher dependencyPublisher) {
         this.dependencyPublisher = dependencyPublisher;
-    }
-
-    public LocalReposCacheHandler getLocalReposCacheHandler() {
-        return localReposCacheHandler;
-    }
-
-    public void setLocalReposCacheHandler(LocalReposCacheHandler localReposCacheHandler) {
-        this.localReposCacheHandler = localReposCacheHandler;
     }
 
     public BuildResolverHandler getBuildResolverHandler() {

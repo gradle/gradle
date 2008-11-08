@@ -22,9 +22,9 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.logging.AntLoggingAdapter
-import org.gradle.execution.Dag
 import org.gradle.StartParameter
 import org.gradle.invocation.DefaultBuild
+import org.gradle.initialization.ISettingsFinder
 
 /**
  * @author Hans Dockter
@@ -49,9 +49,10 @@ class VersionTest extends GroovyTestCase {
     }
 
     DefaultProject createRootProject(File rootDir) {
+        ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
         IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
-                new DefaultDependencyManagerFactory(new File('root')),
+                new DefaultDependencyManagerFactory(settingsFinder),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 new StartParameter(),

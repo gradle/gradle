@@ -1,0 +1,78 @@
+/*
+ * Copyright 2007-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle;
+
+import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
+import org.gradle.groovy.scripts.*;
+import org.gradle.initialization.*;
+import org.gradle.util.WrapUtil;
+import org.gradle.logging.AntLoggingAdapter;
+import org.gradle.configuration.BuildConfigurer;
+import org.gradle.configuration.ProjectDependencies2TaskResolver;
+import org.gradle.configuration.ProjectTasksPrettyPrinter;
+
+/**
+ * @author Hans Dockter
+*/
+public class DefaultGradleFactory implements GradleFactory {
+    public Gradle newInstance(StartParameter startParameter) {
+        ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
+        IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(),
+                startParameter.getCacheUsage());
+        ISettingsFinder settingsFinder = startParameter.getSettingsScriptSource() == null
+                ? new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
+                new MasterDirSettingsFinderStrategy(),
+                new ParentDirSettingsFinderStrategy()))
+                : new EmbeddedScriptSettingsFinder();
+        DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory(settingsFinder);
+        Gradle gradle = new Gradle(
+                startParameter,
+                settingsFinder,
+                new DefaultGradlePropertiesLoader(),
+                new ScriptLocatingSettingsProcessor(
+                        new ScriptEvaluatingSettingsProcessor(
+                                new DefaultSettingsScriptMetaData(),
+                                scriptProcessor,
+                                importsReader,
+                                new SettingsFactory(
+                                        new DefaultProjectDescriptorRegistry(),
+                                        dependencyManagerFactory,
+                                        new BuildSourceBuilder(new DefaultGradleFactory())))
+                ),
+                new BuildLoader(
+                        new ProjectFactory(
+                                new TaskFactory(),
+                                dependencyManagerFactory,
+                                new BuildScriptProcessor(
+                                        scriptProcessor,
+                                        new DefaultProjectScriptMetaData(),
+                                        importsReader
+                                ),
+                                new PluginRegistry(
+                                        startParameter.getPluginPropertiesFile()),
+                                startParameter,
+                                startParameter.getBuildScriptSource(),
+                                new DefaultAntBuilderFactory(new AntLoggingAdapter()))
+                ),
+                new BuildConfigurer(
+                        new ProjectDependencies2TaskResolver(),
+                        new ProjectTasksPrettyPrinter()));
+
+        return gradle;
+    }
+}

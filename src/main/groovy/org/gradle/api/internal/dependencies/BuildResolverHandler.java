@@ -26,34 +26,18 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class BuildResolverHandler {
-    private File buildResolverDir;
-
     private LocalReposCacheHandler localReposCacheHandler;
+    private File buildResolverDir;
 
     private FileSystemResolver buildResolverInternal;
 
-    private FileSystemResolver buildDependenciesResolverInternal;
-
-    public BuildResolverHandler() {
-
-    }
-
-    BuildResolverHandler(LocalReposCacheHandler localReposCacheHandler) {
+    public BuildResolverHandler(File buildResolverDir, LocalReposCacheHandler localReposCacheHandler) {
+        this.buildResolverDir = buildResolverDir;
         this.localReposCacheHandler = localReposCacheHandler;
     }
 
     RepositoryResolver getBuildResolver() {
         if (buildResolverInternal == null) {
-            assert buildResolverDir != null;
-            buildResolverInternal = new FileSystemResolver();
-            configureBuildResolver(buildResolverInternal);
-        }
-        return buildResolverInternal;
-    }
-
-    RepositoryResolver getBuildDependenciesResolver() {
-        if (buildResolverInternal == null) {
-            assert buildResolverDir != null;
             buildResolverInternal = new FileSystemResolver();
             configureBuildResolver(buildResolverInternal);
         }
@@ -61,9 +45,9 @@ public class BuildResolverHandler {
     }
 
     private void configureBuildResolver(FileSystemResolver buildResolver) {
-        buildResolver.setRepositoryCacheManager(localReposCacheHandler.getCacheManager());
+        buildResolver.setRepositoryCacheManager(localReposCacheHandler.getCacheManager(new File(buildResolverDir, DependencyManager.DEFAULT_CACHE_DIR_NAME)));
         buildResolver.setName(DependencyManager.BUILD_RESOLVER_NAME);
-        String pattern = String.format(buildResolverDir.getAbsolutePath() + "/" + DependencyManager.BUILD_RESOLVER_PATTERN);
+        String pattern = String.format(getBuildResolverDir().getAbsolutePath() + "/" + DependencyManager.BUILD_RESOLVER_PATTERN);
         buildResolver.addIvyPattern(pattern);
         buildResolver.addArtifactPattern(pattern);
         buildResolver.setValidate(false);

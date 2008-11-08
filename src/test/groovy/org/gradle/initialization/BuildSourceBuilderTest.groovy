@@ -27,19 +27,30 @@ import static org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.GradleFactory
+import org.gradle.Gradle
+import org.gradle.BuildListener
+import org.gradle.api.DependencyManager
+import org.gradle.api.dependencies.Dependency
+import org.gradle.api.plugins.JavaPlugin
 
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock)
+@RunWith (org.jmock.integration.junit4.JMock)
 class BuildSourceBuilderTest {
     BuildSourceBuilder buildSourceBuilder
-    EmbeddedBuildExecuter embeddedBuildExecuter
+    GradleFactory gradleFactoryMock
+    Gradle gradleMock
+    Project rootProjectMock
+    DependencyManager dependencyManagerMock
     File rootDir
     File testBuildSrcDir
     File testBuildResolverDir
+    List testDependencies
     StartParameter expectedStartParameter
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    String expectedArtifactPath
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
@@ -47,8 +58,11 @@ class BuildSourceBuilderTest {
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
         (testBuildResolverDir = new File(testDir, 'testBuildResolverDir')).mkdir()
-        embeddedBuildExecuter = context.mock(EmbeddedBuildExecuter)
-        buildSourceBuilder = new BuildSourceBuilder(embeddedBuildExecuter)
+        gradleFactoryMock = context.mock(GradleFactory)
+        gradleMock = context.mock(Gradle)
+        rootProjectMock = context.mock(Project)
+        dependencyManagerMock = context.mock(DependencyManager)
+        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock)
         expectedStartParameter = new StartParameter(
                 searchUpwards: true,
                 currentDir: testBuildSrcDir,
@@ -57,6 +71,13 @@ class BuildSourceBuilderTest {
                 gradleUserHomeDir: new File('gradleUserHome'),
                 projectProperties: dependencyProjectProps
         )
+        testDependencies = ['dep1' as File, 'dep2' as File]
+        expectedArtifactPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
+                "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
+        context.checking {
+            allowing(rootProjectMock).getDependencies(); will(returnValue(dependencyManagerMock))
+            allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(testBuildResolverDir))
+        }
     }
 
     @After
@@ -65,59 +86,67 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testBuildSourceBuilder() {
-        assert buildSourceBuilder.embeddedBuildExecuter.is(embeddedBuildExecuter)
+        assert buildSourceBuilder.gradleFactory.is(gradleFactoryMock)
     }
 
     @Test public void testBuildArtifactFile() {
-        String expectedPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
-                "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
-        assertEquals(new File(expectedPath), buildSourceBuilder.buildArtifactFile(testBuildResolverDir))
+        assertEquals(new File(expectedArtifactPath), buildSourceBuilder.buildArtifactFile(testBuildResolverDir))
     }
 
     @Test public void testCreateDependencyWithExistingBuildSources() {
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
         modifiedStartParameter.setSearchUpwards(false)
-        modifiedStartParameter.setBuildResolverDir(testBuildResolverDir)
         context.checking {
-            one(embeddedBuildExecuter).execute(modifiedStartParameter)
+            one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
+            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
+            one(gradleMock).run()
+            one(dependencyManagerMock).resolve(JavaPlugin.RUNTIME); will(returnValue(testDependencies))
         }
         createArtifact()
         createBuildFile()
-        def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
-        assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
+        List actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
+        assertEquals(new HashSet(testDependencies + [expectedArtifactPath as File]), new HashSet(actualClasspath))
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
         StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
         modifiedStartParameter.setSearchUpwards(false)
-        modifiedStartParameter.setBuildResolverDir(testBuildResolverDir)
         modifiedStartParameter.useEmbeddedBuildFile(BuildSourceBuilder.getDefaultScript())
         context.checking {
-            one(embeddedBuildExecuter).execute(modifiedStartParameter)
+            one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
+            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
+            one(gradleMock).run()
+            one(dependencyManagerMock).resolve(JavaPlugin.RUNTIME); will(returnValue(testDependencies))
         }
         createArtifact()
-        def result = buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter)
-        assertEquals(result, BuildSourceBuilder.BUILD_SRC_ID)
+        List actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
+        assertEquals(new HashSet(testDependencies + [expectedArtifactPath as File]), new HashSet(actualClasspath))
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
-        assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
+        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
+        StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
+        modifiedStartParameter.setSearchUpwards(false)
         context.checking {
-            one(embeddedBuildExecuter).execute(withParam(any(StartParameter)))
+            one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
+            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
+            one(gradleMock).run()
+            allowing(dependencyManagerMock).resolve(JavaPlugin.RUNTIME); will(returnValue(testDependencies))
         }
-        assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
+        createBuildFile()
+        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     @Test public void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setTaskNames([])
-        assertNull(buildSourceBuilder.createDependency(testBuildResolverDir, expectedStartParameter))
+        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     private createBuildFile() {

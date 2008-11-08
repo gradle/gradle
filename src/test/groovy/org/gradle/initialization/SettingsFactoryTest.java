@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.DefaultGradleFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
@@ -51,7 +52,7 @@ public class SettingsFactoryTest {
             allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
         }});
 
-        BuildSourceBuilder expectedBuildSourceBuilder = new BuildSourceBuilder(new EmbeddedBuildExecuter());
+        BuildSourceBuilder expectedBuildSourceBuilder = new BuildSourceBuilder(new DefaultGradleFactory());
 
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();

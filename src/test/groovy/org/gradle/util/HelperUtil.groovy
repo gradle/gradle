@@ -35,6 +35,7 @@ import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer
+import org.gradle.initialization.ISettingsFinder
 
 
 
@@ -64,9 +65,10 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
+        ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
         IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
-                new DefaultDependencyManagerFactory(new File('root')),
+                new DefaultDependencyManagerFactory(settingsFinder),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 new StartParameter(),

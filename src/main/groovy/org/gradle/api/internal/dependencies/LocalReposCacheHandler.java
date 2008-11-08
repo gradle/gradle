@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
@@ -27,44 +27,14 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class LocalReposCacheHandler {
-    private File buildResolverDir;
-
-    private DefaultRepositoryCacheManager cacheManagerInternal;
-
-    public LocalReposCacheHandler() {
-
-    }
-
-    public LocalReposCacheHandler(File buildResolverDir) {
-        this.buildResolverDir = buildResolverDir;
-    }
-
-    public RepositoryCacheManager getCacheManager() {
-        if (cacheManagerInternal == null) {
-            cacheManagerInternal = new DefaultRepositoryCacheManager();
-            cacheManagerInternal.setBasedir(new File(buildResolverDir, DependencyManager.DEFAULT_CACHE_DIR_NAME));
-            cacheManagerInternal.setName(DependencyManager.DEFAULT_CACHE_NAME);
-            cacheManagerInternal.setUseOrigin(true);
-            cacheManagerInternal.setLockStrategy(new NoLockStrategy());
-            cacheManagerInternal.setIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
-            cacheManagerInternal.setArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN);
-        }
-        return cacheManagerInternal;
-    }
-
-    public File getBuildResolverDir() {
-        return buildResolverDir;
-    }
-
-    public void setBuildResolverDir(File buildResolverDir) {
-        this.buildResolverDir = buildResolverDir;
-    }
-
-    public DefaultRepositoryCacheManager getCacheManagerInternal() {
-        return cacheManagerInternal;
-    }
-
-    public void setCacheManagerInternal(DefaultRepositoryCacheManager cacheManagerInternal) {
-        this.cacheManagerInternal = cacheManagerInternal;
+    public RepositoryCacheManager getCacheManager(File baseDir) {
+        DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager();
+        cacheManager.setBasedir(baseDir);
+        cacheManager.setName(DependencyManager.DEFAULT_CACHE_NAME);
+        cacheManager.setUseOrigin(true);
+        cacheManager.setLockStrategy(new NoLockStrategy());
+        cacheManager.setIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
+        cacheManager.setArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN);
+        return cacheManager;
     }
 }

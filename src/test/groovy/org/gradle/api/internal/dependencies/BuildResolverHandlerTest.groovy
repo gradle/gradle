@@ -22,7 +22,9 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.lib.legacy.ClassImposteriser;
 
 /**
  * @author Hans Dockter
@@ -36,11 +38,13 @@ class BuildResolverHandlerTest {
 
     File buildResolverDir
 
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     @Before public void setUp()  {
+        context.setImposteriser(ClassImposteriser.INSTANCE)
         localReposCacheHandler = new LocalReposCacheHandler()
         buildResolverDir = new File('buildResolver')
-        handler = new BuildResolverHandler(localReposCacheHandler)
-        handler.buildResolverDir = buildResolverDir
+        handler = new BuildResolverHandler(buildResolverDir, localReposCacheHandler)
     }
 
     @Test public void testInit() {
@@ -49,7 +53,11 @@ class BuildResolverHandlerTest {
     }
 
     @Test public void testGetBuildResolver() {
-        handler.localReposCacheHandler = [getCacheManager: {dummyCacheManager}] as LocalReposCacheHandler
+        handler.localReposCacheHandler = context.mock(LocalReposCacheHandler)
+        context.checking {
+            one(handler.localReposCacheHandler).getCacheManager(new File(buildResolverDir, DependencyManager.DEFAULT_CACHE_DIR_NAME))
+            will(returnValue(dummyCacheManager))
+        }
         FileSystemResolver buildResolver = handler.buildResolver
         // check lazy init
         assert buildResolver

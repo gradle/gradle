@@ -38,9 +38,9 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     public DefaultDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
                                     ResolverFactory resolverFactory, SettingsConverter settingsConverter, DefaultModuleDescriptorConverter moduleDescriptorConverter,
                                     IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                                    File buildResolverDir, ExcludeRuleContainer excludeRuleContainer) {
+                                    BuildResolverHandler buildResolverHandler, ExcludeRuleContainer excludeRuleContainer) {
         super(ivyFactory, dependencyFactory, resolverFactory, settingsConverter, moduleDescriptorConverter,
-                dependencyResolver, dependencyPublisher, buildResolverDir, excludeRuleContainer);
+                dependencyResolver, dependencyPublisher, buildResolverHandler, excludeRuleContainer);
     }
 
     public def propertyMissing(String name) {

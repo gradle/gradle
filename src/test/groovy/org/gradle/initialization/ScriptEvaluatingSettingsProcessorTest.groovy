@@ -46,10 +46,8 @@ class ScriptEvaluatingSettingsProcessorTest {
     ScriptEvaluatingSettingsProcessor settingsProcessor
     DefaultSettingsFinder expectedSettingsFinder
     ImportsReader importsReader
-    DependencyManagerFactory dependencyManagerFactory
     SettingsFactory settingsFactory
     StartParameter expectedStartParameter
-    File buildResolverDir
     IScriptProcessor scriptProcessorMock
     ISettingsScriptMetaData settingsScriptMetaData
     DefaultSettings expectedSettings
@@ -63,8 +61,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         instantiateConstructorArgs()
-        settingsProcessor = new ScriptEvaluatingSettingsProcessor(settingsScriptMetaData, scriptProcessorMock, importsReader, settingsFactory,
-                dependencyManagerFactory, buildResolverDir)
+        settingsProcessor = new ScriptEvaluatingSettingsProcessor(settingsScriptMetaData, scriptProcessorMock, importsReader, settingsFactory)
         initSettingsFinder()
         expectedStartParameter = new StartParameter()
         expectedGradleProperties = [a: 'b']
@@ -77,8 +74,6 @@ class ScriptEvaluatingSettingsProcessorTest {
         scriptProcessorMock = context.mock(IScriptProcessor)
         importsReader = new ImportsReader()
         settingsFactory = context.mock(SettingsFactory)
-        dependencyManagerFactory = new DefaultDependencyManagerFactory(new File('root'))
-        buildResolverDir = HelperUtil.makeNewTestDir('buildResolver')
     }
 
     private void initExpectedSettings() {
@@ -111,8 +106,6 @@ class ScriptEvaluatingSettingsProcessorTest {
         assertSame(scriptProcessorMock, settingsProcessor.scriptProcessor)
         assert settingsProcessor.importsReader.is(importsReader)
         assert settingsProcessor.settingsFactory.is(settingsFactory)
-        assert settingsProcessor.dependencyManagerFactory.is(dependencyManagerFactory)
-        assert settingsProcessor.buildResolverDir.is(buildResolverDir)
     }
 
     @Test public void testProcessWithSettingsFile() {
@@ -122,7 +115,6 @@ class ScriptEvaluatingSettingsProcessorTest {
             allowing(scriptSourceMock).getText(); will(returnValue(""))
         }
         assertSame(expectedSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, propertiesLoaderMock))
-        checkDependencyManagerFactory()
     }
 
     private void prepareScriptProcessorMock() {
@@ -136,21 +128,5 @@ class ScriptEvaluatingSettingsProcessorTest {
             will(returnValue(expectedScript))
             one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
         }
-    }
-
-    private void checkDependencyManagerFactory() {
-        assertEquals(buildResolverDir, dependencyManagerFactory.getBuildResolverDir())
-    }
-
-    @Test public void testProcessWithNullBuildResolverDir() {
-        settingsProcessor.setBuildResolverDir(null)
-        expectedStartParameter.setCurrentDir(TEST_ROOT_DIR)
-        prepareScriptProcessorMock()
-        context.checking {
-            allowing(scriptSourceMock).getText(); will(returnValue(""))
-        }
-        assertSame(expectedSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, propertiesLoaderMock))
-        assertEquals(new File(TEST_ROOT_DIR, Project.TMP_DIR_NAME + "/" +
-                DependencyManager.BUILD_RESOLVER_NAME), dependencyManagerFactory.getBuildResolverDir())
     }
 }

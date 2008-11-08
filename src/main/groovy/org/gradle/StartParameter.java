@@ -52,7 +52,6 @@ public class StartParameter {
     private File gradleUserHomeDir = new File(Main.DEFAULT_GRADLE_USER_HOME);
     private File defaultImportsFile;
     private File pluginPropertiesFile;
-    private File buildResolverDir;
     private File gradleHomeDir;
     private CacheUsage cacheUsage;
     private ScriptSource buildScriptSource;
@@ -94,7 +93,6 @@ public class StartParameter {
         startParameter.defaultImportsFile = defaultImportsFile;
         startParameter.pluginPropertiesFile = pluginPropertiesFile;
         startParameter.cacheUsage = cacheUsage;
-        startParameter.buildResolverDir = buildResolverDir;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.buildExecuter = buildExecuter;
@@ -192,25 +190,6 @@ public class StartParameter {
         settingsScriptSource = new StringScriptSource("empty settings file", "");
         searchUpwards = false;
         return this;
-    }
-
-    /**
-     * <p>Returns the build resolver directory to use, if any. The build resolver directory is used to store artifacts
-     * shared between the projects of the build.  Returns null when the default build resolver directory is to be used.
-     * </p>
-     *
-     * @return The build resolver directory, or null if the default is to be used.
-     */
-    public File getBuildResolverDir() {
-        return buildResolverDir;
-    }
-
-    /**
-     * <p>Specifies the build resolver directory to use. The build resolver directory is used to store artifacts shared
-     * between the projects of the build.  Set to null to use the default build resolver directory for this build.</p>
-     */
-    public void setBuildResolverDir(File buildResolverDir) {
-        this.buildResolverDir = buildResolverDir;
     }
 
     /**

@@ -28,14 +28,13 @@ import org.junit.Test;
 class LocalReposCacheHandlerTest {
      @Test public void testGetCacheManager() {
          File buildResolverDir = '/somedir' as File
-         LocalReposCacheHandler cacheHandler = new LocalReposCacheHandler(buildResolverDir)
-         DefaultRepositoryCacheManager cacheManager = cacheHandler.cacheManager
-         assert cacheManager.is(cacheHandler.cacheManager)
+         LocalReposCacheHandler cacheHandler = new LocalReposCacheHandler()
+         DefaultRepositoryCacheManager cacheManager = cacheHandler.getCacheManager(buildResolverDir)
          assert cacheManager.useOrigin
          assert cacheManager.name == DependencyManager.DEFAULT_CACHE_NAME
          assertEquals(DependencyManager.DEFAULT_CACHE_IVY_PATTERN, cacheManager.ivyPattern)
          assert cacheManager.artifactPattern == DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN
-         assertEquals(new File(buildResolverDir, DependencyManager.DEFAULT_CACHE_DIR_NAME), cacheManager.basedir)
+         assertEquals(buildResolverDir, cacheManager.basedir)
          assert cacheManager.lockStrategy instanceof NoLockStrategy
      }
 }

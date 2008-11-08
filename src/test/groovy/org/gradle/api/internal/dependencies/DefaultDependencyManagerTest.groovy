@@ -93,18 +93,17 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         settingsConverter = context.mock(DefaultSettingsConverter)
         buildResolverDir = new File('buildResolverDir')
         moduleDescriptorConverter = context.mock(DefaultModuleDescriptorConverter)
-        dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, resolverFactoryMock, settingsConverter,
-                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, buildResolverDir, testExcludeRuleContainer)
-        dependencyManager.project = project
-        dependencyManager.clientModuleRegistry = [a: 'b']
-        dependencyManager.defaultConfs = testDefaultConfs
-        expectedBuildResolver = new FileSystemResolver()
         mockSpecialResolverHandler = context.mock(BuildResolverHandler)
-        dependencyManager.buildResolverHandler = mockSpecialResolverHandler
+        expectedBuildResolver = new FileSystemResolver()
         context.checking {
             allowing(mockSpecialResolverHandler).getBuildResolverDir(); will(returnValue(buildResolverDir))
             allowing(mockSpecialResolverHandler).getBuildResolver(); will(returnValue(expectedBuildResolver))
         }
+        dependencyManager = new DefaultDependencyManager(ivyFactoryMock, dependencyFactory, resolverFactoryMock, settingsConverter,
+                moduleDescriptorConverter, dependencyResolverMock, dependencyPublisherMock, mockSpecialResolverHandler, testExcludeRuleContainer)
+        dependencyManager.project = project
+        dependencyManager.clientModuleRegistry = [a: 'b']
+        dependencyManager.defaultConfs = testDefaultConfs
     }
 
     @Test public void testInit() {
@@ -115,11 +114,10 @@ public class DefaultDependencyManagerTest extends AbstractDependencyContainerTes
         assert dependencyManager.dependencyResolver.is(dependencyResolverMock)
         assert dependencyManager.dependencyPublisher.is(dependencyPublisherMock)
         assert dependencyManager.excludeRules.is(testExcludeRuleContainer)
-        assert dependencyManager.buildResolverDir.is(buildResolverDir)
         assert dependencyManager.classpathResolvers
         assert dependencyManager.failForMissingDependencies
-        assert dependencyManager.localReposCacheHandler.buildResolverDir.is(buildResolverDir)
-        assert dependencyManager.buildResolverHandler.buildResolverDir.is(buildResolverDir)
+        assert dependencyManager.buildResolverHandler.is(mockSpecialResolverHandler)
+        assert dependencyManager.buildResolverDir.is(mockSpecialResolverHandler.buildResolverDir)
         assertNotNull(dependencyManager.defaultMavenScopeMapping)
         assertEquals([], dependencyManager.getAbsoluteArtifactPatterns())
         assertEquals([] as Set, dependencyManager.getArtifactParentDirs())

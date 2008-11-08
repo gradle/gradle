@@ -46,14 +46,16 @@ class DefaultModuleDescriptorConverterTest {
     ExcludeRule testExcludeRule1;
     ExcludeRule testExcludeRule2;
     ExcludeRuleContainer excludeRuleContainerMock;
+    BuildResolverHandler buildResolverHandlerMock;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         excludeRuleContainerMock = context.mock(ExcludeRuleContainer)
+        buildResolverHandlerMock = context.mock(BuildResolverHandler)
         moduleDescriptorConverter = new DefaultModuleDescriptorConverter()
-        dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, new File('buildResolverDir'),
+        dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, buildResolverHandlerMock,
                 new DefaultExcludeRuleContainer())
         dependencyManager.project = new DefaultProject()
         dependencyManager.setExcludeRules(excludeRuleContainerMock)

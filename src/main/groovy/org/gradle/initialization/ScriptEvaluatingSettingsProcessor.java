@@ -47,10 +47,6 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     private SettingsFactory settingsFactory;
 
-    private DependencyManagerFactory dependencyManagerFactory;
-
-    private File buildResolverDir;
-
     private IScriptProcessor scriptProcessor;
 
     private ISettingsScriptMetaData settingsScriptMetaData;
@@ -61,21 +57,16 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public ScriptEvaluatingSettingsProcessor(ISettingsScriptMetaData settingsScriptMetaData,
                                              IScriptProcessor scriptProcessor, ImportsReader importsReader,
-                                             SettingsFactory settingsFactory,
-                                             DependencyManagerFactory dependencyManagerFactory,
-                                             File buildResolverDir) {
+                                             SettingsFactory settingsFactory) {
         this.settingsScriptMetaData = settingsScriptMetaData;
         this.scriptProcessor = scriptProcessor;
         this.importsReader = importsReader;
         this.settingsFactory = settingsFactory;
-        this.dependencyManagerFactory = dependencyManagerFactory;
-        this.buildResolverDir = buildResolverDir;
     }
 
     public SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter,
                                     IGradlePropertiesLoader propertiesLoader) {
         Clock settingsProcessingClock = new Clock();
-        initDependencyManagerFactory(settingsFinder);
         SettingsInternal settings = settingsFactory.createSettings(settingsFinder.getSettingsDir(),
                 settingsFinder.getSettingsScriptSource(), propertiesLoader.getGradleProperties(), startParameter);
         applySettingsScript(settingsFinder, settings);
@@ -100,15 +91,6 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         }
     }
 
-    private void initDependencyManagerFactory(ISettingsFinder settingsFinder) {
-        File buildResolverDir = GUtil.elvis(this.buildResolverDir, new File(settingsFinder.getSettingsDir(),
-                Project.TMP_DIR_NAME + "/" +
-                        DependencyManager.BUILD_RESOLVER_NAME));
-        GradleUtil.deleteDir(buildResolverDir);
-        dependencyManagerFactory.setBuildResolverDir(buildResolverDir);
-        logger.debug("Set build resolver dir to: {}", dependencyManagerFactory.getBuildResolverDir());
-    }
-
     public ImportsReader getImportsReader() {
         return importsReader;
     }
@@ -123,22 +105,6 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public void setSettingsFactory(SettingsFactory settingsFactory) {
         this.settingsFactory = settingsFactory;
-    }
-
-    public DependencyManagerFactory getDependencyManagerFactory() {
-        return dependencyManagerFactory;
-    }
-
-    public void setDependencyManagerFactory(DependencyManagerFactory dependencyManagerFactory) {
-        this.dependencyManagerFactory = dependencyManagerFactory;
-    }
-
-    public File getBuildResolverDir() {
-        return buildResolverDir;
-    }
-
-    public void setBuildResolverDir(File buildResolverDir) {
-        this.buildResolverDir = buildResolverDir;
     }
 
     public void setScriptProcessor(IScriptProcessor scriptProcessor) {
