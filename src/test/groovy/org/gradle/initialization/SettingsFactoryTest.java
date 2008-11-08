@@ -52,7 +52,7 @@ public class SettingsFactoryTest {
             allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
         }});
 
-        BuildSourceBuilder expectedBuildSourceBuilder = new BuildSourceBuilder(new DefaultGradleFactory());
+        BuildSourceBuilder expectedBuildSourceBuilder = new BuildSourceBuilder(new DefaultGradleFactory(), new DefaultCacheInvalidationStrategy());
 
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();

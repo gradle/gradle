@@ -68,7 +68,7 @@ class HelperUtil {
         ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
         IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
-                new DefaultDependencyManagerFactory(settingsFinder),
+                new DefaultDependencyManagerFactory(settingsFinder, CacheUsage.ON),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 new StartParameter(),

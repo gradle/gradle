@@ -39,7 +39,7 @@ public class DefaultGradleFactory implements GradleFactory {
                 new MasterDirSettingsFinderStrategy(),
                 new ParentDirSettingsFinderStrategy()))
                 : new EmbeddedScriptSettingsFinder();
-        DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory(settingsFinder);
+        DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory(settingsFinder, startParameter.getCacheUsage());
         Gradle gradle = new Gradle(
                 startParameter,
                 settingsFinder,
@@ -52,7 +52,7 @@ public class DefaultGradleFactory implements GradleFactory {
                                 new SettingsFactory(
                                         new DefaultProjectDescriptorRegistry(),
                                         dependencyManagerFactory,
-                                        new BuildSourceBuilder(new DefaultGradleFactory())))
+                                        new BuildSourceBuilder(new DefaultGradleFactory(), new DefaultCacheInvalidationStrategy())))
                 ),
                 new BuildLoader(
                         new ProjectFactory(

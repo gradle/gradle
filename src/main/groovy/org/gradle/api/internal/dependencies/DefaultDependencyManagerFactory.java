@@ -19,7 +19,9 @@ package org.gradle.api.internal.dependencies;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.GradleUtil;
 import org.gradle.initialization.ISettingsFinder;
+import org.gradle.CacheUsage;
 
 import java.io.File;
 import java.util.Set;
@@ -29,9 +31,11 @@ import java.util.Set;
  */
 public class DefaultDependencyManagerFactory implements DependencyManagerFactory {
     private ISettingsFinder settingsFinder;
+    private CacheUsage cacheUsage;
 
-    public DefaultDependencyManagerFactory(ISettingsFinder settingsFinder) {
+    public DefaultDependencyManagerFactory(ISettingsFinder settingsFinder, CacheUsage cacheUsage) {
         this.settingsFinder = settingsFinder;
+        this.cacheUsage = cacheUsage;
     }
 
     public DependencyManager createDependencyManager(Project project) {
@@ -39,6 +43,9 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
                 new ModuleDependencyFactory(),
                 new ProjectDependencyFactory());
         File buildResolverDir = new File(settingsFinder.getSettingsDir(), Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
+        if (cacheUsage != CacheUsage.ON) {
+            GradleUtil.deleteDir(buildResolverDir);
+        }
         DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
                 new DefaultIvyFactory(),
                 new DependencyFactory(dependencyImpls),

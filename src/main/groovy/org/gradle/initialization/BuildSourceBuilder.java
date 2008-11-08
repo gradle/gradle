@@ -22,12 +22,12 @@ import org.gradle.*;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
 import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,13 +50,13 @@ public class BuildSourceBuilder {
     public static final String BUILD_SRC_ID = String.format("%s:%s:%s", BUILD_SRC_ORG, BUILD_SRC_MODULE, BUILD_SRC_REVISION);
 
     private GradleFactory gradleFactory;
+    private CacheInvalidationStrategy cacheInvalidationStrategy;
+    
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
-    public BuildSourceBuilder() {
-    }
-
-    public BuildSourceBuilder(GradleFactory gradleFactory) {
+    public BuildSourceBuilder(GradleFactory gradleFactory, CacheInvalidationStrategy cacheInvalidationStrategy) {
         this.gradleFactory = gradleFactory;
+        this.cacheInvalidationStrategy = cacheInvalidationStrategy;
     }
 
     public List<File> createBuildSourceClasspath(StartParameter startParameter) {
@@ -74,9 +74,21 @@ public class BuildSourceBuilder {
         logger.info("================================================" + " Start building buildSrc");
         try {
             Logging.LIFECYCLE.add(Logging.DISABLED);
+
+            // todo Remove this redundancy. We have defined the buildResolverDir already somewhere else.
+            // We should get the build resolver dir from the root project. But as we need to get the dir before
+            // the build is executed, the Gradle class should offer distinct methods for gettting an evaluated
+            // project tree and running a build against such a tree. In the case of a valid cache, this would also
+            // save the time to build the dag.
+            File buildResolverDir = new File(startParameter.getCurrentDir(), Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
+
             StartParameter startParameterArg = startParameter.newInstance();
             startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
             startParameterArg.setSearchUpwards(false);
+
+            if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(buildArtifactFile(buildResolverDir), startParameter.getCurrentDir())) {
+                startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.INIT));
+            }
 
             if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
                 logger.debug("Build script file does not exists. Using default one.");

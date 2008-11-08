@@ -20,9 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.initialization.ISettingsFinder;
+import org.gradle.CacheUsage;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
 
@@ -34,16 +38,50 @@ import java.util.Set;
  */
 public class DefaultDependencyManagerFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
-    @Test public void testCreate() {
-        Project expectedProject = new DefaultProject();
-        final File testRootDir = new File("root");
-        final File expectedBuildResolverDir = new File(testRootDir, Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
-        final ISettingsFinder settingsFinderMock = context.mock(ISettingsFinder.class);
+    private File expectedBuildResolverDir;
+    private File testRootDir;
+    private ISettingsFinder settingsFinderMock;
+    private Project expectedProject;
+
+    @Before
+    public void setUp() {
+        expectedProject = new DefaultProject();
+        testRootDir = HelperUtil.makeNewTestDir();
+        expectedBuildResolverDir = new File(testRootDir, Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
+        expectedBuildResolverDir.mkdirs();
+        settingsFinderMock = context.mock(ISettingsFinder.class);
         context.checking(new Expectations() {{
             allowing(settingsFinderMock).getSettingsDir(); will(returnValue(testRootDir));
         }});
+    }
+
+    @After
+    public void tearDown() {
+        HelperUtil.deleteTestDir();
+    }
+
+    @Test public void testCreate() {
         DefaultDependencyManager dependencyManager = (DefaultDependencyManager)
-                new DefaultDependencyManagerFactory(settingsFinderMock).createDependencyManager(expectedProject);
+                new DefaultDependencyManagerFactory(settingsFinderMock, CacheUsage.ON).createDependencyManager(expectedProject);
+        assertTrue(expectedBuildResolverDir.isDirectory());
+        checkCommon(expectedProject, dependencyManager);
+    }
+
+    @Test public void testCreateWithCacheOff() {
+        DefaultDependencyManager dependencyManager = (DefaultDependencyManager)
+                new DefaultDependencyManagerFactory(settingsFinderMock, CacheUsage.OFF).createDependencyManager(expectedProject);
+        assertTrue(!expectedBuildResolverDir.isDirectory());
+        checkCommon(expectedProject, dependencyManager);
+    }
+
+    @Test public void testCreateWithCacheRebuild() {
+        DefaultDependencyManager dependencyManager = (DefaultDependencyManager)
+                new DefaultDependencyManagerFactory(settingsFinderMock, CacheUsage.REBUILD).createDependencyManager(expectedProject);
+        assertTrue(!expectedBuildResolverDir.isDirectory());
+        checkCommon(expectedProject, dependencyManager);
+    }
+
+    private void checkCommon(Project expectedProject, DefaultDependencyManager dependencyManager) {
         // todo: check when ivy management has improved
         //assertNotNull(dependencyManager.ivy)
         assertSame(expectedProject, dependencyManager.getProject());

@@ -25,6 +25,7 @@ import org.gradle.logging.AntLoggingAdapter
 import org.gradle.StartParameter
 import org.gradle.invocation.DefaultBuild
 import org.gradle.initialization.ISettingsFinder
+import org.gradle.CacheUsage
 
 /**
  * @author Hans Dockter
@@ -52,7 +53,7 @@ class VersionTest extends GroovyTestCase {
         ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
         IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
-                new DefaultDependencyManagerFactory(settingsFinder),
+                new DefaultDependencyManagerFactory(settingsFinder, CacheUsage.ON),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 new StartParameter(),
