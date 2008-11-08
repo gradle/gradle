@@ -232,6 +232,7 @@ public class JavaPlugin implements Plugin {
                         return WrapUtil.toList(new FileSet(javaConvention.getClassesDir()));
                     }
                 }));
+        jar.configurations(new String[] { Dependency.MASTER_CONFIGURATION });
     }
 
     private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
