@@ -37,7 +37,6 @@ public class Bundle extends ConventionTask {
     public static final String BASENAME_KEY = "baseName";
     public static final String APPENDIX_KEY = "appendix";
     public static final String CLASSIFIER_KEY = "classifier";
-    public static final String CONFS_KEY = "confs";
 
     private Set childrenDependOn = new HashSet();
 
@@ -74,7 +73,7 @@ public class Bundle extends ConventionTask {
         archiveTask.setExtension(type.getDefaultExtension());
         archiveTask.setDestinationDir(defaultDestinationDir);
         setTaskDependsOn(archiveTask, getChildrenDependOn());
-        setArchiveConfigurations(archiveTask, args);
+        archiveTask.configurations((String[]) defaultConfigurations.toArray(new String[defaultConfigurations.size()]));
         this.dependsOn(taskName);
         archiveTasks.add(archiveTask);
         for (ConfigureAction configureAction : configureActions) {
@@ -85,13 +84,7 @@ public class Bundle extends ConventionTask {
         }
         return archiveTask;
     }
-
-    private void setArchiveConfigurations(AbstractArchiveTask task, Map args) {
-        List<String> confs = new ArrayList((List<String>) GUtil.elvis(args.get(CONFS_KEY), WrapUtil.toList(Dependency.MASTER_CONFIGURATION)));
-        confs.addAll(defaultConfigurations);
-        task.configurations((String[]) confs.toArray(new String[confs.size()]));
-    }
-
+    
     private void setTaskDependsOn(AbstractArchiveTask task, Set<Object> childrenDependOn) {
         if (GUtil.isTrue(childrenDependOn)) {
             task.dependsOn(childrenDependOn);

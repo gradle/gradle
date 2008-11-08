@@ -233,7 +233,6 @@ class BundleTest extends AbstractConventionTaskTest {
         String archiveBaseName = (args.baseName ?: getProject().archivesBaseName) + (args.appendix ? "-" + args.appendix : "")
         String classifier = args.classifier ? '_' + args.classifier : ''
         List confs = []
-        confs.addAll(args.confs != null ? args.confs : [Dependency.MASTER_CONFIGURATION])
         confs.addAll(testDefaultConfigurations)
         checkCommonStuff(archiveTask, "${taskName}${classifier}_${archiveType.defaultExtension}",
                 archiveType.conventionMapping, archiveBaseName, classifier ? classifier.substring(1) : '', confs)
