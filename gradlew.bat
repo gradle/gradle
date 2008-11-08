@@ -12,6 +12,9 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
+@rem Uncomment this line to set JVM_OPTS
+@rem set GRADLE_OPTS=%GRADLE_OPTS% -Xmx512
+
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.\
 
@@ -101,10 +104,10 @@ set CLASSPATH=%DIRNAME%\wrapper\gradle-wrapper.jar
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 
-if "%JAVA_OPTS%" == "" set JAVA_OPTS="-Xmx128m"
-set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
+if "%GRADLE_OPTS%" == "" set GRADLE_OPTS="-Xmx128m"
+set GRADLE_OPTS=%GRADLE_OPTS% -Dtools.jar="%TOOLS_JAR%"
 
-"%JAVA_EXE%" %JAVA_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
+"%JAVA_EXE%" %GRADLE_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
