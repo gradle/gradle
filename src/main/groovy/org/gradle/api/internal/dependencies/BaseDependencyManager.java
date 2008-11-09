@@ -118,7 +118,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     public List<File> resolveTask(String taskName) {
         Set<String> confs = confs4Task.get(taskName);
         if (!GUtil.isTrue(confs)) {
-            throw new InvalidUserDataException("Task $taskName is not mapped to any conf!");
+            throw new InvalidUserDataException(String.format("Task %s is not mapped to any conf!", taskName));
         }
         Set<File> paths = new HashSet<File>();
         for (String conf : confs) {

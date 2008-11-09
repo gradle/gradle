@@ -35,11 +35,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>{@code StartParameter} defines the configuration used by a {@link Gradle} instance to execute a build. You
- * pass an instance of this class to {@link Gradle#newInstance(StartParameter)} when you create a new {@code Gradle}
+ * <p>{@code StartParameter} defines the configuration used by a {@link Gradle} instance to execute a build. The
+ * properties of {@code StartParameter} generally correspond to the command-line options of Gradle. You pass a {@code
+ * StartParameter} instance to {@link Gradle#newInstance(StartParameter)} when you create a new {@code Gradle}
  * instance.</p>
  *
+ * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing
+ * one using {@link #newInstance} or {@link #newBuild}.</p>
+ *
  * @author Hans Dockter
+ * @see Gradle
  */
 public class StartParameter {
     private String settingsFileName = Settings.DEFAULT_SETTINGS_FILE;
@@ -59,10 +64,14 @@ public class StartParameter {
     private BuildExecuter buildExecuter;
     private boolean mergedBuild;
 
+    /**
+     * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
+     * command-line with no arguments.
+     */
     public StartParameter() {
     }
 
-    public StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir,
+    StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir,
                           boolean searchUpwards, Map<String, String> projectProperties,
                           Map<String, String> systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile,
                           File pluginPropertiesFile, CacheUsage cacheUsage) {
@@ -79,6 +88,11 @@ public class StartParameter {
         this.cacheUsage = cacheUsage;
     }
 
+    /**
+     * Duplicates this {@code StartParameter} instance.
+     *
+     * @return the new parameters.
+     */
     public StartParameter newInstance() {
         StartParameter startParameter = new StartParameter();
         startParameter.settingsFileName = settingsFileName;
@@ -222,6 +236,12 @@ public class StartParameter {
         this.buildExecuter = buildExecuter;
     }
 
+    /**
+     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be
+     * executed.
+     *
+     * @return the names of the tasks to execute in this build. Never returns null.
+     */
     public List<String> getTaskNames() {
         return taskNames;
     }
@@ -229,6 +249,8 @@ public class StartParameter {
     /**
      * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the
      * project.</p>
+     *
+     * @param taskNames the names of the tasks to execute in this build.
      */
     public void setTaskNames(List<String> taskNames) {
         this.taskNames = !GUtil.isTrue(taskNames) ? new ArrayList<String>() : new ArrayList<String>(taskNames);

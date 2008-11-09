@@ -24,6 +24,7 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.dependencies.ResolverContainer;
+import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
@@ -153,8 +154,12 @@ public class BaseSettings implements SettingsInternal {
         dependencyManager.dependencies(WrapUtil.toList(BUILD_CONFIGURATION), dependencies);
     }
 
-    public void dependency(String id, Closure configureClosure) {
-        dependencyManager.dependency(WrapUtil.toList(BUILD_CONFIGURATION), id, configureClosure);
+    public Dependency dependency(Object dependency) {
+        return dependencyManager.dependency(WrapUtil.toList(BUILD_CONFIGURATION), dependency);
+    }
+    
+    public Dependency dependency(Object dependency, Closure configureClosure) {
+        return dependencyManager.dependency(WrapUtil.toList(BUILD_CONFIGURATION), dependency, configureClosure);
     }
 
     public void clientModule(String id, Closure configureClosure) {

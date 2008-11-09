@@ -15,13 +15,6 @@
  */
 
 /**
- * <p><b>Start Here:</b> Gradle's {@link org.gradle.api.Project} API, which is available from your build files. The
- * API used from your build files is made up of 3 main interfaces:</p>
- *
- * <ul>
- * <li>{@link org.gradle.api.Project}</li>
- * <li>{@link org.gradle.api.Task}</li>
- * <li>{@link org.gradle.api.DependencyManager}</li>
- * </ul>
+ * Maven specific classes for dependency management.
  */
-package org.gradle.api;
+package org.gradle.api.dependencies.maven;

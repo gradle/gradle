@@ -36,21 +36,23 @@ import java.util.List;
  * <p>{@code Gradle} is the main entry point for embedding Gradle. You use this class to manage a Gradle build, as
  * follows:</p>
  *
- * <ul>
+ * <ol>
  *
- * <li>Obtain a {@code Gradle} instance by calling {@link #newInstance}, passing in a {@link StartParameter} configured
- * appropriately.  The properties of {@code StartParameter} generally correspond to the command-line options of
- * Gradle.</li>
+ * <li>Create a {@link StartParameter} instance and configure it with the desired properties. The properties of {@code
+ * StartParameter} generally correspond to the command-line options of Gradle.</li>
  *
- * <li>Add one or more {@link BuildListener}s to receive events as the build executes by calling {@link
+ * <li>Obtain a {@code Gradle} instance by calling {@link #newInstance}, passing in the {@code StartParameter}.</li>
+ *
+ * <li>Optionally, add one or more {@link BuildListener}s to receive events as the build executes by calling {@link
  * #addBuildListener}.</li>
  *
- * <li>Call {@link #run} to execute the build. This will return a {@link BuildResult}</li>
+ * <li>Call {@link #run} to execute the build. This will return a {@link BuildResult}. Note that if the build fails, the
+ * resulting exception will be contained in the {@code BuildResult}.</li>
  *
  * <li>Query the build result. You might want to call {@link BuildResult#rethrowFailure()} to rethrow any build
  * failure.</li>
  *
- * </ul>
+ * </ol>
  *
  * @author Hans Dockter
  */

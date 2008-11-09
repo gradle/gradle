@@ -23,7 +23,9 @@ import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.ResolverContainer;
+import org.gradle.api.dependencies.Dependency;
 
 import java.io.File;
 
@@ -54,14 +56,18 @@ import java.io.File;
  *
  * <h3>Using Settings from the Settings Script</h3>
  *
- * <p>In addition to the properties of this interface, the {@code Settings} code object makes some additional properties
+ * <h4>Dynamic Properties</h4>
+ *
+ * <p>In addition to the properties of this interface, the {@code Settings} object makes some additional properties
  * available to the settings script. This includes properties from the following sources:</p>
  *
  * <ul>
  *
- * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the settings directory of the build.</li>
+ * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the settings directory of the
+ * build.</li>
  *
- * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the user's {@code .gradle} directory.</li>
+ * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the user's {@code .gradle}
+ * directory.</li>
  *
  * <li>Provided on the command-line</li>
  *
@@ -80,16 +86,32 @@ public interface Settings {
     String BUILD_DEPENDENCIES_PROJECT_NAME = "build";
 
     /**
-     * <p>Adds paths of projects which should take part in this build, additional to the project containing the settings
-     * file, which takes always in part in the build.</p>
+     * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to
+     * add to the build. Note that these path are not file paths, but instead specify the location of the new project in
+     * the project heirarchy. As such, the supplied paths must use the ':' character as separator.</p>
      *
-     * <p>A project path in the settings file is slightly different from a project path you use in your build script. A
-     * settings project path is always relative to the directory containing the settings file.</p>
+     * <p>The last element of the supplied path is used as the project name. The supplied path is converted to a project
+     * directory relative to the root project directory.</p>
      *
-     * @param projectPaths the project paths to add
+     * <p>As an example, the path {@code a:b} adds a project with path {@code :a:b}, name {@code b} and project
+     * directory {@code $rootDir/a/b}.</p>
+     *
+     * @param projectPaths the projects to add.
      */
     void include(String[] projectPaths);
 
+    /**
+     * <p>Adds the given projects to the build. Each name in the supplied list is treated as the name of a project to
+     * add to the build.</p>
+     *
+     * <p>The supplied name is converted to a project directory relative to the <em>parent</em> directory of the root
+     * project directory.</p>
+     *
+     * <p>As an example, the name {@code a} add a project with path {@code :a}, name {@code a} and project directory
+     * {@code $rootDir/../a}.</p>
+     *
+     * @param projectNames the projects to add.
+     */
     void includeFlat(String[] projectNames);
 
     /**
@@ -104,11 +126,30 @@ public interface Settings {
      * <p>Adds dependencies to the build script classpath. See {@link DependencyManager#dependencies(java.util.List,
      * Object[])} for more details.</p>
      *
-     * @param dependencies The dependencies to add to the build script classpath.
+     * @param dependencies The dependencies to add.
+     * @throws InvalidUserDataException When one of the given object cannot be converted to a {@code Dependency}.
      */
-    void dependencies(Object[] dependencies);
+    void dependencies(Object[] dependencies) throws InvalidUserDataException;
 
-    void dependency(String id, Closure configureClosure);
+    /**
+     * Adds a dependency to the build script classpath. See{@link DependencyManager#dependency(java.util.List, Object)}
+     * for more details.
+     *
+     * @param dependency The dependency to add.
+     * @return The newly added dependency
+     * @throws InvalidUserDataException When the given object cannot be converted to a {@code Dependency}.
+     */
+    Dependency dependency(Object dependency) throws InvalidUserDataException;
+
+    /**
+     * Adds a dependency to the build script classpath. See{@link DependencyManager#dependency(java.util.List, Object,
+     * groovy.lang.Closure)} for more details.
+     *
+     * @param dependency The dependency to add.
+     * @param configureClosure The closure to use to configure the dependency.
+     * @throws InvalidUserDataException When one of the given object cannot be treated as a dependency.
+     */
+    Dependency dependency(Object dependency, Closure configureClosure) throws InvalidUserDataException;
 
     /**
      * <p>Returns the set of resolvers used to resolve the build script classpath.</p>

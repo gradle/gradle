@@ -89,7 +89,7 @@ import java.util.Set;
  * <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can make the
  * script more explicit and clearer in some cases.</p>
  *
- * <a name="properties"/> <h4>Properties</h4>
+ * <a name="properties"/> <h4>Dynamic Properties</h4>
  *
  * <p>A project has 5 property 'scopes', which it searches for properties:</p>
  *
@@ -123,7 +123,7 @@ import java.util.Set;
  * it finds the property in.  If not found, the project adds the property to its map of additional properties. See
  * {@link #setProperty(String, Object)} for more details.</p>
  *
- * <h4>Methods</h4>
+ * <h4>Dynamic Methods</h4>
  *
  * <p>A project has 5 method 'scopes', which it searches for methods:</p>
  *
