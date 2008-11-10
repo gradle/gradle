@@ -18,7 +18,9 @@ package org.gradle.util
 
 import org.codehaus.groovy.runtime.InvokerHelper
 import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Test
+import org.apache.tools.ant.Main
+import org.apache.ivy.Ivy;
 
 /**
  * @author Hans Dockter
@@ -31,11 +33,17 @@ class GradleVersionTest {
     }
 
     @Test public void testPrettyPrint() {
-        String expectedText = """Gradle $TestConsts.VERSION
+        String expectedText = """
+----------------------------------------
+Gradle $TestConsts.VERSION
+----------------------------------------
+
 Gradle buildtime: $TestConsts.BUILD_TIME
-Groovy $InvokerHelper.version
-Java ${System.getProperty("java.version")}
-JVM ${System.getProperty("java.vm.version")}
+Groovy: $InvokerHelper.version
+Ant: $Main.antVersion
+Ivy: ${Ivy.ivyVersion}
+Java: ${System.getProperty("java.version")}
+JVM: ${System.getProperty("java.vm.version")}
 JVM Vendor: ${System.getProperty("java.vm.vendor")}
 OS Name: ${System.getProperty("os.name")}
 """

@@ -17,6 +17,8 @@
 package org.gradle.util
 
 import org.codehaus.groovy.runtime.InvokerHelper
+import org.apache.ivy.Ivy
+import org.apache.tools.ant.Main
 
 /**
  * @author Hans Dockter
@@ -43,11 +45,17 @@ class GradleVersion {
     }
 
     String prettyPrint() {
-        """Gradle $version
+        """
+----------------------------------------
+Gradle $version
+----------------------------------------
+
 Gradle buildtime: $buildTime
-Groovy $InvokerHelper.version
-Java ${System.getProperty("java.version")}
-JVM ${System.getProperty("java.vm.version")}
+Groovy: $InvokerHelper.version
+Ant: ${Main.antVersion}
+Ivy: ${Ivy.ivyVersion}
+Java: ${System.getProperty("java.version")}
+JVM: ${System.getProperty("java.vm.version")}
 JVM Vendor: ${System.getProperty("java.vm.vendor")}
 OS Name: ${System.getProperty("os.name")}
 """
