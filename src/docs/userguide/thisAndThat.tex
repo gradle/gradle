@@ -24,33 +24,6 @@ Every task has also a \texttt{enabled} flag which defaults to \texttt{true}. Set
 \codeInput{../../samples/userguide/tutorial/disableTask/build.gradle}
 \outputInputTutorial{disableTask}
 
-\section{Console Output}
-All available command line options are listed in Appendix \ref{cha:command_line}. You can also print them to your console with \texttt{gradle -h}. We want to look at the \emph{console output} options in more detail. 
-
-\begin{table}
-	\begin{center}
-    \begin{tabular}{|l|l|} \hline
-    Option & Meaning  \\ \hline
-    neither \texttt{q} nor \texttt{d} & Gradle and Ant will print out info log messages.  \\ \hline
-    \texttt{q} & Only errors are printed to the console.  \\ \hline
-    \texttt{d} & Gradle and Ant will print out info and debug log messages. \\ \hline
-    \end{tabular}
-	\end{center}
-	\caption{Log Level}
-\end{table}
-
-\begin{table}
-	\begin{center}
-    \begin{tabular}{|l|p{15cm}|} \hline
-    Option & Meaning  \\ \hline
-    neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in case of internal exceptions will stacktraces be printed. If the loglevel option \texttt{d} is chosen, truncated stacktraces are always printed. \\ \hline
-    \texttt{s} & Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information for what has gone wrong in \emph{your} code.)  \\ \hline
-    \texttt{f} & The full stacktraces are printed out. \\ \hline
-    \end{tabular}
-	\end{center}
-	\caption{Stacktraces}
-\end{table}
-
 \section{Directory Creation} % (fold)
 \label{sec:directory_creation}
 There is a common situation, that multiple tasks depend on the existence of a directory. Of course you can deal with this by adding a \texttt{mkdir} to the beginning of those tasks. But this is kind of bloated. 

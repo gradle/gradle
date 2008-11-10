@@ -1,0 +1,41 @@
+%!TEX root = userguide.tex
+\chapter{Logging} % (fold)
+\label{cha:logging}
+The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle has added to log-levels to the ones normally used. Those levels are \emph{QUIET} and \emph{LIFECYCLE}. The latter is the default and is telling you just what task is getting executed or skipped. You can use command line switches to choose different log levels (see table \ref{loglevels}). The \texttt{WARN} and \emph{ERROR} levels are included in all the other levels, except \emph{QUIET}, where only \emph{ERROR} is included. In table {\ref{stacktraces}} you find the command line switches for stacktrace logging.
+
+
+\label{sec:command_line_switches}
+\begin{table}
+	\begin{center}
+    \begin{tabular}{|l|l|} \hline
+    Option & Meaning  \\ \hline
+    no logging options & LIFECYCLE  \\ \hline
+    \texttt{q} & QUIET  \\ \hline
+    \texttt{i} & INFO  \\ \hline
+    \texttt{d} & DEBUG \\ \hline
+    \end{tabular}
+	\end{center}
+	\caption{Log Level}
+	\label{loglevels}
+\end{table}
+
+\begin{table}
+	\begin{center}
+    \begin{tabular}{|l|p{15cm}|} \hline
+    Option & Meaning  \\ \hline
+    neither \texttt{s} nor \texttt{f} & No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in case of internal exceptions will stacktraces be printed. If the loglevel option \texttt{d} is chosen, truncated stacktraces are always printed. \\ \hline
+    \texttt{s} & Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information for what has gone wrong in \emph{your} code.)  \\ \hline
+    \texttt{f} & The full stacktraces are printed out. \\ \hline
+    \end{tabular}
+	\end{center}
+	\caption{Stacktraces}
+	\label{stacktraces}
+\end{table}
+
+\section{External Tools and Standard Output} % (fold)
+\label{sec:external_tools}
+Gradle uses internally Ant and Ivy a lot. Both have their own logging system. Gradle injects an adapter into there logging system to redirect there logging output into the gradle logging system. There is a 1:1 mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy trace level, which is mapped to Gradle debug. This means the default Gradle log level does not show any Ant/Ivy output unless it is an error or a warning. 
+
+There are many tools out there which still use standard output for logging. Gradle redirects by default standard out to the \emph{QUIET} level and standard err to the \emph{ERROR} level. This behavior is configurable. Gradle provides a couple of switches for this. To change the log level, standard out is redirected to, when your build script gets evaluated, the project object offers a method called \href{\API Project.html}{Project\#captureStandardOutput}. To change the log level for standard out during task execution, tasks offer a method also with the name \href{\API Task.html}{Task\#captureStandardOutput}. Tasks and projects also offer a method \texttt{disableStandardOutputCapture} which causes the standard out to be send to the default standard out. If you need more fine grained control on how standard out is redirected you can use the class StandardOutputLoggingAdapter.
+% section external_tools (end)
+

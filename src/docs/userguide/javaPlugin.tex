@@ -168,6 +168,8 @@ The \texttt{test} task executes the unit tests which have been compiled by the \
 
 Per default the tests are run in a forked JVM and the fork is done per test. You can modify this behavior by setting forking to false or set the forkmode to once.
 
+The test task tries to run all classes as tests, that have been compiled from the test source dirs. The Java plugin defines default exclude pattern for the \emph{.class} files. The default include is \texttt{**/*Tests.class", "**/*Test.class} and the default exclude is \texttt{**/Abstract*.class}. 
+
 The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support in one of our next releases. 
 % section test (end)
 
