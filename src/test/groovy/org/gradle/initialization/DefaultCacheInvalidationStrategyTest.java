@@ -39,18 +39,20 @@ public class DefaultCacheInvalidationStrategyTest {
     private File projectDir;
     private File buildResolverDir;
 
-    private List<String> projectFiles = WrapUtil.toList("src",
-            "src/main/resources/properties.txt",
+    private List<String> projectFiles = WrapUtil.toList("src/main/resources/properties.txt",
             "mystuff/test/resources/org/test.xml",
-            "mystuff",
             "somefile.txt",
             "build.gradle");
 
+    private List<String> projectDirs = WrapUtil.toList("src",
+            "mystuff");
+
     private List<String> ignoreFiles = WrapUtil.toList("build/somefile",
-            "build",
             "src/main/resources/.svn/properties.txt",
+            ".gradle/somefile");
+
+    private List<String> ignoreDirs = WrapUtil.toList("build",
             ".svn",
-            ".gradle/somefile",
             ".gradle");
 
     private File artifactFile;
@@ -77,7 +79,7 @@ public class DefaultCacheInvalidationStrategyTest {
     @Test
     public void isValidWithNewerFiles() throws IOException, InterruptedException {
         createTestFile();
-        for (File projectFile : getFiles(projectFiles)) {
+        for (File projectFile : getFiles(GUtil.addLists(projectFiles, projectDirs))) {
             projectFile.setLastModified(artifactFile.lastModified() + 1000);
             assertFalse(cacheInvalidationStrategy.isValid(artifactFile, projectDir));
             artifactFile.setLastModified(projectFile.lastModified());
@@ -87,7 +89,7 @@ public class DefaultCacheInvalidationStrategyTest {
     @Test
     public void isValidWithIgnoreFiles() throws IOException, InterruptedException {
         createTestFile();
-        for (File ignoreFile : getFiles(ignoreFiles)) {
+        for (File ignoreFile : getFiles(GUtil.addLists(ignoreFiles, ignoreDirs))) {
             ignoreFile.setLastModified(artifactFile.lastModified() + 1000);
             assertTrue(cacheInvalidationStrategy.isValid(artifactFile, projectDir));
             artifactFile.setLastModified(ignoreFile.lastModified());
@@ -95,11 +97,23 @@ public class DefaultCacheInvalidationStrategyTest {
     }
 
     private void createTestFile() throws IOException {
-        for (File file : getFiles(allTestFiles())) {
-            file.mkdirs();
+        createTestDirs();
+        createTestFiles();
+        artifactFile.createNewFile();
+    }
+
+    private void createTestDirs() {
+        for (Object fileName : GUtil.addLists(projectDirs, ignoreDirs)) {
+            (new File(projectDir, (String) fileName)).mkdirs();
+        }
+    }
+
+    private void createTestFiles() throws IOException {
+        for (Object fileName : GUtil.addLists(projectFiles, ignoreFiles)) {
+            File file = new File(projectDir, (String) fileName);
+            file.getParentFile().mkdirs();
             file.createNewFile();
         }
-        artifactFile.createNewFile();
     }
 
     private List<File> getFiles(List<String> fileNames) {
@@ -110,7 +124,5 @@ public class DefaultCacheInvalidationStrategyTest {
         return files;
     }
 
-    private List<String> allTestFiles() {
-        return GUtil.addLists(projectFiles, ignoreFiles);
-    }
+
 }
