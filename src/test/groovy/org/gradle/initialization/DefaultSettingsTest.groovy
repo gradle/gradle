@@ -236,15 +236,15 @@ class DefaultSettingsTest {
     }
 
     @Test public void testCreateClassLoaderWithNonExistingBuildSource() {
-        checkCreateClassLoader([])
+        checkCreateClassLoader([] as Set)
     }
 
     @Test public void testCreateClassLoaderWithExistingBuildSource() {
-        List testBuildSourceDependencies = ['dep1' as File]
+        Set testBuildSourceDependencies = ['dep1' as File]
         checkCreateClassLoader(testBuildSourceDependencies)
     }
 
-    private checkCreateClassLoader(List expectedTestDependencies) {
+    private checkCreateClassLoader(Set expectedTestDependencies) {
         Set testFiles = [new File('/root/f1'), new File('/root/f2')] as Set
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = settings.buildSrcStartParameter.newInstance();
