@@ -188,7 +188,7 @@ public class BaseSettings implements SettingsInternal {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         StartParameter startParameter = buildSrcStartParameter.newInstance();
         startParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
-        Set<File> additionalClasspath = new HashSet(buildSourceBuilder.createBuildSourceClasspath(startParameter));
+        Set<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(startParameter);
         additionalClasspath.addAll(dependencyManager.configuration(BUILD_CONFIGURATION).getFiles());
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {

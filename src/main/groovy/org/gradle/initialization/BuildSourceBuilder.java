@@ -33,9 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -59,17 +57,17 @@ public class BuildSourceBuilder {
         this.cacheInvalidationStrategy = cacheInvalidationStrategy;
     }
 
-    public List<File> createBuildSourceClasspath(StartParameter startParameter) {
+    public Set<File> createBuildSourceClasspath(StartParameter startParameter) {
         assert startParameter.getCurrentDir() != null && GUtil.isTrue(startParameter.getBuildFileName());
 
         logger.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
             logger.debug("Build source dir does not exists!. We leave.");
-            return new ArrayList<File>();
+            return new HashSet<File>();
         }
         if (!GUtil.isTrue(startParameter.getTaskNames())) {
             logger.debug("No task names specified. We leave..");
-            return new ArrayList<File>();
+            return new HashSet<File>();
         }
         logger.info("================================================" + " Start building buildSrc");
         try {
@@ -102,10 +100,9 @@ public class BuildSourceBuilder {
             File artifactFile = buildArtifactFile(dependencyManager.getBuildResolverDir());
             if (!artifactFile.exists()) {
                 logger.info("Building buildSrc has not produced any artifact!");
-                return new ArrayList<File>();
+                return new HashSet<File>();
             }
-            List<File> buildSourceClasspath =
-                    dependencyManager.resolve(JavaPlugin.RUNTIME);
+            Set<File> buildSourceClasspath = dependencyManager.configuration(JavaPlugin.RUNTIME).resolve();
             buildSourceClasspath.add(artifactFile);
             logger.debug("Build source classpath is: {}", buildSourceClasspath);
             logger.info("================================================" + " Finished building buildSrc");
