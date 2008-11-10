@@ -118,7 +118,7 @@ build.taskGraph.whenReady {graph ->
         userguideRemoteDir += version
         javadocRemoteDir += version
     } else {
-        versionModifier = new SimpleDateFormat('yyMMddHHmmssZ').format(buildTime)
+        versionModifier = new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
         userguideRemoteDir += 'latest'
         javadocRemoteDir += "latest"
