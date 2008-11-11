@@ -55,7 +55,6 @@ public class Main {
     public final static String NL = System.getProperty("line.separator");
 
     private static final String NO_JVM_TERMINATION = "S";
-    private static final String BOOTSTRAP_DEBUG_INFO = "B";
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
     private static final String PLUGIN_PROPERTIES_FILE = "l";
@@ -109,7 +108,6 @@ public class Main {
                 acceptsAll(WrapUtil.toList(SYSTEM_PROP, "systemprop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PROJECT_PROP, "projectprop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.").withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(BOOTSTRAP_DEBUG_INFO, "bootstrap-debug"), "Specify a text to be logged at the beginning (e.g. used by Gradle's bootstrap class.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(HELP, "?"), "Shows this help message");
             }
         };
@@ -132,10 +130,6 @@ public class Main {
         }
 
         configureLogger(options);
-
-        if (options.hasArgument(BOOTSTRAP_DEBUG_INFO)) {
-            logger.debug(options.argumentOf(BOOTSTRAP_DEBUG_INFO));
-        }
 
         if (options.has(VERSION)) {
             System.out.println(new GradleVersion().prettyPrint());
