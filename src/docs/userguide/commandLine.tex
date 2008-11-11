@@ -7,7 +7,8 @@
 -?, -h  & -           & Shows this help message\\
 B & bootstrap-debug & Specify a text to be logged at the beginning (used internally by Gradle's bootstrap class.)\\
 D & systemprop       & Sets a system property of the JVM (e.g. -Dmyprop=myvalue).\\ 
-I & noImports        & Disable usage of default imports for build script files.\\
+I & no-imports        & Disable usage of default imports for build script files.\\
+K & default-import-file & Specifies the default import file.\\ 
 P & projectprop  & Sets a project property of the root project (e.g. -Pmyprop=myvalue).\\
 S & - & Don't trigger a System.exit(0) for normal termination. Used internally by Gradle's unit tests.\\
 b & buildfile        & Specifies the build file name (also for subprojects). Defaults to build.gradle.\\
@@ -16,11 +17,11 @@ d & debug            & Log in debug mode (includes normal stacktrace).\\
 e & embedded         & Specify an embedded build script.\\
 f & full-stacktrace  & Print out the full (very verbose) stacktrace for any exceptions.\\
 g & gradle-user-home & Specifies the gradle user home dir.\\
-i & ivy-quiet        & Set Ivy log level to quiet.\\
-j & ivy-debug        & Set Ivy log level to debug (very verbose).\\
+i & info             & Set log level to info.\\
 l & plugin-properties-file & Specifies the plugin properties file.\\
-p & project-dir       & Specifies the start dir for Gradle. Defaults to current dir.\\
-q & quiet            & Log erros only.\\
+m & merged-build     & Merge all tasks into a single build.\\
+p & project-dir      & Specifies the start dir for Gradle. Defaults to current dir.\\
+q & quiet            & Log errors only.\\
 r & rebuild-cache    & Rebuild the cache of compiled build scripts.\\
 s & stacktrace       & Print out the stacktrace also for user exceptions (e.g. compile error).\\
 t & tasks            & Show list of all available tasks and there dependencies.\\
