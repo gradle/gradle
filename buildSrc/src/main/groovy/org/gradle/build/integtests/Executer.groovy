@@ -27,13 +27,13 @@ class Executer {
     static final int INFO = 2
     static final int DEBUG = 3
     
-    static Map execute(String gradleHome, String currentDirName, List tasknames, List envs = [], String buildFileName = '', int outputType = QUIET) {
+    static Map execute(String gradleHome, String currentDirName, List tasknames, List envs = [], String buildFileName = '', int outputType = QUIET, boolean expectFailure = false) {
         executeInternal('gradle', "${gradleHome}/bin/gradle", gradleHome, envs + ["GRADLE_HOME=$gradleHome"],
-                currentDirName, tasknames, buildFileName, outputType)
+                currentDirName, tasknames, buildFileName, outputType, expectFailure)
     }
 
-    static Map executeWrapper(String gradleHome, String currentDirName, List tasknames, List envs = [], String buildFileName = '', int outputType = QUIET) {
-        executeInternal('gradlew', "${currentDirName}/gradlew", gradleHome, envs, currentDirName, tasknames, buildFileName, outputType)
+    static Map executeWrapper(String gradleHome, String currentDirName, List tasknames, List envs = [], String buildFileName = '', int outputType = QUIET, boolean expectFailure = false) {
+        executeInternal('gradlew', "${currentDirName}/gradlew", gradleHome, envs, currentDirName, tasknames, buildFileName, outputType, expectFailure)
     }
 
     static String windowsPath(String gradleHome) {
@@ -46,7 +46,7 @@ class Executer {
 
     static Map executeInternal(String windowsCommandSnippet, String unixCommandSnippet, String gradleHome,
                                   List envs, String currentDirName,
-                                  List tasknames, String buildFileName, int outputType) {
+                                  List tasknames, String buildFileName, int outputType, boolean expectFailure) {
         Process proc
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
         ByteArrayOutputStream errStream = new ByteArrayOutputStream()
@@ -78,7 +78,8 @@ class Executer {
         int exitValue = proc.exitValue()
         String output = outStream
         String error = errStream
-        if (exitValue) {
+        boolean failed = exitValue != 0
+        if (failed != expectFailure) {
             throw new RuntimeException("Integrationtests failed with: $output $error")
         }
         return [output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand]
