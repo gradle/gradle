@@ -59,6 +59,7 @@ public class JavaPlugin implements Plugin {
     public static final String DISTS = "dists";
     public static final String UPLOAD_INTERNAL_LIBS = "uploadInternalLibs";
     public static final String UPLOAD_LIBS = "uploadLibs";
+    public static final String UPLOAD = "upload";
     public static final String CLEAN = "clean";
     public static final String INIT = "init";
     public static final String JAVADOC = "javadoc";
@@ -117,6 +118,7 @@ public class JavaPlugin implements Plugin {
         configureDists(project, javaConvention);
 
         configureUploadDists(project, javaConvention);
+        project.createTask(UPLOAD).dependsOn(UPLOAD_LIBS, UPLOAD_DISTS);
 
         configureEclipse(project);
         configureEclipseWtpModule(project);
@@ -236,7 +238,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
-        Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", UPLOAD_LIBS), DISTS);
+        Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", LIBS), DISTS);
         distsBundle.setDefaultConfigurations(WrapUtil.toList(DISTS));
         distsBundle.setDefaultDestinationDir(javaPluginConvention.getDistsDir());
         distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
