@@ -96,7 +96,7 @@ public class Compile extends ConventionTask {
         if (antCompile == null) {
             throw new InvalidUserDataException("The ant compile command must be set!");
         }
-
+        getDestinationDir().mkdirs();
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 getDestinationDir(), getSrcDirs());
 

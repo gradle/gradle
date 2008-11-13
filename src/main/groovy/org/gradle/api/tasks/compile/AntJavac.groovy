@@ -30,7 +30,6 @@ class AntJavac {
 
     void execute(List sourceDirs, List includes, List excludes, File targetDir, List classpath, String sourceCompatibility,
                  String targetCompatibility, CompileOptions compileOptions, AntBuilder ant) {
-        ant.mkdir(dir: targetDir.absolutePath)
         createAntClassPath(ant, classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
