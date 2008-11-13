@@ -19,6 +19,7 @@ import aQute.lib.osgi.Analyzer;
 import org.gradle.api.plugins.osgi.OsgiManifest;
 import org.gradle.api.tasks.bundling.GradleManifest;
 import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +46,8 @@ public class DefaultOsgiManifest implements OsgiManifest {
     private Map<String, List<String>> instructions = new HashMap<String, List<String>>();
 
     private List<File> classpath = new ArrayList<File>();
+
+    private List<String> classpathTypes = WrapUtil.toList("zip", "jar");
 
     public DefaultOsgiManifest() {
         super();
@@ -198,5 +201,13 @@ public class DefaultOsgiManifest implements OsgiManifest {
 
     public void setAnalyzerFactory(AnalyzerFactory analyzerFactory) {
         this.analyzerFactory = analyzerFactory;
+    }
+
+    public List<String> getClasspathTypes() {
+        return classpathTypes;
+    }
+
+    public void setClasspathTypes(List<String> classpathTypes) {
+        this.classpathTypes = classpathTypes;
     }
 }

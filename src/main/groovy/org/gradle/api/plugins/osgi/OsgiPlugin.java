@@ -29,6 +29,9 @@ import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.Jar;
 
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -53,13 +56,35 @@ public class OsgiPlugin implements Plugin {
                         public void execute(Task task) {
                             Jar jarTask = (Jar) task;
                             OsgiManifest osgiManifest = (OsgiManifest) jarTask.getAdditionalProperties().get("osgi");
-                            osgiManifest.setClasspath(jarTask.getProject().getDependencies().resolveTask(jarTask.getName()));
+                            osgiManifest.setClasspath(getDependencies(
+                                    osgiManifest,
+                                    jarTask.getProject().getDependencies().resolveTask(jarTask.getName())
+                            ));
                             osgiManifest.overwrite(jarTask.getManifest());
                         }
                     });
                 }
             }
         };
+    }
+
+    private List<File> getDependencies(OsgiManifest osgiManifest, List<File> dependencies) {
+        ArrayList<File> classpathDependencies = new ArrayList<File>();
+        for (File dependency : dependencies) {
+            if (isClasspathType(osgiManifest, dependency)) {
+                classpathDependencies.add(dependency);
+            }
+        }
+        return classpathDependencies;
+    }
+
+    private boolean isClasspathType(OsgiManifest osgiManifest, File dependency) {
+        for (String type : osgiManifest.getClasspathTypes()) {
+            if (dependency.getName().endsWith(type)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private OsgiManifest createDefaultOsgiManifest(Project project) {

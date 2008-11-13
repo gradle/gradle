@@ -73,4 +73,18 @@ public interface OsgiManifest {
     List<File> getClasspath();
 
     void setClasspath(List<File> classpath);
+
+    /**
+     * Returns the classpath types.
+     *
+     * @see #setClasspathTypes(java.util.List)
+     */
+    List<String> getClasspathTypes();
+
+    /**
+     * Set the dependency types to be taken into account when generating the osgi manifest.
+     * Sometimes people add for some reasons archive types like tar.gz to the compile or runtime configuration. OSGi can't cope
+     * with such dependencies and throws and exception. By default classpathTypes include 'zip' and 'jar'.
+     */
+    void setClasspathTypes(List<String> types);
 }
