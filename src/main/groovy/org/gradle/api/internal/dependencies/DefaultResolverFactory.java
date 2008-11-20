@@ -17,6 +17,9 @@
 package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.plugins.resolver.*;
+import org.apache.ivy.plugins.lock.NoLockStrategy;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyMavenDeployer;
@@ -58,7 +61,18 @@ public class DefaultResolverFactory implements ResolverFactory {
             resolver.addArtifactPattern(pattern);
         }
         resolver.setValidate(false);
+        resolver.setRepositoryCacheManager(createUseOriginCacheManager());
         return resolver;
+    }
+
+    private RepositoryCacheManager createUseOriginCacheManager() {
+        DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager();
+        cacheManager.setName(DependencyManager.DEFAULT_CACHE_NAME);
+        cacheManager.setUseOrigin(true);
+        cacheManager.setLockStrategy(new NoLockStrategy());
+        cacheManager.setIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
+        cacheManager.setArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN);
+        return cacheManager;
     }
 
     public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
