@@ -18,19 +18,15 @@ package org.gradle.initialization;
 
 import groovy.lang.Script;
 import org.gradle.StartParameter;
-import org.gradle.api.DependencyManager;
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.Project;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.groovy.scripts.IScriptProcessor;
 import org.gradle.groovy.scripts.ISettingsScriptMetaData;
 import org.gradle.groovy.scripts.ImportsScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.ScriptWithSource;
 import org.gradle.util.Clock;
-import org.gradle.util.GUtil;
-import org.gradle.util.GradleUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +77,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
             Script settingsScript = scriptProcessor.createScript(
                     source,
                     Thread.currentThread().getContextClassLoader(),
-                    Script.class);
+                    ScriptWithSource.class);
             settingsScriptMetaData.applyMetaData(settingsScript, settings);
             Clock clock = new Clock();
             settingsScript.run();

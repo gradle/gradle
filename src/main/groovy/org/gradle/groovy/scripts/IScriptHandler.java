@@ -25,9 +25,9 @@ import org.codehaus.groovy.control.CompilerConfiguration;
  * @author Hans Dockter
  */
 public interface IScriptHandler {
-    Script createScript(String scriptText, ClassLoader classLoader, String scriptName, Class scriptBaseClass);
+    Script createScript(String scriptText, ClassLoader classLoader, String scriptName, Class<? extends Script> scriptBaseClass);
 
-    Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class scriptBaseClass);
+    Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
 
-    Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File scriptCacheDir);
+    Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
 }

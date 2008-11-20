@@ -31,5 +31,5 @@ public interface IScriptProcessor {
     /**
      * Loads a script from the given source, creating a class with the given base class and ClassLoader.
      */
-    Script createScript(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass);
+    <T extends ScriptWithSource> T createScript(ScriptSource source, ClassLoader classLoader, Class<T> scriptBaseClass);
 }

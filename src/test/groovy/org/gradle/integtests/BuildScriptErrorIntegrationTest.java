@@ -62,4 +62,17 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasContext("Execution failed for task :brokenJavaTask");
         failure.assertHasDescription("broken action");
     }
+
+    @Test
+    public void reportsTaskGraphActionExecutionFailsWithRuntimeException() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns("build.taskGraph.whenReady {", "throw new RuntimeException('broken closure')", "}", "createTask('a')");
+
+        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("a");
+
+        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
+        failure.assertHasLineNumber(2);
+        failure.assertHasContext("Failed to notify task execution graph listener");
+        failure.assertHasDescription("broken closure");
+    }
 }

@@ -23,7 +23,6 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
@@ -40,7 +39,7 @@ import java.net.URLClassLoader;
 public class DefaultScriptHandler implements IScriptHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptHandler.class);
 
-    public Script createScript(String scriptText, ClassLoader classLoader, String scriptName, Class scriptBaseClass) {
+    public Script createScript(String scriptText, ClassLoader classLoader, String scriptName, Class<? extends Script> scriptBaseClass) {
         logger.debug("Parsing Script:\n{}", scriptText);
         Clock clock = new Clock();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
@@ -55,7 +54,7 @@ public class DefaultScriptHandler implements IScriptHandler {
         return script;
     }
 
-    public Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class scriptBaseClass) {
+    public Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(scriptCacheDir);
         scriptCacheDir.mkdirs();
@@ -69,16 +68,16 @@ public class DefaultScriptHandler implements IScriptHandler {
             throw new GradleException(e);
         }
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
-        return loadFromCache(0, classLoader, scriptName, scriptCacheDir);
+        return loadFromCache(0, classLoader, scriptName, scriptCacheDir, scriptBaseClass);
     }
 
-    private CompilerConfiguration createBaseCompilerConfiguration(Class scriptBaseClass) {
+    private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.setScriptBaseClass(scriptBaseClass.getName());
         return configuration;
     }
 
-    public Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File scriptCacheDir) {
+    public Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
         if (scriptCacheDir.lastModified() < lastModified) {
             return null;
         }
@@ -94,11 +93,10 @@ public class DefaultScriptHandler implements IScriptHandler {
         } catch (Exception e) {
             throw new GradleException(e);
         }
+        if (!scriptBaseClass.isInstance(script)) {
+            return null;
+        }
         logger.debug("Timing: Loading script from cache took: {}", clock.getTime());
         return script;
-    }
-
-    private File cacheFile(File cacheDirParent, String buildCacheFileName) {
-        return new File(new File(cacheDirParent, buildCacheFileName), buildCacheFileName + ".class");
     }
 }

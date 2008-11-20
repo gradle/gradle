@@ -36,6 +36,9 @@ import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer
 import org.gradle.initialization.ISettingsFinder
+import org.gradle.groovy.scripts.ScriptSource
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.gradle.groovy.scripts.ScriptWithSource
 
 
 
@@ -161,6 +164,16 @@ class HelperUtil {
 
     static Closure toClosure(String text) {
         return new GroovyShell().evaluate("return " + text)
+    }
+
+    static Closure toClosure(ScriptSource source) {
+        CompilerConfiguration configuration = new CompilerConfiguration();
+        configuration.setScriptBaseClass(ScriptWithSource.getName());
+
+        GroovyShell shell = new GroovyShell(configuration)
+        ScriptWithSource script = shell.parse(source.getText())
+        script.setSource(source)
+        return script.run()
     }
 
     static Closure toClosure(TestClosure closure) {

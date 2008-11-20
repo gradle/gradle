@@ -26,11 +26,9 @@ import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.ISettingsFinder;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.SettingsProcessor;
+import org.gradle.util.ListenerBroadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <p>{@code Gradle} is the main entry point for embedding Gradle. You use this class to manage a Gradle build, as
@@ -68,7 +66,8 @@ public class Gradle {
     private BuildLoader projectLoader;
     private BuildConfigurer buildConfigurer;
 
-    private final List<BuildListener> buildListeners = new ArrayList<BuildListener>();
+    private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(
+            BuildListener.class);
 
     public Gradle(StartParameter startParameter, ISettingsFinder settingsFinder,
                   IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
@@ -148,39 +147,27 @@ public class Gradle {
     }
 
     private void fireBuildStarted(StartParameter startParameter) {
-        for (BuildListener buildListener : buildListeners) {
-            buildListener.buildStarted(startParameter);
-        }
+        buildListeners.getSource().buildStarted(startParameter);
     }
 
     private void fireSettingsEvaluated(SettingsInternal settings) {
-        for (BuildListener listener : buildListeners) {
-            listener.settingsEvaluated(settings);
-        }
+        buildListeners.getSource().settingsEvaluated(settings);
     }
 
     private void fireTaskGraphPrepared(TaskExecutionGraph graph) {
-        for (BuildListener listener : buildListeners) {
-            listener.taskGraphPopulated(graph);
-        }
+        buildListeners.getSource().taskGraphPopulated(graph);
     }
 
     private void fireProjectsLoaded(BuildInternal build) {
-        for (BuildListener listener : buildListeners) {
-            listener.projectsLoaded(build);
-        }
+        buildListeners.getSource().projectsLoaded(build);
     }
 
     private void fireProjectsEvaluated(BuildInternal build) {
-        for (BuildListener listener : buildListeners) {
-            listener.projectsEvaluated(build);
-        }
+        buildListeners.getSource().projectsEvaluated(build);
     }
 
     private void fireBuildFinished(BuildResult buildResult) {
-        for (BuildListener buildListener : buildListeners) {
-            buildListener.buildFinished(buildResult);
-        }
+        buildListeners.getSource().buildFinished(buildResult);
     }
 
     // This is used for mocking
@@ -230,10 +217,6 @@ public class Gradle {
 
     public void setBuildConfigurer(BuildConfigurer buildConfigurer) {
         this.buildConfigurer = buildConfigurer;
-    }
-
-    public List<BuildListener> getBuildListeners() {
-        return buildListeners;
     }
 
     /**

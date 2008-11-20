@@ -18,6 +18,7 @@ package org.gradle.api.internal.project
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.groovy.scripts.ScriptWithSource
 
 /**
  * @author Hans Dockter
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory
  * todo: We need our own base class as a workaround for http://jira.codehaus.org/browse/GROOVY-2635. When this bug is fixed we can use the metaclass.
  * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
-abstract class ProjectScript extends Script {
+abstract class ProjectScript extends ScriptWithSource {
     static Logger logger = LoggerFactory.getLogger(ProjectScript)
 
     void setProperty(String property, newValue) {

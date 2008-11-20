@@ -34,15 +34,21 @@ public class DefaultScriptProcessor implements IScriptProcessor {
         this.cacheUsage = cacheUsage;
     }
 
-    public Script createScript(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
+    public <T extends ScriptWithSource> T createScript(ScriptSource source, ClassLoader classLoader,
+                                                       Class<T> scriptBaseClass) {
         File sourceFile = source.getSourceFile();
+        ScriptWithSource script;
         if (isCacheable(sourceFile)) {
-            return loadViaCache(source, classLoader, scriptBaseClass);
+            script = (ScriptWithSource) loadViaCache(source, classLoader, scriptBaseClass);
         }
-        return loadWithoutCache(source, classLoader, scriptBaseClass);
+        else {
+            script = (ScriptWithSource) loadWithoutCache(source, classLoader, scriptBaseClass);
+        }
+        script.setSource(source);
+        return (T) script;
     }
 
-    private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
+    private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
         String text = source.getText();
         if (!GUtil.isTrue(text)) {
             return new EmptyScript();
@@ -51,13 +57,13 @@ public class DefaultScriptProcessor implements IScriptProcessor {
         return scriptHandler.createScript(text, classLoader, source.getClassName(), scriptBaseClass);
     }
 
-    private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class scriptBaseClass) {
+    private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
         File sourceFile = source.getSourceFile();
         File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
         File scriptCacheDir = new File(cacheDir, sourceFile.getName());
         String scriptClassName = source.getClassName();
         if (cacheUsage == CacheUsage.ON) {
-            Script cachedScript = scriptHandler.loadFromCache(sourceFile.lastModified(), classLoader, scriptClassName, scriptCacheDir);
+            Script cachedScript = scriptHandler.loadFromCache(sourceFile.lastModified(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
             if (cachedScript != null) {
                 return cachedScript;
             }

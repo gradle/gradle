@@ -15,12 +15,10 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-
 /**
  * @author Hans Dockter
  */
-public class EmptyScript extends Script{
+public class EmptyScript extends ScriptWithSource {
     public Object run() {
         return null;
     }

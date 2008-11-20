@@ -167,16 +167,6 @@ public class GradleTest {
         assertSame(settingsProcessorMock, gradle.getSettingsProcessor());
         assertSame(buildLoaderMock, gradle.getProjectLoader());
         assertSame(buildConfigurerMock, gradle.getBuildConfigurer());
-        assertEquals(new ArrayList(), gradle.getBuildListeners());
-    }
-
-    @Test
-    public void testAddAndGetBuildListeners() {
-        gradle.addBuildListener(buildListenerMock);
-        assertEquals(WrapUtil.toList(buildListenerMock), gradle.getBuildListeners());
-        BuildListener buildListenerMock2 = context.mock(BuildListener.class, "buildListener2");
-        gradle.addBuildListener(buildListenerMock2);
-        assertEquals(WrapUtil.toList(buildListenerMock, buildListenerMock2), gradle.getBuildListeners());
     }
 
     @Test

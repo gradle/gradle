@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.After;
 import static org.junit.Assert.*;
@@ -56,7 +57,7 @@ public class DefaultScriptProcessorTest {
 
     IScriptHandler scriptHandlerMock;
 
-    Script expectedScript;
+    ScriptWithSource expectedScript;
 
     Mockery context = new JUnit4Mockery();
 
@@ -66,18 +67,20 @@ public class DefaultScriptProcessorTest {
 
     @Before
     public void setUp() {
+        context.setImposteriser(ClassImposteriser.INSTANCE);
         scriptHandlerMock = context.mock(IScriptHandler.class);
         testClassLoader = new URLClassLoader(new URL[0]);
         testScriptFileDir = HelperUtil.makeNewTestDir("projectdir");
         testScriptFile = new File(testScriptFileDir, TEST_BUILD_FILE_NAME);
         testCacheDir = new File(new File(testScriptFileDir, Project.CACHE_DIR_NAME), TEST_BUILD_FILE_NAME);
-        expectedScript = HelperUtil.createTestScript();
+        expectedScript = context.mock(ScriptWithSource.class);
         scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock, CacheUsage.ON);
         source = context.mock(ScriptSource.class);
 
         context.checking(new Expectations(){{
             allowing(source).getDescription();
             will(returnValue("[script source]"));
+            allowing(expectedScript).setSource(source);
         }});
     }
 
@@ -100,7 +103,9 @@ public class DefaultScriptProcessorTest {
             will(returnValue(null));
         }});
 
-        assertTrue(scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
+        ScriptWithSource script = scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass);
+        assertTrue(script instanceof EmptyScript);
+        assertSame(script.getScriptSource(), source);
     }
 
     @Test
@@ -112,7 +117,9 @@ public class DefaultScriptProcessorTest {
             will(returnValue(null));
         }});
 
-        assertTrue(scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
+        ScriptWithSource script = scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass);
+        assertTrue(script instanceof EmptyScript);
+        assertSame(script.getScriptSource(), source);
     }
 
     @Test
@@ -154,7 +161,7 @@ public class DefaultScriptProcessorTest {
                 allowing(source).getClassName();
                 will(returnValue(TEST_SCRIPT_NAME));
 
-                one(scriptHandlerMock).loadFromCache(testScriptFile.lastModified(), testClassLoader, TEST_SCRIPT_NAME, testCacheDir);
+                one(scriptHandlerMock).loadFromCache(testScriptFile.lastModified(), testClassLoader, TEST_SCRIPT_NAME, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(null));
 
                 one(scriptHandlerMock).writeToCache(
@@ -181,7 +188,7 @@ public class DefaultScriptProcessorTest {
                 allowing(source).getClassName();
                 will(returnValue(TEST_SCRIPT_NAME));
 
-                one(scriptHandlerMock).loadFromCache(testScriptFile.lastModified(), testClassLoader, TEST_SCRIPT_NAME, testCacheDir);
+                one(scriptHandlerMock).loadFromCache(testScriptFile.lastModified(), testClassLoader, TEST_SCRIPT_NAME, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
         });

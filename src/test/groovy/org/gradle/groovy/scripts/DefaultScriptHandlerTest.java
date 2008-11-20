@@ -51,7 +51,7 @@ public class DefaultScriptHandlerTest {
 
     InputStreamClassLoader classLoader;
 
-    Class expectedScriptClass;
+    Class<? extends Script> expectedScriptClass;
 
     @Before
     public void setUp() throws IOException, ClassNotFoundException {
@@ -77,7 +77,7 @@ public class DefaultScriptHandlerTest {
         Script script = scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
         checkCacheDestination();
         evaluateScript(script);
-        evaluateScript(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
+        evaluateScript(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass));
     }
 
     private void checkCacheDestination() {
@@ -99,21 +99,26 @@ public class DefaultScriptHandlerTest {
     }
 
     @Test public void testLoadFromCacheWithNonCachedBuildFile() {
-        assertNull(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
+        assertNull(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass));
     }
 
     @Test public void testLoadFromCacheWithStaleCache() {
         scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
         long inTheFuture = scriptCacheDir.lastModified() + 1000;
-        assertNull(scriptHandler.loadFromCache(inTheFuture, classLoader, TEST_SCRIPT_NAME, scriptCacheDir));
+        assertNull(scriptHandler.loadFromCache(inTheFuture, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass));
+    }
+
+    @Test public void testLoadFromCacheWhenNotAssignableToBaseClass() {
+        scriptHandler.writeToCache(testScript, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, Script.class);
+        assertNull(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass));
     }
 
     @Test(expected = GradleException.class) public void testWriteToCacheWithException() {
-        Script script = scriptHandler.writeToCache("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
+        scriptHandler.writeToCache("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
     }
 
     @Test(expected = GradleException.class) public void testCreateScriptWithException() {
-        Script script = scriptHandler.createScript("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, expectedScriptClass);
+        scriptHandler.createScript("new HHHHJSJSJ jsj", classLoader, TEST_SCRIPT_NAME, expectedScriptClass);
     }
 
     public abstract static class TestBaseScript extends Script {

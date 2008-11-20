@@ -18,24 +18,24 @@ package org.gradle.execution;
 
 import groovy.lang.Closure;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.GradleException;
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.util.Clock;
+import org.gradle.util.ListenerBroadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 
 /**
  * @author Hans Dockter
@@ -44,8 +44,10 @@ public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskExecuter.class);
 
     private final Dag<Task> dag;
-    private final Set<TaskExecutionGraphListener> graphListeners = new LinkedHashSet<TaskExecutionGraphListener>();
-    private final Set<TaskExecutionListener> taskListeners = new LinkedHashSet<TaskExecutionListener>();
+    private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners
+            = new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class);
+    private final ListenerBroadcast<TaskExecutionListener> taskListeners = new ListenerBroadcast<TaskExecutionListener>(
+            TaskExecutionListener.class);
     private final Set<Task> executed = new LinkedHashSet<Task>();
     private boolean populated;
 
@@ -66,9 +68,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
     public boolean execute() {
         Clock clock = new Clock();
 
-        for (TaskExecutionGraphListener listener : graphListeners) {
-            listener.graphPopulated(this);
-        }
+        graphListeners.getSource().graphPopulated(this);
 
         Set<Task> tasks = new LinkedHashSet<Task>();
         accumulateTasks(new TreeSet<Task>(dag.getSources()), tasks);
@@ -111,11 +111,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add(new TaskExecutionGraphListener() {
-            public void graphPopulated(TaskExecutionGraph graph) {
-                closure.call(graph);
-            }
-        });
+        graphListeners.add("graphPopulated", closure);
     }
 
     public void addTaskExecutionListener(TaskExecutionListener listener) {
@@ -127,25 +123,11 @@ public class DefaultTaskExecuter implements TaskExecuter {
     }
 
     public void beforeTask(final Closure closure) {
-        addTaskExecutionListener(new TaskExecutionListener() {
-            public void beforeExecute(Task task) {
-                closure.call(task);
-            }
-
-            public void afterExecute(Task task, Throwable failure) {
-            }
-        });
+        taskListeners.add("beforeExecute", closure);
     }
 
     public void afterTask(final Closure closure) {
-        addTaskExecutionListener(new TaskExecutionListener() {
-            public void beforeExecute(Task task) {
-            }
-
-            public void afterExecute(Task task, Throwable failure) {
-                closure.call(task);
-            }
-        });
+        taskListeners.add("afterExecute", closure);
     }
 
     private void addTask(Task task, Iterable<? extends Task> dependsOnTasks) {
@@ -191,15 +173,11 @@ public class DefaultTaskExecuter implements TaskExecuter {
     }
 
     private void fireBeforeTask(Task task) {
-        for (TaskExecutionListener listener : taskListeners) {
-            listener.beforeExecute(task);
-        }
+        taskListeners.getSource().beforeExecute(task);
     }
 
     private void fireAfterTask(Task task, Throwable failure) {
-        for (TaskExecutionListener listener : taskListeners) {
-            listener.afterExecute(task, failure);
-        }
+        taskListeners.getSource().afterExecute(task, failure);
     }
 
     public boolean hasTask(String path) {

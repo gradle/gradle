@@ -124,7 +124,7 @@ class ScriptEvaluatingSettingsProcessorTest {
             one(scriptProcessorMock).createScript(
                     withParam(ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource)),
                     withParam(Matchers.sameInstance(Thread.currentThread().contextClassLoader)),
-                    withParam(Matchers.equalTo(Script.class)))
+                    withParam(Matchers.equalTo(ScriptWithSource.class)))
             will(returnValue(expectedScript))
             one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
         }
