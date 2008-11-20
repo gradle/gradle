@@ -46,9 +46,9 @@ class WebProject {
     }
 
     static void checkJettyPlugin(String gradleHome, File webProjectDir) {
-        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runTest'], [], '', Executer.DEBUG)
+        println(Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runTest'], [], '', Executer.DEBUG).output)
         checkServletOutput(webProjectDir)
-        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runWarTest'], [], '', Executer.DEBUG)
+        println(Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runWarTest'], [], '', Executer.DEBUG).output)
         checkServletOutput(webProjectDir)
         Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runExplodedTest'], [], '', Executer.DEBUG)
         checkServletOutput(webProjectDir)
