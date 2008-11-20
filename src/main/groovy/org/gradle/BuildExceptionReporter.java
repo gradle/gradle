@@ -22,6 +22,7 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
+import org.gradle.util.GUtil;
 import joptsimple.OptionSet;
 
 import java.util.Formatter;
@@ -73,7 +74,8 @@ public class BuildExceptionReporter implements BuildListener {
         Formatter formatter = new Formatter();
         formatter.format("%n");
         formatter.format("Build aborted because of an internal error.%n");
-        formatter.format("Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org", Main.DEBUG);
+        formatter.format("Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org",
+                Main.DEBUG);
         formatter.format("%n");
         logger.error(formatter.toString(), failure);
     }
@@ -95,10 +97,10 @@ public class BuildExceptionReporter implements BuildListener {
         if (failure instanceof GradleScriptException) {
             GradleScriptException scriptException = (GradleScriptException) failure;
             formatter.format("%s%n%n", scriptException.getLocation());
-            formatter.format("%s%nCause: %s", scriptException.getOriginalMessage(),
-                    scriptException.getCause().getMessage());
+            formatter.format("%s%nCause: %s", scriptException.getOriginalMessage(), getMessage(
+                    scriptException.getCause()));
         } else {
-            formatter.format("%s", failure.getMessage());
+            formatter.format("%s", getMessage(failure));
         }
 
         if (stacktrace || fullStacktrace) {
@@ -107,5 +109,13 @@ public class BuildExceptionReporter implements BuildListener {
         } else {
             logger.error(formatter.toString());
         }
+    }
+
+    private String getMessage(Throwable throwable) {
+        String message = throwable.getMessage();
+        if (GUtil.isTrue(message)) {
+            return message;
+        }
+        return String.format("%s (no error message)", throwable.getClass().getName());
     }
 }

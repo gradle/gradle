@@ -66,6 +66,19 @@ public class BuildExceptionReporterTest {
     }
 
     @Test
+    public void reportsBuildFailureWhenCauseHasNoMessage() {
+        final GradleException exception = new GradleException();
+        final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
+                containsString(GradleException.class.getName() + " (no error message)"));
+
+        context.checking(new Expectations() {{
+            one(logger).error(with(errorMessage));
+        }});
+
+        reporter.buildFinished(new BuildResult(null, exception));
+    }
+
+    @Test
     public void reportsGradleScriptException() {
         final GradleScriptException exception
                 = new GradleScriptException("<message>", new RuntimeException("<cause>"),
@@ -79,6 +92,28 @@ public class BuildExceptionReporterTest {
                 containsString("<location>"),
                 containsString("<message>"),
                 containsString("Cause: <cause>"));
+
+        context.checking(new Expectations() {{
+            one(logger).error(with(errorMessage));
+        }});
+
+        reporter.buildFinished(new BuildResult(null, exception));
+    }
+
+    @Test
+    public void reportsGradleScriptExceptionWhenCauseHasNoMessage() {
+        final GradleScriptException exception
+                = new GradleScriptException("<message>", new RuntimeException(),
+                context.mock(ScriptSource.class)) {
+            @Override
+            public String getLocation() {
+                return "<location>";
+            }
+        };
+        final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
+                containsString("<location>"),
+                containsString("<message>"),
+                containsString("Cause: " + RuntimeException.class.getName() + " (no error message)"));
 
         context.checking(new Expectations() {{
             one(logger).error(with(errorMessage));
