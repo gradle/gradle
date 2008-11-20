@@ -17,6 +17,7 @@ package org.gradle.api.dependencies.maven;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.dependencies.maven.deploy.PomFilter;
 
 import java.io.File;
 import java.util.List;
@@ -32,13 +33,6 @@ public interface MavenPom {
      * Returns the scope mappings used for generating this pom.
      */
     Conf2ScopeMappingContainer getScopeMappings();
-
-    /**
-     * Generates the pom and writes it into a file.
-     * @param pomFile The file to write the generated pom to.
-     * @param dependencies All dependencies
-     */
-    void toPomFile(File pomFile, List<DependencyDescriptor> dependencies);
 
     /**
      * @see #setGroupId(String)
@@ -99,4 +93,6 @@ public interface MavenPom {
      * Sets the licenseHeader property of the to be generated Maven pom.
      */
     void setLicenseHeader(String licenseHeader);
+
+    void copyFrom(MavenPom sourcePom);
 }

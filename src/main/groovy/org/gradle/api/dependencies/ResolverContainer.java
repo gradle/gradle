@@ -20,8 +20,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.dependencies.maven.GroovyMavenUploader;
-import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.dependencies.maven.*;
 import org.gradle.api.internal.dependencies.ResolverFactory;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
@@ -42,6 +41,8 @@ public class ResolverContainer {
     private File mavenPomDir;
 
     private Conf2ScopeMappingContainer mavenConf2ScopeMappings;
+
+    private PomFilterContainer pomFilterContainer;
 
     private DependencyManager dependencyManager;
 
@@ -204,6 +205,14 @@ public class ResolverContainer {
         this.mavenConf2ScopeMappings = mavenConf2ScopeMappings;
     }
 
+    public PomFilterContainer getPomFilterContainer() {
+        return pomFilterContainer;
+    }
+
+    public void setPomFilterContainer(PomFilterContainer pomFilterContainer) {
+        this.pomFilterContainer = pomFilterContainer;
+    }
+
     public DependencyManager getDependencyManager() {
         return dependencyManager;
     }
@@ -212,16 +221,27 @@ public class ResolverContainer {
         this.dependencyManager = dependencyManager;
     }
 
-    public GroovyMavenUploader createMavenUploader(String name) {
-        return resolverFactory.createMavenUploader(name, mavenPomDir, mavenConf2ScopeMappings, dependencyManager);
+    public GroovyMavenDeployer createMavenDeployer(String name) {
+        return resolverFactory.createMavenDeployer(name, mavenPomDir, mavenConf2ScopeMappings, pomFilterContainer, dependencyManager);
     }
 
-    public GroovyMavenUploader addMavenUploader(String name) {
-        return (GroovyMavenUploader) add(createMavenUploader(name));
+    public GroovyMavenDeployer addMavenDeployer(String name) {
+        return (GroovyMavenDeployer) add(createMavenDeployer(name));
     }
 
-    public GroovyMavenUploader addMavenUploader(String name, Closure configureClosure) {
-        return (GroovyMavenUploader) add(createMavenUploader(name), configureClosure);
+    public GroovyMavenDeployer addMavenDeployer(String name, Closure configureClosure) {
+        return (GroovyMavenDeployer) add(createMavenDeployer(name), configureClosure);
+    }
+    public MavenResolver createMavenInstaller(String name) {
+        return resolverFactory.createMavenInstaller(name, mavenPomDir, mavenConf2ScopeMappings, pomFilterContainer, dependencyManager);
+    }
+
+    public MavenResolver addMavenInstaller(String name) {
+        return (MavenResolver) add(createMavenInstaller(name));
+    }
+
+    public MavenResolver addMavenInstaller(String name, Closure configureClosure) {
+        return (MavenResolver) add(createMavenInstaller(name), configureClosure);
     }
 
 

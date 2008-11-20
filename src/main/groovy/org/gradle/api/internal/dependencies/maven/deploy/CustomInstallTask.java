@@ -15,11 +15,21 @@
  */
 package org.gradle.api.internal.dependencies.maven.deploy;
 
+import org.apache.maven.artifact.ant.InstallTask;
+import org.apache.maven.settings.Settings;
+
 /**
  * @author Hans Dockter
  */
-public class DefaultDeployTaskFactory implements DeployTaskFactory {
-    public CustomDeployTask createDeployTask() {
-        return new CustomDeployTask();
+public class CustomInstallTask extends InstallTask implements CustomInstallDeployTaskSupport {
+    @Override
+    public synchronized Settings getSettings() {
+        return super.getSettings();   
+    }
+
+    @Override
+    public void doExecute() {
+        LoggingHelper.injectLogger(getContainer(), getProject());
+        super.doExecute();
     }
 }

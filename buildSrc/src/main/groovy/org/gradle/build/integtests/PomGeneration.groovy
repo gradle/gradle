@@ -26,15 +26,23 @@ import org.junit.Assert;
  */
 class PomGeneration {
     static void execute(String gradleHome, String samplesDirName) {
-        File pomprojectDir = new File(samplesDirName, 'pomGeneration')
-        File repoDir = new File(pomprojectDir, "pomRepo");
+        long start = System.currentTimeMillis();
+        File pomProjectDir = new File(samplesDirName, 'pomGeneration')
+        File repoDir = new File(pomProjectDir, "pomRepo");
         String repoPath = "gradle/mywar/1.0"
         File pomFile = new File(repoDir, "$repoPath/mywar-1.0.pom");
         FileUtils.deleteQuietly(repoDir)
-        Executer.execute(gradleHome, pomprojectDir.absolutePath, ['clean', 'uploadLibs'], [], '', Executer.DEBUG)
+        Executer.execute(gradleHome, pomProjectDir.absolutePath, ['clean', 'uploadLibs'], [], '', Executer.DEBUG)
         compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("pomGeneration/expectedPom.txt").text,
               pomFile.text)
         Assert.assertTrue(new File(repoDir, "$repoPath/mywar-1.0.war").exists())
+        checkInstall(start, pomProjectDir);
+    }
+
+    static void checkInstall(long start, File pomProjectDir) {
+        File localMavenRepo = new File(pomProjectDir, "build/localRepoPath.txt").text as File
+        File installedFile = new File(localMavenRepo, "gradle/mywar/1.0/mywar-1.0.war")
+        Assert.assertTrue(start <= installedFile.lastModified());
     }
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {

@@ -32,21 +32,16 @@ import java.util.Arrays;
 /**
  * @author Hans Dockter
  */
-@RunWith(JMock.class)
 public class DefaultMavenPomFactoryTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
-
     @Test
     public void createMavenPom() {
-        PomFileWriter pomFileWriterMock = context.mock(PomFileWriter.class);
         DefaultConf2ScopeMappingContainer scopeMappings = new DefaultConf2ScopeMappingContainer();
         final DefaultModuleDescriptor testModuleDescriptor = DefaultModuleDescriptor.newBasicInstance(ModuleRevisionId.newInstance("org", "name","version"), null);
         testModuleDescriptor.addDependency(new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org1", "name1", "rev1"), false));
         scopeMappings.addMapping(10, "conf", "scope");
-        DefaultMavenPomFactory mavenPomFactory = new DefaultMavenPomFactory(scopeMappings, pomFileWriterMock);
+        DefaultMavenPomFactory mavenPomFactory = new DefaultMavenPomFactory(scopeMappings);
         DefaultMavenPom mavenPom = (DefaultMavenPom) mavenPomFactory.createMavenPom();
         assertNotSame(scopeMappings, mavenPom.getScopeMappings());
         assertEquals(scopeMappings, mavenPom.getScopeMappings());
-        assertSame(pomFileWriterMock, mavenPom.getPomModuleDescriptorFileWriter());
     }
 }

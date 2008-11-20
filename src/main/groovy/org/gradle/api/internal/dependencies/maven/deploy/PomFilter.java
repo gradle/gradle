@@ -15,11 +15,20 @@
  */
 package org.gradle.api.internal.dependencies.maven.deploy;
 
+import org.gradle.api.dependencies.maven.MavenPom;
+import org.gradle.api.dependencies.maven.PublishFilter;
+
 /**
  * @author Hans Dockter
  */
-public class DefaultDeployTaskFactory implements DeployTaskFactory {
-    public CustomDeployTask createDeployTask() {
-        return new CustomDeployTask();
-    }
+public interface PomFilter {
+    String getName();
+
+    PublishFilter getFilter();
+
+    void setFilter(PublishFilter filter);
+
+    MavenPom getPomTemplate();
+
+    void setPomTemplate(MavenPom pom);
 }

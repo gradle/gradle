@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.dependencies.maven.deploy;
+package org.gradle.api.dependencies.maven;
+
+import org.apache.maven.settings.Settings;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultDeployTaskFactory implements DeployTaskFactory {
-    public CustomDeployTask createDeployTask() {
-        return new CustomDeployTask();
-    }
+public interface MavenResolver extends DependencyResolver {
+    /**
+     * Returns a maven settings object. This can be used for example to figure out where the local repository is located.
+     * This property is filled after publishing. Before this property is null.
+     */
+    Settings getSettings();
 }

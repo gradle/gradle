@@ -18,8 +18,7 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
-import org.gradle.api.dependencies.maven.GroovyMavenUploader;
-import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.dependencies.maven.*;
 import org.gradle.api.DependencyManager;
 
 import java.io.File;
@@ -34,6 +33,9 @@ public interface ResolverFactory {
 
     AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls);
 
-    GroovyMavenUploader createMavenUploader(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
-                                      DependencyManager dependencyManager);
+    GroovyMavenDeployer createMavenDeployer(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
+                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager);
+
+    MavenResolver createMavenInstaller(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
+                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager);
 }

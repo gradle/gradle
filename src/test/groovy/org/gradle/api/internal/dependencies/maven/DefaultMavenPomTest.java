@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;import static org.junit.Assert.assertSame;
 import org.gradle.api.internal.dependencies.maven.DefaultMavenPom;
+import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultMavenPomTest {
     private static final String EXPECTED_PACKAGING = "something";
     private static final String EXPECTED_LICENSE_HEADER = "licence";
@@ -45,15 +45,10 @@ public class DefaultMavenPomTest {
     PomFileWriter pomFileWriterMock;
     Conf2ScopeMappingContainer conf2ScopeMappingContainerMock;
 
-    private JUnit4Mockery context = new JUnit4Mockery();
-
-    private List<DependencyDescriptor> testDependencies;
-
     @Before
     public void setUp() {
-        pomFileWriterMock = context.mock(PomFileWriter.class);
-        conf2ScopeMappingContainerMock = context.mock(Conf2ScopeMappingContainer.class);
-        mavenPom = new DefaultMavenPom(pomFileWriterMock, conf2ScopeMappingContainerMock);
+        conf2ScopeMappingContainerMock = new DefaultConf2ScopeMappingContainer();
+        mavenPom = new DefaultMavenPom(conf2ScopeMappingContainerMock);
         mavenPom.setPackaging(EXPECTED_PACKAGING);
         mavenPom.setLicenseHeader(EXPECTED_LICENSE_HEADER);
         mavenPom.setGroupId(EXPECTED_GROUP_ID);
@@ -78,13 +73,30 @@ public class DefaultMavenPomTest {
     public void setLicensHeader() {
         assertEquals(EXPECTED_LICENSE_HEADER, mavenPom.getLicenseHeader());
     }
-    
+
     @Test
-    public void toPomFile() {
-        final File expectedPomFile = new File("somefile");
-        context.checking(new Expectations() {{
-            one(pomFileWriterMock).write(mavenPom, testDependencies, expectedPomFile);
-        }});
-        mavenPom.toPomFile(expectedPomFile, testDependencies);
+    public void copyFrom() {
+        DefaultConf2ScopeMappingContainer expectedScopeMappings = new DefaultConf2ScopeMappingContainer();
+        DefaultMavenPom sourcePom = createTestPom(expectedScopeMappings);
+        DefaultMavenPom targetPom = new DefaultMavenPom(expectedScopeMappings);
+        targetPom.copyFrom(sourcePom);
+        assertEquals(sourcePom.getArtifactId(), targetPom.getArtifactId());
+        assertEquals(sourcePom.getClassifier(), targetPom.getClassifier());
+        assertEquals(sourcePom.getGroupId(), targetPom.getGroupId());
+        assertEquals(sourcePom.getLicenseHeader(), targetPom.getLicenseHeader());
+        assertEquals(sourcePom.getPackaging(), targetPom.getPackaging());
+        assertEquals(sourcePom.getVersion(), targetPom.getVersion());
+
+    }
+
+    private DefaultMavenPom createTestPom(DefaultConf2ScopeMappingContainer expectedScopeMappings) {
+        DefaultMavenPom sourcePom = new DefaultMavenPom(expectedScopeMappings);
+        sourcePom.setArtifactId("aid");
+        sourcePom.setGroupId("gid");
+        sourcePom.setVersion("vrs");
+        sourcePom.setPackaging("pkg");
+        sourcePom.setClassifier("cls");
+        sourcePom.setLicenseHeader("lcs");
+        return sourcePom;
     }
 }

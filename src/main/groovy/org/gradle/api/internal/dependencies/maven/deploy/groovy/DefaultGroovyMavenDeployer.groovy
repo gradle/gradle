@@ -15,45 +15,26 @@
  */
 package org.gradle.api.internal.dependencies.maven.deploy.groovy
 
-import org.gradle.api.dependencies.maven.GroovyMavenUploader
-import org.gradle.api.dependencies.maven.MavenPom
-import org.gradle.api.dependencies.maven.PublishFilter
-import org.gradle.api.internal.dependencies.maven.MavenPomFactory
-import org.gradle.api.internal.dependencies.maven.deploy.ArtifactPomContainer
-import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenUploader
-import org.gradle.util.ConfigureUtil
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.DependencyManager
+import org.gradle.api.dependencies.maven.GroovyMavenDeployer
+import org.gradle.api.dependencies.maven.PomFilterContainer
+import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenDeployer
+import org.gradle.api.internal.dependencies.maven.deploy.ArtifactPomContainer
 
 /**
  * @author Hans Dockter
  */
-class DefaultGroovyMavenUploader extends BaseMavenUploader implements GroovyMavenUploader {
+class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMavenDeployer {
     public static final String REPOSITORY_BUILDER = "repository"
     public static final String SNAPSHOT_REPOSITORY_BUILDER = 'snapshotRepository'
     
     private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
-    DefaultGroovyMavenUploader(String name, ArtifactPomContainer artifactPomContainer, MavenPomFactory mavenPomFactory, DependencyManager dependencyManager) {
-        super(name, artifactPomContainer, mavenPomFactory, dependencyManager)
+    DefaultGroovyMavenDeployer(String name, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+        super(name, artifactPomContainer, dependencyManager)
     }
-
-    void filter(Closure filter) {
-        this.filter = filter as PublishFilter
-    }
-
-    MavenPom addFilter(String name, Closure filter) {
-        addFilter(name, filter as PublishFilter)
-    }
-
-    MavenPom pom(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, pom)
-    }
-
-    MavenPom pom(String name, Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, pom(name))
-    }
-
+    
     def methodMissing(String name, args) {
         if (name == REPOSITORY_BUILDER || name == SNAPSHOT_REPOSITORY_BUILDER) {
             Object repository = InvokerHelper.invokeMethod(repositoryBuilder, REPOSITORY_BUILDER, args)

@@ -19,23 +19,14 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.io.File;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public interface ArtifactPomContainer {
     void addArtifact(Artifact artifact, File src);
-
-    ArtifactPom getDefaultArtifactPom();
-
-    void setDefaultArtifactPom(ArtifactPom artifactPom);
-
-    void addArtifactPom(ArtifactPom artifactPom);
-
-    ArtifactPom getArtifactPom(String name);
-
 
     Map<File, File> createDeployableUnits(List<DependencyDescriptor> dependencies);
 }

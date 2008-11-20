@@ -17,11 +17,17 @@ package org.gradle.api.internal.dependencies.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.util.WrapUtil;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.dependencies.maven.MavenPom;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
+import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
+import org.gradle.api.internal.dependencies.maven.PomWriter;
+import org.gradle.api.internal.dependencies.maven.PomFileWriter;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -30,46 +36,48 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
     private File pomDir;
 
     private Map<String, ArtifactPom> artifactPoms = new HashMap<String, ArtifactPom>();
+    private PomFilterContainer pomFilterContainer;
+    private MavenPomFactory mavenPomFactory;
+    private PomFileWriter pomFileWriter;
+    private ArtifactPomFactory artifactPomFactory;
 
-    private ArtifactPom defaultArtifactPom;
-
-    public DefaultArtifactPomContainer(File pomDir) {
+    public DefaultArtifactPomContainer(File pomDir, PomFilterContainer pomFilterContainer, MavenPomFactory mavenPomFactory,
+                                       PomFileWriter pomFileWriter, ArtifactPomFactory artifactPomFactory) {
         this.pomDir = pomDir;
+        this.pomFilterContainer = pomFilterContainer;
+        this.mavenPomFactory = mavenPomFactory;
+        this.pomFileWriter = pomFileWriter;
+        this.artifactPomFactory = artifactPomFactory;
     }
 
     public void addArtifact(Artifact artifact, File src) {
-        for (ArtifactPom activeArtifactPom : getActiveArtifactPoms()) {
-            activeArtifactPom.addArtifact(artifact, src);
+        if (artifact == null || src == null) {
+            throw new InvalidUserDataException("Artifact or source file must not be null!");
+        }
+        for (PomFilter activePomFilter : pomFilterContainer.getActivePomFilters()) {
+            if (activePomFilter.getFilter().accept(artifact, src)) {
+                throwExceptionIfMultipleArtifactsPerPom(activePomFilter.getName(), artifact, src);
+                MavenPom pom = mavenPomFactory.createMavenPom();
+                pom.copyFrom(activePomFilter.getPomTemplate());
+                artifactPoms.put(activePomFilter.getName(), artifactPomFactory.createArtifactPom(pom, artifact, src));
+            }
         }
     }
 
-    public ArtifactPom getDefaultArtifactPom() {
-        return defaultArtifactPom;
-    }
-
-    public void setDefaultArtifactPom(ArtifactPom defaultArtifactPom) {
-        this.defaultArtifactPom = defaultArtifactPom;
-    }
-
-    public void addArtifactPom(ArtifactPom artifactPom) {
-        if (artifactPom == null) {
-            throw new InvalidUserDataException("ArtifactPom must not be null.");
+    private void throwExceptionIfMultipleArtifactsPerPom(String name, Artifact artifact, File src) {
+        if (artifactPoms.get(name) != null) {
+            throw new InvalidUserDataException(String.format("There can be only one artifact per pom. Artifact %s with file %s can't be assigned to pom %s",
+                    artifact.getName(), src.getAbsolutePath(), name));
         }
-        artifactPoms.put(artifactPom.getName(), artifactPom);
-    }
-
-    public ArtifactPom getArtifactPom(String name) {
-        return artifactPoms.get(name);
     }
 
     public Map<File, File> createDeployableUnits(List<DependencyDescriptor> dependencies) {
         Map<File, File> deployableUnits = new HashMap<File, File>();
-        for (ArtifactPom activeArtifactPom : getActiveArtifactPoms()) {
-            if (activeArtifactPom.getArtifactFile() != null) {
-                File pomFile = createPomFile(activeArtifactPom.getName());
-                activeArtifactPom.toPomFile(pomFile, dependencies);
-                deployableUnits.put(pomFile, activeArtifactPom.getArtifactFile());
-            }
+        for (String activeArtifactPomName : artifactPoms.keySet()) {
+            ArtifactPom activeArtifactPom = artifactPoms.get(activeArtifactPomName);
+            File pomFile = createPomFile(activeArtifactPomName);
+            pomFileWriter.write(activeArtifactPom.getPom(), dependencies, pomFile);
+            deployableUnits.put(pomFile, activeArtifactPom.getArtifactFile());
         }
         return deployableUnits;
     }
@@ -86,13 +94,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         this.pomDir = pomDir;
     }
 
-    private Iterable<ArtifactPom> getActiveArtifactPoms() {
-        Iterable<ArtifactPom> activeArtifactPoms;
-        if (artifactPoms.size() == 0 && defaultArtifactPom != null) {
-            activeArtifactPoms = WrapUtil.toSet(defaultArtifactPom);
-        } else {
-            activeArtifactPoms = artifactPoms.values();
-        }
-        return activeArtifactPoms;
+    public Map<String, ArtifactPom> getArtifactPoms() {
+        return artifactPoms;
     }
 }

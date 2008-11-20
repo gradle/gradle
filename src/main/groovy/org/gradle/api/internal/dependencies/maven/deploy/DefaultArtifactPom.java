@@ -17,10 +17,9 @@ package org.gradle.api.internal.dependencies.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.dependencies.maven.PublishFilter;
-import org.gradle.api.dependencies.maven.MavenPom;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.dependencies.maven.MavenPom;
 
 import java.io.File;
 import java.util.List;
@@ -29,24 +28,23 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class DefaultArtifactPom implements ArtifactPom {
-    private String name;
-
-    private PublishFilter filter;
-
     private MavenPom pom;
 
     private Artifact artifact;
 
     private File artifactFile;
 
-    public DefaultArtifactPom(String name, MavenPom pom, PublishFilter filter) {
-        this.name = name;
+    public DefaultArtifactPom(MavenPom pom, Artifact artifact, File artifactFile) {
         this.pom = pom;
-        this.filter = filter;
+        addArtifact(artifact, artifactFile);
     }
 
-    public String getName() {
-        return name;
+    public MavenPom getPom() {
+        return pom;
+    }
+
+    public void setPom(MavenPom pom) {
+        this.pom = pom;
     }
 
     public File getArtifactFile() {
@@ -65,27 +63,8 @@ public class DefaultArtifactPom implements ArtifactPom {
         this.artifact = artifact;
     }
 
-    public PublishFilter getFilter() {
-        return filter;
-    }
-
-    public void setFilter(PublishFilter filter) {
-        this.filter = filter;
-    }
-
-    public MavenPom getPom() {
-        return pom;
-    }
-
-    public void setPom(MavenPom pom) {
-        this.pom = pom;
-    }
-
-    public void addArtifact(Artifact artifact, File src) {
+    private void addArtifact(Artifact artifact, File src) {
         throwEceptionIfArtifactOrSrcIsNull(artifact, src);
-        if (!filter.accept(artifact, src)) {
-            return;
-        }
         if (this.artifact != null) {
             throw new InvalidUserDataException("A pom can't have multiple artifacts.");
         }
@@ -119,9 +98,5 @@ public class DefaultArtifactPom implements ArtifactPom {
         if (src == null) {
             throw new InvalidUserDataException("Src file must not be null.");
         }
-    }
-
-    public void toPomFile(File pomFile, List<DependencyDescriptor> dependencies) {
-        pom.toPomFile(pomFile, dependencies);
     }
 }

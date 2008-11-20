@@ -27,7 +27,6 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class DefaultMavenPom implements MavenPom {
-    private PomFileWriter pomFileWriter;
     private Conf2ScopeMappingContainer scopeMappings;
     private String groupId;
     private String artifactId;
@@ -36,25 +35,12 @@ public class DefaultMavenPom implements MavenPom {
     private String packaging;
     private String licenseHeader;
 
-    public DefaultMavenPom(PomFileWriter pomFileWriter, Conf2ScopeMappingContainer scopeMappings) {
-        this.pomFileWriter = pomFileWriter;
+    public DefaultMavenPom(Conf2ScopeMappingContainer scopeMappings) {
         this.scopeMappings = scopeMappings;
     }
 
     public Conf2ScopeMappingContainer getScopeMappings() {
         return scopeMappings;
-    }
-
-    public void toPomFile(File pomFile, List<DependencyDescriptor> dependencies) {
-        pomFileWriter.write(this, dependencies, pomFile);
-    }
-
-    public PomFileWriter getPomModuleDescriptorFileWriter() {
-        return pomFileWriter;
-    }
-
-    public void setPomModuleDescriptorFileWriter(PomFileWriter pomFileWriter) {
-        this.pomFileWriter = pomFileWriter;
     }
 
     public String getGroupId() {
@@ -103,5 +89,14 @@ public class DefaultMavenPom implements MavenPom {
 
     public void setLicenseHeader(String licenseHeader) {
         this.licenseHeader = licenseHeader;
+    }
+
+    public void copyFrom(MavenPom sourcePom) {
+        this.artifactId = sourcePom.getArtifactId();
+        this.classifier = sourcePom.getClassifier();
+        this.groupId = sourcePom.getGroupId();
+        this.licenseHeader = sourcePom.getLicenseHeader();
+        this.packaging = sourcePom.getPackaging();
+        this.version = sourcePom.getVersion();
     }
 }

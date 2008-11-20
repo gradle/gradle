@@ -42,44 +42,23 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-@RunWith(JMock.class)
 public class DefaultArtifactPomTest {
     private DefaultArtifactPom artifactPom;
     private MavenPom testPom;
-    private PublishFilter testFilter;
-
-    private JUnit4Mockery context = new JUnit4Mockery();
-    private static final String TEST_NAME = "name";
-
-    private List<DependencyDescriptor> testDependencies;
+    private File expectedFile;
+    private Artifact expectedArtifact;
 
     @Before
     public void setUp() {
-        testDependencies = new ArrayList<DependencyDescriptor>();
-        testPom = new DefaultMavenPom(context.mock(PomFileWriter.class),
-                new DefaultConf2ScopeMappingContainer());
-        testFilter = PublishFilter.ALWAYS_ACCEPT;
-        artifactPom = new DefaultArtifactPom(TEST_NAME, testPom, testFilter);
+        expectedFile = new File("somePath");
+        expectedArtifact = createTestArtifact("someName");
+        testPom = new DefaultMavenPom(new DefaultConf2ScopeMappingContainer());
+        artifactPom = new DefaultArtifactPom(testPom, expectedArtifact, expectedFile);
     }
 
     @Test
     public void init() {
-        assertEquals(TEST_NAME, artifactPom.getName());
         assertSame(testPom, artifactPom.getPom());
-        assertSame(testFilter, artifactPom.getFilter());
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void addMultipleArtifactsAcceptedByFilter() {
-        artifactPom.addArtifact(createTestArtifact("name1"), new File("somePath"));
-        artifactPom.addArtifact(createTestArtifact("name2"), new File("somePath2"));
-    }
-
-    @Test
-    public void addArtifact() {
-        File expectedFile = new File("somePath");
-        final Artifact expectedArtifact = createTestArtifact("someName");
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
         assertEquals(expectedArtifact, artifactPom.getArtifact());
         assertEquals(expectedFile, artifactPom.getArtifactFile());
         checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
@@ -87,15 +66,13 @@ public class DefaultArtifactPomTest {
     }
 
     @Test
-    public void addArtifactWithCustomPomSettings() {
-        File expectedFile = new File("somePath");
-        final Artifact expectedArtifact = createTestArtifact("someName");
+    public void initWithCustomPomSettings() {
         testPom.setArtifactId(expectedArtifact.getName() + "X");
         testPom.setGroupId(expectedArtifact.getModuleRevisionId().getOrganisation() + "X");
         testPom.setVersion(expectedArtifact.getModuleRevisionId().getRevision() + "X");
         testPom.setPackaging(expectedArtifact.getType() + "X");
         testPom.setClassifier(expectedArtifact.getExtraAttribute(DependencyManager.CLASSIFIER) + "X");
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
+        artifactPom = new DefaultArtifactPom(testPom, expectedArtifact, expectedFile);
         assertEquals(expectedArtifact, artifactPom.getArtifact());
         assertEquals(expectedFile, artifactPom.getArtifactFile());
         checkPom(testPom.getGroupId(), testPom.getArtifactId(), testPom.getPackaging(), testPom.getVersion(), testPom.getClassifier());
@@ -110,49 +87,37 @@ public class DefaultArtifactPomTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void addArtifactWithSrcNull() {
-        artifactPom.addArtifact(createTestArtifact("somename"), null);
+    public void initWithArtifactSrcNull() {
+        new DefaultArtifactPom(testPom, expectedArtifact, null);
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void addArtifactWithArtifactNull() {
-        artifactPom.addArtifact(null, new File("somepath"));
+    public void initWithArtifactNull() {
+        new DefaultArtifactPom(testPom, null, expectedFile);
     }
 
-    @Test
-    public void addMultipleArtifactsWithOnlyOneAcceptedByFilter() {
-        final File srcFile1 = new File("src1");
-        final File srcFile2 = new File("src2");
-        final File srcFile3 = new File("src3");
-        PublishFilter fileFilter = new PublishFilter() {
-            public boolean accept(Artifact artifact, File src) {
-                return src.equals(srcFile2);
-            }
-        };
-        artifactPom.setFilter(fileFilter);
-        Artifact artifact1 = createTestArtifact("someName1");
-        Artifact artifact2 = createTestArtifact("someName2");
-        Artifact artifact3 = createTestArtifact("someName3");
-        artifactPom.addArtifact(artifact1, srcFile1);
-        artifactPom.addArtifact(artifact2, srcFile2);
-        artifactPom.addArtifact(artifact3, srcFile3);
-        assertEquals(artifact2, artifactPom.getArtifact());
-        assertEquals(srcFile2, artifactPom.getArtifactFile());
-    }
+//    @Test
+//    public void addMultipleArtifactsWithOnlyOneAcceptedByFilter() {
+//        final File srcFile1 = new File("src1");
+//        final File srcFile2 = new File("src2");
+//        final File srcFile3 = new File("src3");
+//        PublishFilter fileFilter = new PublishFilter() {
+//            public boolean accept(Artifact artifact, File src) {
+//                return src.equals(srcFile2);
+//            }
+//        };
+//        artifactPom.setPomFilter(fileFilter);
+//        Artifact artifact1 = createTestArtifact("someName1");
+//        Artifact artifact2 = createTestArtifact("someName2");
+//        Artifact artifact3 = createTestArtifact("someName3");
+//        artifactPom.addArtifact(artifact1, srcFile1);
+//        artifactPom.addArtifact(artifact2, srcFile2);
+//        artifactPom.addArtifact(artifact3, srcFile3);
+//        assertEquals(artifact2, artifactPom.getArtifact());
+//        assertEquals(srcFile2, artifactPom.getArtifactFile());
+//    }
 
     private Artifact createTestArtifact(String name) {
         return new DefaultArtifact(ModuleRevisionId.newInstance("org", name, "1.0"), null, name, "jar", "jar");
-    }
-
-    @Test
-    public void toPom() {
-        final File pomFile = new File("pomFile");
-        artifactPom.setPom(testPom = context.mock(MavenPom.class));
-        context.checking(new Expectations() {
-            {
-                one(testPom).toPomFile(pomFile, testDependencies);
-            }
-        });
-        artifactPom.toPomFile(pomFile, testDependencies);
     }
 }

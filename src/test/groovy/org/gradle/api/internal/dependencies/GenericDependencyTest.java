@@ -126,5 +126,6 @@ public class GenericDependencyTest {
         assertEquals("testname", artifact2.getName());
         assertEquals(2, dependency.getArtifacts().size());
         assertThat(dependency.getArtifacts(), Matchers.hasItems(artifact, artifact2));
+        context.assertIsSatisfied();
     }
 }

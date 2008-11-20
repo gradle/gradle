@@ -15,38 +15,20 @@
  */
 package org.gradle.api.dependencies.maven;
 
-import org.gradle.api.dependencies.maven.MavenPom;
-
 import groovy.lang.Closure;
 
 /**
- * Adds Groovy configuration convenience methods on top of the {@link MavenUploader}.
- *
- * This class provides also a builder for repository and snapshot-repository:
- *
- * <pre>
- * mavenUploader.repository(url: 'file://repoDir') {
- *    authentication(userName: 'myName')
- *    releases(updatePolicy: 'never')
- *    snapshots(updatePolicy: 'always')
- * }
- * </pre>
- *
- * This call set the repository object and also returns an instance of this object. If you use 'snapshotRepository'
- * instead of repository, the snapshot repository is build.
- *
  * @author Hans Dockter
- * @see org.gradle.api.dependencies.maven.MavenUploader
  */
-public interface GroovyMavenUploader extends MavenUploader {
+public interface GroovyPomFilterContainer extends PomFilterContainer {
     /**
      * Adds a publish filter.
      *
      * @param name   The name of the filter
      * @param filter The filter
      * @return The Maven pom associated with the closure
-     * @see org.gradle.api.dependencies.maven.PublishFilter
-     * @see org.gradle.api.dependencies.maven.MavenUploader#addFilter(String, PublishFilter)
+     * @see PublishFilter
+     * @see PomFilterContainer#addFilter(String, org.gradle.api.dependencies.maven.PublishFilter)
      */
     MavenPom addFilter(String name, Closure filter);
 
@@ -54,8 +36,8 @@ public interface GroovyMavenUploader extends MavenUploader {
      * Sets the default publish filter.
      *
      * @param filter The filter to be set
-     * @see org.gradle.api.dependencies.maven.PublishFilter
-     * @see org.gradle.api.dependencies.maven.MavenUploader#setFilter(PublishFilter)
+     * @see PublishFilter
+     * @see PomFilterContainer#setFilter(org.gradle.api.dependencies.maven.PublishFilter)
      */
     void filter(Closure filter);
 
@@ -65,7 +47,7 @@ public interface GroovyMavenUploader extends MavenUploader {
      * @param name
      * @param configureClosure
      * @return The pom object associated with the given name.
-     * @see org.gradle.api.dependencies.maven.MavenUploader#pom(String)
+     * @see PomFilterContainer#pom(String)
      */
     MavenPom pom(String name, Closure configureClosure);
 
@@ -74,7 +56,7 @@ public interface GroovyMavenUploader extends MavenUploader {
      *
      * @param configureClosure
      * @return The default pom.
-     * @see MavenUploader#getPom() 
+     * @see PomFilterContainer#getPom()
      */
     MavenPom pom(Closure configureClosure);
 }

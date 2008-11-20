@@ -15,20 +15,42 @@
  */
 package org.gradle.api.internal.dependencies.maven.deploy;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.dependencies.maven.MavenPom;
-
-import java.io.File;
-import java.util.List;
+import org.gradle.api.dependencies.maven.PublishFilter;
 
 /**
  * @author Hans Dockter
  */
-public interface ArtifactPom {
-    Artifact getArtifact();
+public class DefaultPomFilter implements PomFilter {
+    private String name;
 
-    File getArtifactFile();
+    private MavenPom pom;
 
-    MavenPom getPom();
+    private PublishFilter filter;
+
+    public DefaultPomFilter(String name, MavenPom pom, PublishFilter filter) {
+        this.name = name;
+        this.pom = pom;
+        this.filter = filter;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public MavenPom getPomTemplate() {
+        return pom;
+    }
+
+    public void setPomTemplate(MavenPom pom) {
+        this.pom = pom;
+    }
+
+    public PublishFilter getFilter() {
+        return filter;
+    }
+
+    public void setFilter(PublishFilter filter) {
+        this.filter = filter;
+    }
 }

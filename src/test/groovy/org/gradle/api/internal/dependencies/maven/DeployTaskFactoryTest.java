@@ -17,7 +17,7 @@ package org.gradle.api.internal.dependencies.maven;
 
 import org.junit.Test;
 import org.gradle.api.internal.dependencies.maven.deploy.DefaultDeployTaskFactory;
-import org.gradle.api.internal.dependencies.maven.deploy.DeployTaskWithVisibleContainerProperty;
+import org.gradle.api.internal.dependencies.maven.deploy.CustomDeployTask;
 import static junit.framework.Assert.assertTrue;
 
 /**
@@ -26,6 +26,6 @@ import static junit.framework.Assert.assertTrue;
 public class DeployTaskFactoryTest {
     @Test
     public void create() {
-        assertTrue(new DefaultDeployTaskFactory().createDeployTask() instanceof DeployTaskWithVisibleContainerProperty);
+        assertTrue(new DefaultDeployTaskFactory().createDeployTask() instanceof CustomDeployTask);
     }
 }

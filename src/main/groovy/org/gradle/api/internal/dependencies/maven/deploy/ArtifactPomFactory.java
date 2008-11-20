@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.dependencies.maven.deploy;
 
+import org.gradle.api.dependencies.maven.MavenPom;
+import org.apache.ivy.core.module.descriptor.Artifact;
+
+import java.io.File;
+
 /**
  * @author Hans Dockter
  */
-public class DefaultDeployTaskFactory implements DeployTaskFactory {
-    public CustomDeployTask createDeployTask() {
-        return new CustomDeployTask();
-    }
+public interface ArtifactPomFactory {
+    ArtifactPom createArtifactPom(MavenPom pom, Artifact artifact, File artifactFile);
 }

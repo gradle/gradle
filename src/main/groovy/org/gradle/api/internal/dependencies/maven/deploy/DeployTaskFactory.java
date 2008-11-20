@@ -19,5 +19,5 @@ package org.gradle.api.internal.dependencies.maven.deploy;
  * @author Hans Dockter
  */
 public interface DeployTaskFactory {
-    DeployTaskWithVisibleContainerProperty createDeployTask();
+    CustomDeployTask createDeployTask();
 }

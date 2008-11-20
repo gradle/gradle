@@ -21,7 +21,7 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.dependencies.maven.GroovyMavenUploader
+import org.gradle.api.dependencies.maven.GroovyMavenDeployer
 import org.gradle.api.dependencies.ResolverContainer
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer
@@ -30,7 +30,14 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.dependencies.maven.GroovyMavenUploader
+import org.gradle.api.dependencies.maven.GroovyMavenDeployer
+import org.gradle.api.dependencies.maven.GroovyPomFilterContainer
+import org.gradle.api.dependencies.maven.GroovyPomFilterContainer
+import org.gradle.api.dependencies.maven.GroovyPomFilterContainer
+import org.gradle.api.dependencies.maven.GroovyMavenDeployer
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.gradle.api.dependencies.maven.PomFilterContainer
+import org.gradle.api.dependencies.maven.MavenResolver
 
 /**
  * @author Hans Dockter
@@ -41,11 +48,9 @@ class ResolverContainerTest {
     ResolverContainer resolverContainer
 
     RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
-
     def expectedUserDescription
     def expectedUserDescription2
     def expectedUserDescription3
-
     String expectedName
     String expectedName2
     String expectedName3
@@ -159,31 +164,58 @@ class ResolverContainerTest {
 
     @Test
     public void createMavenUploader() {
-        assertSame(prepareMavenUploaderTests(), resolverContainer.createMavenUploader(TEST_REPO_NAME));
+        assertSame(prepareMavenDeployerTests(), resolverContainer.createMavenDeployer(TEST_REPO_NAME));
     }
 
     @Test
     public void addMavenUploader() {
-        GroovyMavenUploader expectedResolver = prepareMavenUploaderTests()
+        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
         context.checking {
             one(resolverFactoryMock).createResolver(expectedResolver);
             will(returnValue(expectedResolver))
         }
-        assertSame(expectedResolver, resolverContainer.addMavenUploader(TEST_REPO_NAME));
+        assertSame(expectedResolver, resolverContainer.addMavenDeployer(TEST_REPO_NAME));
         assert resolverContainer[TEST_REPO_NAME].is(expectedResolver)
     }
 
-    private GroovyMavenUploader prepareMavenUploaderTests() {
+    @Test
+    public void createMavenInstaller() {
+        assertSame(prepareMavenInstallerTests(), resolverContainer.createMavenInstaller(TEST_REPO_NAME));
+    }
+
+    @Test
+    public void addMavenInstaller() {
+        DependencyResolver expectedResolver = prepareMavenInstallerTests()
+        context.checking {
+            one(resolverFactoryMock).createResolver(expectedResolver);
+            will(returnValue(expectedResolver))
+        }
+        assertSame(expectedResolver, resolverContainer.addMavenInstaller(TEST_REPO_NAME));
+        assert resolverContainer[TEST_REPO_NAME].is(expectedResolver)
+    }
+
+
+    private GroovyMavenDeployer prepareMavenDeployerTests() {
+        prepareMavenResolverTests(GroovyMavenDeployer, "createMavenDeployer")
+    }
+
+    private DependencyResolver prepareMavenInstallerTests() {
+        prepareMavenResolverTests(MavenResolver, "createMavenInstaller")
+    }
+
+    private DependencyResolver prepareMavenResolverTests(Class resolverType, String createMethod) {
         File testPomDir = new File("pomdir");
         Conf2ScopeMappingContainer conf2ScopeMappingContainer = new DefaultConf2ScopeMappingContainer();
+        PomFilterContainer pomFilterContainer = [:] as PomFilterContainer
         DependencyManager dependencyManager = [:] as DependencyManager
         resolverContainer.setMavenPomDir(testPomDir)
         resolverContainer.setMavenConf2ScopeMappings(conf2ScopeMappingContainer)
+        resolverContainer.setPomFilterContainer(pomFilterContainer)
         resolverContainer.setDependencyManager(dependencyManager)
-        GroovyMavenUploader expectedResolver = context.mock(GroovyMavenUploader)
+        DependencyResolver expectedResolver = context.mock(resolverType)
         context.checking {
             allowing(expectedResolver).getName(); will(returnValue(TEST_REPO_NAME))
-            one(resolverFactoryMock).createMavenUploader(TEST_REPO_NAME, testPomDir, conf2ScopeMappingContainer,
+            one(resolverFactoryMock)."$createMethod"(TEST_REPO_NAME, testPomDir, conf2ScopeMappingContainer, pomFilterContainer,
                 dependencyManager);
             will(returnValue(expectedResolver))
         }

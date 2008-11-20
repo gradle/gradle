@@ -18,8 +18,6 @@ package org.gradle.api.internal.dependencies.maven.deploy;
 /**
  * @author Hans Dockter
  */
-public class DefaultDeployTaskFactory implements DeployTaskFactory {
-    public CustomDeployTask createDeployTask() {
-        return new CustomDeployTask();
-    }
+public interface InstallTaskFactory {
+    CustomInstallTask createInstallTask();
 }

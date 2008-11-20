@@ -28,7 +28,11 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
+import org.gradle.api.dependencies.maven.GroovyPomFilterContainer;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyPomFilterContainer;
+import org.gradle.api.internal.dependencies.maven.DefaultMavenPomFactory;
 import org.gradle.api.dependencies.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.ConfigureUtil;
@@ -74,6 +78,8 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     private ResolverContainer classpathResolvers;
 
     private Conf2ScopeMappingContainer defaultConf2ScopeMapping = new DefaultConf2ScopeMappingContainer();
+
+    private GroovyPomFilterContainer poms = new DefaultGroovyPomFilterContainer(new DefaultMavenPomFactory(defaultConf2ScopeMapping));
 
     private String artifactProductionTaskName;
 
@@ -399,6 +405,14 @@ public class BaseDependencyManager extends DefaultDependencyContainer
 
     public void setDefaultConf2ScopeMapping(Conf2ScopeMappingContainer defaultConf2ScopeMapping) {
         this.defaultConf2ScopeMapping = defaultConf2ScopeMapping;
+    }
+
+    public GroovyPomFilterContainer getPoms() {
+        return poms;
+    }
+
+    public void setPoms(GroovyPomFilterContainer poms) {
+        this.poms = poms;
     }
 
     public void setExcludeRules(ExcludeRuleContainer excludeRules) {

@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.dependencies.maven.GroovyPomFilterContainer;
 import org.gradle.api.internal.dependencies.ResolverFactory;
 
 import java.io.File;
@@ -375,10 +376,15 @@ public interface DependencyManager extends DependencyContainer {
 
     /**
      * Returns the default mapping between configurations and Maven scopes. This default mapping is used by default
-     * a {@link org.gradle.api.internal.dependencies.maven.deploy.BaseMavenUploader} to create and deploy pom. If wished, a MavenUploadResolver
+     * a {@link org.gradle.api.internal.dependencies.maven.deploy.BaseMavenDeployer} to create and deploy pom. If wished, a MavenUploadResolver
      * sepcific setting can be defined.
      */
     Conf2ScopeMappingContainer getDefaultMavenScopeMapping();
+
+    /**
+     *
+     */
+    GroovyPomFilterContainer getPoms();
 
     /**
      * Returns a factory for creating special resolvers like flat dir or maven resolvers.

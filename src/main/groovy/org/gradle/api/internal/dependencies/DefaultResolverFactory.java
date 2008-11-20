@@ -19,12 +19,13 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyMavenUploader;
+import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.dependencies.maven.deploy.DefaultArtifactPomContainer;
+import org.gradle.api.internal.dependencies.maven.deploy.BasePomFilterContainer;
+import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenInstaller;
 import org.gradle.api.internal.dependencies.maven.dependencies.*;
 import org.gradle.api.internal.dependencies.maven.*;
-import org.gradle.api.dependencies.maven.GroovyMavenUploader;
-import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.dependencies.maven.*;
 
 import java.io.File;
 import java.util.Map;
@@ -88,10 +89,10 @@ public class DefaultResolverFactory implements ResolverFactory {
         return dualResolver;
     }
 
-    public GroovyMavenUploader createMavenUploader(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
-                                      DependencyManager dependencyManager) {
-        return new DefaultGroovyMavenUploader(name, new DefaultArtifactPomContainer(pomDir), new DefaultMavenPomFactory(
-                conf2ScopeMapping,
+    public GroovyMavenDeployer createMavenDeployer(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
+                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager) {
+        return new DefaultGroovyMavenDeployer(name, new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
+                new DefaultMavenPomFactory(conf2ScopeMapping),
                 new DefaultPomFileWriter(
                         new DefaultPomWriter(
                                 new DefaultPomHeaderWriter(),
@@ -101,7 +102,27 @@ public class DefaultResolverFactory implements ResolverFactory {
                                                 new DefaultExcludeRuleConverter()
                                         )
                                 )
-                        ))),
+                        )),
+                new DefaultArtifactPomFactory()),
+                dependencyManager
+        );
+    }
+
+    public MavenResolver createMavenInstaller(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
+                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager) {
+        return new BaseMavenInstaller(name, new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
+                new DefaultMavenPomFactory(conf2ScopeMapping),
+                new DefaultPomFileWriter(
+                        new DefaultPomWriter(
+                                new DefaultPomHeaderWriter(),
+                                new DefaultPomModuleIdWriter(),
+                                new DefaultPomDependenciesWriter(
+                                        new DefaultPomDependenciesConverter(
+                                                new DefaultExcludeRuleConverter()
+                                        )
+                                )
+                        )),
+                new DefaultArtifactPomFactory()),
                 dependencyManager
         );
     }
