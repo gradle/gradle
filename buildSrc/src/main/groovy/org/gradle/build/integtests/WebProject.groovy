@@ -16,6 +16,8 @@
 
 package org.gradle.build.integtests
 
+import org.junit.Assert
+
 /**
  * @author Hans Dockter
  */
@@ -33,10 +35,26 @@ class WebProject {
                 'webapp.html'].each {
             assert new File("$unjarPath/$it").isFile()
         }
+
+        checkJettyPlugin(gradleHome, webProjectDir)
+
         Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
     }
 
     static void main(String[] args) {
         execute(args[0], args[1])
+    }
+
+    static void checkJettyPlugin(String gradleHome, File webProjectDir) {
+        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runTest'], [], '', Executer.DEBUG)
+        checkServletOutput(webProjectDir)
+        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runWarTest'], [], '', Executer.DEBUG)
+        checkServletOutput(webProjectDir)
+        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runExplodedTest'], [], '', Executer.DEBUG)
+        checkServletOutput(webProjectDir)
+    }
+
+    static void checkServletOutput(File webProjectDir) {
+        Assert.assertEquals('Hello Gradle', new File(webProjectDir, "build/servlet-out.txt").text)
     }
 }

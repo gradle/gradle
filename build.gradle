@@ -85,7 +85,12 @@ dependencies {
     runtime(":ant-junit:1.7.0") {
         exclude(module: 'junit')
     }
-    
+
+    clientModule(['compile'], ":jetty:6.1.14") {
+        dependencies(":servlet-api:2.5", ":jetty-naming:6.1.14")
+    }
+    compile ":jetty-plus:6.1.14", ":jetty-util:6.1.14", ":servlet-api:2.5"
+
     compile ":jopt-simple:2.4.1",
             ":ant:1.7.0",
             ":logback-classic:0.9.9",
@@ -94,10 +99,10 @@ dependencies {
             ":commons-io:1.4@jar",
             ":commons-lang:2.3@jar",
             ":webdavlib:2.0",
-            ":logback-classic:0.9.8",
             ":bndlib:0.0.255@jar",
-            ":ivy:2.1.x-20081015233855@jar",  
+            ":ivy:2.1.x-20081015233855@jar",
             ":maven-ant-tasks:2.0.9"
+    
     runtime ":ant-launcher:1.7.0",
             ":ant-nodeps:1.7.0",
             ":ant-trax:1.7.0",
@@ -271,7 +276,7 @@ dists {
                 exclude 'lib/logback*.jar'
             }
             zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
-            dependencies.resolve('retrotranslatorAntTask').each { File file ->
+            dependencies.resolve('retrotranslatorAntTask').each {File file ->
                 zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
                     include file.name
                 }
@@ -462,7 +467,7 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
     svn.release()
 }
 
-createTask('wrapper', type: Wrapper, dependsOn: ['archive_bin_zip']).doFirst { task ->
+createTask('wrapper', type: Wrapper, dependsOn: ['archive_bin_zip']).doFirst {task ->
     task.configure {
         gradleVersion = version
         archiveBase = Wrapper.PathBase.PROJECT
