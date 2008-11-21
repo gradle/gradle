@@ -19,30 +19,60 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.apache.commons.io.FileUtils
-import org.junit.Assert;
+import org.junit.Assert
+import groovy.text.SimpleTemplateEngine;
 
 /**
  * @author Hans Dockter
  */
 class PomGeneration {
     static void execute(String gradleHome, String samplesDirName) {
-        long start = System.currentTimeMillis();
         File pomProjectDir = new File(samplesDirName, 'pomGeneration')
         File repoDir = new File(pomProjectDir, "pomRepo");
-        String repoPath = "gradle/mywar/1.0"
-        File pomFile = new File(repoDir, "$repoPath/mywar-1.0.pom");
         FileUtils.deleteQuietly(repoDir)
-        Executer.execute(gradleHome, pomProjectDir.absolutePath, ['clean', 'uploadLibs'], [], '', Executer.DEBUG)
-        compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("pomGeneration/expectedPom.txt").text,
-              pomFile.text)
-        Assert.assertTrue(new File(repoDir, "$repoPath/mywar-1.0.war").exists())
-        checkInstall(start, pomProjectDir);
+        checkWithNoCustomVersion(gradleHome, pomProjectDir, repoDir);
+        checkWithCustomVersion(gradleHome, pomProjectDir, repoDir);
     }
 
-    static void checkInstall(long start, File pomProjectDir) {
+    private static def checkWithNoCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
+        String version = '1.0'
+        long start = System.currentTimeMillis();
+        Executer.execute(gradleHome, pomProjectDir.absolutePath, ['clean', 'uploadLibs'], [], '', Executer.DEBUG)
+        String repoPath = repoPath(version)
+        compareXmlWithIgnoringOrder(expectedPom(version),
+                pomFile(repoDir, repoPath, version).text)
+        Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}.war").exists())
+        checkInstall(start, pomProjectDir, version)
+    }
+
+    private static def checkWithCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
+        long start = System.currentTimeMillis();
+        String version = "1.0MVN"
+        Executer.execute(gradleHome, pomProjectDir.absolutePath, ["-PcustomVersion=${version} clean", 'uploadLibs'], [], '', Executer.DEBUG)
+        String repoPath = repoPath(version)
+        compareXmlWithIgnoringOrder(expectedPom(version),
+                pomFile(repoDir, repoPath, version).text)
+        Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}.war").exists())
+        checkInstall(start, pomProjectDir, version)
+    }
+
+    static String repoPath(String version) {
+        "gradle/mywar/$version"
+    }
+
+    static File pomFile(File repoDir, String repoPath, String version) {
+        new File(repoDir, "$repoPath/mywar-${version}.pom")
+    }
+
+    static void checkInstall(long start, File pomProjectDir, String version) {
         File localMavenRepo = new File(pomProjectDir, "build/localRepoPath.txt").text as File
-        File installedFile = new File(localMavenRepo, "gradle/mywar/1.0/mywar-1.0.war")
+        File installedFile = new File(localMavenRepo, "gradle/mywar/$version/mywar-${version}.war")
         Assert.assertTrue(start <= installedFile.lastModified());
+    }
+
+    private static String expectedPom(String version) {
+        SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
+        templateEngine.createTemplate(PomGeneration.getResourceAsStream('pomGeneration/expectedPom.txt').text).make(version: version)
     }
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
@@ -53,5 +83,7 @@ class PomGeneration {
 
     static void main(String[] args) {
         execute(args[0], args[1])
-    }    
+    }
+
+
 }
