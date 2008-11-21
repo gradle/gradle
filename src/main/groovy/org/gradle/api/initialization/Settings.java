@@ -54,22 +54,22 @@ import java.io.File;
  * and all objects used by them. This should also include the non-standard plugins which the build scripts will
  * use.</p>
  *
- * <h3>Using Settings from the Settings Script</h3>
+ * <h3>Using Settings in a Settings File</h3>
  *
  * <h4>Dynamic Properties</h4>
  *
- * <p>In addition to the properties of this interface, the {@code Settings} object makes some additional properties
- * available to the settings script. This includes properties from the following sources:</p>
+ * <p>In addition to the properties of this interface, the {@code Settings} object makes some additional read-only
+ * properties available to the settings script. This includes properties from the following sources:</p>
  *
  * <ul>
  *
- * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the settings directory of the
+ * <li>Defined in the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the settings directory of the
  * build.</li>
  *
- * <li>From the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the user's {@code .gradle}
+ * <li>Defined the {@value org.gradle.api.Project#GRADLE_PROPERTIES} file located in the user's {@code .gradle}
  * directory.</li>
  *
- * <li>Provided on the command-line</li>
+ * <li>Provided on the command-line using the -P option.</li>
  *
  * </ul>
  *

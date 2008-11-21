@@ -4,8 +4,11 @@ import org.gradle.api.Project;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
+import java.util.Map;
 
 public interface ProjectInternal extends Project {
+    ProjectInternal getParent();
+
     Project evaluate();
 
     BuildScriptProcessor getBuildScriptProcessor();
@@ -21,4 +24,6 @@ public interface ProjectInternal extends Project {
     IProjectRegistry getProjectRegistry();
 
     void setBuildDirName(String buildDirName);
+
+    Map<String, ?> getAdditionalProperties();
 }

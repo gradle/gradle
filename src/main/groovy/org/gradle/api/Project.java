@@ -72,7 +72,7 @@ import java.util.Set;
  * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
  * uniquely identifies it in the hierarchy.</p>
  *
- * <h3>Using a Project from the Build File</h3>
+ * <h3>Using a Project in a Build File</h3>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
  * property or method which your script uses which is not defined in the script is delegated through to the associated
@@ -87,11 +87,13 @@ import java.util.Set;
  * </p>
  *
  * <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can make the
- * script more explicit and clearer in some cases.</p>
+ * script clearer in some cases. For example, you could use <code>project.name</code> rather than <code>name</code> to
+ * access the project's name.</p>
  *
  * <a name="properties"/> <h4>Dynamic Properties</h4>
  *
- * <p>A project has 5 property 'scopes', which it searches for properties:</p>
+ * <p>A project has 5 property 'scopes', which it searches for properties. You can access these properties by name in
+ * your build file, or by calling the project's {@link #property(String)} method. The scopes are:</p>
  *
  * <ul>
  *
@@ -111,15 +113,15 @@ import java.util.Set;
  * scope are read-only. For example, a task called <code>compile</code> is accessable as the <code>compile</code>
  * property.</li>
  *
- * <li>The additional properties and convention properties of the project's parent project. The properties of this scope
- * are read-only.</li>
+ * <li>The additional properties and convention properties of the project's parent project, recursively up to the root
+ * project. The properties of this scope are read-only.</li>
  *
  * </ul>
  *
  * <p>When reading a property, the project searches the above scopes in order, and returns the value from the first
  * scope it finds the property in.  See {@link #property(String)} for more details.</p>
  *
- * <p>When writing a property, the project searched the above scopes in order, and sets the property in the first scope
+ * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
  * it finds the property in.  If not found, the project adds the property to its map of additional properties. See
  * {@link #setProperty(String, Object)} for more details.</p>
  *
@@ -140,7 +142,7 @@ import java.util.Set;
  * taking a single closure parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
  * associated task with the provided closure.</li>
  *
- * <li>The parent project.</li>
+ * <li>The parent project, recursively up to the root project.</li>
  *
  * </ul>
  *
@@ -205,8 +207,8 @@ public interface Project extends Comparable<Project> {
     File getBuildDir();
 
     /**
-     * <p>Returns the name of the build directory of this project. It is resolved relative to the project directory
-     * of this project to determine the build directory. The default value is {@value #DEFAULT_BUILD_DIR_NAME}.</p>
+     * <p>Returns the name of the build directory of this project. It is resolved relative to the project directory of
+     * this project to determine the build directory. The default value is {@value #DEFAULT_BUILD_DIR_NAME}.</p>
      *
      * <p>You can access this property in your build file using <code>buildDirName</code></p>
      *
@@ -752,11 +754,11 @@ public interface Project extends Comparable<Project> {
     AntBuilder getAnt();
 
     /**
-     * <p>Creates and additional <code>AntBuilder</code> for this project. You can use this in your build file to execute ant
-     * tasks.</p>
+     * <p>Creates and additional <code>AntBuilder</code> for this project. You can use this in your build file to
+     * execute ant tasks.</p>
      *
      * @return Creates an <code>AntBuilder</code> for this project. Never returns null.
-     * @see #getAnt() 
+     * @see #getAnt()
      */
     AntBuilder createAntBuilder();
 
@@ -972,9 +974,9 @@ public interface Project extends Comparable<Project> {
     void disableStandardOutputCapture();
 
     /**
-     * Starts redirection of standard output during to the logging system during project evaluation.
-     * By default redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected
-     * to the ERROR level. Redirection of output at execution time can be configured via the tasks.
+     * Starts redirection of standard output during to the logging system during project evaluation. By default
+     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
+     * ERROR level. Redirection of output at execution time can be configured via the tasks.
      *
      * In a multi-project this is a per-project setting.
      *
@@ -983,7 +985,7 @@ public interface Project extends Comparable<Project> {
      * @param level The level standard out should be logged to.
      * @see #disableStandardOutputCapture()
      * @see Task#captureStandardOutput(org.gradle.api.logging.LogLevel)
-     * @see org.gradle.api.Task#disableStandardOutputCapture() 
+     * @see org.gradle.api.Task#disableStandardOutputCapture()
      */
     void captureStandardOutput(LogLevel level);
 
@@ -1005,7 +1007,6 @@ public interface Project extends Comparable<Project> {
      *     doThat()
      * }
      * </pre>
-     *
      *
      * @param object The object to configure
      * @param configureClosure The closure with configure statements

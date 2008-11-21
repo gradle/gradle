@@ -37,8 +37,8 @@ import org.slf4j.Logger;
  * <h3>Task Actions</h3>
  *
  * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
- * actions is executed in turn, by calling {@link TaskAction#execute(Task)}.  You can add actions to a task by
- * calling {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
+ * actions is executed in turn, by calling {@link TaskAction#execute(Task)}.  You can add actions to a task by calling
+ * {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
  * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
@@ -75,9 +75,22 @@ import org.slf4j.Logger;
  *
  * </ul>
  *
- * <h3>Using a Task in the Build File</h3>
+ * <h3>Using a Task in a Build File</h3>
  *
- * <p>A task generally provides no special build file behaviour, and can be used as a regular script object.</p>
+ * <a name="properties"/> <h4>Dynamic Properties</h4>
+ *
+ * <p>A {@code Task} has 2 'scopes' for properties. You can access these properties by name from the build file or by
+ * calling the {@link #property(String)} method.</p>
+ *
+ * <ul>
+ *
+ * <li>The {@code Task} object itself. This includes any property getters and setters declared by the {@code Task}
+ * interface.</li>
+ *
+ * <li>The <em>additional properties</em> of the task. Each task object maintains a map of additional properties. These
+ * are arbitrary name -> value pairs which you can use to dynamically add properties to a task object.</li>
+ *
+ * </ul>
  *
  * @author Hans Dockter
  */
@@ -298,7 +311,7 @@ public interface Task extends Comparable<Task> {
     Task captureStandardOutput(LogLevel level);
 
     /**
-     * Returns the value of the given property.  This method locates a property as follows:</p>
+     * Returns the value of the given property of this task.  This method locates a property as follows:</p>
      *
      * <ol>
      *
@@ -306,13 +319,13 @@ public interface Task extends Comparable<Task> {
      *
      * <li>If this task has an additional property with the given name, return the value of the property.</li>
      *
-     * <li>If not found, throw {@link groovy.lang.MissingPropertyException}</li>
+     * <li>If not found, throw {@link MissingPropertyException}</li>
      *
      * </ol>
      *
      * @param propertyName The name of the property.
      * @return The value of the property, possibly null.
-     * @throws groovy.lang.MissingPropertyException When the given property is unknown.
+     * @throws MissingPropertyException When the given property is unknown.
      */
     Object property(String propertyName) throws MissingPropertyException;
 

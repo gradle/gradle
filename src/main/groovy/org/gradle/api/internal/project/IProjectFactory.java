@@ -26,5 +26,5 @@ import java.io.File;
  * @author Hans Dockter
  */
 public interface IProjectFactory {
-    ProjectInternal createProject(String name, Project parent, File projectDir, BuildInternal build);
+    ProjectInternal createProject(String name, ProjectInternal parent, File projectDir, BuildInternal build);
 }

@@ -43,7 +43,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.PathHelper;
-import org.gradle.api.logging.StandardOutputLogging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,7 +88,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private File projectDir;
 
-    private Project parent;
+    private ProjectInternal parent;
 
     private String name;
 
@@ -147,7 +146,7 @@ public abstract class AbstractProject implements ProjectInternal {
         convention = new Convention(this);
     }
 
-    public AbstractProject(String name, Project parent, File projectDir, String buildFileName,
+    public AbstractProject(String name, ProjectInternal parent, File projectDir, String buildFileName,
                            ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
                            DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory,  
                            BuildScriptProcessor buildScriptProcessor,
@@ -274,11 +273,11 @@ public abstract class AbstractProject implements ProjectInternal {
         return rootProject.getProjectDir();
     }
 
-    public Project getParent() {
+    public ProjectInternal getParent() {
         return parent;
     }
 
-    public void setParent(Project parent) {
+    public void setParent(ProjectInternal parent) {
         this.parent = parent;
     }
 

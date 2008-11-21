@@ -54,7 +54,7 @@ public class ProjectFactory implements IProjectFactory {
         this.antBuilderFactory = antBuilderFactory;
     }
 
-    public DefaultProject createProject(String name, Project parent, File projectDir, BuildInternal build) {
+    public DefaultProject createProject(String name, ProjectInternal parent, File projectDir, BuildInternal build) {
         File buildFile = new File(projectDir, startParameter.getBuildFileName());
 
         ScriptSource source;

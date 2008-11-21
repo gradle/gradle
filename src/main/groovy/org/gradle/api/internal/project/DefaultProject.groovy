@@ -33,7 +33,7 @@ class DefaultProject extends AbstractProject {
         super();
     }
 
-    public DefaultProject(String name, Project parent, File projectDir, String buildFileName, ScriptSource scriptSource,
+    public DefaultProject(String name, ProjectInternal parent, File projectDir, String buildFileName, ScriptSource scriptSource,
                           ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
                           DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory, 
                           BuildScriptProcessor buildScriptProcessor,
@@ -60,7 +60,7 @@ class DefaultProject extends AbstractProject {
         if (tasks[name]) {
             return tasks[name]
         }
-        DefaultProject projectLooper = parent
+        ProjectInternal projectLooper = parent
         while (projectLooper) {
             if (projectLooper.additionalProperties.keySet().contains(name)) {
                 return projectLooper."$name"
@@ -69,7 +69,7 @@ class DefaultProject extends AbstractProject {
             }
             projectLooper = projectLooper.parent
         }
-        throw new MissingPropertyException("$name is unknown property!")
+        throw new MissingPropertyException("Property '$name' not found for project $path.")
     }
 
     boolean hasProperty(String name) {
@@ -78,7 +78,7 @@ class DefaultProject extends AbstractProject {
         if (convention.hasProperty(name)) {
             return true
         }
-        DefaultProject projectLooper = parent
+        ProjectInternal projectLooper = parent
         while (projectLooper) {
             if (projectLooper.additionalProperties.keySet().contains(name)) {
                 return true
@@ -113,7 +113,7 @@ class DefaultProject extends AbstractProject {
             convention.setProperty(name, value)
             return
         }
-        project.additionalProperties[name] = value
+        additionalProperties[name] = value
     }
 
     public Task createTask(String name, Closure action) {

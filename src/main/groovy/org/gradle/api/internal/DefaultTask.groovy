@@ -72,7 +72,7 @@ class DefaultTask extends AbstractTask {
         if (additionalProperties.keySet().contains(name)) {
             return additionalProperties[name]
         }
-        throw new MissingPropertyException("$name is unknown property!")
+        throw new MissingPropertyException("Property '$name' not found for task $path.")
     }
 
     boolean hasProperty(String name) {
