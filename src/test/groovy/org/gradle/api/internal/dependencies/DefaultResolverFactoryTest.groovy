@@ -44,11 +44,12 @@ class DefaultResolverFactoryTest {
 
     static final String TEST_REPO_NAME = 'reponame'
     static final String TEST_REPO_URL = 'http://www.gradle.org'
+    static final File TEST_CACHE_DIR = 'somepath' as File
 
     DefaultResolverFactory factory
 
     @Before public void setUp() {
-        factory = new DefaultResolverFactory()
+        factory = new DefaultResolverFactory(TEST_CACHE_DIR)
     }
 
     @Test (expected = InvalidUserDataException) public void testCreateResolver() {
@@ -100,6 +101,7 @@ class DefaultResolverFactoryTest {
         FileSystemResolver resolver = factory.createFlatDirResolver(expectedName, [dir1, dir2] as File[])
         checkNoModuleRepository(resolver, expectedName,
                 [dir1, dir2].collect {"$it.absolutePath/$DependencyManager.FLAT_DIR_RESOLVER_PATTERN"}, [])
+        assertEquals(TEST_CACHE_DIR, ((DefaultRepositoryCacheManager) resolver.getRepositoryCacheManager()).getBasedir())
     }
 
     private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedArtifactPatterns,

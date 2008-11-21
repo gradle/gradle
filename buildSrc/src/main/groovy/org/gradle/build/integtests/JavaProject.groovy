@@ -90,7 +90,6 @@ class JavaProject {
     }
 
     private static def checkEclipse(File javaprojectDir, String gradleHome) {
-        String cachePath = System.properties['user.home'] + '/.gradle/cache'
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipse'], [], '', Executer.DEBUG)
         compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
               file(javaprojectDir, API_NAME, ".project").text)
@@ -98,11 +97,11 @@ class JavaProject {
                 file(javaprojectDir, WEBAPP_1_PATH, ".project").text) 
         compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
                 file(javaprojectDir, WEBAPP_1_PATH, ".project").text)
-        compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedApiClasspathFile.txt", cachePath),
+        compareXmlWithIgnoringOrder(replaceWithGradleHome("javaproject/expectedApiClasspathFile.txt", gradleHome),
                 file(javaprojectDir, API_NAME, ".classpath").text)
-        compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedWebApp1ClasspathFile.txt", cachePath),
+        compareXmlWithIgnoringOrder(replaceWithGradleHome("javaproject/expectedWebApp1ClasspathFile.txt", gradleHome),
                 file(javaprojectDir, WEBAPP_1_PATH, ".classpath").text)
-        compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedWebApp1WtpFile.txt", cachePath),
+        compareXmlWithIgnoringOrder(replaceWithGradleHome("javaproject/expectedWebApp1WtpFile.txt", gradleHome),
                 file(javaprojectDir, WEBAPP_1_PATH, ".settings/org.eclipse.wst.common.component").text)
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipseClean'], [], '', Executer.DEBUG)
         checkExistence(javaprojectDir, false, API_NAME, ".project")
@@ -118,9 +117,9 @@ class JavaProject {
         XMLAssert.assertXMLEqual(diff, true);
     }
 
-    private static String replaceWithCachePath(String resourcePath, String cachePath) {
+    private static String replaceWithGradleHome(String resourcePath, String gradleHome) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(JavaProject.getResourceAsStream(resourcePath).text).make(cachePath: new File(cachePath).canonicalPath).toString().replace('\\', '/')
+        templateEngine.createTemplate(JavaProject.getResourceAsStream(resourcePath).text).make(gradleHome: new File(gradleHome).canonicalPath).toString().replace('\\', '/')
     }
            
     private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {

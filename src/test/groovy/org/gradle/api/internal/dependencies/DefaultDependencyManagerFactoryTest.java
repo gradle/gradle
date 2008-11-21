@@ -84,6 +84,7 @@ public class DefaultDependencyManagerFactoryTest {
     private void checkCommon(Project expectedProject, DefaultDependencyManager dependencyManager) {
         // todo: check when ivy management has improved
         //assertNotNull(dependencyManager.ivy)
+        assertEquals(new File(expectedProject.getBuildDir(), DependencyManager.TMP_CACHE_DIR_NAME) ,((DefaultResolverFactory) dependencyManager.getResolverFactory()).getTmpIvyCache());
         assertSame(expectedProject, dependencyManager.getProject());
         assertNotNull(dependencyManager.getDependencyFactory());
         assertNotNull(dependencyManager.getSettingsConverter());

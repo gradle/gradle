@@ -57,6 +57,8 @@ public interface DependencyManager extends DependencyContainer {
 
     public static final String DEFAULT_CACHE_DIR_NAME = "cache";
 
+    public static final String TMP_CACHE_DIR_NAME = Project.TMP_DIR_NAME + "/tmpIvyCache";
+
     public static final String DEFAULT_CACHE_NAME = "default-gradle-cache";
 
     public static final String DEFAULT_CACHE_ARTIFACT_PATTERN = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";

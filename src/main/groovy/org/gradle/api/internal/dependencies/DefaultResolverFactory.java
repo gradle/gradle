@@ -37,6 +37,12 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultResolverFactory implements ResolverFactory {
+    private File tmpIvyCache;
+
+    public DefaultResolverFactory(File tmpIvyCache) {
+        this.tmpIvyCache = tmpIvyCache;
+    }
+
     public DependencyResolver createResolver(Object userDescription) {
         DependencyResolver result;
         if (userDescription instanceof String) {
@@ -55,19 +61,19 @@ public class DefaultResolverFactory implements ResolverFactory {
     public FileSystemResolver createFlatDirResolver(String name, File... roots) {
         FileSystemResolver resolver = new FileSystemResolver();
         resolver.setName(name);
-
         for (File root : roots) {
             String pattern = root.getAbsolutePath() + "/" + DependencyManager.FLAT_DIR_RESOLVER_PATTERN;
             resolver.addArtifactPattern(pattern);
         }
         resolver.setValidate(false);
-        resolver.setRepositoryCacheManager(createUseOriginCacheManager());
+        resolver.setRepositoryCacheManager(createUseOriginCacheManager(name));
         return resolver;
     }
 
-    private RepositoryCacheManager createUseOriginCacheManager() {
+    private RepositoryCacheManager createUseOriginCacheManager(String name) {
         DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager();
-        cacheManager.setName(DependencyManager.DEFAULT_CACHE_NAME);
+        cacheManager.setBasedir(tmpIvyCache);
+        cacheManager.setName(name);
         cacheManager.setUseOrigin(true);
         cacheManager.setLockStrategy(new NoLockStrategy());
         cacheManager.setIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
@@ -139,5 +145,13 @@ public class DefaultResolverFactory implements ResolverFactory {
                 new DefaultArtifactPomFactory()),
                 dependencyManager
         );
+    }
+
+    public File getTmpIvyCache() {
+        return tmpIvyCache;
+    }
+
+    public void setTmpIvyCache(File tmpIvyCache) {
+        this.tmpIvyCache = tmpIvyCache;
     }
 }

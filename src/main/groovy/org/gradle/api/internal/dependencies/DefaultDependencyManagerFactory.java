@@ -49,7 +49,7 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
         DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
                 new DefaultIvyFactory(),
                 new DependencyFactory(dependencyImpls),
-                new DefaultResolverFactory(),
+                new DefaultResolverFactory(new File(project.getBuildDir(), DependencyManager.TMP_CACHE_DIR_NAME)),
                 new DefaultSettingsConverter(),
                 new DefaultModuleDescriptorConverter(),
                 new DefaultDependencyResolver(new Report2Classpath()),
