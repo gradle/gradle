@@ -82,12 +82,14 @@ public class BuildExceptionReporterTest {
     public void reportsGradleScriptException() {
         final GradleScriptException exception
                 = new GradleScriptException("<message>", new RuntimeException("<cause>"),
-                context.mock(ScriptSource.class)) {
+                context.mock(ScriptSource.class, "script")) {
             @Override
             public String getLocation() {
                 return "<location>";
             }
         };
+        GradleScriptException wrapper = new GradleScriptException("<wrapper>", exception, context.mock(ScriptSource.class, "wrapper"));
+
         final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
                 containsString("<location>"),
                 containsString("<message>"),
@@ -97,7 +99,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter.buildFinished(new BuildResult(null, exception));
+        reporter.buildFinished(new BuildResult(null, wrapper));
     }
 
     @Test

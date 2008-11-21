@@ -95,7 +95,7 @@ public class BuildExceptionReporter implements BuildListener {
         formatter.format("%n");
 
         if (failure instanceof GradleScriptException) {
-            GradleScriptException scriptException = (GradleScriptException) failure;
+            GradleScriptException scriptException = ((GradleScriptException) failure).getReportableException();
             formatter.format("%s%n%n", scriptException.getLocation());
             formatter.format("%s%nCause: %s", scriptException.getOriginalMessage(), getMessage(
                     scriptException.getCause()));

@@ -30,14 +30,36 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasContext("A problem occurred evaluating project :.");
     }
 
-    @Test @Ignore
-    public void reportsTaskActionExecutionFailsWithError() {
-        // todo We need to figure when the Groovy compile provided line info and when not. I can't easily produce a runtime
-        // error with line info information although I know there are runtime errors with line info. 
-        GradleExecutionFailure failure = usingBuildScript("createTask('do-stuff')\n{ 1 / 0 }").runTasksAndExpectFailure("do-stuff");
+    @Test
+    public void reportsNestedProjectEvaulationFailsWithRuntimeException() {
+        testFile("settings.gradle").write("include 'child'");
 
-        failure.assertHasFileName("Embedded build file");
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns("dependsOn 'child'", "createTask('t')");
+
+        TestFile childBuildFile = testFile("child/build.gradle");
+        childBuildFile.writelns(
+                "def broken = { ->",
+                "    throw new RuntimeException('failure') }",
+                "broken()");
+        GradleExecutionFailure failure = inTestDirectory().runTasksAndExpectFailure("t");
+
+        failure.assertHasFileName(String.format("Build file '%s'", childBuildFile));
         failure.assertHasLineNumber(2);
+        failure.assertHasContext("A problem occurred evaluating project :child.");
+        failure.assertHasDescription("failure");
+    }
+
+    @Test
+    public void reportsTaskActionExecutionFailsWithError() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns("createTask('do-stuff')", "{", "1/0", "}");
+        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("do-stuff");
+
+        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
+        failure.assertHasLineNumber(3);
+        failure.assertHasContext("Execution failed for task :do-stuff");
+        failure.assertHasDescription("/ by zero");
     }
 
     @Test

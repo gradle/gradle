@@ -25,6 +25,7 @@ import org.gradle.BuildListener;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.Task;
+import org.gradle.api.GradleScriptException;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Build;
@@ -95,6 +96,10 @@ public class AbstractIntegrationTest {
         return parameter;
     }
 
+    protected GradleExecution inTestDirectory() {
+        return inDirectory(testDir);
+    }
+    
     protected GradleExecution inDirectory(File file) {
         StartParameter parameter = startParameter();
         parameter.setCurrentDir(file);
@@ -263,11 +268,15 @@ public class AbstractIntegrationTest {
         private final GradleException failure;
 
         public GradleExecutionFailure(GradleException failure) {
-            this.failure = failure;
+            if (failure instanceof GradleScriptException) {
+                this.failure = ((GradleScriptException) failure).getReportableException();
+            } else {
+                this.failure = failure;
+            }
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            assertThat(failure.getMessage(), containsString(String.format(" line(s): %d", lineNumber)));
+            assertThat(failure.getMessage(), containsString(String.format(" line: %d", lineNumber)));
         }
 
         public void assertHasFileName(String filename) {

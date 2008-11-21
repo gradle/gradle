@@ -13,6 +13,8 @@ import org.junit.runner.RunWith;
 public class GradleScriptExceptionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final StackTraceElement element = new StackTraceElement("class", "method", "filename", 7);
+    private final StackTraceElement callerElement = new StackTraceElement("class", "method", "filename", 11);
+    private final StackTraceElement otherElement = new StackTraceElement("class", "method", "otherfile", 11);
     private final ScriptSource source = context.mock(ScriptSource.class);
 
     @Before
@@ -26,21 +28,23 @@ public class GradleScriptExceptionTest {
     }
 
     @Test
-    public void extractsLineNumbersFromStackTrace() {
+    public void extractsLineNumberFromDeepestStackFrame() {
         RuntimeException cause = new RuntimeException("<cause>");
         GradleScriptException exception = new GradleScriptException("<message>", cause, source);
-        exception.setStackTrace(new StackTraceElement[]{element});
-        assertThat(exception.getLocation(), equalTo("<description> line(s): 7"));
-        assertThat(exception.getMessage(), equalTo(String.format("<description> line(s): 7%n<message>")));
+        exception.setStackTrace(new StackTraceElement[]{otherElement, element, callerElement});
+        assertThat(exception.getLocation(), equalTo("<description> line: 7"));
+        assertThat(exception.getMessage(), equalTo(String.format("<description> line: 7%n<message>")));
     }
 
     @Test
-    public void extractsLineNumbersFromStackTraceOfCause() {
-        RuntimeException cause = new RuntimeException("<cause>");
-        cause.setStackTrace(new StackTraceElement[]{element});
+    public void extractsLineNumberFromDeepestCause() {
+        RuntimeException ignoredCause = new RuntimeException();
+        RuntimeException cause = new RuntimeException("<cause>", ignoredCause);
+        cause.setStackTrace(new StackTraceElement[]{otherElement, element, callerElement});
         GradleScriptException exception = new GradleScriptException("<message>", cause, source);
-        assertThat(exception.getLocation(), equalTo("<description> line(s): 7"));
-        assertThat(exception.getMessage(), equalTo(String.format("<description> line(s): 7%n<message>")));
+        exception.setStackTrace(new StackTraceElement[]{callerElement});
+        assertThat(exception.getLocation(), equalTo("<description> line: 7"));
+        assertThat(exception.getMessage(), equalTo(String.format("<description> line: 7%n<message>")));
     }
 
     @Test
@@ -50,4 +54,19 @@ public class GradleScriptExceptionTest {
         assertThat(exception.getLocation(), equalTo("<description>"));
         assertThat(exception.getMessage(), equalTo(String.format("<description>%n<message>")));
     }
+
+    @Test
+    public void usesDeepestScriptExceptionCauseAsReportableException() {
+        GradleScriptException cause = new GradleScriptException("<cause>", new RuntimeException(), source);
+        GradleScriptException exception = new GradleScriptException("<message>", cause, source);
+        assertThat(exception.getReportableException(), sameInstance(cause));
+    }
+    
+    @Test
+    public void reportableExceptionIsSelfWhenNoCauseIsAScriptException() {
+        RuntimeException cause = new RuntimeException("<cause>");
+        GradleScriptException exception = new GradleScriptException("<message>", cause, source);
+        assertThat(exception.getReportableException(), sameInstance(exception));
+    }
+
 }

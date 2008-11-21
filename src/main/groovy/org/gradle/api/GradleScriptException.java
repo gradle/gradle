@@ -64,19 +64,37 @@ public class GradleScriptException extends GradleException {
      */
     public String getLocation() {
         String scriptName = scriptSource.getClassName();
-        List<Integer> lineNumbers = new ArrayList<Integer>();
+        Integer lineNumber = null;
         for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
             for (StackTraceElement element : currentException.getStackTrace()) {
                 if (element.getFileName() != null && element.getFileName().equals(scriptName) && element.getLineNumber() >= 0) {
-                    lineNumbers.add(element.getLineNumber());
+                    lineNumber = element.getLineNumber();
+                    break;
                 }
             }
         }
-        String lineInfo = !lineNumbers.isEmpty() ? String.format(" line(s): %s", GUtil.join(lineNumbers, ", ")) : "";
+        String lineInfo = lineNumber != null ? String.format(" line: %s", lineNumber) : "";
         return StringUtils.capitalize(scriptSource.getDescription()) + lineInfo;
     }
 
     public String getMessage() {
         return String.format("%s%n%s", getLocation(), originalMessage);
+    }
+
+    /**
+     * Returns the reportable exception for this failure. Usually, a {code GradleScriptException} is simply a wrapper
+     * around the actual failure. This method locates the actual failure in the cause chain of this exception. May
+     * return this exception.
+     *
+     * @return The reportable exception. Never returns null.
+     */
+    public GradleScriptException getReportableException() {
+        GradleScriptException reportable = this;
+        for (Throwable t = getCause(); t != null; t = t.getCause()) {
+            if (t instanceof GradleScriptException) {
+                reportable = (GradleScriptException) t;
+            }
+        }
+        return reportable;
     }
 }
