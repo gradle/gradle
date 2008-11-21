@@ -55,7 +55,7 @@ public class MainTest {
     private File expectedGradleImportsFile;
     private File expectedPluginPropertiesFile;
     private File expectedProjectDir;
-    private List expectedTaskNames = WrapUtil.toList("clean", "compile");
+    private List expectedTaskNames;
     private Map expectedSystemProperties;
     private Map expectedProjectProperties;
     private CacheUsage expectedCacheUsage;
@@ -82,7 +82,7 @@ public class MainTest {
         expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME);
         expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME);
         expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES);
-        expectedTaskNames = WrapUtil.toList("clean", "compile");
+        expectedTaskNames = WrapUtil.toList();
         expectedProjectDir = new File("").getCanonicalFile();
         expectedProjectProperties = new HashMap();
         expectedSystemProperties = new HashMap();
@@ -109,21 +109,13 @@ public class MainTest {
 //        // The buildMockFor throws an exception, if the main method does not return prematurely (what it should do).
 //    }
 
-    private static interface MainCall {
-        void execute() throws Throwable;
-    }
-
     @Test
     public void testMainWithoutAnyOptions() throws Throwable {
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S"));
-            }
-        });
+        checkMain();
     }
 
-    private void checkMain(MainCall mainCall) throws Throwable {
-        checkMain(false, false, mainCall);
+    private void checkMain(String... args) throws Throwable {
+        checkMain(false, false, args);
     }
 
     private void checkStartParameter(StartParameter startParameter, boolean emptyTasks) {
@@ -142,7 +134,7 @@ public class MainTest {
         assertEquals(expectedMergedBuild, startParameter.isMergedBuild());
     }
 
-    private void checkMain(final boolean embedded, final boolean noTasks, MainCall mainCall) throws Throwable {
+    private void checkMain(final boolean embedded, final boolean noTasks, String... args) throws Throwable {
         final BuildResult testBuildResult = new BuildResult(context.mock(Settings.class), null);
         context.checking(new Expectations() {
             {
@@ -156,7 +148,19 @@ public class MainTest {
             }
         });
 
-        mainCall.execute();
+        Main main = new Main(args);
+        main.setBuildCompleter(new Main.BuildCompleter() {
+            public void exit(Throwable failure) {
+                throw new BuildCompletedError(failure);
+            }
+        });
+        try {
+            main.execute();
+            fail();
+        } catch (BuildCompletedError e) {
+            assertThat(e.getCause(), nullValue());
+        }
+
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter, noTasks);
         if (embedded) {
@@ -166,74 +170,62 @@ public class MainTest {
         }
     }
 
+    private void checkMainFails(String... args) throws Throwable {
+        Main main = new Main(args);
+        main.setBuildCompleter(new Main.BuildCompleter() {
+            public void exit(Throwable failure) {
+                throw new BuildCompletedError(failure);
+            }
+        });
+        try {
+            main.execute();
+            fail();
+        } catch (BuildCompletedError e) {
+            assertThat(e.getCause(), notNullValue());
+            throw e.getCause();
+        }
+    }
+
     @Test
     public void testMainWithSpecifiedGradleUserHomeDirectory() throws Throwable {
         expectedGradleUserHome = HelperUtil.makeNewTestDir();
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S", "-g", expectedGradleUserHome.getAbsoluteFile().toString()));
-            }
-        });
+        checkMain("-g", expectedGradleUserHome.getAbsoluteFile().toString());
     }
 
     @Test
     public void testMainWithSpecifiedExistingProjectDirectory() throws Throwable {
         expectedProjectDir = HelperUtil.makeNewTestDir();
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S", "-p", expectedProjectDir.getAbsoluteFile().toString()));
-            }
-        });
+        checkMain("-p", expectedProjectDir.getAbsoluteFile().toString());
     }
 
     @Test
     public void testMainWithDisabledDefaultImports() throws Throwable {
         expectedGradleImportsFile = null;
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-SI"));
-            }
-        });
+        checkMain("-I");
     }
 
     @Test
     public void testMainWithSpecifiedDefaultImportsFile() throws Throwable {
         expectedGradleImportsFile = new File("somename");
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S", "-K", expectedGradleImportsFile.toString()));
-            }
-        });
+        checkMain("-K", expectedGradleImportsFile.toString());
     }
 
     @Test
     public void testMainWithSpecifiedPluginPropertiesFile() throws Throwable {
         expectedPluginPropertiesFile = new File("somename");
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S", "-l", expectedPluginPropertiesFile.toString()));
-            }
-        });
+        checkMain("-l", expectedPluginPropertiesFile.toString());
     }
 
     @Test
     public void testMainWithSpecifiedBuildFileName() throws Throwable {
         expectedBuildFileName = "somename";
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S", "-b", expectedBuildFileName));
-            }
-        });
+        checkMain("-b", expectedBuildFileName);
     }
 
     @Test
     public void testMainWithSpecifiedSettingsFileName() throws Throwable {
         expectedSettingsFileName = "somesettings";
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S", "-c", expectedSettingsFileName));
-            }
-        });
+        checkMain("-c", expectedSettingsFileName);
     }
 
     @Test
@@ -244,11 +236,7 @@ public class MainTest {
         final String valueProp2 = "value2";
         expectedSystemProperties = WrapUtil.toMap(prop1, valueProp1);
         expectedSystemProperties.put(prop2, valueProp2);
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-D", prop1 + "=" + valueProp1, "-S", "-D", prop2 + "=" + valueProp2));
-            }
-        });
+        checkMain("-D", prop1 + "=" + valueProp1, "-D", prop2 + "=" + valueProp2);
     }
 
     @Test
@@ -259,112 +247,76 @@ public class MainTest {
         final String valueProp2 = "value2";
         expectedProjectProperties = WrapUtil.toMap(prop1, valueProp1);
         expectedProjectProperties.put(prop2, valueProp2);
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-P", prop1 + "=" + valueProp1, "-S", "-P", prop2 + "=" + valueProp2));
-            }
-        });
+        checkMain("-P", prop1 + "=" + valueProp1, "-P", prop2 + "=" + valueProp2);
     }
 
     @Test
     public void testMainWithCacheOffFlagSet() throws Throwable {
         expectedCacheUsage = CacheUsage.OFF;
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-Sx"));
-            }
-        });
+        checkMain("-x");
     }
 
     @Test
-    public void testMainWithNoTasks() throws Throwable {
-        expectedTaskNames = new ArrayList();
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S"));
-            }
-        });
+    public void testMainWithTaskNames() throws Throwable {
+        expectedTaskNames = WrapUtil.toList("a", "b");
+        checkMain("a", "b");
     }
 
     @Test
     public void testMainWithRebuildCacheFlagSet() throws Throwable {
         expectedCacheUsage = CacheUsage.REBUILD;
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-Sr"));
-            }
-        });
+        checkMain("-r");
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testMainWithMutuallyExclusiveCacheFlags() throws Throwable {
-        Main.main(new String[]{"-S", "-xr", "clean"});
+        checkMainFails("-xr", "clean");
     }
 
     @Test
     public void testMainWithSearchUpwardsFlagSet() throws Throwable {
         expectedSearchUpwards = false;
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-Su"));
-            }
-        });
+        checkMain("-u");
     }
 
     @Test
     public void testMainWithMergedBuild() throws Throwable {
         expectedMergedBuild = true;
-        checkMain(new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-Sm"));
-            }
-        });
+        checkMain("-m");
     }
 
     @Test
     public void testMainWithEmbeddedScript() throws Throwable {
         expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
         expectedSearchUpwards = false;
-        checkMain(true, false, new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(args("-S", "-e", expectedEmbeddedScript));
-            }
-        });
+        checkMain(true, false, "-e", expectedEmbeddedScript);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testMainWithEmbeddedScriptAndConflictingNoSearchUpwardsOption() throws Throwable {
-        Main.main(new String[]{"-S", "-e", "someScript", "-u", "clean"});
+        checkMainFails("-e", "someScript", "-u", "clean");
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testMainWithEmbeddedScriptAndConflictingSpecifyBuildFileOption() throws Throwable {
-        Main.main(new String[]{"-S", "-e", "someScript", "-bsomeFile", "clean"});
+        checkMainFails("-e", "someScript", "-bsomeFile", "clean");
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testMainWithEmbeddedScriptAndConflictingSpecifySettingsFileOption() throws Throwable {
-        Main.main(new String[]{"-S", "-e", "someScript", "-csomeFile", "clean"});
+        checkMainFails("-e", "someScript", "-csomeFile", "clean");
     }
 
     @Test
     public void testMainWithShowTasks() throws Throwable {
-        checkMain(false, true, new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(new String[]{"-St"});
-            }
-        });
+        checkMain(false, true, "-t");
     }
 
     @Test
     public void testMainWithShowTasksAndEmbeddedScript() throws Throwable {
         expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
         expectedSearchUpwards = false;
-        checkMain(true, true, new MainCall() {
-            public void execute() throws Throwable {
-                Main.main(new String[]{"-S", "-e", expectedEmbeddedScript, "-t"});
-            }
-        });
+        checkMain(true, true, "-e", expectedEmbeddedScript, "-t");
     }
 
     @Test
@@ -378,19 +330,13 @@ public class MainTest {
     public void testMainWithMissingGradleHome() throws Throwable {
         System.getProperties().remove(Main.GRADLE_HOME_PROPERTY_KEY);
         try {
-            Main.main(new String[]{"-S", "clean"});
+            checkMainFails("clean");
             fail();
         } catch (InvalidUserDataException e) {
             // ignore
         }
         // Tests are run in one JVM. Therefore we need to set it again.
         System.getProperties().put(Main.GRADLE_HOME_PROPERTY_KEY, TEST_GRADLE_HOME);
-    }
-
-    private String[] args(String... prefix) {
-        List<String> allArgs = new ArrayList<String>(expectedTaskNames);
-        allArgs.addAll(0, Arrays.asList(prefix));
-        return allArgs.toArray(new String[allArgs.size()]);
     }
 
     //    @Test void testMainWithException() {
@@ -405,5 +351,10 @@ public class MainTest {
     //    }
 
 
+    private class BuildCompletedError extends Error {
+        public BuildCompletedError(Throwable failure) {
+            super(failure);
+        }
+    }
 }
 

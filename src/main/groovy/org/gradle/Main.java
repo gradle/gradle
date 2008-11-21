@@ -54,7 +54,6 @@ public class Main {
     public final static String IMPORTS_FILE_NAME = "gradle-imports";
     public final static String NL = System.getProperty("line.separator");
 
-    private static final String NO_JVM_TERMINATION = "S";
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
     private static final String PLUGIN_PROPERTIES_FILE = "l";
@@ -78,7 +77,22 @@ public class Main {
     private static final String HELP = "h";
     private static final String MERGED_BUILD = "m";
 
+    private final String[] args;
+    private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
+
+    public Main(String[] args) {
+        this.args = args;
+    }
+
     public static void main(String[] args) throws Throwable {
+        new Main(args).execute();
+    }
+
+    void setBuildCompleter(BuildCompleter buildCompleter) {
+        this.buildCompleter = buildCompleter;
+    }
+
+    public void execute() throws Exception {
         BuildResultLogger resultLogger = new BuildResultLogger(logger);
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(logger);
 
@@ -86,7 +100,6 @@ public class Main {
 
         OptionParser parser = new OptionParser() {
             {
-                acceptsAll(WrapUtil.toList(NO_JVM_TERMINATION), "Don't trigger a System.exit(0) for normal termination. Used for Gradle's internal testing.");
                 acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS, "no-imports"), "Disable usage of default imports for build script files.");
                 acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), "Don't search in parent folders for a settings.gradle file.");
                 acceptsAll(WrapUtil.toList(MERGED_BUILD, "merged-build"), "Merge all tasks into a single build.");
@@ -125,7 +138,7 @@ public class Main {
 
         if (options.has(HELP)) {
             parser.printHelpOn(System.out);
-            exitWithSuccess(options);
+            buildCompleter.exit(null);
             return;
         }
 
@@ -133,14 +146,14 @@ public class Main {
 
         if (options.has(VERSION)) {
             System.out.println(new GradleVersion().prettyPrint());
-            exitWithSuccess(options);
+            buildCompleter.exit(null);
             return;
         }
 
         String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
         if (!GUtil.isTrue(gradleHome)) {
             logger.error("The gradle.home property is not set. Please set it and try again.");
-            exitWithError(options, new InvalidUserDataException());
+            buildCompleter.exit(new InvalidUserDataException());
             return;
         }
         startParameter.setGradleHomeDir(new File(gradleHome));
@@ -175,7 +188,7 @@ public class Main {
             startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
             if (!startParameter.getCurrentDir().isDirectory()) {
                 logger.error("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
-                exitWithError(options, new InvalidUserDataException());
+                buildCompleter.exit(new InvalidUserDataException());
                 return;
             }
         }
@@ -197,7 +210,7 @@ public class Main {
             if (options.has(REBUILD_CACHE)) {
                 logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",
                         CACHE_OFF, REBUILD_CACHE));
-                exitWithError(options, new InvalidUserDataException());
+                buildCompleter.exit(new InvalidUserDataException());
             }
             startParameter.setCacheUsage(CacheUsage.OFF);
         } else if (options.has(REBUILD_CACHE)) {
@@ -210,7 +223,7 @@ public class Main {
             if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
                 logger.error(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
-                exitWithError(options, new InvalidUserDataException());
+                buildCompleter.exit(new InvalidUserDataException());
                 return;
             }
             startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
@@ -231,22 +244,16 @@ public class Main {
 
             BuildResult buildResult = gradle.run();
             if (buildResult.getFailure() != null) {
-                exitWithError(options, buildResult.getFailure());
+                buildCompleter.exit(buildResult.getFailure());
             }
         } catch (Throwable e) {
             exceptionReporter.buildFinished(new BuildResult(null, e));
-            exitWithError(options, e);
+            buildCompleter.exit(e);
         }
-        exitWithSuccess(options);
+        buildCompleter.exit(null);
     }
 
-    private static void exitWithSuccess(OptionSet options) {
-        if (!options.has(NO_JVM_TERMINATION)) {
-            System.exit(0);
-        }
-    }
-
-    private static void configureLogger(OptionSet options) throws Throwable {
+    private static void configureLogger(OptionSet options) throws Exception {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         lc.shutdownAndReset();
         ch.qos.logback.classic.Logger rootLogger = lc.getLogger(LoggerContext.ROOT_NAME);
@@ -317,10 +324,13 @@ public class Main {
         return patternLayout;
     }
 
-    private static void exitWithError(OptionSet options, Throwable e) throws Throwable {
-        if (!options.has(NO_JVM_TERMINATION)) {
-            System.exit(1);
+    public interface BuildCompleter {
+        void exit(Throwable failure);
+    }
+
+    private static class ProcessExitBuildCompleter implements BuildCompleter {
+        public void exit(Throwable failure) {
+            System.exit(failure == null ? 0 : 1);
         }
-        throw e;
     }
 }
