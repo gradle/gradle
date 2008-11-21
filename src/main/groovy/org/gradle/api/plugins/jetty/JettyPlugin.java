@@ -18,17 +18,17 @@ package org.gradle.api.plugins.jetty;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.bundling.War;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.bundling.War;
 import org.gradle.util.GUtil;
 
-import java.util.Map;
 import java.io.File;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -121,7 +121,7 @@ public class JettyPlugin implements Plugin {
         if (war.getWebXml() != null) {
             webXml = new File(war.getWebXml().toString());
         } else {
-            webXml = new File(getJavaConvention(project).getWebAppDir(), "web.xml");
+            webXml = new File(getJavaConvention(project).getWebAppDir(), "WEB-INF/web.xml");
         }
         return webXml;
     }
