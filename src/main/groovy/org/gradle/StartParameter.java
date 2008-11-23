@@ -19,6 +19,7 @@ package org.gradle;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Project;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.initialization.Settings;
 import org.gradle.execution.TaskNameResolvingBuildExecuter;
 import org.gradle.execution.ProjectDefaultsBuildExecuter;
@@ -63,6 +64,7 @@ public class StartParameter {
     private ScriptSource settingsScriptSource;
     private BuildExecuter buildExecuter;
     private boolean mergedBuild;
+    private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -74,7 +76,7 @@ public class StartParameter {
     StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir,
                           boolean searchUpwards, Map<String, String> projectProperties,
                           Map<String, String> systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile,
-                          File pluginPropertiesFile, CacheUsage cacheUsage) {
+                          File pluginPropertiesFile, CacheUsage cacheUsage, LogLevel logLevel) {
         this.settingsFileName = settingsFileName;
         this.buildFileName = buildFileName;
         this.taskNames = taskNames;
@@ -86,6 +88,7 @@ public class StartParameter {
         this.defaultImportsFile = defaultImportsFile;
         this.pluginPropertiesFile = pluginPropertiesFile;
         this.cacheUsage = cacheUsage;
+        this.logLevel = logLevel;
     }
 
     /**
@@ -111,6 +114,7 @@ public class StartParameter {
         startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.buildExecuter = buildExecuter;
         startParameter.mergedBuild = mergedBuild;
+        startParameter.logLevel = logLevel;
 
         return startParameter;
     }
@@ -335,5 +339,13 @@ public class StartParameter {
 
     public void setMergedBuild(boolean merged) {
         this.mergedBuild = merged;
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(LogLevel logLevel) {
+        this.logLevel = logLevel;
     }
 }

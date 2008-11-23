@@ -32,6 +32,7 @@ import org.gradle.util.HelperUtil
 import org.gradle.execution.TaskNameResolvingBuildExecuter
 import org.gradle.execution.ProjectDefaultsBuildExecuter
 import org.gradle.execution.MergingBuildExecuter
+import org.gradle.api.logging.LogLevel
 
 /**
  * @author Hans Dockter
@@ -68,6 +69,7 @@ class StartParameterTest {
         assertThat(parameter.gradleUserHomeDir, equalTo(new File(Main.DEFAULT_GRADLE_USER_HOME)))
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
         assertThat(parameter.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
+        assertThat(parameter.logLevel, equalTo(LogLevel.LIFECYCLE))
         assertThat(parameter.settingsFileName, equalTo(Settings.DEFAULT_SETTINGS_FILE))
         assertThat(parameter.taskNames, notNullValue())
         assertThat(parameter.projectProperties, notNullValue())

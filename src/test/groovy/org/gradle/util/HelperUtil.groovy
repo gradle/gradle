@@ -39,6 +39,7 @@ import org.gradle.initialization.ISettingsFinder
 import org.gradle.groovy.scripts.ScriptSource
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.groovy.scripts.ScriptWithSource
+import org.gradle.api.logging.LogLevel
 
 
 
@@ -114,7 +115,8 @@ class HelperUtil {
                 new File("gradleUserHome"),
                 new File("defaultImports"),
                 new File("pluginProperties"),
-                CacheUsage.ON
+                CacheUsage.ON,
+                LogLevel.LIFECYCLE
         );
     }
 

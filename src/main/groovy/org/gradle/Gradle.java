@@ -22,10 +22,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.IGradlePropertiesLoader;
-import org.gradle.initialization.ISettingsFinder;
-import org.gradle.initialization.BuildLoader;
-import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.*;
 import org.gradle.util.ListenerBroadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class Gradle {
     private static Logger logger = LoggerFactory.getLogger(Gradle.class);
 
-    private static GradleFactory factory = new DefaultGradleFactory();
+    private static GradleFactory factory = new DefaultGradleFactory(new DefaultLoggingConfigurer());
 
     private StartParameter startParameter;
     private ISettingsFinder settingsFinder;
@@ -172,7 +169,7 @@ public class Gradle {
 
     // This is used for mocking
     public static void injectCustomFactory(GradleFactory gradleFactory) {
-        factory = gradleFactory == null ? new DefaultGradleFactory() : gradleFactory;
+        factory = gradleFactory == null ? new DefaultGradleFactory(new DefaultLoggingConfigurer()) : gradleFactory;
     }
 
     public StartParameter getStartParameter() {

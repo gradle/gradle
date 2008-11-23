@@ -18,6 +18,7 @@ package org.gradle;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.initialization.Settings;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
@@ -63,6 +64,7 @@ public class MainTest {
     private String expectedEmbeddedScript;
     private StartParameter actualStartParameter;
     private boolean expectedMergedBuild;
+    private LogLevel expectedLogLevel;
 
     private Gradle gradleMock;
     private JUnit4Mockery context = new JUnit4Mockery();
@@ -91,23 +93,13 @@ public class MainTest {
         expectedCacheUsage = CacheUsage.ON;
         expectedSearchUpwards = true;
         expectedEmbeddedScript = "somescript";
+        expectedLogLevel = LogLevel.LIFECYCLE;
     }
 
     @After
     public void tearDown() {
         Gradle.injectCustomFactory(null);
     }
-
-//    @Test public void testMainWithSpecifiedNonExistingProjectDirectory() {
-//        fileStub.demand.getCanonicalFile {new File(TEST_DIR_NAME)}
-//        fileStub.demand.isDirectory {false}
-//        buildMockFor.use {
-//            fileStub.use {
-//                Main.main(args(["-p", TEST_DIR_NAME]) as String[])
-//            }
-//        }
-//        // The buildMockFor throws an exception, if the main method does not return prematurely (what it should do).
-//    }
 
     @Test
     public void testMainWithoutAnyOptions() throws Throwable {
@@ -132,6 +124,7 @@ public class MainTest {
         assertEquals(expectedPluginPropertiesFile, startParameter.getPluginPropertiesFile());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedMergedBuild, startParameter.isMergedBuild());
+        assertEquals(expectedLogLevel, startParameter.getLogLevel());
     }
 
     private void checkMain(final boolean embedded, final boolean noTasks, String... args) throws Throwable {
@@ -196,6 +189,11 @@ public class MainTest {
     public void testMainWithSpecifiedExistingProjectDirectory() throws Throwable {
         expectedProjectDir = HelperUtil.makeNewTestDir();
         checkMain("-p", expectedProjectDir.getAbsoluteFile().toString());
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithSpecifiedNonExistingProjectDirectory() throws Throwable {
+        checkMainFails("-p", new File("nonExistingDir").getAbsoluteFile().toString());
     }
 
     @Test
@@ -307,6 +305,36 @@ public class MainTest {
         checkMainFails("-e", "someScript", "-csomeFile", "clean");
     }
 
+    public void testMainWithConflictingLoggingOptionsDQ() throws Throwable {
+        List<String> illegalOptions = WrapUtil.toList("dq", "di", "qd", "qi", "iq", "id");
+        for (String illegalOption : illegalOptions) {
+            try {
+                checkMainFails("-" + illegalOption, "clean");
+            } catch (InvalidUserDataException e) {
+                continue;
+            }
+            fail("Expected InvalidUserDataException");
+        }
+    }
+
+    @Test
+    public void testMainWithQuietLoggingOptions() throws Throwable {
+        expectedLogLevel = LogLevel.QUIET;
+        checkMain("-q");
+    }
+
+    @Test
+    public void testMainWithInfoLoggingOptions() throws Throwable {
+        expectedLogLevel = LogLevel.INFO;
+        checkMain("-i");
+    }
+
+    @Test
+    public void testMainWithDebugLoggingOptions() throws Throwable {
+        expectedLogLevel = LogLevel.DEBUG;
+        checkMain("-d");
+    }
+
     @Test
     public void testMainWithShowTasks() throws Throwable {
         checkMain(false, true, "-t");
@@ -338,18 +366,6 @@ public class MainTest {
         // Tests are run in one JVM. Therefore we need to set it again.
         System.getProperties().put(Main.GRADLE_HOME_PROPERTY_KEY, TEST_GRADLE_HOME);
     }
-
-    //    @Test void testMainWithException() {
-    //        showProp()
-    //        buildMockFor.demand.run {List taskNames, File currentDir, String buildFileName, boolean recursive, boolean searchUpwards ->
-    //            throw new RuntimeException()
-    //        }
-    //        buildMockFor.use {
-    //            Main.main(["clean", "compile"] as String[])
-    //            // Getting here means the exception was caught. This is what we want to test.
-    //        }
-    //    }
-
 
     private class BuildCompletedError extends Error {
         public BuildCompletedError(Throwable failure) {

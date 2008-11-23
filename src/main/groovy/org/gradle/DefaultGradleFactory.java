@@ -18,6 +18,7 @@ package org.gradle;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.util.WrapUtil;
@@ -30,7 +31,22 @@ import org.gradle.configuration.ProjectTasksPrettyPrinter;
  * @author Hans Dockter
 */
 public class DefaultGradleFactory implements GradleFactory {
+    private LoggingConfigurer loggingConfigurer;
+
+    public DefaultGradleFactory(LoggingConfigurer loggingConfigurer) {
+        this.loggingConfigurer = loggingConfigurer;
+    }
+
+    public LoggingConfigurer getLoggingConfigurer() {
+        return loggingConfigurer;
+    }
+
+    public void setLoggingConfigurer(LoggingConfigurer loggingConfigurer) {
+        this.loggingConfigurer = loggingConfigurer;
+    }
+
     public Gradle newInstance(StartParameter startParameter) {
+        loggingConfigurer.configure(startParameter.getLogLevel());
         ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
         IScriptProcessor scriptProcessor = new DefaultScriptProcessor(new DefaultScriptHandler(),
                 startParameter.getCacheUsage());
@@ -52,7 +68,13 @@ public class DefaultGradleFactory implements GradleFactory {
                                 new SettingsFactory(
                                         new DefaultProjectDescriptorRegistry(),
                                         dependencyManagerFactory,
-                                        new BuildSourceBuilder(new DefaultGradleFactory(), new DefaultCacheInvalidationStrategy())))
+                                        new BuildSourceBuilder(new DefaultGradleFactory(
+                                                new LoggingConfigurer() {
+                                                    public void configure(LogLevel logLevel) {
+                                                        // do nothing
+                                                    }
+                                                }
+                                        ), new DefaultCacheInvalidationStrategy())))
                 ),
                 new BuildLoader(
                         new ProjectFactory(

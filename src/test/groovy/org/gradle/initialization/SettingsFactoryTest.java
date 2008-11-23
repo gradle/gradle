@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.DefaultGradleFactory;
+import org.gradle.GradleFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.assertSame;
 import org.junit.Test;
@@ -37,7 +39,9 @@ import java.util.Map;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class SettingsFactoryTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
 
     @Test
     public void createSettings() {
@@ -52,7 +56,7 @@ public class SettingsFactoryTest {
             allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
         }});
 
-        BuildSourceBuilder expectedBuildSourceBuilder = new BuildSourceBuilder(new DefaultGradleFactory(), new DefaultCacheInvalidationStrategy());
+        BuildSourceBuilder expectedBuildSourceBuilder = context.mock(BuildSourceBuilder.class);
 
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();

@@ -15,22 +15,12 @@
  */
 package org.gradle;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.PatternLayout;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.filter.LevelFilter;
-import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.spi.FilterReply;
-import ch.qos.logback.core.filter.Filter;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.apache.ivy.util.Message;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
-import org.gradle.logging.IvyLoggingAdaper;
-import org.gradle.logging.MarkerFilter;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
@@ -43,7 +33,6 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-// todo the main method is too long. Extract methods.
 public class Main {
     private static Logger logger = LoggerFactory.getLogger(Main.class);
 
@@ -142,8 +131,6 @@ public class Main {
             return;
         }
 
-        configureLogger(options);
-
         if (options.has(VERSION)) {
             System.out.println(new GradleVersion().prettyPrint());
             buildCompleter.exit(null);
@@ -152,7 +139,7 @@ public class Main {
 
         String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
         if (!GUtil.isTrue(gradleHome)) {
-            logger.error("The gradle.home property is not set. Please set it and try again.");
+            System.err.println("The gradle.home property is not set. Please set it and try again.");
             buildCompleter.exit(new InvalidUserDataException());
             return;
         }
@@ -166,7 +153,6 @@ public class Main {
 
         if (options.has(SYSTEM_PROP)) {
             List<String> props = options.argumentsOf(SYSTEM_PROP);
-            logger.info("Running with System props: " + props);
             for (String keyValueExpression : props) {
                 String[] elements = keyValueExpression.split("=");
                 startParameter.getSystemPropertiesArgs().put(elements[0], elements.length == 1 ? "" : elements[1]);
@@ -175,7 +161,6 @@ public class Main {
 
         if (options.has(PROJECT_PROP)) {
             List<String> props = options.argumentsOf(PROJECT_PROP);
-            logger.info("Running with Project props: " + props);
             for (String keyValueExpression : props) {
                 String[] elements = keyValueExpression.split("=");
                 startParameter.getProjectProperties().put(elements[0], elements.length == 1 ? "" : elements[1]);
@@ -187,7 +172,7 @@ public class Main {
         if (options.has(PROJECT_DIR)) {
             startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
             if (!startParameter.getCurrentDir().isDirectory()) {
-                logger.error("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
+                System.err.println("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
                 buildCompleter.exit(new InvalidUserDataException());
                 return;
             }
@@ -208,7 +193,7 @@ public class Main {
 
         if (options.has(CACHE_OFF)) {
             if (options.has(REBUILD_CACHE)) {
-                logger.error(String.format("Error: The -%s option can't be used together with the -%s option.",
+                System.err.println(String.format("Error: The -%s option can't be used together with the -%s option.",
                         CACHE_OFF, REBUILD_CACHE));
                 buildCompleter.exit(new InvalidUserDataException());
             }
@@ -221,7 +206,7 @@ public class Main {
 
         if (options.has(EMBEDDED_SCRIPT)) {
             if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
-                logger.error(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
+                System.err.println(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
                 buildCompleter.exit(new InvalidUserDataException());
                 return;
@@ -235,6 +220,8 @@ public class Main {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
         startParameter.setMergedBuild(options.has(MERGED_BUILD));
+
+        startParameter.setLogLevel(getLogLevel(options));
 
         try {
             Gradle gradle = Gradle.newInstance(startParameter);
@@ -253,75 +240,31 @@ public class Main {
         buildCompleter.exit(null);
     }
 
-    private static void configureLogger(OptionSet options) throws Exception {
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        lc.shutdownAndReset();
-        ch.qos.logback.classic.Logger rootLogger = lc.getLogger(LoggerContext.ROOT_NAME);
-
-        ConsoleAppender errorConsoleAppender = new ConsoleAppender();
-        errorConsoleAppender.setContext(lc);
-        errorConsoleAppender.setTarget("System.err");
-        errorConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.ACCEPT, FilterReply.DENY));
-        Level level = Level.INFO;
-        ConsoleAppender nonErrorConsoleAppender = new ConsoleAppender();
-        nonErrorConsoleAppender.setContext(lc);
-
-        setLayouts(options, errorConsoleAppender, nonErrorConsoleAppender, lc);
-
-        MarkerFilter quietFilter = new MarkerFilter(Logging.QUIET, FilterReply.DENY);
-        nonErrorConsoleAppender.addFilter(quietFilter);
-        if (!options.has(QUIET)) {
-            quietFilter.setOnMismatch(FilterReply.NEUTRAL);
-            if (options.has(DEBUG)) {
-                level = Level.DEBUG;
-                nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
-                nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT, FilterReply.NEUTRAL));
-            } else {
-                if (options.has(INFO)) {
-                    level = Level.INFO;
-                    nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
-                } else {
-                    nonErrorConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE));
-                }
-            }
-            nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
-        } 
-        rootLogger.addAppender(nonErrorConsoleAppender);
-        nonErrorConsoleAppender.start();
-        rootLogger.addAppender(errorConsoleAppender);
-        errorConsoleAppender.start();
-        Message.setDefaultLogger(new IvyLoggingAdaper());
-        rootLogger.setLevel(level);
-    }
-
-    private static void setLayouts(OptionSet options, ConsoleAppender errorConsoleAppender, ConsoleAppender nonErrorConsoleAppender, LoggerContext lc) {
-        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
-        String infoLayout = "%msg%n";
-        if (options.has(DEBUG)) {
-            nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
-            errorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
-        } else {
-            nonErrorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
-            errorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout)); 
+    private static LogLevel getLogLevel(OptionSet options) throws Exception {
+        LogLevel logLevel = null;
+        if (options.has(QUIET)) {
+            logLevel = LogLevel.QUIET;
         }
+        if (options.has(INFO)) {
+            quitWithErrorIfLogLevelAlreadyDefined(logLevel, INFO);
+            logLevel = LogLevel.INFO;
+        }
+        if (options.has(DEBUG)) {
+            quitWithErrorIfLogLevelAlreadyDefined(logLevel, DEBUG);
+            logLevel = LogLevel.DEBUG;
+        }
+        if (logLevel == null) {
+            logLevel = LogLevel.LIFECYCLE;
+        }
+        return logLevel;
     }
 
-    private static Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
-        LevelFilter levelFilter = new LevelFilter();
-        levelFilter.setContext(lc);
-        levelFilter.setOnMatch(onMatch);
-        levelFilter.setOnMismatch(onMismatch);
-        levelFilter.setLevel(level.toString());
-        levelFilter.start();
-        return levelFilter;
-    }
-
-    private static PatternLayout createPatternLayout(LoggerContext loggerContext, String pattern) {
-        PatternLayout patternLayout = new PatternLayout();
-        patternLayout.setPattern(pattern);
-        patternLayout.setContext(loggerContext);
-        patternLayout.start();
-        return patternLayout;
+    private static void quitWithErrorIfLogLevelAlreadyDefined(LogLevel logLevel, String option) {
+        if (logLevel != null) {
+            System.err.println(String.format("Error: The log level is already defined by another option. Therefore the option %s is invalid.",
+                    option));
+            throw new InvalidUserDataException();
+        }
     }
 
     public interface BuildCompleter {
