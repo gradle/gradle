@@ -40,11 +40,6 @@ public interface BuildInternal extends Build {
     IProjectRegistry getProjectRegistry();
 
     /**
-     * Returns the {@link StartParameter} used to start this build.
-     */
-    StartParameter getStartParameter();
-
-    /**
      * Returns the classloader to use for the build files of this build.
      */
     ClassLoader getBuildScriptClassLoader();

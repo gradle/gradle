@@ -17,6 +17,7 @@ package org.gradle.api.invocation;
 
 import org.gradle.api.Project;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.StartParameter;
 
 import java.io.File;
 
@@ -61,4 +62,11 @@ public interface Build {
      * @return The task graph. Never returns null.
      */
     TaskExecutionGraph getTaskGraph();
+
+    /**
+     * Returns the {@link org.gradle.StartParameter} used to start this build.
+     *
+     * @return The start parameter. Never returns null.
+     */
+    StartParameter getStartParameter();
 }
