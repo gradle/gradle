@@ -21,6 +21,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.net.URLClassLoader;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.Connector;
@@ -30,10 +33,7 @@ import org.gradle.api.plugins.jetty.util.SystemProperties;
 import org.gradle.api.plugins.jetty.util.SystemProperty;
 import org.mortbay.util.Scanner;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.GradleException;
-import org.gradle.api.Project;
-import org.gradle.api.TaskAction;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.plugins.jetty.util.ConsoleScanner;
 import org.gradle.api.plugins.jetty.util.JettyPluginServer;
 import org.gradle.api.plugins.jetty.util.*;
@@ -51,10 +51,27 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
-                startJetty();    
+                ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
+                List<URL> additionalClasspath = new ArrayList<URL>();
+                for (File additionalRuntimeJar : additionalRuntimeJars) {
+                    try {
+                        additionalClasspath.add(additionalRuntimeJar.toURI().toURL());
+                    } catch (MalformedURLException e) {
+                        throw new InvalidUserDataException(e);
+                    }
+                }
+                URLClassLoader jettyClassloader = new URLClassLoader(additionalClasspath.toArray(new URL[additionalClasspath.size()]), originalClassloader);
+                try {
+                    Thread.currentThread().setContextClassLoader(jettyClassloader);
+                    startJetty();
+                } finally {
+                    Thread.currentThread().setContextClassLoader(originalClassloader);
+                }
             }
         });
     }
+
+    private List<File> additionalRuntimeJars = new ArrayList<File>();
 
     /**
      * The proxy for the Server object
@@ -596,5 +613,13 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public void setRequestLog(RequestLog requestLog) {
         this.requestLog = requestLog;
+    }
+
+    public List<File> getAdditionalRuntimeJars() {
+        return additionalRuntimeJars;
+    }
+
+    public void setAdditionalRuntimeJars(List<File> additionalRuntimeJars) {
+        this.additionalRuntimeJars = additionalRuntimeJars;
     }
 }
