@@ -92,6 +92,8 @@ public class JettyPlugin implements Plugin {
 
         configureAbstractJettyTask(project, jettyConvention, jettyRun);
 
+        jettyRun.setConfiguration(JavaPlugin.RUNTIME);
+        jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME);
         jettyRun.setUseTestClasspath(false);
         jettyRun.getConventionMapping().put("webXml", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {

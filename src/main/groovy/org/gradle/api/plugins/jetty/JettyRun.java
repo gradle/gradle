@@ -173,6 +173,9 @@ public class JettyRun extends AbstractJettyRunTask {
      */
     private List extraScanTargets;
 
+    private String configuration;
+
+    private String testConfiguration;
 
     /**
      * Verify the configuration given in the pom.
@@ -300,7 +303,6 @@ public class JettyRun extends AbstractJettyRunTask {
         }
     }
 
-
     public void configureWebApplication() throws Exception {
         super.configureWebApplication();
         setClassPathFiles(setUpClassPath());
@@ -376,17 +378,16 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     private List getDependencyFiles() {
-        List dependencyFiles = new ArrayList();
         List overlays = new ArrayList();
 
-        List<File> dependencies = getProject().getDependencies().resolve(WarPlugin.PROVIDED_RUNTIME);
+        List<File> dependencies;
         if (useTestClasspath) {
-            dependencies.addAll(getProject().getDependencies().resolve(JavaPlugin.TEST_RUNTIME));
+            dependencies = getProject().getDependencies().resolve(testConfiguration);
+        } else {
+            dependencies = getProject().getDependencies().resolve(configuration);
         }
-        for (File dependency : dependencies) {
-            dependencyFiles.add(dependency);
-            logger.debug("Adding dependency {} for WEB-INF/lib ", dependency);
-        }
+        logger.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
+
         //todo incorporate overlays when our resolved dependencies provide type information
 //            if (artifact.getType().equals("war")) {
 //                try {
@@ -447,7 +448,7 @@ public class JettyRun extends AbstractJettyRunTask {
                 throw new RuntimeException(e);
             }
         }
-        return dependencyFiles;
+        return dependencies;
     }
 
 
@@ -610,5 +611,39 @@ public class JettyRun extends AbstractJettyRunTask {
 
     public void setContextHandlers(ContextHandler[] contextHandlers) {
         this.contextHandlers = contextHandlers;
+    }
+
+    /**
+     * Returns the configuration to resolve the dependencies of the web application from.
+     *
+     * @see #getTestConfiguration()
+     */
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    /**
+     * Set the configuration to resolve the dependencies of the web application from.
+     * 
+     * @see #setTestConfiguration(String)
+     */
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    /**
+     * Returns the configuration to resolve the dependencies of the web application from, if
+     * {@link #isUseTestClasspath()} is true.
+     */
+    public String getTestConfiguration() {
+        return testConfiguration;
+    }
+
+    /**
+     * Sets the configuration to resolve the dependencies of the web application from, if
+     * {@link #isUseTestClasspath()} is true.
+     */
+    public void setTestConfiguration(String testConfiguration) {
+        this.testConfiguration = testConfiguration;
     }
 }
