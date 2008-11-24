@@ -74,7 +74,7 @@ dependencies {
     }
 
     clientModule(['compile'], ":commons-httpclient:3.0") {
-        dependencies(":commons-codec:1.2", ":commons-logging:1.0.3")
+        dependencies(":commons-codec:1.2", ":jcl-over-slf4j:1.5.3")
     }
 
     // Needed by the eclipse plugin
