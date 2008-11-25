@@ -182,10 +182,10 @@ public class BaseDependencyManager extends DefaultDependencyContainer
             throw new InvalidUserDataException("Conf and tasks must be specified!");
         }
         if (tasks4Conf.get(conf) == null) {
-            tasks4Conf.put(conf, new HashSet<String>());
+            tasks4Conf.put(conf, new LinkedHashSet<String>());
         }
         if (confs4Task.get(task) == null) {
-            confs4Task.put(task, new HashSet<String>());
+            confs4Task.put(task, new LinkedHashSet<String>());
         }
         tasks4Conf.get(conf).add(task);
         confs4Task.get(task).add(conf);
