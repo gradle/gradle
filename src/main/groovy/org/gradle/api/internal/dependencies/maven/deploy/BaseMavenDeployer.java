@@ -40,7 +40,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private List<File> protocolProviderJars = new ArrayList<File>();
 
-    private boolean uniqueVersion;
+    private boolean uniqueVersion = true;
 
     public BaseMavenDeployer(String name, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
         super(name, artifactPomContainer, dependencyManager);

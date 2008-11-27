@@ -17,13 +17,14 @@ package org.gradle.api.internal.dependencies.maven.deploy;
 
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.runner.RunWith;
+import org.junit.Test;
 import org.gradle.util.WrapUtil;
 import org.gradle.api.dependencies.maven.MavenResolver;
 import org.jmock.Expectations;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 
@@ -39,7 +40,7 @@ import java.util.Map;
 public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     private static final List<File> TEST_PROTOCOL_PROVIDER_JARS = WrapUtil.toList(new File("jar1"), new File("jar1"));
 
-    private BaseMavenDeployer mavenUploader;
+    private BaseMavenDeployer mavenDeployer;
 
     private DeployTaskFactory deployTaskFactoryMock;
     private CustomDeployTask deployTaskMock;
@@ -53,7 +54,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     }
 
     protected MavenResolver getMavenResolver() {
-        return mavenUploader;
+        return mavenDeployer;
     }
 
     protected InstallDeployTaskSupport getInstallDeployTask() {
@@ -67,12 +68,12 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
         plexusContainerMock = context.mock(PlexusContainer.class);
         testRepository = new RemoteRepository();
         testSnapshotRepository = new RemoteRepository();
-        mavenUploader = createMavenDeployer();
-        mavenUploader.setDeployTaskFactory(deployTaskFactoryMock);
-        mavenUploader.setRepository(testRepository);
-        mavenUploader.setSnapshotRepository(testSnapshotRepository);
-        mavenUploader.addProtocolProviderJars(TEST_PROTOCOL_PROVIDER_JARS);
-        mavenUploader.setUniqueVersion(false);
+        mavenDeployer = createMavenDeployer();
+        mavenDeployer.setDeployTaskFactory(deployTaskFactoryMock);
+        mavenDeployer.setRepository(testRepository);
+        mavenDeployer.setSnapshotRepository(testSnapshotRepository);
+        mavenDeployer.addProtocolProviderJars(TEST_PROTOCOL_PROVIDER_JARS);
+        mavenDeployer.setUniqueVersion(false);
     }
 
     protected void checkTransaction(final Map<File, File> deployableUnits) throws IOException, PlexusContainerException {
@@ -85,12 +86,18 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
                 for (File protocolProviderJar : TEST_PROTOCOL_PROVIDER_JARS) {
                     one(plexusContainerMock).addJarResource(protocolProviderJar);
                 }
-                one(deployTaskMock).setUniqueVersion(mavenUploader.isUniqueVersion());
+                one(deployTaskMock).setUniqueVersion(mavenDeployer.isUniqueVersion());
                 one(deployTaskMock).addRemoteRepository(testRepository);
                 one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
             }
         });
         super.checkTransaction(deployableUnits);
+    }
+
+    @Test
+    public void init() {
+        mavenDeployer = new BaseMavenDeployer(TEST_NAME, artifactPomContainerMock, dependencyManagerMock);
+        assertTrue(mavenDeployer.isUniqueVersion());
     }
 
 }
