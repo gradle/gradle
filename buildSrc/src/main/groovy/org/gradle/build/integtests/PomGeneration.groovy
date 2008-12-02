@@ -15,13 +15,13 @@
  */
 package org.gradle.build.integtests
 
+import groovy.text.SimpleTemplateEngine
+import org.apache.commons.io.FileUtils
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
-import org.apache.commons.io.FileUtils
+import org.hamcrest.Matchers
 import org.junit.Assert
-import groovy.text.SimpleTemplateEngine
-import org.hamcrest.Matchers;
 
 /**
  * @author Hans Dockter
@@ -84,9 +84,7 @@ class PomGeneration {
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         XMLAssert.assertXMLEqual(diff, true);
-        Assert.assertThat(actualXml, Matchers.startsWith('''<?xml version="1.0" encoding="UTF-8"?>
-<!-- mylicenseheader -->
-'''))
+        Assert.assertThat(actualXml, Matchers.startsWith(String.format('<?xml version="1.0" encoding="UTF-8"?>%n<!-- mylicenseheader -->')))
     }
 
     static void main(String[] args) {
