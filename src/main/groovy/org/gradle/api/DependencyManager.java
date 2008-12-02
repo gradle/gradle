@@ -16,21 +16,21 @@
 
 package org.gradle.api;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.*;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.dependencies.maven.GroovyPomFilterContainer;
 import org.gradle.api.internal.dependencies.ResolverFactory;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import groovy.lang.Closure;
 
 /**
  * <p>A <code>DependencyManager</code> represents the set of dependencies and artifacts for a {@link
@@ -395,11 +395,6 @@ public interface DependencyManager extends DependencyContainer {
      * a MavenUploadResolver sepcific setting can be defined.
      */
     Conf2ScopeMappingContainer getDefaultMavenScopeMapping();
-
-    /**
-     *
-     */
-    GroovyPomFilterContainer getPoms();
 
     /**
      * Returns a factory for creating special resolvers like flat dir or maven resolvers.
