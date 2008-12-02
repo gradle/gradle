@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 /**
  * @author Hans Dockter
  */
-public interface MavenResolver extends DependencyResolver {
+public interface MavenResolver extends DependencyResolver, PomFilterContainer {
     /**
      * Returns a maven settings object. This can be used for example to figure out where the local repository is located.
      * This property is filled after publishing. Before this property is null.

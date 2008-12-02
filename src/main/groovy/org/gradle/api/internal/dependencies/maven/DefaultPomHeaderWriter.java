@@ -24,11 +24,11 @@ import java.io.PrintWriter;
  */
 public class DefaultPomHeaderWriter implements PomHeaderWriter {
     public void convert(String licenseHeader, PrintWriter out) {
+        GradleVersion gradleVersion = new GradleVersion();
+        out.println(HEADER_XML);
         if (licenseHeader != null) {
             out.println(licenseHeader);
         }
-        GradleVersion gradleVersion = new GradleVersion();
-        out.println(HEADER_XML);
         out.println(GENERATE_TEXT_PRE + GradleVersion.URL);
         out.println(GENERATE_TEXT_VERSION + gradleVersion.getVersion() + " " + gradleVersion.getBuildTime());
         out.println(GENERATE_TEXT_POST + HEADER_XMLNS);

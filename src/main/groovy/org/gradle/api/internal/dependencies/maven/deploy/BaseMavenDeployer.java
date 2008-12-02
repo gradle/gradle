@@ -23,6 +23,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.maven.MavenDeployer;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,8 +43,8 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private boolean uniqueVersion = true;
 
-    public BaseMavenDeployer(String name, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
-        super(name, artifactPomContainer, dependencyManager);
+    public BaseMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+        super(name, pomFilterContainer, artifactPomContainer, dependencyManager);
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {

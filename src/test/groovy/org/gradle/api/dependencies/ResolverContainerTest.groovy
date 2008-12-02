@@ -38,6 +38,7 @@ import org.gradle.api.dependencies.maven.GroovyMavenDeployer
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.dependencies.maven.PomFilterContainer
 import org.gradle.api.dependencies.maven.MavenResolver
+import org.gradle.api.dependencies.maven.CopyableGroovyPomFilterContainer
 
 /**
  * @author Hans Dockter
@@ -194,7 +195,6 @@ class ResolverContainerTest {
         assert resolverContainer[TEST_REPO_NAME].is(expectedResolver)
     }
 
-
     private GroovyMavenDeployer prepareMavenDeployerTests() {
         prepareMavenResolverTests(GroovyMavenDeployer, "createMavenDeployer")
     }
@@ -205,18 +205,13 @@ class ResolverContainerTest {
 
     private DependencyResolver prepareMavenResolverTests(Class resolverType, String createMethod) {
         File testPomDir = new File("pomdir");
-        Conf2ScopeMappingContainer conf2ScopeMappingContainer = new DefaultConf2ScopeMappingContainer();
-        PomFilterContainer pomFilterContainer = [:] as PomFilterContainer
         DependencyManager dependencyManager = [:] as DependencyManager
         resolverContainer.setMavenPomDir(testPomDir)
-        resolverContainer.setMavenConf2ScopeMappings(conf2ScopeMappingContainer)
-        resolverContainer.setPomFilterContainer(pomFilterContainer)
         resolverContainer.setDependencyManager(dependencyManager)
         DependencyResolver expectedResolver = context.mock(resolverType)
         context.checking {
             allowing(expectedResolver).getName(); will(returnValue(TEST_REPO_NAME))
-            one(resolverFactoryMock)."$createMethod"(TEST_REPO_NAME, testPomDir, conf2ScopeMappingContainer, pomFilterContainer,
-                dependencyManager);
+            one(resolverFactoryMock)."$createMethod"(TEST_REPO_NAME, testPomDir, dependencyManager);
             will(returnValue(expectedResolver))
         }
         expectedResolver

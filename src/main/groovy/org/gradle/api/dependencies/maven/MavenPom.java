@@ -94,5 +94,8 @@ public interface MavenPom {
      */
     void setLicenseHeader(String licenseHeader);
 
-    void copyFrom(MavenPom sourcePom);
+    /**
+     * Creates a deep copy of a MavenPom
+     */
+    MavenPom copy();
 }

@@ -40,8 +40,6 @@ public class MavenPlugin implements Plugin {
         uploadLibs.setUploadModuleDescriptor(true);
         uploadLibs.getUploadResolvers().setDependencyManager(project.getDependencies());
         uploadLibs.getUploadResolvers().setMavenPomDir(javaConvention.getUploadLibsPomDir());
-        uploadLibs.getUploadResolvers().setMavenConf2ScopeMappings(project.getDependencies().getDefaultMavenScopeMapping());
-        uploadLibs.getUploadResolvers().setPomFilterContainer(project.getDependencies().getPoms());
         uploadLibs.getUploadResolvers().addMavenInstaller("maven-installer");
     }
 

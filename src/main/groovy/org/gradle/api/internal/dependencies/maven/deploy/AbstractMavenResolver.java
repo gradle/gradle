@@ -40,6 +40,8 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.maven.PomFilterContainer;
 import org.gradle.api.dependencies.maven.MavenResolver;
+import org.gradle.api.dependencies.maven.PublishFilter;
+import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
@@ -59,12 +61,15 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     
     private ArtifactPomContainer artifactPomContainer;
 
+    private PomFilterContainer pomFilterContainer;
+
     private DependencyManager dependencyManager;
 
     private Settings settings;
 
-    public AbstractMavenResolver(String name, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
         this.name = name;
+        this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.dependencyManager = dependencyManager;
     }
@@ -212,5 +217,45 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public Settings getSettings() {
         return settings;
+    }
+
+    public PublishFilter getFilter() {
+        return pomFilterContainer.getFilter();
+    }
+
+    public void setFilter(PublishFilter defaultFilter) {
+        pomFilterContainer.setFilter(defaultFilter);
+    }
+
+    public MavenPom getPom() {
+        return pomFilterContainer.getPom();
+    }
+
+    public void setPom(MavenPom defaultPom) {
+        pomFilterContainer.setPom(defaultPom);
+    }
+
+    public MavenPom addFilter(String name, PublishFilter publishFilter) {
+        return pomFilterContainer.addFilter(name, publishFilter);
+    }
+
+    public PublishFilter filter(String name) {
+        return pomFilterContainer.filter(name);
+    }
+
+    public MavenPom pom(String name) {
+        return pomFilterContainer.pom(name);
+    }
+
+    public Iterable<PomFilter> getActivePomFilters() {
+        return pomFilterContainer.getActivePomFilters();
+    }
+
+    public PomFilterContainer getPomFilterContainer() {
+        return pomFilterContainer;
+    }
+
+    public void setPomFilterContainer(PomFilterContainer pomFilterContainer) {
+        this.pomFilterContainer = pomFilterContainer;
     }
 }

@@ -37,15 +37,13 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
 
     private Map<String, ArtifactPom> artifactPoms = new HashMap<String, ArtifactPom>();
     private PomFilterContainer pomFilterContainer;
-    private MavenPomFactory mavenPomFactory;
     private PomFileWriter pomFileWriter;
     private ArtifactPomFactory artifactPomFactory;
 
-    public DefaultArtifactPomContainer(File pomDir, PomFilterContainer pomFilterContainer, MavenPomFactory mavenPomFactory,
+    public DefaultArtifactPomContainer(File pomDir, PomFilterContainer pomFilterContainer, 
                                        PomFileWriter pomFileWriter, ArtifactPomFactory artifactPomFactory) {
         this.pomDir = pomDir;
         this.pomFilterContainer = pomFilterContainer;
-        this.mavenPomFactory = mavenPomFactory;
         this.pomFileWriter = pomFileWriter;
         this.artifactPomFactory = artifactPomFactory;
     }
@@ -57,9 +55,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         for (PomFilter activePomFilter : pomFilterContainer.getActivePomFilters()) {
             if (activePomFilter.getFilter().accept(artifact, src)) {
                 throwExceptionIfMultipleArtifactsPerPom(activePomFilter.getName(), artifact, src);
-                MavenPom pom = mavenPomFactory.createMavenPom();
-                pom.copyFrom(activePomFilter.getPomTemplate());
-                artifactPoms.put(activePomFilter.getName(), artifactPomFactory.createArtifactPom(pom, artifact, src));
+                artifactPoms.put(activePomFilter.getName(), artifactPomFactory.createArtifactPom(activePomFilter.getPomTemplate(), artifact, src));
             }
         }
     }

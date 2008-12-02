@@ -25,6 +25,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.hamcrest.Matchers;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -182,5 +183,33 @@ public class BasePomFilterContainerTest {
         return true;
     }
 
+    @Test
+    public void copy() {
+        final PomFilter defaultPomFilterMock = context.mock(PomFilter.class, "default");
+        final PomFilter defaultPomFilterCopyMock = context.mock(PomFilter.class, "defaultCopy");
+        final PomFilter pomFilter1Mock = context.mock(PomFilter.class, "filter1");
+        final PomFilter pomFilter1CopyMock = context.mock(PomFilter.class, "filter1Copy");
+        final PomFilter pomFilter2Mock = context.mock(PomFilter.class, "filter2");
+        final PomFilter pomFilter2CopyMock = context.mock(PomFilter.class, "filter2Copy");
+
+        String filterName1 = "filter1";
+        String filterName2 = "filter2";
+        pomFilterContainer.setDefaultPomFilter(defaultPomFilterMock);
+        pomFilterContainer.getPomFilters().put(filterName1, pomFilter1Mock);
+        pomFilterContainer.getPomFilters().put(filterName2, pomFilter2Mock);
+
+        context.checking(new Expectations() {{
+            allowing(defaultPomFilterMock).copy(); will(returnValue(defaultPomFilterCopyMock));
+            allowing(pomFilter1Mock).copy(); will(returnValue(pomFilter1CopyMock));
+            allowing(pomFilter2Mock).copy(); will(returnValue(pomFilter2CopyMock));
+        }});
+
+        BasePomFilterContainer newContainer = (BasePomFilterContainer) pomFilterContainer.copy();
+        assertSame(defaultPomFilterCopyMock, newContainer.getDefaultPomFilter());
+        assertSame(pomFilter1CopyMock, newContainer.getPomFilters().get(filterName1));
+        assertSame(pomFilter2CopyMock, newContainer.getPomFilters().get(filterName2));
+        assertThat(newContainer, Matchers.instanceOf(pomFilterContainer.getClass()));
+
+    }
 
 }

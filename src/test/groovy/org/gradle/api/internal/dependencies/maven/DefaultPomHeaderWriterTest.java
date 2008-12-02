@@ -40,7 +40,7 @@ public class DefaultPomHeaderWriterTest {
     @Test
     public void convert() {
         String testLicenseText = "licenseText";
-        String expectedHeaderText = testLicenseText + NL + expectedHeaderText();
+        String expectedHeaderText = expectedHeaderText(testLicenseText + NL);
         headerWriter.convert(testLicenseText, new PrintWriter(stringWriter));
         assertEquals(expectedHeaderText, stringWriter.toString());
     }
@@ -48,12 +48,13 @@ public class DefaultPomHeaderWriterTest {
     @Test
     public void convertWithNullLicense() {
         headerWriter.convert(null, new PrintWriter(stringWriter));
-        assertEquals(expectedHeaderText(), stringWriter.toString());
+        assertEquals(expectedHeaderText(""), stringWriter.toString());
     }
 
-    private String expectedHeaderText() {
+    private String expectedHeaderText(String licenseText) {
         GradleVersion gradleVersion = new GradleVersion();
         return PomHeaderWriter.HEADER_XML + NL +
+                licenseText + 
                 PomHeaderWriter.GENERATE_TEXT_PRE + GradleVersion.URL + NL +
                 PomHeaderWriter.GENERATE_TEXT_VERSION + gradleVersion.getVersion() + " " + gradleVersion.getBuildTime() + NL +
                 PomHeaderWriter.GENERATE_TEXT_POST +

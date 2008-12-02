@@ -75,11 +75,10 @@ public class DefaultMavenPomTest {
     }
 
     @Test
-    public void copyFrom() {
+    public void copy() {
         DefaultConf2ScopeMappingContainer expectedScopeMappings = new DefaultConf2ScopeMappingContainer();
         DefaultMavenPom sourcePom = createTestPom(expectedScopeMappings);
-        DefaultMavenPom targetPom = new DefaultMavenPom(expectedScopeMappings);
-        targetPom.copyFrom(sourcePom);
+        DefaultMavenPom targetPom = (DefaultMavenPom) sourcePom.copy();
         assertEquals(sourcePom.getArtifactId(), targetPom.getArtifactId());
         assertEquals(sourcePom.getClassifier(), targetPom.getClassifier());
         assertEquals(sourcePom.getGroupId(), targetPom.getGroupId());

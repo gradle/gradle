@@ -13,24 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.dependencies.maven.deploy;
-
-import org.gradle.api.dependencies.maven.MavenPom;
-import org.gradle.api.dependencies.maven.PublishFilter;
+package org.gradle.api.dependencies.maven;
 
 /**
  * @author Hans Dockter
  */
-public interface PomFilter {
-    String getName();
-
-    PublishFilter getFilter();
-
-    void setFilter(PublishFilter filter);
-
-    MavenPom getPomTemplate();
-
-    void setPomTemplate(MavenPom pom);
-
-    PomFilter copy();
+public interface CopyableGroovyPomFilterContainer extends GroovyPomFilterContainer, CopyablePomFilterContainer {
 }

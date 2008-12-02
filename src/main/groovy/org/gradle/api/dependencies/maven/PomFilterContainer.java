@@ -91,6 +91,5 @@ public interface PomFilterContainer {
      */
     MavenPom pom(String name);
 
-
     Iterable<PomFilter> getActivePomFilters();
 }

@@ -20,7 +20,8 @@ import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
-import groovy.text.SimpleTemplateEngine;
+import groovy.text.SimpleTemplateEngine
+import org.hamcrest.Matchers;
 
 /**
  * @author Hans Dockter
@@ -36,49 +37,56 @@ class PomGeneration {
 
     private static def checkWithNoCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
         String version = '1.0'
+        String groupId = "gradle"
         long start = System.currentTimeMillis();
         Executer.execute(gradleHome, pomProjectDir.absolutePath, ['clean', 'uploadLibs'], [], '', Executer.DEBUG)
-        String repoPath = repoPath(version)
-        compareXmlWithIgnoringOrder(expectedPom(version),
+        String repoPath = repoPath(groupId, version)
+        compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
         Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}.war").exists())
-        checkInstall(start, pomProjectDir, version)
+        checkInstall(start, pomProjectDir, version, groupId)
     }
 
     private static def checkWithCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
         long start = System.currentTimeMillis();
         String version = "1.0MVN"
+        String groupId = "deployGroup"
         Executer.execute(gradleHome, pomProjectDir.absolutePath, ["-PcustomVersion=${version} clean", 'uploadLibs'], [], '', Executer.DEBUG)
-        String repoPath = repoPath(version)
-        compareXmlWithIgnoringOrder(expectedPom(version),
+        String repoPath = repoPath(groupId, version)
+        compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
         Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}.war").exists())
-        checkInstall(start, pomProjectDir, version)
+        checkInstall(start, pomProjectDir, version, groupId)
     }
 
-    static String repoPath(String version) {
-        "gradle/mywar/$version"
+    static String repoPath(String group, String version) {
+        "$group/mywar/$version"
     }
 
     static File pomFile(File repoDir, String repoPath, String version) {
         new File(repoDir, "$repoPath/mywar-${version}.pom")
     }
 
-    static void checkInstall(long start, File pomProjectDir, String version) {
+    static void checkInstall(long start, File pomProjectDir, String version, String groupId) {
         File localMavenRepo = new File(pomProjectDir, "build/localRepoPath.txt").text as File
-        File installedFile = new File(localMavenRepo, "gradle/mywar/$version/mywar-${version}.war")
+        File installedFile = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}.war")
+        File installedPom = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}.pom")
         Assert.assertTrue(start <= installedFile.lastModified());
+        compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
 
-    private static String expectedPom(String version) {
+    private static String expectedPom(String version, String groupId) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(PomGeneration.getResourceAsStream('pomGeneration/expectedPom.txt').text).make(version: version)
+        templateEngine.createTemplate(PomGeneration.getResourceAsStream('pomGeneration/expectedPom.txt').text).make(version: version, groupId: groupId)
     }
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         XMLAssert.assertXMLEqual(diff, true);
+        Assert.assertThat(actualXml, Matchers.startsWith('''<?xml version="1.0" encoding="UTF-8"?>
+<!-- mylicenseheader -->
+'''))
     }
 
     static void main(String[] args) {

@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.maven.PomFilterContainer;
 import org.gradle.api.dependencies.maven.PublishFilter;
+import org.gradle.api.dependencies.maven.CopyablePomFilterContainer;
 import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
 import org.gradle.util.WrapUtil;
 
@@ -28,17 +29,15 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class BasePomFilterContainer implements PomFilterContainer {
+public class BasePomFilterContainer implements CopyablePomFilterContainer {
     private Map<String, PomFilter> pomFilters = new HashMap<String, PomFilter>();
 
-    private PomFilter defaultPomFilter;
+    private PomFilter defaultPomFilter = null;
 
     private MavenPomFactory mavenPomFactory;
 
     public BasePomFilterContainer(MavenPomFactory mavenPomFactory) {
         this.mavenPomFactory = mavenPomFactory;
-        defaultPomFilter = new DefaultPomFilter(PomFilterContainer.DEFAULT_ARTIFACT_POM_NAME, mavenPomFactory.createMavenPom(),
-                PublishFilter.ALWAYS_ACCEPT);
     }
 
     public PublishFilter getFilter() {
@@ -50,11 +49,11 @@ public class BasePomFilterContainer implements PomFilterContainer {
     }
 
     public MavenPom getPom() {
-        return defaultPomFilter.getPomTemplate();
+        return getDefaultPomFilter().getPomTemplate();
     }
 
     public void setPom(MavenPom defaultPom) {
-        defaultPomFilter.setPomTemplate(defaultPom);
+        getDefaultPomFilter().setPomTemplate(defaultPom);
     }
 
     public MavenPom addFilter(String name, PublishFilter publishFilter) {
@@ -82,8 +81,8 @@ public class BasePomFilterContainer implements PomFilterContainer {
 
     public Iterable<PomFilter> getActivePomFilters() {
         Iterable<PomFilter> activeArtifactPoms;
-        if (pomFilters.size() == 0 && defaultPomFilter != null) {
-            activeArtifactPoms = WrapUtil.toSet(defaultPomFilter);
+        if (pomFilters.size() == 0 && getDefaultPomFilter() != null) {
+            activeArtifactPoms = WrapUtil.toSet(getDefaultPomFilter());
         } else {
             activeArtifactPoms = pomFilters.values();
         }
@@ -95,10 +94,31 @@ public class BasePomFilterContainer implements PomFilterContainer {
     }
 
     public PomFilter getDefaultPomFilter() {
+        if (defaultPomFilter == null) {
+            defaultPomFilter = new DefaultPomFilter(PomFilterContainer.DEFAULT_ARTIFACT_POM_NAME, mavenPomFactory.createMavenPom(),
+                PublishFilter.ALWAYS_ACCEPT);
+        }
         return defaultPomFilter;
     }
 
     public void setDefaultPomFilter(PomFilter defaultPomFilter) {
         this.defaultPomFilter = defaultPomFilter;
+    }
+
+    public Map<String, PomFilter> getPomFilters() {
+        return pomFilters;
+    }
+
+    public PomFilterContainer copy() {
+        BasePomFilterContainer newPomFilterContainer = newInstance();
+        newPomFilterContainer.setDefaultPomFilter(getDefaultPomFilter().copy());
+        for (String key : pomFilters.keySet()) {
+            newPomFilterContainer.getPomFilters().put(key, pomFilters.get(key).copy());
+        }
+        return newPomFilterContainer;
+    }
+
+    protected BasePomFilterContainer newInstance() {
+        return new BasePomFilterContainer(mavenPomFactory);
     }
 }

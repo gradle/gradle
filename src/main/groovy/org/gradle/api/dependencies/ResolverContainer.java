@@ -40,10 +40,6 @@ public class ResolverContainer {
 
     private File mavenPomDir;
 
-    private Conf2ScopeMappingContainer mavenConf2ScopeMappings;
-
-    private PomFilterContainer pomFilterContainer;
-
     private DependencyManager dependencyManager;
 
     public ResolverContainer() {
@@ -197,22 +193,6 @@ public class ResolverContainer {
         this.mavenPomDir = mavenPomDir;
     }
 
-    public Conf2ScopeMappingContainer getMavenConf2ScopeMappings() {
-        return mavenConf2ScopeMappings;
-    }
-
-    public void setMavenConf2ScopeMappings(Conf2ScopeMappingContainer mavenConf2ScopeMappings) {
-        this.mavenConf2ScopeMappings = mavenConf2ScopeMappings;
-    }
-
-    public PomFilterContainer getPomFilterContainer() {
-        return pomFilterContainer;
-    }
-
-    public void setPomFilterContainer(PomFilterContainer pomFilterContainer) {
-        this.pomFilterContainer = pomFilterContainer;
-    }
-
     public DependencyManager getDependencyManager() {
         return dependencyManager;
     }
@@ -222,7 +202,7 @@ public class ResolverContainer {
     }
 
     public GroovyMavenDeployer createMavenDeployer(String name) {
-        return resolverFactory.createMavenDeployer(name, mavenPomDir, mavenConf2ScopeMappings, pomFilterContainer, dependencyManager);
+        return resolverFactory.createMavenDeployer(name, mavenPomDir, dependencyManager);
     }
 
     public GroovyMavenDeployer addMavenDeployer(String name) {
@@ -233,7 +213,7 @@ public class ResolverContainer {
         return (GroovyMavenDeployer) add(createMavenDeployer(name), configureClosure);
     }
     public MavenResolver createMavenInstaller(String name) {
-        return resolverFactory.createMavenInstaller(name, mavenPomDir, mavenConf2ScopeMappings, pomFilterContainer, dependencyManager);
+        return resolverFactory.createMavenInstaller(name, mavenPomDir, dependencyManager);
     }
 
     public MavenResolver addMavenInstaller(String name) {

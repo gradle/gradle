@@ -15,39 +15,18 @@
  */
 package org.gradle.api.internal.dependencies.maven.deploy.groovy
 
-import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.DependencyManager
-import org.gradle.api.dependencies.maven.GroovyMavenDeployer
 import org.gradle.api.dependencies.maven.GroovyPomFilterContainer
 import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.internal.dependencies.maven.deploy.ArtifactPomContainer
-import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenDeployer
+import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenInstaller
 
 /**
  * @author Hans Dockter
  */
-class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMavenDeployer, GroovyPomFilterContainer {
-    public static final String REPOSITORY_BUILDER = "repository"
-    public static final String SNAPSHOT_REPOSITORY_BUILDER = 'snapshotRepository'
-    
-    private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
-
-    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+public class DefaultGroovyMavenInstaller extends BaseMavenInstaller implements GroovyPomFilterContainer {
+    DefaultGroovyMavenInstaller(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
         super(name, pomFilterContainer, artifactPomContainer, dependencyManager)
-    }
-    
-    def methodMissing(String name, args) {
-        if (name == REPOSITORY_BUILDER || name == SNAPSHOT_REPOSITORY_BUILDER) {
-            Object repository = InvokerHelper.invokeMethod(repositoryBuilder, REPOSITORY_BUILDER, args)
-            if (name == REPOSITORY_BUILDER) {
-                setRepository(repository)
-            } else {
-                setSnapshotRepository(repository)
-            }
-            return repository;
-        } else {
-            throw new MissingMethodException(name, this.class, args)
-        }
     }
 
     void filter(Closure filter) {

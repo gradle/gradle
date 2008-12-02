@@ -20,6 +20,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.codehaus.plexus.PlexusContainerException;
 import org.jmock.Expectations;
 import org.gradle.api.dependencies.maven.MavenResolver;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +36,11 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private CustomInstallTask installTaskMock;
 
     protected BaseMavenInstaller createMavenInstaller() {
-        return new BaseMavenInstaller(TEST_NAME, artifactPomContainerMock, dependencyManagerMock);
+        return new BaseMavenInstaller(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, dependencyManagerMock);
+    }
+
+    protected PomFilterContainer createPomFilterContainerMock() {
+        return context.mock(PomFilterContainer.class);
     }
 
     protected MavenResolver getMavenResolver() {

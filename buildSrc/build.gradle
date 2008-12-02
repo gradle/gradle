@@ -6,8 +6,8 @@ import org.gradle.api.DependencyManager
 usePlugin('groovy')
 
 dependencies {
-    addFlatDirResolver('lib', new File(rootDir, 'lib'))
-    dependencies(['compile'], ":svnkit:1.1.6", ":svnkit-javahl:1.1.6", ":xmlunit:1.2")
+    addFlatDirResolver('lib', new File(rootDir, 'lib'), new File(rootDir.parentFile, 'lib'))
+    compile ":svnkit:1.1.6", ":svnkit-javahl:1.1.6", ":xmlunit:1.2", ':hamcrest-core:1.1', ':hamcrest-library:1.1'
 }
 
 sourceCompatibility = 1.5

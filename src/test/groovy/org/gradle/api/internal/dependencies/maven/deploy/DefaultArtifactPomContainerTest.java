@@ -52,7 +52,6 @@ public class DefaultArtifactPomContainerTest {
     private DefaultArtifactPomContainer artifactPomContainer;
 
     private PomFilterContainer pomFilterContainerMock;
-    private MavenPomFactory mavenPomFactoryMock;
     private PomFilter pomFilterMock;
     private PublishFilter publishFilterMock;
     private ArtifactPomFactory artifactPomFactoryMock;
@@ -71,11 +70,11 @@ public class DefaultArtifactPomContainerTest {
 
     @Before
     public void setUp() {
+        testDependencies = new ArrayList<DependencyDescriptor>();
         expectedPomFile = new File(TEST_POM_DIR, "pom-" + POMFILTER_NAME + ".xml");
         expectedFile = new File("somePath");
         expectedArtifact = createTestArtifact("someName");
         pomFilterContainerMock = context.mock(PomFilterContainer.class);
-        mavenPomFactoryMock = context.mock(MavenPomFactory.class);
         pomFilterMock = context.mock(PomFilter.class);
         pomFileWriterMock = context.mock(PomFileWriter.class);
         artifactPomMock = context.mock(ArtifactPom.class);
@@ -83,7 +82,7 @@ public class DefaultArtifactPomContainerTest {
         publishFilterMock = context.mock(PublishFilter.class);
         mavenPomMock = context.mock(MavenPom.class);
         mavenTemplatePomMock = context.mock(MavenPom.class, "templatePom");
-        artifactPomContainer = new DefaultArtifactPomContainer(TEST_POM_DIR, pomFilterContainerMock, mavenPomFactoryMock,
+        artifactPomContainer = new DefaultArtifactPomContainer(TEST_POM_DIR, pomFilterContainerMock,
                 pomFileWriterMock, artifactPomFactoryMock);
     }
 
@@ -100,12 +99,10 @@ public class DefaultArtifactPomContainerTest {
             allowing(pomFilterMock).getFilter(); will(returnValue(publishFilterMock));
             allowing(pomFilterMock).getPomTemplate(); will(returnValue(mavenTemplatePomMock));
             allowing(publishFilterMock).accept(expectedArtifact, expectedFile); will(returnValue(true));
-            allowing(mavenPomFactoryMock).createMavenPom(); will(returnValue(mavenPomMock));
-            allowing(artifactPomFactoryMock).createArtifactPom(mavenPomMock, expectedArtifact, expectedFile); will(returnValue(artifactPomMock));
+            allowing(artifactPomFactoryMock).createArtifactPom(mavenTemplatePomMock, expectedArtifact, expectedFile); will(returnValue(artifactPomMock));
 
             allowing(artifactPomMock).getPom(); will(returnValue(mavenPomMock));
             allowing(artifactPomMock).getArtifactFile(); will(returnValue(expectedFile));
-            one(mavenPomMock).copyFrom(mavenTemplatePomMock);
             one(pomFileWriterMock).write(with(same(mavenPomMock)), with(same(testDependencies)), with(equal(expectedPomFile)));
         }});
         artifactPomContainer.addArtifact(expectedArtifact, expectedFile);

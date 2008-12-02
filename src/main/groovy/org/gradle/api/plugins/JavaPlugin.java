@@ -129,8 +129,6 @@ public class JavaPlugin implements Plugin {
         uploadDists.getConfigurations().add(DISTS);
         uploadDists.getUploadResolvers().setDependencyManager(project.getDependencies());
         uploadDists.getUploadResolvers().setMavenPomDir(javaConvention.getUploadDistsPomDir());
-        uploadDists.getUploadResolvers().setMavenConf2ScopeMappings(new DefaultConf2ScopeMappingContainer());
-        uploadDists.getUploadResolvers().setPomFilterContainer(project.getDependencies().getPoms());
     }
 
     private void configureEclipse(Project project) {
@@ -220,8 +218,6 @@ public class JavaPlugin implements Plugin {
         uploadLibs.setUploadModuleDescriptor(true);
         uploadLibs.getUploadResolvers().setDependencyManager(project.getDependencies());
         uploadLibs.getUploadResolvers().setMavenPomDir(javaConvention.getUploadLibsPomDir());
-        uploadLibs.getUploadResolvers().setMavenConf2ScopeMappings(project.getDependencies().getDefaultMavenScopeMapping());
-        uploadLibs.getUploadResolvers().setPomFilterContainer(project.getDependencies().getPoms());
     }
 
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {

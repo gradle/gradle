@@ -22,6 +22,7 @@ import org.gradle.api.dependencies.maven.MavenResolver;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
@@ -59,9 +60,10 @@ public abstract class AbstractMavenResolverTest {
     private static final File TEST_JAR_FILE = new File("somejar.jar");
     private static final Artifact TEST_ARTIFACT = new DefaultArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null, TEST_NAME, "jar", "jar");
     protected ArtifactPomContainer artifactPomContainerMock;
+    protected PomFilterContainer pomFilterContainerMock;
     protected DependencyManager dependencyManagerMock;
     private List<DependencyDescriptor> testDependencies;
-    protected JUnit4Mockery context = new JUnit4Mockery() {
+    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {
         {
             setImposteriser(ClassImposteriser.INSTANCE);
         }
@@ -74,10 +76,13 @@ public abstract class AbstractMavenResolverTest {
 
     protected abstract InstallDeployTaskSupport getInstallDeployTask();
 
+    protected abstract PomFilterContainer createPomFilterContainerMock();
+
     @Before
     public void setUp() {
         testDependencies = new ArrayList<DependencyDescriptor>();
         dependencyManagerMock = context.mock(DependencyManager.class);
+        pomFilterContainerMock = createPomFilterContainerMock();
         artifactPomContainerMock = context.mock(ArtifactPomContainer.class);
         pomMock = context.mock(MavenPom.class);
         mavenSettingsMock = context.mock(Settings.class);
@@ -137,5 +142,68 @@ public abstract class AbstractMavenResolverTest {
                 return actualPom.getFile().equals(expectedPomFile);
             }
         };
+    }
+
+    @Test
+    public void setFilter() {
+        final PublishFilter publishFilterMock = context.mock(PublishFilter.class);
+        context.checking(new Expectations() {{
+            one(pomFilterContainerMock).setFilter(publishFilterMock);
+        }});
+        getMavenResolver().setFilter(publishFilterMock);
+    }
+
+    @Test
+    public void getFilter() {
+        final PublishFilter publishFilterMock = context.mock(PublishFilter.class);
+        context.checking(new Expectations() {{
+            allowing(pomFilterContainerMock).getFilter(); will(returnValue(publishFilterMock));
+        }});
+        assertSame(publishFilterMock, getMavenResolver().getFilter());
+    }
+
+    @Test
+    public void setPom() {
+        context.checking(new Expectations() {{
+            one(pomFilterContainerMock).setPom(pomMock);
+        }});
+        getMavenResolver().setPom(pomMock);
+    }
+
+    @Test
+    public void getPom() {
+        context.checking(new Expectations() {{
+            allowing(pomFilterContainerMock).getPom(); will(returnValue(pomMock));
+        }});
+        assertSame(pomMock, getMavenResolver().getPom());
+    }
+
+    @Test
+    public void addFilter() {
+        final String testName = "somename";
+        final PublishFilter publishFilterMock = context.mock(PublishFilter.class);
+        context.checking(new Expectations() {{
+            one(pomFilterContainerMock).addFilter(testName, publishFilterMock);
+        }});
+        getMavenResolver().addFilter(testName, publishFilterMock);
+    }
+
+    @Test
+    public void filter() {
+        final String testName = "somename";
+        final PublishFilter publishFilterMock = context.mock(PublishFilter.class);
+        context.checking(new Expectations() {{
+            one(pomFilterContainerMock).filter(testName); will(returnValue(publishFilterMock));
+        }});
+        assertSame(publishFilterMock, getMavenResolver().filter(testName));
+    }
+
+    @Test
+    public void pom() {
+        final String testName = "somename";
+        context.checking(new Expectations() {{
+            one(pomFilterContainerMock).pom(testName); will(returnValue(pomMock));
+        }});
+        assertSame(pomMock, getMavenResolver().pom(testName));
     }
 }

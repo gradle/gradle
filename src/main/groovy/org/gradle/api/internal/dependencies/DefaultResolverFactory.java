@@ -16,19 +16,21 @@
 
 package org.gradle.api.internal.dependencies;
 
-import org.apache.ivy.plugins.resolver.*;
-import org.apache.ivy.plugins.lock.NoLockStrategy;
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.plugins.lock.NoLockStrategy;
+import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyMavenDeployer;
-import org.gradle.api.internal.dependencies.maven.deploy.DefaultArtifactPomContainer;
-import org.gradle.api.internal.dependencies.maven.deploy.BasePomFilterContainer;
-import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenInstaller;
-import org.gradle.api.internal.dependencies.maven.dependencies.*;
-import org.gradle.api.internal.dependencies.maven.*;
 import org.gradle.api.dependencies.maven.*;
+import org.gradle.api.internal.dependencies.maven.*;
+import org.gradle.api.internal.dependencies.maven.dependencies.DefaultExcludeRuleConverter;
+import org.gradle.api.internal.dependencies.maven.dependencies.DefaultPomDependenciesConverter;
+import org.gradle.api.internal.dependencies.maven.dependencies.DefaultPomDependenciesWriter;
+import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenInstaller;
+import org.gradle.api.internal.dependencies.maven.deploy.DefaultArtifactPomContainer;
+import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyMavenDeployer;
+import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyPomFilterContainer;
 
 import java.io.File;
 import java.util.Map;
@@ -109,40 +111,44 @@ public class DefaultResolverFactory implements ResolverFactory {
         return dualResolver;
     }
 
-    public GroovyMavenDeployer createMavenDeployer(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
-                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager) {
-        return new DefaultGroovyMavenDeployer(name, new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
-                new DefaultMavenPomFactory(conf2ScopeMapping),
-                new DefaultPomFileWriter(
-                        new DefaultPomWriter(
-                                new DefaultPomHeaderWriter(),
-                                new DefaultPomModuleIdWriter(),
-                                new DefaultPomDependenciesWriter(
-                                        new DefaultPomDependenciesConverter(
-                                                new DefaultExcludeRuleConverter()
+    public GroovyMavenDeployer createMavenDeployer(String name, File pomDir, DependencyManager dependencyManager) {
+        DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
+                new DefaultMavenPomFactory(dependencyManager.getDefaultMavenScopeMapping()));
+        return new DefaultGroovyMavenDeployer(name,
+                pomFilterContainer,
+                new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
+                        new DefaultPomFileWriter(
+                                new DefaultPomWriter(
+                                        new DefaultPomHeaderWriter(),
+                                        new DefaultPomModuleIdWriter(),
+                                        new DefaultPomDependenciesWriter(
+                                                new DefaultPomDependenciesConverter(
+                                                        new DefaultExcludeRuleConverter()
+                                                )
                                         )
-                                )
-                        )),
-                new DefaultArtifactPomFactory()),
+                                )),
+                        new DefaultArtifactPomFactory()),
                 dependencyManager
         );
     }
 
-    public MavenResolver createMavenInstaller(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
-                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager) {
-        return new BaseMavenInstaller(name, new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
-                new DefaultMavenPomFactory(conf2ScopeMapping),
-                new DefaultPomFileWriter(
-                        new DefaultPomWriter(
-                                new DefaultPomHeaderWriter(),
-                                new DefaultPomModuleIdWriter(),
-                                new DefaultPomDependenciesWriter(
-                                        new DefaultPomDependenciesConverter(
-                                                new DefaultExcludeRuleConverter()
+    public MavenResolver createMavenInstaller(String name, File pomDir, DependencyManager dependencyManager) {
+        DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
+                new DefaultMavenPomFactory(dependencyManager.getDefaultMavenScopeMapping()));
+        return new BaseMavenInstaller(name,
+                pomFilterContainer,
+                new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
+                        new DefaultPomFileWriter(
+                                new DefaultPomWriter(
+                                        new DefaultPomHeaderWriter(),
+                                        new DefaultPomModuleIdWriter(),
+                                        new DefaultPomDependenciesWriter(
+                                                new DefaultPomDependenciesConverter(
+                                                        new DefaultExcludeRuleConverter()
+                                                )
                                         )
-                                )
-                        )),
-                new DefaultArtifactPomFactory()),
+                                )),
+                        new DefaultArtifactPomFactory()),
                 dependencyManager
         );
     }

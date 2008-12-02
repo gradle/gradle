@@ -19,6 +19,7 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.tools.ant.Project;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
 import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
 
 /**
@@ -27,8 +28,8 @@ import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
 public class BaseMavenInstaller extends AbstractMavenResolver {
     private InstallTaskFactory installTaskFactory = new DefaultInstallTaskFactory();
 
-    public BaseMavenInstaller(String name, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
-        super(name, artifactPomContainer, dependencyManager);
+    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+        super(name, pomFilterContainer, artifactPomContainer, dependencyManager);
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {

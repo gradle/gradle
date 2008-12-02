@@ -53,4 +53,8 @@ public class DefaultPomFilter implements PomFilter {
     public void setFilter(PublishFilter filter) {
         this.filter = filter;
     }
+
+    public PomFilter copy() {
+        return new DefaultPomFilter(name, pom.copy(), filter);
+    }
 }

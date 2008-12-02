@@ -33,9 +33,7 @@ public interface ResolverFactory {
 
     AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls);
 
-    GroovyMavenDeployer createMavenDeployer(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
-                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager);
+    GroovyMavenDeployer createMavenDeployer(String name, File pomDir, DependencyManager dependencyManager);
 
-    MavenResolver createMavenInstaller(String name, File pomDir, Conf2ScopeMappingContainer conf2ScopeMapping,
-                                      PomFilterContainer pomFilterContainer, DependencyManager dependencyManager);
+    MavenResolver createMavenInstaller(String name, File pomDir, DependencyManager dependencyManager);
 }

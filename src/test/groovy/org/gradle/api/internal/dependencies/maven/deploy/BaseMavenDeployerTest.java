@@ -22,6 +22,8 @@ import org.junit.runner.RunWith;
 import org.junit.Test;
 import org.gradle.util.WrapUtil;
 import org.gradle.api.dependencies.maven.MavenResolver;
+import org.gradle.api.dependencies.maven.CopyablePomFilterContainer;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
 import org.jmock.Expectations;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
@@ -50,7 +52,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     private RemoteRepository testSnapshotRepository;
 
     protected BaseMavenDeployer createMavenDeployer() {
-        return new BaseMavenDeployer(TEST_NAME, artifactPomContainerMock, dependencyManagerMock);
+        return new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, dependencyManagerMock);
     }
 
     protected MavenResolver getMavenResolver() {
@@ -59,6 +61,10 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     protected InstallDeployTaskSupport getInstallDeployTask() {
         return deployTaskMock;
+    }
+
+    protected PomFilterContainer createPomFilterContainerMock() {
+        return context.mock(PomFilterContainer.class);
     }
 
     public void setUp() {
@@ -96,7 +102,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     @Test
     public void init() {
-        mavenDeployer = new BaseMavenDeployer(TEST_NAME, artifactPomContainerMock, dependencyManagerMock);
+        mavenDeployer = new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, dependencyManagerMock);
         assertTrue(mavenDeployer.isUniqueVersion());
     }
 

@@ -21,11 +21,14 @@ import org.gradle.api.dependencies.maven.PublishFilter
 import org.gradle.api.internal.dependencies.maven.deploy.BasePomFilterContainer
 import org.gradle.api.internal.dependencies.maven.MavenPomFactory
 import org.gradle.api.dependencies.maven.GroovyPomFilterContainer
+import org.gradle.api.dependencies.maven.CopyablePomFilterContainer
+import org.gradle.api.dependencies.maven.CopyableGroovyPomFilterContainer
+import org.gradle.api.dependencies.maven.PomFilterContainer
 
 /**
  * @author Hans Dockter
  */
-public class DefaultGroovyPomFilterContainer extends BasePomFilterContainer implements GroovyPomFilterContainer {
+public class DefaultGroovyPomFilterContainer extends BasePomFilterContainer implements CopyableGroovyPomFilterContainer {
     DefaultGroovyPomFilterContainer(MavenPomFactory mavenPomFactory) {
         super(mavenPomFactory);
     }
@@ -44,5 +47,9 @@ public class DefaultGroovyPomFilterContainer extends BasePomFilterContainer impl
 
     MavenPom pom(String name, Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, pom(name))
+    }
+
+    protected BasePomFilterContainer newInstance() {
+        return new DefaultGroovyPomFilterContainer(mavenPomFactory);
     }
 }

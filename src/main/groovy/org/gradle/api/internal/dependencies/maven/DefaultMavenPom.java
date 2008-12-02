@@ -91,12 +91,14 @@ public class DefaultMavenPom implements MavenPom {
         this.licenseHeader = licenseHeader;
     }
 
-    public void copyFrom(MavenPom sourcePom) {
-        this.artifactId = sourcePom.getArtifactId();
-        this.classifier = sourcePom.getClassifier();
-        this.groupId = sourcePom.getGroupId();
-        this.licenseHeader = sourcePom.getLicenseHeader();
-        this.packaging = sourcePom.getPackaging();
-        this.version = sourcePom.getVersion();
+    public MavenPom copy() {
+        DefaultMavenPom newMavenPom = new DefaultMavenPom(scopeMappings);
+        newMavenPom.artifactId = getArtifactId();
+        newMavenPom.classifier = getClassifier();
+        newMavenPom.groupId = getGroupId();
+        newMavenPom.licenseHeader = getLicenseHeader();
+        newMavenPom.packaging = getPackaging();
+        newMavenPom.version = getVersion();
+        return newMavenPom;
     }
 }
