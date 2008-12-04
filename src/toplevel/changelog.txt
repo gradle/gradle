@@ -9,7 +9,58 @@ Release Notes - Gradle - Version 0.5
     * The Dag parameter has been removed from TaskAction.execute().
 
 ** Bug
+    * [GRADLE-52] - Check why logger.warn statements are not printed out when used in a gradefile (logger.error works)
+    * [GRADLE-229] - Internal project dependencies are uploaded to all public resolvers specified in uploadLibs.
+    * [GRADLE-232] - Gradle returns exit value 0 in case of an error
+    * [GRADLE-235] - NPE if a subproject is not declared right
+    * [GRADLE-241] - Cannot build gradle from the source distribution
+    * [GRADLE-242] - Gradle throws a NPE if Ivy can't resolve a dependency.
+    * [GRADLE-245] - The pom of Maven dependencies using classifieres is ignored.
+    * [GRADLE-246] - Groovyc compile exception when compiling Gradle.
+    * [GRADLE-247] - eclipse WTP project file generation is incomplete
+    * [GRADLE-262] - Add the method setBuildDirName the Project interface.
+    * [GRADLE-268] - jar(baseName:...) is not used for the file name
+    * [GRADLE-295] - The task graph should be reused when a primary task is dag neutral
+    * [GRADLE-314] - Incorrect buid file and line numbers are reported when evaluation of a dependent project fails
 
 ** Improvement
+    * [GRADLE-71] - Make default logging less verbose
+    * [GRADLE-145] - Cache the build source jar.
+    * [GRADLE-171] - Introduce Configuration object to our domain
+    * [GRADLE-209] - Ivy lookup is slow for already downloaded dependencies from a Maven repository.
+    * [GRADLE-215] - Figure out how to specify a JDK for launch4j under windows and describe this in the getting started section.
+    * [GRADLE-221] - Introduce TaskDependency object to the domain model
+    * [GRADLE-225] - Introduce public api for task execution graph
+    * [GRADLE-228] - eclipse: ordering of classpath resources (resource folders over dependencies)
+    * [GRADLE-230] - Allow to assign configurations to global excludes
+    * [GRADLE-234] - Make the default configuration depends on a new master configuration, not on libs.
+    * [GRADLE-236] - Delegate Ant and Ivy output to slf4j
+    * [GRADLE-243] - rethink default for junit-filter-pattern
+    * [GRADLE-250] - Improve error reporting when a listener throws an exception
+    * [GRADLE-251] - BuildListener is notified of completion of all major lifecycle stages
+    * [GRADLE-254] - Update versions of dependencies
+    * [GRADLE-264] - Add convenience getClasspath method to Compile.java and Test.groovy
+    * [GRADLE-266] - Support the full functionality of Ivy dependencies
+    * [GRADLE-267] - Provide consistent mechanism for build file to contribute to assembly of ivy descriptor
+    * [GRADLE-273] - Reduce verbose output of Javadoc/Groovydoc
+    * [GRADLE-276] - Decouple the user guide generation from the compiling and testing.
+    * [GRADLE-285] - Replace commons-logging used by http-client with jcl-over-slf4j
+    * [GRADLE-288] - Simplify the design for how publish artifacts are added.
+    * [GRADLE-289] - download wrapper zip to temporary file first
+    * [GRADLE-293] - Add functionality to redirect System.out statements to the logging.
+    * [GRADLE-297] - Add shortcut notation, to add a single dependency with a closure.
+    * [GRADLE-298] - Provide a way for interested classes to retrieve the Ivy object from the base dependency manager
+    * [GRADLE-301] - Improve search speed for settings file in hierarchical layouts
+    * [GRADLE-302] - Add a listener which is notified as tasks are executed
+    * [GRADLE-307] - Archive task configure actions for bundles.
+    * [GRADLE-310] - Introduce Upload task and make uploadDists independent on uploadLibs
 
 ** New Feature
+    * [GRADLE-24] - Add merge feature to run a number of tasknames as one build
+    * [GRADLE-163] - Offer afterDagCreated listener
+    * [GRADLE-179] - Add ability to generate and deploy a POM from a gradle project
+    * [GRADLE-231] - Don't use fixed configurations for certain archive types. Let the Bundle assign them.
+    * [GRADLE-304] - Dynamic properties for tasks
+    * [GRADLE-305] - Provide a configure method in the Project class, that applies a closure to any object.
+    * [GRADLE-306] - Generating OSGi bundle manifest files for jars.
+    * [GRADLE-313] - Add something similar to the maven jetty plugin.
