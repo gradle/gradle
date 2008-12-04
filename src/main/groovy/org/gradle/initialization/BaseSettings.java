@@ -200,9 +200,8 @@ public class BaseSettings implements SettingsInternal {
     }
 
     private Project createBuildDependenciesProject() {
-        DefaultProject dummyProjectForDepencencyManager = new DefaultProject();
+        DefaultProject dummyProjectForDepencencyManager = new DefaultProject(BUILD_DEPENDENCIES_PROJECT_NAME);
         dummyProjectForDepencencyManager.setProperty(DependencyManager.GROUP, BUILD_DEPENDENCIES_PROJECT_GROUP);
-        dummyProjectForDepencencyManager.setName(BUILD_DEPENDENCIES_PROJECT_NAME);
         dummyProjectForDepencencyManager.setProperty(DependencyManager.VERSION, BUILD_DEPENDENCIES_PROJECT_VERSION);
         try {
             dummyProjectForDepencencyManager.setGradleUserHome(startParameter.getGradleUserHomeDir().getCanonicalPath());
