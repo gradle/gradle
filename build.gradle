@@ -340,7 +340,6 @@ userguideDir = dir("$buildDir.name/$docsDir.name/userguide")
 createTask('userguideVersion', dependsOn: [userguideDir]) {
     File userguideData = mkdir(userguideDir.dir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
-    println javadocRemoteDir
     new File(userguideData, 'javadocDir.tex').write('\\def \\JAVADOCDIR {' + javadocRemoteDir + '}')
 }
 
