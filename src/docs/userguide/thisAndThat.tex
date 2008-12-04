@@ -46,8 +46,8 @@ You can also add properties directly to your project object via the \texttt{-P} 
 
 With the \texttt{gradle.properties} files you can also set system properties. If a property in such a file has the prefix \texttt{systemProp.} the property and its value are added to the system properties (without the prefix).
 \VerbatimInput[frame=single,label=gradle.properties]{../../samples/userguide/properties/gradle.properties}
-\codeGradleFile[properties - ]{../../samples/userguide/properties/build.gradle}
-\outputInputGradle[properties]{../../samples/userguideOutput/properties.out}
+\codeInput{../../samples/userguide/tutorial/properties/build.gradle}
+\outputInputTutorial{properties}
 \subsection{Checking for Project Properties} % (fold)
 \label{sub:checking_for_project_properties}
 You can access a project property in your build script simply by using it name as you would use a variable. In case this property does not exists, an exception is thrown and the build fails. If your build script relies on optional properties the user might set for example in a gradle.properties file, you need to check for existence before you can access them. You can do this by using the method \texttt{hasProperty('propertyName')} which returns \texttt{true} or \texttt{false}.
@@ -71,5 +71,12 @@ We could not find a good overview for all possible proxy settings. The best we c
 \label{sec:caching}
 To improve the responsiveness Gradle caches the compiled build script by default. The first time you run a build for a project, Gradle creates a \texttt{.gradle} directory in which it puts the compiled build script. The next time you run this build, Gradle uses the compiled build script, if the timestamp of the compiled script is newer than the timestamp of the actual build script. Otherwise the build script gets compiled and the new version is stored in the cache. If you run Gradle with the \texttt{-x} option, any existing cache is ignored and the build script is compiled and executed on the fly. If you run Gradle with the \texttt{-r} option, the build script is always compiled and stored in the cache. That way you can always rebuild the cache if for example the timestamps for some reasons don't reflect that the build script needs to be recomiled. 
 % section caching (end)
+
+\section{Configuring Arbitrary Objects} % (fold)
+\label{sec:configuring_arbitrary_objects}
+You can configure arbitrary objects in the following very readable way.
+\codeInput{../../samples/userguide/tutorial/configureObject/build.gradle}
+\outputInputTutorial{configureObject}
+% section configuring_arbitrary_objects (end)
 
 

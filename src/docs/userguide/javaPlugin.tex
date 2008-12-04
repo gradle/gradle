@@ -32,8 +32,9 @@ Table \ref{javalayout} shows the default project layout assumed by the Java Plug
 			test & testCompile & org.gradle.api.tasks.testing.Test \\ \hline
 			libs & test & org.gradle.api.tasks.bundling.Bundle \\ \hline
 			uploadLibs & libs & org.gradle.api.tasks.Upload \\ \hline
-			dists & uploadLibs & org.gradle.api.tasks.bundling.Bundle \\ \hline
+			dists & libs & org.gradle.api.tasks.bundling.Bundle \\ \hline
 			uploadDists & dists & org.gradle.api.tasks.Upload \\ \hline
+			upload & uploadLibs, uploadDists & default task \\ \hline
 		\end{tabular}
 	\end{center}
 	\caption{Java Plugin Tasks}	

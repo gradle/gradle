@@ -49,6 +49,13 @@ There is a convenient notation for accessing \emph{existing} tasks.
 \outputInputTutorial{helloWithShortCut}
 This enables very readable code. Especially when using the out of the box tasks provided by the plugins (e.g. \texttt{compile}).
 
+\section{Dynamic Task Properties} % (fold)
+\label{sec:dynamic_properties}
+You can assign arbitrary \emph{new} properties to any task.
+\codeInput{../../samples/userguide/tutorial/dynamicProperties/build.gradle}
+\outputInputTutorial{dynamicProperties}
+% section dynamic_properties (end)
+
 \section{Ant}
 Let's talk a little bit about Gradles Ant integration. Ant can be divided into two layers. The first layer is the Ant language. It contains the syntax for the build.xml, the handling of the targets, special constructs like macrodefs, etc. Basically everything except the Ant tasks and types. Gradle does not offer any special integration for this first layer. Of course you can in your build script execute an Ant build as an external process. Your build script may contain statements like: \texttt{"ant clean compile".execute()}\footnote{In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a look in GINA 9.3.2 or at the Groovy wiki}.
 
