@@ -127,7 +127,7 @@ build.taskGraph.whenReady {graph ->
     } else {
         versionModifier = new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
-        userguideRemoteDir += userguideRemoteDirRoot + 'latest'
+        userguideRemoteDir = userguideRemoteDirRoot + 'latest'
         javadocRemoteDir = javadocRemoteDirRoot + "latest"
     }
     manifest.mainAttributes([
