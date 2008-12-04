@@ -21,16 +21,16 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
+import org.gradle.api.invocation.Build
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.invocation.Build
 
 /**
  * @author Hans Dockter
  */
 class DefaultProject extends AbstractProject {
-    public DefaultProject() {
-        super();
+    public DefaultProject(String name) {
+        super(name);
     }
 
     public DefaultProject(String name, ProjectInternal parent, File projectDir, String buildFileName, ScriptSource scriptSource,

@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.Project;
+import org.gradle.CacheUsage;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.initialization.ISettingsFinder;
-import org.gradle.CacheUsage;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.After;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.Set;
@@ -45,7 +45,7 @@ public class DefaultDependencyManagerFactoryTest {
 
     @Before
     public void setUp() {
-        expectedProject = new DefaultProject();
+        expectedProject = new DefaultProject("someProject");
         testRootDir = HelperUtil.makeNewTestDir();
         expectedBuildResolverDir = new File(testRootDir, Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
         expectedBuildResolverDir.mkdirs();

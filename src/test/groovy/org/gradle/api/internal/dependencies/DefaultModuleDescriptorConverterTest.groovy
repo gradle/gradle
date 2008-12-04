@@ -22,20 +22,17 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.api.DependencyManager
-import org.gradle.api.dependencies.Dependency
+import org.gradle.api.dependencies.ExcludeRuleContainer
 import org.gradle.api.dependencies.PublishArtifact
-import org.gradle.api.internal.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.dependencies.DefaultModuleDescriptorConverter
+import org.gradle.api.internal.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.JUnit4GroovyMockery
+import org.hamcrest.Matchers
 import org.jmock.lib.legacy.ClassImposteriser
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.hamcrest.Matchers
-import org.gradle.api.internal.dependencies.DefaultProjectDependency
-import org.gradle.api.dependencies.ExcludeRuleContainer
-import org.gradle.api.dependencies.PublishArtifact
 
 /**
  * @author Hans Dockter
@@ -57,7 +54,7 @@ class DefaultModuleDescriptorConverterTest {
         moduleDescriptorConverter = new DefaultModuleDescriptorConverter()
         dependencyManager = new BaseDependencyManager(null, null, null, null, null, null, null, buildResolverHandlerMock,
                 new DefaultExcludeRuleContainer())
-        dependencyManager.project = new DefaultProject()
+        dependencyManager.project = new DefaultProject("someproject")
         dependencyManager.setExcludeRules(excludeRuleContainerMock)
         createTestExcludeRules()
     }
@@ -97,7 +94,6 @@ class DefaultModuleDescriptorConverterTest {
 
         dependencyManager.project.group = 'group'
         dependencyManager.project.version = '1.1'
-        dependencyManager.project.name = 'someproject'
         dependencyManager.project.status = 'release'
         dependencyManager.addConfiguration('conf1')
         dependencyManager.addConfiguration('conf2')
@@ -131,7 +127,6 @@ class DefaultModuleDescriptorConverterTest {
         dependencyManager.dependencies = [dependency]
         dependencyManager.artifacts = [conf1: [gradleArtifact]]
 
-        dependencyManager.project.name = 'someproject'
         dependencyManager.project.group = 'group'
         dependencyManager.project.version = '1.1'
         dependencyManager.addConfiguration('conf1')

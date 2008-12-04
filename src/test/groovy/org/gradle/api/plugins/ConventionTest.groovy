@@ -17,9 +17,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.DefaultProject
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -33,7 +33,7 @@ class ConventionTest {
     DefaultProject testProject
 
     @Before public void setUp() {
-        testProject = new DefaultProject()
+        testProject = new DefaultProject("someProject")
         convention = new Convention(testProject)
         convention1 = new TestPluginConvention1()
         convention2 = new TestPluginConvention2()

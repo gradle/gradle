@@ -18,14 +18,14 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
-abstract class AbstractPluginConventionTest {
+public abstract class AbstractPluginConventionTest {
     File testDir
     DefaultProject project
 
@@ -35,8 +35,8 @@ abstract class AbstractPluginConventionTest {
 
     @Before public void setUp()  {
         testDir = HelperUtil.makeNewTestDir()
-        project = new DefaultProject()
-        project = [getProjectDir: {testDir}] as DefaultProject
+        project = new DefaultProject("someProject")
+        project.setProjectDir(testDir)
     }
 
     @Test public void testCustomValues() {

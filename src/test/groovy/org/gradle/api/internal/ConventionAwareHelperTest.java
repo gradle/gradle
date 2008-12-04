@@ -38,7 +38,7 @@ public class ConventionAwareHelperTest {
     TestTask testTask;
 
     @Before public void setUp() {
-        testTask = new TestTask(new DefaultProject(), "somename");
+        testTask = new TestTask(new DefaultProject("someProject"), "somename");
         conventionAware = new ConventionAwareHelper(testTask);
     }
 

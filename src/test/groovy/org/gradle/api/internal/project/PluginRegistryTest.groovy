@@ -18,7 +18,7 @@ package org.gradle.api.internal.project
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Test
 
 /**
 * @author Hans Dockter
@@ -59,7 +59,7 @@ class PluginRegistryTest {
 
     @Test public void testApply() {
         PluginRegistry pluginRegistry = new PluginRegistry()
-        DefaultProject project = [:] as DefaultProject
+        DefaultProject project = new DefaultProject("someProject")
         pluginRegistry.apply(TestPlugin1, project, pluginRegistry, [:])
         pluginRegistry.apply(TestPlugin1, project, pluginRegistry, [:])
         assertEquals(1, pluginRegistry.getPlugin(TestPlugin1).applyCounter)

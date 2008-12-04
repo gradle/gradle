@@ -16,11 +16,16 @@
 
 package org.gradle.api.internal.project
 
+import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
+import org.gradle.StartParameter
 import org.gradle.api.*
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
+import org.gradle.api.invocation.Build
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginTest
@@ -28,6 +33,7 @@ import org.gradle.api.tasks.Directory
 import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.invocation.DefaultBuild
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
 import static org.hamcrest.Matchers.*
@@ -36,14 +42,6 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.invocation.Build
-import org.gradle.StartParameter
-import org.gradle.api.internal.BuildInternal
-import org.gradle.invocation.DefaultBuild
-import org.gradle.api.logging.StandardOutputLogging
-import org.gradle.api.logging.LogLevel
-import ch.qos.logback.classic.Level
-import java.awt.Point
 
 /**
  * @author Hans Dockter
@@ -135,6 +133,7 @@ class DefaultProjectTest {
         assertNotNull(new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, new DefaultProjectRegistry(),
                 null, build).standardOutputRedirector)
+        assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
     private void checkProject(Project project, Project parent, String name, File projectDir) {
@@ -666,7 +665,9 @@ class DefaultProjectTest {
     }
 
     @Test void testMethodMissing() {
-        DefaultProject dummyParentProject = [scriptMethod: {Closure closure -> 'parent'}] as DefaultProject
+        DefaultProject dummyParentProject = new DefaultProject("someProject")
+        Script parentBuildScript = new GroovyShell().parse("def scriptMethod(Closure closure) {'parent'}")
+        dummyParentProject.setBuildScript(parentBuildScript);
         project.parent = dummyParentProject
         boolean closureCalled = false
         Closure testConfigureClosure = {closureCalled = true}
@@ -720,12 +721,12 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testSetPropertyAndPropertyMissingWithProjectAndConventionProperty() {
-        String propertyName = 'name'
+        String propertyName = 'archivesBaseName'
         String expectedValue = 'somename'
 
-        project.name = expectedValue
+        project.archivesBaseName = expectedValue
         project.convention.plugins.test = new TestConvention()
-        project.convention.name = 'someothername'
+        project.convention.archivesBaseName = 'someothername'
         project."$propertyName" = expectedValue
         assertEquals(expectedValue, project."$propertyName")
         assertEquals('someothername', project.convention."$propertyName")
@@ -956,12 +957,17 @@ def scriptMethod(Closure closure) {
         }
         assertEquals(expectedPoint, actualPoint)
     }
+
+    @Test(expected = ReadOnlyPropertyException) void setName() {
+        project.name = "someNewName" 
+    }
 }
 
 class TestConvention {
     final static String METHOD_RESULT = 'methodResult'
     String name
     String conv
+    String archivesBaseName
 
     def scriptMethod(Closure cl) {
         METHOD_RESULT

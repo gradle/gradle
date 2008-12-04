@@ -18,24 +18,11 @@ package org.gradle.api.internal.project;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.AfterEvaluateListener;
-import org.gradle.api.CircularReferenceException;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.PathValidation;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.ProjectAction;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
-import org.gradle.api.UnknownProjectException;
-import org.gradle.api.UnknownTaskException;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.invocation.Build;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.*;
 import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
@@ -47,15 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -142,7 +121,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
 
-    public AbstractProject() {
+    public AbstractProject(String name) {
+        this.name = name;
         convention = new Convention(this);
     }
 
@@ -283,10 +263,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Map<String, Project> getChildProjects() {

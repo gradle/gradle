@@ -15,19 +15,19 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import static org.junit.Assert.*;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.JUnit4GroovyMockery;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
-import org.junit.Test;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -42,7 +42,7 @@ abstract public class AbstractDependencyTest {
             addMasters(TEST_CONF);
     }};
 
-    protected static final DefaultProject TEST_PROJECT = new DefaultProject();
+    protected static final DefaultProject TEST_PROJECT = new DefaultProject("someName");
 
     protected abstract AbstractDependency getDependency();
     protected abstract Object getUserDescription();

@@ -15,23 +15,18 @@
  */
 package org.gradle.api.internal.project;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.*;
+import org.gradle.api.*;
+import org.gradle.api.internal.DefaultTask;
 import org.gradle.util.TestTask;
 import org.gradle.util.WrapUtil;
-import org.gradle.api.internal.DefaultTask;
-import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.TaskAction;
-import org.gradle.api.Task;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.GradleException;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -53,7 +48,7 @@ public class TaskFactoryTest {
     @Before
     public void setUp() {
         taskFactory = new TaskFactory();
-        testProject = new DefaultProject();
+        testProject = new DefaultProject("projectName");
         testAction = new TaskAction() {
             public void execute(Task task) {
                 ;

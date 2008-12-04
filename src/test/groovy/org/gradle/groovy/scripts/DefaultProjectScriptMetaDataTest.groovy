@@ -16,23 +16,19 @@
 
 package org.gradle.groovy.scripts
 
-import org.junit.Test
-import org.gradle.api.internal.project.DefaultProject
-import static org.junit.Assert.*
 import org.codehaus.groovy.control.CompilerConfiguration
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectScript
+import static org.junit.Assert.assertEquals
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
 class DefaultProjectScriptMetaDataTest {
     @Test public void testApplyMetaData() {
-        boolean projectMethodCalled = false; 
         DefaultProjectScriptMetaData projectScriptMetaData = new DefaultProjectScriptMetaData()
-        DefaultProject testProject = [
-                someProjectMethod: {projectMethodCalled = true},
-                getPath: { 'somepath' }
-        ] as DefaultProject
+        DefaultProject testProject = new DefaultProject('someproject') 
         Script script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
         projectScriptMetaData.applyMetaData(script, testProject)
         script.run();
@@ -50,7 +46,7 @@ class DefaultProjectScriptMetaDataTest {
     private String getTestScriptText() {
         '''
 // We leave out the path to check import adding
-someProjectMethod()
+getName() // call a project method
 def scriptMethod() { 'scriptMethod' }
 scriptProperty = project.path + 'mySuffix'
 String internalProp = 'a'

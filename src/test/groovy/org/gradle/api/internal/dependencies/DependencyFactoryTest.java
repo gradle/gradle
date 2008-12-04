@@ -47,7 +47,7 @@ public class DependencyFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before public void setUp() {
-        project = new DefaultProject();
+        project = new DefaultProject("projectName");
         testImplIntegerFactoryMock = context.mock(IDependencyImplementationFactory.class, "Integer");
         testImplStringFactoryMock = context.mock(IDependencyImplementationFactory.class, "String");
         Set<IDependencyImplementationFactory> dependencyFactories = WrapUtil.toSet(testImplIntegerFactoryMock,
