@@ -233,7 +233,7 @@ createTask('retroTranslateLibs', dependsOn: 'explodedDist') {
         }
     }
 }.configure {
-    enabled = hasProperty('gradle_retroLibsDir')
+    enabled = project.hasProperty('gradle_retroLibsDir')
     skipProperties << 'skip.archive_all-jdk14_zip'
 }
 
@@ -287,7 +287,7 @@ dists {
         }
     }.configure {
         dependsOn 'retroTranslateLibs'
-        enabled = hasProperty('gradle_retroLibsDir')
+        enabled = project.hasProperty('gradle_retroLibsDir')
     }
     zip(classifier: 'bin').doFirst {Task task ->
         task.configure {
