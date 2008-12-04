@@ -35,9 +35,6 @@ sourceCompatibility = 1.5
 targetCompatibility = 1.5
 
 svn = new Svn(project)
-distributionUploadUrl = null
-userguideRemoteDir = 'userguide/'
-javadocRemoteDir = 'api/'
 
 type = 'jar'
 version = new Version(svn, project, false)
@@ -116,17 +113,22 @@ dependencies {
     distLib ":junit:4.4"
 }
 
+distributionUploadUrl = null
+userguideRemoteDirRoot = 'userguide/'
+userguideRemoteDir = ''
+javadocRemoteDirRoot = 'api/'
+javadocRemoteDir = ''
 build.taskGraph.whenReady {graph ->
     if (graph.hasTask(':release')) {
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
-        userguideRemoteDir += version
-        javadocRemoteDir += version
+        userguideRemoteDir = userguideRemoteDirRoot + version
+        javadocRemoteDir = javadocRemoteDirRoot + version
     } else {
         versionModifier = new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
-        userguideRemoteDir += 'latest'
-        javadocRemoteDir += "latest"
+        userguideRemoteDir += userguideRemoteDirRoot + 'latest'
+        javadocRemoteDir = javadocRemoteDirRoot + "latest"
     }
     manifest.mainAttributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
