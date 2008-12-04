@@ -43,18 +43,14 @@ In the settings file you can use a set of methods to build the project tree. Hie
 \subsubsection{Hierarchical Layouts} % (fold)
 \label{ssub:hierarchical_layouts}
 \begin{Verbatim}
-dependencies {
-	include 'project1', 'project2', 'project2/child1'
-}
+include 'project1', 'project2', 'project2/child1'
 \end{Verbatim}
 The include method takes as an argument a relative virtual path to the root project. This relative virtual path is assumed to be equals to the relative physical path of the subproject to the root project. You only need to specify the leafs of the tree. Each parent path of the leaf project is assumed to be another subproject which obeys to the physical path assumption described above.
 % subsubsection hierarchical_layouts (end)
 \subsubsection{Flat Layouts} % (fold)
 \label{ssub:hierarchical_layouts}
 \begin{Verbatim}
-dependencies {
-	includeFlat 'project1', 'project2'
-}
+includeFlat 'project1', 'project2'
 \end{Verbatim}
 The includeFlat method takes directory names as an argument. Those directories need to exist at the same level as the root project directory. The location of those directories are considered as child projects of the root project in the virtual multi-project tree.
 % subsubsection hierarchical_layouts (end)
@@ -64,17 +60,15 @@ The includeFlat method takes directory names as an argument. Those directories n
 \label{sub:modifying_element_of_the_project_tree}
 The multi-project tree created in the settings file is made up of so called project descriptor object. You might modify those descriptor objects in the settings file at any time. To access such a descriptor object you can do:
 \begin{Verbatim}
-dependencies {
-	myDescriptor = descriptor('path_in_multi_project_tree')
-	myOtherDescriptor = descriptor(new File('path_to_projectDir')) 
-}
+myDescriptor = descriptor('path_in_multi_project_tree')
+myOtherDescriptor = descriptor(new File('path_to_projectDir')) 
 \end{Verbatim}
 Via this descriptor you can change the name and the directory of a project.
 % subsection modifying_element_of_the_project_tree (end)
 
 \section{Initialization} % (fold)
 \label{sec:initialization}
-How does Gradle know whether to do a single or multiproject build? In you trigger a multiproject build from the directory where the settings file is, things are easy. But Gradle also allows you to execute the build from within any subproject taking part in the build.\footnote{Gradle supports partial multiproject builds (see chapter \ref{cha:multi_project_builds})}. If you execute Gradle from within a project that has no settings.gradle file, Gradle does the following:
+How does Gradle know whether to do a single or multiproject build? If you trigger a multiproject build from the directory where the settings file is, things are easy. But Gradle also allows you to execute the build from within any subproject taking part in the build.\footnote{Gradle supports partial multiproject builds (see chapter \ref{cha:multi_project_builds})}. If you execute Gradle from within a project that has no settings.gradle file, Gradle does the following:
 \begin{itemize}
 	\item It searches for a settings.gradle in a directory called 'master' which has the same nesting level as the current dir. 
 	\item If not settings.gradle is found, it searches the parent directories for the existence of a settings.gradle file.
