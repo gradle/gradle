@@ -5,3 +5,5 @@ src/docs/userguide/*.aux
 src/docs/userguide/*.out
 src/docs/userguide/*.log
 src/docs/userguide/*.toc
+gradle-core.iml
+userguide-trunk.tmproj
