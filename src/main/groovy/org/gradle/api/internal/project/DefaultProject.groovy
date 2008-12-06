@@ -60,14 +60,8 @@ class DefaultProject extends AbstractProject {
         if (tasks[name]) {
             return tasks[name]
         }
-        ProjectInternal projectLooper = parent
-        while (projectLooper) {
-            if (projectLooper.additionalProperties.keySet().contains(name)) {
-                return projectLooper."$name"
-            } else if (projectLooper.convention.hasProperty(name)) {
-                return projectLooper.convention."$name"
-            }
-            projectLooper = projectLooper.parent
+        if (parent && parent.inheritableObject.hasProperty(name)) {
+            return parent.inheritableObject.property(name)
         }
         throw new MissingPropertyException("Property '$name' not found for project $path.")
     }
@@ -78,14 +72,8 @@ class DefaultProject extends AbstractProject {
         if (convention.hasProperty(name)) {
             return true
         }
-        ProjectInternal projectLooper = parent
-        while (projectLooper) {
-            if (projectLooper.additionalProperties.keySet().contains(name)) {
-                return true
-            } else if (projectLooper.convention.hasProperty(name)) {
-                return true
-            }
-            projectLooper = projectLooper.parent
+        if (parent && parent.inheritableObject.hasProperty(name)) {
+            return true
         }
 
         tasks[name] ? true : false

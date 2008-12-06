@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.integtests;
 
-import org.gradle.api.plugins.Convention;
+public class ConventionBean {
+    public String getConventionProperty() {
+        return "convention";
+    }
 
-import java.util.Map;
-
-import groovy.lang.MissingPropertyException;
-import groovy.lang.MissingMethodException;
-
-public interface DynamicObject {
-    boolean hasProperty(String name);
-
-    Object property(String name) throws MissingPropertyException;
-
-    void setProperty(String name, Object value) throws MissingPropertyException;
-
-    Map<String, Object> properties();
-
-    boolean hasMethod(String name, Object... params);
-
-    Object invokeMethod(String name, Object... params) throws MissingMethodException;
+    public String conventionMethod(String value) {
+        return "convention" + value;
+    }
 }

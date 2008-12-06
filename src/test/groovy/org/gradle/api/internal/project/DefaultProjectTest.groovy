@@ -766,6 +766,25 @@ def scriptMethod(Closure closure) {
         assertEquals(project."$expectedPropertyName", expectedPropertyValue)
     }
 
+    @Test void testAdditionalPropertiesAreInheritable() {
+        project.somename = 'somevalue'
+        assertTrue(project.inheritableObject.hasProperty('somename'))
+        assertEquals(project.inheritableObject.property('somename'), 'somevalue')
+    }
+
+    @Test void testConventionPropertiesAreInheritable() {
+        project.convention.plugins.test = new TestConvention()
+        project.convention.plugins.test.conv = 'somevalue'
+        assertTrue(project.inheritableObject.hasProperty('conv'))
+        assertEquals(project.inheritableObject.property('conv'), 'somevalue')
+    }
+
+    @Test void testInheritedPropertiesAreInheritable() {
+        project.somename = 'somevalue'
+        assertTrue(child1.inheritableObject.hasProperty('somename'))
+        assertEquals(child1.inheritableObject.property('somename'), 'somevalue')
+    }
+
     @Test void testGetProjectProperty() {
         assert project.is(project.getProject())
     }
