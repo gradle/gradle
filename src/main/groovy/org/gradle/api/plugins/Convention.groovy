@@ -22,7 +22,7 @@ import org.gradle.api.Project
  * @author Hans Dockter
  */
 class Convention {
-    Map plugins = [:]
+    Map<String, Object> plugins = [:]
 
     Project project
 
@@ -44,6 +44,12 @@ class Convention {
             return true
         }
         return false
+    }
+
+    def getAllProperties() {
+        Map properties = [:]
+        plugins.values().each { properties = it.properties + properties }
+        properties
     }
 
     void setProperty(String property, value) {

@@ -56,6 +56,12 @@ class ConventionTest {
         assert convention.a == convention1.a || convention.a == convention2.a
     }
 
+    @Test public void testGetAllProperties() {
+        assertEquals(convention.a, convention.allProperties.a)
+        assertEquals(convention1.b, convention.allProperties.b)
+        assertEquals(convention1.c, convention.allProperties.c)
+    }
+
     @Test public void testSetProperties() {
         convention.b = 'newvalue'
         assertEquals('newvalue', convention.plugins.plugin1.b)
