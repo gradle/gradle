@@ -27,6 +27,8 @@ import org.gradle.api.tasks.TaskDependency;
  * @author Hans Dockter
  */
 class ProjectTasksPrettyPrinterTest {
+    String separator = '*' * 50
+
     @Test public void testGetPrettyText() {
         String expectedProject1String = ':project1'
         String expectedProject2String = ':project2'
@@ -48,7 +50,6 @@ class ProjectTasksPrettyPrinterTest {
         // line separator. In contrast to writeLine, which uses the platform specific line separator. This
         // would(has) lead to failing tests under Windows.
         StringWriter stringWriter = new StringWriter()
-        String separator = '*' * 50
         new PlatformLineWriter(stringWriter).withWriter { it.write("""
 $separator
 Project :project1
@@ -58,6 +59,19 @@ Project :project1
 $separator
 Project :project2
   Task :task21 []
+""")
+        }
+        assertEquals(stringWriter.toString(), new ProjectTasksPrettyPrinter().getPrettyText(tasks))
+    }
+
+    @Test public void testEmptyProject() {
+        Project project1 = [getPath: {':project1'}, compareTo: {-1}] as Project
+        Map tasks = [(project1): new HashSet()]
+        StringWriter stringWriter = new StringWriter()
+        new PlatformLineWriter(stringWriter).withWriter { it.write("""
+$separator
+Project :project1
+  No tasks
 """)
         }
         assertEquals(stringWriter.toString(), new ProjectTasksPrettyPrinter().getPrettyText(tasks))
