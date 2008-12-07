@@ -38,6 +38,13 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void handlesWhitespaceOnlySettingsAndBuildFiles() {
+        testFile("settings.gradle").write("   \n  ");
+        testFile("build.gradle").write("   ");
+        inTestDirectory().showTaskList();
+    }
+
+    @Test
     public void embeddedBuildFileIgnoresBuildAndScriptFiles() throws IOException {
         File rootDir = getTestDir();
         testFile("settings.gradle").write("throw new RuntimeException()");

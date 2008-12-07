@@ -49,12 +49,7 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     }
 
     private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
-        String text = source.getText();
-        if (!GUtil.isTrue(text)) {
-            return new EmptyScript();
-        }
-
-        return scriptHandler.createScript(text, classLoader, source.getClassName(), scriptBaseClass);
+        return scriptHandler.createScript(source.getText(), classLoader, source.getClassName(), scriptBaseClass);
     }
 
     private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {

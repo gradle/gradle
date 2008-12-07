@@ -46,10 +46,15 @@ public class DefaultScriptHandler implements IScriptHandler {
         GroovyShell groovyShell = new GroovyShell(classLoader, new Binding(), configuration);
         Script script;
         try {
-            script = groovyShell.parse(scriptText, scriptName);
+            script = groovyShell.parse(scriptText == null ? "" : scriptText, scriptName);
         } catch (CompilationFailedException e) {
             throw new GradleException(e);
         }
+        if (!scriptBaseClass.isInstance(script)) {
+            // Assume an empty script
+            return new EmptyScript();
+        }
+
         logger.debug("Timing: Creating script took: {}", clock.getTime());
         return script;
     }
@@ -61,13 +66,16 @@ public class DefaultScriptHandler implements IScriptHandler {
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(scriptCacheDir);
         CompilationUnit unit = new CompilationUnit(configuration, null, new GroovyClassLoader(classLoader));
-        unit.addSource(scriptName, new ByteArrayInputStream(scriptText.getBytes()));
+        unit.addSource(scriptName, new ByteArrayInputStream(scriptText == null ? new byte[0] : scriptText.getBytes()));
         try {
             unit.compile();
         } catch (CompilationFailedException e) {
             throw new GradleException(e);
         }
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
+        if (unit.getClasses().isEmpty()) {
+            return new EmptyScript();
+        }
         return loadFromCache(0, classLoader, scriptName, scriptCacheDir, scriptBaseClass);
     }
 
