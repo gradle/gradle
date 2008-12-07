@@ -43,8 +43,8 @@ public class DynamicObjectHelper {
         if (convention && convention.hasProperty(name)) {
             return true
         }
-        if (parent) {
-            return parent.hasProperty(name)
+        if (parent && parent.hasProperty(name)) {
+            return true
         }
         additionalProperties.containsKey(name)
     }
@@ -59,14 +59,14 @@ public class DynamicObjectHelper {
                 return property.getProperty(delegateObject)
             }
         }
+        if (additionalProperties.containsKey(name)) {
+            return additionalProperties[name]
+        }
         if (convention && convention.hasProperty(name)) {
             return convention.getProperty(name)
         }
         if (parent) {
             return parent.property(name)
-        }
-        if (additionalProperties.containsKey(name)) {
-            return additionalProperties[name]
         }
         throw new MissingPropertyException("Could not find property '$name' on $delegateObject.")
     }

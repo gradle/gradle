@@ -42,6 +42,7 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.util.HelperUtil
 
 /**
  * @author Hans Dockter
@@ -666,7 +667,7 @@ class DefaultProjectTest {
 
     @Test void testMethodMissing() {
         DefaultProject dummyParentProject = new DefaultProject("someProject")
-        Script parentBuildScript = new GroovyShell().parse("def scriptMethod(Closure closure) {'parent'}")
+        Script parentBuildScript = createScriptForMethodMissingTest('parent')
         dummyParentProject.setBuildScript(parentBuildScript);
         project.parent = dummyParentProject
         boolean closureCalled = false
@@ -688,7 +689,7 @@ def scriptMethod(Closure closure) {
     "$returnValue"
 }
 """
-        new GroovyShell().parse(code)
+        HelperUtil.createScript(code)
     }
 
     @Test void testSetPropertyAndPropertyMissingWithProjectProperty() {

@@ -247,6 +247,44 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
+    public void classPropertyTakesPrecedenceOverAdditionalProperty() {
+        Bean bean = new Bean();
+        bean.setReadWriteProperty("value");
+        bean.helper.getAdditionalProperties().put("readWriteProperty", "additional");
+
+        assertThat(bean.property("readWriteProperty"), equalTo((Object) "value"));
+    }
+
+    @Test
+    public void additionalPropertyTakesPrecedenceOverConventionProperty() {
+        Bean bean = new Bean();
+        bean.setProperty("conventionProperty", "value");
+
+        Convention convention = new Convention(null);
+        bean.setConvention(convention);
+        convention.getPlugins().put("test", new ConventionBean());
+
+        assertThat(bean.property("conventionProperty"), equalTo((Object) "value"));
+    }
+
+    @Test
+    public void conventionPropertyTakesPrecedenceOverParentProperty() {
+        Bean parent = new Bean();
+        parent.setProperty("conventionProperty", "parent");
+
+        Bean bean = new Bean();
+        bean.setParent(parent);
+
+        Convention convention = new Convention(null);
+        bean.setConvention(convention);
+        ConventionBean conventionBean = new ConventionBean();
+        conventionBean.setConventionProperty("value");
+        convention.getPlugins().put("test", conventionBean);
+
+        assertThat(bean.property("conventionProperty"), equalTo((Object) "value"));
+    }
+
+    @Test
     public void canGetAllProperties() {
         Bean parent = new Bean();
         parent.setProperty("parentProperty", "parentProperty");

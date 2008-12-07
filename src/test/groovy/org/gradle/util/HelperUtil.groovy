@@ -164,6 +164,10 @@ class HelperUtil {
         new MyScript()        
     }
 
+    static Script createScript(String code) {
+        new GroovyShell().parse(code)
+    }
+
     static Closure toClosure(String text) {
         return new GroovyShell().evaluate("return " + text)
     }
