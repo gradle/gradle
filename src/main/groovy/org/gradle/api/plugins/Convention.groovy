@@ -46,7 +46,7 @@ class Convention {
         return false
     }
 
-    def getAllProperties() {
+    Map<String, Object> getAllProperties() {
         Map properties = [:]
         plugins.values().each { properties = it.properties + properties }
         properties

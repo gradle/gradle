@@ -418,7 +418,7 @@ public class DynamicObjectHelperTest {
             bean.invokeMethod("unknown", "a", 12);
             fail();
         } catch (MissingMethodException e) {
-            assertThat(e.getMessage(), equalTo("Could not find method unknown() for arguments {\"a\", 12} on <bean>."));
+            assertThat(e.getMessage(), equalTo("Could not find method unknown() for arguments [a, 12] on <bean>."));
         }
     }
 
