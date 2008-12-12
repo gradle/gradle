@@ -15,39 +15,36 @@
  */
 package org.gradle.api.internal;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
 
-import java.util.Map;
-
 public class AbstractDynamicObjectTest {
     private final AbstractDynamicObject object = new AbstractDynamicObject() {
+        protected String getDisplayName() {
+            return "<display-name>";
+        }
     };
 
     @Test
     public void hasNoProperties() {
         assertFalse(object.hasProperty("something"));
-        assertTrue(object.properties().isEmpty());
+        assertTrue(object.getProperties().isEmpty());
 
         try {
-            object.property("something");
+            object.getProperty("something");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'something'."));
+            assertThat(e.getMessage(), equalTo("Could not find property 'something' on <display-name>."));
         }
 
         try {
             object.setProperty("something", "value");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'something'."));
+            assertThat(e.getMessage(), equalTo("Could not find property 'something' on <display-name>."));
         }
     }
 

@@ -25,11 +25,11 @@ import groovy.lang.MissingMethodException;
 public interface DynamicObject {
     boolean hasProperty(String name);
 
-    Object property(String name) throws MissingPropertyException;
+    Object getProperty(String name) throws MissingPropertyException;
 
     void setProperty(String name, Object value) throws MissingPropertyException;
 
-    Map<String, Object> properties();
+    Map<String, Object> getProperties();
 
     boolean hasMethod(String name, Object... params);
 

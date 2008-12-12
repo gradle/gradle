@@ -61,7 +61,7 @@ class DefaultProject extends AbstractProject {
             return tasks[name]
         }
         if (parent && parent.inheritableObject.hasProperty(name)) {
-            return parent.inheritableObject.property(name)
+            return parent.inheritableObject.getProperty(name)
         }
         throw new MissingPropertyException("Property '$name' not found for project $path.")
     }

@@ -18,6 +18,13 @@ package org.gradle.api.internal
 import static org.junit.Assert.*
 
 public class DynamicObjectHelperTestHelper {
+    public static void assertCanGetAllProperties (DynamicObjectHelperTest.Bean bean) {
+        bean.readWriteProperty = 'readWrite'
+        bean.setProperty('additional', 'additional')
+        assertEquals(bean.getProperties().readWriteProperty, 'readWrite')
+        assertEquals(bean.getProperties().additional, 'additional')
+    }
+
     public static void assertCanGetProperties (DynamicObjectHelperTest.Bean bean) {
         bean.readWriteProperty = 'value'
         assertEquals(bean.readWriteProperty, 'value')
@@ -54,9 +61,9 @@ public class DynamicObjectHelperTestHelper {
 }
 
 public class DynamicBean extends DynamicObjectHelperTest.Bean {
-//    def propertyMissing(String name) {
-//        property(name)
-//    }
+    def propertyMissing(String name) {
+        super.getProperty(name)
+    }
 
 //    def methodMissing(String name, params) {
 //        super.methodMissing(name, params)

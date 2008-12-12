@@ -39,11 +39,11 @@ public class DynamicObjectHelperTest {
         Bean bean = new Bean();
         bean.setReadWriteProperty("value");
 
-        assertThat(bean.property("readWriteProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
 
         bean.setProperty("readWriteProperty", "new value");
 
-        assertThat(bean.property("readWriteProperty"), equalTo((Object) "new value"));
+        assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "new value"));
         assertThat(bean.getReadWriteProperty(), equalTo((Object) "new value"));
     }
 
@@ -52,7 +52,7 @@ public class DynamicObjectHelperTest {
         Bean bean = new Bean();
         bean.doSetReadOnlyProperty("value");
 
-        assertThat(bean.property("readOnlyProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("readOnlyProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class DynamicObjectHelperTest {
         Bean bean = new Bean();
 
         try {
-            bean.property("writeOnlyProperty");
+            bean.getProperty("writeOnlyProperty");
             fail();
         } catch (GroovyRuntimeException e) {
             assertThat(e.getMessage(), equalTo("Cannot get the value of write-only property 'writeOnlyProperty' on <bean>."));
@@ -106,11 +106,11 @@ public class DynamicObjectHelperTest {
         GroovyBean bean = new GroovyBean();
         bean.setGroovyProperty("value");
 
-        assertThat(bean.property("groovyProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("groovyProperty"), equalTo((Object) "value"));
 
         bean.setProperty("groovyProperty", "new value");
 
-        assertThat(bean.property("groovyProperty"), equalTo((Object) "new value"));
+        assertThat(bean.getProperty("groovyProperty"), equalTo((Object) "new value"));
         assertThat(bean.getGroovyProperty(), equalTo((Object) "new value"));
     }
 
@@ -118,11 +118,11 @@ public class DynamicObjectHelperTest {
     public void canGetAndSetGroovyDynamicProperty() {
         GroovyBean bean = new GroovyBean();
 
-        assertThat(bean.property("dynamicGroovyProperty"), equalTo(null));
+        assertThat(bean.getProperty("dynamicGroovyProperty"), equalTo(null));
 
         bean.setProperty("dynamicGroovyProperty", "new value");
 
-        assertThat(bean.property("dynamicGroovyProperty"), equalTo((Object) "new value"));
+        assertThat(bean.getProperty("dynamicGroovyProperty"), equalTo((Object) "new value"));
     }
 
     @Test
@@ -142,11 +142,11 @@ public class DynamicObjectHelperTest {
 
     private void assertCanGetAndSetProperties(DynamicObject bean) {
         bean.setProperty("readWriteProperty", "value");
-        assertThat(bean.property("readWriteProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
         bean.setProperty("groovyProperty", "value");
-        assertThat(bean.property("groovyProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("groovyProperty"), equalTo((Object) "value"));
         bean.setProperty("additional", "value");
-        assertThat(bean.property("additional"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("additional"), equalTo((Object) "value"));
     }
 
     @Test
@@ -183,11 +183,11 @@ public class DynamicObjectHelperTest {
 
         conventionBean.setConventionProperty("value");
 
-        assertThat(bean.property("conventionProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "value"));
 
         bean.setProperty("conventionProperty", "new value");
 
-        assertThat(bean.property("conventionProperty"), equalTo((Object) "new value"));
+        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "new value"));
         assertThat(conventionBean.getConventionProperty(), equalTo((Object) "new value"));
     }
 
@@ -211,7 +211,7 @@ public class DynamicObjectHelperTest {
         Bean bean = new Bean();
         bean.setParent(parent);
 
-        assertThat(bean.property("parentProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("parentProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -243,7 +243,7 @@ public class DynamicObjectHelperTest {
         Bean bean = new Bean();
 
         bean.setProperty("additional", "value");
-        assertThat(bean.property("additional"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("additional"), equalTo((Object) "value"));
     }
 
     @Test
@@ -252,7 +252,7 @@ public class DynamicObjectHelperTest {
         bean.setReadWriteProperty("value");
         bean.helper.getAdditionalProperties().put("readWriteProperty", "additional");
 
-        assertThat(bean.property("readWriteProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -264,7 +264,7 @@ public class DynamicObjectHelperTest {
         bean.setConvention(convention);
         convention.getPlugins().put("test", new ConventionBean());
 
-        assertThat(bean.property("conventionProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -281,7 +281,7 @@ public class DynamicObjectHelperTest {
         conventionBean.setConventionProperty("value");
         convention.getPlugins().put("test", conventionBean);
 
-        assertThat(bean.property("conventionProperty"), equalTo((Object) "value"));
+        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -306,7 +306,8 @@ public class DynamicObjectHelperTest {
         bean.setConvention(convention);
         bean.setParent(parent);
 
-        Map<String, Object> properties = bean.properties();
+        Map<String, Object> properties = bean.getProperties();
+        assertThat(properties.get("properties"), sameInstance((Object) properties));
         assertThat(properties.get("readWriteProperty"), equalTo((Object) "readWriteProperty"));
         assertThat(properties.get("readOnlyProperty"), equalTo((Object) "readOnlyProperty"));
         assertThat(properties.get("parentProperty"), equalTo((Object) "parentProperty"));
@@ -317,11 +318,18 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
+    public void canGetAllPropertiesFromGroovy() {
+        DynamicObjectHelperTestHelper.assertCanGetAllProperties(new Bean());
+        DynamicObjectHelperTestHelper.assertCanGetAllProperties(new GroovyBean());
+        DynamicObjectHelperTestHelper.assertCanGetAllProperties(new DynamicBean());
+    }
+
+    @Test
     public void getPropertyFailsUnknownProperty() {
         Bean bean = new Bean();
 
         try {
-            bean.property("unknown");
+            bean.getProperty("unknown");
             fail();
         } catch (MissingPropertyException e) {
             assertThat(e.getMessage(), equalTo("Could not find property 'unknown' on <bean>."));
@@ -332,7 +340,7 @@ public class DynamicObjectHelperTest {
     public void additionalPropertyWithNullValueIsNotTreatedAsUnknown() {
         Bean bean = new Bean();
         bean.setProperty("additional", null);
-        assertThat(bean.property("additional"), nullValue());
+        assertThat(bean.getProperty("additional"), nullValue());
     }
 
     @Test
@@ -432,7 +440,7 @@ public class DynamicObjectHelperTest {
         };
 
         try {
-            bean.property("failure");
+            bean.getProperty("failure");
             fail();
         } catch (Exception e) {
             assertThat(e, sameInstance((Exception) failure));
@@ -480,8 +488,8 @@ public class DynamicObjectHelperTest {
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasProperty("additional"));
-        assertThat(inherited.property("additional"), equalTo((Object) "value"));
-        assertThat(inherited.properties().get("additional"), equalTo((Object) "value"));
+        assertThat(inherited.getProperty("additional"), equalTo((Object) "value"));
+        assertThat(inherited.getProperties().get("additional"), equalTo((Object) "value"));
     }
 
     @Test
@@ -495,8 +503,8 @@ public class DynamicObjectHelperTest {
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasProperty("conventionProperty"));
-        assertThat(inherited.property("conventionProperty"), equalTo((Object) "value"));
-        assertThat(inherited.properties().get("conventionProperty"), equalTo((Object) "value"));
+        assertThat(inherited.getProperty("conventionProperty"), equalTo((Object) "value"));
+        assertThat(inherited.getProperties().get("conventionProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -508,8 +516,8 @@ public class DynamicObjectHelperTest {
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasProperty("parentProperty"));
-        assertThat(inherited.property("parentProperty"), equalTo((Object) "value"));
-        assertThat(inherited.properties().get("parentProperty"), equalTo((Object) "value"));
+        assertThat(inherited.getProperty("parentProperty"), equalTo((Object) "value"));
+        assertThat(inherited.getProperties().get("parentProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -519,7 +527,7 @@ public class DynamicObjectHelperTest {
 
         DynamicObject inherited = bean.getInheritable();
         assertFalse(inherited.hasProperty("readWriteProperty"));
-        assertFalse(inherited.properties().containsKey("readWriteProperty"));
+        assertFalse(inherited.getProperties().containsKey("readWriteProperty"));
     }
 
     @Test
@@ -622,36 +630,36 @@ public class DynamicObjectHelperTest {
             return String.format("java:%s.%s", a, b);
         }
         
-        public Object property(String name) {
-            return helper.getObjectProperty(name);
+        public Object getProperty(String name) {
+            return helper.getProperty(name);
         }
 
         public boolean hasProperty(String name) {
-            return helper.hasObjectProperty(name);
+            return helper.hasProperty(name);
         }
 
         public void setProperty(String name, Object value) {
-            helper.setObjectProperty(name, value);
+            helper.setProperty(name, value);
         }
 
-        public Map<String, Object> properties() {
-            return helper.allProperties();
+        public Map<String, Object> getProperties() {
+            return helper.getProperties();
         }
 
         public boolean hasMethod(String name, Object... params) {
-            return helper.hasObjectMethod(name, params);
+            return helper.hasMethod(name, params);
         }
 
         public Object invokeMethod(String name, Object... params) {
-            return helper.invokeObjectMethod(name, params);
+            return helper.invokeMethod(name, params);
         }
 
         public Object methodMissing(String name, Object params) {
-            return helper.invokeObjectMethod(name, (Object[]) params);
+            return helper.invokeMethod(name, (Object[]) params);
         }
 
         public Object propertyMissing(String name) {
-            return property(name);
+            return getProperty(name);
         }
 
         public DynamicObject getInheritable() {

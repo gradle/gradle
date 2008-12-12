@@ -15,27 +15,15 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.plugins.Convention;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.List;
-
-import groovy.lang.MetaClass;
-import groovy.lang.GroovyObject;
-import groovy.lang.MetaProperty;
-import groovy.lang.GroovyRuntimeException;
-import groovy.lang.MetaBeanProperty;
 import groovy.lang.MissingPropertyException;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaMethod;
+import org.gradle.api.plugins.Convention;
 
-// todo - figure out how to get this to implement DynamicObject
-public class DynamicObjectHelper {
+import java.util.HashMap;
+import java.util.Map;
 
-    private final Object delegateObject;
+public class DynamicObjectHelper extends AbstractDynamicObject {
+
+    private final BeanDynamicObject delegateObject;
     private final boolean includeDelegateObjectProperties;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private DynamicObject parent;
@@ -47,15 +35,11 @@ public class DynamicObjectHelper {
 
     public DynamicObjectHelper(Object delegateObject, boolean includeDelegateObjectProperties) {
         this.includeDelegateObjectProperties = includeDelegateObjectProperties;
-        this.delegateObject = delegateObject;
+        this.delegateObject = new BeanDynamicObject(delegateObject);
     }
 
-    private MetaClass getMetaClass() {
-        if (delegateObject instanceof GroovyObject) {
-            return ((GroovyObject) delegateObject).getMetaClass();
-        } else {
-            return GroovySystem.getMetaClassRegistry().getMetaClass(delegateObject.getClass());
-        }
+    protected String getDisplayName() {
+        return delegateObject.getDisplayName();
     }
 
     public Map<String, Object> getAdditionalProperties() {
@@ -83,11 +67,11 @@ public class DynamicObjectHelper {
     }
 
     public Object getDelegateObject() {
-        return delegateObject;
+        return delegateObject.getBean();
     }
 
-    public boolean hasObjectProperty(String name) {
-        if (includeDelegateObjectProperties && getMetaClass().hasProperty(delegateObject, name) != null) {
+    public boolean hasProperty(String name) {
+        if (includeDelegateObjectProperties && delegateObject.hasProperty(name)) {
             return true;
         }
         if (convention != null && convention.hasProperty(name)) {
@@ -99,23 +83,9 @@ public class DynamicObjectHelper {
         return additionalProperties.containsKey(name);
     }
 
-    public Object getObjectProperty(String name) {
-        if (includeDelegateObjectProperties) {
-            MetaProperty property = getMetaClass().hasProperty(delegateObject, name);
-            if (property != null) {
-                if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getGetter() == null) {
-                    throw new GroovyRuntimeException(String.format(
-                            "Cannot get the value of write-only property '%s' on %s.", name, delegateObject));
-                }
-                try {
-                    return property.getProperty(delegateObject);
-                } catch (InvokerInvocationException e) {
-                    if (e.getCause() instanceof RuntimeException) {
-                        throw (RuntimeException) e.getCause();
-                    }
-                    throw e;
-                }
-            }
+    public Object getProperty(String name) {
+        if (includeDelegateObjectProperties && delegateObject.hasProperty(name)) {
+            return delegateObject.getProperty(name);
         }
         if (additionalProperties.containsKey(name)) {
             return additionalProperties.get(name);
@@ -124,62 +94,39 @@ public class DynamicObjectHelper {
             return convention.getProperty(name);
         }
         if (parent != null) {
-            return parent.property(name);
+            return parent.getProperty(name);
         }
-        throw new MissingPropertyException(String.format("Could not find property '%s' on %s.", name, delegateObject));
+        throw propertyMissingException(name);
     }
 
-    public void setObjectProperty(String name, Object value) {
-        if (includeDelegateObjectProperties) {
-            MetaProperty property = getMetaClass().hasProperty(delegateObject, name);
-            if (property != null) {
-                if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getSetter() == null) {
-                    throw new GroovyRuntimeException(String.format(
-                            "Cannot set the value of read-only property '%s' on %s.", name, delegateObject));
-                }
-                try {
-                    property.setProperty(delegateObject, value);
-                } catch (InvokerInvocationException e) {
-                    if (e.getCause() instanceof RuntimeException) {
-                        throw (RuntimeException) e.getCause();
-                    }
-                    throw e;
-                }
-            }
+    public void setProperty(String name, Object value) {
+        if (includeDelegateObjectProperties && delegateObject.hasProperty(name)) {
+            delegateObject.setProperty(name, value);
         }
-
         if (convention != null && convention.hasProperty(name)) {
             convention.setProperty(name, value);
         }
         additionalProperties.put(name, value);
     }
 
-    public Map<String, Object> allProperties() {
+    public Map<String, Object> getProperties() {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.putAll(additionalProperties);
         if (parent != null) {
-            properties.putAll(parent.properties());
+            properties.putAll(parent.getProperties());
         }
         if (convention != null) {
             properties.putAll(convention.getAllProperties());
         }
         if (includeDelegateObjectProperties) {
-            List<MetaProperty> classProperties = getMetaClass().getProperties();
-            for (MetaProperty metaProperty : classProperties) {
-                if (metaProperty instanceof MetaBeanProperty) {
-                    MetaBeanProperty beanProperty = (MetaBeanProperty) metaProperty;
-                    if (beanProperty.getGetter() == null) {
-                        continue;
-                    }
-                }
-                properties.put(metaProperty.getName(), metaProperty.getProperty(delegateObject));
-            }
+            properties.putAll(delegateObject.getProperties());
         }
+        properties.put("properties", properties);
         return properties;
     }
 
-    public boolean hasObjectMethod(String name, Object... params) {
-        if (!getMetaClass().respondsTo(delegateObject, name, params).isEmpty()) {
+    public boolean hasMethod(String name, Object... params) {
+        if (delegateObject.hasMethod(name, params)) {
             return true;
         }
         if (convention != null && convention.hasMethod(name, params)) {
@@ -191,17 +138,9 @@ public class DynamicObjectHelper {
         return false;
     }
 
-    public Object invokeObjectMethod(String name, Object... params) {
-        MetaMethod method = getMetaClass().getMetaMethod(name, params);
-        if (method != null) {
-            try {
-                return method.invoke(delegateObject, params);
-            } catch (InvokerInvocationException e) {
-                if (e.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) e.getCause();
-                }
-                throw e;
-            }
+    public Object invokeMethod(String name, Object... params) {
+        if (delegateObject.hasMethod(name, params)) {
+            return delegateObject.invokeMethod(name, params);
         }
         if (convention != null && convention.hasMethod(name, params)) {
             return convention.invokeMethod(name, params);
@@ -209,11 +148,11 @@ public class DynamicObjectHelper {
         if (parent != null && parent.hasMethod(name, params)) {
             return parent.invokeMethod(name, params);
         }
-        throw new MissingMethodException(delegateObject, name, params);
+        throw methodMissingException(name, params);
     }
 
     public DynamicObject getInheritable() {
-        DynamicObjectHelper helper = new DynamicObjectHelper(delegateObject, false);
+        DynamicObjectHelper helper = new DynamicObjectHelper(delegateObject.getBean(), false);
         helper.parent = parent;
         helper.convention = convention;
         helper.additionalProperties = additionalProperties;
@@ -222,7 +161,7 @@ public class DynamicObjectHelper {
 }
 
 class HelperBackedDynamicObject implements DynamicObject {
-    final DynamicObjectHelper helper;
+    private final DynamicObjectHelper helper;
 
     public HelperBackedDynamicObject(DynamicObjectHelper helper) {
         this.helper = helper;
@@ -234,36 +173,22 @@ class HelperBackedDynamicObject implements DynamicObject {
     }
 
     public boolean hasProperty(String name) {
-        return helper.hasObjectProperty(name);
+        return helper.hasProperty(name);
     }
 
-    public Object property(String name) {
-        return helper.getObjectProperty(name);
+    public Object getProperty(String name) {
+        return helper.getProperty(name);
     }
 
-    public Map<String, Object> properties() {
-        return helper.allProperties();
+    public Map<String, Object> getProperties() {
+        return helper.getProperties();
     }
 
     public boolean hasMethod(String name, Object... params) {
-        return helper.hasObjectMethod(name, params);
+        return helper.hasMethod(name, params);
     }
 
     public Object invokeMethod(String name, Object... params) {
-        return helper.invokeObjectMethod(name, params);
-    }
-}
-
-class MissingMethodException extends groovy.lang.MissingMethodException {
-    private final Object delegateObject;
-
-    public MissingMethodException(Object object, String name, Object... arguments) {
-        super(name, object.getClass(), arguments);
-        delegateObject = object;
-    }
-
-    public String getMessage() {
-        return String.format("Could not find method %s() for arguments %s on %s.", getMethod(), Arrays.toString(
-                getArguments()), delegateObject);
+        return helper.invokeMethod(name, params);
     }
 }

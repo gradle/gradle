@@ -69,7 +69,7 @@ class Convention {
         throw new MissingMethodException(method, Convention, args)
     }
 
-    boolean hasMethod(String method, args) {
+    boolean hasMethod(String method, Object... args) {
         def pluginConvention = plugins.values().find { it.metaClass.respondsTo(it, method, args) }
         if (pluginConvention) {
             return true
