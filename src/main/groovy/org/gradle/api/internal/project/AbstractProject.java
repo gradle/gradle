@@ -22,6 +22,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
+import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
@@ -263,12 +264,15 @@ public abstract class AbstractProject implements ProjectInternal {
         this.parent = parent;
     }
 
-    public DynamicObject getInheritableObject() {
+    public DynamicObject getInheritedScope() {
         DynamicObjectHelper helper = new DynamicObjectHelper(this);
         helper.setConvention(convention);
         helper.setAdditionalProperties(additionalProperties);
         if (parent != null) {
-            helper.setParent(parent.getInheritableObject());
+            helper.setParent(parent.getInheritedScope());
+        }
+        if (buildScript != null) {
+            helper.addObject(new BeanDynamicObject(buildScript).withNoProperties(), DynamicObjectHelper.Location.BeforeConvention);
         }
         return helper.getInheritable();
     }

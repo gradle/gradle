@@ -22,20 +22,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DynamicObjectHelper extends AbstractDynamicObject {
+    public enum Location {
+        BeforeConvention, AfterConvention
+    }
 
     private final BeanDynamicObject delegateObject;
-    private final boolean includeDelegateObjectProperties;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private DynamicObject parent;
     private Convention convention;
+    private DynamicObject beforeConvention;
 
     public DynamicObjectHelper(Object delegateObject) {
-        this(delegateObject, true);
+        this(new BeanDynamicObject(delegateObject));
     }
 
-    public DynamicObjectHelper(Object delegateObject, boolean includeDelegateObjectProperties) {
-        this.includeDelegateObjectProperties = includeDelegateObjectProperties;
-        this.delegateObject = new BeanDynamicObject(delegateObject);
+    DynamicObjectHelper(BeanDynamicObject delegateObject) {
+        this.delegateObject = delegateObject;
     }
 
     protected String getDisplayName() {
@@ -66,12 +68,19 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         this.convention = convention;
     }
 
-    public Object getDelegateObject() {
-        return delegateObject.getBean();
+    public void addObject(DynamicObject object, Location location) {
+        beforeConvention = object;
+    }
+
+    public BeanDynamicObject getDelegateObject() {
+        return delegateObject;
     }
 
     public boolean hasProperty(String name) {
-        if (includeDelegateObjectProperties && delegateObject.hasProperty(name)) {
+        if (delegateObject.hasProperty(name)) {
+            return true;
+        }
+        if (beforeConvention != null && beforeConvention.hasProperty(name)) {
             return true;
         }
         if (convention != null && convention.hasProperty(name)) {
@@ -84,24 +93,30 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
     }
 
     public Object getProperty(String name) {
-        if (includeDelegateObjectProperties && delegateObject.hasProperty(name)) {
+        if (delegateObject.hasProperty(name)) {
             return delegateObject.getProperty(name);
         }
         if (additionalProperties.containsKey(name)) {
             return additionalProperties.get(name);
         }
+        if (beforeConvention != null && beforeConvention.hasProperty(name)) {
+            return beforeConvention.getProperty(name);
+        }
         if (convention != null && convention.hasProperty(name)) {
             return convention.getProperty(name);
         }
-        if (parent != null) {
+        if (parent != null && parent.hasProperty(name)) {
             return parent.getProperty(name);
         }
         throw propertyMissingException(name);
     }
 
     public void setProperty(String name, Object value) {
-        if (includeDelegateObjectProperties && delegateObject.hasProperty(name)) {
+        if (delegateObject.hasProperty(name)) {
             delegateObject.setProperty(name, value);
+        }
+        if (beforeConvention != null && beforeConvention.hasProperty(name)) {
+            beforeConvention.setProperty(name, value);
         }
         if (convention != null && convention.hasProperty(name)) {
             convention.setProperty(name, value);
@@ -118,15 +133,20 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         if (convention != null) {
             properties.putAll(convention.getAllProperties());
         }
-        if (includeDelegateObjectProperties) {
-            properties.putAll(delegateObject.getProperties());
+        if (beforeConvention != null) {
+            properties.putAll(beforeConvention.getProperties());
         }
+
+        properties.putAll(delegateObject.getProperties());
         properties.put("properties", properties);
         return properties;
     }
 
     public boolean hasMethod(String name, Object... params) {
         if (delegateObject.hasMethod(name, params)) {
+            return true;
+        }
+        if (beforeConvention != null && beforeConvention.hasMethod(name, params)) {
             return true;
         }
         if (convention != null && convention.hasMethod(name, params)) {
@@ -142,6 +162,9 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         if (delegateObject.hasMethod(name, params)) {
             return delegateObject.invokeMethod(name, params);
         }
+        if (beforeConvention != null && beforeConvention.hasMethod(name, params)) {
+            return beforeConvention.invokeMethod(name, params);
+        }
         if (convention != null && convention.hasMethod(name, params)) {
             return convention.invokeMethod(name, params);
         }
@@ -151,11 +174,18 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         throw methodMissingException(name, params);
     }
 
+    /**
+     * Returns the inheritable properties and methods of this object.
+     * @return an object containing the inheritable properties and methods of this object.
+     */
     public DynamicObject getInheritable() {
-        DynamicObjectHelper helper = new DynamicObjectHelper(delegateObject.getBean(), false);
+        DynamicObjectHelper helper = new DynamicObjectHelper(delegateObject.withNoProperties());
         helper.parent = parent;
         helper.convention = convention;
         helper.additionalProperties = additionalProperties;
+        if (beforeConvention != null) {
+            helper.beforeConvention = beforeConvention;
+        }
         return new HelperBackedDynamicObject(helper);
     }
 }
@@ -169,7 +199,7 @@ class HelperBackedDynamicObject implements DynamicObject {
 
     public void setProperty(String name, Object value) {
         throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
-                helper.getDelegateObject()));
+                helper.getDelegateObject().getDisplayName()));
     }
 
     public boolean hasProperty(String name) {

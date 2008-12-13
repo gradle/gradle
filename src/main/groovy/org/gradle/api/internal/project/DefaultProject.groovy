@@ -60,8 +60,8 @@ class DefaultProject extends AbstractProject {
         if (tasks[name]) {
             return tasks[name]
         }
-        if (parent && parent.inheritableObject.hasProperty(name)) {
-            return parent.inheritableObject.getProperty(name)
+        if (parent && parent.inheritedScope.hasProperty(name)) {
+            return parent.inheritedScope.getProperty(name)
         }
         throw new MissingPropertyException("Property '$name' not found for project $path.")
     }
@@ -72,7 +72,7 @@ class DefaultProject extends AbstractProject {
         if (convention.hasProperty(name)) {
             return true
         }
-        if (parent && parent.inheritableObject.hasProperty(name)) {
+        if (parent && parent.inheritedScope.hasProperty(name)) {
             return true
         }
 
@@ -89,7 +89,9 @@ class DefaultProject extends AbstractProject {
         if (tasks[name] && args.size() == 1 && args[0] instanceof Closure) {
             return task(name, (Closure) args[0])
         }
-        if (this.parent) {return this.parent.invokeMethod(name, args)}
+        if (parent && parent.inheritedScope.hasMethod(name, args)) {
+            return parent.inheritedScope.invokeMethod(name, args)
+        }
         throw new MissingMethodException(name, this.class, args)
     }
 

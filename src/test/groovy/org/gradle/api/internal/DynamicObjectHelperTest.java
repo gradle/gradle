@@ -285,6 +285,21 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
+    public void canGetAndSetPropertyDefinedByAdditionalObject() {
+        Bean otherObject = new Bean();
+        otherObject.setProperty("otherObject", "value");
+
+        Bean bean = new Bean();
+        bean.helper.addObject(otherObject, DynamicObjectHelper.Location.BeforeConvention);
+
+        assertTrue(bean.hasProperty("otherObject"));
+        assertThat(bean.getProperty("otherObject"), equalTo((Object) "value"));
+        bean.setProperty("otherObject", "new value");
+
+        assertThat(otherObject.getProperty("otherObject"), equalTo((Object) "new value"));
+    }
+
+    @Test
     public void canGetAllProperties() {
         Bean parent = new Bean();
         parent.setProperty("parentProperty", "parentProperty");
@@ -325,8 +340,22 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
-    public void getPropertyFailsUnknownProperty() {
+    public void getPropertyFailsForUnknownProperty() {
         Bean bean = new Bean();
+
+        try {
+            bean.getProperty("unknown");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("Could not find property 'unknown' on <bean>."));
+        }
+
+        bean.setParent(new Bean(){
+            @Override
+            public String toString() {
+                return "<parent>";
+            }
+        });
 
         try {
             bean.getProperty("unknown");
@@ -493,6 +522,19 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
+    public void additionalObjectPropertiesAreInherited() {
+        Bean other = new Bean();
+        other.setProperty("other", "value");
+        Bean bean = new Bean();
+        bean.helper.addObject(other, DynamicObjectHelper.Location.BeforeConvention);
+
+        DynamicObject inherited = bean.getInheritable();
+        assertTrue(inherited.hasProperty("other"));
+        assertThat(inherited.getProperty("other"), equalTo((Object) "value"));
+        assertThat(inherited.getProperties().get("other"), equalTo((Object) "value"));
+    }
+
+    @Test
     public void conventionPropertiesAreInherited() {
         Bean bean = new Bean();
         Convention convention = new Convention(null);
@@ -559,6 +601,21 @@ public class DynamicObjectHelperTest {
         Convention convention = new Convention(null);
         convention.getPlugins().put("convention", new ConventionBean());
         bean.setConvention(convention);
+
+        DynamicObject inherited = bean.getInheritable();
+        assertTrue(inherited.hasMethod("conventionMethod", "a", "b"));
+        assertThat(inherited.invokeMethod("conventionMethod", "a", "b"), equalTo((Object) "convention:a.b"));
+    }
+
+    @Test
+    public void additionalObjectMethodsAreInherited() {
+        Bean other = new Bean();
+        Convention convention = new Convention(null);
+        convention.getPlugins().put("convention", new ConventionBean());
+        other.setConvention(convention);
+
+        Bean bean = new Bean();
+        bean.helper.addObject(other, DynamicObjectHelper.Location.BeforeConvention);
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasMethod("conventionMethod", "a", "b"));

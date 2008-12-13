@@ -26,5 +26,5 @@ public interface ProjectInternal extends Project {
 
     void setBuildDirName(String buildDirName);
 
-    DynamicObject getInheritableObject();
+    DynamicObject getInheritedScope();
 }

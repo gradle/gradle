@@ -34,13 +34,20 @@ import java.util.Map;
  */
 public class BeanDynamicObject extends AbstractDynamicObject {
     private final Object bean;
+    private final boolean includeProperties;
 
     public BeanDynamicObject(Object bean) {
         this.bean = bean;
+        includeProperties = true;
     }
 
-    public Object getBean() {
-        return bean;
+    private BeanDynamicObject(Object bean, boolean includeProperties) {
+        this.bean = bean;
+        this.includeProperties = includeProperties;
+    }
+
+    public BeanDynamicObject withNoProperties() {
+        return new BeanDynamicObject(bean, false);
     }
 
     protected String getDisplayName() {
@@ -57,20 +64,24 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public boolean hasProperty(String name) {
-        return getMetaClass().hasProperty(bean, name) != null;
+        return includeProperties && getMetaClass().hasProperty(bean, name) != null;
     }
 
     @Override
     public Object getProperty(String name) throws MissingPropertyException {
+        if (!includeProperties) {
+            throw propertyMissingException(name);
+        }
+
         MetaProperty property = getMetaClass().hasProperty(bean, name);
         if (property == null) {
             throw propertyMissingException(name);
         }
-
         if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getGetter() == null) {
             throw new GroovyRuntimeException(String.format(
                     "Cannot get the value of write-only property '%s' on %s.", name, getDisplayName()));
         }
+
         try {
             return property.getProperty(bean);
         } catch (InvokerInvocationException e) {
@@ -83,6 +94,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
+        if (!includeProperties) {
+            throw propertyMissingException(name);
+        }
+
         MetaProperty property = getMetaClass().hasProperty(bean, name);
         if (property == null) {
             throw propertyMissingException(name);
@@ -104,6 +119,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public Map<String, Object> getProperties() {
+        if (!includeProperties) {
+            return super.getProperties();
+        }
+
         Map<String, Object> properties = new HashMap<String, Object>();
         List<MetaProperty> classProperties = getMetaClass().getProperties();
         for (MetaProperty metaProperty : classProperties) {
