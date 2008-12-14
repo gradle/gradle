@@ -865,13 +865,13 @@ public abstract class AbstractProject implements ProjectInternal {
         }
 
         @Override
-        public boolean hasMethod(String name, Object... params) {
-            return tasks.containsKey(name) && params.length == 1 && params[0] instanceof Closure;
+        public boolean hasMethod(String name, Object... arguments) {
+            return tasks.containsKey(name) && arguments.length == 1 && arguments[0] instanceof Closure;
         }
 
         @Override
-        public Object invokeMethod(String name, Object... params) {
-            return task(name, (Closure) params[0]);
+        public Object invokeMethod(String name, Object... arguments) {
+            return task(name, (Closure) arguments[0]);
         }
     }
 }

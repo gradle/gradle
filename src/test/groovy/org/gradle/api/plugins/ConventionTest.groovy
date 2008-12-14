@@ -57,9 +57,9 @@ class ConventionTest {
     }
 
     @Test public void testGetAllProperties() {
-        assertEquals(convention.a, convention.allProperties.a)
-        assertEquals(convention1.b, convention.allProperties.b)
-        assertEquals(convention1.c, convention.allProperties.c)
+        assertEquals(convention.a, convention.properties.a)
+        assertEquals(convention1.b, convention.properties.b)
+        assertEquals(convention1.c, convention.properties.c)
     }
 
     @Test public void testSetProperties() {

@@ -29,7 +29,7 @@ public interface DynamicObject {
 
     Map<String, ?> getProperties();
 
-    boolean hasMethod(String name, Object... params);
+    boolean hasMethod(String name, Object... arguments);
 
-    Object invokeMethod(String name, Object... params) throws MissingMethodException;
+    Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
 }

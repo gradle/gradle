@@ -48,12 +48,12 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         return Collections.emptyMap();
     }
 
-    public boolean hasMethod(String name, Object... params) {
+    public boolean hasMethod(String name, Object... arguments) {
         return false;
     }
 
-    public Object invokeMethod(String name, Object... params) throws groovy.lang.MissingMethodException {
-        throw methodMissingException(name, params);
+    public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
+        throw methodMissingException(name, arguments);
     }
 
     protected groovy.lang.MissingMethodException methodMissingException(String name, Object... params) {

@@ -146,19 +146,19 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public boolean hasMethod(String name, Object... params) {
-        return !getMetaClass().respondsTo(bean, name, params).isEmpty();
+    public boolean hasMethod(String name, Object... arguments) {
+        return !getMetaClass().respondsTo(bean, name, arguments).isEmpty();
     }
 
     @Override
-    public Object invokeMethod(String name, Object... params) throws MissingMethodException {
-        MetaMethod method = getMetaClass().getMetaMethod(name, params);
+    public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
+        MetaMethod method = getMetaClass().getMetaMethod(name, arguments);
         if (method == null) {
-            throw methodMissingException(name, params);
+            throw methodMissingException(name, arguments);
         }
 
         try {
-            return method.invoke(bean, params);
+            return method.invoke(bean, arguments);
         } catch (InvokerInvocationException e) {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();

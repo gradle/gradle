@@ -150,7 +150,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
             properties.putAll(afterConvention.getProperties());
         }
         if (convention != null) {
-            properties.putAll(convention.getAllProperties());
+            properties.putAll(convention.getProperties());
         }
         if (beforeConvention != null) {
             properties.putAll(beforeConvention.getProperties());
@@ -161,42 +161,42 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         return properties;
     }
 
-    public boolean hasMethod(String name, Object... params) {
-        if (delegateObject.hasMethod(name, params)) {
+    public boolean hasMethod(String name, Object... arguments) {
+        if (delegateObject.hasMethod(name, arguments)) {
             return true;
         }
-        if (beforeConvention != null && beforeConvention.hasMethod(name, params)) {
+        if (beforeConvention != null && beforeConvention.hasMethod(name, arguments)) {
             return true;
         }
-        if (convention != null && convention.hasMethod(name, params)) {
+        if (convention != null && convention.hasMethod(name, arguments)) {
             return true;
         }
-        if (afterConvention != null && afterConvention.hasMethod(name, params)) {
+        if (afterConvention != null && afterConvention.hasMethod(name, arguments)) {
             return true;
         }
-        if (parent != null && parent.hasMethod(name, params)) {
+        if (parent != null && parent.hasMethod(name, arguments)) {
             return true;
         }
         return false;
     }
 
-    public Object invokeMethod(String name, Object... params) {
-        if (delegateObject.hasMethod(name, params)) {
-            return delegateObject.invokeMethod(name, params);
+    public Object invokeMethod(String name, Object... arguments) {
+        if (delegateObject.hasMethod(name, arguments)) {
+            return delegateObject.invokeMethod(name, arguments);
         }
-        if (beforeConvention != null && beforeConvention.hasMethod(name, params)) {
-            return beforeConvention.invokeMethod(name, params);
+        if (beforeConvention != null && beforeConvention.hasMethod(name, arguments)) {
+            return beforeConvention.invokeMethod(name, arguments);
         }
-        if (convention != null && convention.hasMethod(name, params)) {
-            return convention.invokeMethod(name, params);
+        if (convention != null && convention.hasMethod(name, arguments)) {
+            return convention.invokeMethod(name, arguments);
         }
-        if (afterConvention != null && afterConvention.hasMethod(name, params)) {
-            return afterConvention.invokeMethod(name, params);
+        if (afterConvention != null && afterConvention.hasMethod(name, arguments)) {
+            return afterConvention.invokeMethod(name, arguments);
         }
-        if (parent != null && parent.hasMethod(name, params)) {
-            return parent.invokeMethod(name, params);
+        if (parent != null && parent.hasMethod(name, arguments)) {
+            return parent.invokeMethod(name, arguments);
         }
-        throw methodMissingException(name, params);
+        throw methodMissingException(name, arguments);
     }
 
     /**
@@ -237,12 +237,12 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
             return snapshotInheritable().getProperties();
         }
 
-        public boolean hasMethod(String name, Object... params) {
-            return snapshotInheritable().hasMethod(name, params);
+        public boolean hasMethod(String name, Object... arguments) {
+            return snapshotInheritable().hasMethod(name, arguments);
         }
 
-        public Object invokeMethod(String name, Object... params) {
-            return snapshotInheritable().invokeMethod(name, params);
+        public Object invokeMethod(String name, Object... arguments) {
+            return snapshotInheritable().invokeMethod(name, arguments);
         }
     }
 }

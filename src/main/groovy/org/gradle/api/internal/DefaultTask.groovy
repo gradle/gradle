@@ -61,32 +61,8 @@ class DefaultTask extends AbstractTask {
         actionClosure as TaskAction
     }
 
-    def property(String name) {
-        if (this.metaClass.hasProperty(this, name)) {
-            return this.metaClass.getProperty(this, name)
-        }
-        return propertyMissing(name);
-    }
-
     def propertyMissing(String name) {
-        if (additionalProperties.keySet().contains(name)) {
-            return additionalProperties[name]
-        }
-        throw new MissingPropertyException("Property '$name' not found for task $path.")
-    }
-
-    boolean hasProperty(String name) {
-        if (this.metaClass.hasProperty(this, name)) {return true}
-        if (additionalProperties.keySet().contains(name)) {return true}
-        false
-    }
-
-    void defineProperty(String name, Object value) {
-        if (this.metaClass.hasProperty(this, name)) {
-            this.metaClass.setProperty(this, name, value)
-            return
-        }
-        additionalProperties[name] = value
+        property(name)
     }
 
     void setProperty(String name, Object value) {

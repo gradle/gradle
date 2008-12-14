@@ -770,12 +770,12 @@ public class DynamicObjectHelperTest {
             return helper.getProperties();
         }
 
-        public boolean hasMethod(String name, Object... params) {
-            return helper.hasMethod(name, params);
+        public boolean hasMethod(String name, Object... arguments) {
+            return helper.hasMethod(name, arguments);
         }
 
-        public Object invokeMethod(String name, Object... params) {
-            return helper.invokeMethod(name, params);
+        public Object invokeMethod(String name, Object... arguments) {
+            return helper.invokeMethod(name, arguments);
         }
 
         public Object methodMissing(String name, Object params) {
