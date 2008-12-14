@@ -754,7 +754,7 @@ def scriptMethod(Closure closure) {
         project.convention."$propertyName" = 5
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))
-        project.convention = new Convention(project)
+        project.convention = new Convention()
         project."$propertyName" = 4
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))

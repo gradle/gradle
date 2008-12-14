@@ -65,6 +65,22 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    void getAndSetConventionProperties() {
+        TestConvention convention = new TestConvention()
+        defaultTask.convention.plugins.test = convention
+        assertTrue(defaultTask.hasProperty('conventionProperty'))
+        defaultTask.conventionProperty = 'value'
+        assertEquals(defaultTask.conventionProperty, 'value')
+        assertEquals(convention.conventionProperty, 'value')
+    }
+
+    @Test
+    void canCallConventionMethods() {
+        defaultTask.convention.plugins.test = new TestConvention()
+        assertEquals(defaultTask.conventionMethod('a', 'b').toString(), "a.b")
+    }
+
+    @Test
     void getProperty() {
         defaultTask.additionalProperties.customProp = testCustomPropValue
         assertSame(testCustomPropValue, defaultTask.property("customProp"))
@@ -75,6 +91,12 @@ class DefaultTaskTest extends AbstractTaskTest {
     void accessNonExistingProperty() {
         defaultTask."unknownProp"
     }
+}
 
+class TestConvention {
+    def conventionProperty
 
+    def conventionMethod(a, b) {
+        "$a.$b"
+    }
 }

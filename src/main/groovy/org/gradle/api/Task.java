@@ -18,15 +18,15 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
-
-import java.util.List;
-import java.util.Set;
-
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.logging.LogLevel;
 import org.slf4j.Logger;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * <p>A <code>Task</code> represents a single step of a build, such as compiling classes or generating javadoc.</p>
@@ -356,6 +356,8 @@ public interface Task extends Comparable<Task> {
      * @param name The name of the property
      * @param value The value of the property
      */
-    void defineProperty(String name, Object value); // We can't call this method setProperty as this lead to polymorphism problems with Groovy.
+    void defineProperty(String name, Object value); // We can't call this method setProperty as this lead to polymorphism problems with Groovy.;
+
+    Convention getConvention();
 }
 

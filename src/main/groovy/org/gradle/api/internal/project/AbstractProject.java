@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
@@ -75,7 +74,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Map<String, Project> childProjects = new HashMap<String, Project>();
 
-    private Map<String, Task> tasks = new HashMap<String, Task>();
+    private ConfigurableObjectCollection<Task> tasks;
 
     private List<String> defaultTasks = new ArrayList<String>();
 
@@ -124,7 +123,8 @@ public abstract class AbstractProject implements ProjectInternal {
     public AbstractProject(String name) {
         this.name = name;
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new Convention(this));
+        dynamicObjectHelper.setConvention(new Convention());
+        tasks = new ConfigurableObjectCollection<Task>(toString());
     }
 
     public AbstractProject(String name, ProjectInternal parent, File projectDir, String buildFileName,
@@ -161,11 +161,12 @@ public abstract class AbstractProject implements ProjectInternal {
         }
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new Convention(this));
+        dynamicObjectHelper.setConvention(new Convention());
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
-        dynamicObjectHelper.addObject(new TasksDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
+        tasks = new ConfigurableObjectCollection<Task>(toString());
+        dynamicObjectHelper.addObject(tasks, DynamicObjectHelper.Location.AfterConvention);
 
         if (parent != null) {
             depth = parent.getDepth() + 1;
@@ -289,11 +290,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Map<String, Task> getTasks() {
-        return tasks;
+        return tasks.getAll();
     }
 
     public void setTasks(Map<String, Task> tasks) {
-        this.tasks = tasks;
+        this.tasks.setAll(tasks);
     }
 
     public List<String> getDefaultTasks() {
@@ -621,7 +622,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(Map args, String name, TaskAction action) {
-        tasks.put(name, taskFactory.createTask(this, tasks, args, name));
+        tasks.put(name, taskFactory.createTask(this, tasks.getAll(), args, name));
         if (action != null) {
             tasks.get(name).doFirst(action);
         }
@@ -842,36 +843,5 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public boolean hasProperty(String propertyName) {
         return dynamicObjectHelper.hasProperty(propertyName);
-    }
-
-    private class TasksDynamicObject extends AbstractDynamicObject {
-        protected String getDisplayName() {
-            return AbstractProject.this.toString();
-        }
-
-        @Override
-        public boolean hasProperty(String name) {
-            return tasks.containsKey(name);
-        }
-
-        @Override
-        public Object getProperty(String name) throws MissingPropertyException {
-            return tasks.get(name);
-        }
-
-        @Override
-        public Map<String, Task> getProperties() {
-            return tasks;
-        }
-
-        @Override
-        public boolean hasMethod(String name, Object... arguments) {
-            return tasks.containsKey(name) && arguments.length == 1 && arguments[0] instanceof Closure;
-        }
-
-        @Override
-        public Object invokeMethod(String name, Object... arguments) {
-            return task(name, (Closure) arguments[0]);
-        }
     }
 }

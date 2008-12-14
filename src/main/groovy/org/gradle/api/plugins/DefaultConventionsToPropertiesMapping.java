@@ -30,12 +30,6 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultConventionsToPropertiesMapping {
-    public final static Map<String, ConventionValue> CLEAN = GUtil.map(
-            "dir", new ConventionValue() {
-        public Object getValue(Convention convention, Task task) {
-            return convention.getProject().getBuildDir();
-        }
-    });
 
     public final static Map JAVADOC = GUtil.map(
             "srcDirs", new ConventionValue() {

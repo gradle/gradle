@@ -21,7 +21,6 @@ import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
@@ -81,7 +80,7 @@ public class JavaPlugin implements Plugin {
         apply(project, pluginRegistry, new HashMap());
     }
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
+    public void apply(final Project project, PluginRegistry pluginRegistry, Map customValues) {
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, customValues);
         Convention convention = project.getConvention();
         convention.getPlugins().put("java", javaConvention);
@@ -91,7 +90,12 @@ public class JavaPlugin implements Plugin {
         project.createTask(INIT);
 
         ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
-                conventionMapping(DefaultConventionsToPropertiesMapping.CLEAN);
+                conventionMapping(GUtil.map(
+            "dir", new ConventionValue() {
+                    public Object getValue(Convention convention, Task task) {
+                        return project.getBuildDir();
+                    }
+                }));
 
         ((ConventionTask) project.createTask(GUtil.map("type", Javadoc.class), JAVADOC)).
                 conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);

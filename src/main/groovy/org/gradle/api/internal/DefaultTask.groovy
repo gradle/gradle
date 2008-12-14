@@ -68,4 +68,8 @@ class DefaultTask extends AbstractTask {
     void setProperty(String name, Object value) {
         defineProperty(name, value)
     }
+
+    def methodMissing(String name, arguments) {
+        dynamicObjectHelper.invokeMethod(name, arguments)
+    }
 }

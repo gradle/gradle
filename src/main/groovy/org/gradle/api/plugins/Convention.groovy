@@ -16,7 +16,6 @@
  
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.internal.DynamicObject
 
 /**
@@ -25,12 +24,6 @@ import org.gradle.api.internal.DynamicObject
 class Convention implements DynamicObject {
 
     Map<String, Object> plugins = [:]
-
-    Project project
-
-    Convention(Project project) {
-        this.project = project
-    }
 
     def propertyMissing(String property) {
         def pluginConvention = plugins.values().find { it.metaClass.hasProperty(it, property) }

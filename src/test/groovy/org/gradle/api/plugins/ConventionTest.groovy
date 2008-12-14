@@ -30,19 +30,12 @@ class ConventionTest {
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2 = new TestPluginConvention2()
 
-    DefaultProject testProject
-
     @Before public void setUp() {
-        testProject = new DefaultProject("someProject")
-        convention = new Convention(testProject)
+        convention = new Convention()
         convention1 = new TestPluginConvention1()
         convention2 = new TestPluginConvention2()
         convention.plugins.plugin1 = convention1
         convention.plugins.plugin2 = convention2
-    }
-
-    @Test public void testInit() {
-        assert convention.project.is(testProject)
     }
 
     @Test public void testGetProperties() {

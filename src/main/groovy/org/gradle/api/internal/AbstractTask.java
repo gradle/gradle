@@ -19,6 +19,7 @@ import groovy.util.AntBuilder;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
+import org.gradle.api.plugins.Convention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopActionException;
@@ -66,6 +67,7 @@ public abstract class AbstractTask implements TaskInternal {
 
     protected AbstractTask() {
         dynamicObjectHelper = new DynamicObjectHelper(this);
+        dynamicObjectHelper.setConvention(new Convention());
     }
 
     public AbstractTask(Project project, String name) {
@@ -75,6 +77,7 @@ public abstract class AbstractTask implements TaskInternal {
         this.name = name;
         path = project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this);
+        dynamicObjectHelper.setConvention(new Convention());
     }
 
     public AntBuilder getAnt() {
@@ -312,6 +315,10 @@ public abstract class AbstractTask implements TaskInternal {
         dynamicObjectHelper.setAdditionalProperties(additionalProperties);
     }
 
+    public DynamicObjectHelper getDynamicObjectHelper() {
+        return dynamicObjectHelper;
+    }
+
     public Object property(String propertyName) throws MissingPropertyException {
         return dynamicObjectHelper.getProperty(propertyName);
     }
@@ -322,5 +329,9 @@ public abstract class AbstractTask implements TaskInternal {
 
     public void defineProperty(String name, Object value) {
         dynamicObjectHelper.setProperty(name, value);
+    }
+
+    public Convention getConvention() {
+        return dynamicObjectHelper.getConvention();
     }
 }
