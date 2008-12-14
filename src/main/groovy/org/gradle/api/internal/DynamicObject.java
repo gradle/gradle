@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.plugins.Convention;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 
 import java.util.Map;
-
-import groovy.lang.MissingPropertyException;
-import groovy.lang.MissingMethodException;
 
 public interface DynamicObject {
     boolean hasProperty(String name);
@@ -29,7 +27,7 @@ public interface DynamicObject {
 
     void setProperty(String name, Object value) throws MissingPropertyException;
 
-    Map<String, Object> getProperties();
+    Map<String, ?> getProperties();
 
     boolean hasMethod(String name, Object... params);
 

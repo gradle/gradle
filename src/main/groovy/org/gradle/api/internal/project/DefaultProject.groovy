@@ -21,9 +21,9 @@ import org.gradle.api.DependencyManager
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.dependencies.DependencyManagerFactory
-import org.gradle.api.invocation.Build
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.BuildInternal
 
 /**
  * @author Hans Dockter
@@ -38,72 +38,21 @@ class DefaultProject extends AbstractProject {
                           DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory, 
                           BuildScriptProcessor buildScriptProcessor,
                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                          IProjectFactory projectFactory, Build build) {
+                          IProjectFactory projectFactory, BuildInternal build) {
         super(name, parent, projectDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
                 antBuilderFactory, buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory, build);
     }
 
-    def property(String name) {
-        if (this.metaClass.hasProperty(this, name)) {
-            return this.metaClass.getProperty(this, name)
-        }
-        return propertyMissing(name);
-    }
-    
     def propertyMissing(String name) {
-        if (additionalProperties.keySet().contains(name)) {
-            return additionalProperties[name]
-        }
-        if (convention.hasProperty(name)) {
-            return convention."$name"
-        }
-        if (tasks[name]) {
-            return tasks[name]
-        }
-        if (parent && parent.inheritedScope.hasProperty(name)) {
-            return parent.inheritedScope.getProperty(name)
-        }
-        throw new MissingPropertyException("Property '$name' not found for project $path.")
-    }
-
-    boolean hasProperty(String name) {
-        if (this.metaClass.hasProperty(this, name)) {return true}
-        if (additionalProperties.keySet().contains(name)) {return true}
-        if (convention.hasProperty(name)) {
-            return true
-        }
-        if (parent && parent.inheritedScope.hasProperty(name)) {
-            return true
-        }
-
-        tasks[name] ? true : false
+        property(name)
     }
 
     def methodMissing(String name, args) {
-        if (buildScript && buildScript.metaClass.respondsTo(buildScript, name, args)) {
-            return buildScript.invokeMethod(name, args)
-        }
-        if (convention && convention.hasMethod(name, args)) {
-            return convention.invokeMethod(name, args)
-        }
-        if (tasks[name] && args.size() == 1 && args[0] instanceof Closure) {
-            return task(name, (Closure) args[0])
-        }
-        if (parent && parent.inheritedScope.hasMethod(name, args)) {
-            return parent.inheritedScope.invokeMethod(name, args)
-        }
-        throw new MissingMethodException(name, this.class, args)
+        dynamicObjectHelper.invokeMethod(name, args)
     }
 
     void setProperty(String name, value) {
-        if (this.metaClass.hasProperty(this, name)) {
-            this.metaClass.setProperty(this, name, value)
-            return
-        } else if (convention.hasProperty(name)) {
-            convention.setProperty(name, value)
-            return
-        }
-        additionalProperties[name] = value
+        dynamicObjectHelper.setProperty(name, value)
     }
 
     public Task createTask(String name, Closure action) {

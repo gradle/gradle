@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.project;
 
+import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.internal.BuildInternal;
-import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.DynamicObjectHelper;
-import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
@@ -82,8 +81,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Set<Project> dependsOnProjects = new HashSet<Project>();
 
-    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
-
     private int state;
 
     private List<Plugin> plugins = new ArrayList<Plugin>();
@@ -104,8 +101,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 
-    private Convention convention;
-
     private Set<Class<? extends Plugin>> appliedPlugins = new HashSet<Class<? extends Plugin>>();
 
     private String path = null;
@@ -124,9 +119,12 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
 
+    private DynamicObjectHelper dynamicObjectHelper;
+
     public AbstractProject(String name) {
         this.name = name;
-        convention = new Convention(this);
+        dynamicObjectHelper = new DynamicObjectHelper(this);
+        dynamicObjectHelper.setConvention(new Convention(this));
     }
 
     public AbstractProject(String name, ProjectInternal parent, File projectDir, String buildFileName,
@@ -134,7 +132,7 @@ public abstract class AbstractProject implements ProjectInternal {
                            DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory,  
                            BuildScriptProcessor buildScriptProcessor,
                            PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                           IProjectFactory projectFactory, Build build) {
+                           IProjectFactory projectFactory, BuildInternal build) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -154,8 +152,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.archivesBaseName = name;
         this.projectFactory = projectFactory;
         this.buildScriptSource = buildScriptSource;
-        // todo remove this cast once we figure out the groovy compile weirdness
-        this.build = (BuildInternal) build;
+        this.build = build;
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
@@ -163,13 +160,18 @@ public abstract class AbstractProject implements ProjectInternal {
             path = parent.absolutePath(name);
         }
 
+        dynamicObjectHelper = new DynamicObjectHelper(this);
+        dynamicObjectHelper.setConvention(new Convention(this));
+        if (parent != null) {
+            dynamicObjectHelper.setParent(parent.getInheritedScope());
+        }
+        dynamicObjectHelper.addObject(new TasksDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
+
         if (parent != null) {
             depth = parent.getDepth() + 1;
         }
 
         projectRegistry.addProject(this);
-
-        convention = new Convention(this);
     }
 
     public String getRelativeFilePath() {
@@ -226,6 +228,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setBuildScript(Script buildScript) {
         this.buildScript = buildScript;
+        dynamicObjectHelper.addObject(new BeanDynamicObject(buildScript).withNoProperties(), DynamicObjectHelper.Location.BeforeConvention);
     }
 
     public ScriptSource getBuildScriptSource() {
@@ -262,19 +265,15 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setParent(ProjectInternal parent) {
         this.parent = parent;
+        dynamicObjectHelper.setParent(parent == null ? null : parent.getInheritedScope());
+    }
+
+    public DynamicObjectHelper getDynamicObjectHelper() {
+        return dynamicObjectHelper;
     }
 
     public DynamicObject getInheritedScope() {
-        DynamicObjectHelper helper = new DynamicObjectHelper(this);
-        helper.setConvention(convention);
-        helper.setAdditionalProperties(additionalProperties);
-        if (parent != null) {
-            helper.setParent(parent.getInheritedScope());
-        }
-        if (buildScript != null) {
-            helper.addObject(new BeanDynamicObject(buildScript).withNoProperties(), DynamicObjectHelper.Location.BeforeConvention);
-        }
-        return helper.getInheritable();
+        return dynamicObjectHelper.getInheritable();
     }
 
     public String getName() {
@@ -314,11 +313,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Map<String, Object> getAdditionalProperties() {
-        return additionalProperties;
+        return dynamicObjectHelper.getAdditionalProperties();
     }
 
     public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-        this.additionalProperties = additionalProperties;
+        dynamicObjectHelper.setAdditionalProperties(additionalProperties);
     }
 
     public int getState() {
@@ -374,11 +373,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Convention getConvention() {
-        return convention;
+        return dynamicObjectHelper.getConvention();
     }
 
     public void setConvention(Convention convention) {
-        this.convention = convention;
+        dynamicObjectHelper.setConvention(convention);
     }
 
     public Set<Class<? extends Plugin>> getAppliedPlugins() {
@@ -517,7 +516,7 @@ public abstract class AbstractProject implements ProjectInternal {
         }
         Clock clock = new Clock();
         state = STATE_INITIALIZING;
-        buildScript = buildScriptProcessor.createScript(this);
+        setBuildScript(buildScriptProcessor.createScript(this));
         try {
             standardOutputRedirector.on(LogLevel.QUIET);
             buildScript.run();
@@ -835,5 +834,44 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void captureStandardOutput(LogLevel level) {
         standardOutputRedirector.on(level);
+    }
+
+    public Object property(String propertyName) throws MissingPropertyException {
+        return dynamicObjectHelper.getProperty(propertyName);
+    }
+
+    public boolean hasProperty(String propertyName) {
+        return dynamicObjectHelper.hasProperty(propertyName);
+    }
+
+    private class TasksDynamicObject extends AbstractDynamicObject {
+        protected String getDisplayName() {
+            return AbstractProject.this.toString();
+        }
+
+        @Override
+        public boolean hasProperty(String name) {
+            return tasks.containsKey(name);
+        }
+
+        @Override
+        public Object getProperty(String name) throws MissingPropertyException {
+            return tasks.get(name);
+        }
+
+        @Override
+        public Map<String, Task> getProperties() {
+            return tasks;
+        }
+
+        @Override
+        public boolean hasMethod(String name, Object... params) {
+            return tasks.containsKey(name) && params.length == 1 && params[0] instanceof Closure;
+        }
+
+        @Override
+        public Object invokeMethod(String name, Object... params) {
+            return task(name, (Closure) params[0]);
+        }
     }
 }

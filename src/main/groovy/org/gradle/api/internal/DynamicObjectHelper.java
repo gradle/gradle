@@ -31,6 +31,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
     private DynamicObject parent;
     private Convention convention;
     private DynamicObject beforeConvention;
+    private DynamicObject afterConvention;
 
     public DynamicObjectHelper(Object delegateObject) {
         this(new BeanDynamicObject(delegateObject));
@@ -69,7 +70,13 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
     }
 
     public void addObject(DynamicObject object, Location location) {
-        beforeConvention = object;
+        switch (location) {
+            case BeforeConvention:
+                beforeConvention = object;
+                break;
+            case AfterConvention:
+                afterConvention = object;
+        }
     }
 
     public BeanDynamicObject getDelegateObject() {
@@ -84,6 +91,9 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
             return true;
         }
         if (convention != null && convention.hasProperty(name)) {
+            return true;
+        }
+        if (afterConvention != null && afterConvention.hasProperty(name)) {
             return true;
         }
         if (parent != null && parent.hasProperty(name)) {
@@ -105,6 +115,9 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         if (convention != null && convention.hasProperty(name)) {
             return convention.getProperty(name);
         }
+        if (afterConvention != null && afterConvention.hasProperty(name)) {
+            return afterConvention.getProperty(name);
+        }
         if (parent != null && parent.hasProperty(name)) {
             return parent.getProperty(name);
         }
@@ -114,14 +127,17 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
     public void setProperty(String name, Object value) {
         if (delegateObject.hasProperty(name)) {
             delegateObject.setProperty(name, value);
-        }
-        if (beforeConvention != null && beforeConvention.hasProperty(name)) {
+        } else if (additionalProperties.containsKey(name)) {
+            additionalProperties.put(name, value);
+        } else if (beforeConvention != null && beforeConvention.hasProperty(name)) {
             beforeConvention.setProperty(name, value);
-        }
-        if (convention != null && convention.hasProperty(name)) {
+        } else if (convention != null && convention.hasProperty(name)) {
             convention.setProperty(name, value);
+        } else if (afterConvention != null && afterConvention.hasProperty(name)) {
+            afterConvention.setProperty(name, value);
+        } else {
+            additionalProperties.put(name, value);
         }
-        additionalProperties.put(name, value);
     }
 
     public Map<String, Object> getProperties() {
@@ -129,6 +145,9 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         properties.putAll(additionalProperties);
         if (parent != null) {
             properties.putAll(parent.getProperties());
+        }
+        if (afterConvention != null) {
+            properties.putAll(afterConvention.getProperties());
         }
         if (convention != null) {
             properties.putAll(convention.getAllProperties());
@@ -152,6 +171,9 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         if (convention != null && convention.hasMethod(name, params)) {
             return true;
         }
+        if (afterConvention != null && afterConvention.hasMethod(name, params)) {
+            return true;
+        }
         if (parent != null && parent.hasMethod(name, params)) {
             return true;
         }
@@ -168,6 +190,9 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         if (convention != null && convention.hasMethod(name, params)) {
             return convention.invokeMethod(name, params);
         }
+        if (afterConvention != null && afterConvention.hasMethod(name, params)) {
+            return afterConvention.invokeMethod(name, params);
+        }
         if (parent != null && parent.hasMethod(name, params)) {
             return parent.invokeMethod(name, params);
         }
@@ -176,9 +201,14 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
 
     /**
      * Returns the inheritable properties and methods of this object.
+     *
      * @return an object containing the inheritable properties and methods of this object.
      */
     public DynamicObject getInheritable() {
+        return new InheritedDynamicObject();
+    }
+
+    private DynamicObjectHelper snapshotInheritable() {
         DynamicObjectHelper helper = new DynamicObjectHelper(delegateObject.withNoProperties());
         helper.parent = parent;
         helper.convention = convention;
@@ -186,39 +216,34 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         if (beforeConvention != null) {
             helper.beforeConvention = beforeConvention;
         }
-        return new HelperBackedDynamicObject(helper);
+        return helper;
+    }
+
+    private class InheritedDynamicObject implements DynamicObject {
+        public void setProperty(String name, Object value) {
+            throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
+                    delegateObject.getDisplayName()));
+        }
+
+        public boolean hasProperty(String name) {
+            return snapshotInheritable().hasProperty(name);
+        }
+
+        public Object getProperty(String name) {
+            return snapshotInheritable().getProperty(name);
+        }
+
+        public Map<String, Object> getProperties() {
+            return snapshotInheritable().getProperties();
+        }
+
+        public boolean hasMethod(String name, Object... params) {
+            return snapshotInheritable().hasMethod(name, params);
+        }
+
+        public Object invokeMethod(String name, Object... params) {
+            return snapshotInheritable().invokeMethod(name, params);
+        }
     }
 }
 
-class HelperBackedDynamicObject implements DynamicObject {
-    private final DynamicObjectHelper helper;
-
-    public HelperBackedDynamicObject(DynamicObjectHelper helper) {
-        this.helper = helper;
-    }
-
-    public void setProperty(String name, Object value) {
-        throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
-                helper.getDelegateObject().getDisplayName()));
-    }
-
-    public boolean hasProperty(String name) {
-        return helper.hasProperty(name);
-    }
-
-    public Object getProperty(String name) {
-        return helper.getProperty(name);
-    }
-
-    public Map<String, Object> getProperties() {
-        return helper.getProperties();
-    }
-
-    public boolean hasMethod(String name, Object... params) {
-        return helper.hasMethod(name, params);
-    }
-
-    public Object invokeMethod(String name, Object... params) {
-        return helper.invokeMethod(name, params);
-    }
-}

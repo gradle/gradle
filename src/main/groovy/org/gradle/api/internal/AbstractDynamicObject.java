@@ -44,7 +44,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
                 getDisplayName()));
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, ?> getProperties() {
         return Collections.emptyMap();
     }
 
@@ -52,11 +52,11 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         return false;
     }
 
-    public Object invokeMethod(String name, Object... params) throws MissingMethodException {
+    public Object invokeMethod(String name, Object... params) throws groovy.lang.MissingMethodException {
         throw methodMissingException(name, params);
     }
 
-    protected MissingMethodException methodMissingException(String name, Object... params) {
+    protected groovy.lang.MissingMethodException methodMissingException(String name, Object... params) {
         return new MissingMethodException(getDisplayName(), name, params);
     }
 }

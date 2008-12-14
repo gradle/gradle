@@ -15,16 +15,10 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.GroovyObject;
-import groovy.lang.GroovyRuntimeException;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaBeanProperty;
-import groovy.lang.MetaClass;
-import groovy.lang.MetaMethod;
-import groovy.lang.MetaProperty;
-import groovy.lang.MissingPropertyException;
+import groovy.lang.*;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +42,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     public BeanDynamicObject withNoProperties() {
         return new BeanDynamicObject(bean, false);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     protected String getDisplayName() {
@@ -93,7 +92,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public void setProperty(String name, Object value) throws MissingPropertyException {
+    public void setProperty(final String name, Object value) throws MissingPropertyException {
         if (!includeProperties) {
             throw propertyMissingException(name);
         }
@@ -104,8 +103,13 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getSetter() == null) {
-            throw new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' on %s.", name, getDisplayName()));
+            throw new ReadOnlyPropertyException(name, bean.getClass()) {
+                @Override
+                public String getMessage() {
+                    return String.format("Cannot set the value of read-only property '%s' on %s.", name,
+                            getDisplayName());
+                }
+            };
         }
         try {
             property.setProperty(bean, value);
@@ -120,7 +124,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     @Override
     public Map<String, Object> getProperties() {
         if (!includeProperties) {
-            return super.getProperties();
+            return Collections.emptyMap();
         }
 
         Map<String, Object> properties = new HashMap<String, Object>();
