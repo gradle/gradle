@@ -14,6 +14,7 @@ import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.util.GradleVersion
+import org.apache.ivy.plugins.resolver.*
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -47,7 +48,7 @@ webSrcDir = new File("$srcRoot", 'website')
 libDir = new File(rootDir, 'lib')
 
 dependencies {
-    addFlatDirResolver('lib', libDir)
+    addMavenRepo()
     // todo: Improve dependency handling for xUnit jars
     addConfiguration('distLib') {
         visible = false
@@ -56,22 +57,23 @@ dependencies {
     addConfiguration('ftpAntTask')
     addConfiguration('retrotranslatorAntTask')
 
-    clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
-        clientModule(":commons-net:1.4.1") {
-            dependencies(":oro:2.0.8@jar")
+    clientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
+        clientModule("commons-net:commons-net:1.4.1@jar") {
+            dependencies("oro:oro:2.0.8@jar")
         }
     }
 
-    retrotranslatorAntTask ':retrotranslator-runtime:1.2.7', ':retrotranslator-transformer:1.2.7', ':backport-util-concurrent:3.1'
+    retrotranslatorAntTask 'net.sf.retrotranslator:retrotranslator-runtime:1.2.7@jar', 'net.sf.retrotranslator:retrotranslator-transformer:1.2.7@jar',
+            'backport-util-concurrent:backport-util-concurrent:3.1@jar'
 
-    clientModule(['groovy'], ":groovy-all:1.5.6") {
-        clientModule(":ant:1.7.0") {
-            dependencies(":ant-junit:1.7.0@jar", ":ant-launcher:1.7.0")
+    clientModule(['groovy'], "org.codehaus.groovy:groovy-all:1.5.6") {
+        clientModule("org.apache.ant:ant:1.7.0") {
+            dependencies(":ant-junit:1.7.0@jar", ":ant-launcher:1.7.0@jar")
         }
     }
 
-    clientModule(['compile'], ":commons-httpclient:3.0") {
-        dependencies(":commons-codec:1.2", ":jcl-over-slf4j:1.5.3")
+    clientModule(['compile'], "commons-httpclient:commons-httpclient:3.0") {
+        dependencies("commons-codec:commons-codec:1.2@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar")
     }
 
     // Needed by the eclipse plugin
@@ -79,38 +81,36 @@ dependencies {
         dependencies(":jaxen:1.1@jar")
     }
 
-    runtime(":ant-junit:1.7.0") {
-        exclude(module: 'junit')
-    }
+    runtime("org.apache.ant:ant-junit:1.7.0@jar")
 
-    clientModule(['compile'], ":jetty:6.1.14") {
-        dependencies(":servlet-api:2.5", ":jetty-naming:6.1.14")
+    clientModule(['compile'], "org.mortbay.jetty:jetty:6.1.14") {
+        dependencies("javax.servlet:servlet-api:2.5@jar", "org.mortbay.jetty:jetty-naming:6.1.14@jar")
     }
-    compile ":jetty-plus:6.1.14", ":jetty-util:6.1.14", ":servlet-api:2.5"
+    compile "org.mortbay.jetty:jetty-plus:6.1.14@jar", "org.mortbay.jetty:jetty-util:6.1.14@jar", "javax.servlet:servlet-api:2.5@jar"
 
-    compile ":jopt-simple:2.4.1",
-            ":ant:1.7.0",
-            ":logback-classic:0.9.9",
-            ":slf4j-api:1.5.3",
-            ":logback-core:0.9.9",
-            ":commons-io:1.4@jar",
-            ":commons-lang:2.3@jar",
-            ":webdavlib:2.0",
-            ":bndlib:0.0.255@jar",
-            ":ivy:2.0.0-rc2@jar",
-            ":maven-ant-tasks:2.0.9"
+    compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
+            "org.apache.ant:ant:1.7.0@jar",
+            "ch.qos.logback:logback-classic:0.9.9@jar",
+            "org.slf4j:slf4j-api:1.5.3@jar",
+            "ch.qos.logback:logback-core:0.9.9@jar",
+            "commons-io:commons-io:1.4@jar",
+            "commons-lang:commons-lang:2.3@jar",
+            "slide:webdavlib:2.0@jar",
+            "biz.aQute:bndlib:0.0.255@jar",
+            "org.apache.ivy:ivy:2.0.0-rc2@jar",
+            "org.apache.maven:maven-ant-tasks:2.0.9@jar"
     
-    runtime ":ant-launcher:1.7.0",
-            ":ant-nodeps:1.7.0",
-            ":ant-trax:1.7.0",
-            ":junit:4.4"
+    runtime "org.apache.ant:ant-launcher:1.7.0@jar",
+            "org.apache.ant:ant-nodeps:1.7.0@jar",
+            "org.apache.ant:ant-trax:1.7.0@jar",
+            "junit:junit:4.4@jar"
 
-    def FIRST_LEVEL_JMOCK = [':hamcrest-core:1.1', ':hamcrest-library:1.1', ':jmock-junit4:2.4.0']
-    testCompile ":junit:4.4", FIRST_LEVEL_JMOCK
-    clientModule(['testCompile'], ":jmock:2.4.0") {
-        dependencies(':jmock-legacy:2.4.0', ':objenesis:1.0', ':cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
+    def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
+    testCompile "junit:junit:4.4@jar", FIRST_LEVEL_JMOCK
+    clientModule(['testCompile'], "org.jmock:jmock:2.4.0") {
+        dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
     }
-    distLib ":junit:4.4"
+    distLib "junit:junit:4.4@jar"
 }
 
 distributionUploadUrl = null
@@ -470,16 +470,9 @@ createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavad
 
 createTask('wrapper', type: Wrapper, dependsOn: ['archive_bin_zip']).doFirst {task ->
     task.configure {
-        gradleVersion = version
-        archiveBase = Wrapper.PathBase.PROJECT
-        archivePath = 'wrapper'
-        jarPath = archivePath
+        gradleVersion = customWrapperVersion ?: version
+        jarPath = 'wrapper'
     }
-}
-
-wrapper.doLast {
-    def binDistZip = project.archive_bin_zip.archivePath
-    ant.copy(file: binDistZip, toDir: 'wrapper')
 }
 
 createTask('rebuildWrapper', dependsOn: ['clean', 'wrapper'])

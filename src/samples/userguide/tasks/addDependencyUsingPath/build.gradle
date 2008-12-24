@@ -1,0 +1,11 @@
+project('projectA') {
+    createTask('taskX', dependsOn: ':projectB:taskY') {
+        println 'taskX'
+    }
+}
+
+project('projectB') {
+    createTask('taskY') {
+        println 'taskY'
+    }
+}

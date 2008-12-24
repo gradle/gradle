@@ -1,0 +1,4 @@
+>gradle -q hello
+Hello Venus
+Hello Earth
+Hello Mars

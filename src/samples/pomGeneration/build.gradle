@@ -1,0 +1,54 @@
+import org.apache.maven.settings.Settings
+
+group = 'gradle'
+version = '1.0'
+archivesBaseName = 'mywar'
+usePlugin('war')
+usePlugin('maven')
+targetCompatibility = '1.5'
+sourceCompatibility = '1.5'
+
+
+dependencies {
+    addFlatDirResolver('lib', "$rootDir/lib")
+    compile("group1:compile:1.0") {
+        exclude('org': 'excludeGroup', module: 'excludeArtifact')
+    }
+    providedCompile "group2:providedCompile:1.0@jar"
+    runtime "group3:runtime:1.0"
+    providedRuntime("group4:providedRuntime:1.0@zip") {
+        artifact {
+            name = 'providedRuntime-util'
+            type = 'war'
+        }
+    }
+    testCompile "group5:testCompile:1.0"
+    testRuntime "group6:testRuntime:1.0"
+}
+
+mavenInstaller = install.uploadResolvers.get("maven-installer")
+
+install.doLast {install ->
+    Settings settings = mavenInstaller.settings
+    new File(buildDir, "localRepoPath.txt").write(settings.getLocalRepository())
+
+}
+
+uploadLibs.dependsOn install
+
+uploadLibs {
+    uploadResolvers.addMavenDeployer('maven-deployer') {
+        repository(url: "file://localhost/$projectDir/pomRepo/")
+    }
+}
+
+mavenDeployer = uploadLibs.uploadResolvers.get("maven-deployer")
+
+[mavenInstaller, mavenDeployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
+if (hasProperty('customVersion')) {
+    [mavenInstaller, mavenDeployer]*.pom*.version = customVersion
+    mavenInstaller.pom.groupId = 'installGroup'
+    mavenDeployer.pom.groupId = 'deployGroup'
+}
+
+

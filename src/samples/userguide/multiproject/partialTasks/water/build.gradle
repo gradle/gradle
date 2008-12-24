@@ -1,0 +1,14 @@
+import org.gradle.api.Project
+
+allprojects {
+    createTask('hello') {task -> println "I'm $task.project.name" }
+}
+subprojects {
+    hello {
+        doLast {println "- I depend on water"}
+        addAfterEvaluateListener { Project project ->
+            if (project.arctic) { doLast { println '- I love to spend time in the arctic waters.' }}
+        }
+    }
+}
+

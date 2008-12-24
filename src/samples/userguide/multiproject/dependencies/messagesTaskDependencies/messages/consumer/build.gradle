@@ -1,0 +1,3 @@
+createTask('consume', dependsOn: ':producer:produce') {
+    println "Consuming message: " +  System.getProperty('org.gradle.message')
+}

@@ -1,0 +1,5 @@
+4.times { counter ->
+    createTask("task_$counter") {
+        println "I'm task number $counter"
+    }
+}

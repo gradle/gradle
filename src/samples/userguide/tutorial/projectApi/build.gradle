@@ -1,0 +1,4 @@
+createTask('check') {
+    println project.name
+    println name
+}

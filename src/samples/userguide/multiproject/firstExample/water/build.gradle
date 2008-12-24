@@ -1,0 +1,3 @@
+Closure cl = { task -> println "I'm $task.project.name" }
+createTask('hello', cl)
+project(':bluewhale').createTask('hello', cl)

@@ -1,0 +1,3 @@
+allprojects {
+    createTask('hello') {task -> println "I'm $task.project.name" }
+}

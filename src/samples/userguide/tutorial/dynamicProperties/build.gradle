@@ -1,0 +1,6 @@
+createTask('myTask')
+myTask.myProperty = 'myCustomPropValue'
+
+createTask('showProps') {
+    println myTask.myProperty
+}

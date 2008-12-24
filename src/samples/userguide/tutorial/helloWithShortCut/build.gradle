@@ -1,0 +1,6 @@
+createTask('hello') {
+    println 'Hello world!'
+}
+hello.doLast {
+    println 'Hello again!'
+}

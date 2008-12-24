@@ -1,0 +1,5 @@
+createTask('resources', type: Resources)
+
+createTask('resources', overwrite: true) {
+    println('I am the new one.')
+}

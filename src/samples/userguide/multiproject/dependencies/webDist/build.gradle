@@ -1,0 +1,27 @@
+dependsOnChildren()
+
+
+allprojects {
+    usePlugin('java')
+    sourceCompatibility = 1.5
+    targetCompatibility = 1.5
+    group = 'org.gradle.sample'
+    version = '1.0'
+}
+
+subprojects {
+    usePlugin('war')
+    dependencies {
+        addMavenRepo()
+        compile "javax.servlet:servlet-api:2.5"
+    }
+}
+
+createTask('explodedDist', dependsOn: 'libs') {
+    File explodedDist = mkdir(buildDir, 'explodedDist')
+    subprojects.each {project ->
+        project.libs.archiveTasks.each {archiveTask ->
+            ant.copy(file: archiveTask.archivePath, todir: explodedDist)
+        }
+    }
+}

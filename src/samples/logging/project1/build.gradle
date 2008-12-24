@@ -1,0 +1,21 @@
+logger.info(Logging.QUIET, prefix + "quietLog")
+logger.info(Logging.LIFECYCLE, prefix + "lifecycleLog")
+logger.info(prefix + "infoLog")
+logger.debug(prefix + "debugLog")
+logger.warn(prefix + "warnLog")
+logger.error(prefix + "errorLog")
+println(prefix + 'quietOut')
+captureStandardOutput(LogLevel.INFO)
+println(prefix + 'infoOut')
+
+createTask('logLifecycle') {
+    println(prefix + 'lifecycleTaskOut')
+}.captureStandardOutput(LogLevel.LIFECYCLE)
+
+createTask('logInfo') {
+    println(prefix + 'infoTaskOut')
+}.captureStandardOutput(LogLevel.INFO)
+
+createTask('log', dependsOn: [logInfo, logLifecycle]) {
+    println(prefix + 'quietTaskOut')
+}

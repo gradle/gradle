@@ -1,0 +1,9 @@
+createTask('checksum') {
+    File[] files = new File('../antChecksumFiles').listFiles()
+    Arrays.sort(files)
+    files.each { File file ->
+        ant.checksum(file: file.canonicalPath, property: file.name)
+        println "$file.name Checksum: ${ant.antProject.properties[file.name]}"
+    }
+}
+        

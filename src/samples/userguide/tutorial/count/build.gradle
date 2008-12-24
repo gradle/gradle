@@ -1,0 +1,3 @@
+createTask('count') {
+    4.times { print "$it " }
+}

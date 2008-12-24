@@ -1,0 +1,19 @@
+dependsOn(':shared')
+
+dependencies {
+    compile project(':shared')
+    clientModule(['compile'], "commons-lang:commons-lang:2.4") {
+        dependency("commons-io:commons-io:1.2")
+    }
+    addConfiguration('spi')
+}
+
+libs.jar(appendix: 'spi', confs: ['spi']) {
+    fileSet() {
+        include('org/gradle/api/')
+    }
+}
+ 
+// We want to test if commons-math was properly add to the build script classpath
+org.apache.commons.math.fraction.Fraction lhs = new org.apache.commons.math.fraction.Fraction(1, 3);
+org.gradle.buildsrc.BuildSrcClass bsc = new org.gradle.buildsrc.BuildSrcClass() 

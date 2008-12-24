@@ -1,0 +1,3 @@
+createTask('autoskip') {
+    println 'This should not be printed if the skip.autoskip system property is set.'
+}

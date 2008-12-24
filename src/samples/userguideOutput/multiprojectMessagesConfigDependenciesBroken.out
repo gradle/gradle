@@ -1,0 +1,3 @@
+>gradle -q consume
+Producing message:
+Consuming message from key 'unknown': null

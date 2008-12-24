@@ -1,0 +1,3 @@
+>gradle -q action
+Consuming message: null
+Producing message:

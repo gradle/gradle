@@ -1,0 +1,7 @@
+key = 'unknown'
+if (project(':producer').hasProperty('key')) {
+    key = project(':producer').key
+}
+createTask('consume', dependsOn: ':producer:produce') {
+    println "Consuming message from key '$key': " +  System.getProperty(key)
+}

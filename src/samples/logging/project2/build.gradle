@@ -1,0 +1,2 @@
+dependsOn(':project1')
+println(prefix + 'quietProject2Out')

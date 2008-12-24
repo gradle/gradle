@@ -1,0 +1,3 @@
+>gradle -q release
+We build the zip with version=1.0
+We release now

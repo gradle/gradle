@@ -1,0 +1,11 @@
+usePlugin('java')
+archivesBaseName = 'gradle'
+version = '1.0'
+dists {
+    // Creates an archive task archive_wrapper_src_zip with
+    // the archive name gradle-wrapper-1.0-src.zip
+    zip(appendix: 'wrapper', classifier: 'src') {
+        fileSet(dir: 'somedir')
+    }
+}
+println archive_wrapper_src_zip.archiveName
