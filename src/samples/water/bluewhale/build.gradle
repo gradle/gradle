@@ -1,0 +1,7 @@
+
+    dependsOn(':krill')
+
+    hello.doLast {
+        println "I'm the largets animal which has ever lived on this planet!"
+    }
+    

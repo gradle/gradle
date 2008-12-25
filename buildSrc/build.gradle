@@ -2,12 +2,17 @@ import org.apache.ivy.core.install.InstallOptions
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.DependencyManager
+import org.apache.ivy.plugins.resolver.*
 
 usePlugin('groovy')
 
 dependencies {
-    addFlatDirResolver('lib', new File(rootDir, 'lib'), new File(rootDir.parentFile, 'lib'))
-    compile ":svnkit:1.1.6", ":svnkit-javahl:1.1.6", ":xmlunit:1.2", ':hamcrest-core:1.1', ':hamcrest-library:1.1'
+    addMavenRepo()
+    classpathResolvers.add(new URLResolver()) {
+      name = 'sf_gradleRepo'
+      addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
+    }
+    compile "com.svnkit:svnkit:1.1.6", "com.svnkit:svnkit-javahl:1.1.6", "xmlunit:xmlunit:1.2", 'org.hamcrest:hamcrest-core:1.1', 'org.hamcrest:hamcrest-library:1.1'
 }
 
 sourceCompatibility = 1.5

@@ -1,0 +1,3 @@
+createTask('action') {
+    println "Consuming message: " +  System.getProperty('org.gradle.message')
+}

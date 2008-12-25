@@ -1,0 +1,15 @@
+project.group = 'org.gradle'
+project.version = '1.0'
+
+allprojects {
+    usePlugin('java')
+    dependencies {
+        addMavenRepo()
+        testCompile('junit:junit:4.4')
+    }
+    manifest.mainAttributes(provider: 'gradle')
+    sourceCompatibility = 1.5
+    targetCompatibility = 1.5
+}
+
+

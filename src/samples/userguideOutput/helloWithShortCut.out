@@ -1,0 +1,3 @@
+>gradle -q hello
+Hello world!
+Hello again!

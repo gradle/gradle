@@ -1,0 +1,6 @@
+createTask('taskX', dependsOn: 'taskY') {
+    println 'taskX'
+}
+createTask('taskY') {
+    println 'taskY'
+}

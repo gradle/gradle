@@ -1,0 +1,13 @@
+defaultTasks "clean", "run"
+
+createTask("clean") {
+    println "Default Cleaning!"
+}
+
+createTask("run") {
+    println "Default Running!"
+}
+
+createTask("other") {
+    println "I'm not a default task!"
+}

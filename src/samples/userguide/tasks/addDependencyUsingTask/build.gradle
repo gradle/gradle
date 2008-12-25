@@ -1,0 +1,9 @@
+createTask('taskX') {
+    println 'taskX'
+}
+
+createTask('taskY') {
+    println 'taskY'
+}
+
+taskX.dependsOn taskY

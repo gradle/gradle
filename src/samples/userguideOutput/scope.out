@@ -1,0 +1,10 @@
+>groovy scope.groovy
+localScope1
+localScope2
+scriptScope
+localScope1
+localScope2
+scriptScope
+localScope1NotAvailable
+localScope2NotAvailable
+scriptScope

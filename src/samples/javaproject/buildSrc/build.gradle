@@ -1,0 +1,10 @@
+usePlugin('java')
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
+compile.unmanagedClasspath(BootstrapUtil.gradleClasspath as File[])
+test {
+    include '**/*Test.class'
+    exclude '**/Abstract*'
+    // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
+    options.fork(forkMode: ForkMode.ONCE)
+}

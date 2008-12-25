@@ -1,0 +1,13 @@
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" version="2.4"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http:/java.sun.com/dtd/web-app_2_3.dtd">
+  <servlet>
+    <servlet-name>date</servlet-name>
+    <servlet-class>org.gradle.sample.DateServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>date</servlet-name>
+    <url-pattern>/date</url-pattern>
+  </servlet-mapping>
+</web-app>

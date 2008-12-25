@@ -1,0 +1,19 @@
+createTask('checksum') {
+    fileList('../antChecksumFiles').each { File file ->
+        ant.checksum(file: file.canonicalPath, property: file.name)
+        println "$file.name Checksum: ${ant.antProject.properties[file.name]}"
+    }
+}
+
+createTask('length') {
+    fileList('../antChecksumFiles').each { File file ->
+        ant.length(file: file.canonicalPath, property: file.name)
+        println "$file.name Length: ${ant.antProject.properties[file.name]}"
+    }
+}
+
+File[] fileList(String dir) {
+    File[] files = new File(dir).listFiles()
+    Arrays.sort(files)
+    files
+}

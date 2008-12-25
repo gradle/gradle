@@ -1,0 +1,4 @@
+>gradle -q hello
+I'm master
+I'm dolphin
+I'm shark

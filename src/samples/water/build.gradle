@@ -1,0 +1,17 @@
+
+    import org.gradle.api.Task
+
+    childrenDependOnMe()
+
+    allprojects*.createTask('hello') { Task task ->
+        println "Hello, I'm $task.project.name"
+    }
+
+    subprojects*.hello*.doLast {
+        println 'I love water.'
+    }
+
+    hello.doLast {
+        println 'As you all know, I cover three quarters of this planet!'
+    }
+    

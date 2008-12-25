@@ -1,0 +1,9 @@
+createTask('hello') {
+    println 'Hello Earth'
+}
+task('hello').doFirst {
+    println 'Hello Venus'
+}
+task('hello').doLast {
+    println 'Hello Mars'
+}

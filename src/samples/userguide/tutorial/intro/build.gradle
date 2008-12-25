@@ -1,0 +1,6 @@
+createTask('hello') {
+    println 'Hello world!'
+}
+createTask('intro', dependsOn: 'hello') {
+    println "I'm Gradle"
+}

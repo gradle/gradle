@@ -1,0 +1,5 @@
+subprojects {
+    dependencies {
+        addMavenRepo()
+    }
+}

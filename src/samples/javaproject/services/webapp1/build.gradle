@@ -1,0 +1,13 @@
+dependsOn(':shared')
+
+usePlugin('war')
+
+version = '2.5'
+
+dependencies {
+    compile project(':shared'), 'commons-collections:commons-collections:3.2@jar', 'commons-io:commons-io:1.2', 'commons-lang:commons-lang:2.4@jar'
+    compile(project(':api')) {
+        dependencyConfiguration = 'spi'
+    }
+    runtime project(':api')
+}

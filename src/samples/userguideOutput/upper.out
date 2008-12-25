@@ -1,0 +1,3 @@
+>gradle -q upper
+Original: mY_nAmE
+Upper case: MY_NAME

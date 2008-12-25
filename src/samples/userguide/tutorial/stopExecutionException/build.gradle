@@ -1,0 +1,11 @@
+createTask('compile') {
+    println 'We are doing the compile.'
+}
+
+compile.doFirst {
+    // Here you would put arbitrary conditions in real life. But we use this as an integration test, so we want defined behavior.
+    if (true) { throw new StopExecutionException() }
+}
+createTask('myTask', dependsOn: 'compile') {
+   println 'I am not affected'
+}
