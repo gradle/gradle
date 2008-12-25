@@ -58,7 +58,7 @@ dependencies {
     addConfiguration('retrotranslatorAntTask')
 
     clientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
-        clientModule("commons-net:commons-net:1.4.1@jar") {
+        clientModule("commons-net:commons-net:1.4.1") {
             dependencies("oro:oro:2.0.8@jar")
         }
     }
@@ -78,7 +78,7 @@ dependencies {
 
     // Needed by the eclipse plugin
     clientModule(['compile'], ":dom4j:1.6.1") {
-        dependencies(":jaxen:1.1@jar")
+        dependencies("jaxen:jaxen:1.1@jar")
     }
 
     runtime("org.apache.ant:ant-junit:1.7.0@jar")
