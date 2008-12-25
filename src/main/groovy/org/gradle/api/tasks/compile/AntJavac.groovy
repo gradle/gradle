@@ -39,6 +39,7 @@ class AntJavac {
                 target: targetCompatibility,
                 source: sourceCompatibility
         ]
+        targetDir.mkdirs()
         ant.javac(otherArgs + compileOptions.optionMap()) {
             includes.each {
                 include(name: it)

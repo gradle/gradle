@@ -80,6 +80,13 @@ public class DefaultScriptHandlerTest {
         evaluateScript(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass));
     }
 
+    @Test
+    public void testWriteToCacheAndLoadFromCacheWithEmptyScript() {
+        Script script = scriptHandler.writeToCache("// ignore me\n", classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass);
+        assertTrue(script instanceof EmptyScript);
+        assertNull(scriptHandler.loadFromCache(0, classLoader, TEST_SCRIPT_NAME, scriptCacheDir, expectedScriptClass));
+    }
+
     private void checkCacheDestination() {
         assertTrue(scriptCacheDir.isDirectory());
         assertTrue(cachedFile.isFile());
@@ -88,6 +95,11 @@ public class DefaultScriptHandlerTest {
     @Test public void testCreateScript() {
         Script script = scriptHandler.createScript(testScript, classLoader, TEST_SCRIPT_NAME, expectedScriptClass);
         evaluateScript(script);
+    }
+
+    @Test public void testCreateScriptWthEmptyScript() {
+        Script script = scriptHandler.createScript("// ignore me\n", classLoader, TEST_SCRIPT_NAME, expectedScriptClass);
+        assertTrue(script instanceof EmptyScript);
     }
 
     private void evaluateScript(Script script) {

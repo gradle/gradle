@@ -95,35 +95,30 @@ public class DefaultScriptProcessorTest {
     }
 
     @Test
-    public void testWithNonExistingSourceFileAndNoText() {
+    public void testWithNonExistingSourceFile() {
         context.checking(new Expectations(){{
             allowing(source).getSourceFile();
             will(returnValue(testScriptFile));
+
             allowing(source).getText();
-            will(returnValue(null));
+            will(returnValue(TEST_SCRIPT_TEXT));
+
+            allowing(source).getClassName();
+            will(returnValue(TEST_SCRIPT_NAME));
+
+            one(scriptHandlerMock).createScript(
+                    TEST_SCRIPT_TEXT,
+                    testClassLoader,
+                    TEST_SCRIPT_NAME,
+                    expectedScriptBaseClass);
+            will(returnValue(expectedScript));
         }});
 
-        ScriptWithSource script = scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass);
-        assertTrue(script instanceof EmptyScript);
-        assertSame(script.getScriptSource(), source);
+        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
     }
 
     @Test
-    public void testWithNoSourceFileAndNoText() {
-        context.checking(new Expectations(){{
-            allowing(source).getSourceFile();
-            will(returnValue(null));
-            allowing(source).getText();
-            will(returnValue(null));
-        }});
-
-        ScriptWithSource script = scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass);
-        assertTrue(script instanceof EmptyScript);
-        assertSame(script.getScriptSource(), source);
-    }
-
-    @Test
-    public void testWithNoSouceFileAndNonEmptyText() {
+    public void testWithNoSouceFile() {
         context.checking(new Expectations() {
             {
                 allowing(source).getSourceFile();
@@ -259,12 +254,22 @@ public class DefaultScriptProcessorTest {
                 will(returnValue(testScriptFile));
 
                 allowing(source).getText();
-                will(returnValue(""));
+                will(returnValue(TEST_SCRIPT_TEXT));
+
+                allowing(source).getClassName();
+                will(returnValue(TEST_SCRIPT_NAME));
+
+                one(scriptHandlerMock).createScript(
+                        TEST_SCRIPT_TEXT,
+                        testClassLoader,
+                        TEST_SCRIPT_NAME,
+                        expectedScriptBaseClass);
+                will(returnValue(expectedScript));
             }
         });
 
         scriptProcessor = new DefaultScriptProcessor(scriptHandlerMock, CacheUsage.OFF);
-        assertTrue(scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass) instanceof EmptyScript);
+        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
     }
 
     private void createBuildScriptFile() {

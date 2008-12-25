@@ -22,6 +22,7 @@ import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.BuildResult;
 import org.gradle.BuildListener;
+import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.Task;
@@ -84,8 +85,13 @@ public class AbstractIntegrationTest {
         StartParameter parameter = new StartParameter();
         parameter.setGradleHomeDir(testFile("gradle-home").asFile());
 
-        TestFile defaultImportFile = testFile("gradle-home/gradle-imports");
-        defaultImportFile.write("import org.gradle.api.*\nimport static org.junit.Assert.*\nimport static org.hamcrest.Matchers.*");
+        testFile("gradle-home/gradle-imports").writelns(
+                "import org.gradle.api.*",
+                "import static org.junit.Assert.*",
+                "import static org.hamcrest.Matchers.*");
+
+        testFile("gradle-home/plugin.properties").writelns(
+                "groovy=org.gradle.api.plugins.GroovyPlugin");
 
         parameter.setGradleUserHomeDir(testFile("user-home").asFile());
 
@@ -178,12 +184,22 @@ public class AbstractIntegrationTest {
 
         public GradleExecutionResult runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
+            return execute();
+        }
+
+        public GradleExecutionResult showTaskList() {
+            parameter.setBuildExecuter(new BuiltInTasksBuildExecuter());
+            return execute();
+        }
+
+        private GradleExecutionResult execute() {
             Gradle gradle = Gradle.newInstance(parameter);
             gradle.addBuildListener(new ListenerImpl());
             BuildResult result = gradle.run();
             result.rethrowFailure();
             return new GradleExecutionResult(tasks);
         }
+
 
         public GradleExecutionFailure runTasksAndExpectFailure(String... names) {
             try {
