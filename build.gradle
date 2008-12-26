@@ -464,6 +464,16 @@ uploadDists {
 
 createTask('developerBuild', dependsOn: ['clean', 'integTest'])
 
+createTask('ide') {
+    def libDir = file('lib')
+    ant.delete(dir: libDir)
+    [dependencies.runtime, dependencies.testRuntime].each {config ->
+        config.files.each {file ->
+            ant.copy(file: file, todir: libDir)
+        }
+    }
+}
+
 createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavadoc']) {
     svn.release()
 }
