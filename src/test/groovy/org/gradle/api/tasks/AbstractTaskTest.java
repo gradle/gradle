@@ -128,7 +128,7 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testToString() {
-        assertEquals(getTask().getPath(), getTask().toString());
+        assertEquals("task '" + getTask().getPath() + "'", getTask().toString());
     }
 
     @Test
@@ -268,7 +268,7 @@ public abstract class AbstractTaskTest {
             getTask().execute();
             fail();
         } catch (GradleScriptException e) {
-            assertThat(e.getOriginalMessage(), equalTo("Execution failed for task " + getTask().getPath() + "."));
+            assertThat(e.getOriginalMessage(), equalTo("Execution failed for task '" + getTask().getPath() + "'."));
             assertThat(e.getScriptSource(), sameInstance(project.getBuildScriptSource()));
             assertThat(e.getCause(), sameInstance(cause));
         }

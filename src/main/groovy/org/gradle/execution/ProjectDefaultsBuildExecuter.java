@@ -34,7 +34,7 @@ public class ProjectDefaultsBuildExecuter extends  DelegatingBuildExecuter {
             List<String> defaultTasks = project.getDefaultTasks();
             if (defaultTasks.size() == 0) {
                 throw new InvalidUserDataException(String.format(
-                        "No tasks have been specified and project %s has not defined any default tasks.", project));
+                        "No tasks have been specified and %s has not defined any default tasks.", project));
             }
             setDelegate(new TaskNameResolvingBuildExecuter(defaultTasks));
         }

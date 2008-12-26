@@ -93,7 +93,7 @@ public class BuildLoader {
         }
     }
 
-    private void addPropertiesToProject(File gradleUserHomeDir, Map externalProperties, ProjectInternal project) {
+    private void addPropertiesToProject(File gradleUserHomeDir, Map<String, String> externalProperties, ProjectInternal project) {
         Properties projectProperties = new Properties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         logger.debug("Looking for project properties from: {}", projectPropertiesFile);

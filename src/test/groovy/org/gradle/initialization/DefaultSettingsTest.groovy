@@ -34,6 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.dependencies.Configuration
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -45,6 +46,7 @@ class DefaultSettingsTest {
     Map gradleProperties
     DependencyManager dependencyManagerMock
     BuildSourceBuilder buildSourceBuilderMock
+    ScriptSource scriptSourceMock
     DefaultSettings settings
     DependencyManagerFactory dependencyManagerFactoryMock
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
@@ -58,19 +60,20 @@ class DefaultSettingsTest {
         dependencyManagerMock = context.mock(DependencyManager)
         buildSourceBuilderMock = context.mock(BuildSourceBuilder)
         dependencyManagerFactoryMock = context.mock(DependencyManagerFactory)
+        scriptSourceMock = context.mock(ScriptSource)
+
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
         context.checking {
             one(dependencyManagerFactoryMock).createDependencyManager(withParam(BuildDependenciesProjectMatcher.equalsBuildProject(startParameter)))
             will(returnValue(dependencyManagerMock))
             one(dependencyManagerMock).addConfiguration("build")
         }
-        settings = new DefaultSettings(dependencyManagerFactoryMock, projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, gradleProperties, startParameter)
+        settings = new DefaultSettings(dependencyManagerFactoryMock, projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
     }
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
         assertEquals(settingsDir, settings.getSettingsDir())
-        assertEquals(gradleProperties, settings.getGradleProperties())
         assert settings.dependencyManager.is(dependencyManagerMock)
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
@@ -272,8 +275,12 @@ class DefaultSettingsTest {
         }
     }
 
+    @Test public void testCanGetAndSetDynamicProperties() {
+        settings.dynamicProp = 'value'
+        assertEquals('value', settings.dynamicProp)
+    }
+
     @Test (expected = MissingPropertyException) public void testPropertyMissing() {
-        assert settings.someGradleProp.is(getSettingsFinder.gradleProperties.someGradleProp)
         settings.unknownProp
     }
 
@@ -281,5 +288,8 @@ class DefaultSettingsTest {
         assertEquals(settingsDir, settings.rootDir);
     }
 
+    @Test public void testHasUsefulToString() {
+        assertEquals('settings \'root\'', settings.toString())
+    }
 
 }

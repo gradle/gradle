@@ -188,7 +188,7 @@ public abstract class AbstractTask implements TaskInternal {
                 } catch (Throwable t) {
                     executing = false;
                     standardOutputCapture.stop();
-                    throw new GradleScriptException(String.format("Execution failed for task %s.", getPath()), t, project.getBuildScriptSource());
+                    throw new GradleScriptException(String.format("Execution failed for %s.", this), t, project.getBuildScriptSource());
                 }
             }
             standardOutputCapture.stop();
@@ -274,7 +274,7 @@ public abstract class AbstractTask implements TaskInternal {
     }
 
     public String toString() {
-        return getPath();
+        return String.format("task '%s'", path);
     }
 
     public Logger getLogger() {

@@ -19,6 +19,8 @@ import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.util.GUtil;
@@ -90,7 +92,8 @@ public class Main {
         OptionParser parser = new OptionParser() {
             {
                 acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS, "no-imports"), "Disable usage of default imports for build script files.");
-                acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), "Don't search in parent folders for a settings.gradle file.");
+                acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"),
+                        String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
                 acceptsAll(WrapUtil.toList(MERGED_BUILD, "merged-build"), "Merge all tasks into a single build.");
                 acceptsAll(WrapUtil.toList(CACHE_OFF, "cache-off"), "No caching of compiled build scripts.");
                 acceptsAll(WrapUtil.toList(REBUILD_CACHE, "rebuild-cache"), "Rebuild the cache of compiled build scripts.");
@@ -105,8 +108,10 @@ public class Main {
                 acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"), "Specifies the default import file.").withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settingsfile"), "Specifies the settings file name. Defaults to settings.gradle.").withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(BUILD_FILE, "buildfile"), "Specifies the build file name (also for subprojects). Defaults to build.gradle.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settingsfile"),
+                        String.format("Specifies the settings file name. Defaults to %s.", Settings.DEFAULT_SETTINGS_FILE)).withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(BUILD_FILE, "buildfile"),
+                        String.format("Specifies the build file name (also for subprojects). Defaults to %s.", Project.DEFAULT_BUILD_FILE)).withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(SYSTEM_PROP, "systemprop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PROJECT_PROP, "projectprop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.").withRequiredArg().ofType(String.class);

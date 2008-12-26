@@ -21,6 +21,7 @@ import org.gradle.api.tasks.AbstractTaskTest
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.gradle.util.WrapUtil
 
 /**
  * @author Hans Dockter
@@ -45,11 +46,27 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertEquals([], defaultTask.actions)
     }
 
-    @Test public void testDoFirstWithClosure() {
+    @Test public void testHasUsefulToString() {
+        assertEquals('task \':taskname\'', task.toString())
+    }
+    
+    @Test public void testDoFirstWithClosureDelegatesToProject() {
         Closure testAction = {}
         defaultTask.doFirst(testAction)
         assertSame(getProject(), testAction.delegate)
         assertEquals(Closure.OWNER_FIRST, testAction.getResolveStrategy())
+    }
+
+    @Test public void testDoFirstWithClosure() {
+        List<Integer> executed = new ArrayList<Integer>();
+        Closure testAction1 = { executed.add(1) }
+        Closure testAction2 = { -> executed.add(2) }
+        Closure testAction3 = { task -> executed.add(3) }
+        defaultTask.doFirst(testAction1)
+        defaultTask.doFirst(testAction2)
+        defaultTask.doFirst(testAction3)
+        defaultTask.execute()
+        assertEquals(executed, WrapUtil.toList(3, 2, 1))
     }
 
     @Test

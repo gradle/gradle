@@ -79,8 +79,4 @@ class DirectoryTest extends AbstractTaskTest {
         directory = new Directory(project, 'testname')
         directory.execute()
     }
-
-    @Test public void testToString() {
-        assertEquals(directory.dir.absolutePath, directory.toString())
-    }
 }

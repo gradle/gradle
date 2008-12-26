@@ -14,7 +14,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("javadoc");
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task :javadoc");
+        failure.assertHasContext("Execution failed for task ':javadoc'");
         failure.assertHasDescription("Javadoc generation failed.");
     }
 }

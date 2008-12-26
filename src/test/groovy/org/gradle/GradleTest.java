@@ -165,7 +165,7 @@ public class GradleTest {
         assertSame(settingsFinderMock, gradle.getSettingsFinder());
         assertSame(gradlePropertiesLoaderMock, gradle.getGradlePropertiesLoader());
         assertSame(settingsProcessorMock, gradle.getSettingsProcessor());
-        assertSame(buildLoaderMock, gradle.getProjectLoader());
+        assertSame(buildLoaderMock, gradle.getBuildLoader());
         assertSame(buildConfigurerMock, gradle.getBuildConfigurer());
     }
 

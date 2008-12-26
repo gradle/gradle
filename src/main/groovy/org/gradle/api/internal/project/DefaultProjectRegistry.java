@@ -15,12 +15,16 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.util.GUtil;
 
-import java.util.*;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Hans Dockter
@@ -44,7 +48,8 @@ public class DefaultProjectRegistry implements IProjectRegistry {
 
     public void addProject(Project project) {
         if (projectDir2Project.get(project.getProjectDir()) != null) {
-            throw new InvalidUserDataException("Project " + project + " has already existing projectDir: " + project.getProjectDir());
+            throw new InvalidUserDataException(StringUtils.capitalize(
+                    String.format("%s has already existing projectDir: %s", project, project.getProjectDir())));
         }
         projects.put(project.getPath(), project);
         subProjects.put(project.getPath(), new TreeSet());

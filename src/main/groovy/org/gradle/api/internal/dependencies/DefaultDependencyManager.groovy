@@ -48,7 +48,7 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
         if (configuration != null) {
             return configuration
         }
-        throw new MissingPropertyException("Property '$name' not found for DependencyManager for project ${project.path}.")
+        throw new MissingPropertyException("Property '$name' not found for DependencyManager for ${project}.")
     }
 
     public def methodMissing(String name, args) {

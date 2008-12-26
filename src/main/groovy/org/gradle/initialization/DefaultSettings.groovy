@@ -17,7 +17,8 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.internal.dependencies.DependencyManagerFactory
+import org.gradle.groovy.scripts.ScriptSource;
 
 /**
  * @author Hans Dockter
@@ -26,14 +27,15 @@ public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
     DefaultSettings(DependencyManagerFactory dependencyManagerFactory, IProjectDescriptorRegistry projectDescriptorRegistry,
-                    BuildSourceBuilder buildSourceBuilder, File settingsDir, Map gradleProperties, StartParameter startParameter) {
-        super(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir, gradleProperties, startParameter)
+                    BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
+        super(dependencyManagerFactory, projectDescriptorRegistry, buildSourceBuilder, settingsDir, settingsScript, startParameter)
     }
 
     def propertyMissing(String property) {
-        if (gradleProperties.keySet().contains(property)) {
-            return gradleProperties[property]
-        }
-        throw new MissingPropertyException(property, DefaultSettings)
+        return dynamicObjectHelper.getProperty(property)
+    }
+
+    void setProperty(String name, value) {
+        dynamicObjectHelper.setProperty(name, value) 
     }
 }

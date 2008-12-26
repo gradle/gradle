@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import org.junit.Test;
-import org.junit.Ignore;
 
 import java.io.File;
 
@@ -27,7 +26,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName("Embedded build file");
         failure.assertHasLineNumber(1);
-        failure.assertHasContext("A problem occurred evaluating project :.");
+        failure.assertHasContext("A problem occurred evaluating root project 'tmpTest'");
     }
 
     @Test
@@ -46,7 +45,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", childBuildFile));
         failure.assertHasLineNumber(2);
-        failure.assertHasContext("A problem occurred evaluating project :child.");
+        failure.assertHasContext("A problem occurred evaluating project ':child'");
         failure.assertHasDescription("failure");
     }
 
@@ -58,7 +57,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasContext("Execution failed for task :do-stuff");
+        failure.assertHasContext("Execution failed for task ':do-stuff'");
         failure.assertHasDescription("/ by zero");
     }
 
@@ -70,7 +69,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasContext("Execution failed for task :brokenClosure");
+        failure.assertHasContext("Execution failed for task ':brokenClosure'");
         failure.assertHasDescription("broken closure");
     }
 
@@ -81,7 +80,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("brokenJavaTask");
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task :brokenJavaTask");
+        failure.assertHasContext("Execution failed for task ':brokenJavaTask'");
         failure.assertHasDescription("broken action");
     }
 

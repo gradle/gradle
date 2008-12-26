@@ -60,7 +60,7 @@ public class Gradle {
     private ISettingsFinder settingsFinder;
     private IGradlePropertiesLoader gradlePropertiesLoader;
     private SettingsProcessor settingsProcessor;
-    private BuildLoader projectLoader;
+    private BuildLoader buildLoader;
     private BuildConfigurer buildConfigurer;
 
     private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(
@@ -68,12 +68,12 @@ public class Gradle {
 
     public Gradle(StartParameter startParameter, ISettingsFinder settingsFinder,
                   IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
-                  BuildLoader projectLoader, BuildConfigurer buildConfigurer) {
+                  BuildLoader buildLoader, BuildConfigurer buildConfigurer) {
         this.startParameter = startParameter;
         this.settingsFinder = settingsFinder;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.settingsProcessor = settingsProcessor;
-        this.projectLoader = projectLoader;
+        this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
     }
 
@@ -108,8 +108,7 @@ public class Gradle {
         BuildExecuter executer = startParameter.getBuildExecuter();
         while (executer.hasNext()) {
             if (rebuildDag) {
-                build = projectLoader.load(settings.getRootProject(), classLoader,
-                        startParameter,
+                build = buildLoader.load(settings.getRootProject(), classLoader, startParameter,
                         gradlePropertiesLoader.getGradleProperties());
                 fireProjectsLoaded(build);
                 buildConfigurer.process(build.getRootProject());
@@ -200,12 +199,12 @@ public class Gradle {
         this.settingsProcessor = settingsProcessor;
     }
 
-    public BuildLoader getProjectLoader() {
-        return projectLoader;
+    public BuildLoader getBuildLoader() {
+        return buildLoader;
     }
 
-    public void setProjectLoader(BuildLoader projectLoader) {
-        this.projectLoader = projectLoader;
+    public void setBuildLoader(BuildLoader buildLoader) {
+        this.buildLoader = buildLoader;
     }
 
     public BuildConfigurer getBuildConfigurer() {

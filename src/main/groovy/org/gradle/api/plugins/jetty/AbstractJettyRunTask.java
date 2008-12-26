@@ -17,28 +17,25 @@
 package org.gradle.api.plugins.jetty;
 
 
+import org.gradle.api.*;
+import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.plugins.jetty.util.*;
+import org.gradle.api.plugins.jetty.util.JettyPluginServer;
+import org.mortbay.jetty.Connector;
+import org.mortbay.jetty.RequestLog;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.security.UserRealm;
+import org.mortbay.util.Scanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.net.URLClassLoader;
-import java.net.URL;
-import java.net.MalformedURLException;
-
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.RequestLog;
-import org.mortbay.jetty.security.UserRealm;
-import org.gradle.api.plugins.jetty.util.SystemProperties;
-import org.gradle.api.plugins.jetty.util.SystemProperty;
-import org.mortbay.util.Scanner;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.*;
-import org.gradle.api.plugins.jetty.util.ConsoleScanner;
-import org.gradle.api.plugins.jetty.util.JettyPluginServer;
-import org.gradle.api.plugins.jetty.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -296,7 +293,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     public void startJetty() {
-        logger.info("Configuring Jetty for project: " + getProject().getName());
+        logger.info("Configuring Jetty for " + getProject());
         checkPomConfiguration();
         startJettyInternal();
     }

@@ -55,10 +55,10 @@ class DefaultTask extends AbstractTask {
         return (Task) ConfigureUtil.configure(closure, this);
     }
 
-    private TaskAction convertClosureToAction(final Closure actionClosure) {
+    private TaskAction convertClosureToAction(Closure actionClosure) {
         actionClosure.setDelegate(getProject());
         actionClosure.setResolveStrategy(Closure.OWNER_FIRST);
-        actionClosure as TaskAction
+        return new ClosureTaskAction(actionClosure);
     }
 
     def propertyMissing(String name) {
@@ -72,4 +72,22 @@ class DefaultTask extends AbstractTask {
     def methodMissing(String name, arguments) {
         dynamicObjectHelper.invokeMethod(name, arguments)
     }
+}
+
+class ClosureTaskAction implements TaskAction {
+    private final Closure closure;
+
+    def ClosureTaskAction(Closure closure) {
+        this.closure = closure;
+    }
+
+    public void execute(Task task) {
+        if (closure.maximumNumberOfParameters == 0) {
+            closure.call()
+        }
+        else {
+            closure.call(task);
+        }
+    }
+
 }

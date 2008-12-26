@@ -458,8 +458,7 @@ public abstract class AbstractProject implements ProjectInternal {
     public Project project(String path) {
         Project project = findProject(path);
         if (project == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in project '%s'.",
-                    path, getPath()));
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
         }
         return project;
     }
@@ -524,7 +523,7 @@ public abstract class AbstractProject implements ProjectInternal {
             standardOutputRedirector.flush();
         } catch (Throwable t) {
             standardOutputRedirector.flush();
-            throw new GradleScriptException(String.format("A problem occurred evaluating project %s.", path), t, getBuildScriptSource());
+            throw new GradleScriptException(String.format("A problem occurred evaluating %s.", this), t, getBuildScriptSource());
         }
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = STATE_INITIALIZED;
@@ -590,8 +589,7 @@ public abstract class AbstractProject implements ProjectInternal {
     public Task task(String path) {
         Task task = findTask(path);
         if (task == null) {
-            throw new UnknownTaskException(String.format("Task with path '%s' could not be found in project '%s'.",
-                    path, getPath()));
+            throw new UnknownTaskException(String.format("Task with path '%s' could not be found in %s.", path, this));
         }
         return task;
     }
@@ -670,7 +668,8 @@ public abstract class AbstractProject implements ProjectInternal {
         }
         DefaultProject projectToEvaluate = (DefaultProject) project(path);
         if (projectToEvaluate.getState() == DefaultProject.STATE_INITIALIZING) {
-            throw new CircularReferenceException("Circular referencing during evaluation for project: " + projectToEvaluate);
+            throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
+                    projectToEvaluate));
         }
         return projectToEvaluate.evaluate();
     }
@@ -694,7 +693,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public String toString() {
-        return path;
+        if (parent != null) {
+            return String.format("project '%s'", path);
+        } else {
+            return String.format("root project '%s'", name);
+        }
     }
 
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {

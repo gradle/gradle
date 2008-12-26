@@ -307,7 +307,7 @@ class DefaultProjectTest {
             project.evaluate()
             fail()
         } catch (GradleScriptException e) {
-            assertThat(e.originalMessage, equalTo("A problem occurred evaluating project :."))
+            assertThat(e.originalMessage, equalTo("A problem occurred evaluating root project 'root'."))
             assertThat(e.scriptSource, equalTo(project.buildScriptSource))
             assertThat(e.cause, equalTo(failure))
         };
@@ -487,7 +487,7 @@ class DefaultProjectTest {
             project.task("unknown")
             fail()
         } catch (UnknownTaskException e) {
-            assertThat(e.message, equalTo("Task with path 'unknown' could not be found in project ':'."))
+            assertThat(e.message, equalTo("Task with path 'unknown' could not be found in root project 'root'."))
         }
     }
 
@@ -496,7 +496,7 @@ class DefaultProjectTest {
             project.task("unknown:task")
             fail()
         } catch (UnknownTaskException e) {
-            assertThat(e.message, equalTo("Task with path 'unknown:task' could not be found in project ':'."))
+            assertThat(e.message, equalTo("Task with path 'unknown:task' could not be found in root project 'root'."))
         }
     }
 
@@ -569,7 +569,7 @@ class DefaultProjectTest {
             project.project(Project.PATH_SEPARATOR + "unknownchild")
             fail()
         } catch (UnknownProjectException e) {
-            assertEquals(e.getMessage(), "Project with path ':unknownchild' could not be found in project ':'.")
+            assertEquals(e.getMessage(), "Project with path ':unknownchild' could not be found in root project 'root'.")
         }
     }
 
@@ -578,7 +578,7 @@ class DefaultProjectTest {
             project.project("unknownchild")
             fail()
         } catch (UnknownProjectException e) {
-            assertEquals(e.getMessage(), "Project with path 'unknownchild' could not be found in project ':'.")
+            assertEquals(e.getMessage(), "Project with path 'unknownchild' could not be found in root project 'root'.")
         }
     }
 
@@ -931,6 +931,12 @@ def scriptMethod(Closure closure) {
         assertEquals(relativeFile, pathFinder(relativeFile))
         assertEquals(new File("relativePath"), pathFinder(absoluteFile))
         assertEquals(new File(""), pathFinder(""))
+    }
+
+    @Test void testHasUsefulToString() {
+        assertEquals('root project \'root\'', project.toString())
+        assertEquals('project \':child1\'', child1.toString())
+        assertEquals('project \':child1:childchild\'', childchild.toString())
     }
 
     private void checkConfigureProject(String configureMethod, Set projectsToCheck) {

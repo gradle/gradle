@@ -16,20 +16,21 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.DynamicObjectHelper;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
@@ -38,7 +39,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -52,11 +54,8 @@ public class BaseSettings implements SettingsInternal {
     private DependencyManager dependencyManager;
 
     private BuildSourceBuilder buildSourceBuilder;
-    private Map<String, String> additionalProperties = new HashMap<String, String>();
 
     private ScriptSource settingsScript;
-
-    private Map<String, String> gradleProperties;
 
     private StartParameter startParameter;
 
@@ -66,29 +65,38 @@ public class BaseSettings implements SettingsInternal {
 
     private DefaultProjectDescriptor rootProjectDescriptor;
 
+    private DynamicObjectHelper dynamicObjectHelper;
+
     IProjectDescriptorRegistry projectDescriptorRegistry;
 
-    public BaseSettings() {
+    protected BaseSettings() {
     }
-
-    public BaseSettings(DependencyManagerFactory dependencyManagerFactory, IProjectDescriptorRegistry projectDescriptorRegistry,
-                        BuildSourceBuilder buildSourceBuilder, File settingsDir, Map<String, String> gradleProperties,
+    
+    public BaseSettings(DependencyManagerFactory dependencyManagerFactory,
+                        IProjectDescriptorRegistry projectDescriptorRegistry,
+                        BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
-        this.gradleProperties = gradleProperties;
+        this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.dependencyManager = dependencyManagerFactory.createDependencyManager(createBuildDependenciesProject());
         this.buildSourceBuilder = buildSourceBuilder;
         dependencyManager.addConfiguration(BUILD_CONFIGURATION);
         assignBuildSrcStartParameter(startParameter);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        dynamicObjectHelper = new DynamicObjectHelper(this);
     }
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {
         buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS));
         buildSrcStartParameter.setSearchUpwards(true);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("settings '%s'", rootProjectDescriptor.getName());
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
@@ -239,14 +247,6 @@ public class BaseSettings implements SettingsInternal {
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
-    public Map<String, String> getAdditionalProperties() {
-        return additionalProperties;
-    }
-
-    public void setAdditionalProperties(Map<String, String> additionalProperties) {
-        this.additionalProperties = additionalProperties;
-    }
-
     public StartParameter getStartParameter() {
         return startParameter;
     }
@@ -287,7 +287,11 @@ public class BaseSettings implements SettingsInternal {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
-    public Map<String, String> getGradleProperties() {
-        return gradleProperties;
+    public Map<String, Object> getAdditionalProperties() {
+        return dynamicObjectHelper.getAdditionalProperties();
+    }
+
+    protected DynamicObjectHelper getDynamicObjectHelper() {
+        return dynamicObjectHelper;
     }
 }

@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 @RunWith (org.jmock.integration.junit4.JMock.class)
 public class ProjectDefaultsBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Project project = context.mock(Project.class);
+    private final Project project = context.mock(Project.class, "[project]");
 
     @Test public void usesProjectDefaultTasksFromInitialProject() {
         context.checking(new Expectations() {{
@@ -59,7 +59,7 @@ public class ProjectDefaultsBuildExecuterTest {
             executer.select(project);
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("No tasks have been specified and project project has not defined any default tasks."));
+            assertThat(e.getMessage(), equalTo("No tasks have been specified and [project] has not defined any default tasks."));
         }
     }
 

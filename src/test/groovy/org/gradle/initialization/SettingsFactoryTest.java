@@ -16,18 +16,16 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.DefaultGradleFactory;
-import org.gradle.GradleFactory;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertSame;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,7 +67,7 @@ public class SettingsFactoryTest {
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         assertSame(dependencyManagerMock, settings.getDependencyManager());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());
-        assertSame(expectedGradleProperties, settings.getGradleProperties());
+        assertEquals(expectedGradleProperties, settings.getAdditionalProperties());
         assertSame(expectedSettingsDir, settings.getSettingsDir());
         assertSame(expectedScriptSource, settings.getSettingsScript());
         assertSame(expectedStartParameter, settings.getStartParameter());

@@ -43,8 +43,4 @@ public class Directory extends DefaultTask {
             dir.mkdirs()
         }
     }
-
-    String toString() {
-        dir.absolutePath
-    }
 }
