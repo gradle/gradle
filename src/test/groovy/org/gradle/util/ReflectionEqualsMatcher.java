@@ -42,7 +42,7 @@ public class ReflectionEqualsMatcher<T> extends BaseMatcher<T> {
 
     @Factory
     public static <T> Matcher<T> reflectionEquals(T equalsTo) {
-        return new ReflectionEqualsMatcher(equalsTo);
+        return new ReflectionEqualsMatcher<T>(equalsTo);
     }
 
 }

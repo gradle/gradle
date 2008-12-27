@@ -44,11 +44,9 @@ public abstract class AbstractProject implements ProjectInternal {
     private static Logger logger = LoggerFactory.getLogger(AbstractProject.class);
     private static Logger buildLogger = LoggerFactory.getLogger(Project.class);
 
-    public static final int STATE_CREATED = 0;
-
-    public static final int STATE_INITIALIZING = 1;
-
-    public static final int STATE_INITIALIZED = 2;
+    enum State {
+        CREATED, INITIALIZING, INITIALIZED
+    }
 
     private Project rootProject;
 
@@ -80,7 +78,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Set<Project> dependsOnProjects = new HashSet<Project>();
 
-    private int state;
+    private State state;
 
     private List<Plugin> plugins = new ArrayList<Plugin>();
 
@@ -147,7 +145,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
-        this.state = STATE_CREATED;
+        this.state = State.CREATED;
         this.archivesTaskBaseName = Project.DEFAULT_ARCHIVES_TASK_BASE_NAME;
         this.archivesBaseName = name;
         this.projectFactory = projectFactory;
@@ -216,7 +214,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public String getBuildFileClassName() {
-        return getBuildScript().getClass().getName();
+        return buildScriptSource.getClassName();
     }
 
     public void setBuildFileName(String buildFileName) {
@@ -321,11 +319,11 @@ public abstract class AbstractProject implements ProjectInternal {
         dynamicObjectHelper.setAdditionalProperties(additionalProperties);
     }
 
-    public int getState() {
+    public State getState() {
         return state;
     }
 
-    public void setState(int state) {
+    public void setState(State state) {
         this.state = state;
     }
 
@@ -511,11 +509,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public AbstractProject evaluate() {
-        if (state == STATE_INITIALIZED) {
+        if (state == State.INITIALIZED) {
             return this;
         }
         Clock clock = new Clock();
-        state = STATE_INITIALIZING;
+        state = State.INITIALIZING;
         setBuildScript(buildScriptProcessor.createScript(this));
         try {
             standardOutputRedirector.on(LogLevel.QUIET);
@@ -526,7 +524,7 @@ public abstract class AbstractProject implements ProjectInternal {
             throw new GradleScriptException(String.format("A problem occurred evaluating %s.", this), t, getBuildScriptSource());
         }
         logger.debug("Timing: Running the build script took " + clock.getTime());
-        state = STATE_INITIALIZED;
+        state = State.INITIALIZED;
         notifyAfterEvaluateListener();
         logger.info("Project= " + path + " evaluated.");
         logger.debug("Timing: Project evaluation took " + clock.getTime());
@@ -667,7 +665,7 @@ public abstract class AbstractProject implements ProjectInternal {
             throw new InvalidUserDataException("You must specify a project!");
         }
         DefaultProject projectToEvaluate = (DefaultProject) project(path);
-        if (projectToEvaluate.getState() == DefaultProject.STATE_INITIALIZING) {
+        if (projectToEvaluate.getState() == State.INITIALIZING) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                     projectToEvaluate));
         }
@@ -846,5 +844,9 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public boolean hasProperty(String propertyName) {
         return dynamicObjectHelper.hasProperty(propertyName);
+    }
+
+    public Map<String, ?> getProperties() {
+        return dynamicObjectHelper.getProperties();
     }
 }

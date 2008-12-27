@@ -922,6 +922,14 @@ public interface Project extends Comparable<Project> {
     boolean hasProperty(String propertyName);
 
     /**
+     * <p>Returns the properties of this project. See <a href="#properties">here</a> for details of the properties
+     * which are available for a project.</p>
+     *
+     * @return A map from property name to value.
+     */
+    Map<String, ?> getProperties();
+    
+    /**
      * Returns the value of the given property.  This method locates a property as follows:</p>
      *
      * <ol>

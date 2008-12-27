@@ -160,7 +160,7 @@ class DefaultProjectTest {
         assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
         assertEquals project.name, project.archivesBaseName
         assertEquals([] as Set, project.appliedPlugins)
-        assertEquals DefaultProject.STATE_CREATED, project.state
+        assertEquals AbstractProject.State.CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
@@ -203,7 +203,7 @@ class DefaultProjectTest {
             one(outputRedirectorMock).flush()
         }
         assertSame(project, project.evaluate())
-        assertEquals(DefaultProject.STATE_INITIALIZED, project.state)
+        assertEquals(AbstractProject.State.INITIALIZED, project.state)
         assert afterEvaluate1Called
         assert afterEvaluate2Called
         assert project.buildScript.is(testScript)
@@ -551,9 +551,10 @@ class DefaultProjectTest {
     }
 
     @Test void testGetBuildFileCacheName() {
-        EmptyScript testScript = new EmptyScript();
-        project.setBuildScript(testScript)
-        assertEquals(testScript.getClass().getName(), project.getBuildFileClassName())
+        context.checking {
+            one(script).getClassName(); will(returnValue('script class'))
+        }
+        assertEquals('script class', project.getBuildFileClassName())
     }
 
     @Test void testGetProject() {
@@ -758,6 +759,21 @@ def scriptMethod(Closure closure) {
         project."$propertyName" = 4
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))
+    }
+
+    @Test void testProperties() {
+        context.checking {
+            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), 'task'); will(returnValue(testTask))
+            one(script).getClassName(); will(returnValue('script class'))
+        }
+
+        project.additional = 'additional'
+        project.createTask('task')
+
+        Map properties = project.properties
+        assertEquals(properties.name, 'root')
+        assertEquals(properties.additional, 'additional')
+        assertEquals(properties.task, project.task('task'))
     }
 
     @Test void testAdditionalProperty() {
