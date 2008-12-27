@@ -25,7 +25,6 @@ import org.gradle.util.WrapUtil;
 import org.gradle.logging.AntLoggingAdapter;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
-import org.gradle.configuration.ProjectTasksPrettyPrinter;
 
 /**
  * @author Hans Dockter
@@ -91,9 +90,7 @@ public class DefaultGradleFactory implements GradleFactory {
                                 startParameter.getBuildScriptSource(),
                                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
                 ),
-                new BuildConfigurer(
-                        new ProjectDependencies2TaskResolver(),
-                        new ProjectTasksPrettyPrinter()));
+                new BuildConfigurer(new ProjectDependencies2TaskResolver()));
 
         return gradle;
     }

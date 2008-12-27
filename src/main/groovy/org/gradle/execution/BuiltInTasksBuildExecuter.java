@@ -18,15 +18,37 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.diagnostics.TaskListTask;
+import org.gradle.api.tasks.diagnostics.PropertyListTask;
 
 import java.util.Collections;
 
 /**
- * A {@link BuildExecuter} which executes the built-in tasks. Currently, the only built-in task is {@link TaskListTask}.
+ * A {@link BuildExecuter} which executes the built-in tasks which are executable from the command-line.
  */
 public class BuiltInTasksBuildExecuter implements BuildExecuter {
+    public enum Options {
+        TASKS {
+            @Override
+            public String toString() {
+                return "task list";
+            }},
+        PROPERTIES {
+            @Override
+            public String toString() {
+                return "property list";
+            }}
+    }
+    private Options options;
     private boolean selected;
-    private TaskListTask task;
+    private Task task;
+
+    public BuiltInTasksBuildExecuter(Options options) {
+        this.options = options;
+    }
+
+    public void setOptions(Options options) {
+        this.options = options;
+    }
 
     public boolean hasNext() {
         return !selected;
@@ -34,12 +56,21 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
 
     public void select(Project project) {
         assert !selected;
-        task = new TaskListTask(project, "taskList");
+        switch (options) {
+            case TASKS:
+                task = new TaskListTask(project, "taskList");
+                break;
+            case PROPERTIES:
+                task = new PropertyListTask(project, "propertyList");
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
         selected = true;
     }
 
     public String getDescription() {
-        return "taskList";
+        return options.toString();
     }
 
     public Task getTask() {

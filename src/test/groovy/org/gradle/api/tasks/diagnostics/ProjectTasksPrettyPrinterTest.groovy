@@ -14,7 +14,7 @@
  * limitations under the License.
  */
  
-package org.gradle.configuration
+package org.gradle.api.tasks.diagnostics
 
 import groovy.io.PlatformLineWriter
 import org.gradle.api.Project

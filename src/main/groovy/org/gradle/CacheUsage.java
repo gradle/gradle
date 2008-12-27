@@ -15,8 +15,19 @@
  */
 package org.gradle;
 
+import org.gradle.api.InvalidUserDataException;
+
 /**
  * @author Hans Dockter
-*/
-public enum CacheUsage { ON, REBUILD, OFF;
+ */
+public enum CacheUsage {
+    ON, REBUILD, OFF;
+
+    public static CacheUsage fromString(String usagestr) {
+        try {
+            return valueOf(usagestr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidUserDataException(String.format("Unknown cache usage '%s' specified.", usagestr));
+        }
+    }
 }

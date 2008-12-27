@@ -31,15 +31,12 @@ class BuildConfigurer {
 
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver
 
-    ProjectTasksPrettyPrinter projectTasksPrettyPrinter
-
     ProjectAction projectEvaluateAction
 
     BuildConfigurer() {}
 
-    BuildConfigurer(ProjectDependencies2TaskResolver projectDependencies2TasksResolver, ProjectTasksPrettyPrinter projectTasksPrettyPrinter) {
+    BuildConfigurer(ProjectDependencies2TaskResolver projectDependencies2TasksResolver) {
         this.projectDependencies2TasksResolver = projectDependencies2TasksResolver
-        this.projectTasksPrettyPrinter = projectTasksPrettyPrinter
         projectEvaluateAction = {ProjectInternal project ->
             project.evaluate()
         } as ProjectAction

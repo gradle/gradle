@@ -52,6 +52,7 @@ public class Main {
     private static final String BUILD_FILE = "b";
     private static final String SETTINGS_FILE = "c";
     private static final String TASKS = "t";
+    private static final String PROPERTIES = "r";
     public static final String DEBUG = "d";
     private static final String INFO = "i";
     private static final String QUIET = "q";
@@ -63,8 +64,7 @@ public class Main {
     private static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String VERSION = "v";
-    private static final String CACHE_OFF = "x";
-    private static final String REBUILD_CACHE = "r";
+    private static final String CACHE = "C";
     private static final String HELP = "h";
     private static final String MERGED_BUILD = "m";
 
@@ -95,8 +95,8 @@ public class Main {
                 acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"),
                         String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
                 acceptsAll(WrapUtil.toList(MERGED_BUILD, "merged-build"), "Merge all tasks into a single build.");
-                acceptsAll(WrapUtil.toList(CACHE_OFF, "cache-off"), "No caching of compiled build scripts.");
-                acceptsAll(WrapUtil.toList(REBUILD_CACHE, "rebuild-cache"), "Rebuild the cache of compiled build scripts.");
+                acceptsAll(WrapUtil.toList(CACHE, "cache"),
+                        "Specifies how compiled build scripts should be cached. Possible values are: 'rebuild', 'off', 'on'. Default value is 'on'").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
                 acceptsAll(WrapUtil.toList(DEBUG, "debug"), "Log in debug mode (includes normal stacktrace).");
                 acceptsAll(WrapUtil.toList(QUIET, "quiet"), "Log errors only.");
@@ -104,6 +104,7 @@ public class Main {
                 acceptsAll(WrapUtil.toList(STACKTRACE, "stacktrace"), "Print out the stacktrace also for user exceptions (e.g. compile error).");
                 acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"), "Print out the full (very verbose) stacktrace for any exceptions.");
                 acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
+                acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.");
                 acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start dir for Gradle. Defaults to current dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
@@ -119,13 +120,13 @@ public class Main {
             }
         };
 
-        OptionSet options;
+        OptionSet options = null;
         try {
             options = parser.parse(args);
         } catch (OptionException e) {
+            System.err.println(e.getMessage());
             parser.printHelpOn(System.err);
-            System.err.println("====");
-            return;
+            buildCompleter.exit(e);
         }
 
         exceptionReporter.setOptions(options);
@@ -133,20 +134,17 @@ public class Main {
         if (options.has(HELP)) {
             parser.printHelpOn(System.out);
             buildCompleter.exit(null);
-            return;
         }
 
         if (options.has(VERSION)) {
             System.out.println(new GradleVersion().prettyPrint());
             buildCompleter.exit(null);
-            return;
         }
 
         String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
         if (!GUtil.isTrue(gradleHome)) {
             System.err.println("The gradle.home property is not set. Please set it and try again.");
             buildCompleter.exit(new InvalidUserDataException());
-            return;
         }
         startParameter.setGradleHomeDir(new File(gradleHome));
 
@@ -179,7 +177,6 @@ public class Main {
             if (!startParameter.getCurrentDir().isDirectory()) {
                 System.err.println("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
                 buildCompleter.exit(new InvalidUserDataException());
-                return;
             }
         }
 
@@ -196,17 +193,13 @@ public class Main {
             startParameter.setPluginPropertiesFile(new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)));
         }
 
-        if (options.has(CACHE_OFF)) {
-            if (options.has(REBUILD_CACHE)) {
-                System.err.println(String.format("Error: The -%s option can't be used together with the -%s option.",
-                        CACHE_OFF, REBUILD_CACHE));
-                buildCompleter.exit(new InvalidUserDataException());
+        if (options.has(CACHE)) {
+            try {
+                startParameter.setCacheUsage(CacheUsage.fromString(options.valueOf(CACHE).toString()));
+            } catch (InvalidUserDataException e) {
+                System.err.println(e.getMessage());
+                buildCompleter.exit(e);
             }
-            startParameter.setCacheUsage(CacheUsage.OFF);
-        } else if (options.has(REBUILD_CACHE)) {
-            startParameter.setCacheUsage(CacheUsage.REBUILD);
-        } else {
-            startParameter.setCacheUsage(CacheUsage.ON);
         }
 
         if (options.has(EMBEDDED_SCRIPT)) {
@@ -214,13 +207,18 @@ public class Main {
                 System.err.println(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
                 buildCompleter.exit(new InvalidUserDataException());
-                return;
             }
             startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
         }
 
+        if (options.has(TASKS) && options.has(PROPERTIES)) {
+            System.err.println(String.format("Error: The -%s and -%s options cannot be used together.", TASKS, PROPERTIES));
+            buildCompleter.exit(new InvalidUserDataException());
+        }
         if (options.has(TASKS)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter());
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
+        } else if (options.has(PROPERTIES)) {
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES));
         } else {
             startParameter.setTaskNames(options.nonOptionArguments());
         }

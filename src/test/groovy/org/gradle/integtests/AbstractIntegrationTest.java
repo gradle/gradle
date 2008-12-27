@@ -188,7 +188,7 @@ public class AbstractIntegrationTest {
         }
 
         public GradleExecutionResult showTaskList() {
-            parameter.setBuildExecuter(new BuiltInTasksBuildExecuter());
+            parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
             return execute();
         }
 

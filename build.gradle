@@ -14,7 +14,6 @@ import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.util.GradleVersion
-import org.apache.ivy.plugins.resolver.*
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires

@@ -59,7 +59,7 @@ public class StartParameter {
     private File defaultImportsFile;
     private File pluginPropertiesFile;
     private File gradleHomeDir;
-    private CacheUsage cacheUsage;
+    private CacheUsage cacheUsage = CacheUsage.ON;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
     private BuildExecuter buildExecuter;

@@ -3,7 +3,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.ProjectTasksPrettyPrinter;
+import org.gradle.api.tasks.diagnostics.ProjectTasksPrettyPrinter;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;

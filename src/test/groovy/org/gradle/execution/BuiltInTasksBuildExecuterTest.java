@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.diagnostics.TaskListTask;
+import org.gradle.api.tasks.diagnostics.PropertyListTask;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.util.Collections;
@@ -33,7 +34,7 @@ import java.util.Collections;
 @RunWith(JMock.class)
 public class BuiltInTasksBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter();
+    private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
     private final Project rootProject = context.mock(ProjectInternal.class, "root");
     private final Project project = context.mock(ProjectInternal.class, "project");
     private TaskExecuter taskExecuter;
@@ -46,7 +47,7 @@ public class BuiltInTasksBuildExecuterTest {
         context.checking(new Expectations(){{
             allowing(project).getRootProject();
             will(returnValue(rootProject));
-            allowing(project).absolutePath("taskList");
+            allowing(project).absolutePath(with(notNullValue(String.class)));
             will(returnValue(":path"));
         }});
     }
@@ -67,7 +68,22 @@ public class BuiltInTasksBuildExecuterTest {
             one(taskExecuter).execute(Collections.singleton(executer.getTask()));
         }});
 
-        assertThat(executer.getDescription(), equalTo("taskList"));
+        assertThat(executer.getDescription(), equalTo("task list"));
+        executer.execute(taskExecuter);
+    }
+
+    @Test
+    public void executesPropertyListTask() {
+        executer.setOptions(BuiltInTasksBuildExecuter.Options.PROPERTIES);
+        
+        executer.select(project);
+        assertThat(executer.getTask(), instanceOf(PropertyListTask.class));
+
+        context.checking(new Expectations() {{
+            one(taskExecuter).execute(Collections.singleton(executer.getTask()));
+        }});
+
+        assertThat(executer.getDescription(), equalTo("property list"));
         executer.execute(taskExecuter);
     }
 

@@ -27,3 +27,13 @@ test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)
 }
+
+createTask('ide') {
+    def libDir = file('lib')
+    ant.delete(dir: libDir)
+    [dependencies.runtime, dependencies.testRuntime].each {config ->
+        config.files.each {file ->
+            ant.copy(file: file, todir: libDir)
+        }
+    }
+}

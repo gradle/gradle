@@ -16,15 +16,21 @@
 
 package org.gradle;
 
+import joptsimple.OptionException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
+import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toMap;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
@@ -36,7 +42,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +50,7 @@ import java.util.Map;
  * @author Hans Dockter
  *         todo write disabled test 'testMainWithException' as integration test
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
+@RunWith(JMock.class)
 public class MainTest {
     // This property has to be also set as system property gradle.home when running this test
     private final static String TEST_GRADLE_HOME = "roadToNowhere";
@@ -84,7 +89,7 @@ public class MainTest {
         expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME);
         expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME);
         expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES);
-        expectedTaskNames = WrapUtil.toList();
+        expectedTaskNames = toList();
         expectedProjectDir = new File("").getCanonicalFile();
         expectedProjectProperties = new HashMap();
         expectedSystemProperties = new HashMap();
@@ -232,7 +237,7 @@ public class MainTest {
         final String valueProp1 = "value1";
         final String prop2 = "gradle.prop2";
         final String valueProp2 = "value2";
-        expectedSystemProperties = WrapUtil.toMap(prop1, valueProp1);
+        expectedSystemProperties = toMap(prop1, valueProp1);
         expectedSystemProperties.put(prop2, valueProp2);
         checkMain("-D", prop1 + "=" + valueProp1, "-D", prop2 + "=" + valueProp2);
     }
@@ -243,32 +248,37 @@ public class MainTest {
         final String valueProp1 = "value1";
         final String prop2 = "prop2";
         final String valueProp2 = "value2";
-        expectedProjectProperties = WrapUtil.toMap(prop1, valueProp1);
+        expectedProjectProperties = toMap(prop1, valueProp1);
         expectedProjectProperties.put(prop2, valueProp2);
         checkMain("-P", prop1 + "=" + valueProp1, "-P", prop2 + "=" + valueProp2);
     }
 
     @Test
-    public void testMainWithCacheOffFlagSet() throws Throwable {
-        expectedCacheUsage = CacheUsage.OFF;
-        checkMain("-x");
+    public void testMainWithTaskNames() throws Throwable {
+        expectedTaskNames = toList("a", "b");
+        checkMain("a", "b");
     }
 
     @Test
-    public void testMainWithTaskNames() throws Throwable {
-        expectedTaskNames = WrapUtil.toList("a", "b");
-        checkMain("a", "b");
+    public void testMainWithCacheOffFlagSet() throws Throwable {
+        expectedCacheUsage = CacheUsage.OFF;
+        checkMain("-C", "off");
     }
 
     @Test
     public void testMainWithRebuildCacheFlagSet() throws Throwable {
         expectedCacheUsage = CacheUsage.REBUILD;
-        checkMain("-r");
+        checkMain("-C", "rebuild");
+    }
+
+    @Test
+    public void testMainWithCacheOnFlagSet() throws Throwable {
+        checkMain("-C", "on");
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void testMainWithMutuallyExclusiveCacheFlags() throws Throwable {
-        checkMainFails("-xr", "clean");
+    public void testMainWithUnknownCacheFlags() throws Throwable {
+        checkMainFails("-C", "unknown");
     }
 
     @Test
@@ -306,7 +316,7 @@ public class MainTest {
     }
 
     public void testMainWithConflictingLoggingOptionsDQ() throws Throwable {
-        List<String> illegalOptions = WrapUtil.toList("dq", "di", "qd", "qi", "iq", "id");
+        List<String> illegalOptions = toList("dq", "di", "qd", "qi", "iq", "id");
         for (String illegalOption : illegalOptions) {
             try {
                 checkMainFails("-" + illegalOption, "clean");
@@ -338,6 +348,8 @@ public class MainTest {
     @Test
     public void testMainWithShowTasks() throws Throwable {
         checkMain(false, true, "-t");
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
+        assertThat(actualStartParameter.getBuildExecuter(), reflectionEquals(expectedExecuter));
     }
 
     @Test
@@ -348,10 +360,25 @@ public class MainTest {
     }
 
     @Test
-    public void testMainWithPParameterWithoutArgument() throws Throwable {
-        Main.main(new String[]{"-S", "-p"});
+    public void testMainWithShowProperties() throws Throwable {
+        checkMain(false, true, "-r");
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES);
+        assertThat(actualStartParameter.getBuildExecuter(), reflectionEquals(expectedExecuter));
+    }
 
-        // The projectLoaderMock throws an exception, if the main method does not return prematurely (what it should do).
+    @Test(expected = InvalidUserDataException.class)
+    public void testMainWithShowTasksAndShowProperties() throws Throwable {
+        checkMainFails("-r", "-t");
+    }
+
+    @Test
+    public void testMainWithPParameterWithoutArgument() throws Throwable {
+        try {
+            checkMainFails("-p");
+            fail();
+        } catch (OptionException e) {
+            // ignore
+        }
     }
 
     @Test

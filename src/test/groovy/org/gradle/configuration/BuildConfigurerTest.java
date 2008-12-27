@@ -40,7 +40,6 @@ public class BuildConfigurerTest {
     BuildConfigurer buildConfigurer;
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver;
     BuildScriptProcessor buildScriptProcessor;
-    ProjectTasksPrettyPrinter projectTasksPrettyPrinter;
     ProjectInternal rootProject;
     boolean evaluatedCalled;
     boolean resolveCalled;
@@ -53,8 +52,7 @@ public class BuildConfigurerTest {
     public void setUp()  {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         projectDependencies2TasksResolver = context.mock(ProjectDependencies2TaskResolver.class);
-        projectTasksPrettyPrinter = new ProjectTasksPrettyPrinter();
-        buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver, projectTasksPrettyPrinter);
+        buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver);
         buildScriptProcessor = new BuildScriptProcessor();
         resolveCalled = false;
         expectedTasksMap = new TreeMap();
@@ -81,7 +79,6 @@ public class BuildConfigurerTest {
     @Test
     public void testBuildConfigurer() {
         assert buildConfigurer.getProjectDependencies2TasksResolver() == projectDependencies2TasksResolver;
-        assert buildConfigurer.getProjectTasksPrettyPrinter() == projectTasksPrettyPrinter;
     }
 
     @Test
