@@ -654,15 +654,6 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
-    public void classMethodsAreInherited() {
-        Bean bean = new Bean();
-
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasMethod("javaMethod", "a", "b"));
-        assertThat(inherited.invokeMethod("javaMethod", "a", "b"), equalTo((Object) "java:a.b"));
-    }
-
-    @Test
     public void conventionMethodsAreInherited() {
         Bean bean = new Bean();
         Convention convention = new Convention();
@@ -703,6 +694,15 @@ public class DynamicObjectHelperTest {
         assertThat(inherited.invokeMethod("conventionMethod", "a", "b"), equalTo((Object) "convention:a.b"));
     }
 
+    @Test
+    public void otherMethodsAreNotInherited() {
+        Bean bean = new Bean();
+        assertTrue(bean.hasMethod("javaMethod", "a", "b"));
+
+        DynamicObject inherited = bean.getInheritable();
+        assertFalse(inherited.hasMethod("javaMethod", "a", "b"));
+    }
+    
     public static class Bean implements DynamicObject {
         private String readWriteProperty;
         private String readOnlyProperty;

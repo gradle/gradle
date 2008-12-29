@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests
 
+import static org.junit.Assert.*
+
 public class DynamicObjectIntegrationTestHelper {
     static void reportProperties(object) {
         DynamicObjectIntegrationTest.result = "${object.rootProperty},"
@@ -22,12 +24,31 @@ public class DynamicObjectIntegrationTestHelper {
         DynamicObjectIntegrationTest.result += "${object.sharedProperty},"
         DynamicObjectIntegrationTest.result += "${object.conventionProperty},"
         DynamicObjectIntegrationTest.result += "${object.testTask}"
+
+        try {
+            object.rootTask
+            fail()
+        } catch (MissingPropertyException e) {
+            // Ignore
+        }
     }
 
     static void reportMethods(object) {
         DynamicObjectIntegrationTest.result = "${object.rootMethod('Method')},"
         DynamicObjectIntegrationTest.result += "${object.childMethod('Method')},"
         DynamicObjectIntegrationTest.result += "${object.sharedMethod('Method')},"
-        DynamicObjectIntegrationTest.result += "${object.conventionMethod('Method')}"
+        DynamicObjectIntegrationTest.result += "${object.conventionMethod('Method')},"
+
+        object.testTask {
+            DynamicObjectIntegrationTest.result += delegate
+        }
+
+        try {
+            object.rootTask { }
+            fail()
+        } catch (MissingMethodException e) {
+            // Ignore
+        }
+        
     }
 }

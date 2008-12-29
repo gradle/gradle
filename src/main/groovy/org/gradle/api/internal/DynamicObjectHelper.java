@@ -26,7 +26,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         BeforeConvention, AfterConvention
     }
 
-    private final BeanDynamicObject delegateObject;
+    private final AbstractDynamicObject delegateObject;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private DynamicObject parent;
     private Convention convention;
@@ -37,7 +37,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         this(new BeanDynamicObject(delegateObject));
     }
 
-    DynamicObjectHelper(BeanDynamicObject delegateObject) {
+    DynamicObjectHelper(AbstractDynamicObject delegateObject) {
         this.delegateObject = delegateObject;
     }
 
@@ -77,10 +77,6 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
             case AfterConvention:
                 afterConvention = object;
         }
-    }
-
-    public BeanDynamicObject getDelegateObject() {
-        return delegateObject;
     }
 
     public boolean hasProperty(String name) {
@@ -209,7 +205,15 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
     }
 
     private DynamicObjectHelper snapshotInheritable() {
-        DynamicObjectHelper helper = new DynamicObjectHelper(delegateObject.withNoProperties());
+        AbstractDynamicObject emptyBean = new AbstractDynamicObject() {
+            @Override
+            protected String getDisplayName() {
+                return delegateObject.getDisplayName();
+            }
+        };
+
+        DynamicObjectHelper helper = new DynamicObjectHelper(emptyBean);
+
         helper.parent = parent;
         helper.convention = convention;
         helper.additionalProperties = additionalProperties;

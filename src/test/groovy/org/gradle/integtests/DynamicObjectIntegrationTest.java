@@ -34,7 +34,9 @@ public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").writelns(
                 "rootProperty = 'root'",
                 "sharedProperty = 'ignore me'",
-                "convention.plugins.test = new " + ConventionBean.class.getName() + "()"
+                "convention.plugins.test = new " + ConventionBean.class.getName() + "()",
+                "createTask('rootTask')",
+                "createTask('testTask')"
         );
         testFile("child/build.gradle").writelns(
                 "childProperty = 'child'",
@@ -55,7 +57,9 @@ public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
                 "def sharedMethod(p) { 'ignore me' }",
-                "convention.plugins.test = new " + ConventionBean.class.getName() + "()"
+                "convention.plugins.test = new " + ConventionBean.class.getName() + "()",
+                "createTask('rootTask')",
+                "createTask('testTask')"
         );
         testFile("child/build.gradle").writelns(
                 "def childMethod(p) { 'child' + p }",
@@ -67,7 +71,7 @@ public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
 
         inTestDirectory().runTasks("testTask");
 
-        assertThat(result, equalTo("rootMethod,childMethod,sharedMethod,conventionMethod"));
+        assertThat(result, equalTo("rootMethod,childMethod,sharedMethod,conventionMethod,task ':child:testTask'"));
     }
 
 }
