@@ -28,23 +28,26 @@ import java.util.TreeSet;
 /**
  * @author Hans Dockter
  */
-public class ProjectTasksPrettyPrinter {
-    public static final String SEPARATOR = "**************************************************";
+public class TaskListFormatter {
+    public static final String SEPARATOR = "------------------------------------------------------------";
 
     public String getPrettyText(Map<Project, Set<Task>> tasks) {
         Formatter formatter = new Formatter();
         SortedSet<Project> sortedProjects = new TreeSet<Project>(tasks.keySet());
         for (Project project : sortedProjects) {
             formatter.format("%n%s%n", SEPARATOR);
-            formatter.format("Project %s%n", project.getPath());
+            formatter.format("Project %s%n%n", project.getPath());
             SortedSet<Task> sortedTasks = new TreeSet<Task>(tasks.get(project));
             if (sortedTasks.isEmpty()) {
-                formatter.format("  No tasks%n");
+                formatter.format("No tasks%n");
                 continue;
             }
             for (Task task : sortedTasks) {
-                SortedSet<Task> sortedDependencies = new TreeSet<Task>(task.getTaskDependencies().getDependencies(task));
-                formatter.format("  Task %s %s%n", task.getPath(), sortedDependencies);
+                SortedSet<String> sortedDependencies = new TreeSet<String>();
+                for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
+                    sortedDependencies.add(dependency.getPath());
+                }
+                formatter.format("Task %s %s%n", task.getPath(), sortedDependencies);
             }
         }
         return formatter.toString();

@@ -34,9 +34,9 @@ class GradleVersionTest {
 
     @Test public void testPrettyPrint() {
         String expectedText = """
-----------------------------------------
+------------------------------------------------------------
 Gradle $TestConsts.VERSION
-----------------------------------------
+------------------------------------------------------------
 
 Gradle buildtime: $TestConsts.BUILD_TIME
 Groovy: $InvokerHelper.version

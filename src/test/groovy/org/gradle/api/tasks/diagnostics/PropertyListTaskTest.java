@@ -1,5 +1,5 @@
 /*
- * Copyright 2007, 2008 the original author or authors.
+ * Copyright 2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,25 +19,34 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
+import org.jmock.Sequence;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
+import org.gradle.util.WrapUtil;
+import org.gradle.util.GUtil;
+import static org.gradle.util.WrapUtil.*;
+
+import java.util.Collections;
 
 @RunWith(JMock.class)
 public class PropertyListTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private ProjectInternal project;
     private PropertyListTask task;
+    private PropertyListFormatter formatter;
 
     @Before
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         project = context.mock(ProjectInternal.class);
+        formatter = context.mock(PropertyListFormatter.class);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(project).getRootProject();
             will(returnValue(project));
             allowing(project).absolutePath("list");
@@ -45,10 +54,81 @@ public class PropertyListTaskTest {
         }});
 
         task = new PropertyListTask(project, "list");
+        task.setFormatter(formatter);
     }
 
     @Test
     public void isDagNeutral() {
         assertTrue(task.isDagNeutral());
+    }
+
+    @Test
+    public void passesCurrentProjectAndEachSubProjectToFormatter() {
+        final Project child1 = context.mock(Project.class, "child1");
+        final Project child2 = context.mock(Project.class, "child2");
+
+        context.checking(new Expectations() {{
+            one(project).getAllprojects();
+            will(returnValue(toLinkedSet(child1, project, child2)));
+
+            allowing(project).getProperties();
+            will(returnValue(Collections.emptyMap()));
+
+            allowing(child1).getProperties();
+            will(returnValue(Collections.emptyMap()));
+
+            allowing(child2).getProperties();
+            will(returnValue(Collections.emptyMap()));
+
+            allowing(project).compareTo(child1);
+            will(returnValue(-1));
+
+            allowing(child2).compareTo(child1);
+            will(returnValue(1));
+
+            Sequence sequence = context.sequence("seq");
+
+            one(formatter).startProject(project);
+            inSequence(sequence);
+            one(formatter).completeProject(project);
+            inSequence(sequence);
+            one(formatter).startProject(child1);
+            inSequence(sequence);
+            one(formatter).completeProject(child1);
+            inSequence(sequence);
+            one(formatter).startProject(child2);
+            inSequence(sequence);
+            one(formatter).completeProject(child2);
+            inSequence(sequence);
+            one(formatter).complete();
+            inSequence(sequence);
+        }});
+
+        task.execute();
+    }
+
+    @Test
+    public void passesEachPropertyToFormatter() {
+        context.checking(new Expectations() {{
+            one(project).getAllprojects();
+            will(returnValue(toLinkedSet(project)));
+            one(project).getProperties();
+            will(returnValue(GUtil.map("b", "value2", "a", "value1")));
+
+            Sequence sequence = context.sequence("seq");
+
+            one(formatter).startProject(project);
+            inSequence(sequence);
+            one(formatter).addProperty("a", "value1");
+            inSequence(sequence);
+            one(formatter).addProperty("b", "value2");
+            inSequence(sequence);
+            one(formatter).completeProject(project);
+            inSequence(sequence);
+            one(formatter).complete();
+            inSequence(sequence);
+        }});
+
+        task.execute();
     }
 }

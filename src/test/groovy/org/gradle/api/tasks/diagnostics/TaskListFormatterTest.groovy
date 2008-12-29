@@ -26,14 +26,16 @@ import org.gradle.api.tasks.TaskDependency;
 /**
  * @author Hans Dockter
  */
-class ProjectTasksPrettyPrinterTest {
-    String separator = '*' * 50
+class TaskListFormatterTest {
+    String separator = '-' * 60
 
     @Test public void testGetPrettyText() {
         String expectedProject1String = ':project1'
         String expectedProject2String = ':project2'
         String expectedTask11String = ':task11'
-        Set task11DependsOn = [':task111', ':task112'] as Set
+        Task task111 = [getPath: {':task111'}] as Task
+        Task task112 = [getPath: {':task112'}] as Task
+        Set task11DependsOn = [task111, task112] as Set
         TaskDependency task11Dependency = [getDependencies: {task11DependsOn}] as TaskDependency
         String expectedTask12String = ':task12'
         String expectedTask21String = ':task21'
@@ -53,15 +55,17 @@ class ProjectTasksPrettyPrinterTest {
         new PlatformLineWriter(stringWriter).withWriter { it.write("""
 $separator
 Project :project1
-  Task :task11 [:task111, :task112]
-  Task :task12 []
+
+Task :task11 [:task111, :task112]
+Task :task12 []
 
 $separator
 Project :project2
-  Task :task21 []
+
+Task :task21 []
 """)
         }
-        assertEquals(stringWriter.toString(), new ProjectTasksPrettyPrinter().getPrettyText(tasks))
+        assertEquals(stringWriter.toString(), new TaskListFormatter().getPrettyText(tasks))
     }
 
     @Test public void testEmptyProject() {
@@ -71,9 +75,10 @@ Project :project2
         new PlatformLineWriter(stringWriter).withWriter { it.write("""
 $separator
 Project :project1
-  No tasks
+
+No tasks
 """)
         }
-        assertEquals(stringWriter.toString(), new ProjectTasksPrettyPrinter().getPrettyText(tasks))
+        assertEquals(stringWriter.toString(), new TaskListFormatter().getPrettyText(tasks))
     }
 }

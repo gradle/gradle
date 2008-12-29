@@ -1,17 +1,32 @@
+/*
+ * Copyright 2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.TaskAction;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.diagnostics.ProjectTasksPrettyPrinter;
+import org.gradle.api.tasks.diagnostics.TaskListFormatter;
 
 /**
- * <p>This task prints out the list of tasks in the project, and its subprojects. It is used when you use the task list
- * command-line option.</p>
+ * <p>The {@link TaskListTask} prints out the list of tasks in the project, and its subprojects. It is used when you
+ *  use the task list command-line option.</p>
  */
 public class TaskListTask extends DefaultTask {
-    private ProjectTasksPrettyPrinter printer = new ProjectTasksPrettyPrinter();
+    private TaskListFormatter formatter = new TaskListFormatter();
 
     public TaskListTask(Project project, String name) {
         super(project, name);
@@ -23,11 +38,11 @@ public class TaskListTask extends DefaultTask {
         });
     }
 
-    public void setPrinter(ProjectTasksPrettyPrinter printer) {
-        this.printer = printer;
+    public void setFormatter(TaskListFormatter formatter) {
+        this.formatter = formatter;
     }
 
     public void generate() {
-        System.out.print(printer.getPrettyText(getProject().getAllTasks(true)));
+        System.out.print(formatter.getPrettyText(getProject().getAllTasks(true)));
     }
 }
