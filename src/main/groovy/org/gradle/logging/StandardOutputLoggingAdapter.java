@@ -31,36 +31,26 @@ public class StandardOutputLoggingAdapter extends OutputStream {
     /**
      * Used to maintain the contract of [EMAIL PROTECTED] #close()}.
      */
-    protected boolean hasBeenClosed = false;
+    private boolean hasBeenClosed = false;
+
+    private final byte[] lineSeparator;
+    private final int bufferIncrement;
 
     /**
      * The internal buffer where data is stored.
      */
-    protected byte[] buf;
+    private byte[] buf;
 
     /**
-     * The number of valid bytes in the buffer. This value is always
-     * in the range <tt>0</tt> through <tt>buf.length</tt>; elements
-     * <tt>buf[0]</tt> through <tt>buf[count-1]</tt> contain valid
-     * byte data.
+     * The number of valid bytes in the buffer. This value is always in the range <tt>0</tt> through
+     * <tt>buf.length</tt>; elements <tt>buf[0]</tt> through <tt>buf[count-1]</tt> contain valid byte data.
      */
-    protected int count;
-
-    /**
-     * Remembers the size of the buffer for speed.
-     */
-    private int bufLength;
-
-    /**
-     * The default number of bytes in the buffer. =2048
-     */
-    public static final int DEFAULT_BUFFER_LENGTH = 2048;
-
+    private int count;
 
     /**
      * The category to write to.
      */
-    protected Logger logger;
+    private Logger logger;
 
     /**
      * The priority to use when writing to the Category.
@@ -72,17 +62,29 @@ public class StandardOutputLoggingAdapter extends OutputStream {
      */
     private Marker marker;
 
-
     /**
-     * Creates the JscLoggingOutputStream to flush to the given Category.
+     * Creates the OutputStream to flush to the given Category.
      *
-     * @param log   the Logger to write to
+     * @param log the Logger to write to
      * @param level the Level to use when writing to the Logger
-     * @throws IllegalArgumentException if cat == null or priority ==
-     *                                  null
+     * @throws IllegalArgumentException if cat == null or priority == null
      */
     public StandardOutputLoggingAdapter(Logger log, Level level)
             throws IllegalArgumentException {
+        this(log, level, 2048);
+    }
+
+    /**
+     * Creates the OutputStream to flush to the given Category.
+     *
+     * @param log the Logger to write to
+     * @param level the Level to use when writing to the Logger
+     * @param bufferLength The initial buffer length to use
+     * @throws IllegalArgumentException if cat == null or priority == null
+     */
+    public StandardOutputLoggingAdapter(Logger log, Level level, int bufferLength)
+            throws IllegalArgumentException {
+        bufferIncrement = bufferLength;
         if (log == null) {
             throw new IllegalArgumentException("cat == null");
         }
@@ -93,128 +95,85 @@ public class StandardOutputLoggingAdapter extends OutputStream {
         this.level = level;
 
         logger = log;
-        bufLength = DEFAULT_BUFFER_LENGTH;
-        buf = new byte[DEFAULT_BUFFER_LENGTH];
+        buf = new byte[bufferLength];
         count = 0;
+        lineSeparator = System.getProperty("line.separator").toString().getBytes();
     }
 
-
     /**
-     * Closes this output stream and releases any system resources
-     * associated with this stream. The general contract of
-     * <code>close</code>
-     * is that it closes the output stream. A closed stream cannot
-     * perform
-     * output operations and cannot be reopened.
+     * Closes this output stream and releases any system resources associated with this stream. The general contract of
+     * <code>close</code> is that it closes the output stream. A closed stream cannot perform output operations and
+     * cannot be reopened.
      */
     public void close() {
         flush();
         hasBeenClosed = true;
     }
 
-
     /**
-     * Writes the specified byte to this output stream. The general
-     * contract for <code>write</code> is that one byte is written
-     * to the output stream. The byte to be written is the eight
-     * low-order bits of the argument <code>b</code>. The 24
-     * high-order bits of <code>b</code> are ignored.
+     * Writes the specified byte to this output stream. The general contract for <code>write</code> is that one byte is
+     * written to the output stream. The byte to be written is the eight low-order bits of the argument <code>b</code>.
+     * The 24 high-order bits of <code>b</code> are ignored.
      *
      * @param b the <code>byte</code> to write
-     * @throws java.io.IOException if an I/O error occurs. In particular,
-     *                             an <code>IOException</code> may be thrown if
-     *                             the
-     *                             output stream has been closed.
+     * @throws java.io.IOException if an I/O error occurs. In particular, an <code>IOException</code> may be thrown if
+     * the output stream has been closed.
      */
     public void write(final int b) throws IOException {
         if (hasBeenClosed) {
             throw new IOException("The stream has been closed.");
         }
 
-        // would this be writing past the buffer?
-        if (count == bufLength) {
+        if (count == buf.length) {
             // grow the buffer
-            final int newBufLength = bufLength + DEFAULT_BUFFER_LENGTH;
+            final int newBufLength = buf.length + bufferIncrement;
             final byte[] newBuf = new byte[newBufLength];
 
-            System.arraycopy(buf, 0, newBuf, 0, bufLength);
+            System.arraycopy(buf, 0, newBuf, 0, buf.length);
             buf = newBuf;
-
-            bufLength = newBufLength;
         }
 
         buf[count] = (byte) b;
         count++;
-        if ((b == '\n')) {
+        if (endsWithLineSeparator()) {
             flush();
         }
     }
 
+    private boolean endsWithLineSeparator() {
+        if (count < lineSeparator.length) {
+            return false;
+        }
+        for (int i = 0; i < lineSeparator.length; i++) {
+            if (buf[count - lineSeparator.length + i] != lineSeparator[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
-     * Flushes this output stream and forces any buffered output bytes
-     * to be written out. The general contract of <code>flush</code> is
-     * that calling it is an indication that, if any bytes previously
-     * written have been buffered by the implementation of the output
-     * stream, such bytes should immediately be written to their
-     * intended destination.
+     * Flushes this output stream and forces any buffered output bytes to be written out. The general contract of
+     * <code>flush</code> is that calling it is an indication that, if any bytes previously written have been buffered
+     * by the implementation of the output stream, such bytes should immediately be written to their intended
+     * destination.
      */
     public void flush() {
-        if (hasFlushableInput()) {
-            final byte[] theBytes = new byte[count];
-            System.arraycopy(buf, 0, theBytes, 0, count);
-            String message = new String(theBytes);
-            String lineSeparator = System.getProperty("line.separator");
-            if (message.endsWith(lineSeparator)) {
-                message = message.substring(0, message.length() - lineSeparator.length());
+        if (count != 0) {
+            int length = count;
+            if (endsWithLineSeparator()) {
+                length -= lineSeparator.length;
             }
+            String message = new String(buf, 0, length);
             logger.filterAndLog(Logger.FQCN, marker, level, message, null, null);
         }
         reset();
     }
 
-    private boolean hasFlushableInput() {
-        if (isNoInputData()) {
-            return false;
-        }
-        if (isLinuxBlankLine() || isMacBlankLine() || isWindowsBlankLine()) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isWindowsBlankLine() {
-        if (count == 2 && (char) buf[0] == '\r' && (char) buf[1] == '\n') {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isMacBlankLine() {
-        if (count == 1 && ((char) buf[0]) == '\r') {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isLinuxBlankLine() {
-        if (count == 1 && ((char) buf[0]) == '\n') {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isNoInputData() {
-        if (count == 0) {
-            return true;
-        }
-        return false;
-    }
-
-
     private void reset() {
-        // not resetting the buffer -- assuming that if it grew then it
-        //   will likely grow similarly again
+        if (buf.length > bufferIncrement) {
+            buf = new byte[bufferIncrement];
+        }
         count = 0;
     }
 
