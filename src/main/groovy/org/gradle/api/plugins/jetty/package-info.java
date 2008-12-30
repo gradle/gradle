@@ -15,5 +15,6 @@
  */
 
 /**
- * The Jetyy {@link org.gradle.api.Plugin} implementation.
+ * The Jetty {@link org.gradle.api.Plugin} implementation.
  */
+package org.gradle.api.plugins.jetty;

@@ -42,11 +42,6 @@ import org.gradle.api.Project;
  * There is a <a href="run-war-mojo.html">reference guide</a> to the configuration parameters for this plugin, and more detailed information
  * with examples in the <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Plugin/">Configuration Guide</a>.
  * </p>
- *
- * @goal run-war
- * @requiresDependencyResolution runtime
- * @execute phase="package"
- * @description Runs jetty6 on a war file
  */
 public class JettyRunWar extends AbstractJettyRunWarTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRunWar.class);
@@ -57,9 +52,6 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
 
     /**
      * The location of the war file.
-     *
-     * @parameter expression="${project.build.directory}/${project.build.finalName}.war"
-     * @required
      */
     private File webApp;
 

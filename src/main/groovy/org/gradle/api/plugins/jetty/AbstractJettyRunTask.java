@@ -38,9 +38,6 @@ import java.util.Iterator;
 import java.util.List;
 
 
-/**
- * AbstractJettyMojo
- */
 public abstract class AbstractJettyRunTask extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractJettyRunTask.class);
 
@@ -78,17 +75,12 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     /**
      * The "virtual" webapp created by the plugin
-     *
-     * @parameter
      */
     protected JettyPluginWebAppContext webAppConfig;
 
     /**
      * The context path for the webapp. Defaults to the
      * name of the webapp's artifact.
-     *
-     * @parameter expression="/${project.artifactId}"
-     * @required
      */
     protected String contextPath;
 
@@ -96,9 +88,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * The temporary directory to use for the webapp.
      * Defaults to target/jetty-tmp
-     *
-     * @parameter expression="${project.build.directory}/work"
-     * @required
      */
     protected File tmpDirectory;
 
@@ -106,8 +95,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * A webdefault.xml file to use instead
      * of the default for the webapp. Optional.
-     *
-     * @parameter
      */
     protected File webDefaultXml;
 
@@ -116,8 +103,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * the webapp's web.xml file. Useful for
      * applying different build profiles, eg
      * test, production etc. Optional.
-     *
-     * @parameter
      */
     protected File overrideWebXml;
 
@@ -126,9 +111,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * The interval in seconds to scan the webapp for changes
      * and restart the context if necessary. Ignored if reload
      * is enabled. Disabled by default.
-     *
-     * @parameter expression="${jetty.scanIntervalSeconds}" default-value="0"
-     * @required
      */
     protected int scanIntervalSeconds;
 
@@ -138,8 +120,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * <p/>
      * if 'manual' then the context can be reloaded by a linefeed in the console
      * if 'automatic' then traditional reloading on changed files is enabled.
-     *
-     * @parameter expression="${jetty.reload}" default-value="automatic"
      */
     protected String reload;
 
@@ -148,32 +128,24 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * System properties to set before execution.
      * Note that these properties will NOT override System properties
      * that have been set on the command line or by the JVM. Optional.
-     *
-     * @parameter
      */
     protected SystemProperties systemProperties;
 
     /**
      * Location of a jetty xml configuration file whose contents
      * will be applied before any plugin configuration. Optional.
-     *
-     * @parameter
      */
     protected File jettyConfig;
 
     /**
      * Port to listen to stop jetty on executing -DSTOP.PORT=&lt;stopPort&gt;
      * -DSTOP.KEY=&lt;stopKey&gt; -jar start.jar --stop
-     *
-     * @parameter
      */
     protected int stopPort;
 
     /**
      * Key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt;
      * -DSTOP.PORT=&lt;stopPort&gt; -jar start.jar --stop
-     *
-     * @parameter
      */
     protected String stopKey;
 
@@ -188,24 +160,18 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * processes in an automated build environment. This can be facilitated by setting
      * daemon to true.
      * </p>
-     *
-     * @parameter expression="${jetty.daemon}" default-value="false"
      */
     protected boolean daemon;
 
     /**
      * List of connectors to use. If none are configured
      * then we use a single SelectChannelConnector at port 8080
-     *
-     * @parameter
      */
     private Connector[] connectors;
 
 
     /**
      * List of security realms to set up. Optional.
-     *
-     * @parameter
      */
     private UserRealm[] userRealms;
 
@@ -213,8 +179,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * A RequestLog implementation to use for the webapp at runtime.
      * Optional.
-     *
-     * @parameter
      */
     private RequestLog requestLog;
 

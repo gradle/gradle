@@ -20,11 +20,6 @@ import org.mortbay.xml.XmlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * AbstractJetty6Mojo
- * <p/>
- * Base class for all jetty6 mojos.
- */
 public abstract class AbstractJettyRunWarTask extends AbstractJettyRunTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractJettyRunWarTask.class);
 

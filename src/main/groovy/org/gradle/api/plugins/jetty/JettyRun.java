@@ -64,10 +64,6 @@ import hidden.org.codehaus.plexus.util.FileUtils;
  * </p>
  *
  * @author janb
- * @goal run
- * @requiresDependencyResolution runtime
- * @execute phase="test-compile"
- * @description Runs jetty6 directly from a maven project
  */
 public class JettyRun extends AbstractJettyRunTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRun.class);
@@ -78,8 +74,6 @@ public class JettyRun extends AbstractJettyRunTask {
 
     /**
      * List of other contexts to set up. Optional.
-     *
-     * @parameter
      */
     private ContextHandler[] contextHandlers;
 
@@ -88,56 +82,38 @@ public class JettyRun extends AbstractJettyRunTask {
      * If true, the &lt;testOutputDirectory&gt;
      * and the dependencies of &lt;scope&gt;test&lt;scope&gt;
      * will be put first on the runtime classpath.
-     *
-     * @parameter default-value="false"
      */
     private boolean useTestClasspath;
 
 
     /**
      * The location of a jetty-env.xml file. Optional.
-     *
-     * @parameter
      */
     private File jettyEnvXml;
 
     /**
      * The location of the web.xml file. If not
      * set then it is assumed it is in ${basedir}/src/main/webapp/WEB-INF
-     *
-     * @parameter expression="${maven.war.webxml}"
      */
     private File webXml;
 
     /**
      * The directory containing generated classes.
-     *
-     * @parameter expression="${project.build.outputDirectory}"
-     * @required
      */
     private File classesDirectory;
 
-
     /**
      * The directory containing generated test classes.
-     *
-     * @parameter expression="${project.build.testOutputDirectory}"
-     * @required
      */
     private File testClassesDirectory;
 
     /**
      * Root directory for all html/jsp etc files
-     *
-     * @parameter expression="${basedir}/src/main/webapp"
-     * @required
      */
     private File webAppSourceDirectory;
 
     /**
      * List of files or directories to additionally periodically scan for changes. Optional.
-     *
-     * @parameter
      */
     private File[] scanTargets;
 
@@ -146,8 +122,6 @@ public class JettyRun extends AbstractJettyRunTask {
      * List of directories with ant-style &lt;include&gt; and &lt;exclude&gt; patterns
      * for extra targets to periodically scan for changes. Can be used instead of,
      * or in conjunction with &lt;scanTargets&gt;.Optional.
-     *
-     * @parameter
      */
     private ScanTargetPattern[] scanTargetPatterns;
 
