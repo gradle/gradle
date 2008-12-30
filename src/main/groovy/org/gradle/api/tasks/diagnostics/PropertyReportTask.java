@@ -28,10 +28,10 @@ import java.util.TreeSet;
  * The {@code PropertyListTask} prints out the properties of a project, sub-projects, and tasks. This task is used when
  * you execute the property list command-line option.
  */
-public class PropertyListTask extends DefaultTask {
-    private PropertyListFormatter formatter = new PropertyListFormatter();
+public class PropertyReportTask extends DefaultTask {
+    private PropertyReportRenderer formatter = new PropertyReportRenderer();
 
-    public PropertyListTask(Project project, String name) {
+    public PropertyReportTask(Project project, String name) {
         super(project, name);
         setDagNeutral(true);
         doFirst(new TaskAction() {
@@ -41,7 +41,7 @@ public class PropertyListTask extends DefaultTask {
         });
     }
 
-    public void setFormatter(PropertyListFormatter formatter) {
+    public void setFormatter(PropertyReportRenderer formatter) {
         this.formatter = formatter;
     }
 

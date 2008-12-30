@@ -19,16 +19,16 @@ import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.TaskAction;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.diagnostics.TaskListFormatter;
+import org.gradle.api.tasks.diagnostics.TaskReportRenderer;
 
 /**
- * <p>The {@link TaskListTask} prints out the list of tasks in the project, and its subprojects. It is used when you
+ * <p>The {@link TaskReportTask} prints out the list of tasks in the project, and its subprojects. It is used when you
  *  use the task list command-line option.</p>
  */
-public class TaskListTask extends DefaultTask {
-    private TaskListFormatter formatter = new TaskListFormatter();
+public class TaskReportTask extends DefaultTask {
+    private TaskReportRenderer formatter = new TaskReportRenderer();
 
-    public TaskListTask(Project project, String name) {
+    public TaskReportTask(Project project, String name) {
         super(project, name);
         setDagNeutral(true);
         doFirst(new TaskAction() {
@@ -38,7 +38,7 @@ public class TaskListTask extends DefaultTask {
         });
     }
 
-    public void setFormatter(TaskListFormatter formatter) {
+    public void setFormatter(TaskReportRenderer formatter) {
         this.formatter = formatter;
     }
 

@@ -366,9 +366,18 @@ public class MainTest {
         assertThat(actualStartParameter.getBuildExecuter(), reflectionEquals(expectedExecuter));
     }
 
+    @Test
+    public void testMainWithShowDependencies() throws Throwable {
+        checkMain(false, true, "-n");
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+        assertThat(actualStartParameter.getBuildExecuter(), reflectionEquals(expectedExecuter));
+    }
+
     @Test(expected = InvalidUserDataException.class)
-    public void testMainWithShowTasksAndShowProperties() throws Throwable {
+    public void testMainWithShowTasksPropertiesAndDependencies() throws Throwable {
         checkMainFails("-r", "-t");
+        checkMainFails("-r", "-n");
+        checkMainFails("-r", "-n", "-t");
     }
 
     @Test

@@ -19,15 +19,15 @@ import org.gradle.api.Project;
 
 import java.io.PrintStream;
 
-public class PropertyListFormatter {
+public class PropertyReportRenderer {
     public static final String SEPARATOR = "------------------------------------------------------------";
     private final PrintStream out;
 
-    public PropertyListFormatter() {
+    public PropertyReportRenderer() {
         this(System.out);
     }
 
-    public PropertyListFormatter(PrintStream out) {
+    public PropertyReportRenderer(PrintStream out) {
         this.out = out;
     }
 

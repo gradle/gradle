@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.diagnostics.TaskListFormatter;
+import org.gradle.api.tasks.diagnostics.TaskReportRenderer;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -33,16 +33,16 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 @RunWith(JMock.class)
-public class TaskListTaskTest {
+public class TaskReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private TaskListFormatter printer;
+    private TaskReportRenderer printer;
     private ProjectInternal project;
-    private TaskListTask task;
+    private TaskReportTask task;
 
     @Before
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        printer = context.mock(TaskListFormatter.class);
+        printer = context.mock(TaskReportRenderer.class);
         project = context.mock(ProjectInternal.class);
 
         context.checking(new Expectations(){{
@@ -52,7 +52,7 @@ public class TaskListTaskTest {
             will(returnValue(":path"));
         }});
 
-        task = new TaskListTask(project, "list");
+        task = new TaskReportTask(project, "list");
         task.setFormatter(printer);
     }
 

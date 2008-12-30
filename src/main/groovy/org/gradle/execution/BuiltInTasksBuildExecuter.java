@@ -17,8 +17,9 @@ package org.gradle.execution;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.diagnostics.TaskListTask;
-import org.gradle.api.tasks.diagnostics.PropertyListTask;
+import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 
 import java.util.Collections;
 
@@ -31,13 +32,30 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
             @Override
             public String toString() {
                 return "task list";
+            }
+            Task createTask(Project project) {
+                return new TaskReportTask(project, "taskList");
             }},
         PROPERTIES {
             @Override
             public String toString() {
                 return "property list";
-            }}
-    }
+            }
+            Task createTask(Project project) {
+                return new PropertyReportTask(project, "propertyList");
+            }},
+        DEPENDENCIES {
+            @Override
+            public String toString() {
+                return "dependency list";
+            }
+            Task createTask(Project project) {
+                return new DependencyReportTask(project, "dependencyList");
+            }};
+
+        abstract Task createTask(Project project);
+        }
+
     private Options options;
     private boolean selected;
     private Task task;
@@ -56,16 +74,7 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
 
     public void select(Project project) {
         assert !selected;
-        switch (options) {
-            case TASKS:
-                task = new TaskListTask(project, "taskList");
-                break;
-            case PROPERTIES:
-                task = new PropertyListTask(project, "propertyList");
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
+        task = options.createTask(project);
         selected = true;
     }
 

@@ -25,7 +25,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.dependencies.report.IvyDependencyGraphBuilder;
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
 
-import java.util.List;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
@@ -36,10 +35,10 @@ import java.io.FileOutputStream;
  *
  * @author Phil Messenger
  */
-public class ShowDependenciesTask extends DefaultTask
+public class DependencyReportTask extends DefaultTask
 {
 
-    DependencyGraphRenderer renderer = new AsciiGraphRenderer();
+    DependencyReportRenderer renderer = new AsciiReportRenderer();
 
     File outputFile;
 
@@ -71,12 +70,12 @@ public class ShowDependenciesTask extends DefaultTask
      * 
      * @param renderer
      */
-    public void setRenderer(DependencyGraphRenderer renderer)
+    public void setRenderer(DependencyReportRenderer renderer)
     {
         this.renderer = renderer;
     }
 
-    public ShowDependenciesTask(Project project, String name) {
+    public DependencyReportTask(Project project, String name) {
         super(project, name);
         setDagNeutral(true);
         doFirst(new TaskAction() {

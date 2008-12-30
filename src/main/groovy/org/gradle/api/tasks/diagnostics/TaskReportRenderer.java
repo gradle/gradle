@@ -28,7 +28,7 @@ import java.util.TreeSet;
 /**
  * @author Hans Dockter
  */
-public class TaskListFormatter {
+public class TaskReportRenderer {
     public static final String SEPARATOR = "------------------------------------------------------------";
 
     public String getPrettyText(Map<Project, Set<Task>> tasks) {

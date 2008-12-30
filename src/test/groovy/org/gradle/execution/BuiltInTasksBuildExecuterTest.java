@@ -25,8 +25,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.diagnostics.TaskListTask;
-import org.gradle.api.tasks.diagnostics.PropertyListTask;
+import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.util.Collections;
@@ -60,9 +61,9 @@ public class BuiltInTasksBuildExecuterTest {
     }
 
     @Test
-    public void executesTaskListTask() {
+    public void executesTaskReportTask() {
         executer.select(project);
-        assertThat(executer.getTask(), instanceOf(TaskListTask.class));
+        assertThat(executer.getTask(), instanceOf(TaskReportTask.class));
 
         context.checking(new Expectations(){{
             one(taskExecuter).execute(Collections.singleton(executer.getTask()));
@@ -73,17 +74,32 @@ public class BuiltInTasksBuildExecuterTest {
     }
 
     @Test
-    public void executesPropertyListTask() {
+    public void executesPropertyReportTask() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.PROPERTIES);
         
         executer.select(project);
-        assertThat(executer.getTask(), instanceOf(PropertyListTask.class));
+        assertThat(executer.getTask(), instanceOf(PropertyReportTask.class));
 
         context.checking(new Expectations() {{
             one(taskExecuter).execute(Collections.singleton(executer.getTask()));
         }});
 
         assertThat(executer.getDescription(), equalTo("property list"));
+        executer.execute(taskExecuter);
+    }
+
+    @Test
+    public void executesDependencyReportTask() {
+        executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+
+        executer.select(project);
+        assertThat(executer.getTask(), instanceOf(DependencyReportTask.class));
+
+        context.checking(new Expectations() {{
+            one(taskExecuter).execute(Collections.singleton(executer.getTask()));
+        }});
+
+        assertThat(executer.getDescription(), equalTo("dependency list"));
         executer.execute(taskExecuter);
     }
 

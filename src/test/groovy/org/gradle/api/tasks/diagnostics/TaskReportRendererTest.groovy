@@ -26,7 +26,7 @@ import org.gradle.api.tasks.TaskDependency;
 /**
  * @author Hans Dockter
  */
-class TaskListFormatterTest {
+class TaskReportRendererTest {
     String separator = '-' * 60
 
     @Test public void testGetPrettyText() {
@@ -65,7 +65,7 @@ Project :project2
 Task :task21 []
 """)
         }
-        assertEquals(stringWriter.toString(), new TaskListFormatter().getPrettyText(tasks))
+        assertEquals(stringWriter.toString(), new TaskReportRenderer().getPrettyText(tasks))
     }
 
     @Test public void testEmptyProject() {
@@ -79,6 +79,6 @@ Project :project1
 No tasks
 """)
         }
-        assertEquals(stringWriter.toString(), new TaskListFormatter().getPrettyText(tasks))
+        assertEquals(stringWriter.toString(), new TaskReportRenderer().getPrettyText(tasks))
     }
 }

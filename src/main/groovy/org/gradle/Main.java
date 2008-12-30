@@ -53,6 +53,7 @@ public class Main {
     private static final String SETTINGS_FILE = "c";
     private static final String TASKS = "t";
     private static final String PROPERTIES = "r";
+    private static final String DEPENDENCIES = "n";
     public static final String DEBUG = "d";
     private static final String INFO = "i";
     private static final String QUIET = "q";
@@ -105,6 +106,7 @@ public class Main {
                 acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"), "Print out the full (very verbose) stacktrace for any exceptions.");
                 acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
                 acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.");
+                acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.");
                 acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start dir for Gradle. Defaults to current dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
@@ -219,6 +221,8 @@ public class Main {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
         } else if (options.has(PROPERTIES)) {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES));
+        } else if (options.has(DEPENDENCIES)) {
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
         } else {
             startParameter.setTaskNames(options.nonOptionArguments());
         }

@@ -19,8 +19,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,16 +27,16 @@ import org.gradle.api.Project;
 import java.io.PrintStream;
 
 @RunWith(JMock.class)
-public class PropertyListFormatterTest {
+public class PropertyReportRendererTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private PrintStream out;
-    private PropertyListFormatter formatter;
+    private PropertyReportRenderer formatter;
 
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         out = context.mock(PrintStream.class);
-        formatter = new PropertyListFormatter(out);
+        formatter = new PropertyReportRenderer(out);
     }
 
 

@@ -25,6 +25,6 @@ import java.io.IOException;
  *
  * @author Phil Messenger
  */
-public interface DependencyGraphRenderer {
+public interface DependencyReportRenderer {
     void render(IvyDependencyGraph graph, OutputStream output) throws IOException;
 }

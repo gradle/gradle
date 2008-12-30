@@ -20,31 +20,29 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.Project;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
 import static org.gradle.util.WrapUtil.*;
 
 import java.util.Collections;
 
 @RunWith(JMock.class)
-public class PropertyListTaskTest {
+public class PropertyReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private ProjectInternal project;
-    private PropertyListTask task;
-    private PropertyListFormatter formatter;
+    private PropertyReportTask task;
+    private PropertyReportRenderer formatter;
 
     @Before
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         project = context.mock(ProjectInternal.class);
-        formatter = context.mock(PropertyListFormatter.class);
+        formatter = context.mock(PropertyReportRenderer.class);
 
         context.checking(new Expectations() {{
             allowing(project).getRootProject();
@@ -53,7 +51,7 @@ public class PropertyListTaskTest {
             will(returnValue(":path"));
         }});
 
-        task = new PropertyListTask(project, "list");
+        task = new PropertyReportTask(project, "list");
         task.setFormatter(formatter);
     }
 

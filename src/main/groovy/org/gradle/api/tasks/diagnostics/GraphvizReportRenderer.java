@@ -18,59 +18,55 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
 import org.gradle.api.dependencies.report.IvyDependency;
 
-import java.io.*;
+import java.io.OutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
- * Simple dependency graph renderer that emits an ASCII tree.
+ * DependencyGraphRenderer that emits simple graphviz dot notation for a dependency
+ * tree.
  *
  * @author Phil Messenger
  */
-public class AsciiGraphRenderer implements DependencyGraphRenderer {
-
+public class GraphvizReportRenderer implements DependencyReportRenderer
+{
     public void render(IvyDependencyGraph graph, OutputStream output) throws IOException
     {
         OutputStreamWriter writer = new OutputStreamWriter(output);
 
-        render(graph.getRoot(), 1, writer);
+        writer.write("digraph " + graph.getConf() + " {\n");
 
-        writer.close();
-    }
+		Set<String> edges = new HashSet<String>();
 
-    private void render(IvyDependency node, int depth, Writer writer) throws IOException
-    {
-        writer.write(getIndent(depth));
-		writer.write(node.toString());
-		writer.write("\n");
+		buildDotDependencyTree(graph.getRoot(), edges);
 
-		for(IvyDependency dep : node.getDependencies())
+		for(String edge : edges)
 		{
-			render(dep, depth + 1, writer);
+			writer.write(edge + "\n");
 		}
-    }
 
+		writer.write("}\n" );
+    }
 
     /**
-	 * Generate an approriate tab-indented string for the supplied depth
-	 *
-	 * @param depth
-	 * @return
-	 */
-	private String getIndent(int depth)
+     * @todo - need to check name escaping?
+     * 
+     * @param root
+     * @param edges
+     */
+    private void buildDotDependencyTree(IvyDependency root, Set<String> edges)
 	{
-		StringBuilder buffer = new StringBuilder();
-
-		for(int x = 0; x < depth - 1; x++)
+		for(IvyDependency dep : root.getDependencies())
 		{
-            if(x > 0)
-            {
-                buffer.append("|");
-            }
-
-			buffer.append("\t");
+			String edge = "\"" + root.getName() + "\" -> \"" + dep.getName().replace('-', '_') + "\";";
+			edges.add(edge);
 		}
 
-		buffer.append("|-----");
-
-		return buffer.toString();
+		for(IvyDependency dep : root.getDependencies())
+		{
+			buildDotDependencyTree(dep, edges);
+		}
 	}
 }
