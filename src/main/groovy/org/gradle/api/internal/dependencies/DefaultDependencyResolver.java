@@ -36,9 +36,16 @@ import java.util.Map;
 public class DefaultDependencyResolver implements IDependencyResolver {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyResolver.class);
 
+    private ResolveReport lastResolveReport;
+
     Map<String, List<File>> resolveCache = new HashMap<String, List<File>>();
 
     Report2Classpath report2Classpath;
+
+    public ResolveReport getLastResolveReport()
+    {
+        return lastResolveReport;
+    }
 
     public DefaultDependencyResolver(Report2Classpath report2Classpath) {
         this.report2Classpath = report2Classpath;
@@ -57,6 +64,7 @@ public class DefaultDependencyResolver implements IDependencyResolver {
         ResolveReport resolveReport = null;
         try {
             resolveReport = ivy.resolve(moduleDescriptor, resolveOptions);
+            lastResolveReport = resolveReport;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
