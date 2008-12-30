@@ -31,8 +31,12 @@ import java.util.Set;
 /**
  * <p>A <code>Task</code> represents a single step of a build, such as compiling classes or generating javadoc.</p>
  *
- * <p>A task belongs to a {@link Project}. You can use the various methods on {@link Project} to create and lookup task
- * instances.</p>
+ * <p>Each task belongs to a {@link Project}. You can use the various methods on {@link Project} to create and lookup
+ * task instances. For example, {@link Project#createTask(String)} creates an empty task with the given name.</p>
+ *
+ * <p>Each task has a name, which can be used to refer to the task within its owning project, and a fully qualified
+ * path, which is unique across all tasks in all projects. The path is the concatenation of the owning project's path
+ * and the task's name. Path elements are separated using the {@value Project#PATH_SEPARATOR} character.</p>
  *
  * <h3>Task Actions</h3>
  *
@@ -79,18 +83,28 @@ import java.util.Set;
  *
  * <a name="properties"/> <h4>Dynamic Properties</h4>
  *
- * <p>A {@code Task} has 2 'scopes' for properties. You can access these properties by name from the build file or by
+ * <p>A {@code Task} has 3 'scopes' for properties. You can access these properties by name from the build file or by
  * calling the {@link #property(String)} method.</p>
  *
  * <ul>
  *
  * <li>The {@code Task} object itself. This includes any property getters and setters declared by the {@code Task}
- * interface.</li>
+ * implementation class.  The properties of this scope are readable or writable based on the presence of the
+ * corresponding getter and setter methods.</li>
  *
  * <li>The <em>additional properties</em> of the task. Each task object maintains a map of additional properties. These
- * are arbitrary name -> value pairs which you can use to dynamically add properties to a task object.</li>
+ * are arbitrary name -> value pairs which you can use to dynamically add properties to a task object.  The properties
+ * of this scope are readable and writable.</li>
+ *
+ * <li>The <em>convention</em> properties added to the task by each {@link Plugin} applied to the project. A {@link
+ * Plugin} can add properties and methods to a task through the task's {@link Convention} object.  The properties of
+ * this scope may be readable or writable, depending on the convention objects.</li>
  *
  * </ul>
+ *
+ * <h4>Dynamic Methods</h4>
+ *
+ * <p>A {@link Plugin} may add methods to a {@code Task} using its {@link Convention} object.</p>
  *
  * @author Hans Dockter
  */
@@ -288,7 +302,6 @@ public interface Task extends Comparable<Task> {
      */
     Logger getLogger();
 
-
     /**
      * Disables redirection of standard output during task execution. By default redirection is enabled.
      *
@@ -319,6 +332,8 @@ public interface Task extends Comparable<Task> {
      *
      * <li>If this task has an additional property with the given name, return the value of the property.</li>
      *
+     * <li>If this task's convention object has a property with the given name, return the value of the property.</li>
+     *
      * <li>If not found, throw {@link MissingPropertyException}</li>
      *
      * </ol>
@@ -346,6 +361,8 @@ public interface Task extends Comparable<Task> {
      *
      * <li>The task object itself.  For example, the <code>enabled</code> project property.</li>
      *
+     * <li>The task's convention object.</li>
+     *
      * <li>The task's additional properties.</li>
      *
      * </ol>
@@ -358,6 +375,12 @@ public interface Task extends Comparable<Task> {
      */
     void defineProperty(String name, Object value); // We can't call this method setProperty as this lead to polymorphism problems with Groovy.;
 
+    /**
+     * <p>Returns the {@link Convention} object for this task. A {@link Plugin} can use the convention object to
+     * contribute properties and methods to this task.</p>
+     *
+     * @return The convention object. Never returns null.
+     */
     Convention getConvention();
 }
 

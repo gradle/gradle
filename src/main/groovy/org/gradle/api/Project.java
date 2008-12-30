@@ -140,7 +140,8 @@ import java.util.Set;
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
  * taking a single closure parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
- * associated task with the provided closure.</li>
+ * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
+ * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
  *
  * <li>The parent project, recursively up to the root project.</li>
  *
@@ -806,15 +807,6 @@ public interface Project extends Comparable<Project> {
     Convention getConvention();
 
     /**
-     * <p>Sets a {@link Convention} object for this project. Usually this is not needed as every project has a default
-     * Convention object in use.</p>
-     *
-     * @param convention The convention object to set.
-     * @see #getConvention()
-     */
-    void setConvention(Convention convention);
-
-    /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>
      *
      * @param otherProject The project to compare the nesting level with.
@@ -922,13 +914,13 @@ public interface Project extends Comparable<Project> {
     boolean hasProperty(String propertyName);
 
     /**
-     * <p>Returns the properties of this project. See <a href="#properties">here</a> for details of the properties
-     * which are available for a project.</p>
+     * <p>Returns the properties of this project. See <a href="#properties">here</a> for details of the properties which
+     * are available for a project.</p>
      *
      * @return A map from property name to value.
      */
     Map<String, ?> getProperties();
-    
+
     /**
      * Returns the value of the given property.  This method locates a property as follows:</p>
      *
