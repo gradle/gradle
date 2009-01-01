@@ -15,34 +15,38 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.Project;
-import org.gradle.api.TaskAction;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.diagnostics.TaskReportRenderer;
+
+import java.io.IOException;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * <p>The {@link TaskReportTask} prints out the list of tasks in the project, and its subprojects. It is used when you
  *  use the task list command-line option.</p>
  */
-public class TaskReportTask extends DefaultTask {
-    private TaskReportRenderer formatter = new TaskReportRenderer();
+public class TaskReportTask extends AbstractReportTask {
+    private TaskReportRenderer renderer = new TaskReportRenderer();
 
     public TaskReportTask(Project project, String name) {
         super(project, name);
-        setDagNeutral(true);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
+    }
+
+    public void setRenderer(TaskReportRenderer renderer) {
+        this.renderer = renderer;
+    }
+
+    public void generate() throws IOException {
+        Set<Project> projects = new TreeSet<Project>(getProject().getAllprojects());
+        for (Project project : projects) {
+            renderer.startProject(project);
+            Set<Task> tasks = new TreeSet<Task>(project.getTasks().values());
+            for (Task task : tasks) {
+                renderer.addTask(task);
             }
-        });
-    }
-
-    public void setFormatter(TaskReportRenderer formatter) {
-        this.formatter = formatter;
-    }
-
-    public void generate() {
-        System.out.print(formatter.getPrettyText(getProject().getAllTasks(true)));
+            renderer.completeProject(project);
+        }
+        renderer.complete();
     }
 }

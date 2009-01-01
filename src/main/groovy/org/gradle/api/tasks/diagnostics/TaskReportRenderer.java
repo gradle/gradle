@@ -19,37 +19,47 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 
-import java.util.Formatter;
-import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
  * @author Hans Dockter
  */
-public class TaskReportRenderer {
-    public static final String SEPARATOR = "------------------------------------------------------------";
+public class TaskReportRenderer extends TextProjectReportRenderer {
+    private boolean currentProjectHasTasks;
 
-    public String getPrettyText(Map<Project, Set<Task>> tasks) {
-        Formatter formatter = new Formatter();
-        SortedSet<Project> sortedProjects = new TreeSet<Project>(tasks.keySet());
-        for (Project project : sortedProjects) {
-            formatter.format("%n%s%n", SEPARATOR);
-            formatter.format("Project %s%n%n", project.getPath());
-            SortedSet<Task> sortedTasks = new TreeSet<Task>(tasks.get(project));
-            if (sortedTasks.isEmpty()) {
-                formatter.format("No tasks%n");
-                continue;
-            }
-            for (Task task : sortedTasks) {
-                SortedSet<String> sortedDependencies = new TreeSet<String>();
-                for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
-                    sortedDependencies.add(dependency.getPath());
-                }
-                formatter.format("Task %s %s%n", task.getPath(), sortedDependencies);
-            }
+    public TaskReportRenderer() {
+    }
+
+    public TaskReportRenderer(Appendable writer) {
+        super(writer);
+    }
+
+    @Override
+    public void startProject(Project project) {
+        currentProjectHasTasks = false;
+        super.startProject(project);
+    }
+
+    @Override
+    public void completeProject(Project project) {
+        if (!currentProjectHasTasks) {
+            getFormatter().format("No tasks%n");
         }
-        return formatter.toString();
+        super.completeProject(project);
+    }
+
+    /**
+     * Writes a task for the current project.
+     *
+     * @param task The task
+     */
+    public void addTask(Task task) {
+        SortedSet<String> sortedDependencies = new TreeSet<String>();
+        for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
+            sortedDependencies.add(dependency.getPath());
+        }
+        getFormatter().format("Task %s %s%n", task.getPath(), sortedDependencies);
+        currentProjectHasTasks = true;
     }
 }

@@ -30,19 +30,20 @@ import org.gradle.util.GUtil;
 import static org.gradle.util.WrapUtil.*;
 
 import java.util.Collections;
+import java.io.IOException;
 
 @RunWith(JMock.class)
 public class PropertyReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private ProjectInternal project;
     private PropertyReportTask task;
-    private PropertyReportRenderer formatter;
+    private PropertyReportRenderer renderer;
 
     @Before
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         project = context.mock(ProjectInternal.class);
-        formatter = context.mock(PropertyReportRenderer.class);
+        renderer = context.mock(PropertyReportRenderer.class);
 
         context.checking(new Expectations() {{
             allowing(project).getRootProject();
@@ -52,7 +53,7 @@ public class PropertyReportTaskTest {
         }});
 
         task = new PropertyReportTask(project, "list");
-        task.setFormatter(formatter);
+        task.setRenderer(renderer);
     }
 
     @Test
@@ -61,7 +62,7 @@ public class PropertyReportTaskTest {
     }
 
     @Test
-    public void passesCurrentProjectAndEachSubProjectToFormatter() {
+    public void passesCurrentProjectAndEachSubProjectToRenderer() throws IOException {
         final Project child1 = context.mock(Project.class, "child1");
         final Project child2 = context.mock(Project.class, "child2");
 
@@ -86,19 +87,19 @@ public class PropertyReportTaskTest {
 
             Sequence sequence = context.sequence("seq");
 
-            one(formatter).startProject(project);
+            one(renderer).startProject(project);
             inSequence(sequence);
-            one(formatter).completeProject(project);
+            one(renderer).completeProject(project);
             inSequence(sequence);
-            one(formatter).startProject(child1);
+            one(renderer).startProject(child1);
             inSequence(sequence);
-            one(formatter).completeProject(child1);
+            one(renderer).completeProject(child1);
             inSequence(sequence);
-            one(formatter).startProject(child2);
+            one(renderer).startProject(child2);
             inSequence(sequence);
-            one(formatter).completeProject(child2);
+            one(renderer).completeProject(child2);
             inSequence(sequence);
-            one(formatter).complete();
+            one(renderer).complete();
             inSequence(sequence);
         }});
 
@@ -106,7 +107,7 @@ public class PropertyReportTaskTest {
     }
 
     @Test
-    public void passesEachPropertyToFormatter() {
+    public void passesEachPropertyToRenderer() throws IOException {
         context.checking(new Expectations() {{
             one(project).getAllprojects();
             will(returnValue(toLinkedSet(project)));
@@ -115,15 +116,15 @@ public class PropertyReportTaskTest {
 
             Sequence sequence = context.sequence("seq");
 
-            one(formatter).startProject(project);
+            one(renderer).startProject(project);
             inSequence(sequence);
-            one(formatter).addProperty("a", "value1");
+            one(renderer).addProperty("a", "value1");
             inSequence(sequence);
-            one(formatter).addProperty("b", "value2");
+            one(renderer).addProperty("b", "value2");
             inSequence(sequence);
-            one(formatter).completeProject(project);
+            one(renderer).completeProject(project);
             inSequence(sequence);
-            one(formatter).complete();
+            one(renderer).complete();
             inSequence(sequence);
         }});
 

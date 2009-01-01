@@ -25,36 +25,24 @@ import java.io.*;
  *
  * @author Phil Messenger
  */
-public class AsciiReportRenderer implements DependencyReportRenderer {
+public class AsciiReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
 
-    public void render(IvyDependencyGraph graph, OutputStream output) throws IOException
+    public void render(IvyDependencyGraph graph) throws IOException
     {
-        OutputStreamWriter writer = new OutputStreamWriter(output);
-
-        render(graph.getRoot(), 1, writer);
-
-        writer.close();
+        render(graph.getRoot(), 1);
     }
 
-    private void render(IvyDependency node, int depth, Writer writer) throws IOException
+    private void render(IvyDependency node, int depth) throws IOException
     {
-        writer.write(getIndent(depth));
-		writer.write(node.toString());
-		writer.write("\n");
+        getFormatter().format(getIndent(depth));
+		getFormatter().format("%s%n", node);
 
 		for(IvyDependency dep : node.getDependencies())
 		{
-			render(dep, depth + 1, writer);
+			render(dep, depth + 1);
 		}
     }
 
-
-    /**
-	 * Generate an approriate tab-indented string for the supplied depth
-	 *
-	 * @param depth
-	 * @return
-	 */
 	private String getIndent(int depth)
 	{
 		StringBuilder buffer = new StringBuilder();

@@ -15,11 +15,14 @@
  */
 package org.gradle.build.integtests
 
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+
 public class CommandLine {
 
     static void execute(String gradleHome, String samplesDirPath) {
         File javaprojectDir = new File(samplesDirPath, 'javaproject')
         Map result = Executer.execute(gradleHome, javaprojectDir.absolutePath, ['unknown'], [], '', Executer.QUIET, true)
-        assert result.error.contains("Task 'unknown' not found ")
+        assertThat(result.error, containsString("Task 'unknown' not found "))
     }
 }

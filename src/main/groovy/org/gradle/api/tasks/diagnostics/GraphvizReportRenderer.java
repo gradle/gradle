@@ -15,58 +15,47 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.dependencies.report.IvyDependencyGraph;
+import org.gradle.api.Project;
 import org.gradle.api.dependencies.report.IvyDependency;
+import org.gradle.api.dependencies.report.IvyDependencyGraph;
 
-import java.io.OutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
- * DependencyGraphRenderer that emits simple graphviz dot notation for a dependency
- * tree.
+ * DependencyGraphRenderer that emits simple graphviz dot notation for a dependency tree.
  *
  * @author Phil Messenger
  */
-public class GraphvizReportRenderer implements DependencyReportRenderer
-{
-    public void render(IvyDependencyGraph graph, OutputStream output) throws IOException
-    {
-        OutputStreamWriter writer = new OutputStreamWriter(output);
-
-        writer.write("digraph " + graph.getConf() + " {\n");
-
-		Set<String> edges = new HashSet<String>();
-
-		buildDotDependencyTree(graph.getRoot(), edges);
-
-		for(String edge : edges)
-		{
-			writer.write(edge + "\n");
-		}
-
-		writer.write("}\n" );
+public class GraphvizReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
+    @Override
+    public void startProject(Project project) {
+        // Do nothing
     }
 
-    /**
-     * @todo - need to check name escaping?
-     * 
-     * @param root
-     * @param edges
-     */
-    private void buildDotDependencyTree(IvyDependency root, Set<String> edges)
-	{
-		for(IvyDependency dep : root.getDependencies())
-		{
-			String edge = "\"" + root.getName() + "\" -> \"" + dep.getName().replace('-', '_') + "\";";
-			edges.add(edge);
-		}
+    public void render(IvyDependencyGraph graph) throws IOException {
+        getFormatter().format("digraph %s{%n", graph.getConf());
 
-		for(IvyDependency dep : root.getDependencies())
-		{
-			buildDotDependencyTree(dep, edges);
-		}
-	}
+        Set<String> edges = new HashSet<String>();
+
+        buildDotDependencyTree(graph.getRoot(), edges);
+
+        for (String edge : edges) {
+            getFormatter().format("%s%n", edge);
+        }
+
+        getFormatter().format("}%n");
+    }
+
+    private void buildDotDependencyTree(IvyDependency root, Set<String> edges) {
+        for (IvyDependency dep : root.getDependencies()) {
+            String edge = "\"" + root.getName() + "\" -> \"" + dep.getName().replace('-', '_') + "\";";
+            edges.add(edge);
+        }
+
+        for (IvyDependency dep : root.getDependencies()) {
+            buildDotDependencyTree(dep, edges);
+        }
+    }
 }

@@ -15,22 +15,12 @@
  */
 package org.gradle.api.dependencies.report;
 
-import org.gradle.api.Project;
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.cache.ResolutionCacheManager;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.core.resolve.IvyNode;
-import org.apache.ivy.core.resolve.IvyNodeCallers;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.report.ResolveReport;
-import org.dom4j.Document;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
+import org.apache.ivy.core.resolve.IvyNode;
+import org.gradle.api.Project;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.io.File;
+import java.util.List;
 
 /**
  * Builds a collection of IvyDependencyGraphs for a given project.
@@ -65,7 +55,7 @@ public class IvyDependencyGraphBuilder
      * @return
      * @throws Exception
      */
-    public IvyDependencyGraph buildGraph(Project project, ResolveReport report, String conf) throws Exception
+    public IvyDependencyGraph buildGraph(Project project, ResolveReport report, String conf)
     {
 		IvyDependencyGraph graph = new IvyDependencyGraph();
 

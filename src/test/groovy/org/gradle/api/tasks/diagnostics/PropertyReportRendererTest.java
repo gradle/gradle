@@ -15,52 +15,27 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.gradle.api.Project;
 
-import java.io.PrintStream;
+import java.io.StringWriter;
 
-@RunWith(JMock.class)
 public class PropertyReportRendererTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private PrintStream out;
+    private StringWriter out;
     private PropertyReportRenderer formatter;
 
     @Before
     public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        out = context.mock(PrintStream.class);
+        out = new StringWriter();
         formatter = new PropertyReportRenderer(out);
-    }
-
-
-    @Test
-    public void writesStartProject() {
-        final Project project = context.mock(Project.class);
-        context.checking(new Expectations() {{
-            allowing(project).getPath();
-            will(returnValue("<path>"));
-
-            allowing(out).println();
-            one(out).println("Project <path>");
-            allowing(out).println(with(any(String.class)));
-        }});
-
-        formatter.startProject(project);
     }
 
     @Test
     public void writesProperty() {
-        context.checking(new Expectations() {{
-            one(out).println("prop: value");
-        }});
-
         formatter.addProperty("prop", "value");
+
+        assertThat(out.toString(), containsString("prop: value"));
     }
 }

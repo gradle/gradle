@@ -13,72 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.diagnostics
 
-import groovy.io.PlatformLineWriter
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskDependency
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.junit.Test
-import org.gradle.api.tasks.TaskDependency;
 
 /**
  * @author Hans Dockter
  */
 class TaskReportRendererTest {
-    String separator = '-' * 60
+    StringWriter writer = new StringWriter()
+    TaskReportRenderer renderer = new TaskReportRenderer(writer)
 
-    @Test public void testGetPrettyText() {
-        String expectedProject1String = ':project1'
-        String expectedProject2String = ':project2'
-        String expectedTask11String = ':task11'
-        Task task111 = [getPath: {':task111'}] as Task
-        Task task112 = [getPath: {':task112'}] as Task
-        Set task11DependsOn = [task111, task112] as Set
-        TaskDependency task11Dependency = [getDependencies: {task11DependsOn}] as TaskDependency
-        String expectedTask12String = ':task12'
-        String expectedTask21String = ':task21'
-        TaskDependency emptyDependency = [getDependencies: {[] as Set}] as TaskDependency
+    @Test public void testWritesTaskAndDependencies() {
+        Task task1 = [getPath: {':task1'}] as Task
+        Task task2 = [getPath: {':task2'}] as Task
+        TaskDependency taskDependency = [getDependencies: {[task1, task2] as Set}] as TaskDependency
+        Task task = [getPath: {':task'}, getTaskDependencies: {taskDependency}] as Task
 
-        Project project1 = [getPath: {expectedProject1String}, compareTo: {-1}] as Project
-        Project project2 = [getPath: {expectedProject2String}, compareTo: {1}] as Project
-        Task task11 = [getPath: {expectedTask11String}, getTaskDependencies: {task11Dependency}, compareTo: {-1}] as Task
-        Task task12 = [getPath: {expectedTask12String}, getTaskDependencies: {emptyDependency}, compareTo: {1}] as Task
-        Task task21 = [getPath: {expectedTask21String}, getTaskDependencies: {emptyDependency}] as Task
+        renderer.addTask(task)
 
-        Map tasks = [(project1): new LinkedHashSet([task11, task12]), (project2): [task21] as Set]
-        // We can't use triple quoted strings for cresting the expected value, as they use always /n as
-        // line separator. In contrast to writeLine, which uses the platform specific line separator. This
-        // would(has) lead to failing tests under Windows.
-        StringWriter stringWriter = new StringWriter()
-        new PlatformLineWriter(stringWriter).withWriter { it.write("""
-$separator
-Project :project1
-
-Task :task11 [:task111, :task112]
-Task :task12 []
-
-$separator
-Project :project2
-
-Task :task21 []
-""")
-        }
-        assertEquals(stringWriter.toString(), new TaskReportRenderer().getPrettyText(tasks))
+        assertThat(writer.toString(), containsString('Task :task [:task1, :task2]'))
     }
 
-    @Test public void testEmptyProject() {
-        Project project1 = [getPath: {':project1'}, compareTo: {-1}] as Project
-        Map tasks = [(project1): new HashSet()]
-        StringWriter stringWriter = new StringWriter()
-        new PlatformLineWriter(stringWriter).withWriter { it.write("""
-$separator
-Project :project1
+    @Test public void testProjectWithNoTasks() {
+        Project project = [getPath: {':project'}] as Project
 
-No tasks
-""")
-        }
-        assertEquals(stringWriter.toString(), new TaskReportRenderer().getPrettyText(tasks))
+        renderer.startProject(project)
+        renderer.completeProject(project)
+
+        assertThat(writer.toString(), containsString('No tasks'))
+    }
+    
+    @Test public void testProjectWithTasks() {
+        TaskDependency taskDependency = [getDependencies: {[] as Set}] as TaskDependency
+        Task task = [getPath: {':task'}, getTaskDependencies: {taskDependency}] as Task
+        Project project = [getPath: {':project'}] as Project
+
+        renderer.startProject(project)
+        renderer.addTask(task)
+        renderer.completeProject(project)
+
+        assertThat(writer.toString(), not(containsString('No tasks')))
     }
 }

@@ -68,6 +68,10 @@ class HelperUtil {
                 null] as Object[])
     }
 
+    static DefaultProject createRootProject() {
+        createRootProject(makeNewTestDir())
+    }
+
     static DefaultProject createRootProject(File rootDir) {
         ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
         IProjectFactory projectFactory = new ProjectFactory(

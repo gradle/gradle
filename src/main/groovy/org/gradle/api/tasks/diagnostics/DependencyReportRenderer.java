@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
 
-import java.io.OutputStream;
 import java.io.IOException;
 
 /**
@@ -25,6 +24,11 @@ import java.io.IOException;
  *
  * @author Phil Messenger
  */
-public interface DependencyReportRenderer {
-    void render(IvyDependencyGraph graph, OutputStream output) throws IOException;
+public interface DependencyReportRenderer extends ProjectReportRenderer {
+    /**
+     * Writes the given dependency graph for the current project.
+     *
+     * @param graph The dependency graph.
+     */
+    void render(IvyDependencyGraph graph) throws IOException;
 }

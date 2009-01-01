@@ -15,36 +15,22 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Project;
-
-import java.io.PrintStream;
-
-public class PropertyReportRenderer {
-    public static final String SEPARATOR = "------------------------------------------------------------";
-    private final PrintStream out;
+public class PropertyReportRenderer extends TextProjectReportRenderer {
 
     public PropertyReportRenderer() {
-        this(System.out);
     }
 
-    public PropertyReportRenderer(PrintStream out) {
-        this.out = out;
+    public PropertyReportRenderer(Appendable out) {
+        super(out);
     }
 
-    public void startProject(Project project) {
-        out.println();
-        out.println(SEPARATOR);
-        out.println(String.format("Project %s", project.getPath()));
-        out.println(SEPARATOR);
-    }
-
-    public void completeProject(Project project) {
-    }
-
-    public void complete() {
-    }
-
+    /**
+     * Writes a property for the current project.
+     *
+     * @param name The name of the property
+     * @param value The value of the property
+     */
     public void addProperty(String name, Object value) {
-        out.println(String.format("%s: %s", name, value));
+        getFormatter().format("%s: %s%n", name, value);
     }
 }

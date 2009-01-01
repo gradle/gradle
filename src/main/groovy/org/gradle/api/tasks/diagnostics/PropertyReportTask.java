@@ -15,11 +15,9 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.internal.DefaultTask;
 import org.gradle.api.Project;
-import org.gradle.api.TaskAction;
-import org.gradle.api.Task;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -28,31 +26,25 @@ import java.util.TreeSet;
  * The {@code PropertyListTask} prints out the properties of a project, sub-projects, and tasks. This task is used when
  * you execute the property list command-line option.
  */
-public class PropertyReportTask extends DefaultTask {
-    private PropertyReportRenderer formatter = new PropertyReportRenderer();
+public class PropertyReportTask extends AbstractReportTask {
+    private PropertyReportRenderer renderer = new PropertyReportRenderer();
 
     public PropertyReportTask(Project project, String name) {
         super(project, name);
-        setDagNeutral(true);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
-            }
-        });
     }
 
-    public void setFormatter(PropertyReportRenderer formatter) {
-        this.formatter = formatter;
+    public void setRenderer(PropertyReportRenderer renderer) {
+        this.renderer = renderer;
     }
 
-    public void generate() {
+    public void generate() throws IOException {
         for (Project project : new TreeSet<Project>(getProject().getAllprojects())) {
-            formatter.startProject(project);
+            renderer.startProject(project);
             for (Map.Entry<String, ?> entry : new TreeMap<String, Object>(project.getProperties()).entrySet()) {
-                formatter.addProperty(entry.getKey(), entry.getValue());
+                renderer.addProperty(entry.getKey(), entry.getValue());
             }
-            formatter.completeProject(project);
+            renderer.completeProject(project);
         }
-        formatter.complete();
+        renderer.complete();
     }
 }
