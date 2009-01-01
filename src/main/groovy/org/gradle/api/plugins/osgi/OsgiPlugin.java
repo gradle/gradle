@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.io.File;
 
 /**
+ * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project JARs.</p> 
+ *
  * @author Hans Dockter
  */
 public class OsgiPlugin implements Plugin {

@@ -31,6 +31,8 @@ import java.io.File;
 import java.util.Map;
 
 /**
+ * <p>A {@link Plugin} which extends the {@link WarPlugin} to add tasks which run the web application under Jetty.</p>
+ * 
  * @author Hans Dockter
  */
 public class JettyPlugin implements Plugin {

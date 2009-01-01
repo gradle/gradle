@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add tasks which assemble a web application into a WAR
+ * file.</p>
+ *
  * @author Hans Dockter
  */
 public class WarPlugin implements Plugin {

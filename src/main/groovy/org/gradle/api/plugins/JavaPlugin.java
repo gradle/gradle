@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
+ *
  * @author Hans Dockter
  */
 public class JavaPlugin implements Plugin {

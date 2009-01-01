@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.testing.Test;
@@ -32,6 +33,8 @@ import org.gradle.util.WrapUtil;
 import java.util.Map;
 
 /**
+ * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling Groovy source files.</p>
+ *
  * @author Hans Dockter
  */
 public class GroovyPlugin extends JavaPlugin {
