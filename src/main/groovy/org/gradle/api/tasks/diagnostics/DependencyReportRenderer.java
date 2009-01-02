@@ -20,7 +20,7 @@ import org.gradle.api.dependencies.report.IvyDependencyGraph;
 import java.io.IOException;
 
 /**
- * Specifies the contract for Dependency graph renderer
+ * A {@code DependencyReportRenderer} is responsible for rendering the model of a project dependency report.
  *
  * @author Phil Messenger
  */

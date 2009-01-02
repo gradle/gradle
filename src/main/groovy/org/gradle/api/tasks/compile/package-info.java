@@ -15,6 +15,6 @@
  */
 
 /**
- * The compilation {@link org.gradle.api.Task}s.
+ * The compilation {@link org.gradle.api.Task} implementations.
  */
 package org.gradle.api.tasks.compile;

@@ -15,17 +15,18 @@
  */
 package org.gradle.api.dependencies;
 
+import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
-import java.util.Map;
 import java.util.List;
-
-import groovy.lang.Closure;
+import java.util.Map;
 
 /**
-* @author Hans Dockter
-*/
+ * <p>A {@code Dependency} represents a dependency on the artifacts from a particular source.</p>
+ *
+ * @author Hans Dockter
+ */
 public interface Dependency extends IvyObjectBuilder<DependencyDescriptor> {
     public static final String DEFAULT_CONFIGURATION = "default";
     public static final String MASTER_CONFIGURATION = "master";

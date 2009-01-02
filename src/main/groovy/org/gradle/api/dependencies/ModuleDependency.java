@@ -16,6 +16,8 @@
 package org.gradle.api.dependencies;
 
 /**
+ * <p>A {@code ModuleDependency} is a {@link Dependency} on a module outside the current project hierarchy.</p>
+ *
  * @author Hans Dockter
  */
 public interface ModuleDependency extends ExternalDependency {

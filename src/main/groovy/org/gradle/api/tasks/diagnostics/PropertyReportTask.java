@@ -23,8 +23,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * The {@code PropertyListTask} prints out the properties of a project, sub-projects, and tasks. This task is used when
- * you execute the property list command-line option.
+ * The {@code PropertyListTask} prints out the properties of a project, and its sub-projects and tasks. This task is
+ * used when you execute the property list command-line option.
  */
 public class PropertyReportTask extends AbstractReportTask {
     private PropertyReportRenderer renderer = new PropertyReportRenderer();

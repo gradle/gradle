@@ -20,8 +20,10 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 
 /**
-* @author Hans Dockter
-*/
+ * <p>A {@code PublishArtifact} is an artifact produced by a project.</p>
+ *
+ * @author Hans Dockter
+ */
 public interface PublishArtifact extends IvyObjectBuilder<Artifact> {
    Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId);
 }

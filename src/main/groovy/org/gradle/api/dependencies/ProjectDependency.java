@@ -19,6 +19,8 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.dependencies.DefaultProjectDependency;
 
 /**
+ * <p>A {@code ProjectDependency} is a {@link Dependency} on another project in the current project hierarchy.</p>
+ * 
  * @author Hans Dockter
  */
 public interface ProjectDependency extends Dependency {

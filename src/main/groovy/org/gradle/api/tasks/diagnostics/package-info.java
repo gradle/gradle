@@ -15,6 +15,6 @@
  */
 
 /**
- * The built-in diagnostic {@link org.gradle.api.Task}s.
+ * The built-in diagnostic {@link org.gradle.api.Task} implementations.
  */
 package org.gradle.api.tasks.diagnostics;

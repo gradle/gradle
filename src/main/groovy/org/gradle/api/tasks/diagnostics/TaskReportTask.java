@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * <p>The {@link TaskReportTask} prints out the list of tasks in the project, and its subprojects. It is used when you
+ * <p>The {@code TaskReportTask} prints out the list of tasks in the project, and its subprojects. It is used when you
  *  use the task list command-line option.</p>
  */
 public class TaskReportTask extends AbstractReportTask {

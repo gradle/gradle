@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
+ * <p>An {@code Artifact} represents an artifact included in a {@link Dependency}.</p>
+ *
  * @author Hans Dockter
  */
 public class Artifact {

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+/**
+ * <p>A {@code PropertyReportRenderer} is responsible for rendering the model of a property report.</p>
+ */
 public class PropertyReportRenderer extends TextProjectReportRenderer {
 
     public PropertyReportRenderer() {

@@ -25,8 +25,9 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Task to show a dependency tree for a project. Can be configured to output to a file, and to optionally output a
- * graphviz compatible "dot" graph.
+ * The {@code DependencyReportTask} displays the dependency tree for a project. Can be configured to output to a file,
+ * and to optionally output a graphviz compatible "dot" graph. This task is used when you execute the dependency list
+ * command-line option.
  *
  * @author Phil Messenger
  */

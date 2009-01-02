@@ -15,6 +15,6 @@
  */
 
 /**
- * The archive bundling {@link org.gradle.api.Task}s.
+ * The archive bundling {@link org.gradle.api.Task} implementations.
  */
 package org.gradle.api.tasks.bundling;

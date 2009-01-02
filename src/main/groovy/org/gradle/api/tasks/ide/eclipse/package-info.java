@@ -15,6 +15,6 @@
  */
 
 /**
- * The eclipse project generation {@link org.gradle.api.Task}s.
+ * The eclipse project generation {@link org.gradle.api.Task} implementations.
  */
 package org.gradle.api.tasks.ide.eclipse;

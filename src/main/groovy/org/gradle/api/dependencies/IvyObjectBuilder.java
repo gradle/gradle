@@ -4,9 +4,9 @@ import org.gradle.api.Transformer;
 import groovy.lang.Closure;
 
 /**
- * <p>A {@code IvyObjectBuilder} builds Ivy domain objects of type T. You can influence the construction of the Ivy
- * objects by adding transformers to this builder. A transformer can either be a closure, or a {@link
- * org.gradle.api.Transformer} implementation. The transformers are called in the order added.</p>
+ * <p>A {@code IvyObjectBuilder} builds Ivy domain objects of type {@code T}. You can influence the construction of the
+ * Ivy objects by adding transformers to this builder. A transformer can either be a closure, or a {@link Transformer}
+ * implementation. The transformers are called in the order added.</p>
  */
 public interface IvyObjectBuilder<T> {
     /**

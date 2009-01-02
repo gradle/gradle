@@ -15,6 +15,6 @@
  */
 
 /**
- * The unit testing {@link org.gradle.api.Task}s.
+ * The unit testing {@link org.gradle.api.Task} implementations.
  */
 package org.gradle.api.tasks.testing;

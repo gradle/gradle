@@ -23,6 +23,9 @@ import org.gradle.api.internal.DefaultTask;
 
 import java.io.IOException;
 
+/**
+ * The base class for all project report tasks.
+ */
 public abstract class AbstractReportTask extends DefaultTask {
     public AbstractReportTask(Project project, String name) {
         super(project, name);
