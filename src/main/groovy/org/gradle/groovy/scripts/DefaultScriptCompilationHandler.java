@@ -36,10 +36,16 @@ import java.net.URLClassLoader;
 /**
  * @author Hans Dockter
  */
-public class DefaultScriptHandler implements IScriptHandler {
-    private Logger logger = LoggerFactory.getLogger(DefaultScriptHandler.class);
+public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
+    private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
 
-    public Script createScript(String scriptText, ClassLoader classLoader, String scriptName, Class<? extends Script> scriptBaseClass) {
+    private CachePropertiesHandler cachePropertiesHandler;
+
+    public DefaultScriptCompilationHandler(CachePropertiesHandler cachePropertiesHandler) {
+        this.cachePropertiesHandler = cachePropertiesHandler;
+    }
+
+    public Script createScriptOnTheFly(String scriptText, ClassLoader classLoader, String scriptName, Class<? extends Script> scriptBaseClass) {
         logger.debug("Parsing Script:\n{}", scriptText);
         Clock clock = new Clock();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
@@ -59,7 +65,7 @@ public class DefaultScriptHandler implements IScriptHandler {
         return script;
     }
 
-    public Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
+    public void writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(scriptCacheDir);
         scriptCacheDir.mkdirs();
@@ -72,11 +78,12 @@ public class DefaultScriptHandler implements IScriptHandler {
         } catch (CompilationFailedException e) {
             throw new GradleException(e);
         }
-        logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
+        boolean emptyScript = false;
         if (unit.getClasses().isEmpty()) {
-            return new EmptyScript();
+            emptyScript = true;
         }
-        return loadFromCache(0, classLoader, scriptName, scriptCacheDir, scriptBaseClass);
+        cachePropertiesHandler.writeProperties(scriptText, scriptCacheDir, emptyScript);
+        logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
@@ -85,9 +92,12 @@ public class DefaultScriptHandler implements IScriptHandler {
         return configuration;
     }
 
-    public Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
-        if (scriptCacheDir.lastModified() < lastModified) {
+    public Script loadFromCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
+        CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(scriptText, scriptCacheDir);
+        if (cacheState == CachePropertiesHandler.CacheState.INVALID) {
             return null;
+        } else if (cacheState == CachePropertiesHandler.CacheState.EMPTY_SCRIPT) {
+            return new EmptyScript();    
         }
         Clock clock = new Clock();
         Script script;
@@ -106,5 +116,9 @@ public class DefaultScriptHandler implements IScriptHandler {
         }
         logger.debug("Timing: Loading script from cache took: {}", clock.getTime());
         return script;
+    }
+
+    public CachePropertiesHandler getCachePropertyHandler() {
+        return cachePropertiesHandler;
     }
 }

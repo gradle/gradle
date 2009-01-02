@@ -18,7 +18,6 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Script;
 import org.gradle.CacheUsage;
 import org.gradle.api.Project;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -26,11 +25,11 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DefaultScriptProcessor implements IScriptProcessor {
-    private final IScriptHandler scriptHandler;
+    private ScriptCompilationHandler scriptCompilationHandler;
     private final CacheUsage cacheUsage;
 
-    public DefaultScriptProcessor(IScriptHandler scriptHandler, CacheUsage cacheUsage) {
-        this.scriptHandler = scriptHandler;
+    public DefaultScriptProcessor(ScriptCompilationHandler scriptCompilationHandler, CacheUsage cacheUsage) {
+        this.scriptCompilationHandler = scriptCompilationHandler;
         this.cacheUsage = cacheUsage;
     }
 
@@ -49,7 +48,7 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     }
 
     private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
-        return scriptHandler.createScript(source.getText(), classLoader, source.getClassName(), scriptBaseClass);
+        return scriptCompilationHandler.createScriptOnTheFly(source.getText(), classLoader, source.getClassName(), scriptBaseClass);
     }
 
     private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
@@ -58,19 +57,24 @@ public class DefaultScriptProcessor implements IScriptProcessor {
         File scriptCacheDir = new File(cacheDir, sourceFile.getName());
         String scriptClassName = source.getClassName();
         if (cacheUsage == CacheUsage.ON) {
-            Script cachedScript = scriptHandler.loadFromCache(sourceFile.lastModified(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
+            Script cachedScript = scriptCompilationHandler.loadFromCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
             if (cachedScript != null) {
                 return cachedScript;
             }
         }
-        return scriptHandler.writeToCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
+        scriptCompilationHandler.writeToCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
+        return scriptCompilationHandler.loadFromCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
     }
 
     private boolean isCacheable(File sourceFile) {
         return cacheUsage != CacheUsage.OFF && sourceFile != null && sourceFile.isFile();
     }
 
-    public IScriptHandler getScriptHandler() {
-        return scriptHandler;
+    public ScriptCompilationHandler getScriptCacheHandler() {
+        return scriptCompilationHandler;
+    }
+
+    public CacheUsage getCacheUsage() {
+        return cacheUsage;
     }
 }
