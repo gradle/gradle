@@ -66,7 +66,7 @@ public class PluginRegistry {
         }
     }
 
-    public Plugin getPlugin(Class<? extends Plugin> pluginClass) {
+    public <T extends Plugin> T getPlugin(Class<T> pluginClass) {
         if (plugins.get(pluginClass) == null) {
             try {
                 plugins.put(pluginClass, pluginClass.newInstance());
@@ -74,14 +74,16 @@ public class PluginRegistry {
                 throw new RuntimeException(e);
             }
         }
-        return plugins.get(pluginClass);
+        return pluginClass.cast(plugins.get(pluginClass));
     }
 
-    public void apply(Class<? extends Plugin> pluginClass, Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+    public <T extends Plugin> T apply(Class<T> pluginClass, Project project, Map<String, ?> customValues) {
+        T plugin = getPlugin(pluginClass);
         if (!project.getAppliedPlugins().contains(pluginClass)) {
-            getPlugin(pluginClass).apply(project, pluginRegistry, customValues);
+            plugin.apply(project, this, customValues);
             project.getAppliedPlugins().add(pluginClass);
         }
+        return plugin;
     }
 
 }

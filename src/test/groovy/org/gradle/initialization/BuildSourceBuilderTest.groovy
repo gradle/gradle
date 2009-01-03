@@ -35,6 +35,7 @@ import org.gradle.api.dependencies.Dependency
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.CacheUsage
 import org.gradle.api.dependencies.Configuration
+import org.gradle.api.plugins.BasePlugin
 
 /**
  * @author Hans Dockter
@@ -119,7 +120,7 @@ class BuildSourceBuilderTest {
     @Test public void testCreateDependencyWithCachedArtifactAndValidCache() {
         expectedStartParameter.setCacheUsage(CacheUsage.ON)
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        modifiedStartParameter.setTaskNames([JavaPlugin.INIT])
+        modifiedStartParameter.setTaskNames([BasePlugin.INIT])
         modifiedStartParameter.setSearchUpwards(false)
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(true))

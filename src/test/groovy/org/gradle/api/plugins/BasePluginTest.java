@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,21 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.tasks.diagnostics.DependencyReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.tasks.Clean;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class ProjectReportsPluginTest {
+public class BasePluginTest {
     @Test
-    public void addsTasksToProject() {
+    public void addsTasksAndConventionToProject() {
         Project project = HelperUtil.createRootProject();
+        new BasePlugin().apply(project, null, null);
 
-        new ProjectReportsPlugin().apply(project, new PluginRegistry(), null);
-
-        assertTrue(project.getAppliedPlugins().contains(BasePlugin.class));
-
-        assertThat(project.findTask("taskReport"), instanceOf(TaskReportTask.class));
-        assertThat(project.findTask("propertyReport"), instanceOf(PropertyReportTask.class));
-        assertThat(project.findTask("dependencyReport"), instanceOf(DependencyReportTask.class));
+        assertThat(project.task("clean"), instanceOf(Clean.class));
+        assertThat(project.task("init"), instanceOf(DefaultTask.class));
+        assertThat(project.getConvention().getPlugins().get("base"), instanceOf(BasePluginConvention.class));
     }
 }

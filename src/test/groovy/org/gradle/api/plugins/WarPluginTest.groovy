@@ -30,9 +30,11 @@ import org.junit.Test
 class WarPluginTest {
     @Test public void testApply() {
         // todo Make test stronger
-        Project project = HelperUtil.createRootProject(new File('path', 'root'))
+        Project project = HelperUtil.createRootProject()
         WarPlugin warPlugin = new WarPlugin()
         warPlugin.apply(project, new PluginRegistry(), [:])
+
+        assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
 
         def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
         assertThat(configuration.extendsFrom, equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))

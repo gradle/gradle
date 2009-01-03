@@ -538,10 +538,10 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project usePlugin(String pluginName) {
-        return usePlugin(pluginName, new HashMap());
+        return usePlugin(pluginName, new HashMap<String, Object>());
     }
 
-    public Project usePlugin(String pluginName, Map customValues) {
+    public Project usePlugin(String pluginName, Map<String, ?> customValues) {
         if (usePluginInternal(pluginRegistry.getPlugin(pluginName), customValues) == null) {
             throw new InvalidUserDataException("Plugin with id " + pluginName + " can not be found!");
         }
@@ -563,7 +563,7 @@ public abstract class AbstractProject implements ProjectInternal {
         if (plugin == null) {
             return null;
         }
-        pluginRegistry.apply(plugin.getClass(), this, pluginRegistry, customValues);
+        pluginRegistry.apply(plugin.getClass(), this, customValues);
         plugins.add(plugin);
         return plugin;
     }

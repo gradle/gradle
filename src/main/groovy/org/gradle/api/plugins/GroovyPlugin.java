@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Plugin;
+import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.testing.Test;
@@ -33,22 +34,23 @@ import org.gradle.util.WrapUtil;
 import java.util.Map;
 
 /**
- * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling Groovy source files.</p>
+ * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling and documenting Groovy
+ * source files.</p>
  *
  * @author Hans Dockter
  */
-public class GroovyPlugin extends JavaPlugin {
+public class GroovyPlugin implements Plugin {
     public static final String GROOVYDOC = "groovydoc";
     static final String GROOVY = "groovy";
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
+        JavaPlugin javaPlugin = pluginRegistry.apply(JavaPlugin.class, project, customValues);
         GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues);
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
 
-        configureCompile(project);
+        configureCompile(javaPlugin, project);
 
-        configureTestCompile(project);
+        configureTestCompile(javaPlugin, project);
 
         ((Test) project.task(TEST)).getOptions().getForkOptions().setForkMode(ForkMode.ONCE);
 
@@ -57,7 +59,7 @@ public class GroovyPlugin extends JavaPlugin {
         configureGroovydoc(project);
 
         project.getDependencies().addConfiguration(GROOVY).setVisible(false).setTransitive(false);
-        project.getDependencies().configuration(JavaPlugin.COMPILE).extendsFrom(GROOVY);
+        project.getDependencies().configuration(COMPILE).extendsFrom(GROOVY);
     }
 
     private void configureGroovydoc(Project project) {
@@ -81,7 +83,7 @@ public class GroovyPlugin extends JavaPlugin {
     }
 
     private void configureJavadoc(Project project) {
-        Javadoc javadoc = (Javadoc) project.task(JavaPlugin.JAVADOC);
+        Javadoc javadoc = (Javadoc) project.task(JAVADOC);
         javadoc.exclude("**/*.groovy");
         javadoc.conventionMapping(WrapUtil.<String, ConventionValue>toMap("srcDirs", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
@@ -92,9 +94,10 @@ public class GroovyPlugin extends JavaPlugin {
         }));
     }
 
-    private void configureTestCompile(Project project) {
-        Compile testCompile = configureTestCompile((Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn",
-                TEST_RESOURCES, "overwrite", true), TEST_COMPILE),
+    private void configureTestCompile(JavaPlugin javaPlugin, Project project) {
+        Compile testCompile = javaPlugin.configureTestCompile(
+                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn",
+                        TEST_RESOURCES, "overwrite", true), TEST_COMPILE),
                 (Compile) project.task(COMPILE),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE);
         testCompile.conventionMapping(GUtil.map(
@@ -110,8 +113,9 @@ public class GroovyPlugin extends JavaPlugin {
         }));
     }
 
-    private void configureCompile(Project project) {
-        Compile compile = configureCompile((Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn", RESOURCES, "overwrite", true), COMPILE),
+    private void configureCompile(JavaPlugin javaPlugin, Project project) {
+        Compile compile = javaPlugin.configureCompile(
+                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn", RESOURCES, "overwrite", true), COMPILE),
                 DefaultConventionsToPropertiesMapping.COMPILE);
         compile.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {

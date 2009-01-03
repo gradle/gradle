@@ -17,26 +17,21 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Resources;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
-import org.gradle.api.tasks.ide.eclipse.EclipseClasspath;
-import org.gradle.api.tasks.ide.eclipse.EclipseClean;
-import org.gradle.api.tasks.ide.eclipse.EclipseProject;
-import org.gradle.api.tasks.ide.eclipse.ProjectType;
-import org.gradle.api.tasks.ide.eclipse.EclipseWtpModule;
+import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.ForkMode;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -61,8 +56,6 @@ public class JavaPlugin implements Plugin {
     public static final String UPLOAD_INTERNAL_LIBS = "uploadInternalLibs";
     public static final String UPLOAD_LIBS = "uploadLibs";
     public static final String UPLOAD = "upload";
-    public static final String CLEAN = "clean";
-    public static final String INIT = "init";
     public static final String JAVADOC = "javadoc";
 
     public static final String RUNTIME = "runtime";
@@ -82,37 +75,28 @@ public class JavaPlugin implements Plugin {
         apply(project, pluginRegistry, new HashMap<String, Object>());
     }
 
-    public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+        pluginRegistry.apply(BasePlugin.class, project, customValues);
+
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, customValues);
         Convention convention = project.getConvention();
         convention.getPlugins().put("java", javaConvention);
 
         configureDependencyManager(project, javaConvention);
 
-        project.createTask(INIT);
-
-        ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
-                conventionMapping(GUtil.map(
-            "dir", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
-                        return project.getBuildDir();
-                    }
-                }));
-
         ((ConventionTask) project.createTask(GUtil.map("type", Javadoc.class), JAVADOC)).
                 conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
 
-        ((ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", INIT), RESOURCES)).
+        ((ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", BasePlugin.INIT), RESOURCES)).
                 conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
 
-        configureCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", RESOURCES), COMPILE),
-                DefaultConventionsToPropertiesMapping.COMPILE);
+        configureCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", RESOURCES),
+                COMPILE), DefaultConventionsToPropertiesMapping.COMPILE);
 
         configureTestResources(project);
 
-        configureTestCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", TEST_RESOURCES), TEST_COMPILE),
-                (Compile) project.task(COMPILE),
-                DefaultConventionsToPropertiesMapping.TEST_COMPILE);
+        configureTestCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", TEST_RESOURCES),
+                TEST_COMPILE), (Compile) project.task(COMPILE), DefaultConventionsToPropertiesMapping.TEST_COMPILE);
 
         configureTest(project);
 

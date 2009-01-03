@@ -34,9 +34,11 @@ class GroovyPluginTest {
     @Test public void testApply() {
         // todo Make test stronger
         // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
-        Project project = HelperUtil.createRootProject(new File('path', 'root'))
+        Project project = HelperUtil.createRootProject()
         GroovyPlugin groovyPlugin = new GroovyPlugin()
-        groovyPlugin.apply(project, new PluginRegistry())
+        groovyPlugin.apply(project, new PluginRegistry(), null)
+
+        assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
 
         def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
         assertThat(configuration.extendsFrom, equalTo(toSet(GroovyPlugin.GROOVY)))

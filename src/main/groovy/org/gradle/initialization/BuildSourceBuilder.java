@@ -19,13 +19,14 @@ package org.gradle.initialization;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.*;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
@@ -33,7 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -85,7 +88,7 @@ public class BuildSourceBuilder {
             startParameterArg.setSearchUpwards(false);
 
             if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(buildArtifactFile(buildResolverDir), startParameter.getCurrentDir())) {
-                startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.INIT));
+                startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.INIT));
             }
 
             if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {

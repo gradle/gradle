@@ -163,9 +163,7 @@ class JavaPluginConvention {
         new File(reportsDir, testReportDirName)
     }
 
-    File getReportsDir() {
-        new File(project.buildDir, reportsDirName)
+    private File getReportsDir() {
+        project.convention.plugins.base.reportsDir
     }
-
-
 }

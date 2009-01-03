@@ -40,7 +40,7 @@ import java.io.File;
  */
 public class OsgiPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
+        pluginRegistry.apply(JavaPlugin.class, project, customValues);
         Bundle.ConfigureAction configureAction = createOsgiConfigureAction();
         Bundle libsTask = ((Bundle) project.task(JavaPlugin.LIBS));
         for (AbstractArchiveTask abstractArchiveTask : libsTask.getArchiveTasks()) {

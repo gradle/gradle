@@ -32,6 +32,8 @@ import java.util.Map;
  */
 public class ProjectReportsPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+        pluginRegistry.apply(BasePlugin.class, project, customValues);
+        
         TaskReportTask taskReportTask = (TaskReportTask) project.createTask(toMap(Task.TASK_TYPE, TaskReportTask.class),
                 "taskReport");
         taskReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/tasks.txt"));

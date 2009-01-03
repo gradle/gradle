@@ -49,7 +49,7 @@ public class WarPlugin implements Plugin {
     public static final int PROVIDED_RUNTIME_PRIORITY = JavaPlugin.COMPILE_PRIORITY + 150;
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
+        pluginRegistry.apply(JavaPlugin.class, project, customValues);
         project.task(project.getArchivesTaskBaseName() + "_jar").setEnabled(false);
         War war = ((Bundle) project.task("libs")).war();
         configureDependencyManager(project.getDependencies());

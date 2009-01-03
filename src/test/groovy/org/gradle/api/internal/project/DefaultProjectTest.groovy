@@ -225,7 +225,7 @@ class DefaultProjectTest {
         project.pluginRegistry = pluginRegistryMock
         context.checking {
             one(pluginRegistryMock).getPlugin(usePluginArgument); will(returnValue(mockPlugin))
-            one(pluginRegistryMock).apply(mockPlugin.class, project, pluginRegistryMock, expectedCustomValues)
+            one(pluginRegistryMock).apply(mockPlugin.class, project, expectedCustomValues)
         }
 
         project.usePlugin(usePluginArgument, expectedCustomValues)

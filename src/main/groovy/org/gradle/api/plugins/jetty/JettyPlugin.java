@@ -45,7 +45,7 @@ public class JettyPlugin implements Plugin {
     public static final String RELOAD_MANUAL = "manual";
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(WarPlugin.class, project, pluginRegistry, customValues);
+        pluginRegistry.apply(WarPlugin.class, project, customValues);
         JettyPluginConvention jettyConvention = new JettyPluginConvention();
         Convention convention = project.getConvention();
         convention.getPlugins().put("jetty", jettyConvention);

@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.junit.Test
 import org.gradle.api.dependencies.Dependency
+import org.gradle.api.internal.project.PluginRegistry
 
 /**
  * @author Hans Dockter
@@ -31,10 +32,13 @@ class JavaPluginTest {
     @Test public void testApply() {
         // todo Make test stronger
         // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
-        Project project = HelperUtil.createRootProject(new File('path', 'root'))
-        JavaPlugin javaPlugin = new JavaPlugin()
-        javaPlugin.apply(project, null)
+        Project project = HelperUtil.createRootProject()
 
+        JavaPlugin javaPlugin = new JavaPlugin()
+        javaPlugin.apply(project, new PluginRegistry())
+
+        assertTrue(project.appliedPlugins.contains(BasePlugin))
+        
         def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)

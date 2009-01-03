@@ -37,6 +37,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
 
     @Before public void setUp() {
         super.setUp()
+        project.convention.plugins.base = new BasePluginConvention(project)
         convention = new JavaPluginConvention(project, [:])
     }
 
@@ -104,7 +105,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
     @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {
         assertEquals(new File(project.buildDir, 'reports/tests'), convention.testReportDir)
 
-        convention.reportsDirName = 'other-reports-dir'
+        project.reportsDirName = 'other-reports-dir'
         convention.testReportDirName = 'other-test-dir'
 
         assertEquals(new File(project.buildDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)

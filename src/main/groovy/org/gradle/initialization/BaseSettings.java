@@ -29,6 +29,7 @@ import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ClasspathUtil;
@@ -90,7 +91,7 @@ public class BaseSettings implements SettingsInternal {
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {
         buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS));
+        buildSrcStartParameter.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS));
         buildSrcStartParameter.setSearchUpwards(true);
     }
 

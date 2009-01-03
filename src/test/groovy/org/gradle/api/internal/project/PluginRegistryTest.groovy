@@ -56,12 +56,19 @@ class PluginRegistryTest {
         assertNull(pluginRegistry.getPlugin('unknownId'))
     }
 
-
     @Test public void testApply() {
         PluginRegistry pluginRegistry = new PluginRegistry()
         DefaultProject project = new DefaultProject("someProject")
-        pluginRegistry.apply(TestPlugin1, project, pluginRegistry, [:])
-        pluginRegistry.apply(TestPlugin1, project, pluginRegistry, [:])
+        TestPlugin1 plugin = pluginRegistry.apply(TestPlugin1, project, [:])
+        assertSame(plugin, pluginRegistry.getPlugin(TestPlugin1))
+        assertTrue(project.getAppliedPlugins().contains(TestPlugin1))
+    }
+    
+    @Test public void testApplyDoesNotApplySameClassOfPluginMultipleTimes() {
+        PluginRegistry pluginRegistry = new PluginRegistry()
+        DefaultProject project = new DefaultProject("someProject")
+        pluginRegistry.apply(TestPlugin1, project, [:])
+        pluginRegistry.apply(TestPlugin1, project, [:])
         assertEquals(1, pluginRegistry.getPlugin(TestPlugin1).applyCounter)
     }
 }

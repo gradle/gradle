@@ -35,6 +35,7 @@ import org.junit.runner.RunWith
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.dependencies.Configuration
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.api.plugins.BasePlugin
 
 /**
  * @author Hans Dockter
@@ -78,7 +79,7 @@ class DefaultSettingsTest {
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertEquals(Project.DEFAULT_BUILD_FILE, settings.buildSrcStartParameter.buildFileName)
-        assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS], settings.buildSrcStartParameter.taskNames)
+        assertEquals([BasePlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS], settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
         checkRootProjectDescriptor();
     }
