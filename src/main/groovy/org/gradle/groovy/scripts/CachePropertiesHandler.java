@@ -15,19 +15,20 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-
 import java.io.File;
-
-import org.codehaus.groovy.control.CompilerConfiguration;
 
 /**
  * @author Hans Dockter
  */
-public interface IScriptHandler {
-    Script createScript(String scriptText, ClassLoader classLoader, String scriptName, Class<? extends Script> scriptBaseClass);
+public interface CachePropertiesHandler {
+    String HASH_KEY = "hash";
+    String PROPERTY_FILE_NAME = "cache.properties";
+    String EMPTY_SCRIPT = "emptyScript";
+    String VERSION_KEY = "version";
 
-    Script writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
+    enum CacheState { VALID, EMPTY_SCRIPT, INVALID }
 
-    Script loadFromCache(long lastModified, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
+    void writeProperties(String scriptText, File scriptCacheDir, boolean emptyScript);
+
+    CacheState getCacheState(String testScript, File scriptCacheDir);
 }
