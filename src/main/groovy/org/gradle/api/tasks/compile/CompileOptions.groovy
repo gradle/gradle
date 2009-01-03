@@ -39,6 +39,8 @@ class CompileOptions extends AbstractOptions {
     String bootClasspath = null
     String extensionDirs = null
 
+    List compilerArgs
+
     CompileOptions fork(Map forkArgs) {
         fork = true
         forkOptions.define(forkArgs)
@@ -52,7 +54,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     List excludedFieldsFromOptionMap() {
-        ['debugOptions', 'forkOptions']
+        ['debugOptions', 'forkOptions', 'compilerArgs']
     }
 
     Map fieldName2AntMap() {

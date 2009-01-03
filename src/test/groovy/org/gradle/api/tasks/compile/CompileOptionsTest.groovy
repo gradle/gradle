@@ -46,6 +46,7 @@ class CompileOptionsTest {
         assertFalse(compileOptions.verbose)
         assertFalse(compileOptions.fork)
 
+        assertNull(compileOptions.compilerArgs)
         assertNull(compileOptions.encoding)
         assertNull(compileOptions.compiler)
         assertNull(compileOptions.bootClasspath)
@@ -109,6 +110,14 @@ class CompileOptionsTest {
             } else {
                 assertEquals("false", optionMap[it])
             }
+        }
+    }
+
+    @Test public void testWithExcludeFieldsFromOptionMap() {
+      compileOptions.compilerArgs = [[value: 'something']]
+        Map optionMap = compileOptions.optionMap()
+        ['debugOptions', 'forkOptions', 'compilerArgs'].each {
+            assertFalse(optionMap.containsKey(it))
         }
     }
 
