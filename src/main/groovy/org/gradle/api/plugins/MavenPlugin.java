@@ -29,7 +29,7 @@ import java.util.Map;
 public class MavenPlugin implements Plugin {
     public static final String INSTALL = "install";
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
+    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
         configureInstall(project, (JavaPluginConvention) project.getConvention().getPlugins().get("java"));
     }

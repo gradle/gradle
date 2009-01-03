@@ -26,5 +26,5 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface Plugin {
-    void apply(Project project, PluginRegistry pluginRegistry, Map customValues);
+    void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues);
 }

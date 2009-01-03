@@ -21,7 +21,6 @@ import org.gradle.api.dependencies.report.IvyDependencyGraphBuilder;
 import org.gradle.api.internal.dependencies.BaseDependencyManager;
 import org.gradle.api.internal.dependencies.DefaultDependencyResolver;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -33,11 +32,8 @@ import java.io.IOException;
  */
 public class DependencyReportTask extends AbstractReportTask {
 
-    DependencyReportRenderer renderer = new AsciiReportRenderer();
-
-    File outputFile;
-
-    String conf = "runtime";
+    private DependencyReportRenderer renderer = new AsciiReportRenderer();
+    private String conf = "runtime";
 
     public DependencyReportTask(Project project, String name) {
         super(project, name);
@@ -50,11 +46,8 @@ public class DependencyReportTask extends AbstractReportTask {
         this.conf = conf;
     }
 
-    /**
-     * Set the outputfile to write the dependency report to. If unset, standard out will be used
-     */
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+    public DependencyReportRenderer getRenderer() {
+        return renderer;
     }
 
     /**
@@ -76,12 +69,8 @@ public class DependencyReportTask extends AbstractReportTask {
         DefaultDependencyResolver resolver = (DefaultDependencyResolver) depManager.getDependencyResolver();
         IvyDependencyGraph graph = graphBuilder.buildGraph(project, resolver.getLastResolveReport(), conf);
 
-        if (outputFile != null) {
-            renderer.setOutputFile(outputFile);
-        }
         renderer.startProject(project);
         renderer.render(graph);
         renderer.completeProject(project);
-        renderer.complete();
     }
 }

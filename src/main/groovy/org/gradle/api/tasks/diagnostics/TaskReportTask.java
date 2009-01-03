@@ -33,6 +33,10 @@ public class TaskReportTask extends AbstractReportTask {
         super(project, name);
     }
 
+    public TaskReportRenderer getRenderer() {
+        return renderer;
+    }
+
     public void setRenderer(TaskReportRenderer renderer) {
         this.renderer = renderer;
     }
@@ -47,6 +51,5 @@ public class TaskReportTask extends AbstractReportTask {
             }
             renderer.completeProject(project);
         }
-        renderer.complete();
     }
 }

@@ -18,21 +18,30 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.diagnostics.TaskReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import static org.gradle.util.WrapUtil.*;
 
+import java.io.File;
 import java.util.Map;
 
 /**
  * <p>A {@link Plugin} which adds some project visualization report tasks to a project.</p>
  */
 public class ProjectReportsPlugin implements Plugin {
-    public void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
-        project.createTask(WrapUtil.toMap(Task.TASK_TYPE, TaskReportTask.class), "taskReport");
-        project.createTask(WrapUtil.toMap(Task.TASK_TYPE, PropertyReportTask.class), "propertyReport");
-        project.createTask(WrapUtil.toMap(Task.TASK_TYPE, DependencyReportTask.class), "dependencyReport");
+    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+        TaskReportTask taskReportTask = (TaskReportTask) project.createTask(toMap(Task.TASK_TYPE, TaskReportTask.class),
+                "taskReport");
+        taskReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/tasks.txt"));
+
+        PropertyReportTask propertyReportTask = (PropertyReportTask) project.createTask(toMap(Task.TASK_TYPE,
+                PropertyReportTask.class), "propertyReport");
+        propertyReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/properties.txt"));
+
+        DependencyReportTask dependencyReportTask = (DependencyReportTask) project.createTask(toMap(Task.TASK_TYPE,
+                DependencyReportTask.class), "dependencyReport");
+        dependencyReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/dependencies.txt"));
     }
 }

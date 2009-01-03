@@ -22,18 +22,27 @@ import org.gradle.api.TaskAction;
 import org.gradle.api.internal.DefaultTask;
 
 import java.io.IOException;
+import java.io.File;
 
 /**
  * The base class for all project report tasks.
  */
 public abstract class AbstractReportTask extends DefaultTask {
+    private File outputFile;
+
     public AbstractReportTask(Project project, String name) {
         super(project, name);
         setDagNeutral(true);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 try {
+                    ProjectReportRenderer renderer = getRenderer();
+                    if (outputFile != null) {
+                        outputFile.getParentFile().mkdirs();
+                        renderer.setOutputFile(outputFile);
+                    }
                     generate();
+                    renderer.complete();
                 } catch (IOException e) {
                     throw new GradleException(e);
                 }
@@ -41,5 +50,25 @@ public abstract class AbstractReportTask extends DefaultTask {
         });
     }
 
-    public abstract void generate() throws IOException;
+    protected abstract ProjectReportRenderer getRenderer();
+
+    protected abstract void generate() throws IOException;
+
+    /**
+     * Returns the file which the report will be written to. When set to null, the report is written to stdout.
+     *
+     * @return The output file. May be null.
+     */
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    /**
+     * Sets the file which the report will be written to. Set this to null to write the report to stdout.
+     *
+     * @param outputFile The output file. May be null.
+     */
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
 }

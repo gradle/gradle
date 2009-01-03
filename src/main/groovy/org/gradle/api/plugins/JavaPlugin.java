@@ -79,10 +79,10 @@ public class JavaPlugin implements Plugin {
     public static final int TEST_RUNTIME_PRIORITY = 100;
 
     public void apply(Project project, PluginRegistry pluginRegistry) {
-        apply(project, pluginRegistry, new HashMap());
+        apply(project, pluginRegistry, new HashMap<String, Object>());
     }
 
-    public void apply(final Project project, PluginRegistry pluginRegistry, Map customValues) {
+    public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, customValues);
         Convention convention = project.getConvention();
         convention.getPlugins().put("java", javaConvention);

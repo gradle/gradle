@@ -370,7 +370,7 @@ public interface Project extends Comparable<Project> {
      * @param customValues Configuration parameters to use to apply the plugin to this project.
      * @return This project.
      */
-    Project usePlugin(Class<? extends Plugin> pluginClass, Map customValues);
+    Project usePlugin(Class<? extends Plugin> pluginClass, Map<String, ?> customValues);
 
     /**
      * <p>Applies a {@link Plugin} to this project.</p>

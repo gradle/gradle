@@ -41,7 +41,7 @@ public class GroovyPlugin extends JavaPlugin {
     public static final String GROOVYDOC = "groovydoc";
     static final String GROOVY = "groovy";
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
+    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
         GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues);
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);

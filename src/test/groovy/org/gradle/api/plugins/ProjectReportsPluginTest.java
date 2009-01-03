@@ -15,24 +15,22 @@
  */
 package org.gradle.api.plugins;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
+import org.gradle.api.Project;
+import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.gradle.util.HelperUtil;
-import org.gradle.api.Project;
-import org.gradle.api.tasks.diagnostics.TaskReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 
 public class ProjectReportsPluginTest {
     @Test
     public void addsTasksToProject() {
         Project project = HelperUtil.createRootProject();
+
         new ProjectReportsPlugin().apply(project, null, null);
+
         assertThat(project.findTask("taskReport"), instanceOf(TaskReportTask.class));
         assertThat(project.findTask("propertyReport"), instanceOf(PropertyReportTask.class));
         assertThat(project.findTask("dependencyReport"), instanceOf(DependencyReportTask.class));

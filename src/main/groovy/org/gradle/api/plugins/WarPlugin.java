@@ -48,7 +48,7 @@ public class WarPlugin implements Plugin {
     public static final int PROVIDED_COMPILE_PRIORITY = JavaPlugin.COMPILE_PRIORITY + 100;
     public static final int PROVIDED_RUNTIME_PRIORITY = JavaPlugin.COMPILE_PRIORITY + 150;
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map customValues) {
+    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, pluginRegistry, customValues);
         project.task(project.getArchivesTaskBaseName() + "_jar").setEnabled(false);
         War war = ((Bundle) project.task("libs")).war();

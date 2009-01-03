@@ -549,17 +549,17 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project usePlugin(Class<? extends Plugin> pluginClass) {
-        return usePlugin(pluginClass, new HashMap());
+        return usePlugin(pluginClass, new HashMap<String, Object>());
     }
 
-    public Project usePlugin(Class<? extends Plugin> pluginClass, Map customValues) {
+    public Project usePlugin(Class<? extends Plugin> pluginClass, Map<String, ?> customValues) {
         if (usePluginInternal(pluginRegistry.getPlugin(pluginClass), customValues) == null) {
             throw new InvalidUserDataException("Plugin class " + pluginClass + " can not be found!");
         }
         return this;
     }
 
-    private Plugin usePluginInternal(Plugin plugin, Map customValues) {
+    private Plugin usePluginInternal(Plugin plugin, Map<String, ?> customValues) {
         if (plugin == null) {
             return null;
         }

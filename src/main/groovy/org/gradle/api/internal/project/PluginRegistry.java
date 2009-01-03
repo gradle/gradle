@@ -37,7 +37,7 @@ public class PluginRegistry {
 
     private Properties properties = new Properties();
 
-    private Map plugins = new HashMap();
+    private Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<Class<? extends Plugin>, Plugin>();
 
     public PluginRegistry() {
     }
@@ -57,16 +57,16 @@ public class PluginRegistry {
 
     public Plugin getPlugin(String pluginId) {
         if (!GUtil.isTrue(properties.get(pluginId))) {
-        return null;
-    }
+            return null;
+        }
         try {
-            return getPlugin(Class.forName((String) properties.get(pluginId)));
+            return getPlugin(Class.forName(properties.getProperty(pluginId)).asSubclass(Plugin.class));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Plugin getPlugin(Class pluginClass) {
+    public Plugin getPlugin(Class<? extends Plugin> pluginClass) {
         if (plugins.get(pluginClass) == null) {
             try {
                 plugins.put(pluginClass, pluginClass.newInstance());
@@ -74,10 +74,10 @@ public class PluginRegistry {
                 throw new RuntimeException(e);
             }
         }
-        return (Plugin) plugins.get(pluginClass);
+        return plugins.get(pluginClass);
     }
 
-    public void apply(Class pluginClass, Project project, PluginRegistry pluginRegistry, Map customValues) {
+    public void apply(Class<? extends Plugin> pluginClass, Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         if (!project.getAppliedPlugins().contains(pluginClass)) {
             getPlugin(pluginClass).apply(project, pluginRegistry, customValues);
             project.getAppliedPlugins().add(pluginClass);
