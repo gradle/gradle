@@ -47,6 +47,11 @@ class AntJavac {
             excludes.each {
                 exclude(name: it)
             }
+            compileOptions.compilerArgs.each { argValue ->
+                argValue.each { key, value ->
+                    compilerarg((key): value)
+                }
+            }
         }
     }
 
