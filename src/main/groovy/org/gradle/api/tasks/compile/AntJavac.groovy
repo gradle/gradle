@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
- * todo: integration test
  */
 class AntJavac {
     private static Logger logger = LoggerFactory.getLogger(AntJavac)
