@@ -101,11 +101,12 @@ set CMD_LINE_ARGS=%$
 
 set STARTER_MAIN_CLASS=org.gradle.wrapper.WrapperMain
 set CLASSPATH=%DIRNAME%\wrapper\gradle-wrapper.jar
+set WRAPPER_PROPERTIES=%DIRNAME%\wrapper\gradle-wrapper.properties
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 
 if "%GRADLE_OPTS%" == "" set GRADLE_OPTS="-Xmx128m"
-set GRADLE_OPTS=%GRADLE_OPTS% -Dtools.jar="%TOOLS_JAR%"
+set GRADLE_OPTS=%GRADLE_OPTS% -Dtools.jar="%TOOLS_JAR% -Dorg.gradle.wrapper.properties="$WRAPPER_PROPERTIES" 
 
 "%JAVA_EXE%" %GRADLE_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
 

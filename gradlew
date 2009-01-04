@@ -61,6 +61,7 @@ fi
 
 STARTER_MAIN_CLASS=org.gradle.wrapper.WrapperMain
 CLASSPATH=`dirname "$0"`/wrapper/gradle-wrapper.jar
+WRAPPER_PROPERTIES=`dirname "$0"`/wrapper/gradle-wrapper.properties
 # Determine the Java command to use to start the JVM.
 if [ -z "$JAVACMD" ] ; then
     if [ -n "$JAVA_HOME" ] ; then
@@ -129,5 +130,6 @@ fi
 "$JAVACMD" $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dtools.jar="$TOOLS_JAR" \
+        -Dorg.gradle.wrapper.properties="$WRAPPER_PROPERTIES" \
         $STARTER_MAIN_CLASS \
         "$@"
