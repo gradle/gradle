@@ -52,6 +52,7 @@ public class Install {
         File localZipFile = new File(pathAssembler.distZip(zipBase, zipPath, distName, distVersion, distClassifier));
         if (alwaysDownload || !localZipFile.exists()) {
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
+            tmpZipFile.delete();
             String downloadUrl = urlRoot + "/" + distName + "-" + distVersion + "-" + distClassifier + ".zip";
             System.out.println("Downloading " + downloadUrl);
             download.download(downloadUrl, tmpZipFile);
