@@ -15,20 +15,17 @@
  */
 package org.gradle.wrapper;
 
-import java.io.IOException;
 import java.io.File;
-import java.util.Properties;
-import java.util.List;
-import java.util.ArrayList;
+import java.io.FileInputStream;
 import java.util.Arrays;
-import java.net.URLClassLoader;
-import java.net.URL;
-import java.lang.reflect.Method;
+import java.util.Properties;
 
 /**
  * @author Hans Dockter
  */
 public class Wrapper {
+    public static final String WRAPPER_PROPERTIES_PROPERTY = "org.gradle.wrapper.properties";
+    
     public static final String URL_ROOT_PROPERTY = "urlRoot";
     public static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
     public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
@@ -40,7 +37,7 @@ public class Wrapper {
 
     public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception, InterruptedException {
         Properties wrapperProperties = new Properties();
-        wrapperProperties.load(getClass().getResourceAsStream("/org/gradle/wrapper/wrapper.properties"));
+        wrapperProperties.load(new FileInputStream(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY))));
         if (WrapperMain.isDebug()) {
             System.out.println("wrapperProperties = " + wrapperProperties);
         }

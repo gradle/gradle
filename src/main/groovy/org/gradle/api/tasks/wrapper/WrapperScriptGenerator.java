@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.wrapper;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.AntUtil;
@@ -37,22 +37,23 @@ public class WrapperScriptGenerator {
     public static final String WINDOWS_NL = "\n";
     public static final String CURRENT_DIR_WINDOWS = "%DIRNAME%";
 
-    public void generate(String jarPath, File scriptDestinationDir) {
+    public void generate(String jarPath, String wrapperPropertiesPath, File scriptDestinationDir) {
         try {
-            createUnixScript(jarPath, scriptDestinationDir);
-            createWindowsScript(jarPath, scriptDestinationDir);
+            createUnixScript(jarPath, scriptDestinationDir, wrapperPropertiesPath);
+            createWindowsScript(jarPath, scriptDestinationDir, wrapperPropertiesPath);
         } catch (IOException e) {
             throw new InvalidUserDataException(e);
         }
     }
 
-    private void createUnixScript(String jarPath, File scriptDestinationDir) throws IOException {
+    private void createUnixScript(String jarPath, File scriptDestinationDir, String wrapperPropertiesPath) throws IOException {
         String unixWrapperScriptHead = IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptHead.txt"));
         String unixWrapperScriptTail = IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptTail.txt"));
 
         String fillingUnix = "" + UNIX_NL +
                 "STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + UNIX_NL +
-                "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(jarPath) + UNIX_NL;
+                "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(jarPath) + UNIX_NL +
+                "WRAPPER_PROPERTIES=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(wrapperPropertiesPath) + UNIX_NL;
 
         String unixScript = unixWrapperScriptHead + fillingUnix + unixWrapperScriptTail;
         File unixScriptFile = new File(scriptDestinationDir, "gradlew");
@@ -68,12 +69,13 @@ public class WrapperScriptGenerator {
         chmod.execute();
     }
 
-    private void createWindowsScript(String jarPath, File scriptDestinationDir) throws IOException {
+    private void createWindowsScript(String jarPath, File scriptDestinationDir, String wrapperPropertiesPath) throws IOException {
         String windowsWrapperScriptHead = IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptHead.txt"));
         String windowsWrapperScriptTail = IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptTail.txt"));
         String fillingWindows = "" + WINDOWS_NL +
                 "set STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + WINDOWS_NL +
-                "set CLASSPATH=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(jarPath) + WINDOWS_NL;
+                "set CLASSPATH=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(jarPath) + WINDOWS_NL +
+                "set WRAPPER_PROPERTIES=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(wrapperPropertiesPath) + WINDOWS_NL;
         String windowsScript = windowsWrapperScriptHead + fillingWindows + windowsWrapperScriptTail;
         File windowsScriptFile = new File(scriptDestinationDir, "gradlew.bat");
         FileUtils.writeStringToFile(windowsScriptFile, transformIntoWindowsNewLines(windowsScript));

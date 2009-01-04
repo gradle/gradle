@@ -21,18 +21,14 @@ import org.apache.tools.ant.taskdefs.Jar;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.invocation.DefaultBuild;
-import org.gradle.util.AntUtil;
-import org.gradle.util.CompressUtil;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.TestConsts;
+import org.gradle.util.*;
 import org.gradle.wrapper.Install;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +53,7 @@ public class WrapperTest extends AbstractTaskTest {
     private String targetWrapperJarPath;
     private Mockery context = new Mockery();
     private File expectedTargetWrapperJar;
+    private File expectedTargetWrapperProperties;
 
     @Before
     public void setUp() {
@@ -75,6 +72,8 @@ public class WrapperTest extends AbstractTaskTest {
         targetWrapperJarPath = "jarPath";
         expectedTargetWrapperJar = new File(getProject().getProjectDir(),
                 targetWrapperJarPath + "/" + Install.WRAPPER_JAR);
+        expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
+                targetWrapperJarPath + "/" + Install.WRAPPER_PROPERTIES);
         new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs();
         distributionPath = "somepath";
         wrapper.setJarPath(targetWrapperJarPath);
@@ -141,6 +140,7 @@ public class WrapperTest extends AbstractTaskTest {
             {
                 one(wrapperScriptGeneratorMock).generate(
                         targetWrapperJarPath + "/" + Install.WRAPPER_JAR,
+                        targetWrapperJarPath + "/" + Install.WRAPPER_PROPERTIES,
                         new File(getProject().getProjectDir(), wrapper.getScriptDestinationPath()));
             }
         });
@@ -148,9 +148,14 @@ public class WrapperTest extends AbstractTaskTest {
         File unjarDir = HelperUtil.makeNewTestDir("unjar");
         CompressUtil.unzip(expectedTargetWrapperJar, unjarDir);
         assertEquals(TEST_TEXT, FileUtils.readFileToString(new File(unjarDir, TEST_FILE_NAME)));
-        Properties properties = GUtil.createProperties(new File(unjarDir.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties"));
-
+        Properties properties = GUtil.createProperties(expectedTargetWrapperProperties);
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.URL_ROOT_PROPERTY), wrapper.getUrlRoot());
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.DISTRIBUTION_BASE_PROPERTY), wrapper.getDistributionBase().toString());
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.DISTRIBUTION_PATH_PROPERTY), wrapper.getDistributionPath());
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.DISTRIBUTION_NAME_PROPERTY), wrapper.getArchiveName());
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.DISTRIBUTION_CLASSIFIER_PROPERTY), wrapper.getArchiveClassifier());
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.DISTRIBUTION_VERSION_PROPERTY), wrapper.getGradleVersion());
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.ZIP_STORE_BASE_PROPERTY), wrapper.getArchiveBase().toString());
+        assertEquals(properties.getProperty(org.gradle.wrapper.Wrapper.ZIP_STORE_PATH_PROPERTY), wrapper.getArchivePath());
     }
-
-
 }

@@ -27,6 +27,7 @@ import java.util.zip.ZipFile;
 public class Install {
     public static final String WRAPPER_DIR = "gradle-wrapper";
     public static final String WRAPPER_JAR = WRAPPER_DIR + ".jar";
+    public static final String WRAPPER_PROPERTIES = WRAPPER_DIR + ".properties";
 
     private IDownload download = new Download();
 

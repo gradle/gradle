@@ -66,5 +66,6 @@ fi
 "$JAVACMD" $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dtools.jar="$TOOLS_JAR" \
+        -Dorg.gradle.wrapper.properties="$WRAPPER_PROPERTIES" \
         $STARTER_MAIN_CLASS \
         "$@"
