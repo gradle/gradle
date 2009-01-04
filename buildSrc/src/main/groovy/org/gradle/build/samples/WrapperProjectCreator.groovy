@@ -16,7 +16,6 @@
 
 package org.gradle.build.samples
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.wrapper.Wrapper
 
 /**
@@ -35,6 +34,8 @@ createTask('$WRAPPER_TASK_NAME', type: $Wrapper.name).configure {
     urlRoot = '${downloadUrlRoot.toURI().toURL()}'
     zipBase = Wrapper.PathBase.PROJECT
     zipPath = 'wrapper'
+    archiveBase = Wrapper.PathBase.PROJECT
+    archivePath = 'dist'
     distributionBase = Wrapper.PathBase.PROJECT
     distributionPath = 'dist'
 }
