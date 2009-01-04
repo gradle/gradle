@@ -100,7 +100,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
                             return;
                         }
                         if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
-                            logger.info(Logging.LIFECYCLE, String.format("downloading (%s) %s%n", getLengthText(evt), evt.getResource().getName()));
+                            logger.info(Logging.LIFECYCLE, String.format("downloading (%s) %s", getLengthText(evt), evt.getResource().getName()));
                         }
                         if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                             StandardOutputLogging.printToDefaultOut(".");
