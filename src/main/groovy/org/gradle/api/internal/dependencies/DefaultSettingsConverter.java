@@ -29,8 +29,11 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.SettingsConverter;
 import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.util.WrapUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,6 +44,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
+    private static Logger logger = LoggerFactory.getLogger(DefaultSettingsConverter.class);
 
     private IvySettings ivySettings;
 
@@ -96,7 +100,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
                             return;
                         }
                         if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
-                            System.out.printf("downloading (%s) %s%n", getLengthText(evt), evt.getResource().getName());
+                            logger.info(Logging.LIFECYCLE, String.format("downloading (%s) %s%n", getLengthText(evt), evt.getResource().getName()));
                         }
                         if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                             StandardOutputLogging.printToDefaultOut(".");
