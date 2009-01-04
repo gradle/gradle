@@ -17,15 +17,14 @@
 package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.*;
 import java.io.File;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -68,7 +67,12 @@ public class Bundle extends ConventionTask {
         String taskName = taskBaseName + classifier + "_" + type.getDefaultExtension();
         AbstractArchiveTask archiveTask = (AbstractArchiveTask) getProject().createTask(WrapUtil.toMap("type", type.getTaskClass()), taskName);
         archiveTask.conventionMapping(type.getConventionMapping());
-        archiveTask.setBaseName(GUtil.elvis(args.get(BASENAME_KEY), getProject().getArchivesBaseName()) + (args.get(APPENDIX_KEY) != null ? "-" + args.get(APPENDIX_KEY) : ""));
+        if (args.get(BASENAME_KEY) != null) {
+            archiveTask.setBaseName(args.get(BASENAME_KEY).toString());
+        }
+        if (args.get(APPENDIX_KEY) != null) {
+            archiveTask.setAppendix(args.get(APPENDIX_KEY).toString());
+        }
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
         archiveTask.setExtension(type.getDefaultExtension());
         archiveTask.setDestinationDir(defaultDestinationDir);

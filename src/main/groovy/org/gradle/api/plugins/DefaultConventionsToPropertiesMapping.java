@@ -158,7 +158,11 @@ public class DefaultConventionsToPropertiesMapping {
         public Object getValue(Convention convention, Task task) {
             return "" + task.getProject().property("version");
         }
-    }, "dependencyManager", new ConventionValue() {
+        }, "baseName", new ConventionValue() {
+        public Object getValue(Convention convention, Task task) {
+            return "" + task.getProject().property("archivesBaseName");
+        }
+    },"dependencyManager", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
             return task.getProject().getDependencies();
         }

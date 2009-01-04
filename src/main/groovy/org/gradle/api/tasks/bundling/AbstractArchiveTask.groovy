@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.dependencies.DefaultPublishArtifact
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
@@ -29,9 +30,6 @@ import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.dependencies.PublishArtifact
-import org.gradle.api.internal.dependencies.DefaultPublishArtifact
-import org.gradle.api.internal.dependencies.DefaultPublishArtifact
 
 /**
  * @author Hans Dockter
@@ -70,6 +68,11 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * The baseName of the archive.
      */
     private String baseName
+
+    /**
+     * The appendix of the archive.
+     */
+    private String appendix
 
     /**
      * The version part of the archive name
@@ -150,7 +153,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         createAntArchiveTask().call()
         if (publish) {
             getConfigurations().each {
-                getDependencyManager().addArtifacts(it, new DefaultPublishArtifact(getBaseName(),
+                getDependencyManager().addArtifacts(it, new DefaultPublishArtifact(getBaseName() + (getAppendix() ? "-${getAppendix()}" : ""),
                         getExtension(), getExtension(), getClassifier()))
             }
             getDependencyManager().getArtifactParentDirs() << destinationDir
@@ -165,7 +168,10 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      */
     public String getArchiveName() {
         if (customName) { return customName }
-        getBaseName() + (getVersion() ? "-${getVersion()}" : "") + (getClassifier() ? "-${getClassifier()}" : "") +
+        getBaseName() +
+                (getAppendix() ? "-${getAppendix()}" : "") +
+                (getVersion() ? "-${getVersion()}" : "") +
+                (getClassifier() ? "-${getClassifier()}" : "") +
                 ".${getExtension()}"
     }
 
@@ -311,6 +317,14 @@ public abstract class AbstractArchiveTask extends ConventionTask {
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
+    }
+
+    public String getAppendix() {
+        return appendix;
+    }
+
+    public void setAppendix(String appendix) {
+        this.appendix = appendix;
     }
 
     public String getVersion() {
