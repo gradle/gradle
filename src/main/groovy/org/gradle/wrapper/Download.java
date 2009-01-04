@@ -24,6 +24,8 @@ import java.net.URLConnection;
  * @author Hans Dockter
  */
 class Download implements IDownload {
+    private static final int BUFFER_SIZE = 10000;
+
     public void download(String address, File destination) throws Exception {
         if (destination.exists()) {
             return;
@@ -43,14 +45,16 @@ class Download implements IDownload {
                     new FileOutputStream(destination));
                 conn = url.openConnection();
                 in = conn.getInputStream();
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[BUFFER_SIZE];
                 int numRead;
                 while ((numRead = in.read(buffer)) != -1) {
                     out.write(buffer, 0, numRead);
+                    System.out.print(".");
                 }
             } catch (Exception e) {
                 throw e;
             } finally {
+                System.out.println("");
                 try {
                     if (in != null) {
                         in.close();
