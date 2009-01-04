@@ -16,8 +16,8 @@
 package org.gradle.logging;
 
 import org.apache.ivy.util.AbstractMessageLogger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logging;
 
 /**
  * This class is for integrating Ivy log statements into our logging system. We don't want to have a dependency on logback.
@@ -38,7 +38,7 @@ public class IvyLoggingAdaper extends AbstractMessageLogger {
     }
 
     public void doProgress() {
-        LogLevel.INFO.log(".");
+        ;
     }
 
     public void doEndProgress(String msg) {

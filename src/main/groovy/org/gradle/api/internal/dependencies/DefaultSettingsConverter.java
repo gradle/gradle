@@ -20,13 +20,16 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.apache.ivy.plugins.repository.TransferEvent;
+import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.SettingsConverter;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.Transformer;
+import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -86,11 +89,40 @@ public class DefaultSettingsConverter implements SettingsConverter {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
             ((DefaultRepositoryCacheManager)dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+            if (dependencyResolver instanceof RepositoryResolver) {
+                ((RepositoryResolver) dependencyResolver).getRepository().addTransferListener(new TransferListener() {
+                    public void transferProgress(TransferEvent evt) {
+                        if (evt.getResource().isLocal()) {
+                            return;
+                        }
+                        if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
+                            System.out.printf("downloading (%s) %s%n", getLengthText(evt), evt.getResource().getName());
+                        }
+                        if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
+                            StandardOutputLogging.printToDefaultOut(".");
+                        }
+                        if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
+                            StandardOutputLogging.printToDefaultOut(String.format("%n"));
+                        }
+                    }
+                });
+            }
         }
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
 
         return ivySettings;
+    }
+
+    private String getLengthText(TransferEvent evt) {
+        long lengthInByte = evt.getLength();
+        if (lengthInByte < 1000) {
+            return lengthInByte + " B";
+        } else if (lengthInByte < 1000000){
+            return (lengthInByte / 1000) + " KB";    
+        } else {
+            return String.format("%.2f MB", lengthInByte / 1000000.0);
+        }
     }
 
     public IvySettings getIvySettings() {

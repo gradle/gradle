@@ -16,14 +16,12 @@
 package org.gradle.api.logging;
 
 import ch.qos.logback.classic.Level;
+import org.gradle.logging.StandardOutputLoggingAdapter;
+import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
-import java.util.Map;
 import java.util.HashMap;
-
-import org.slf4j.LoggerFactory;
-import org.gradle.logging.StandardOutputLoggingAdapter;
-import org.gradle.api.logging.StandardOutputState;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -150,6 +148,15 @@ public class StandardOutputLogging {
      */
     public static StandardOutputState getStateSnapshot() {
         return new StandardOutputState(System.out, System.err);
+    }
+
+    /**
+     * Prints to default out (The System.out stream before Gradle was started), independent of the redirections of System.out.
+     * The message is printed via a print not a println.
+     * @param msg The message to print
+     */
+    public static void printToDefaultOut(String msg) {
+        DEFAULT_OUT.print(msg);
     }
 
     /**
