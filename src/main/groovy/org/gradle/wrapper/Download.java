@@ -24,6 +24,7 @@ import java.net.URLConnection;
  * @author Hans Dockter
  */
 class Download implements IDownload {
+    private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
 
     public void download(String address, File destination) throws Exception {
@@ -47,9 +48,14 @@ class Download implements IDownload {
                 in = conn.getInputStream();
                 byte[] buffer = new byte[BUFFER_SIZE];
                 int numRead;
+                long progressCounter = 0;
                 while ((numRead = in.read(buffer)) != -1) {
+                    progressCounter += numRead;
+                    if (progressCounter / PROGRESS_CHUNK > 0) {
+                        System.out.print(".");
+                        progressCounter = progressCounter - PROGRESS_CHUNK;
+                    }
                     out.write(buffer, 0, numRead);
-                    System.out.print(".");
                 }
             } catch (Exception e) {
                 throw e;
