@@ -18,9 +18,10 @@ package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.DependencyManager
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.GradleScriptException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.AbstractTask
+import org.gradle.api.internal.dependencies.DefaultPublishArtifact
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileCollection
@@ -31,8 +32,6 @@ import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.internal.dependencies.DefaultPublishArtifact
-import org.gradle.api.internal.dependencies.DefaultPublishArtifact
 
 /**
  * @author Hans Dockter
@@ -71,6 +70,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     protected void configure(AbstractArchiveTask archiveTask) {
         File testDir = HelperUtil.makeNewTestDir()
         archiveTask.baseName = 'testbasename'
+        archiveTask.appendix = 'testappendix'
         archiveTask.version = '1.0'
         archiveTask.classifier = 'src'
         archiveTask.destinationDir = new File(testDir, 'destinationDir')
@@ -86,29 +86,29 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testExecute() {
+        checkExecute {archiveTask ->}
+    }
+
+    @Test public void testExecuteWithEmptyClassifier() {
+        checkExecute {archiveTask -> archiveTask.classifier = null}
+    }
+
+    @Test public void testExecuteWithEmptyAppendix() {
+        checkExecute {archiveTask -> archiveTask.appendix = null}
+    }
+
+    private checkExecute(Closure archiveTaskModifier) {
+        archiveTaskModifier.call(archiveTask)
+        String appendixSnippet = task.appendix ? '-' + task.appendix : ''
+        String expectedName = archiveTask.baseName + appendixSnippet
         context.checking {
             one(archiveTask.dependencyManager).addArtifacts(AbstractArchiveTaskTest.TEST_CONFIGURATION,
-                    new DefaultPublishArtifact(archiveTask.baseName, archiveTask.extension, archiveTask.extension, archiveTask.classifier))
+                    new DefaultPublishArtifact(expectedName, archiveTask.extension, archiveTask.extension, archiveTask.classifier))
         }
-
         getAntMocker(true).use(ant) {
             archiveTask.execute()
         }
         assertTrue(archiveTask.destinationDir.isDirectory())
-        assertTrue(testArchiveParentDirs.contains(archiveTask.destinationDir))
-    }
-
-    @Test public void testExecuteWithEmptyClassifier() {
-        context.checking {
-            one(archiveTask.dependencyManager).addArtifacts(AbstractArchiveTaskTest.TEST_CONFIGURATION,
-                    new DefaultPublishArtifact(archiveTask.baseName, archiveTask.extension, archiveTask.extension, null))
-        }
-
-        archiveTask.classifier = null
-        getAntMocker(true).use(ant) {
-            DependencyManager dm = archiveTask.dependencyManager
-            archiveTask.execute()
-        }
         assertTrue(testArchiveParentDirs.contains(archiveTask.destinationDir))
     }
 
@@ -128,7 +128,8 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     void checkArchiveParameterEqualsArchive(AntArchiveParameter archiveParameter, AbstractArchiveTask task) {
         assert archiveParameter.ant.is(task.project.ant)
         String classifierSnippet = task.classifier ? '-' + task.classifier : ''
-        assert archiveParameter.archiveName == "${task.baseName}-${task.version}${classifierSnippet}.${task.extension}"
+        String appendixSnippet = task.appendix ? '-' + task.appendix : ''
+        assert archiveParameter.archiveName == "${task.baseName}${appendixSnippet}-${task.version}${classifierSnippet}.${task.extension}"
         assert archiveParameter.destinationDir.is(task.destinationDir)
         assert archiveParameter.createIfEmpty == task.createIfEmpty
         assert archiveParameter.resourceCollections.is(task.resourceCollections)

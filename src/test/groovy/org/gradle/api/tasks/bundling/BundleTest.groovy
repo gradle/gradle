@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
@@ -24,15 +25,15 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
+import org.gradle.api.tasks.ConventionValue
+import org.gradle.api.tasks.bundling.Bundle.ConfigureAction
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.dependencies.Dependency
-import org.gradle.api.tasks.bundling.Bundle.ConfigureAction
-import org.gradle.api.InvalidUserDataException
 
 /**
  * @author Hans Dockter
@@ -102,7 +103,7 @@ class BundleTest extends AbstractConventionTaskTest {
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
         expectedDefaultArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
-        testArchiveType = new ArchiveType('suf', [:], TestArchiveTask)
+        testArchiveType = new ArchiveType('suf', [baseName: {conv, task -> getProject().getArchivesBaseName()} as ConventionValue], TestArchiveTask)
     }
 
     @Test public void testBundle() {
@@ -230,20 +231,22 @@ class BundleTest extends AbstractConventionTaskTest {
     private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType, Map args = [:]) {
         String baseName = args.baseName ?: getProject().archivesTaskBaseName
         String taskName = baseName + (args.appendix ? "_" + args.appendix : "")
-        String archiveBaseName = (args.baseName ?: getProject().archivesBaseName) + (args.appendix ? "-" + args.appendix : "")
+        String archiveBaseName = (args.baseName ?: getProject().archivesBaseName);
+        String archiveAppendix = args.appendix
         String classifier = args.classifier ? '_' + args.classifier : ''
         List confs = []
         confs.addAll(testDefaultConfigurations)
         checkCommonStuff(archiveTask, "${taskName}${classifier}_${archiveType.defaultExtension}",
-                archiveType.conventionMapping, archiveBaseName, classifier ? classifier.substring(1) : '', confs)
+                archiveType.conventionMapping, archiveBaseName, archiveAppendix, classifier ? classifier.substring(1) : '', confs)
     }
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
-                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveClassifier,
+                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveAppendix, String expectedArchiveClassifier,
                                                  List expectedConfigurations) {
         assertEquals(false, archiveTask.enabled)
         assertEquals(conventionMapping, archiveTask.conventionMapping)
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
+        assertEquals(expectedArchiveAppendix, archiveTask.appendix)
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
