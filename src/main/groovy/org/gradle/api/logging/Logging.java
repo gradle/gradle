@@ -15,19 +15,24 @@
  */
 package org.gradle.api.logging;
 
+import org.apache.ivy.util.Message;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.helpers.BasicMarker;
-import org.apache.ivy.util.Message;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class Logging {
     public static final BasicMarker LIFECYCLE = (BasicMarker) MarkerFactory.getDetachedMarker("LIFECYCLE");
+
+    /** When building the build sources, LIFECYCLE logging is disabled. But some events when building the build sources should be logged.
+    /* For those we have LIFECYCLE_ALLWAYS marker.
+     */
+    public static final Marker LIFECYCLE_ALLWAYS = MarkerFactory.getDetachedMarker("LIFECYCLE_ALWAYS");
     public static final Marker DISABLED = MarkerFactory.getDetachedMarker("DISABLED");
     public static final Marker QUIET = MarkerFactory.getDetachedMarker("QUIET");
 

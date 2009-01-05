@@ -48,7 +48,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
 
         setLayouts(logLevel, errorConsoleAppender, nonErrorConsoleAppender, lc);
 
-        MarkerFilter quietFilter = new MarkerFilter(Logging.QUIET, FilterReply.DENY);
+        MarkerFilter quietFilter = new MarkerFilter(FilterReply.DENY, Logging.QUIET);
         nonErrorConsoleAppender.addFilter(quietFilter);
         if (!(logLevel == LogLevel.QUIET)) {
             quietFilter.setOnMismatch(FilterReply.NEUTRAL);
@@ -61,7 +61,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
                     level = Level.INFO;
                     nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
                 } else {
-                    nonErrorConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE));
+                    nonErrorConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE, Logging.LIFECYCLE_ALLWAYS));
                 }
             }
             nonErrorConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));

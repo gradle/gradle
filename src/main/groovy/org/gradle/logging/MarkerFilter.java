@@ -15,33 +15,37 @@
  */
 package org.gradle.logging;
 
+import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
-import ch.qos.logback.classic.spi.LoggingEvent;
 import org.gradle.api.logging.Logging;
 import org.slf4j.Marker;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class MarkerFilter extends Filter {
-    private Marker marker;
+    private List markers;
 
     private FilterReply onMismatch = FilterReply.NEUTRAL;
 
-    public MarkerFilter(Marker marker) {
-        this.marker = marker;
+    public MarkerFilter(Marker... markers) {
+        this.markers = Arrays.asList(markers);
     }
 
-    public MarkerFilter(Marker marker, FilterReply onMismatch) {
-        this.marker = marker;
+    public MarkerFilter(FilterReply onMismatch, Marker... markers) {
+        this(markers);
         this.onMismatch = onMismatch;
     }
 
     @Override
     public FilterReply decide(Object event) {
         LoggingEvent loggingEvent = (LoggingEvent) event;
-        if (loggingEvent.getMarker() == marker && !marker.contains(Logging.DISABLED)) {
+        Marker marker = loggingEvent.getMarker();
+        if (markers.contains(marker) && !marker.contains(Logging.DISABLED)) {
             return FilterReply.ACCEPT;
         } else {
             return onMismatch;
@@ -56,11 +60,7 @@ public class MarkerFilter extends Filter {
         this.onMismatch = onMismatch;
     }
 
-    public Marker getMarker() {
-        return marker;
-    }
-
-    public void setMarker(Marker marker) {
-        this.marker = marker;
+    public List getMarkers() {
+        return markers;
     }
 }

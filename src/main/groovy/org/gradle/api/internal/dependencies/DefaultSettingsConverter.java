@@ -59,7 +59,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     public IvySettings convert(List<DependencyResolver> classpathResolvers, List<DependencyResolver> otherResolvers, File gradleUserHome, RepositoryResolver buildResolver,
-                        Map clientModuleRegistry) {
+                               Map clientModuleRegistry) {
         if (ivySettings != null) {
             return ivySettings;
         }
@@ -76,7 +76,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         // todo Figure out why Ivy thinks this is necessary. The IBiblio resolver has already this pattern which should be good enough. By doing this we let Maven semantics seep into our whole system.
         chainResolver.setChangingPattern(".*-SNAPSHOT");
         chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
-        
+
         for (Object classpathResolver : classpathResolvers) {
             chainResolver.add((DependencyResolver) classpathResolver);
         }
@@ -90,40 +90,48 @@ public class DefaultSettingsConverter implements SettingsConverter {
         List<DependencyResolver> allResolvers = new ArrayList(otherResolvers);
         allResolvers.addAll(classpathResolvers);
         allResolvers.addAll(WrapUtil.toList(buildResolver, clientModuleChain, clientModuleResolver, chainResolver));
-        for (DependencyResolver dependencyResolver : allResolvers) {
-            ivySettings.addResolver(dependencyResolver);
-            ((DefaultRepositoryCacheManager)dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
-            if (dependencyResolver instanceof RepositoryResolver) {
-                ((RepositoryResolver) dependencyResolver).getRepository().addTransferListener(new TransferListener() {
-                    public void transferProgress(TransferEvent evt) {
-                        if (evt.getResource().isLocal()) {
-                            return;
-                        }
-                        if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
-                            logger.info(Logging.LIFECYCLE, String.format("downloading (%s) %s", getLengthText(evt), evt.getResource().getName()));
-                        }
-                        if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
-                            StandardOutputLogging.printToDefaultOut(".");
-                        }
-                        if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
-                            StandardOutputLogging.printToDefaultOut(String.format("%n"));
-                        }
-                    }
-                });
-            }
-        }
+        addTransferListener(ivySettings, allResolvers);
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
 
         return ivySettings;
     }
 
+    private void addTransferListener(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
+        TransferListener transferListener = new TransferListener() {
+            public void transferProgress(TransferEvent evt) {
+                if (evt.getResource().isLocal()) {
+                    return;
+                }
+                if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
+                    logger.info(Logging.LIFECYCLE_ALLWAYS, String.format("downloading (%s) %s", getLengthText(evt), evt.getResource().getName()));
+                }
+                if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
+                    StandardOutputLogging.printToDefaultOut(".");
+                }
+                if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
+                    StandardOutputLogging.printToDefaultOut(String.format("%n"));
+                }
+            }
+        };
+        for (DependencyResolver dependencyResolver : allResolvers) {
+            ivySettings.addResolver(dependencyResolver);
+            ((DefaultRepositoryCacheManager) dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+            if (dependencyResolver instanceof RepositoryResolver) {
+                ((RepositoryResolver) dependencyResolver).getRepository().addTransferListener(transferListener);
+            }
+        }
+    }
+
     private String getLengthText(TransferEvent evt) {
-        long lengthInByte = evt.getLength();
+        if (!evt.isTotalLengthSet()) {
+            return "unknown size";
+        }
+        long lengthInByte = evt.getTotalLength();
         if (lengthInByte < 1000) {
             return lengthInByte + " B";
-        } else if (lengthInByte < 1000000){
-            return (lengthInByte / 1000) + " KB";    
+        } else if (lengthInByte < 1000000) {
+            return (lengthInByte / 1000) + " KB";
         } else {
             return String.format("%.2f MB", lengthInByte / 1000000.0);
         }
