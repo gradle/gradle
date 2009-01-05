@@ -76,7 +76,7 @@ dependencies {
     }
 
     // Needed by the eclipse plugin
-    clientModule(['compile'], ":dom4j:1.6.1") {
+    clientModule(['compile'], "dom4j:dom4j:1.6.1") {
         dependencies("jaxen:jaxen:1.1@jar")
     }
 
