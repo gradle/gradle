@@ -84,7 +84,7 @@ dependencies {
     runtime("org.apache.ant:ant-junit:1.7.0@jar")
 
     clientModule(['compile'], "org.mortbay.jetty:jetty:6.1.14") {
-        dependencies("javax.servlet:servlet-api:2.5@jar", "org.mortbay.jetty:jetty-naming:6.1.14@jar")
+        dependencies("javax.servlet:servlet-api:2.5@jar", "org.mortbay.jetty:jetty-naming:6.1.14@jar", "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
     }
     compile "org.mortbay.jetty:jetty-plus:6.1.14@jar", "org.mortbay.jetty:jetty-util:6.1.14@jar", "javax.servlet:servlet-api:2.5@jar"
 
