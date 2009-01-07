@@ -45,8 +45,6 @@ versionModifier = null
 
 webSrcDir = new File("$srcRoot", 'website')
 
-libDir = new File(rootDir, 'lib')
-
 dependencies {
     addMavenRepo()
     // todo: Improve dependency handling for xUnit jars
@@ -227,7 +225,7 @@ createTask('retroTranslateLibs', dependsOn: 'explodedDist') {
         retroFiles.each {File file ->
             retroExe(file) {
                 fileset(dir: distsRetroLibsFolder)
-                fileset(dir: libDir, excludes: libExcludes)
+                fileset(dir: explodedDistLibDir, excludes: libExcludes)
                 fileset(dir: gradle_retroLibsDir)
             }
         }
