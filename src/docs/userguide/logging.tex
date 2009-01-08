@@ -1,8 +1,12 @@
 %!TEX root = userguide.tex
 \chapter{Logging} % (fold)
 \label{cha:logging}
-The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle has added to log-levels to the ones normally used. Those levels are \emph{QUIET} and \emph{LIFECYCLE}. The latter is the default and is telling you just what task is getting executed or skipped. You can use command line switches to choose different log levels (see table \ref{loglevels}). The \texttt{WARN} and \emph{ERROR} levels are included in all the other levels, except \emph{QUIET}, where only \emph{ERROR} is included. In table {\ref{stacktraces}} you find the command line switches for stacktrace logging.
+The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle has added to log-levels to the ones normally used. Those levels are \emph{QUIET} and \emph{LIFECYCLE}. The latter is the default and is telling you just what task is getting executed or skipped. 
 
+\section{Choosing a log level} % (fold)
+\label{sec:choosing_a_log_level}
+You can use command line switches to choose different log levels (see table \ref{loglevels}). The \texttt{WARN} and \emph{ERROR} levels are included in all the other levels, except \emph{QUIET}, where only \emph{ERROR} is included. In table {\ref{stacktraces}} you find the command line switches for stacktrace logging.
+% section choosing_a_log_level (end)
 
 \label{sec:command_line_switches}
 \begin{table}
@@ -39,3 +43,8 @@ Gradle uses internally Ant and Ivy a lot. Both have their own logging system. Gr
 There are many tools out there which still use standard output for logging. Gradle redirects by default standard out to the \emph{QUIET} level and standard err to the \emph{ERROR} level. This behavior is configurable. Gradle provides a couple of switches for this. To change the log level, standard out is redirected to, when your build script gets evaluated, the project object offers a method called \href{\API Project.html}{Project\#captureStandardOutput}. To change the log level for standard out during task execution, tasks offer a method also with the name \href{\API Task.html}{Task\#captureStandardOutput}. Tasks and projects also offer a method \texttt{disableStandardOutputCapture} which causes the standard out to be send to the default standard out. If you need more fine grained control on how standard out is redirected you can use the class StandardOutputLoggingAdapter.
 % section external_tools (end)
 
+\section{Sending your own log messages} % (fold)
+\label{sec:sending_your_own_log_messages}
+Gradle provides a \texttt{logger} property to a build script, which is an instance of a slf4j logger. Here is the code of the logging integration test, which shows you how to use the logger, as well as working with standard out redirection.
+\codeInput{../../samples/logging/project1/build.gradle}
+% section sending_your_own_log_messages (end)
