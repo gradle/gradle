@@ -29,11 +29,21 @@ class CacheProject {
         cacheProjectDir.mkdirs();
         createLargeBuildScript(cacheProjectDir)
         testBuild(cacheProjectDir, gradleHome, "hello1", String.format("Hello 1"))
-        Properties properties = new Properties()
-        properties.load(new FileInputStream(new File(cacheProjectDir, ".gradle/cache/build.gradle/cache.properties")))
-        properties.put("version", "0.5.1")
-        properties.store(new FileOutputStream(new File(cacheProjectDir, ".gradle/cache/build.gradle/cache.properties")), null)
+        changeCacheVersionProperty(cacheProjectDir)
         testBuild(cacheProjectDir, gradleHome, "hello2", String.format("Hello 2"))
+        modifyLargeBuildScript(cacheProjectDir)
+        testBuild(cacheProjectDir, gradleHome, "newTask", String.format("I am new"))
+    }
+
+    private static def changeCacheVersionProperty(File cacheProjectDir) {
+        Properties properties = new Properties()
+        FileInputStream propertiesInputStream = new FileInputStream(new File(cacheProjectDir, ".gradle/cache/build.gradle/cache.properties"))
+        properties.load(propertiesInputStream)
+        propertiesInputStream.close()
+        properties.put("version", "0.5.1")
+        FileOutputStream propertiesOutputStream = new FileOutputStream(new File(cacheProjectDir, ".gradle/cache/build.gradle/cache.properties"))
+        properties.store(propertiesOutputStream, null)
+        propertiesOutputStream.close()
     }
 
     private static def testBuild(File cacheProjectDir, String gradleHome, String taskName, String expected) {
