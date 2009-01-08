@@ -111,11 +111,7 @@ public class Wrapper extends DefaultTask {
         wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_VERSION_PROPERTY, gradleVersion);
         wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_PATH_PROPERTY, archivePath);
-        try {
-            wrapperProperties.store(new FileOutputStream(propFile), "");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        GUtil.saveProperties(wrapperProperties, propFile);
         jarFileDestination.getParentFile().mkdirs();
         jarFileDestination.delete();
         CompressUtil.zip(tmpExplodedSourceJar, jarFileDestination);

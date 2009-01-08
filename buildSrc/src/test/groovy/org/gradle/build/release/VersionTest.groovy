@@ -124,7 +124,9 @@ class VersionTest extends GroovyTestCase {
         trunk = false
         version.storeCurrentVersion()
         Properties properties = new Properties()
-        properties.load(new FileInputStream(new File(project.projectDir, 'gradle.properties')))
+        FileInputStream propertiesInputStream = new FileInputStream(new File(project.projectDir, 'gradle.properties'))
+        properties.load(propertiesInputStream)
+        propertiesInputStream.close()
         assertEquals('1', properties.previousMajor)
         assertEquals('2', properties.previousMinor)
         assertEquals('4', properties.previousRevision)

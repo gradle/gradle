@@ -47,12 +47,7 @@ public class PluginRegistry {
             return;
         }
         logger.debug("Checking file= {}", pluginProperties);
-        properties = new Properties();
-        try {
-            properties.load(new FileInputStream(pluginProperties));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        properties = GUtil.loadProperties(pluginProperties);
     }
 
     public Plugin getPlugin(String pluginId) {

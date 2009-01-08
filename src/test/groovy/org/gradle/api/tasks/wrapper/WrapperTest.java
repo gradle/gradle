@@ -148,7 +148,7 @@ public class WrapperTest extends AbstractTaskTest {
         File unjarDir = HelperUtil.makeNewTestDir("unjar");
         CompressUtil.unzip(expectedTargetWrapperJar, unjarDir);
         assertEquals(TEST_TEXT, FileUtils.readFileToString(new File(unjarDir, TEST_FILE_NAME)));
-        Properties properties = GUtil.createProperties(new File(unjarDir.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties"));
+        Properties properties = GUtil.loadProperties(new File(unjarDir.getAbsolutePath() + "/org/gradle/wrapper/wrapper.properties"));
 
     }
 

@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.util.GUtil;
 import org.gradle.api.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,12 +74,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private void addGradleProperties(File... files) {
         for (File propertyFile : files) {
             if (propertyFile.isFile()) {
-                Properties properties = new Properties();
-                try {
-                    properties.load(new FileInputStream(propertyFile));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                Properties properties = GUtil.loadProperties(propertyFile);
                 gradleProperties.putAll(new HashMap(properties));
             }
         }

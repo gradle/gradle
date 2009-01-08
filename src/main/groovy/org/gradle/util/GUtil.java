@@ -17,9 +17,7 @@ package org.gradle.util;
 
 import org.gradle.api.UncheckedIOException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -114,14 +112,33 @@ public class GUtil {
         return map;
     }
 
-    public static Properties createProperties(File propertyFile) {
+    public static Properties loadProperties(File propertyFile) {
+        try {
+            return loadProperties(new FileInputStream(propertyFile));
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static Properties loadProperties(InputStream inputStream) {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream(propertyFile));
+            properties.load(inputStream);
+            inputStream.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
         return properties;
+    }
+
+    public static void saveProperties(Properties properties, File propertyFile) {
+        try {
+            FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
+            properties.store(propertiesFileOutputStream, null);
+            propertiesFileOutputStream.close();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public static <T> List<T> chooseCollection(List<T> taskCollection, List<T> conventionCollection) {

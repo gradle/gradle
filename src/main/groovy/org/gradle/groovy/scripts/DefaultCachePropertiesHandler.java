@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.util.GradleVersion;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,11 +38,7 @@ public class DefaultCachePropertiesHandler implements CachePropertiesHandler {
         if (emptyScript) {
             properties.put(CachePropertiesHandler.EMPTY_SCRIPT, Boolean.TRUE.toString());
         }
-        try {
-            properties.store(new FileOutputStream(new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME)), null);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        GUtil.saveProperties(properties, new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
     }
 
     public CacheState getCacheState(String scriptText, File scriptCacheDir) {
@@ -49,12 +46,7 @@ public class DefaultCachePropertiesHandler implements CachePropertiesHandler {
         if (!propertiesFile.isFile()) {
             return CacheState.INVALID;
         }
-        Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Properties properties = GUtil.loadProperties(new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
         if (properties.get(CachePropertiesHandler.EMPTY_SCRIPT) != null && properties.get(CachePropertiesHandler.EMPTY_SCRIPT).equals(Boolean.TRUE.toString())) {
             return CacheState.EMPTY_SCRIPT;
         }

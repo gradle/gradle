@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -99,7 +100,7 @@ public class DefaultCachePropertiesHandlerTest {
         if (emptyScript) {
             properties.put(CachePropertiesHandler.EMPTY_SCRIPT, Boolean.TRUE.toString());
         }
-        properties.store(new FileOutputStream(new File(testCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME)), null);
+        GUtil.saveProperties(properties, new File(testCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
     }
 
     @Test
@@ -116,8 +117,7 @@ public class DefaultCachePropertiesHandlerTest {
 
     private void checkWriteProperties(Map additionalExpectedProperties) throws IOException, NoSuchAlgorithmException {
         File propertiesFile = new File(testCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME);
-        Properties actualProperties = new Properties();
-        actualProperties.load(new FileInputStream(propertiesFile));
+        Properties actualProperties = GUtil.loadProperties(propertiesFile);
         Properties expectedProperties = new Properties();
         expectedProperties.put(CachePropertiesHandler.HASH_KEY, createHash(TEST_SCRIPT_TEXT));
         expectedProperties.put(CachePropertiesHandler.VERSION_KEY, new GradleVersion().getVersion());

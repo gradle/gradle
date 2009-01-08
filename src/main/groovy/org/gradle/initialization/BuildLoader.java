@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.util.Clock;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,11 +99,7 @@ public class BuildLoader {
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         logger.debug("Looking for project properties from: {}", projectPropertiesFile);
         if (projectPropertiesFile.isFile()) {
-            try {
-                projectProperties.load(new FileInputStream(projectPropertiesFile));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            projectProperties = GUtil.loadProperties(projectPropertiesFile);
             logger.debug("Adding project properties (if not overwritten by user properties): {}",
                     projectProperties.keySet());
         } else {

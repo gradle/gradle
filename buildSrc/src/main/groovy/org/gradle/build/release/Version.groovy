@@ -45,12 +45,16 @@ class Version {
         Properties properties = new Properties()
         propertyFile = new File(project.projectDir, 'gradle.properties')
         if (propertyFile.isFile()) {
-            properties.load(new FileInputStream(propertyFile))
+            FileInputStream propertiesInputStream = new FileInputStream(propertyFile)
+            properties.load(propertiesInputStream)
+            propertiesInputStream.close()
         }
         properties['previousMajor'] = major as String
         properties['previousMinor'] = minor as String
         properties['previousRevision'] = revision as String
-        properties.store(new FileOutputStream(propertyFile), '')
+        FileOutputStream propertiesOutputStream = new FileOutputStream(propertyFile)
+        properties.store(propertiesOutputStream, null)
+        propertiesOutputStream.close()
     }
 
     int getMajor() {
