@@ -47,4 +47,16 @@ There are many tools out there which still use standard output for logging. Grad
 \label{sec:sending_your_own_log_messages}
 Gradle provides a \texttt{logger} property to a build script, which is an instance of a slf4j logger. Here is the code of the logging integration test, which shows you how to use the logger, as well as working with standard out redirection.
 \codeInput{../../samples/logging/project1/build.gradle}
+Strictly speaking, QUIET and LIFECYCLE are no log levels, but they are markers. But logically Gradle treats them as log levels. In a future version of Gradle we want to provide a logger which provides additional log methods \texttt{quiet} and \texttt{lifecycle}.
+
+You can also hook into Gradle's logging system from within other classes (classes from the buildSrc directory for example). Simply use a slf4j logger. 
+\begin{Verbatim}
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;	
+
+public class MyClass {
+    private static Logger logger = LoggerFactory.getLogger(MyClass.class);
+	...
+\end{Verbatim}
+You can use this logger the same way as you use the provided logger in the build script. 
 % section sending_your_own_log_messages (end)
