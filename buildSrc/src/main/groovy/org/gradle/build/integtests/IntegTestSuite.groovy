@@ -21,6 +21,7 @@ package org.gradle.build.integtests
  */
 class IntegTestSuite {
     static void execute(String distDirPath, String samplesDirPath, String userguideOutputDir) {
+        CacheProject.execute(distDirPath, samplesDirPath)
         CommandLine.execute(distDirPath, samplesDirPath)
         WrapperProject.execute(distDirPath, samplesDirPath)
         JavaProject.execute(distDirPath, samplesDirPath)
