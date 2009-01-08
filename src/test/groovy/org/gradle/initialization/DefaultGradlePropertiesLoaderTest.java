@@ -77,11 +77,7 @@ public class DefaultGradlePropertiesLoaderTest {
     private void writePropertyFile(File location, Map<String, String> propertiesMap) {
         Properties properties = new Properties();
         properties.putAll(propertiesMap);
-        try {
-            properties.store(new FileOutputStream(new File(location, Project.GRADLE_PROPERTIES)), "");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        GUtil.saveProperties(properties, new File(location, Project.GRADLE_PROPERTIES));
     }
 
     @Test

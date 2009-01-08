@@ -32,8 +32,7 @@ class GradleVersion {
     Properties versionProperties
 
     GradleVersion() {
-        versionProperties = new Properties()
-        versionProperties.load(getClass().getResourceAsStream('/' + FILE_NAME))
+        versionProperties = GUtil.loadProperties(getClass().getResourceAsStream('/' + FILE_NAME))
     }
 
     String getVersion() {

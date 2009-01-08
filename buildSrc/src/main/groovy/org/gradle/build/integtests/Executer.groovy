@@ -64,6 +64,7 @@ class Executer {
             actualCommand = windowsCommand
             println "Execute in $currentDirName with: $actualCommand"
             additionalEnvs << windowsPath(gradleHome)
+            additionalEnvs << 'GRADLE_EXIT_CONSOLE=true'
             execute.setEnvironment(envs + additionalEnvs as String[])
             proc = Runtime.getRuntime().exec(actualCommand, execute.getEnvironment(), new File(currentDirName))
         } else {

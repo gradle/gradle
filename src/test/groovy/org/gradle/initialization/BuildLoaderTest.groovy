@@ -36,6 +36,7 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.util.GUtil
 
 /**
  * @author Hans Dockter
@@ -99,8 +100,8 @@ class BuildLoaderTest {
         Map testRootProjectProps = [rootProp1: 'rootValue1', rootProp2: 'rootValue2', prop1: 'rootValue']
         Map testParentProjectProps = [parentProp1: 'parentValue1', parentProp2: 'parentValue2', prop1: 'parentValue']
 
-        new Properties(testRootProjectProps).store(new FileOutputStream(new File(testRootProjectDir, Project.GRADLE_PROPERTIES)), '')
-        new Properties(testParentProjectProps).store(new FileOutputStream(new File(testParentProjectDir, Project.GRADLE_PROPERTIES)), '')
+        GUtil.saveProperties(new Properties(testRootProjectProps), new File(testRootProjectDir, Project.GRADLE_PROPERTIES))
+        GUtil.saveProperties(new Properties(testParentProjectProps), new File(testParentProjectDir, Project.GRADLE_PROPERTIES))
 
         context.checking {
             allowing(rootProject).getProjectDir()
