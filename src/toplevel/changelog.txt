@@ -1,3 +1,10 @@
+Release Notes - Gradle - Version 0.5.2
+
+
+** Bug
+    * [GRADLE-354] - An invalid bulid script cache causes an exceptions under Windows.
+
+
 Release Notes - Gradle - Version 0.5.1
 
 ** Bug
