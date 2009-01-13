@@ -22,6 +22,7 @@ import org.gradle.util.GUtil;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.List;
 
 /**
  * <p>A {@code TaskReportRenderer} is responsible for rendering the model of a project task report.</p>
@@ -50,6 +51,17 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
             getFormatter().format("No tasks%n");
         }
         super.completeProject(project);
+    }
+
+    /**
+     * Writes the default task names for the current project.
+     *
+     * @param defaultTaskNames The default task names (must not be null)
+     */
+    public void addDefaultTasks(List<String> defaultTaskNames) {
+        if (defaultTaskNames.size() > 0) {
+            getFormatter().format("Default Tasks: %s%n%n", GUtil.join(defaultTaskNames, ", "));
+        }
     }
 
     /**

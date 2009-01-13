@@ -45,6 +45,7 @@ public class TaskReportTask extends AbstractReportTask {
         Set<Project> projects = new TreeSet<Project>(getProject().getAllprojects());
         for (Project project : projects) {
             renderer.startProject(project);
+            renderer.addDefaultTasks(project.getDefaultTasks());
             Set<Task> tasks = new TreeSet<Task>(project.getTasks().values());
             for (Task task : tasks) {
                 renderer.addTask(task);
