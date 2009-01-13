@@ -75,6 +75,7 @@ public abstract class AbstractTaskTest {
     public void testTask() {
         assertTrue(getTask().isEnabled());
         assertEquals(TEST_TASK_NAME, getTask().getName());
+        assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
         assertNotNull(getTask().getSkipProperties());
         assertEquals(new DefaultStandardOutputCapture(true, LogLevel.QUIET), getTask().getStandardOutputCapture());
@@ -435,5 +436,12 @@ public abstract class AbstractTaskTest {
                 task.captureStandardOutput(LogLevel.DEBUG);
             }
         })).execute();
+    }
+
+    @Test
+    public void setGetDescription() {
+        String testDescription = "testDescription";
+        getTask().setDescription(testDescription);
+        assertEquals(testDescription, getTask().getDescription());
     }
 }

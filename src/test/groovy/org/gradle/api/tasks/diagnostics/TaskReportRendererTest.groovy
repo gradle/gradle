@@ -31,14 +31,23 @@ class TaskReportRendererTest {
     TaskReportRenderer renderer = new TaskReportRenderer(writer)
 
     @Test public void testWritesTaskAndDependencies() {
-        Task task1 = [getPath: {':task1'}] as Task
-        Task task2 = [getPath: {':task2'}] as Task
-        TaskDependency taskDependency = [getDependencies: {[task1, task2] as Set}] as TaskDependency
-        Task task = [getPath: {':task'}, getTaskDependencies: {taskDependency}] as Task
+        Task task11 = [getPath: {':task11'}] as Task
+        Task task12 = [getPath: {':task12'}, getDescription: {null}] as Task
+        TaskDependency taskDependency1 = [getDependencies: {[task11, task12] as Set}] as TaskDependency
+        TaskDependency taskDependency2 = [getDependencies: {[] as Set}] as TaskDependency
+        String task1Description = 'task1Description'
+        Task task1 = [getPath: {':task1'}, getDescription: {task1Description}, getTaskDependencies: {taskDependency1}] as Task
+        Task task2 = [getPath: {':task2'}, getDescription: {null}, getTaskDependencies: {taskDependency2}] as Task
 
-        renderer.addTask(task)
+        renderer.addTask(task1)
+        renderer.addTask(task2)
 
-        assertThat(writer.toString(), containsString('Task :task [:task1, :task2]'))
+        List lines = new StringReader(writer.toString()).readLines()
+        assertThat(lines[0], containsString(":task1 - $task1Description"))
+        assertThat(lines[1], containsString("-> :task11, :task12"))
+        assertThat(lines[2], containsString(":task2"))
+        assertThat(lines[2], not(containsString(":task2 -")))
+        assertThat(lines.size(), equalTo(3))
     }
 
     @Test public void testProjectWithNoTasks() {
@@ -52,7 +61,7 @@ class TaskReportRendererTest {
     
     @Test public void testProjectWithTasks() {
         TaskDependency taskDependency = [getDependencies: {[] as Set}] as TaskDependency
-        Task task = [getPath: {':task'}, getTaskDependencies: {taskDependency}] as Task
+        Task task = [getPath: {':task'}, getDescription: {null}, getTaskDependencies: {taskDependency}] as Task
         Project project = [getPath: {':project'}] as Project
 
         renderer.startProject(project)

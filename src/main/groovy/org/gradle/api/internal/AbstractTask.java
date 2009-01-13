@@ -65,6 +65,8 @@ public abstract class AbstractTask implements TaskInternal {
 
     private DynamicObjectHelper dynamicObjectHelper;
 
+    private String description;
+
     protected AbstractTask() {
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(new Convention());
@@ -333,5 +335,13 @@ public abstract class AbstractTask implements TaskInternal {
 
     public Convention getConvention() {
         return dynamicObjectHelper.getConvention();
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

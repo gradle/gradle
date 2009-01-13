@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.util.GUtil;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -61,7 +62,14 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
             sortedDependencies.add(dependency.getPath());
         }
-        getFormatter().format("Task %s %s%n", task.getPath(), sortedDependencies);
+        getFormatter().format("%s %s%n", task.getPath(), getDescription(task));
+        if (sortedDependencies.size() > 0) {
+            getFormatter().format("   -> %s%n", GUtil.join(sortedDependencies, ", "));
+        }
         currentProjectHasTasks = true;
+    }
+
+    private String getDescription(Task task) {
+        return GUtil.isTrue(task.getDescription()) ? "- " + task.getDescription() : "";
     }
 }

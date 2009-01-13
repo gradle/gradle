@@ -382,5 +382,20 @@ public interface Task extends Comparable<Task> {
      * @return The convention object. Never returns null.
      */
     Convention getConvention();
+
+    /**
+     * Returns the description of a task.
+     *
+     * @see #setDescription(String)
+     */
+    String getDescription();
+
+    /**
+     * Adds a text to describe what the task does to the user of the build. The description will be displayed when
+     * <code>gradle -t</code> is called.
+     *
+     * @param description The description of the task. Might be null.
+     */
+    void setDescription(String description);
 }
 
