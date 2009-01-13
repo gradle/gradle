@@ -146,6 +146,14 @@ public class TaskFactoryTest {
         }
     }
 
+    @Test
+    public void createTaskWithDescription() {
+        String testDescription = "testDesc";
+        Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("description", testDescription),
+                TEST_TASK_NAME));
+        assertEquals(testDescription, task.getDescription());
+    }
+
     private Task checkTask(Task task) {
         assertEquals(TEST_TASK_NAME, task.getName());
         assertSame(testProject, task.getProject());

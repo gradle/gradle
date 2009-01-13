@@ -44,6 +44,7 @@ public class TaskFactory implements ITaskFactory {
 
         Object dependsOnTasks = args.get(Task.TASK_DEPENDS_ON);
         task.dependsOn(dependsOnTasks);
+        task.setDescription((String) args.get(Task.TASK_DESCRIPTION));
 
         return task;
     }

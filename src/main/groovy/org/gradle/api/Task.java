@@ -111,6 +111,8 @@ import java.util.Set;
 public interface Task extends Comparable<Task> {
     public static final String TASK_NAME = "name";
 
+    public static final String TASK_DESCRIPTION = "description";
+
     public static final String TASK_TYPE = "type";
 
     public static final String TASK_DEPENDS_ON = "dependsOn";
