@@ -39,15 +39,29 @@ class TaskReportRendererTest {
         Task task1 = [getPath: {':task1'}, getDescription: {task1Description}, getTaskDependencies: {taskDependency1}] as Task
         Task task2 = [getPath: {':task2'}, getDescription: {null}, getTaskDependencies: {taskDependency2}] as Task
 
+        List testDefaultTasks = ['task1, task2']
+        renderer.addDefaultTasks(testDefaultTasks)
         renderer.addTask(task1)
         renderer.addTask(task2)
 
         List lines = new StringReader(writer.toString()).readLines()
-        assertThat(lines[0], containsString(":task1 - $task1Description"))
-        assertThat(lines[1], containsString("-> :task11, :task12"))
-        assertThat(lines[2], containsString(":task2"))
-        assertThat(lines[2], not(containsString(":task2 -")))
-        assertThat(lines.size(), equalTo(3))
+        assertThat(lines[0], containsString("Default Tasks: " + testDefaultTasks.join(', ')))
+        assertThat(lines[2], containsString(":task1 - $task1Description"))
+        assertThat(lines[3], containsString("-> :task11, :task12"))
+        assertThat(lines[4], containsString(":task2"))
+        assertThat(lines[4], not(containsString(":task2 -")))
+        assertThat(lines.size(), equalTo(5))
+    }
+
+    @Test public void testWritesTaskAndDependenciesWithNoDefaultTasks() {
+        TaskDependency taskDependency = [getDependencies: {[] as Set}] as TaskDependency
+        Task task = [getPath: {':task1'}, getDescription: {null}, getTaskDependencies: {taskDependency}] as Task
+        renderer.addDefaultTasks([])
+        renderer.addTask(task)
+
+        List lines = new StringReader(writer.toString()).readLines()
+        assertThat(lines[0], containsString(":task"))
+        assertThat(lines.size(), equalTo(1))
     }
 
     @Test public void testProjectWithNoTasks() {

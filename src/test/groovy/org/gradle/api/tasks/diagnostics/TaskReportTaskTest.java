@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -33,6 +34,8 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import static java.util.Collections.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @RunWith(JMock.class)
 public class TaskReportTaskTest {
@@ -74,10 +77,16 @@ public class TaskReportTaskTest {
             one(project).getAllprojects();
             will(returnValue(toLinkedSet(child1, project, child2)));
 
+            allowing(project).getDefaultTasks();
+            will(returnValue(emptyList()));
             allowing(project).getTasks();
             will(returnValue(emptyMap()));
+            allowing(child1).getDefaultTasks();
+            will(returnValue(emptyList()));
             allowing(child1).getTasks();
             will(returnValue(emptyMap()));
+            allowing(child2).getDefaultTasks();
+            will(returnValue(emptyList()));
             allowing(child2).getTasks();
             will(returnValue(emptyMap()));
 
@@ -91,13 +100,19 @@ public class TaskReportTaskTest {
 
             one(renderer).startProject(project);
             inSequence(sequence);
+            one(renderer).addDefaultTasks(new ArrayList<String>());
+            inSequence(sequence);
             one(renderer).completeProject(project);
             inSequence(sequence);
             one(renderer).startProject(child1);
             inSequence(sequence);
+            one(renderer).addDefaultTasks(new ArrayList<String>());
+            inSequence(sequence);
             one(renderer).completeProject(child1);
             inSequence(sequence);
             one(renderer).startProject(child2);
+            inSequence(sequence);
+            one(renderer).addDefaultTasks(new ArrayList<String>());
             inSequence(sequence);
             one(renderer).completeProject(child2);
             inSequence(sequence);
@@ -117,6 +132,10 @@ public class TaskReportTaskTest {
             one(project).getAllprojects();
             will(returnValue(toLinkedSet(project)));
 
+            List<String> testDefaultTasks = WrapUtil.toList("defaultTask1", "defaultTask2");
+            allowing(project).getDefaultTasks();
+            will(returnValue(testDefaultTasks));
+
             one(project).getTasks();
             will(returnValue(GUtil.map("task2", task2, "task1", task1)));
 
@@ -126,6 +145,8 @@ public class TaskReportTaskTest {
             Sequence sequence = context.sequence("seq");
 
             one(renderer).startProject(project);
+            inSequence(sequence);
+            one(renderer).addDefaultTasks(testDefaultTasks);
             inSequence(sequence);
             one(renderer).addTask(task1);
             inSequence(sequence);
