@@ -111,13 +111,12 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     }
 
     public List<File> resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies) {
-        return dependencyResolver.resolve(conf, getIvy(), createModuleDescriptor(false),
+        return dependencyResolver.resolve(conf, getIvy(), createModuleDescriptor(includeProjectDependencies),
                 failForMissingDependencies);
     }
 
     public List<File> resolve(String conf) {
-        return dependencyResolver.resolve(conf, getIvy(), createModuleDescriptor(true),
-                this.failForMissingDependencies);
+        return resolve(conf, this.failForMissingDependencies, true);
     }
 
     public List<File> resolveTask(String taskName) {
