@@ -37,7 +37,7 @@ class JavaPluginTest {
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.apply(project, new PluginRegistry())
 
-        assertTrue(project.appliedPlugins.contains(BasePlugin))
+        assertTrue(project.appliedPlugins.contains(ReportingBasePlugin))
         
         def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
         assertFalse(configuration.visible)

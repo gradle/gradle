@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class ProjectReportsPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(BasePlugin.class, project, customValues);
+        pluginRegistry.apply(ReportingBasePlugin.class, project, customValues);
         
         TaskReportTask taskReportTask = (TaskReportTask) project.createTask(toMap(Task.TASK_TYPE, TaskReportTask.class),
                 "taskReport");

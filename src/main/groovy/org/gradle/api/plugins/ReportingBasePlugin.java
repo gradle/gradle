@@ -17,51 +17,24 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.tasks.Clean;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.util.GUtil;
 
 import java.util.Map;
 
 /**
- * <p>A {@link Plugin} which provides the basic skeleton for a project.</p>
- *
- * <p>This plugin adds the following tasks to the project:</p>
- *
- * <ul>
- *
- * <li>{@code init}</li>
- *
- * <li>{@code clean}</li>
- *
- * </ul>
+ * <p>A {@link Plugin} which provides the basic skeleton for reporting.</p>
  *
  * <p>This plugin adds the following convention objects to the project:</p>
  *
  * <ul>
  *
- * <li>{@link BasePluginConvention}</li>
+ * <li>{@link ReportingBasePluginConvention}</li>
  *
  * </ul>
  */
-public class BasePlugin implements Plugin {
-    public static final String CLEAN = "clean";
-    public static final String INIT = "init";
-
+public class ReportingBasePlugin implements Plugin {
     public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         Convention convention = project.getConvention();
-        convention.getPlugins().put("base", new BasePluginConvention(project));
-
-        project.createTask(INIT);
-
-        ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
-                conventionMapping(GUtil.map("dir", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
-                        return project.getBuildDir();
-                    }
-                }));
+        convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project));
     }
 }

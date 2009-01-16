@@ -37,7 +37,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
 
     @Before public void setUp() {
         super.setUp()
-        project.convention.plugins.base = new BasePluginConvention(project)
+        project.convention.plugins.reportingBase = new ReportingBasePluginConvention(project)
         convention = new JavaPluginConvention(project, [:])
     }
 

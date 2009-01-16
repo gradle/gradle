@@ -32,7 +32,7 @@ public class ProjectReportsPluginTest {
 
         new ProjectReportsPlugin().apply(project, new PluginRegistry(), null);
 
-        assertTrue(project.getAppliedPlugins().contains(BasePlugin.class));
+        assertTrue(project.getAppliedPlugins().contains(ReportingBasePlugin.class));
 
         assertThat(project.findTask("taskReport"), instanceOf(TaskReportTask.class));
         assertThat(project.findTask("propertyReport"), instanceOf(PropertyReportTask.class));

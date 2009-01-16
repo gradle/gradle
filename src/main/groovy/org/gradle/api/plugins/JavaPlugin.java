@@ -22,6 +22,7 @@ import org.gradle.api.dependencies.Filter;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Resources;
 import org.gradle.api.tasks.Upload;
@@ -56,6 +57,8 @@ public class JavaPlugin implements Plugin {
     public static final String UPLOAD_INTERNAL_LIBS = "uploadInternalLibs";
     public static final String UPLOAD_LIBS = "uploadLibs";
     public static final String UPLOAD = "upload";
+    public static final String CLEAN = "clean";
+    public static final String INIT = "init";
     public static final String JAVADOC = "javadoc";
 
     public static final String RUNTIME = "runtime";
@@ -75,8 +78,8 @@ public class JavaPlugin implements Plugin {
         apply(project, pluginRegistry, new HashMap<String, Object>());
     }
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(BasePlugin.class, project, customValues);
+    public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+        pluginRegistry.apply(ReportingBasePlugin.class, project, customValues);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, customValues);
         Convention convention = project.getConvention();
@@ -84,10 +87,20 @@ public class JavaPlugin implements Plugin {
 
         configureDependencyManager(project, javaConvention);
 
+        project.createTask(INIT);
+
+        ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
+                conventionMapping(GUtil.map(
+            "dir", new ConventionValue() {
+                    public Object getValue(Convention convention, Task task) {
+                        return project.getBuildDir();
+                    }
+                }));
+
         ((ConventionTask) project.createTask(GUtil.map("type", Javadoc.class), JAVADOC)).
                 conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
 
-        ((ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", BasePlugin.INIT), RESOURCES)).
+        ((ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", INIT), RESOURCES)).
                 conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
 
         configureCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", RESOURCES),

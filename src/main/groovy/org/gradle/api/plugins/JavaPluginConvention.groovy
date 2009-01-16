@@ -164,6 +164,6 @@ class JavaPluginConvention {
     }
 
     private File getReportsDir() {
-        project.convention.plugins.base.reportsDir
+        project.convention.plugins.reportingBase.reportsDir
     }
 }

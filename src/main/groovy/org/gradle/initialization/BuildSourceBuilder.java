@@ -25,7 +25,6 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -88,7 +87,7 @@ public class BuildSourceBuilder {
             startParameterArg.setSearchUpwards(false);
 
             if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(buildArtifactFile(buildResolverDir), startParameter.getCurrentDir())) {
-                startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.INIT));
+                startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.INIT));
             }
 
             if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {

@@ -16,21 +16,17 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.DefaultTask;
-import org.gradle.api.tasks.Clean;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class BasePluginTest {
+public class ReportingBasePluginTest {
     @Test
     public void addsTasksAndConventionToProject() {
         Project project = HelperUtil.createRootProject();
-        new BasePlugin().apply(project, null, null);
+        new ReportingBasePlugin().apply(project, null, null);
 
-        assertThat(project.task("clean"), instanceOf(Clean.class));
-        assertThat(project.task("init"), instanceOf(DefaultTask.class));
-        assertThat(project.getConvention().getPlugins().get("base"), instanceOf(BasePluginConvention.class));
+        assertThat(project.getConvention().getPlugins().get("reportingBase"), instanceOf(ReportingBasePluginConvention.class));
     }
 }

@@ -28,10 +28,10 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 @RunWith(JMock.class)
-public class BasePluginConventionTest {
+public class ReportingBasePluginConventionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Project project = context.mock(Project.class);
-    private final BasePluginConvention convention = new BasePluginConvention(project);
+    private final ReportingBasePluginConvention convention = new ReportingBasePluginConvention(project);
     private final File buildDir = new File("build-dir");
 
     @Before
