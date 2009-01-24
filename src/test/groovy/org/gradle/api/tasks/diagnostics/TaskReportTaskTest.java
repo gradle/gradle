@@ -15,13 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.Convention;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import static org.gradle.util.WrapUtil.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -33,8 +30,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import static java.util.Collections.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(JMock.class)
@@ -51,10 +46,6 @@ public class TaskReportTaskTest {
         project = context.mock(ProjectInternal.class);
 
         context.checking(new Expectations(){{
-            allowing(project).getRootProject();
-            will(returnValue(project));
-            allowing(project).getConvention();
-            will(returnValue(new Convention()));
             allowing(project).absolutePath("list");
             will(returnValue(":path"));
         }});
@@ -69,68 +60,10 @@ public class TaskReportTaskTest {
     }
 
     @Test
-    public void passesEachProjectToRenderer() throws IOException {
-        final Project child1 = context.mock(Project.class, "child1");
-        final Project child2 = context.mock(Project.class, "child2");
-
-        context.checking(new Expectations() {{
-            one(project).getAllprojects();
-            will(returnValue(toLinkedSet(child1, project, child2)));
-
-            allowing(project).getDefaultTasks();
-            will(returnValue(emptyList()));
-            allowing(project).getTasks();
-            will(returnValue(emptyMap()));
-            allowing(child1).getDefaultTasks();
-            will(returnValue(emptyList()));
-            allowing(child1).getTasks();
-            will(returnValue(emptyMap()));
-            allowing(child2).getDefaultTasks();
-            will(returnValue(emptyList()));
-            allowing(child2).getTasks();
-            will(returnValue(emptyMap()));
-
-            allowing(project).compareTo(child1);
-            will(returnValue(-1));
-
-            allowing(child2).compareTo(child1);
-            will(returnValue(1));
-
-            Sequence sequence = context.sequence("seq");
-
-            one(renderer).startProject(project);
-            inSequence(sequence);
-            one(renderer).addDefaultTasks(new ArrayList<String>());
-            inSequence(sequence);
-            one(renderer).completeProject(project);
-            inSequence(sequence);
-            one(renderer).startProject(child1);
-            inSequence(sequence);
-            one(renderer).addDefaultTasks(new ArrayList<String>());
-            inSequence(sequence);
-            one(renderer).completeProject(child1);
-            inSequence(sequence);
-            one(renderer).startProject(child2);
-            inSequence(sequence);
-            one(renderer).addDefaultTasks(new ArrayList<String>());
-            inSequence(sequence);
-            one(renderer).completeProject(child2);
-            inSequence(sequence);
-            one(renderer).complete();
-            inSequence(sequence);
-        }});
-
-        task.execute();
-    }
-
-    @Test
     public void passesEachTaskToRenderer() throws IOException {
         context.checking(new Expectations() {{
             Task task1 = context.mock(Task.class, "task1");
             Task task2 = context.mock(Task.class, "task2");
-
-            one(project).getAllprojects();
-            will(returnValue(toLinkedSet(project)));
 
             List<String> testDefaultTasks = WrapUtil.toList("defaultTask1", "defaultTask2");
             allowing(project).getDefaultTasks();
@@ -144,20 +77,16 @@ public class TaskReportTaskTest {
             
             Sequence sequence = context.sequence("seq");
 
-            one(renderer).startProject(project);
-            inSequence(sequence);
             one(renderer).addDefaultTasks(testDefaultTasks);
             inSequence(sequence);
+
             one(renderer).addTask(task1);
             inSequence(sequence);
+
             one(renderer).addTask(task2);
-            inSequence(sequence);
-            one(renderer).completeProject(project);
-            inSequence(sequence);
-            one(renderer).complete();
             inSequence(sequence);
         }});
 
-        task.execute();
+        task.generate(project);
     }
 }

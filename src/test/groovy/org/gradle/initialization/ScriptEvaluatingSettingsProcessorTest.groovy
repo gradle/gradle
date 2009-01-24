@@ -18,21 +18,16 @@ package org.gradle.initialization
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
-import org.gradle.api.DependencyManager
-import org.gradle.api.Project
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
-import org.gradle.api.internal.dependencies.DependencyManagerFactory
 import org.gradle.api.internal.project.ImportsReader
 import org.gradle.groovy.scripts.*
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.ReflectionEqualsMatcher
+import static org.gradle.util.Matchers.*
 import org.hamcrest.Matchers
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
-import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
@@ -122,7 +117,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         Script expectedScript = new EmptyScript()
         context.checking {
             one(scriptProcessorMock).createScript(
-                    withParam(ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource)),
+                    withParam(reflectionEquals(expectedScriptSource)),
                     withParam(Matchers.sameInstance(Thread.currentThread().contextClassLoader)),
                     withParam(Matchers.equalTo(ScriptWithSource.class)))
             will(returnValue(expectedScript))

@@ -15,17 +15,21 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.Expectations;
+import org.gradle.api.Project;
+import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.util.HelperUtil;
-import org.gradle.api.Project;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
 
 @RunWith(JMock.class)
 public class TextProjectReportRendererTest {
@@ -56,11 +60,13 @@ public class TextProjectReportRendererTest {
     }
 
     @Test
-    public void writeProjectHeader() throws IOException {
+    public void writeRootProjectHeader() throws IOException {
         final Project project = context.mock(Project.class);
         StringWriter writer = new StringWriter();
 
         context.checking(new Expectations() {{
+            allowing(project).getRootProject();
+            will(returnValue(project));
             allowing(project).getPath();
             will(returnValue("<path>"));
         }});
@@ -70,6 +76,26 @@ public class TextProjectReportRendererTest {
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(writer.toString(), containsString("Project <path>"));
+        assertThat(writer.toString(), containsLine("Root Project <path>"));
+    }
+    
+    @Test
+    public void writeSubProjectHeader() throws IOException {
+        final Project project = context.mock(Project.class);
+        StringWriter writer = new StringWriter();
+
+        context.checking(new Expectations() {{
+            allowing(project).getRootProject();
+            will(returnValue(context.mock(Project.class, "root")));
+            allowing(project).getPath();
+            will(returnValue("<path>"));
+        }});
+
+        TextProjectReportRenderer renderer = new TextProjectReportRenderer(writer);
+        renderer.startProject(project);
+        renderer.completeProject(project);
+        renderer.complete();
+
+        assertThat(writer.toString(), containsLine("Project <path>"));
     }
 }

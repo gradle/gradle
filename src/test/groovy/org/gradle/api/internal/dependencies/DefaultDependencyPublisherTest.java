@@ -22,8 +22,8 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.DependencyManager;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -109,7 +109,7 @@ public class DefaultDependencyPublisherTest {
                         with(same(moduleDescriptorMock)),
                         with(equal(expectedSrcArtifactPatterns)),
                         with(equal(testIvyDescriptorResolver)),
-                        with(reflectionEquals(createPublishOptions(expectedIvyFile))));
+                        with(Matchers.reflectionEquals(createPublishOptions(expectedIvyFile))));
                 one(moduleDescriptorMock).toIvyFile(expectedIvyFile);
             }
         });
@@ -136,7 +136,7 @@ public class DefaultDependencyPublisherTest {
                         with(same(moduleDescriptorMock)),
                         with(equal(expectedSrcArtifactPatterns)),
                         with(equal(testIvyDescriptorResolver)),
-                        with(reflectionEquals(publishOptions)));
+                        with(Matchers.reflectionEquals(publishOptions)));
             }
         });
         dependencyPublisher.publish(expectedConfs, resolverContainerMock, moduleDescriptorMock,

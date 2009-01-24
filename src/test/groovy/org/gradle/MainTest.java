@@ -25,7 +25,7 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
+import org.gradle.util.Matchers;
 import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toMap;
 import static org.hamcrest.Matchers.*;
@@ -349,7 +349,7 @@ public class MainTest {
     public void testMainWithShowTasks() throws Throwable {
         checkMain(false, true, "-t");
         BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
-        assertThat(actualStartParameter.getBuildExecuter(), reflectionEquals(expectedExecuter));
+        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
     @Test
@@ -363,14 +363,14 @@ public class MainTest {
     public void testMainWithShowProperties() throws Throwable {
         checkMain(false, true, "-r");
         BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES);
-        assertThat(actualStartParameter.getBuildExecuter(), reflectionEquals(expectedExecuter));
+        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
     @Test
     public void testMainWithShowDependencies() throws Throwable {
         checkMain(false, true, "-n");
         BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
-        assertThat(actualStartParameter.getBuildExecuter(), reflectionEquals(expectedExecuter));
+        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
     @Test(expected = InvalidUserDataException.class)

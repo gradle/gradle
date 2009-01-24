@@ -22,15 +22,13 @@ import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskNameResolvingBuildExecuter
 import org.gradle.execution.ProjectDefaultsBuildExecuter
 import org.gradle.groovy.scripts.StringScriptSource
-import static org.gradle.util.ReflectionEqualsMatcher.*
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.api.initialization.Settings
 import org.gradle.util.HelperUtil
-import org.gradle.execution.TaskNameResolvingBuildExecuter
-import org.gradle.execution.ProjectDefaultsBuildExecuter
 import org.gradle.execution.MergingBuildExecuter
 import org.gradle.api.logging.LogLevel
 

@@ -16,12 +16,15 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
+import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
 import org.gradle.api.dependencies.report.IvyDependencyGraphBuilder;
-import org.gradle.api.internal.dependencies.BaseDependencyManager;
-import org.gradle.api.internal.dependencies.DefaultDependencyResolver;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
+import org.gradle.api.internal.dependencies.IDependencyResolver;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * The {@code DependencyReportTask} displays the dependency tree for a project. Can be configured to output to a file,
@@ -33,17 +36,9 @@ import java.io.IOException;
 public class DependencyReportTask extends AbstractReportTask {
 
     private DependencyReportRenderer renderer = new AsciiReportRenderer();
-    private String conf = "runtime";
 
     public DependencyReportTask(Project project, String name) {
         super(project, name);
-    }
-
-    /**
-     * Set the configuration to build a dependency report for
-     */
-    public void setConf(String conf) {
-        this.conf = conf;
     }
 
     public DependencyReportRenderer getRenderer() {
@@ -57,20 +52,24 @@ public class DependencyReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
-    public void generate() throws IOException {
-        Project project = getProject();
+    public void generate(Project project) throws IOException {
+        DependencyManagerInternal depManager = (DependencyManagerInternal) project.getDependencies();
+        Map<String, Configuration> configs = new TreeMap<String, Configuration>(project.getDependencies().getConfigurations());
+        for (Map.Entry<String, Configuration> entry : configs.entrySet()) {
 
-        IvyDependencyGraphBuilder graphBuilder = new IvyDependencyGraphBuilder();
+            String configName = entry.getKey();
+            Configuration configuration = entry.getValue();
 
-        BaseDependencyManager depManager = (BaseDependencyManager) project.getDependencies();
+            IvyDependencyGraphBuilder graphBuilder = new IvyDependencyGraphBuilder();
 
-        depManager.resolve(conf, false, true);
+            // todo - move the following to Configuration, so that a IvyDependencyGraph can be obtained directly
+            IDependencyResolver resolver = depManager.getDependencyResolver();
+            depManager.resolve(configName, false, true);
+            IvyDependencyGraph graph = graphBuilder.buildGraph(resolver.getLastResolveReport(), configName);
 
-        DefaultDependencyResolver resolver = (DefaultDependencyResolver) depManager.getDependencyResolver();
-        IvyDependencyGraph graph = graphBuilder.buildGraph(project, resolver.getLastResolveReport(), conf);
-
-        renderer.startProject(project);
-        renderer.render(graph);
-        renderer.completeProject(project);
+            renderer.startConfiguration(configuration);
+            renderer.render(graph);
+            renderer.completeConfiguration(configuration);
+        }
     }
 }

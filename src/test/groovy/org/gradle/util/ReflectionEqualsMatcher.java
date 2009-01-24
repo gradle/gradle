@@ -15,12 +15,9 @@
  */
 package org.gradle.util;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.gradle.api.internal.dependencies.DefaultDependencyResolverTest;
 
 /**
  * @author Hans Dockter
@@ -28,7 +25,7 @@ import org.gradle.api.internal.dependencies.DefaultDependencyResolverTest;
 public class ReflectionEqualsMatcher<T> extends BaseMatcher<T> {
     private T toMatch;
 
-    private ReflectionEqualsMatcher(T toMatch) {
+    ReflectionEqualsMatcher(T toMatch) {
         this.toMatch = toMatch;
     }
 
@@ -39,10 +36,4 @@ public class ReflectionEqualsMatcher<T> extends BaseMatcher<T> {
     public void describeTo(Description description) {
         description.appendText("Comparing to " + toMatch);
     }
-
-    @Factory
-    public static <T> Matcher<T> reflectionEquals(T equalsTo) {
-        return new ReflectionEqualsMatcher<T>(equalsTo);
-    }
-
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.report.ResolveReport;
 
 import java.io.File;
 import java.util.List;
@@ -26,4 +27,7 @@ import java.util.List;
  */
 public interface IDependencyResolver {
     List<File> resolve(String conf, Ivy ivy, ModuleDescriptor moduleDescriptor, boolean failForMissingDependencies);
+
+    // todo - merge this with resolve()
+    ResolveReport getLastResolveReport();
 }

@@ -15,9 +15,9 @@
  */
 package org.gradle.api.dependencies.report;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
-import org.gradle.api.Project;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,13 +55,14 @@ public class IvyDependencyGraphBuilder
      * @return
      * @throws Exception
      */
-    public IvyDependencyGraph buildGraph(Project project, ResolveReport report, String conf)
+    public IvyDependencyGraph buildGraph(ResolveReport report, String conf)
     {
 		IvyDependencyGraph graph = new IvyDependencyGraph();
 
         List<IvyNode> dependencies = report.getDependencies();
 
-        IvyDependency root = graph.findOrCreateDependeny(project.property("group").toString(), project.getName(), project.property("version").toString());
+        ModuleRevisionId revisionId = report.getModuleDescriptor().getModuleRevisionId();
+        IvyDependency root = graph.findOrCreateDependeny(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
 
         graph.setRoot(root);
 

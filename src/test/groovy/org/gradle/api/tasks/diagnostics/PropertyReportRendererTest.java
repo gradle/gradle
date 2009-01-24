@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import static org.hamcrest.Matchers.*;
+import static org.gradle.util.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +36,6 @@ public class PropertyReportRendererTest {
     public void writesProperty() {
         formatter.addProperty("prop", "value");
 
-        assertThat(out.toString(), containsString("prop: value"));
+        assertThat(out.toString(), containsLine("prop: value"));
     }
 }

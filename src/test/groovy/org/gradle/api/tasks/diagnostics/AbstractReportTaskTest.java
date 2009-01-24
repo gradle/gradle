@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -32,6 +33,7 @@ import java.io.IOException;
 @RunWith(JMock.class)
 public class AbstractReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
+    private final DefaultProject project = HelperUtil.createRootProject();
     private Runnable generator;
     private TestReportTask task;
     private ProjectReportRenderer renderer;
@@ -40,7 +42,7 @@ public class AbstractReportTaskTest {
     public void setUp() throws Exception {
         generator = context.mock(Runnable.class);
         renderer = context.mock(ProjectReportRenderer.class);
-        task = new TestReportTask(HelperUtil.createRootProject(), "name", generator, renderer);
+        task = new TestReportTask(project, "name", generator, renderer);
     }
 
     @Test
@@ -75,7 +77,40 @@ public class AbstractReportTaskTest {
     }
 
     @Test
-    public void createsMissingDirectory() throws IOException {
+    public void passesEachProjectToRenderer() throws IOException {
+        final Project child1 = project.addChildProject("child1", null);
+        final Project child2 = project.addChildProject("child2", null);
+
+        context.checking(new Expectations() {{
+            Sequence sequence = context.sequence("seq");
+
+            one(renderer).startProject(project);
+            inSequence(sequence);
+            one(generator).run();
+            inSequence(sequence);
+            one(renderer).completeProject(project);
+            inSequence(sequence);
+            one(renderer).startProject(child1);
+            inSequence(sequence);
+            one(generator).run();
+            inSequence(sequence);
+            one(renderer).completeProject(child1);
+            inSequence(sequence);
+            one(renderer).startProject(child2);
+            inSequence(sequence);
+            one(generator).run();
+            inSequence(sequence);
+            one(renderer).completeProject(child2);
+            inSequence(sequence);
+            one(renderer).complete();
+            inSequence(sequence);
+        }});
+
+        task.execute();
+    }
+
+    @Test
+    public void createsMissingOutputDirectory() throws IOException {
         final File file = new File(HelperUtil.getTestDir(), "missing/missing.txt");
         assertFalse(file.getParentFile().isDirectory());
 
@@ -105,7 +140,7 @@ public class AbstractReportTaskTest {
             return renderer;
         }
 
-        public void generate() throws IOException {
+        public void generate(Project project) throws IOException {
             generator.run();
         }
     }

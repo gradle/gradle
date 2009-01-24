@@ -15,21 +15,18 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.GUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.Project;
-import org.gradle.util.GUtil;
-import static org.gradle.util.WrapUtil.*;
 
-import java.util.Collections;
 import java.io.IOException;
 
 @RunWith(JMock.class)
@@ -46,8 +43,6 @@ public class PropertyReportTaskTest {
         renderer = context.mock(PropertyReportRenderer.class);
 
         context.checking(new Expectations() {{
-            allowing(project).getRootProject();
-            will(returnValue(project));
             allowing(project).absolutePath("list");
             will(returnValue(":path"));
         }});
@@ -62,72 +57,20 @@ public class PropertyReportTaskTest {
     }
 
     @Test
-    public void passesCurrentProjectAndEachSubProjectToRenderer() throws IOException {
-        final Project child1 = context.mock(Project.class, "child1");
-        final Project child2 = context.mock(Project.class, "child2");
-
+    public void passesEachProjectPropertyToRenderer() throws IOException {
         context.checking(new Expectations() {{
-            one(project).getAllprojects();
-            will(returnValue(toLinkedSet(child1, project, child2)));
-
-            allowing(project).getProperties();
-            will(returnValue(Collections.emptyMap()));
-
-            allowing(child1).getProperties();
-            will(returnValue(Collections.emptyMap()));
-
-            allowing(child2).getProperties();
-            will(returnValue(Collections.emptyMap()));
-
-            allowing(project).compareTo(child1);
-            will(returnValue(-1));
-
-            allowing(child2).compareTo(child1);
-            will(returnValue(1));
-
-            Sequence sequence = context.sequence("seq");
-
-            one(renderer).startProject(project);
-            inSequence(sequence);
-            one(renderer).completeProject(project);
-            inSequence(sequence);
-            one(renderer).startProject(child1);
-            inSequence(sequence);
-            one(renderer).completeProject(child1);
-            inSequence(sequence);
-            one(renderer).startProject(child2);
-            inSequence(sequence);
-            one(renderer).completeProject(child2);
-            inSequence(sequence);
-            one(renderer).complete();
-            inSequence(sequence);
-        }});
-
-        task.execute();
-    }
-
-    @Test
-    public void passesEachPropertyToRenderer() throws IOException {
-        context.checking(new Expectations() {{
-            one(project).getAllprojects();
-            will(returnValue(toLinkedSet(project)));
             one(project).getProperties();
             will(returnValue(GUtil.map("b", "value2", "a", "value1")));
 
             Sequence sequence = context.sequence("seq");
 
-            one(renderer).startProject(project);
-            inSequence(sequence);
             one(renderer).addProperty("a", "value1");
             inSequence(sequence);
+
             one(renderer).addProperty("b", "value2");
-            inSequence(sequence);
-            one(renderer).completeProject(project);
-            inSequence(sequence);
-            one(renderer).complete();
             inSequence(sequence);
         }});
 
-        task.execute();
+        task.generate(project);
     }
 }

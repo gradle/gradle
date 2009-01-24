@@ -41,16 +41,11 @@ public class TaskReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
-    public void generate() throws IOException {
-        Set<Project> projects = new TreeSet<Project>(getProject().getAllprojects());
-        for (Project project : projects) {
-            renderer.startProject(project);
-            renderer.addDefaultTasks(project.getDefaultTasks());
-            Set<Task> tasks = new TreeSet<Task>(project.getTasks().values());
-            for (Task task : tasks) {
-                renderer.addTask(task);
-            }
-            renderer.completeProject(project);
+    public void generate(Project project) throws IOException {
+        renderer.addDefaultTasks(project.getDefaultTasks());
+        Set<Task> tasks = new TreeSet<Task>(project.getTasks().values());
+        for (Task task : tasks) {
+            renderer.addTask(task);
         }
     }
 }

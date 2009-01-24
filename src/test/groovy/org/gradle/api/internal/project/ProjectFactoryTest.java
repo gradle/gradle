@@ -23,8 +23,8 @@ import org.gradle.api.internal.dependencies.DependencyManagerFactory;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import static org.gradle.util.ReflectionEqualsMatcher.*;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -98,7 +98,7 @@ public class ProjectFactoryTest {
         checkProjectResources(project);
 
         ScriptSource expectedScriptSource = new FileScriptSource("build file", buildFile);
-        assertThat(project.getBuildScriptSource(), reflectionEquals(expectedScriptSource));
+        assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
     }
 
     @Test
@@ -120,7 +120,7 @@ public class ProjectFactoryTest {
         checkProjectResources(project);
 
         ScriptSource expectedScriptSource = new FileScriptSource("build file", buildFile);
-        assertThat(project.getBuildScriptSource(), reflectionEquals(expectedScriptSource));
+        assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
     }
 
     @Test
@@ -130,7 +130,7 @@ public class ProjectFactoryTest {
         DefaultProject project = projectFactory.createProject("somename", rootProject, projectDir, build);
 
         ScriptSource expectedScriptSource = new StringScriptSource("empty build file", "");
-        assertThat(project.getBuildScriptSource(), reflectionEquals(expectedScriptSource));
+        assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
     }
 
     @Test

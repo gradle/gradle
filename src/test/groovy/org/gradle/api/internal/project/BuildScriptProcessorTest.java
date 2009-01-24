@@ -22,7 +22,7 @@ import org.gradle.groovy.scripts.IScriptProcessor;
 import org.gradle.groovy.scripts.ImportsScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.ReflectionEqualsMatcher;
+import org.gradle.util.Matchers;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -111,7 +111,7 @@ public class BuildScriptProcessorTest {
                 allowing(testProject).getRootDir();
                 will(returnValue(testProjectDir));
                 one(scriptProcessorMock).createScript(
-                        with(ReflectionEqualsMatcher.reflectionEquals(expectedScriptSource)),
+                        with(Matchers.reflectionEquals(expectedScriptSource)),
                         with(same(expectedClassloader)),
                         with(equal(ProjectScript.class)));
                 will(returnValue(expectedScript));

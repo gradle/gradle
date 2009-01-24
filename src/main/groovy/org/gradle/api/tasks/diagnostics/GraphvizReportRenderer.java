@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.report.IvyDependency;
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
+import org.gradle.api.dependencies.Configuration;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -31,6 +32,14 @@ import java.util.Set;
 public class GraphvizReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
     @Override
     public void startProject(Project project) {
+        // Do nothing
+    }
+
+    public void startConfiguration(Configuration configuration) {
+        // Do nothing
+    }
+
+    public void completeConfiguration(Configuration configuration) {
         // Do nothing
     }
 

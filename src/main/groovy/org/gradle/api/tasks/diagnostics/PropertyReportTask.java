@@ -41,13 +41,9 @@ public class PropertyReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
-    public void generate() throws IOException {
-        for (Project project : new TreeSet<Project>(getProject().getAllprojects())) {
-            renderer.startProject(project);
-            for (Map.Entry<String, ?> entry : new TreeMap<String, Object>(project.getProperties()).entrySet()) {
-                renderer.addProperty(entry.getKey(), entry.getValue());
-            }
-            renderer.completeProject(project);
+    public void generate(Project project) throws IOException {
+        for (Map.Entry<String, ?> entry : new TreeMap<String, Object>(project.getProperties()).entrySet()) {
+            renderer.addProperty(entry.getKey(), entry.getValue());
         }
     }
 }

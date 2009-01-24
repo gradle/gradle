@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import static org.gradle.util.Matchers.*
 import org.junit.Test
 
 /**
@@ -65,18 +66,18 @@ class TaskReportRendererTest {
     }
 
     @Test public void testProjectWithNoTasks() {
-        Project project = [getPath: {':project'}] as Project
+        Project project = [getPath: {':project'}, getRootProject: {null}] as Project
 
         renderer.startProject(project)
         renderer.completeProject(project)
 
-        assertThat(writer.toString(), containsString('No tasks'))
+        assertThat(writer.toString(), containsLine('No tasks'))
     }
     
     @Test public void testProjectWithTasks() {
         TaskDependency taskDependency = [getDependencies: {[] as Set}] as TaskDependency
         Task task = [getPath: {':task'}, getDescription: {null}, getTaskDependencies: {taskDependency}] as Task
-        Project project = [getPath: {':project'}] as Project
+        Project project = [getPath: {':project'}, getRootProject: {null}] as Project
 
         renderer.startProject(project)
         renderer.addTask(task)

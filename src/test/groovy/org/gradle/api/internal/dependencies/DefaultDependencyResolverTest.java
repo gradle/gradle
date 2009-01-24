@@ -23,8 +23,8 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.GradleException;
-import static org.gradle.util.ReflectionEqualsMatcher.reflectionEquals;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -80,7 +80,7 @@ public class DefaultDependencyResolverTest {
     public void testResolve() throws IOException, ParseException {
         context.checking(new Expectations() {
             {
-                allowing(ivyMock).resolve(with(equal(expectedModuleDescriptor)), with(reflectionEquals(expectedResolveOptions)));
+                allowing(ivyMock).resolve(with(equal(expectedModuleDescriptor)), with(Matchers.reflectionEquals(expectedResolveOptions)));
                 will(returnValue(expectedResolveReport));
                 allowing(report2ClasspathMock).getClasspath(TEST_CONF, expectedResolveReport);
                 will(returnValue(expectedClasspath));
@@ -95,7 +95,7 @@ public class DefaultDependencyResolverTest {
         context.checking(new Expectations() {
             {
                 allowing(resolveReportMock).hasError(); will(returnValue(true));
-                allowing(ivyMock).resolve(with(equal(expectedModuleDescriptor)), with(reflectionEquals(expectedResolveOptions)));
+                allowing(ivyMock).resolve(with(equal(expectedModuleDescriptor)), with(Matchers.reflectionEquals(expectedResolveOptions)));
                 will(returnValue(resolveReportMock));
             }
         });
@@ -108,7 +108,7 @@ public class DefaultDependencyResolverTest {
         context.checking(new Expectations() {
             {
                 allowing(resolveReportMock).hasError(); will(returnValue(true));
-                allowing(ivyMock).resolve(with(equal(expectedModuleDescriptor)), with(reflectionEquals(expectedResolveOptions)));
+                allowing(ivyMock).resolve(with(equal(expectedModuleDescriptor)), with(Matchers.reflectionEquals(expectedResolveOptions)));
                 will(returnValue(resolveReportMock));
                 allowing(report2ClasspathMock).getClasspath(TEST_CONF, resolveReportMock);
                 will(returnValue(expectedClasspath));

@@ -17,7 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.util.WrapUtil;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.ReflectionEqualsMatcher.*;
+import org.gradle.util.Matchers;
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -86,7 +86,7 @@ public class DefaultSettingsFinderTest {
         defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_START_PARAMETER.getCurrentDir(), defaultSettingsFinder.getSettingsDir());
         ScriptSource expectedSettingsSource = new StringScriptSource("empty settings file", "");
-        assertThat(defaultSettingsFinder.getSettingsScriptSource(), reflectionEquals(
+        assertThat(defaultSettingsFinder.getSettingsScriptSource(), Matchers.reflectionEquals(
                 expectedSettingsSource));
     }
 }

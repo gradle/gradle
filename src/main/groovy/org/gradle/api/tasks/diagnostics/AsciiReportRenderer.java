@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
 import org.gradle.api.dependencies.report.IvyDependency;
+import org.gradle.api.dependencies.Configuration;
 
 import java.io.*;
 
@@ -26,6 +27,13 @@ import java.io.*;
  * @author Phil Messenger
  */
 public class AsciiReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
+
+    public void startConfiguration(Configuration configuration) {
+        getFormatter().format("Configuration '%s'%n", configuration.getName());
+    }
+
+    public void completeConfiguration(Configuration configuration) {
+    }
 
     public void render(IvyDependencyGraph graph) throws IOException
     {
