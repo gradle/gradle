@@ -167,8 +167,9 @@ explodedDistDocsDir = new File(explodedDistDir, 'docs')
 explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
 explodedDistGroovydocsDir = new File(explodedDistDocsDir, 'groovydoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
-explodedDistUserguideOutputDir = new File(explodedDistSamplesDir, 'userguideOutput')
 explodedDistLibDir = new File(explodedDistDir, 'lib')
+samplesSrcDir = new File(srcRoot, 'samples')
+userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 
 createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
     [explodedDistDir, explodedDistSamplesDir, explodedDistLibDir]*.mkdirs()
@@ -188,7 +189,7 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
         logger.info('Generate and copy samples.')
         WrapperProjectCreator.createProject(explodedDistSamplesDir, task('archive_bin_zip').archivePath.parentFile,
                 version.toString())
-        copy(toDir: explodedDistSamplesDir) {fileset(dir: new File(srcRoot, 'samples'))}
+        copy(toDir: explodedDistSamplesDir) {fileset(dir: samplesSrcDir, excludes: 'userguideOutput/**')}
         logger.info('Copy binary sources.')
         copy(toDir: explodedDistSrcDir) {
             (srcDirs + resourceDirs + groovySrcDirs).findAll {it.isDirectory()}.each {dir -> fileset(dir: dir)}
@@ -334,15 +335,15 @@ createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
     }
 }
 
-userguideDir = dir("$buildDir.name/$docsDir.name/userguide")
+userguideDir = new File(buildDir, "$docsDir.name/userguide")
 
-createTask('userguideVersion', dependsOn: [userguideDir]) {
-    File userguideData = mkdir(userguideDir.dir, 'data')
+createTask('userguideVersion') {
+    File userguideData = mkdir(userguideDir, 'data')
     new File(userguideData, 'version.tex').write(version.toString())
     new File(userguideData, 'javadocDir.tex').write('\\def \\JAVADOCDIR {' + javadocRemoteDir + '}')
 }
 
-createTask('userguide', dependsOn: [userguideDir, 'userguideVersion']) {
+createTask('userguide', dependsOn: ['userguideVersion']) {
     File userguideSrc = new File(srcDocsDir, 'userguide')
     ant {
         if (!isLatexInstalled()) {
@@ -385,7 +386,7 @@ createTask('userguide', dependsOn: [userguideDir, 'userguideVersion']) {
 
 boolean isLatexInstalled() {
     try {
-        ant.exec(output: userguideDir.toString() + '/findLatexOut', executable: 'pdflatex', dir: projectDir) {
+        ant.exec(output: new File(userguideDir, 'findLatexOut'), executable: 'pdflatex', dir: projectDir) {
             arg(line: "-help")
         }
     } catch (Throwable e) {
@@ -417,7 +418,7 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
 
 // The integtests depend on dists because of the wrapper test
 createTask('integTest', dependsOn: ['dists']) {
-    IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, explodedDistUserguideOutputDir.absolutePath)
+    IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, userguideOutputDir.absolutePath)
 }.skipProperties
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc'])

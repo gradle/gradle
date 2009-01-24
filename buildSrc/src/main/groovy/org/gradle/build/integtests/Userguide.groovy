@@ -39,7 +39,7 @@ class Userguide {
                         run.debugLevel)
             }
             result.output = ">$result.unixCommand$NL" + result.output
-            String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.id + '.out').text)
+            String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
             try {
                 assert result.output == expectedResult
             } catch (AssertionError e) {
@@ -137,6 +137,9 @@ class Userguide {
                 run('tutorial', 'pluginConvention', 'check'),
                 run('tutorial', 'pluginIntro', 'check'),
                 run('tutorial', 'projectApi', 'check'),
+                run('tutorial', 'projectReports', '--tasks').withOutputFile('taskListReport.out'),
+                run('tutorial', 'projectReports', '--dependencies').withOutputFile('dependencyListReport.out'),
+//                run('tutorial', 'projectReports', '--properties').withOutputFile('propertyListReport.out'),
                 run('tutorial', 'replaceTask', 'resources'),
                 run('tutorial', 'skipProperties', '-DmySkipProperty skipMe'),
                 run('tutorial', 'stopExecutionException', 'myTask'),
@@ -180,4 +183,14 @@ class GradleRun {
     String subDir
     boolean groovyScript = false
     List envs = []
+    String outputFile
+
+    def getOutputFile() {
+        return outputFile ? outputFile : id + '.out'
+    }
+
+    def withOutputFile(outputFile) {
+        this.outputFile = outputFile
+        this
+    }
 }

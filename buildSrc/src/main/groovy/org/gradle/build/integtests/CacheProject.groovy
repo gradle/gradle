@@ -24,7 +24,6 @@ import org.junit.Assert
 class CacheProject {
     static final String TEST_FILE = "build/test.txt"
     static void execute(String gradleHome, String samplesDirName) {
-        String nl = System.properties['line.separator']
         File cacheProjectDir = new File(samplesDirName, "cache-project")
         cacheProjectDir.mkdirs();
         createLargeBuildScript(cacheProjectDir)
