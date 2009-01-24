@@ -148,10 +148,10 @@ public class TaskFactoryTest {
 
     @Test
     public void createTaskWithDescription() {
-        String testDescription = "testDesc";
+        Object testDescription = 9;
         Task task = checkTask(taskFactory.createTask(testProject, tasks, WrapUtil.toMap("description", testDescription),
                 TEST_TASK_NAME));
-        assertEquals(testDescription, task.getDescription());
+        assertEquals("9", task.getDescription());
     }
 
     private Task checkTask(Task task) {
