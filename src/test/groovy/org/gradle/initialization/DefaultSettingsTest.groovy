@@ -36,6 +36,10 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.dependencies.Configuration
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.hamcrest.Matchers
+import org.gradle.api.dependencies.ConfigurationResolver
+import org.gradle.api.dependencies.ConfigurationResolvers
+import org.gradle.api.dependencies.Dependency
 
 /**
  * @author Hans Dockter
@@ -65,7 +69,8 @@ class DefaultSettingsTest {
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
         context.checking {
-            one(dependencyManagerFactoryMock).createDependencyManager(withParam(BuildDependenciesProjectMatcher.equalsBuildProject(startParameter)))
+            one(dependencyManagerFactoryMock).createDependencyManager(withParam(BuildDependenciesProjectMatcher.equalsBuildProject(startParameter)),
+                withParam(Matchers.equalTo(startParameter.gradleUserHomeDir)))
             will(returnValue(dependencyManagerMock))
             one(dependencyManagerMock).addConfiguration("build")
         }
@@ -79,7 +84,8 @@ class DefaultSettingsTest {
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertEquals(Project.DEFAULT_BUILD_FILE, settings.buildSrcStartParameter.buildFileName)
-        assertEquals([JavaPlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS], settings.buildSrcStartParameter.taskNames)
+        assertEquals([JavaPlugin.CLEAN, ConfigurationResolvers.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
+                settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
         checkRootProjectDescriptor();
     }
@@ -240,20 +246,20 @@ class DefaultSettingsTest {
     }
 
     @Test public void testCreateClassLoaderWithNonExistingBuildSource() {
-        checkCreateClassLoader([] as Set)
+        checkCreateClassLoader([])
     }
 
     @Test public void testCreateClassLoaderWithExistingBuildSource() {
-        Set testBuildSourceDependencies = ['dep1' as File]
+        List testBuildSourceDependencies = ['dep1' as File]
         checkCreateClassLoader(testBuildSourceDependencies)
     }
 
-    private checkCreateClassLoader(Set expectedTestDependencies) {
+    private checkCreateClassLoader(List expectedTestDependencies) {
         Set testFiles = [new File('/root/f1'), new File('/root/f2')] as Set
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = settings.buildSrcStartParameter.newInstance();
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-        Configuration configuration = context.mock(Configuration.class)
+        ConfigurationResolver configuration = context.mock(ConfigurationResolver.class)
         context.checking {
             allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
             allowing(dependencyManagerMock).configuration(DefaultSettings.BUILD_CONFIGURATION)

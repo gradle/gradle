@@ -24,9 +24,11 @@ import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.not;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.integration.junit4.JMock;
 import static org.junit.Assert.assertSame;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.awt.*;
 import java.util.Set;
@@ -34,6 +36,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 public class DependencyFactoryTest {
     private static final String TEST_CONFIGURATION = "testconf";
 

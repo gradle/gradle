@@ -18,6 +18,8 @@ package org.gradle.api.tasks;
 
 import groovy.mock.interceptor.MockFor;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.dependencies.ConfigurationPublishInstruction;
+import org.gradle.api.dependencies.ConfigurationResolver;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.util.HelperUtil;
@@ -44,7 +46,6 @@ public class UploadTest extends AbstractTaskTest {
 
     private Upload upload;
     private File projectRootDir;
-    private MockFor ivyMocker;
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
@@ -59,23 +60,24 @@ public class UploadTest extends AbstractTaskTest {
     }
 
     @Test public void testUpload() {
-        assertFalse(upload.isUploadModuleDescriptor());
+        assertNull(upload.getPublishInstruction());
         assertNotNull(upload.getUploadResolvers());
-        assertEquals(new ArrayList(), upload.getConfigurations());
     }
 
     @Test public void testUploading() {
         final DependencyManager dependencyManagerMock = context.mock(DependencyManager.class);
+        final ConfigurationResolver configurationMock = context.mock(ConfigurationResolver.class);
         Map resolver1 = WrapUtil.toMap("name", RESOLVER_NAME_1);
         resolver1.put("url", "http://www.url1.com");
         Map resolver2 = WrapUtil.toMap("name", RESOLVER_NAME_2);
         resolver2.put("url", "http://www.url2.com");
-        final List<String> expectedConfigurations = WrapUtil.toList("conf1");
-        upload.setConfigurations(expectedConfigurations);
+        final ConfigurationPublishInstruction publishInstruction = new ConfigurationPublishInstruction("conf1");
+        upload.setPublishInstruction(publishInstruction);
         upload.setProject(HelperUtil.createRootProject(projectRootDir));
         ((AbstractProject) upload.getProject()).setDependencies(dependencyManagerMock);
         context.checking(new Expectations() {{
-            one(dependencyManagerMock).publish(expectedConfigurations, upload.getUploadResolvers(), false);
+            one(dependencyManagerMock).configuration(publishInstruction.getConfiguration()); will(returnValue(configurationMock));
+            one(configurationMock).publish(upload.getUploadResolvers(), publishInstruction);
         }});
         upload.execute();
     }

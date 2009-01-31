@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.*;
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier;
 import org.gradle.util.GUtil;
 
 import java.util.List;
@@ -50,6 +51,8 @@ public class Compile extends ConventionTask {
      * The targetCompatibility used by the Java compiler for your code. (e.g. 1.5)
      */
     private String targetCompatibility;
+
+    private ConfigurationResolveInstructionModifier resolveInstructionModifier;
 
     /**
      * This property is used internally by Gradle. It is usually not used by build scripts.
@@ -110,7 +113,7 @@ public class Compile extends ConventionTask {
 
     public List getClasspath() {
         List classpath = GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
-                getDependencyManager().resolveTask(getName()));
+                getDependencyManager().configuration(resolveInstructionModifier.getConfiguration()).resolve(resolveInstructionModifier));
         return classpath;
     }
 
@@ -210,5 +213,13 @@ public class Compile extends ConventionTask {
 
     public void setDependencyManager(DependencyManager dependencyManager) {
         this.dependencyManager = dependencyManager;
+    }
+
+    public ConfigurationResolveInstructionModifier getResolveInstruction() {
+        return resolveInstructionModifier;
+    }
+
+    public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
+        this.resolveInstructionModifier = resolveInstructionModifier;
     }
 }

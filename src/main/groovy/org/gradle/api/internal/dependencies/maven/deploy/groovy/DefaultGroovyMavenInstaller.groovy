@@ -20,12 +20,13 @@ import org.gradle.api.dependencies.maven.GroovyPomFilterContainer
 import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.internal.dependencies.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenInstaller
+import org.gradle.api.internal.dependencies.DependencyManagerInternal
 
 /**
  * @author Hans Dockter
  */
 public class DefaultGroovyMavenInstaller extends BaseMavenInstaller implements GroovyPomFilterContainer {
-    DefaultGroovyMavenInstaller(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+    DefaultGroovyMavenInstaller(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManagerInternal dependencyManager) {
         super(name, pomFilterContainer, artifactPomContainer, dependencyManager)
     }
 

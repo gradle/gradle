@@ -15,6 +15,9 @@
  */
 package org.gradle.api.dependencies;
 
+import org.gradle.api.internal.dependencies.DefaultConfiguration;
+import org.gradle.api.internal.dependencies.DefaultConfigurationContainer;
+
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
@@ -23,13 +26,17 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface DependencyConfigurationMappingContainer {
-    String WILDCARD = "*";
+    Configuration WILDCARD = new DefaultConfiguration("*", new DefaultConfigurationContainer());
 
     void add(String... dependencyConfigurations);
-    void add(Map<String, List<String>> dependencyConfigurations);
-    Map<String, List<String>> getMappings();
+    void add(Map<Configuration, List<String>> dependencyConfigurations);
+    Map<Configuration, List<String>> getMappings();
 
-    void addMasters(String... masterConfigurations);
+    void addMasters(Configuration... masterConfigurations);
 
-    Set<String> getMasterConfigurations();
+    Set<Configuration> getMasterConfigurations();
+
+    List<String> getDependencyConfigurations(String configuration);
+
+    void setDependencyConfigurations(String... dependencyConfigurations);
 }

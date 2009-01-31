@@ -31,7 +31,6 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.StartParameter
 import org.gradle.CacheUsage
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer
@@ -40,15 +39,31 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.groovy.scripts.ScriptWithSource
 import org.gradle.api.logging.LogLevel
-
-
+import org.gradle.api.internal.dependencies.DefaultConfiguration
+import org.apache.ivy.core.module.descriptor.Configuration
+import org.jmock.Expectations
+import org.gradle.api.internal.dependencies.DependencyManagerInternal
+import org.gradle.api.dependencies.ConfigurationResolver
+import org.gradle.api.Task
+import org.gradle.api.DependencyManager
+import org.gradle.api.dependencies.ResolveInstruction
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier
+import org.gradle.api.internal.dependencies.BaseDependencyManager
+import org.gradle.api.Project
+import org.gradle.api.internal.dependencies.DefaultDependencyContainer
+import org.gradle.api.internal.dependencies.DefaultConfigurationContainer
+import org.gradle.api.internal.dependencies.DefaultExcludeRuleContainer
+import org.gradle.api.filter.FilterSpec
+import org.gradle.api.filter.AndSpec
 
 /**
  * @author Hans Dockter
  * todo: deleteTestDir throws an exception if dir does not exists. failonerror attribute seems not to work. Check this out.
  */
 class HelperUtil {
+    public static final Closure TEST_CLOSURE = {}
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
+    public static final FilterSpec TEST_SEPC  = new AndSpec()
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
         return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [
@@ -196,7 +211,7 @@ class HelperUtil {
 
     static DefaultDependencyConfigurationMappingContainer getConfMappings(def confsCollection) {
         DefaultDependencyConfigurationMappingContainer testConfigurationMappings = new DefaultDependencyConfigurationMappingContainer()
-        testConfigurationMappings.addMasters(confsCollection as String[])
+        testConfigurationMappings.addMasters(confsCollection.collect { new DefaultConfiguration(it, null) } as org.gradle.api.dependencies.Configuration[])
         testConfigurationMappings
     }
 
@@ -204,6 +219,12 @@ class HelperUtil {
         return {
             "set$name"(value)
         }
+    }
+
+    static Set<DefaultConfiguration> createConfigurations(String confName1, String confName2) {
+        return WrapUtil.toSet(
+                new DefaultConfiguration(confName1, null),
+                new DefaultConfiguration(confName2, null));
     }
 }
 

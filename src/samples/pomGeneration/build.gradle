@@ -34,15 +34,15 @@ install.doLast {install ->
 
 }
 
-uploadLibs.dependsOn install
+uploadMaster.dependsOn install
 
-uploadLibs {
+uploadMaster {
     uploadResolvers.addMavenDeployer('maven-deployer') {
         repository(url: "file://localhost/$projectDir/pomRepo/")
     }
 }
 
-mavenDeployer = uploadLibs.uploadResolvers.get("maven-deployer")
+mavenDeployer = uploadMaster.uploadResolvers.get("maven-deployer")
 
 [mavenInstaller, mavenDeployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
 if (hasProperty('customVersion')) {

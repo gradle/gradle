@@ -15,20 +15,12 @@
  */
 package org.gradle.api.internal.dependencies.maven;
 
+import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.assertEquals;import static org.junit.Assert.assertSame;
-import org.gradle.api.internal.dependencies.maven.DefaultMavenPom;
-import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-
-import java.io.File;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * @author Hans Dockter

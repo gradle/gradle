@@ -356,9 +356,9 @@ public class JettyRun extends AbstractJettyRunTask {
 
         List<File> dependencies;
         if (useTestClasspath) {
-            dependencies = getProject().getDependencies().resolve(testConfiguration);
+            dependencies = getProject().getDependencies().configuration(testConfiguration).resolve();
         } else {
-            dependencies = getProject().getDependencies().resolve(configuration);
+            dependencies = getProject().getDependencies().configuration(configuration).resolve();
         }
         logger.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
 

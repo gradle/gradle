@@ -22,9 +22,11 @@ import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.integration.junit4.JMock;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.hamcrest.Matchers;
 
 import java.util.HashSet;
@@ -34,6 +36,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 public class BasePomFilterContainerTest {
     private static final String TEST_NAME = "testName";
     

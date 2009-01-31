@@ -77,7 +77,7 @@ public class BuildLoader {
                 rootProjectDescriptor.getDir(), build);
         build.setRootProject(rootProject);
 
-        addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties, rootProject);
+        addPropertiesToProject(externalProjectProperties, rootProject);
         addProjects(rootProject, rootProjectDescriptor, startParameter, externalProjectProperties);
         return build;
     }
@@ -88,13 +88,13 @@ public class BuildLoader {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
             ProjectInternal childProject = (ProjectInternal) parent.addChildProject(childProjectDescriptor.getName(),
                     childProjectDescriptor.getDir());
-            addPropertiesToProject(startParameter.getGradleUserHomeDir(), externalProjectProperties,
+            addPropertiesToProject(externalProjectProperties,
                     childProject);
             addProjects(childProject, childProjectDescriptor, startParameter, externalProjectProperties);
         }
     }
 
-    private void addPropertiesToProject(File gradleUserHomeDir, Map<String, String> externalProperties, ProjectInternal project) {
+    private void addPropertiesToProject(Map<String, String> externalProperties, ProjectInternal project) {
         Properties projectProperties = new Properties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         logger.debug("Looking for project properties from: {}", projectPropertiesFile);
@@ -106,11 +106,6 @@ public class BuildLoader {
             logger.debug("project property file does not exists. We continue!");
         }
         projectProperties.putAll(externalProperties);
-        try {
-            project.setGradleUserHome(gradleUserHomeDir.getCanonicalPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         for (Object key : projectProperties.keySet()) {
             project.setProperty((String) key, projectProperties.get(key));
         }

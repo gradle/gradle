@@ -19,8 +19,13 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
+import org.gradle.api.dependencies.ResolveInstructionModifier;
+import org.gradle.api.dependencies.ResolveInstruction;
+import org.gradle.api.filter.FilterSpec;
 
 import java.util.regex.Pattern;
+
+import groovy.lang.Closure;
 
 public class Matchers {
     @Factory
@@ -37,6 +42,34 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("contains line ").appendValue(line);
+            }
+        };
+    }
+
+    @Factory
+    public static Matcher<ResolveInstructionModifier> modifierMatcher(final FilterSpec<ResolveInstruction> acceptanceFilter) {
+        return new BaseMatcher<ResolveInstructionModifier>() {
+            public void describeTo(Description description) {
+                description.appendText("matching resolve instruction modifier");
+            }
+
+            public boolean matches(Object actual) {
+                ResolveInstructionModifier modifier = (ResolveInstructionModifier) actual;
+                return acceptanceFilter.isSatisfiedBy(modifier.modify(new ResolveInstruction()));
+            }
+        };
+    }
+
+    @Factory
+    public static Matcher<Closure> modifierClosureMatcher(final FilterSpec<ResolveInstruction> acceptanceFilter) {
+        return new BaseMatcher<Closure>() {
+            public void describeTo(Description description) {
+                description.appendText("matching closure modifier");
+            }
+
+            public boolean matches(Object actual) {
+                Closure modifier = (Closure) actual;
+                return acceptanceFilter.isSatisfiedBy((ResolveInstruction) ConfigureUtil.configure(modifier, new ResolveInstruction()));
             }
         };
     }

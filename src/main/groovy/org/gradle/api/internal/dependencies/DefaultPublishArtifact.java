@@ -16,47 +16,33 @@
 
 package org.gradle.api.internal.dependencies;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.dependencies.IvyObjectBuilder;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
+import org.gradle.api.dependencies.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import groovy.lang.Closure;
+import java.io.File;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultPublishArtifact implements PublishArtifact {
-    private final ChainingTransformer<Artifact> transformer = new ChainingTransformer<Artifact>(Artifact.class);
+public class DefaultPublishArtifact extends AbstractPublishArtifact {
     private String name;
     private String extension;
     private String type;
     private String classifier;
+    private File file;
 
-    public DefaultPublishArtifact(String name, String extension, String type, String classifier) {
+    public DefaultPublishArtifact(Set<Configuration> configurations, String name, String extension, String type,
+                                  String classifier, File file, Object... tasks) {
+        super(configurations, tasks);
         this.name = name;
         this.extension = extension;
         this.type = type;
         this.classifier = classifier;
-    }
-
-    public Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId) {
-        Map extraAttributes = GUtil.isTrue(classifier) ? WrapUtil.toMap(DependencyManager.CLASSIFIER, classifier) : new HashMap();
-        DefaultArtifact artifact = new DefaultArtifact(moduleRevisionId, null, name, type, extension, extraAttributes);
-        return transformer.transform(artifact);
+        this.file = file;
     }
 
     public String toString() {
-        return String.format("Artifact $s:%s:%s:%s", name, type, extension, classifier);
+        return String.format("DefaultPublishArtifact $s:%s:%s:%s", name, type, extension, classifier);
     }
 
     public String getName() {
@@ -75,34 +61,7 @@ public class DefaultPublishArtifact implements PublishArtifact {
         return classifier;
     }
 
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        DefaultPublishArtifact that = (DefaultPublishArtifact) o;
-
-        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) return false;
-        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
-
-        return true;
-    }
-
-    public int hashCode() {
-        int result;
-        result = (name != null ? name.hashCode() : 0);
-        result = 31 * result + (extension != null ? extension.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
-        return result;
-    }
-
-    public void addIvyTransformer(Transformer<Artifact> transformer) {
-        this.transformer.add(transformer);
-    }
-
-    public void addIvyTransformer(Closure transformer) {
-        this.transformer.add(transformer);
+    public File getFile() {
+        return file;
     }
 }

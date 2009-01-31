@@ -48,6 +48,10 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     private boolean changing = false;
     private boolean transitive = true;
 
+    public DefaultModuleDependency() {
+        super();
+    }
+
     public DefaultModuleDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDescription) {
         super(dependencyConfigurationMappings, userDescription);
         initFromUserDescription(userDescription.toString());

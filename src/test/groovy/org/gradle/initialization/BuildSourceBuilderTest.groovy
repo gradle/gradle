@@ -36,6 +36,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.CacheUsage
 import org.gradle.api.dependencies.Configuration
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.dependencies.ConfigurationResolver
 
 /**
  * @author Hans Dockter
@@ -46,13 +47,13 @@ class BuildSourceBuilderTest {
     GradleFactory gradleFactoryMock
     Gradle gradleMock
     Project rootProjectMock
-    Configuration configurationMock
+    ConfigurationResolver configurationMock
     DependencyManager dependencyManagerMock
     CacheInvalidationStrategy cacheInvalidationStrategyMock
     File rootDir
     File testBuildSrcDir
     File testBuildResolverDir
-    Set testDependencies
+    List testDependencies
     StartParameter expectedStartParameter
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     String expectedArtifactPath
@@ -67,7 +68,7 @@ class BuildSourceBuilderTest {
         gradleMock = context.mock(Gradle)
         rootProjectMock = context.mock(Project)
         dependencyManagerMock = context.mock(DependencyManager)
-        configurationMock = context.mock(Configuration)
+        configurationMock = context.mock(ConfigurationResolver)
         cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
         buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock)
         expectedStartParameter = new StartParameter(
@@ -171,7 +172,7 @@ class BuildSourceBuilderTest {
     @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
-        assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
+        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
@@ -184,14 +185,14 @@ class BuildSourceBuilderTest {
             one(gradleMock).run()
         }
         createBuildFile()
-        assertEquals([]as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
+        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     @Test public void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setTaskNames([])
-        assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
+        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     private createBuildFile() {

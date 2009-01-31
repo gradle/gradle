@@ -16,15 +16,17 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.ConfigurationResolver;
+import org.gradle.api.dependencies.ResolveInstruction;
+import org.gradle.api.dependencies.ResolveInstructionModifier;
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
 import org.gradle.api.dependencies.report.IvyDependencyGraphBuilder;
 import org.gradle.api.internal.dependencies.DependencyManagerInternal;
-import org.gradle.api.internal.dependencies.IDependencyResolver;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * The {@code DependencyReportTask} displays the dependency tree for a project. Can be configured to output to a file,
@@ -53,19 +55,23 @@ public class DependencyReportTask extends AbstractReportTask {
     }
 
     public void generate(Project project) throws IOException {
-        DependencyManagerInternal depManager = (DependencyManagerInternal) project.getDependencies();
-        Map<String, Configuration> configs = new TreeMap<String, Configuration>(project.getDependencies().getConfigurations());
-        for (Map.Entry<String, Configuration> entry : configs.entrySet()) {
-
-            String configName = entry.getKey();
-            Configuration configuration = entry.getValue();
-
+        List<ConfigurationResolver> sortedConfigurations = project.getDependencies().getConfigurations();
+        Collections.sort(sortedConfigurations,
+                new Comparator<ConfigurationResolver>() {
+                    public int compare(ConfigurationResolver conf1, ConfigurationResolver conf2) {
+                        return conf1.getName().compareTo(conf2.getName());
+                    }
+                });
+        for (ConfigurationResolver configuration : sortedConfigurations) {
             IvyDependencyGraphBuilder graphBuilder = new IvyDependencyGraphBuilder();
 
             // todo - move the following to Configuration, so that a IvyDependencyGraph can be obtained directly
-            IDependencyResolver resolver = depManager.getDependencyResolver();
-            depManager.resolve(configName, false, true);
-            IvyDependencyGraph graph = graphBuilder.buildGraph(resolver.getLastResolveReport(), configName);
+            ResolveInstructionModifier resolveInstructionModifier = new ResolveInstructionModifier() {
+                public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
+                    return new ResolveInstruction(resolveInstruction).setFailOnResolveError(false);
+                }
+            };
+            IvyDependencyGraph graph = graphBuilder.buildGraph(configuration.resolveAsReport(resolveInstructionModifier), configuration.getName());
 
             renderer.startConfiguration(configuration);
             renderer.render(graph);

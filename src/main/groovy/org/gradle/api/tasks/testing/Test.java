@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.*;
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.compile.ClasspathConverter;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -57,6 +58,8 @@ public class Test extends ConventionTask {
 
     private DependencyManager dependencyManager = null;
 
+    private ConfigurationResolveInstructionModifier resolveInstructionModifier;
+
     protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
 
     protected ClasspathConverter classpathConverter = new ClasspathConverter();
@@ -87,7 +90,8 @@ public class Test extends ConventionTask {
 
     public List getClasspath() {
         List classpath = classpathConverter.createFileClasspath(getProject().getRootDir(),
-                GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getUnmanagedClasspath(), getDependencyManager().resolveTask(getName())));
+                GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getUnmanagedClasspath(),
+                        getDependencyManager().configuration(resolveInstructionModifier.getConfiguration()).resolve(resolveInstructionModifier)));
         return classpath;
     }
 
@@ -290,5 +294,13 @@ public class Test extends ConventionTask {
      */
     public void setDependencyManager(DependencyManager dependencyManager) {
         this.dependencyManager = dependencyManager;
+    }
+
+    public ConfigurationResolveInstructionModifier getResolveInstruction() {
+        return resolveInstructionModifier;
+    }
+
+    public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
+        this.resolveInstructionModifier = resolveInstructionModifier;
     }
 }

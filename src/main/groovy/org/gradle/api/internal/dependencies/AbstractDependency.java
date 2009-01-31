@@ -20,12 +20,11 @@ import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.ExcludeRuleContainer;
-import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
-import org.gradle.api.dependencies.Artifact;
-import org.gradle.api.dependencies.IvyObjectBuilder;
+import org.gradle.api.internal.dependencies.ivy.DependencyDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivy.DefaultDependencyDescriptorFactory;
+import org.gradle.api.dependencies.*;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.WrapUtil;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.util.*;
@@ -46,6 +45,9 @@ public abstract class AbstractDependency implements Dependency {
 
     private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
     private List<Artifact> artifacts = new ArrayList<Artifact>();
+
+    protected AbstractDependency() {
+    }
 
     public AbstractDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDependencyDescription) {
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
@@ -115,14 +117,6 @@ public abstract class AbstractDependency implements Dependency {
         this.dependencyConfigurationMappings = dependencyConfigurationMappings;
     }
 
-    public void dependencyConfigurations(String... dependencyConfigurations) {
-        dependencyConfigurationMappings.add(dependencyConfigurations);
-    }
-
-    public void dependencyConfigurations(Map<String, List<String>> dependencyConfigurations) {
-        dependencyConfigurationMappings.add(dependencyConfigurations);
-    }
-
     public List<Artifact> getArtifacts() {
         return artifacts;
     }
@@ -153,4 +147,36 @@ public abstract class AbstractDependency implements Dependency {
     public Transformer<DependencyDescriptor> getTransformer() {
         return transformer;
     }
+
+    public void addDependencyConfiguration(String... dependencyConfigurations) {
+        dependencyConfigurationMappings.add(dependencyConfigurations);
+    }
+
+    public void addConfigurationMapping(Map<Configuration, List<String>> dependencyConfigurations) {
+        dependencyConfigurationMappings.add(dependencyConfigurations);
+    }
+
+    public Map<Configuration, List<String>> getConfigurationMappings() {
+        return dependencyConfigurationMappings.getMappings();
+    }
+
+    public List<String> getDependencyConfigurations(String configuration) {
+        return dependencyConfigurationMappings.getDependencyConfigurations(configuration);
+    }
+
+    public void addConfiguration(Configuration... masterConfigurations) {
+        dependencyConfigurationMappings.addMasters(masterConfigurations);
+    }
+
+    public Set<Configuration> getConfigurations() {
+        return dependencyConfigurationMappings.getMasterConfigurations();
+    }
+
+    public void setDependencyConfigurations(String... confs) {
+        for (Configuration configuration : getConfigurations()) {
+            dependencyConfigurationMappings.setDependencyConfigurations(confs);
+        }
+    }
+
+
 }

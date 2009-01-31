@@ -19,7 +19,11 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.ConfigurationResolver;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.dependencies.ArchivePublishArtifact;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -36,6 +40,7 @@ public class Bundle extends ConventionTask {
     public static final String BASENAME_KEY = "baseName";
     public static final String APPENDIX_KEY = "appendix";
     public static final String CLASSIFIER_KEY = "classifier";
+    public static final String CONFIGURATIONS_KEY = "confs";
 
     private Set childrenDependOn = new HashSet();
 
@@ -65,6 +70,17 @@ public class Bundle extends ConventionTask {
         String taskBaseName = GUtil.elvis(args.get(BASENAME_KEY), getProject().getArchivesTaskBaseName()).toString() + (args.get(APPENDIX_KEY) != null ? "_" + args.get(APPENDIX_KEY) : "");
         String classifier = args.get(CLASSIFIER_KEY) != null ? "_" + args.get(CLASSIFIER_KEY) : "";
         String taskName = taskBaseName + classifier + "_" + type.getDefaultExtension();
+        AbstractArchiveTask archiveTask = createArchiveTask(type, args, classifier, taskName);
+        setTaskDependsOn(archiveTask, getChildrenDependOn());
+        this.dependsOn(taskName);
+        archiveTasks.add(archiveTask);
+        publish(defaultConfigurations, archiveTask, (List<String>) args.get(CONFIGURATIONS_KEY));
+        applyConfigureActions(archiveTask);
+        applyConfigureClosure(configureClosure, archiveTask);
+        return archiveTask;
+    }
+
+    private AbstractArchiveTask createArchiveTask(ArchiveType type, Map<String, Object> args, String classifier, String taskName) {
         AbstractArchiveTask archiveTask = (AbstractArchiveTask) getProject().createTask(WrapUtil.toMap("type", type.getTaskClass()), taskName);
         archiveTask.conventionMapping(type.getConventionMapping());
         if (args.get(BASENAME_KEY) != null) {
@@ -76,19 +92,36 @@ public class Bundle extends ConventionTask {
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
         archiveTask.setExtension(type.getDefaultExtension());
         archiveTask.setDestinationDir(defaultDestinationDir);
-        setTaskDependsOn(archiveTask, getChildrenDependOn());
-        archiveTask.configurations((String[]) defaultConfigurations.toArray(new String[defaultConfigurations.size()]));
-        this.dependsOn(taskName);
-        archiveTasks.add(archiveTask);
-        for (ConfigureAction configureAction : configureActions) {
-            configureAction.configure(archiveTask);
-        }
+        return archiveTask;
+    }
+
+    private void applyConfigureClosure(Closure configureClosure, AbstractArchiveTask archiveTask) {
         if (configureClosure != null) {
             archiveTask.configure(configureClosure);
         }
-        return archiveTask;
     }
-    
+
+    private void applyConfigureActions(AbstractArchiveTask archiveTask) {
+        for (ConfigureAction configureAction : configureActions) {
+            configureAction.configure(archiveTask);
+        }
+    }
+
+    private void publish(List<String> defaultConfigurationNames, AbstractArchiveTask archiveTask, List<String> customConfigurationNames) {
+        List<String> configurationNames = defaultConfigurationNames;
+        if (customConfigurationNames != null) {
+            configurationNames = customConfigurationNames;
+        }
+        Set<Configuration> configurations = new HashSet<Configuration>();
+        for (String configurationName : configurationNames) {
+            ConfigurationResolver configuration = getProject().getDependencies().configuration(configurationName);
+            configurations.add(configuration);
+        }
+        if (configurations.size() > 0) {
+            getProject().getDependencies().addArtifacts(new ArchivePublishArtifact(configurations, archiveTask));
+        }
+    }
+
     private void setTaskDependsOn(AbstractArchiveTask task, Set<Object> childrenDependOn) {
         if (GUtil.isTrue(childrenDependOn)) {
             task.dependsOn(childrenDependOn);

@@ -15,14 +15,19 @@
  */
 package org.gradle.api.dependencies;
 
+import org.gradle.api.Transformer;
+
 import java.util.Set;
 import java.util.List;
+import java.util.HashSet;
 import java.io.File;
+
+import groovy.lang.Closure;
 
 /**
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
  */
-public interface Configuration extends FileCollection {
+public interface Configuration {
     /**
      * Returns the name of this configuration.
      *
@@ -53,7 +58,7 @@ public interface Configuration extends FileCollection {
      *
      * @return The super configurations. Returns an empty set when this configuration does not extend any others.
      */
-    Set<String> getExtendsFrom();
+    Set<? extends Configuration> getExtendsFrom();
 
     /**
      * Sets the configurations which this configuration extends from.
@@ -103,12 +108,14 @@ public interface Configuration extends FileCollection {
      * @return this configuration
      */
     Configuration setDescription(String description);
-    
-    /**
-     * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
-     * the resulting set of files.
-     *
-     * @return The files of this configuration.
-     */
-    Set<File> resolve();
+
+    Set<? extends Configuration> getChain();
+
+    org.apache.ivy.core.module.descriptor.Configuration getIvyConfiguration(boolean transitive);
+
+    void addIvyTransformer(Transformer<org.apache.ivy.core.module.descriptor.Configuration> transformer);
+
+    void addIvyTransformer(Closure transformer);
+
+    ResolveInstruction getResolveInstruction();
 }

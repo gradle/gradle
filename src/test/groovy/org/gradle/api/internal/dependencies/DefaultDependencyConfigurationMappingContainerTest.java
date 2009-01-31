@@ -17,10 +17,17 @@ package org.gradle.api.internal.dependencies;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import org.gradle.util.WrapUtil;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.integration.junit4.JMock;
+import org.hamcrest.Matchers;
 
 import java.util.List;
 import java.util.Map;
@@ -29,9 +36,12 @@ import java.util.HashMap;
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 public class DefaultDependencyConfigurationMappingContainerTest {
     DefaultDependencyConfigurationMappingContainer mappingContainer;
-    
+
+    private JUnit4Mockery context = new JUnit4Mockery();
+
     @Before
     public void setUp() {
         mappingContainer = new DefaultDependencyConfigurationMappingContainer();   
@@ -39,7 +49,7 @@ public class DefaultDependencyConfigurationMappingContainerTest {
 
     @Test
     public void initWithMap() {
-        Map<String, List<String>> map = WrapUtil.toMap("a", WrapUtil.toList("b", "c"));
+        Map<Configuration, List<String>> map = WrapUtil.toMap(createMockConf("a"), WrapUtil.toList("b", "c"));
         assertEquals(map, new DefaultDependencyConfigurationMappingContainer(map).getMappings());
     }
     
@@ -47,32 +57,44 @@ public class DefaultDependencyConfigurationMappingContainerTest {
     public void getMappings() {
         final String testDepConf1 = "depConf1";
         final String testDepConf2 = "depConf2";
-        final String testMasterConf = "masterConf1";
-        final String testMasterConf2 = "masterConf2";
+        final Configuration testMasterConf = createMockConf("masterConf1");
+        final Configuration testMasterConf2 = createMockConf("masterConf2");
         final String testDepConf3 = "depconf3";
         final String testDepConf4 = "depconf4";
         mappingContainer.addMasters(testMasterConf2);
         mappingContainer.add(testDepConf1, testDepConf2);
         mappingContainer.add(WrapUtil.toMap(testMasterConf, WrapUtil.toList(testDepConf3)));
         mappingContainer.add(WrapUtil.toMap(testMasterConf, WrapUtil.toList(testDepConf4)));
-        Map<String, List<String>> actualMapping = mappingContainer.getMappings();
-        Map<String, List<String>> expectedMapping = new HashMap<String, List<String>>() {{
-            put("*", WrapUtil.toList(testDepConf1, testDepConf2));
+        Map<Configuration, List<String>> actualMapping = mappingContainer.getMappings();
+        Map<Configuration, List<String>> expectedMapping = new HashMap<Configuration, List<String>>() {{
+            put(DependencyConfigurationMappingContainer.WILDCARD, WrapUtil.toList(testDepConf1, testDepConf2));
             put(testMasterConf, WrapUtil.toList(testDepConf3, testDepConf4));
             put(testMasterConf2, WrapUtil.toList(ModuleDescriptor.DEFAULT_CONFIGURATION));
         }};
         assertEquals(expectedMapping, actualMapping);
     }
 
+    private Configuration createMockConf(String name) {
+        return context.mock(Configuration.class, name);
+    }
+
     @Test
     public void masterConfs() {
         String testDepConf1 = "a";
-        String testMasterConf1 = "b";
-        String testMasterConf2 = "c";
+        Configuration testMasterConf1 = createMockConf("b");
+        Configuration testMasterConf2 = createMockConf("c");
         mappingContainer.add(testDepConf1);
         mappingContainer.addMasters(testMasterConf1);
         mappingContainer.add(WrapUtil.toMap(testMasterConf2, WrapUtil.toList("depConf")));
         assertEquals(WrapUtil.toSet(testMasterConf1, testMasterConf2), mappingContainer.getMasterConfigurations());
+    }
+
+    @Test
+    public void getDependencyConfigurationMappings() {
+        List<String> depConfs = WrapUtil.toList("depConf1", "depConf2");
+        String confName = "conf";
+        mappingContainer.add(WrapUtil.<Configuration, List<String>>toMap(new DefaultConfiguration(confName, null), depConfs));
+        assertThat(mappingContainer.getDependencyConfigurations(confName), Matchers.equalTo(depConfs));
     }
 
     @Test(expected= InvalidUserDataException.class)
@@ -82,21 +104,21 @@ public class DefaultDependencyConfigurationMappingContainerTest {
 
     @Test(expected= InvalidUserDataException.class)
     public void nullDefaultMasterConf() {
-        mappingContainer.addMasters("a", null, "b");
+        mappingContainer.addMasters(createMockConf("a"), null, createMockConf("b"));
     }
 
     @Test(expected= InvalidUserDataException.class)
     public void nullMasterConf() {
-        mappingContainer.add(WrapUtil.<String, List<String>>toMap(null, WrapUtil.toList("a")));
+        mappingContainer.add(WrapUtil.<Configuration, List<String>>toMap(null, WrapUtil.toList("a")));
     }
 
     @Test(expected= InvalidUserDataException.class)
     public void nullDepConf() {
-        mappingContainer.add(WrapUtil.toMap("a", WrapUtil.toList("a", null)));
+        mappingContainer.add(WrapUtil.toMap(createMockConf("a"), WrapUtil.toList("a", null)));
     }
 
     @Test(expected= InvalidUserDataException.class)
     public void nullConfList() {
-        mappingContainer.add(WrapUtil.<String, List<String>>toMap("a", null));
+        mappingContainer.add(WrapUtil.<Configuration, List<String>>toMap(createMockConf("a"), null));
     }
 }

@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A {@code Dependency} represents a dependency on the artifacts from a particular source.</p>
@@ -59,16 +60,8 @@ public interface Dependency extends IvyObjectBuilder<DependencyDescriptor> {
      */
     ExcludeRuleContainer getExcludeRules();
 
-    DependencyConfigurationMappingContainer getDependencyConfigurationMappings();
-
-    void dependencyConfigurations(String... dependencyConfigurations);
-
-    void dependencyConfigurations(Map<String, List<String>> dependencyConfigurations);
-
     void setExcludeRules(ExcludeRuleContainer excludeRules);
-
-    void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings);
-
+    
     String getGroup();
 
     String getName();
@@ -84,4 +77,18 @@ public interface Dependency extends IvyObjectBuilder<DependencyDescriptor> {
     Dependency addArtifact(Artifact artifact);
 
     Artifact artifact(Closure configureClosure);
+
+    void addDependencyConfiguration(String... dependencyConfigurations);
+
+    List<String> getDependencyConfigurations(String configuration);
+
+    void addConfigurationMapping(Map<Configuration, List<String>> dependencyConfigurations);
+
+    Map<Configuration, List<String>> getConfigurationMappings();
+
+    void addConfiguration(Configuration... masterConfigurations);
+
+    Set<Configuration> getConfigurations();
+
+    void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings);
 }

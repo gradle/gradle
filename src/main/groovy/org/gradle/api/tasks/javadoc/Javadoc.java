@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.GradleException;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.GUtil;
@@ -55,6 +56,8 @@ public class Javadoc extends ConventionTask {
     private AntJavadoc antJavadoc = new AntJavadoc();
 
     private boolean verbose = false;
+
+    private ConfigurationResolveInstructionModifier resolveInstructionModifier;
 
     public Javadoc(Project project, String name) {
         super(project, name);
@@ -113,7 +116,7 @@ public class Javadoc extends ConventionTask {
      * @return The classpath.
      */
     public List<File> getClasspath() {
-        return getDependencyManager().resolveTask(getName());
+        return getDependencyManager().configuration(resolveInstructionModifier.getConfiguration()).resolve(resolveInstructionModifier);
     }
 
     /**
@@ -239,5 +242,13 @@ public class Javadoc extends ConventionTask {
 
     void setExistentDirsFilter(ExistingDirsFilter existentDirsFilter) {
         this.existentDirsFilter = existentDirsFilter;
+    }
+
+    public ConfigurationResolveInstructionModifier getResolveInstruction() {
+        return resolveInstructionModifier;
+    }
+
+    public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
+        this.resolveInstructionModifier = resolveInstructionModifier;
     }
 }

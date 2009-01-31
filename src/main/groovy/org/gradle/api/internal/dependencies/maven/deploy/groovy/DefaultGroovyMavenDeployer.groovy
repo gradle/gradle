@@ -22,6 +22,7 @@ import org.gradle.api.dependencies.maven.GroovyPomFilterContainer
 import org.gradle.api.dependencies.maven.MavenPom
 import org.gradle.api.internal.dependencies.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.dependencies.maven.deploy.BaseMavenDeployer
+import org.gradle.api.internal.dependencies.DependencyManagerInternal
 
 /**
  * @author Hans Dockter
@@ -32,7 +33,7 @@ class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMave
     
     private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
-    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManagerInternal dependencyManager) {
         super(name, pomFilterContainer, artifactPomContainer, dependencyManager)
     }
     

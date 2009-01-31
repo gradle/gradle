@@ -18,13 +18,18 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
+import org.gradle.api.internal.dependencies.ivy.*;
+import org.gradle.api.internal.dependencies.ivy.moduleconverter.*;
+import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GradleUtil;
 import org.gradle.initialization.ISettingsFinder;
 import org.gradle.CacheUsage;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 import java.io.File;
 import java.util.Set;
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -38,7 +43,7 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
         this.cacheUsage = cacheUsage;
     }
 
-    public DependencyManager createDependencyManager(Project project) {
+    public DependencyManager createDependencyManager(Project project, File gradleUserHomeDir) {
         Set<IDependencyImplementationFactory> dependencyImpls = WrapUtil.toSet(
                 new ModuleDependencyFactory(),
                 new ProjectDependencyFactory());
@@ -46,17 +51,40 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
         if (cacheUsage != CacheUsage.ON) {
             GradleUtil.deleteDir(buildResolverDir);
         }
-        DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
-                new DefaultIvyFactory(),
-                new DependencyFactory(dependencyImpls),
-                new DefaultResolverFactory(new File(project.getBuildDir(), DependencyManager.TMP_CACHE_DIR_NAME)),
+        DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer();
+        DefaultBuildResolverHandler buildResolverHandler = new DefaultBuildResolverHandler(buildResolverDir, new LocalReposCacheHandler());
+        DefaultIvyHandler ivyHandler = new DefaultIvyHandler(
                 new DefaultSettingsConverter(),
-                new DefaultModuleDescriptorConverter(),
-                new DefaultDependencyResolver(new Report2Classpath()),
-                new DefaultDependencyPublisher(),
-                new BuildResolverHandler(buildResolverDir, new LocalReposCacheHandler()),
-                new DefaultExcludeRuleContainer());
-        dependencyManager.setProject(project);
+                new DefaultModuleDescriptorConverter(
+                        new DefaultModuleDescriptorFactory(),
+                        new DefaultConfigurationsToModuleDescriptorConverter(), 
+                        new DefaultDependenciesToModuleDescriptorConverter(),
+                        new DefaultArtifactsToModuleDescriptorConverter()
+                ),
+                new DefaultIvyFactory(),
+                buildResolverHandler,
+                new DefaultIvyDependencyResolver(new DefaultResolveOptionsFactory(), new Report2Classpath()),
+                new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory())
+        );
+        DefaultResolverFactory resolverFactory = new DefaultResolverFactory(
+                new File(project.getBuildDir(), DependencyManager.TMP_CACHE_DIR_NAME));
+        DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
+                project,
+                new DefaultDependencyContainer(
+                        project,
+                        configurationContainer,
+                        new DependencyFactory(dependencyImpls),
+                        new DefaultExcludeRuleContainer(),
+                        new HashMap<String, ModuleDescriptor>()),
+                new DefaultArtifactContainer(configurationContainer),
+                configurationContainer,
+                new DefaultConfigurationResolverFactory(
+                        ivyHandler,
+                        gradleUserHomeDir),
+                new ResolverContainer(resolverFactory),
+                resolverFactory,
+                buildResolverHandler, 
+                ivyHandler);
         return dependencyManager;
     }
 

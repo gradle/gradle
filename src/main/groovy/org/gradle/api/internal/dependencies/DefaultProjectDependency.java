@@ -22,7 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
+import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.dependencies.ivy.IvyUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -60,17 +62,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
     public Project getDependencyProject() {
         return dependencyProject;
     }
-
-    public void initialize() {
-        for (String conf : getDependencyConfigurationMappings().getMasterConfigurations()) {
-            Set<String> tasks = GUtil.elvis(getProject().getDependencies().getTasks4Conf().get(conf), new HashSet<String>()); 
-            for (String taskName : tasks) {
-                ((ProjectInternal) getDependencyProject()).evaluate();
-                getProject().task(taskName).dependsOn(getDependencyProject().task(getDependencyProject().getDependencies().getArtifactProductionTaskName()).getPath());
-            }
-        }
-    }
-
+    
     public Project getProject() {
         return project;
     }
@@ -89,14 +81,14 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
     }
 
     public String getGroup() {
-        return dependencyProject.getDependencies().createModuleRevisionId().getOrganisation();
+        return dependencyProject.getGroup().toString();
     }
 
     public String getName() {
-        return dependencyProject.getDependencies().createModuleRevisionId().getName();
+        return dependencyProject.getName();
     }
 
     public String getVersion() {
-        return dependencyProject.getDependencies().createModuleRevisionId().getRevision();
+        return dependencyProject.getVersion().toString();
     }
 }

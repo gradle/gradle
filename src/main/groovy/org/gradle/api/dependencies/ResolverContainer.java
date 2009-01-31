@@ -21,7 +21,8 @@ import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.maven.*;
-import org.gradle.api.internal.dependencies.ResolverFactory;
+import org.gradle.api.internal.dependencies.ivy.ResolverFactory;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -40,7 +41,7 @@ public class ResolverContainer {
 
     private File mavenPomDir;
 
-    private DependencyManager dependencyManager;
+    private DependencyManagerInternal dependencyManager;
 
     public ResolverContainer() {
     }
@@ -149,8 +150,12 @@ public class ResolverContainer {
         return returnedResolvers;
     }
 
-    public FileSystemResolver createFlatDirResolver(String name, File[] roots) {
-        return resolverFactory.createFlatDirResolver(name, roots);
+    public FileSystemResolver createFlatDirResolver(String name, Object... dirs) {
+        List<File> dirFiles = new ArrayList<File>();
+        for (Object dir : dirs) {
+            dirFiles.add(new File(dir.toString()));
+        }
+        return resolverFactory.createFlatDirResolver(name, dirFiles.toArray(new File[dirFiles.size()]));
     }
 
     public AbstractResolver createMavenRepoResolver(String name, String root, String[] jarRepoUrls) {
@@ -197,7 +202,7 @@ public class ResolverContainer {
         return dependencyManager;
     }
 
-    public void setDependencyManager(DependencyManager dependencyManager) {
+    public void setDependencyManager(DependencyManagerInternal dependencyManager) {
         this.dependencyManager = dependencyManager;
     }
 
@@ -212,6 +217,7 @@ public class ResolverContainer {
     public GroovyMavenDeployer addMavenDeployer(String name, Closure configureClosure) {
         return (GroovyMavenDeployer) add(createMavenDeployer(name), configureClosure);
     }
+
     public MavenResolver createMavenInstaller(String name) {
         return resolverFactory.createMavenInstaller(name, mavenPomDir, dependencyManager);
     }

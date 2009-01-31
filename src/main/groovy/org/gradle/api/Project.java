@@ -177,6 +177,10 @@ public interface Project extends Comparable<Project> {
 
     public static final String CACHE_DIR_NAME = TMP_DIR_NAME + "/cache";
 
+    public static final String DEFAULT_GROUP = "unspecified";
+
+    public static final String DEFAULT_VERSION = "unspecified";
+
     /**
      * <p>Returns the root project for the hierarchy that this project belongs to.  In the case of a single-project
      * build, this method returns this project.</p>
@@ -225,15 +229,6 @@ public interface Project extends Comparable<Project> {
     void setBuildDirName(String buildDirName);
 
     /**
-     * <p>Returns the home directory for a Gradle user. Default's to <code><i>USER_HOME</i>/.gradle</code> </p>
-     *
-     * <p>You can access this property in your build file using <code>gradleUserHome</code></p>
-     *
-     * @return The Gradle user directory. Never returns null.
-     */
-    String getGradleUserHome();
-
-    /**
      * <p>Returns the name of the build file Gradle tries to apply against this project object. The default is <code>
      * {@value #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file name is {@value
      * #EMBEDDED_SCRIPT_ID}.</p>
@@ -275,6 +270,24 @@ public interface Project extends Comparable<Project> {
      * @return The name of this project. Never return null.
      */
     String getName();
+
+    /**
+     * <p>Returns the group of this project. Gradle always uses the toString() value of a group.</p>
+     *
+     * <p>You can access this property in your build file using <code>group</code></p>
+     *
+     * @return The group of this project. Defaults to {@link #DEFAULT_GROUP } 
+     */
+    Object getGroup();
+
+    /**
+     * <p>Returns the version of this project. Gradle always uses the toString() value of a version.</p>
+     *
+     * <p>You can access this property in your build file using <code>version</code></p>
+     *
+     * @return The version of this project. Defaults to {@link #DEFAULT_VERSION }
+     */
+    Object getVersion();
 
     /**
      * <p>Returns the direct children of this project.</p>
@@ -1013,4 +1026,14 @@ public interface Project extends Comparable<Project> {
      * @return The configured object
      */
     Object configure(Object object, Closure configureClosure);
+
+    Rule addRule(Rule rule);
+
+    List<Rule> getRules();
+
+    State getState();
+
+    public enum State {
+        CREATED, INITIALIZING, INITIALIZED
+    }
 }

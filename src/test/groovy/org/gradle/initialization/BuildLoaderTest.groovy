@@ -119,8 +119,6 @@ class BuildLoaderTest {
                     withParam(notNullValue()))
             will(returnValue(rootProject))
 
-            one(rootProject).setGradleUserHome(testUserHomeDir.canonicalPath)
-
             one(rootProject).setProperty('rootProp1', 'rootValue1')
             one(rootProject).setProperty('rootProp2', 'rootValue2')
             one(rootProject).setProperty('prop1', 'value1')
@@ -129,8 +127,6 @@ class BuildLoaderTest {
 
             one(rootProject).addChildProject('parent', parentProjectDescriptor.dir)
             will(returnValue(parentProject))
-
-            one(parentProject).setGradleUserHome(testUserHomeDir.canonicalPath)
 
             one(parentProject).setProperty('parentProp1', 'parentValue1')
             one(parentProject).setProperty('parentProp2', 'parentValue2')
@@ -145,12 +141,8 @@ class BuildLoaderTest {
             one(child1).setProperty('prop2', 'value2')
             one(child1).setProperty('prop3', 'value3')
 
-            one(child1).setGradleUserHome(testUserHomeDir.canonicalPath)
-
             one(parentProject).addChildProject('child2', child2ProjectDescriptor.dir)
             will(returnValue(child2))
-
-            one(child2).setGradleUserHome(testUserHomeDir.canonicalPath)
 
             one(child2).setProperty('prop1', 'value1')
             one(child2).setProperty('prop2', 'value2')

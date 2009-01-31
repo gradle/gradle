@@ -70,12 +70,14 @@ public class ProjectFactoryTest {
         antBuilderFactory = context.mock(AntBuilderFactory.class);
 
         context.checking(new Expectations() {{
-            allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
+            allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)), with(any(File.class)));
             allowing(projectRegistry).addProject(with(any(Project.class)));
             allowing(build).getProjectRegistry();
             will(returnValue(projectRegistry));
             allowing(build).getBuildScriptClassLoader();
             will(returnValue(buildScriptClassLoader));
+            allowing(build).getGradleUserHomeDir();
+            will(returnValue(new File("gradleUserHomeDir")));
         }});
 
         projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
@@ -153,7 +155,7 @@ public class ProjectFactoryTest {
     }
 
     private void checkProjectResources(DefaultProject project) {
-        assertSame(taskFactoryMock, project.getTaskFactory());
+//        assertSame(taskFactoryMock, project.getTaskFactory());
         assertSame(buildScriptClassLoader, project.getBuildScriptClassLoader());
         assertSame(dependencyManagerFactoryMock, project.getDependencyManagerFactory());
         assertSame(buildScriptProcessor, project.getBuildScriptProcessor());

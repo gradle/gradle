@@ -25,5 +25,5 @@ import java.io.File;
  * @author Hans Dockter
  */
 public interface DependencyManagerFactory {
-    DependencyManager createDependencyManager(Project project);
+    DependencyManager createDependencyManager(Project project, File gradleUserHomeDir);
 }

@@ -21,6 +21,7 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.maven.PomFilterContainer;
 import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 
 /**
  * @author Hans Dockter
@@ -28,7 +29,7 @@ import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
 public class BaseMavenInstaller extends AbstractMavenResolver {
     private InstallTaskFactory installTaskFactory = new DefaultInstallTaskFactory();
 
-    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManagerInternal dependencyManager) {
         super(name, pomFilterContainer, artifactPomContainer, dependencyManager);
     }
 

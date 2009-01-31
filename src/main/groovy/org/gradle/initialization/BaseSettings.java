@@ -19,11 +19,13 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
+import org.gradle.invocation.DefaultBuild;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.ResolverContainer;
+import org.gradle.api.dependencies.ConfigurationResolvers;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -80,7 +83,8 @@ public class BaseSettings implements SettingsInternal {
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
-        this.dependencyManager = dependencyManagerFactory.createDependencyManager(createBuildDependenciesProject());
+        this.dependencyManager = dependencyManagerFactory.createDependencyManager(createBuildDependenciesProject(),
+                startParameter.getGradleUserHomeDir());
         this.buildSourceBuilder = buildSourceBuilder;
         dependencyManager.addConfiguration(BUILD_CONFIGURATION);
         assignBuildSrcStartParameter(startParameter);
@@ -90,7 +94,8 @@ public class BaseSettings implements SettingsInternal {
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {
         buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN, JavaPlugin.UPLOAD_INTERNAL_LIBS));
+        buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN,
+                ConfigurationResolvers.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)));
         buildSrcStartParameter.setSearchUpwards(true);
     }
 
@@ -161,10 +166,6 @@ public class BaseSettings implements SettingsInternal {
     public void dependencies(Object[] dependencies) {
         dependencyManager.dependencies(WrapUtil.toList(BUILD_CONFIGURATION), dependencies);
     }
-
-    public Dependency dependency(Object dependency) {
-        return dependencyManager.dependency(WrapUtil.toList(BUILD_CONFIGURATION), dependency);
-    }
     
     public Dependency dependency(Object dependency, Closure configureClosure) {
         return dependencyManager.dependency(WrapUtil.toList(BUILD_CONFIGURATION), dependency, configureClosure);
@@ -196,7 +197,7 @@ public class BaseSettings implements SettingsInternal {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         StartParameter startParameter = buildSrcStartParameter.newInstance();
         startParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
-        Set<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(startParameter);
+        List<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(startParameter);
         additionalClasspath.addAll(dependencyManager.configuration(BUILD_CONFIGURATION).getFiles());
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
@@ -211,11 +212,7 @@ public class BaseSettings implements SettingsInternal {
         DefaultProject dummyProjectForDepencencyManager = new DefaultProject(BUILD_DEPENDENCIES_PROJECT_NAME);
         dummyProjectForDepencencyManager.setProperty(DependencyManager.GROUP, BUILD_DEPENDENCIES_PROJECT_GROUP);
         dummyProjectForDepencencyManager.setProperty(DependencyManager.VERSION, BUILD_DEPENDENCIES_PROJECT_VERSION);
-        try {
-            dummyProjectForDepencencyManager.setGradleUserHome(startParameter.getGradleUserHomeDir().getCanonicalPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        dummyProjectForDepencencyManager.setBuild(new DefaultBuild(startParameter, null));
         return dummyProjectForDepencencyManager;
     }
 

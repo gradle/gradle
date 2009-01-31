@@ -39,7 +39,7 @@ class PomGeneration {
         String version = '1.0'
         String groupId = "gradle"
         long start = System.currentTimeMillis();
-        Executer.execute(gradleHome, pomProjectDir.absolutePath, ['clean', 'uploadLibs'], [], '', Executer.DEBUG)
+        Executer.execute(gradleHome, pomProjectDir.absolutePath, ['clean', 'uploadMaster'], [], '', Executer.DEBUG)
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
@@ -51,7 +51,7 @@ class PomGeneration {
         long start = System.currentTimeMillis();
         String version = "1.0MVN"
         String groupId = "deployGroup"
-        Executer.execute(gradleHome, pomProjectDir.absolutePath, ["-PcustomVersion=${version} clean", 'uploadLibs'], [], '', Executer.DEBUG)
+        Executer.execute(gradleHome, pomProjectDir.absolutePath, ["-PcustomVersion=${version} clean", 'uploadMaster'], [], '', Executer.DEBUG)
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)

@@ -19,59 +19,88 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.gradle.api.Transformer;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 
-import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
-@RunWith (JMock.class)
 public class DefaultConfigurationTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private final DependencyManagerInternal dependencyManager = context.mock(DependencyManagerInternal.class);
-    private final DefaultConfiguration configuration = new DefaultConfiguration("name", dependencyManager);
+    private final ConfigurationContainer configurationContainer = new DefaultConfigurationContainer();
+    private final DefaultConfiguration configuration = new DefaultConfiguration("name", configurationContainer);
 
     @Test
     public void defaultValues() {
-        assertThat(configuration.getIvyConfiguration().getName(), equalTo("name"));
-        assertThat(configuration.getIvyConfiguration().getVisibility(), equalTo(Configuration.Visibility.PUBLIC));
-        assertThat(configuration.getIvyConfiguration().getExtends().length, equalTo(0));
-        assertThat(configuration.getIvyConfiguration().isTransitive(), equalTo(true));
-        assertThat(configuration.getIvyConfiguration().getDescription(), nullValue());
-        assertThat(configuration.getIvyConfiguration().getDeprecated(), nullValue());
+        assertThat(configuration.getResolveInstruction(), not(equalTo(null)));
+        assertThat(getIvyConfiguration().getName(), equalTo("name"));
+        assertThat(getIvyConfiguration().getVisibility(), equalTo(Configuration.Visibility.PUBLIC));
+        assertThat(getIvyConfiguration().getExtends().length, equalTo(0));
+        assertThat(getIvyConfiguration().isTransitive(), equalTo(true));
+        assertThat(getIvyConfiguration().getDescription(), nullValue());
+        assertThat(getIvyConfiguration().getDeprecated(), nullValue());
+    }
+
+    private Configuration getIvyConfiguration() {
+        return configuration.getIvyConfiguration(true);
     }
 
     @Test
     public void withPrivateVisibility() {
-        configuration.setVisible(false);
+        configuration.setVisible(false);                                                                          
         assertFalse(configuration.isVisible());
-        assertThat(configuration.getIvyConfiguration().getVisibility(), equalTo(Configuration.Visibility.PRIVATE));
+        assertThat(getIvyConfiguration().getVisibility(), equalTo(Configuration.Visibility.PRIVATE));
     }
 
     @Test
     public void withIntransitive() {
         configuration.setTransitive(false);
         assertFalse(configuration.isTransitive());
-        assertThat(configuration.getIvyConfiguration().isTransitive(), equalTo(false));
+        assertThat(configuration.getIvyConfiguration(true).isTransitive(), equalTo(true));
+        assertThat(configuration.getIvyConfiguration(false).isTransitive(), equalTo(false));
     }
 
     @Test
     public void withDescription() {
         configuration.setDescription("description");
         assertThat(configuration.getDescription(), equalTo("description"));
-        assertThat(configuration.getIvyConfiguration().getDescription(), equalTo("description"));
+        assertThat(getIvyConfiguration().getDescription(), equalTo("description"));
     }
 
     @Test
     public void extendsOtherConfigurations() {
-        configuration.extendsFrom("a");
+        String testConf1 = "testConf1";
+        String testConf2 = "testConf2";
 
-        assertThat(configuration.getExtendsFrom(), equalTo(toSet("a")));
-        assertThat(configuration.getIvyConfiguration().getExtends(), equalTo(toArray("a")));
+        configurationContainer.add(testConf1);
+        configuration.extendsFrom(testConf1);
+        assertThat(configuration.getExtendsFrom(), equalTo(toSet(configurationContainer.get(testConf1))));
+        assertThat(getIvyConfiguration().getExtends(), equalTo(toArray(testConf1)));
+
+        configurationContainer.add(testConf2);
+        configuration.extendsFrom(testConf2);
+        assertThat(configuration.getExtendsFrom(), equalTo(toSet(configurationContainer.get(testConf1), configurationContainer.get(testConf2))));
+        assertThat(getIvyConfiguration().getExtends(), equalTo(toArray(testConf1, testConf2)));
+    }
+
+    @Test
+    public void setExtendsFrom() {
+        String testConf1 = "testConf1";
+        String testConf2 = "testConf2";
+
+        configurationContainer.add(testConf1);
+        configuration.setExtendsFrom(WrapUtil.toSet(testConf1));
+        assertThat(configuration.getExtendsFrom(), equalTo(toSet(configurationContainer.get(testConf1))));
+
+        configurationContainer.add(testConf2);
+        configuration.setExtendsFrom(WrapUtil.toSet(testConf2));
+        assertThat(configuration.getExtendsFrom(), equalTo(toSet(configurationContainer.get(testConf1), configurationContainer.get(testConf2))));
     }
 
     @Test
@@ -85,85 +114,28 @@ public class DefaultConfigurationTest {
         };
 
         configuration.addIvyTransformer(transformer);
-        assertThat(configuration.getIvyConfiguration(), sameInstance(transformed));
+        assertThat(getIvyConfiguration(), sameInstance(transformed));
     }
     
     @Test
     public void transformsIvyConfigurationObjectUsingClosure() {
         final Configuration transformed = new Configuration("other");
-        Closure closure = DefaultConfigurationTestHelper.transformer(transformed);
+        Closure closure = HelperUtil.returns(transformed);
 
         configuration.addIvyTransformer(closure);
-        assertThat(configuration.getIvyConfiguration(), sameInstance(transformed));
+        assertThat(getIvyConfiguration(), sameInstance(transformed));
     }
 
     @Test
-    public void usesDependencyManagerToResolveConfiguration() {
-        final File file = new File("lib.jar");
-        context.checking(new Expectations() {{
-            one(dependencyManager).resolve("name");
-            will(returnValue(toList(file)));
-        }});
-
-        assertThat(configuration.resolve(), equalTo(toSet(file)));
+    public void getChain() {
+        Set<org.gradle.api.dependencies.Configuration> expectedConfigurations = new HashSet<org.gradle.api.dependencies.Configuration>();
+        expectedConfigurations.add(configurationContainer.add("root1"));
+        expectedConfigurations.add(configurationContainer.add("root2"));
+        configurationContainer.add("root3");
+        expectedConfigurations.add(configurationContainer.add("middle1").extendsFrom("root1"));
+        expectedConfigurations.add(configurationContainer.add("middle2").extendsFrom("root1", "root2"));
+        org.gradle.api.dependencies.Configuration leaf = configurationContainer.add("leaf1").extendsFrom("middle1", "middle2");
+        expectedConfigurations.add(leaf);
+        assertThat((Set<org.gradle.api.dependencies.Configuration>) leaf.getChain(), equalTo(expectedConfigurations));
     }
-
-    @Test
-    public void usesDependencyManagerToGetFiles() {
-        final File file = new File("lib.jar");
-        context.checking(new Expectations() {{
-            one(dependencyManager).resolve("name");
-            will(returnValue(toList(file)));
-        }});
-
-        assertThat(configuration.getFiles(), equalTo(toSet(file)));
-    }
-
-    @Test
-    public void usesDependencyManagerToGetFilesForIterator() {
-        final File expected = new File("lib.jar");
-        context.checking(new Expectations() {{
-            one(dependencyManager).resolve("name");
-            will(returnValue(toList(expected)));
-        }});
-
-        assertThat(toList(configuration), equalTo(toList(expected)));
-    }
-
-    @Test
-    public void usesDependencyManagerToGetSingleFile() {
-        final File file = new File("lib.jar");
-        context.checking(new Expectations() {{
-            one(dependencyManager).resolve("name");
-            will(returnValue(toList(file)));
-        }});
-
-        assertThat(configuration.getSingleFile(), equalTo(file));
-    }
-
-    @Test
-    public void getSingleFileFailsWhenThereIsNotExactlyOneFile() {
-        context.checking(new Expectations() {{
-            one(dependencyManager).resolve("name");
-            will(returnValue(toList(new File("a.jar"), new File("b.jar"))));
-        }});
-
-        try {
-            configuration.getSingleFile();
-            fail();
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo("Configuration 'name' does not resolve to a single file."));
-        }
-    }
-
-    @Test
-    public void usesDependencyManagerToResolveAsPath() {
-        context.checking(new Expectations() {{
-            one(dependencyManager).antpath("name");
-            will(returnValue("the path"));
-        }});
-
-        assertThat(configuration.getAsPath(), equalTo("the path"));
-    }
-
 }

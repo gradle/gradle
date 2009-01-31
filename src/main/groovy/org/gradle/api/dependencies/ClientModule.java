@@ -24,20 +24,25 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.dependencies.*;
+import org.gradle.api.internal.dependencies.ivy.DependencyDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivy.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivy.ClientModuleDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivy.DefaultClientModuleDescriptorFactory;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.WrapUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModule extends DefaultDependencyContainer implements ExternalDependency {
+public class ClientModule implements ExternalDependency, IClientModule {
     public static final String CLIENT_MODULE_KEY = "org.gradle.clientModule";
 
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
@@ -58,23 +63,26 @@ public class ClientModule extends DefaultDependencyContainer implements External
 
     private List<Artifact> artifacts = new ArrayList<Artifact>();
 
-    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
-
     private ChainingTransformer<DependencyDescriptor> transformer
             = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
+
+    private DependencyContainerInternal dependencyContainer;
+
+    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
+
+    private ClientModuleDescriptorFactory clientModuleDescriptorFactory = new DefaultClientModuleDescriptorFactory();
 
     public ClientModule() {
     }
 
-    public ClientModule(DependencyFactory dependencyFactory, DependencyConfigurationMappingContainer dependencyConfigurationMappings,
-                        String id, Map moduleRegistry) {
-        super(dependencyFactory, WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION));
+    public ClientModule(DependencyConfigurationMappingContainer dependencyConfigurationMappings,
+                        String id, DependencyContainerInternal dependencyContainer) {
         if (id == null) {
             throw new InvalidUserDataException("Client module notation must not be null.");
         }
         this.id = id;
-        setClientModuleRegistry(moduleRegistry);
         this.dependencyConfigurationMappings = dependencyConfigurationMappings;
+        this.dependencyContainer = dependencyContainer;
         initFromUserDescription(id);
     }
 
@@ -111,60 +119,10 @@ public class ClientModule extends DefaultDependencyContainer implements External
     }
 
     public DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent) {
-//        DependencyDescriptor dd = dependencyDescriptorFactory.createDescriptor(parent, id, false, true, true, confs, DefaultExcludeRuleContainer.NO_RULES,
-//                WrapUtil.toMap(CLIENT_MODULE_KEY, id));
         DependencyDescriptor dd = dependencyDescriptorFactory.createFromClientModule(parent, this);
-        addModuleDescriptors(dd.getDependencyRevisionId());
+        ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(dd.getDependencyRevisionId(), dependencyContainer);
+        dependencyContainer.getClientModuleRegistry().put(id, moduleDescriptor);
         return transformer.transform(dd);
-    }
-
-    private void addModuleDescriptors(ModuleRevisionId moduleRevisionId) {
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
-                "release", null);
-        moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
-        addDependencyDescriptors(moduleDescriptor);
-        moduleDescriptor.addArtifact(Dependency.DEFAULT_CONFIGURATION, new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "jar", "jar"));
-        this.getClientModuleRegistry().put(id, moduleDescriptor);
-    }
-
-    public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor) {
-        List<DependencyDescriptor> dependencyDescriptors = new ArrayList<DependencyDescriptor>();
-        for (Dependency dependency : getDependencies()) {
-            dependencyDescriptors.add(dependency.createDependencyDescriptor(moduleDescriptor));
-        }
-        dependencyDescriptors.addAll(getDependencyDescriptors());
-        for (DependencyDescriptor dependencyDescriptor : dependencyDescriptors) {
-            moduleDescriptor.addDependency(dependencyDescriptor);
-        }
-    }
-
-    public void dependencies(List<String> confs, Object... dependencies) {
-        if (!confs.equals(getDefaultConfs())) {
-            throw new UnsupportedOperationException("You can assign confs " + confs + " to dependencies in a client module.");
-        }
-        super.dependencies(confs, dependencies);
-    }
-
-    public Dependency dependency(List confs, Object id) {
-        return dependency(confs, id, null);
-    }
-
-    public Dependency dependency(List confs, Object id, Closure configureClosure) {
-        if (!confs.equals(getDefaultConfs())) {
-            throw new UnsupportedOperationException("You can assign confs $confs to dependencies in a client module.");
-        }
-        return super.dependency(confs, id, configureClosure);
-    }
-
-    public ClientModule clientModule(List confs, String artifact) {
-        return clientModule(confs, artifact, null);
-    }
-
-    public ClientModule clientModule(List confs, String artifact, Closure configureClosure) {
-        if (!confs.equals(getDefaultConfs())) {
-            throw new UnsupportedOperationException("You can assign confs $confs to dependencies in a client module.");
-        }
-        return super.clientModule(confs, artifact, configureClosure);
     }
 
     public String getId() {
@@ -239,14 +197,6 @@ public class ClientModule extends DefaultDependencyContainer implements External
         return artifact;
     }
 
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
-    }
-
-    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-    }
-
     public Dependency exclude(Map<String, String> excludeProperties) {
         excludeRules.add(excludeProperties);
         return this;
@@ -273,11 +223,71 @@ public class ClientModule extends DefaultDependencyContainer implements External
         this.dependencyConfigurationMappings = dependencyConfigurationMappings;
     }
 
-    public void dependencyConfigurations(String... dependencyConfigurations) {
+    public void addDependencyConfiguration(String... dependencyConfigurations) {
         dependencyConfigurationMappings.add(dependencyConfigurations);
     }
 
-    public void dependencyConfigurations(Map<String, List<String>> dependencyConfigurations) {
+    public void addConfigurationMapping(Map<org.gradle.api.dependencies.Configuration, List<String>> dependencyConfigurations) {
         dependencyConfigurationMappings.add(dependencyConfigurations);
+    }
+
+    public Map<org.gradle.api.dependencies.Configuration, List<String>> getConfigurationMappings() {
+        return dependencyConfigurationMappings.getMappings();
+    }
+
+    public void addConfiguration(org.gradle.api.dependencies.Configuration... masterConfigurations) {
+        dependencyConfigurationMappings.addMasters(masterConfigurations);
+    }
+
+    public List<String> getDependencyConfigurations(String configuration) {
+        return dependencyConfigurationMappings.getDependencyConfigurations(configuration);
+    }
+
+    public Set<org.gradle.api.dependencies.Configuration> getConfigurations() {
+        return dependencyConfigurationMappings.getMasterConfigurations();
+    }
+
+    public void dependencies(Object... dependencies) {
+        dependencyContainer.dependencies(WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION), dependencies);
+    }
+
+    public ClientModule clientModule(String artifact) {
+        return clientModule(artifact, null);
+    }
+
+    public ClientModule clientModule(String artifact, Closure configureClosure) {
+        return dependencyContainer.clientModule(WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION), artifact, configureClosure);
+    }
+
+    public Dependency dependency(String id) {
+        return dependency(id, null);
+    }
+
+    public Dependency dependency(String id, Closure configureClosure) {
+        return dependencyContainer.dependency(WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION), id, configureClosure);
+    }
+
+    public DependencyContainer getDependencyContainer() {
+        return dependencyContainer;
+    }
+
+    public void setDependencyContainer(DependencyContainerInternal dependencyContainer) {
+        this.dependencyContainer = dependencyContainer;
+    }
+
+    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
+        return dependencyDescriptorFactory;
+    }
+
+    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    }
+
+    public ClientModuleDescriptorFactory getClientModuleDescriptorFactory() {
+        return clientModuleDescriptorFactory;
+    }
+
+    public void setClientModuleDescriptorFactory(ClientModuleDescriptorFactory clientModuleDescriptorFactory) {
+        this.clientModuleDescriptorFactory = clientModuleDescriptorFactory;
     }
 }

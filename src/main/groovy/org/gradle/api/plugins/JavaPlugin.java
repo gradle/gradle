@@ -17,8 +17,9 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.Filter;
+import org.gradle.api.dependencies.*;
+import org.gradle.api.dependencies.filter.TypeSpec;
+import org.gradle.api.dependencies.filter.Type;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
@@ -40,6 +41,7 @@ import org.gradle.util.WrapUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.File;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -86,19 +88,19 @@ public class JavaPlugin implements Plugin {
         convention.getPlugins().put("java", javaConvention);
 
         configureDependencyManager(project, javaConvention);
-
+        configureUploadRules(project);
+        
         project.createTask(INIT);
 
         ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
                 conventionMapping(GUtil.map(
-            "dir", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
-                        return project.getBuildDir();
-                    }
-                }));
+                        "dir", new ConventionValue() {
+                            public Object getValue(Convention convention, Task task) {
+                                return project.getBuildDir();
+                            }
+                        }));
 
-        ((ConventionTask) project.createTask(GUtil.map("type", Javadoc.class), JAVADOC)).
-                conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
+        configureJavaDoc(project);
 
         ((ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", INIT), RESOURCES)).
                 conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
@@ -115,23 +117,18 @@ public class JavaPlugin implements Plugin {
 
         configureLibs(project, javaConvention);
 
-        configureUploadInternalLibs(project);
-        configureUploadLibs(project, javaConvention);
-
         configureDists(project, javaConvention);
 
-        configureUploadDists(project, javaConvention);
-        project.createTask(UPLOAD).dependsOn(UPLOAD_LIBS, UPLOAD_DISTS);
+        project.createTask(UPLOAD);
 
         configureEclipse(project);
         configureEclipseWtpModule(project);
     }
 
-    private void configureUploadDists(Project project, JavaPluginConvention javaConvention) {
-        Upload uploadDists = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", DISTS), UPLOAD_DISTS);
-        uploadDists.getConfigurations().add(DISTS);
-        uploadDists.getUploadResolvers().setDependencyManager(project.getDependencies());
-        uploadDists.getUploadResolvers().setMavenPomDir(javaConvention.getUploadDistsPomDir());
+    private void configureJavaDoc(Project project) {
+        Javadoc javadoc = (Javadoc) project.createTask(GUtil.map("type", Javadoc.class), JAVADOC);
+        javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
+        javadoc.setResolveInstruction(new ConfigurationResolveInstructionModifier(COMPILE));
     }
 
     private void configureEclipse(Project project) {
@@ -155,50 +152,56 @@ public class JavaPlugin implements Plugin {
 
         eclipseWtpModule.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
-            }
-        }));
+                    public Object getValue(Convention convention, Task task) {
+                        return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
+                    }
+                }));
     }
 
     private EclipseClasspath configureEclipseClasspath(Project project) {
         EclipseClasspath eclipseClasspath = (EclipseClasspath) project.createTask(GUtil.map("type", EclipseClasspath.class), ECLIPSE_CP);
         eclipseClasspath.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
-            }
-        },
+                    public Object getValue(Convention convention, Task task) {
+                        return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
+                    }
+                },
                 "testSrcDirs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return GUtil.addLists(java(convention).getTestSrcDirs(), java(convention).getTestResourceDirs());
-            }
-        },
+                    public Object getValue(Convention convention, Task task) {
+                        return GUtil.addLists(java(convention).getTestSrcDirs(), java(convention).getTestResourceDirs());
+                    }
+                },
                 "outputDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return java(convention).getClassesDir();
-            }
-        },
+                    public Object getValue(Convention convention, Task task) {
+                        return java(convention).getClassesDir();
+                    }
+                },
                 "testOutputDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return java(convention).getTestClassesDir();
-            }
-        },
+                    public Object getValue(Convention convention, Task task) {
+                        return java(convention).getTestClassesDir();
+                    }
+                },
                 "classpathLibs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return task.getProject().getDependencies().resolve(TEST_RUNTIME, ((EclipseClasspath) task).getFailForMissingDependencies(), false);
-            }
-        },
+                    public Object getValue(Convention convention, final Task task) {
+                        return task.getProject().getDependencies().configuration(TEST_RUNTIME).resolve(new ResolveInstructionModifier() {
+                            public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
+                                return new ResolveInstruction(resolveInstruction).
+                                        setDependencyFilter(new TypeSpec(Type.EXTERNAL)).
+                                        setFailOnResolveError(((EclipseClasspath) task).getFailForMissingDependencies());
+                            }
+                        });
+                    }
+                },
                 "projectDependencies", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                /*
-                 * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
-                 * request the project dependencies not via a resolve. We would have to filter the project dependencies
-                 * ourselfes. This is not completely trivial due to configuration inheritance.
-                 */
-                return task.getProject().getDependencies().getDependencies(Filter.PROJECTS_ONLY);
-            }
-        }));
+                    public Object getValue(Convention convention, Task task) {
+                        /*
+                        * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
+                        * request the project dependencies not via a resolve. We would have to filter the project dependencies
+                        * ourselfes. This is not completely trivial due to configuration inheritance.
+                        */
+                        return task.getProject().getDependencies().getDependencies(new TypeSpec(Type.PROJECT));
+                    }
+                }));
         return eclipseClasspath;
     }
 
@@ -208,24 +211,70 @@ public class JavaPlugin implements Plugin {
         testResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
     }
 
-    private void configureUploadInternalLibs(Project project) {
-        Upload uploadInternalLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_INTERNAL_LIBS);
-        uploadInternalLibs.getConfigurations().add(LIBS);
-        uploadInternalLibs.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
-        uploadInternalLibs.setUploadModuleDescriptor(true);
+    private void configureUploadRules(final Project project) {
+        project.addRule(new Rule() {
+            public String getDescription() {
+                return "Pattern: upload<ConfigurationName>Internal: Upload the project artifacts of a configuration to the internal Gradle repository.";
+            }
+
+            public void apply(String taskName) {
+                List<ConfigurationResolver> configurations = project.getDependencies().getConfigurations();
+                for (ConfigurationResolver configuration : configurations) {
+                    if (taskName.equals(configuration.getUploadInternalTaskName())) {
+                        Upload uploadInternal = createUploadTask(configuration.getUploadInternalTaskName(), configuration, project);
+                        uploadInternal.getPublishInstruction().getModuleDescriptor().setPublish(true);
+                        uploadInternal.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
+                    }
+                }
+            }
+        });
+
+        project.addRule(new Rule() {
+            public String getDescription() {
+                return "Pattern: upload<ConfigurationName>: Upload the project artifacts of a configuration to a public Gradle repository.";
+            }
+
+            public void apply(String taskName) {
+                List<ConfigurationResolver> configurations = project.getDependencies().getConfigurations();
+                for (ConfigurationResolver configuration : configurations) {
+                    if (taskName.equals(configuration.getUploadTaskName())) {
+                        createUploadTask(configuration.getUploadTaskName(), configuration, project);
+                    }
+                }
+            }
+        });
     }
 
-    private void configureUploadLibs(Project project, JavaPluginConvention javaConvention) {
-        Upload uploadLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", LIBS), UPLOAD_LIBS);
-        uploadLibs.getConfigurations().add(LIBS);
-        uploadLibs.setUploadModuleDescriptor(true);
-        uploadLibs.getUploadResolvers().setDependencyManager(project.getDependencies());
-        uploadLibs.getUploadResolvers().setMavenPomDir(javaConvention.getUploadLibsPomDir());
+    private Upload createUploadTask(String name, final ConfigurationResolver configuration, Project project) {
+        final Upload upload = (Upload) project.createTask(GUtil.map("type", Upload.class), name);
+        ConfigurationPublishInstruction publishInstruction = new ConfigurationPublishInstruction(configuration.getName());
+        publishInstruction.getModuleDescriptor().setIvyFileParentDir(project.getBuildDir());
+        upload.setPublishInstruction(publishInstruction);
+        if (project.getState() == Project.State.INITIALIZED) {
+            createUploadDependencies(project, configuration, upload);
+        } else {
+            project.addAfterEvaluateListener(new AfterEvaluateListener() {
+                public void afterEvaluate(Project project) {
+                    createUploadDependencies(project, configuration, upload);
+                }
+            });
+        }
+        return upload;
+    }
+
+    private void createUploadDependencies(Project project, ConfigurationResolver configuration, Upload upload) {
+        for (PublishArtifact publishArtifact : project.getDependencies().getArtifacts()) {
+            for (Configuration artifactConfiguration : publishArtifact.getConfigurations()) {
+                if (configuration.getChain().contains(artifactConfiguration)) {
+                    upload.dependsOn(publishArtifact.getTaskDependency());
+                }
+            }
+        }
     }
 
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
         Bundle libsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", TEST), LIBS);
-        libsBundle.setDefaultConfigurations(WrapUtil.toList(LIBS));
+        libsBundle.setDefaultConfigurations(WrapUtil.toList(Dependency.MASTER_CONFIGURATION));
         libsBundle.setDefaultDestinationDir(project.getBuildDir());
         libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
         Jar jar = libsBundle.jar();
@@ -235,7 +284,6 @@ public class JavaPlugin implements Plugin {
                         return WrapUtil.toList(new FileSet(javaConvention.getClassesDir()));
                     }
                 }));
-        jar.configurations(new String[] { Dependency.MASTER_CONFIGURATION });
     }
 
     private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
@@ -253,6 +301,8 @@ public class JavaPlugin implements Plugin {
         test.getOptions().getForkOptions().setDir(project.getProjectDir());
         test.include("**/*Tests.class", "**/*Test.class");
         test.exclude("**/Abstract*.class");
+        test.setResolveInstruction(new ConfigurationResolveInstructionModifier(TEST_RUNTIME));
+        addDependsOnProjectDependencies(test, TEST_RUNTIME);
         test.doFirst(new TaskAction() {
             public void execute(Task task) {
                 Test test = (Test) task;
@@ -267,20 +317,11 @@ public class JavaPlugin implements Plugin {
         DependencyManager dependencies = project.getDependencies();
         dependencies.addConfiguration(COMPILE).setVisible(false).setTransitive(false);
         dependencies.addConfiguration(RUNTIME).setVisible(false).extendsFrom(COMPILE);
-        dependencies.addConfiguration(TEST_COMPILE).setVisible(false).setTransitive(false).extendsFrom(COMPILE);
+        dependencies.addConfiguration(TEST_COMPILE).setVisible(false).extendsFrom(COMPILE).setTransitive(false);
         dependencies.addConfiguration(TEST_RUNTIME).setVisible(false).extendsFrom(RUNTIME, TEST_COMPILE);
-        dependencies.addConfiguration(LIBS);
-        dependencies.addConfiguration(Dependency.DEFAULT_CONFIGURATION).extendsFrom(RUNTIME, Dependency.MASTER_CONFIGURATION);
         dependencies.addConfiguration(Dependency.MASTER_CONFIGURATION);
+        dependencies.addConfiguration(Dependency.DEFAULT_CONFIGURATION).extendsFrom(RUNTIME, Dependency.MASTER_CONFIGURATION);
         dependencies.addConfiguration(DISTS);
-        dependencies.setArtifactProductionTaskName(UPLOAD_INTERNAL_LIBS);
-        dependencies.getArtifactParentDirs().add(project.getBuildDir());
-        dependencies.getArtifactParentDirs().add(javaPluginConvention.getDistsDir());
-        dependencies.linkConfWithTask(COMPILE, COMPILE);
-        dependencies.linkConfWithTask(COMPILE, JAVADOC);
-        dependencies.linkConfWithTask(RUNTIME, TEST);
-        dependencies.linkConfWithTask(TEST_COMPILE, TEST_COMPILE);
-        dependencies.linkConfWithTask(TEST_RUNTIME, TEST);
 
         configureMavenScopeMappings(dependencies);
     }
@@ -294,7 +335,9 @@ public class JavaPlugin implements Plugin {
 
     protected Compile configureTestCompile(Compile testCompile, final Compile compile, Map propertyMapping) {
         testCompile.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
-        configureCompile(testCompile, propertyMapping);
+        configureCompileInternal(testCompile, propertyMapping);
+        testCompile.setResolveInstruction(new ConfigurationResolveInstructionModifier(TEST_COMPILE));
+        addDependsOnProjectDependencies(testCompile, TEST_COMPILE);
         return (Compile) testCompile.doFirst(new TaskAction() {
             public void execute(Task task) {
                 Compile testCompile = (Compile) task;
@@ -306,8 +349,26 @@ public class JavaPlugin implements Plugin {
     }
 
     protected Compile configureCompile(Compile compile, Map propertyMapping) {
+        compile.setResolveInstruction(new ConfigurationResolveInstructionModifier(COMPILE));
+        addDependsOnProjectDependencies(compile, COMPILE);
+        configureCompileInternal(compile, propertyMapping);
+        return compile;
+    }
+
+    protected Compile configureCompileInternal(Compile compile, Map propertyMapping) {
         compile.conventionMapping(propertyMapping);
         return compile;
+    }
+
+    private void addDependsOnProjectDependencies(final Task task, String configurationName) {
+        Project project = task.getProject();
+        DependencyManager dependencyManager = project.getDependencies();
+        final ConfigurationResolver configurationResolver = dependencyManager.configuration(configurationName);
+        project.addAfterEvaluateListener(new AfterEvaluateListener() {
+            public void afterEvaluate(Project project) {
+                task.dependsOn(configurationResolver.getBuildProjectDependencies());
+            }
+        });
     }
 
     protected JavaPluginConvention java(Convention convention) {

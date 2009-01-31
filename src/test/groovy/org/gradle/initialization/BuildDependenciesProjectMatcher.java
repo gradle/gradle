@@ -41,7 +41,7 @@ public class BuildDependenciesProjectMatcher extends BaseMatcher {
     public boolean matches(Object o) {
         Project project = (Project) o;
         boolean result1, result2, result3, result4;
-        result1 = startParameter.getGradleUserHomeDir().getAbsolutePath().equals(project.getGradleUserHome());
+        result1 = startParameter == project.getBuild().getStartParameter();
         result2 = project.getName().equals(Settings.BUILD_DEPENDENCIES_PROJECT_NAME);
         result3 = project.property(DependencyManager.GROUP).equals(Settings.BUILD_DEPENDENCIES_PROJECT_GROUP);
         result4 = project.property(DependencyManager.VERSION).equals(Settings.BUILD_DEPENDENCIES_PROJECT_VERSION);

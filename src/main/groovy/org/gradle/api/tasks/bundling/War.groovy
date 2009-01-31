@@ -17,6 +17,8 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
+import org.gradle.api.dependencies.filter.Type
+import org.gradle.api.dependencies.filter.TypeSpec
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.GUtil
 import org.slf4j.Logger
@@ -60,11 +62,17 @@ class War extends Jar {
 
     public List dependencies(boolean failForMissingDependencies, boolean includeProjectDependencies) {
         List files = []
+        Closure resolveInstructionClosure = {
+            setFailOnResolveError(failForMissingDependencies)
+            if (!includeProjectDependencies) {
+                setDependencyFilter(new TypeSpec(Type.EXTERNAL))
+            }
+        }
         getLibConfigurations().each {String configuration ->
-            files.addAll(dependencyManager.resolve(configuration, failForMissingDependencies, includeProjectDependencies))
+            files.addAll(getProject().getDependencies().configuration(configuration).resolve(resolveInstructionClosure))
         }
         getLibExcludeConfigurations().each {String configuration ->
-            files.removeAll(dependencyManager.resolve(configuration, failForMissingDependencies, includeProjectDependencies))
+            files.removeAll(getProject().getDependencies().configuration(configuration).resolve(resolveInstructionClosure))
         }
         files
     }

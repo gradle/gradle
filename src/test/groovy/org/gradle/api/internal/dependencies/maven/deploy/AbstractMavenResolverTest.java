@@ -19,9 +19,9 @@ import org.gradle.api.dependencies.maven.PomFilterContainer;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.maven.PublishFilter;
 import org.gradle.api.dependencies.maven.MavenResolver;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.maven.MavenPomFactory;
+import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.filter.Filters;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
@@ -31,13 +31,11 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.tools.ant.Project;
 import org.junit.Before;
 import org.junit.Test;import static org.junit.Assert.assertSame;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.codehaus.plexus.PlexusContainerException;
 import org.hamcrest.Matcher;
 import org.hamcrest.BaseMatcher;
@@ -61,7 +59,7 @@ public abstract class AbstractMavenResolverTest {
     private static final Artifact TEST_ARTIFACT = new DefaultArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null, TEST_NAME, "jar", "jar");
     protected ArtifactPomContainer artifactPomContainerMock;
     protected PomFilterContainer pomFilterContainerMock;
-    protected DependencyManager dependencyManagerMock;
+    protected DependencyManagerInternal dependencyManagerMock;
     private List<DependencyDescriptor> testDependencies;
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {
         {
@@ -81,7 +79,7 @@ public abstract class AbstractMavenResolverTest {
     @Before
     public void setUp() {
         testDependencies = new ArrayList<DependencyDescriptor>();
-        dependencyManagerMock = context.mock(DependencyManager.class);
+        dependencyManagerMock = context.mock(DependencyManagerInternal.class);
         pomFilterContainerMock = createPomFilterContainerMock();
         artifactPomContainerMock = context.mock(ArtifactPomContainer.class);
         pomMock = context.mock(MavenPom.class);
@@ -90,7 +88,7 @@ public abstract class AbstractMavenResolverTest {
         final ModuleDescriptor moduleDescriptorMock = context.mock(ModuleDescriptor.class);
         context.checking(new Expectations() {
             {
-                allowing(dependencyManagerMock).createModuleDescriptor(true); will(returnValue(moduleDescriptorMock));
+                allowing(dependencyManagerMock).createModuleDescriptor(Filters.NO_FILTER, Filters.NO_FILTER, Filters.NO_FILTER); will(returnValue(moduleDescriptorMock));
                 allowing(moduleDescriptorMock).getDependencies(); will(returnValue(testDependencies.toArray(new DependencyDescriptor[testDependencies.size()])));
             }
         });

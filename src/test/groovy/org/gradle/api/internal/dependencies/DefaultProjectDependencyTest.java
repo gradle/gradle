@@ -18,7 +18,6 @@ package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
@@ -26,11 +25,11 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.dependencies.ivy.DependencyDescriptorFactory;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
@@ -42,7 +41,6 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,9 +54,6 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
     private DefaultProjectDependency projectDependency;
     private Project project;
     private Project dependencyProject;
-    private ModuleRevisionId dependencyProjectModuleRevisionId;
-    private String dependencyProjectArtifactProductionTaskName;
-    private DependencyManager mockDependencyManager;
     private DependencyDescriptorFactory dependencyDescriptorFactoryMock;
 
     protected AbstractDependency getDependency() {
@@ -79,17 +74,7 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
 
     @Before public void setUp() {
         project = HelperUtil.createRootProject(new File("root"));
-        dependencyProjectModuleRevisionId = new ModuleRevisionId(new ModuleId("org", "otherproject"), "1.0");
-        dependencyProjectArtifactProductionTaskName = "somename";
-        mockDependencyManager = context.mock(DependencyManager.class);
-        context.checking(new Expectations() {{
-            allowing(mockDependencyManager).createModuleRevisionId(); will(returnValue(dependencyProjectModuleRevisionId));
-            allowing(mockDependencyManager).getArtifactProductionTaskName(); will(returnValue(dependencyProjectArtifactProductionTaskName));
-
-        }});
         dependencyProject = HelperUtil.createRootProject(new File("dependency"));
-        ((AbstractProject) dependencyProject).setDependencies(mockDependencyManager);
-        dependencyProject.createTask(dependencyProjectArtifactProductionTaskName);
         projectDependency = new DefaultProjectDependency(TEST_CONF_MAPPING, dependencyProject, project);
         super.setUp();
         dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
@@ -102,9 +87,9 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         assertTrue(projectDependency.isTransitive());
         assertNotNull(projectDependency.getExcludeRules());
         assertNotNull(projectDependency.getDependencyConfigurationMappings());
-        assertEquals(dependencyProjectModuleRevisionId.getName(), projectDependency.getName());
-        assertEquals(dependencyProjectModuleRevisionId.getOrganisation(), projectDependency.getGroup());
-        assertEquals(dependencyProjectModuleRevisionId.getRevision(), projectDependency.getVersion());
+        assertEquals(dependencyProject.getName(), projectDependency.getName());
+        assertEquals(dependencyProject.getGroup().toString(), projectDependency.getGroup());
+        assertEquals(dependencyProject.getVersion().toString(), projectDependency.getVersion());
     }
 
     @Test (expected = UnknownDependencyNotation.class) public void testWithSingleString() {
@@ -115,34 +100,5 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         new DefaultProjectDependency(TEST_CONF_MAPPING, new Point(3, 4), project);
     }
 
-    @Test public void testInitialize() {
-        final Project projectMock = context.mock(Project.class, "project");
-        final Task task = context.mock(Task.class);
-        final Map<String, Set<String>> tasks4conf = new HashMap<String, Set<String>>();
-        final Project dependencyProjectMock = context.mock(ProjectInternal.class, "dependencyProject");
-        final DependencyManager dependencyProjectDependencyManager = context.mock(DependencyManager.class, "dependencyProjectDependencyManager");
-        final Task expectedArtifactProductionTask = context.mock(Task.class, "artifactProductionTask");
-        final String expectedArtifactProductionTaskName = "artifactTask";
-        final String expectedArtifactProductionTaskPath = "artifactTaskPath";
 
-        projectDependency = new DefaultProjectDependency(TEST_CONF_MAPPING, dependencyProjectMock, projectMock);
-
-        projectDependency.setUserDependencyDescription(dependencyProjectMock);
-        tasks4conf.put(TEST_CONF, WrapUtil.toSet(TEST_CONF));
-
-        context.checking(new Expectations() {{
-            allowing(projectMock).getDependencies(); will(returnValue(mockDependencyManager));
-            allowing(mockDependencyManager).getTasks4Conf(); will(returnValue(tasks4conf));
-            allowing(projectMock).task(TEST_CONF); will(returnValue(task));
-            one(task).dependsOn(expectedArtifactProductionTaskPath);
-            one((ProjectInternal) dependencyProjectMock).evaluate();
-            allowing(dependencyProjectMock).getDependencies(); will(returnValue(dependencyProjectDependencyManager));
-            allowing(dependencyProjectDependencyManager).getArtifactProductionTaskName(); will(
-                returnValue(expectedArtifactProductionTaskName));
-            allowing(dependencyProjectMock).task(expectedArtifactProductionTaskName); will(returnValue(expectedArtifactProductionTask));
-            allowing(expectedArtifactProductionTask).getPath(); will(returnValue(expectedArtifactProductionTaskPath));
-
-        }});
-        projectDependency.initialize();
-    }
 }

@@ -26,6 +26,7 @@ import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.junit.Test
+import org.gradle.api.internal.dependencies.Configurations
 
 /**
  * @author Hans Dockter
@@ -40,13 +41,13 @@ class GroovyPluginTest {
 
         assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
 
-        def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
-        assertThat(configuration.extendsFrom, equalTo(toSet(GroovyPlugin.GROOVY)))
+        def configuration = project.dependencies.configuration(JavaPlugin.COMPILE)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(GroovyPlugin.GROOVY)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.dependencies.configurations[GroovyPlugin.GROOVY]
-        assertThat(configuration.extendsFrom, equalTo(toSet()))
+        configuration = project.dependencies.configuration(GroovyPlugin.GROOVY)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 

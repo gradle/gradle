@@ -17,8 +17,12 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.dependencies.PublishInstruction;
+import org.gradle.api.dependencies.ConfigurationPublishInstruction;
+import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 import org.gradle.util.GUtil;
 
 import java.util.Map;
@@ -35,12 +39,13 @@ public class MavenPlugin implements Plugin {
     }
 
     private void configureInstall(Project project, JavaPluginConvention javaConvention) {
-        Upload uploadLibs = (Upload) project.createTask(GUtil.map("type", Upload.class, "dependsOn", JavaPlugin.LIBS), INSTALL);
-        uploadLibs.getConfigurations().add(JavaPlugin.LIBS);
-        uploadLibs.setUploadModuleDescriptor(true);
-        uploadLibs.getUploadResolvers().setDependencyManager(project.getDependencies());
-        uploadLibs.getUploadResolvers().setMavenPomDir(javaConvention.getUploadLibsPomDir());
-        uploadLibs.getUploadResolvers().addMavenInstaller("maven-installer");
+        Upload installUpload = (Upload) project.createTask(GUtil.map("type", Upload.class), INSTALL);
+        ConfigurationPublishInstruction publishInstruction = new ConfigurationPublishInstruction(Dependency.MASTER_CONFIGURATION);
+        publishInstruction.getModuleDescriptor().setPublish(true);
+        installUpload.setPublishInstruction(publishInstruction);
+        installUpload.getUploadResolvers().setDependencyManager((DependencyManagerInternal) project.getDependencies());
+        installUpload.getUploadResolvers().setMavenPomDir(javaConvention.getUploadLibsPomDir());
+        installUpload.getUploadResolvers().addMavenInstaller("maven-installer");
     }
 
 }

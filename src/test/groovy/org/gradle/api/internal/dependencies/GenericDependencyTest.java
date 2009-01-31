@@ -49,7 +49,7 @@ public class GenericDependencyTest {
                 {new DefaultProjectDependency(AbstractDependencyTest.TEST_CONF_MAPPING,
                         HelperUtil.createRootProject(new File("a")),
                         HelperUtil.createRootProject(new File("a")))},
-                {new ClientModule(new DependencyFactory(new HashSet()), AbstractDependencyTest.TEST_CONF_MAPPING, "org:name:1.0", new HashMap())}
+                {new ClientModule(AbstractDependencyTest.TEST_CONF_MAPPING, "org:name:1.0", null)}
         });
     }
 
@@ -100,18 +100,18 @@ public class GenericDependencyTest {
         context.checking(new Expectations() {{
             one(dependencyConfigurationMappingContainerMock).add(testDependencyConfigurations);
         }});
-        dependency.dependencyConfigurations(testDependencyConfigurations);
+        dependency.addDependencyConfiguration(testDependencyConfigurations);
         context.assertIsSatisfied();
     }
 
     @Test
     public void dependencyConfigurationWithConstraints() {
         dependency.setDependencyConfigurationMappings(dependencyConfigurationMappingContainerMock);
-        final Map<String, List<String>> testDependencyConfigurations = WrapUtil.toMap("master", WrapUtil.toList("depConf"));
+        final Map<Configuration, List<String>> testDependencyConfigurations = WrapUtil.toMap(context.mock(Configuration.class, "master"), WrapUtil.toList("depConf"));
         context.checking(new Expectations() {{
             one(dependencyConfigurationMappingContainerMock).add(testDependencyConfigurations);
         }});
-        dependency.dependencyConfigurations(testDependencyConfigurations);
+        dependency.addConfigurationMapping(testDependencyConfigurations);
         context.assertIsSatisfied();
     }
 

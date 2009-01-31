@@ -102,12 +102,12 @@ class DefaultProjectTest {
             allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
         }
         dependencyManagerMock = context.mock(DependencyManager)
-        dependencyManagerFactoryMock = [createDependencyManager: {Project project -> dependencyManagerMock}] as DependencyManagerFactory
+        dependencyManagerFactoryMock = [createDependencyManager: {Project project, File gradleUserHome -> dependencyManagerMock}] as DependencyManagerFactory
         script = context.mock(ScriptSource.class)
 
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
-        build = new DefaultBuild(null, buildScriptClassLoader)
+        build = new DefaultBuild(new StartParameter(), buildScriptClassLoader)
 
         rootDir = new File("/path/root").absoluteFile
         pluginRegistry = new PluginRegistry(new File('somepath'))
@@ -140,6 +140,8 @@ class DefaultProjectTest {
     private void checkProject(Project project, Project parent, String name, File projectDir) {
         assertSame parent, project.parent
         assertEquals name, project.name
+        assertEquals Project.DEFAULT_GROUP, project.group
+        assertEquals Project.DEFAULT_VERSION, project.version
         assertSame(rootDir, project.rootDir)
         assertSame(projectDir, project.projectDir)
         assertSame this.project, project.rootProject
@@ -160,7 +162,7 @@ class DefaultProjectTest {
         assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
         assertEquals project.name, project.archivesBaseName
         assertEquals([] as Set, project.appliedPlugins)
-        assertEquals AbstractProject.State.CREATED, project.state
+        assertEquals Project.State.CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
@@ -203,7 +205,7 @@ class DefaultProjectTest {
             one(outputRedirectorMock).flush()
         }
         assertSame(project, project.evaluate())
-        assertEquals(AbstractProject.State.INITIALIZED, project.state)
+        assertEquals(Project.State.INITIALIZED, project.state)
         assert afterEvaluate1Called
         assert afterEvaluate2Called
         assert project.buildScript.is(testScript)
@@ -763,17 +765,17 @@ def scriptMethod(Closure closure) {
 
     @Test void testProperties() {
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), 'task'); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), testTask.getName()); will(returnValue(testTask))
             one(script).getClassName(); will(returnValue('script class'))
         }
 
         project.additional = 'additional'
-        project.createTask('task')
+        project.createTask(testTask.getName())
 
         Map properties = project.properties
         assertEquals(properties.name, 'root')
         assertEquals(properties.additional, 'additional')
-        assertEquals(properties.task, project.task('task'))
+        assertEquals(properties[testTask.getName()], testTask)
     }
 
     @Test void testAdditionalProperty() {
@@ -1002,6 +1004,22 @@ def scriptMethod(Closure closure) {
 
     @Test(expected = ReadOnlyPropertyException) void setName() {
         project.name = "someNewName" 
+    }
+
+    @Test(expected = InvalidUserDataException)
+    void addNullSyntheticTasks() {
+        project.addRule(null)
+    }
+
+    @Test
+    void addGetSyntheticTasks() {
+        assertEquals([], project.getRules())
+        Rule syntheticTask1 = [:] as Rule
+        project.addRule(syntheticTask1)
+        assertEquals([syntheticTask1], project.getRules())
+        Rule syntheticTask2 = [:] as Rule
+        project.addRule(syntheticTask2)
+        assertEquals([syntheticTask1, syntheticTask2], project.getRules())
     }
 }
 

@@ -132,16 +132,6 @@ public interface Settings {
     void dependencies(Object[] dependencies) throws InvalidUserDataException;
 
     /**
-     * Adds a dependency to the build script classpath. See{@link DependencyManager#dependency(java.util.List, Object)}
-     * for more details.
-     *
-     * @param dependency The dependency to add.
-     * @return The newly added dependency
-     * @throws InvalidUserDataException When the given object cannot be converted to a {@code Dependency}.
-     */
-    Dependency dependency(Object dependency) throws InvalidUserDataException;
-
-    /**
      * Adds a dependency to the build script classpath. See{@link DependencyManager#dependency(java.util.List, Object,
      * groovy.lang.Closure)} for more details.
      *

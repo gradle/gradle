@@ -22,6 +22,7 @@ import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 import org.gradle.api.dependencies.maven.MavenDeployer;
 import org.gradle.api.dependencies.maven.PomFilterContainer;
 
@@ -43,7 +44,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private boolean uniqueVersion = true;
 
-    public BaseMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+    public BaseMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManagerInternal dependencyManager) {
         super(name, pomFilterContainer, artifactPomContainer, dependencyManager);
     }
 

@@ -86,7 +86,7 @@ public class GroovyCompile extends Compile {
 
     private List createClasspath() {
         return GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
-                getDependencyManager().resolveTask(getName()));
+                getDependencyManager().configuration(getResolveInstruction().getConfiguration()).resolve(getResolveInstruction()));
     }
 
     /**

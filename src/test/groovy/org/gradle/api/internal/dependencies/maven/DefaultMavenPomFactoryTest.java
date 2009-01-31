@@ -19,15 +19,9 @@ import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.api.DependencyManager;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.Expectations;
-
-import java.util.Arrays;
 
 /**
  * @author Hans Dockter

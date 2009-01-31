@@ -60,7 +60,7 @@ class VersionTest extends GroovyTestCase {
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, new DefaultBuild(null, null))
+        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, new DefaultBuild(new StartParameter(), null))
         project.setBuildScript(new EmptyScript())
         return project;
     }

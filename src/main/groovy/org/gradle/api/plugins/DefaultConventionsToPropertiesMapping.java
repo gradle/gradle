@@ -162,10 +162,6 @@ public class DefaultConventionsToPropertiesMapping {
         public Object getValue(Convention convention, Task task) {
             return "" + task.getProject().property("archivesBaseName");
         }
-    },"dependencyManager", new ConventionValue() {
-        public Object getValue(Convention convention, Task task) {
-            return task.getProject().getDependencies();
-        }
     });
 
     public final static Map ZIP = new HashMap(ARCHIVE);

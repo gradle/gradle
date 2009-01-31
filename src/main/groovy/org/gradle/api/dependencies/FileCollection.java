@@ -36,11 +36,4 @@ public interface FileCollection extends Iterable<File> {
      * @return The files. Returns an empty set if this collection is empty.
      */
     Set<File> getFiles();
-
-    /**
-     * Returns the contents of this collection as a path. You can pass this path, for example, to ant tasks.
-     *
-     * @return The files of this collection as a path.
-     */
-    String getAsPath();
 }

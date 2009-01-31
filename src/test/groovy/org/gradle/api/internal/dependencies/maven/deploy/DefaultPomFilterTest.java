@@ -17,16 +17,19 @@ package org.gradle.api.internal.dependencies.maven.deploy;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.maven.PublishFilter;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
 
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 public class DefaultPomFilterTest {
     private static final String TEST_NAME = "TEST_NAME";
 

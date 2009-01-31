@@ -18,10 +18,13 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Transformer;
+import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.sameInstance;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -30,16 +33,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
 /**
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
 abstract public class AbstractDependencyTest {
     protected static final String TEST_CONF = "conf";
-//    protected static final Set<String> TEST_CONF_SET = WrapUtil.toSet(TEST_CONF);
+    
     public static final DefaultDependencyConfigurationMappingContainer TEST_CONF_MAPPING =
         new DefaultDependencyConfigurationMappingContainer() {{
-            addMasters(TEST_CONF);
+            addMasters(new DefaultConfiguration(TEST_CONF, new DefaultConfigurationContainer()));
     }};
 
     protected static final DefaultProject TEST_PROJECT = new DefaultProject("someName");

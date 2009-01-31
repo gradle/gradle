@@ -16,11 +16,12 @@
 
 package org.gradle.api.tasks.testing;
 
-import groovy.mock.interceptor.MockFor;
 import groovy.util.AntBuilder;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.dependencies.ConfigurationResolver;
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
@@ -30,11 +31,11 @@ import org.gradle.api.tasks.compile.ClasspathConverter;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
+import org.gradle.util.JMockUtil;
 import org.hamcrest.Matchers;
 import org.hamcrest.Description;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Assert;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
@@ -42,7 +43,6 @@ import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.util.List;
 
 
@@ -70,12 +70,13 @@ public class TestTest extends AbstractConventionTaskTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    AntJunit antJunitMock;
+    private AntJunit antJunitMock;
 
-    DependencyManager dependencyManagerMock;
+    private DependencyManager dependencyManagerMock;
 
-    ClasspathConverter classpathConverterMock;
-    ExistingDirsFilter existentDirsFilterMock;
+    private ClasspathConverter classpathConverterMock;
+    private ExistingDirsFilter existentDirsFilterMock;
+    private ConfigurationResolver configurationMock;
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
@@ -83,6 +84,7 @@ public class TestTest extends AbstractConventionTaskTest {
         classpathConverterMock = context.mock(ClasspathConverter.class);
         existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
         dependencyManagerMock = context.mock(DependencyManager.class);
+        configurationMock = context.mock(ConfigurationResolver.class);
         super.setUp();
         test = new Test(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         ((AbstractProject) test.getProject()).setProjectDir(TEST_ROOT_DIR);
@@ -184,6 +186,7 @@ public class TestTest extends AbstractConventionTaskTest {
     }
 
     private void setUpMocks(final Test test) {
+        test.setResolveInstruction(new ConfigurationResolveInstructionModifier("someConf"));
         test.setTestClassesDir(TEST_TEST_CLASSES_DIR);
         test.setTestResultsDir(TEST_TEST_RESULTS_DIR);
         test.setTestReportDir(TEST_TEST_REPORT_DIR);
@@ -192,8 +195,8 @@ public class TestTest extends AbstractConventionTaskTest {
         test.setDependencyManager(dependencyManagerMock);
         test.classpathConverter = classpathConverterMock;
 
+        JMockUtil.configureResolve(context, test.getResolveInstruction(), dependencyManagerMock, configurationMock, TEST_DEPENDENCY_MANAGER_CLASSPATH);
         context.checking(new Expectations() {{
-            allowing(dependencyManagerMock).resolveTask(test.getName()); will(returnValue(TEST_DEPENDENCY_MANAGER_CLASSPATH));
             allowing(classpathConverterMock).createFileClasspath(TEST_ROOT_DIR,
                     GUtil.addLists(WrapUtil.toList(TEST_TEST_CLASSES_DIR), TEST_UNMANAGED_CLASSPATH, TEST_DEPENDENCY_MANAGER_CLASSPATH));
             will(returnValue(TEST_CONVERTED_CLASSPATH));

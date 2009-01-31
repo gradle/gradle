@@ -49,7 +49,7 @@ public class SettingsFactoryTest {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         context.checking(new Expectations() {{
-            allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)));
+            allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)), with(any(File.class)));
             will(returnValue(dependencyManagerMock));
             allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
         }});

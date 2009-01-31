@@ -18,6 +18,13 @@ package org.gradle.api.dependencies;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.Transformer;
+import org.gradle.api.tasks.TaskDependency;
+
+import java.util.Set;
+import java.io.File;
+
+import groovy.lang.Closure;
 
 /**
  * <p>A {@code PublishArtifact} is an artifact produced by a project.</p>
@@ -25,5 +32,23 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
  * @author Hans Dockter
  */
 public interface PublishArtifact extends IvyObjectBuilder<Artifact> {
-   Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId);
+    Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId);
+
+    Set<Configuration> getConfigurations();
+
+    String getName();
+
+    String getExtension();
+
+    String getType();
+
+    String getClassifier();
+
+    void addIvyTransformer(Transformer<Artifact> transformer);
+
+    void addIvyTransformer(Closure transformer);
+
+    TaskDependency getTaskDependency();
+
+    File getFile();
 }

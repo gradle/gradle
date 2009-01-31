@@ -23,6 +23,7 @@ import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.junit.Test
+import org.gradle.api.internal.dependencies.Configurations
 
 /**
  * @author Hans Dockter
@@ -36,23 +37,23 @@ class WarPluginTest {
 
         assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
 
-        def configuration = project.dependencies.configurations[JavaPlugin.COMPILE]
-        assertThat(configuration.extendsFrom, equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
+        def configuration = project.dependencies.configuration(JavaPlugin.COMPILE)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.dependencies.configurations[JavaPlugin.RUNTIME]
-        assertThat(configuration.extendsFrom, equalTo(toSet(JavaPlugin.COMPILE, WarPlugin.PROVIDED_RUNTIME)))
+        configuration = project.dependencies.configuration(JavaPlugin.RUNTIME)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE, WarPlugin.PROVIDED_RUNTIME)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configurations[WarPlugin.PROVIDED_COMPILE]
-        assertThat(configuration.extendsFrom, equalTo(toSet()))
+        configuration = project.dependencies.configuration(WarPlugin.PROVIDED_COMPILE)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configurations[WarPlugin.PROVIDED_RUNTIME]
-        assertThat(configuration.extendsFrom, equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
+        configuration = project.dependencies.configuration(WarPlugin.PROVIDED_RUNTIME)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
     }

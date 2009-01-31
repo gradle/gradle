@@ -32,20 +32,14 @@ import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.gradle.api.internal.dependencies.ArchivePublishArtifact
 
 /**
  * @author Hans Dockter
  */
 abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
-    static final String TEST_CONFIGURATION = 'testconf'
 
     abstract AbstractArchiveTask getArchiveTask()
-
-    MockFor dependencyManagerMock
-
-    Set testArchiveParentDirs;
-
-    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     AbstractTask getTask() {
         archiveTask
@@ -76,13 +70,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.destinationDir = new File(testDir, 'destinationDir')
         archiveTask.resourceCollections = [new FileSet(testDir)]
         archiveTask.baseDir = testDir
-        archiveTask.configurations = [TEST_CONFIGURATION]
-        archiveTask.dependencyManager = context.mock(DependencyManager)
-        dependencyManagerMock = new MockFor(DependencyManager)
-        testArchiveParentDirs = new LinkedHashSet()
-        context.checking {
-            allowing(archiveTask.dependencyManager).getArtifactParentDirs(); will(returnValue(testArchiveParentDirs))
-        }
+
     }
 
     @Test public void testExecute() {
@@ -99,25 +87,10 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     private checkExecute(Closure archiveTaskModifier) {
         archiveTaskModifier.call(archiveTask)
-        String appendixSnippet = task.appendix ? '-' + task.appendix : ''
-        String expectedName = archiveTask.baseName + appendixSnippet
-        context.checking {
-            one(archiveTask.dependencyManager).addArtifacts(AbstractArchiveTaskTest.TEST_CONFIGURATION,
-                    new DefaultPublishArtifact(expectedName, archiveTask.extension, archiveTask.extension, archiveTask.classifier))
-        }
         getAntMocker(true).use(ant) {
             archiveTask.execute()
         }
         assertTrue(archiveTask.destinationDir.isDirectory())
-        assertTrue(testArchiveParentDirs.contains(archiveTask.destinationDir))
-    }
-
-    @Test public void testExecuteWithPublishFalse() {
-        archiveTask.publish = false
-        getAntMocker(true).use(ant) {
-            archiveTask.execute()
-        }
-        assertFalse(testArchiveParentDirs.contains(archiveTask.destinationDir))
     }
 
     @Test (expected = GradleScriptException) public void testExecuteWithNullDestinationDir() {
@@ -239,13 +212,6 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertEquals(1, mergeGroups.size())
         assertEquals(mergeGroups[0].dir, HelperUtil.TMP_DIR_FOR_TEST as File)
         assertEquals(mergeGroups[0].includes, ['a'] as Set)
-    }
-
-    @Test public void testConfigurations() {
-        archiveTask.configurations = []
-        archiveTask.configurations('conf1')
-        archiveTask.configurations('conf2')
-        assertEquals(['conf1', 'conf2'], archiveTask.configurations)
     }
 
 }

@@ -18,11 +18,14 @@ package org.gradle.api.tasks.javadoc;
 import org.apache.tools.ant.BuildException;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.GradleException;
+import org.gradle.api.dependencies.ConfigurationResolver;
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.JMockUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -36,7 +39,7 @@ import java.io.File;
 import static java.util.Collections.*;
 import java.util.List;
 
-@RunWith (org.jmock.integration.junit4.JMock.class)
+@RunWith(org.jmock.integration.junit4.JMock.class)
 public class JavadocTest extends AbstractConventionTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final List<File> srcDirs = WrapUtil.toList(new File("srcdir"));
@@ -46,6 +49,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private Javadoc task;
     private ExistingDirsFilter existingDirsFilter;
     private DependencyManager dependencyManager;
+    private ConfigurationResolver configurationMock;
 
     @Before
     public void setUp() {
@@ -55,30 +59,32 @@ public class JavadocTest extends AbstractConventionTaskTest {
         antJavadoc = context.mock(AntJavadoc.class);
         existingDirsFilter = context.mock(ExistingDirsFilter.class);
         dependencyManager = context.mock(DependencyManager.class);
+        configurationMock = context.mock(ConfigurationResolver.class);
 
         task = new Javadoc(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         task.setAntJavadoc(antJavadoc);
         task.setExistentDirsFilter(existingDirsFilter);
         task.setDependencyManager(dependencyManager);
+        task.setResolveInstruction(new ConfigurationResolveInstructionModifier("testConf"));
+        JMockUtil.configureResolve(context, task.getResolveInstruction(), dependencyManager, configurationMock, classpath);
     }
 
     public AbstractTask getTask() {
         return task;
     }
 
-    @Test public void defaultExecution() {
+    @Test
+    public void defaultExecution() {
         task.setDestinationDir(destDir);
         task.setSrcDirs(srcDirs);
 
-        context.checking(new Expectations() {{
-            one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
-            will(returnValue(srcDirs));
-
-            one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
-            will(returnValue(classpath));
-
-            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, false, getProject().getAnt());
-        }});
+        context.checking(new Expectations() {
+            {
+                one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
+                will(returnValue(srcDirs));
+                one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, false, getProject().getAnt());
+            }
+        });
 
         task.execute();
     }
@@ -94,9 +100,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
 
-            one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
-            will(returnValue(classpath));
-
             one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, false, getProject().getAnt());
             will(throwException(failure));
         }});
@@ -110,7 +113,8 @@ public class JavadocTest extends AbstractConventionTaskTest {
         }
     }
 
-    @Test public void executionWithOptionalAtributes() {
+    @Test
+    public void executionWithOptionalAtributes() {
         task.setDestinationDir(destDir);
         task.setSrcDirs(srcDirs);
         task.setMaxMemory("max-memory");
@@ -121,16 +125,14 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
 
-            one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
-            will(returnValue(classpath));
-
             one(antJavadoc).execute(srcDirs, destDir, classpath, "title", "max-memory", EMPTY_LIST, EMPTY_LIST, true, getProject().getAnt());
         }});
 
         task.execute();
     }
 
-    @Test public void executionWithIncludesAndExcludes() {
+    @Test
+    public void executionWithIncludesAndExcludes() {
         task.setDestinationDir(destDir);
         task.setSrcDirs(srcDirs);
         task.include("include");
@@ -139,9 +141,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
         context.checking(new Expectations() {{
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
-
-            one(dependencyManager).resolveTask(AbstractTaskTest.TEST_TASK_NAME);
-            will(returnValue(classpath));
 
             one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, WrapUtil.toList("include"), WrapUtil.toList("exclude"), false, getProject().getAnt());
         }});

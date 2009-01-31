@@ -16,12 +16,10 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.dependencies.DefaultPublishArtifact
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
@@ -90,21 +88,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     private String classifier = ''
 
     /**
-     * Controlls whether the archive adds itself to the dependency configurations. Defaults to true.
-     */
-    boolean publish = true
-
-    /**
-     * The dependency configurations the archive gets added to if publish is true.
-     */
-    private List<String> configurations
-
-    /**
-     * The dependency manager to use for adding the archive to the configurations.
-     */
-    private DependencyManager dependencyManager
-
-    /**
      *
      */
     private List mergeFileSets = []
@@ -120,30 +103,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         super(project, name);
         doLast(this.&generateArchive)
     }
-
-    /**
-     * Sets the publish property
-     *
-     * @param publish the value assigned to the publish property
-     * @return this
-     */
-    public AbstractArchiveTask publish(boolean publish) {
-        this.publish = publish
-        this
-    }
-
-    /**
-     * Adds the configurations the archive gets published to.
-     *
-     * @param publish the value assigned to the publish property
-     * @return this
-     */
-    public AbstractArchiveTask configurations(String ... configurations) {
-        this.configurations = GUtil.chooseCollection(this.configurations, getConfigurations())
-        GUtil.flatten(Arrays.asList(configurations), this.configurations);
-        return this;
-    }
-
+    
     public void generateArchive(Task task) {
         logger.debug("Creating archive: {}", name)
         if (!getDestinationDir()) {
@@ -151,13 +111,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         }
         getDestinationDir().mkdirs()
         createAntArchiveTask().call()
-        if (publish) {
-            getConfigurations().each {
-                getDependencyManager().addArtifacts(it, new DefaultPublishArtifact(getBaseName() + (getAppendix() ? "-${getAppendix()}" : ""),
-                        getExtension(), getExtension(), getClassifier()))
-            }
-            getDependencyManager().getArtifactParentDirs() << destinationDir
-        }
     }
 
     protected abstract Closure createAntArchiveTask()
@@ -349,30 +302,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
 
     public void setClassifier(String classifier) {
         this.classifier = classifier;
-    }
-//     // todo Uncomment after refacotring to Java
-//    public boolean isPublish() {
-//        return conv(publish, "publish");
-//    }
-
-    public void setPublish(boolean publish) {
-        this.publish = publish;
-    }
-
-    public List<String> getConfigurations() {
-        return conv(configurations, "configurations");
-    }
-
-    public void setConfigurations(List<String> configurations) {
-        this.configurations = configurations;
-    }
-
-    public DependencyManager getDependencyManager() {
-        return conv(dependencyManager, "dependencyManager");
-    }
-
-    public void setDependencyManager(DependencyManager dependencyManager) {
-        this.dependencyManager = dependencyManager;
     }
 
     public List getMergeFileSets() {

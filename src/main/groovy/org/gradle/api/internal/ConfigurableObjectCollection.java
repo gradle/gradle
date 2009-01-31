@@ -62,6 +62,9 @@ public class ConfigurableObjectCollection<T> extends AbstractDynamicObject {
 
     @Override
     public T getProperty(String name) throws MissingPropertyException {
+        if (!hasProperty(name)) {
+            throw new MissingPropertyException(name, this.getClass());
+        }
         return elements.get(name);
     }
 

@@ -24,6 +24,11 @@ import org.gradle.api.GradleScriptException
 import org.junit.Before
 import static org.junit.Assert.*
 import org.junit.Test
+import org.gradle.api.dependencies.ResolveInstruction
+import org.gradle.api.dependencies.ConfigurationResolver
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier
+import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier
+import org.gradle.api.dependencies.ResolveInstructionModifier
 
 /**
  * @author Hans Dockter
@@ -65,19 +70,19 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
 
 
-    @Test(expected = GradleScriptException) public void testExecuteWithUnspecifiedSourceCompatibility() {
+    @Test (expected = GradleScriptException) public void testExecuteWithUnspecifiedSourceCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.sourceCompatibility = null
         compile.execute()
     }
 
-    @Test(expected = GradleScriptException) public void testExecuteWithUnspecifiedTargetCompatibility() {
+    @Test (expected = GradleScriptException) public void testExecuteWithUnspecifiedTargetCompatibility() {
         setUpMocksAndAttributes(compile)
         compile.targetCompatibility = null
         compile.execute()
     }
 
-    @Test(expected = GradleScriptException) public void testExecuteWithUnspecifiedAntCompile() {
+    @Test (expected = GradleScriptException) public void testExecuteWithUnspecifiedAntCompile() {
         setUpMocksAndAttributes(compile)
         compile.antCompile = null
         compile.execute()
@@ -98,6 +103,7 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     }
 
     protected void setUpMocksAndAttributes(Compile compile) {
+        compile.resolveInstruction = new ConfigurationResolveInstructionModifier("someConf")
         compile.srcDirs = ['sourceDir1' as File, 'sourceDir2' as File]
         compile.includes = TEST_INCLUDES
         compile.excludes = TEST_EXCLUDES
@@ -110,10 +116,19 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.sourceCompatibility = "1.5"
         compile.targetCompatibility = '1.5'
         compile.destinationDir = AbstractCompileTest.TEST_TARGET_DIR
-        compile.dependencyManager = [resolveTask: {String taskName ->
-            assertEquals(compile.name, taskName)
-            AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH
-        }] as DependencyManager
+
+        ConfigurationResolver configurationResolver = [
+            resolve: {ResolveInstructionModifier resolveInstructionModifier ->
+                    assertSame(compile.getResolveInstruction(), resolveInstructionModifier)
+                    AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH
+                }
+        ] as ConfigurationResolver
+        compile.dependencyManager = [
+                configuration: {String confName ->
+                    assertEquals(confName, compile.getResolveInstruction().getConfiguration())
+                    configurationResolver
+                }
+        ] as DependencyManager
 
         compile.classpathConverter = [createFileClasspath: {File baseDir, List pathElements ->
             assertEquals(AbstractCompileTest.TEST_ROOT_DIR, baseDir)

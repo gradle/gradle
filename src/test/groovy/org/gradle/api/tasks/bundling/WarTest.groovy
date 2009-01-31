@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
@@ -23,23 +23,40 @@ import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.dependencies.ConfigurationResolver
+import org.hamcrest.Matcher
+import org.gradle.util.Matchers
+import org.gradle.api.dependencies.ResolveInstruction
+import org.gradle.api.filter.FilterSpec
+import org.gradle.api.dependencies.filter.TypeSpec
+import org.gradle.api.dependencies.filter.Type
+import org.gradle.util.ConfigureUtil
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.GradleScriptException
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.api.DependencyManager
 
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock)
+@RunWith (org.jmock.integration.junit4.JMock)
 class WarTest extends AbstractArchiveTaskTest {
-    static final List TEST_LIB_CONFIGURATIONS = ['testLibConf1', 'testLibConf2'] 
+    static final List TEST_LIB_CONFIGURATIONS = ['testLibConf1', 'testLibConf2']
     static final List TEST_LIB_EXCLUDE_CONFIGURATIONS = ['testLibConf3', 'testLibConf4']
 
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
+    DependencyManager dependencyManager = context.mock(DependencyManager)
+  
     War war
-    
+
     MockFor antWarMocker
 
     Map filesFromDepencencyManager
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
         super.setUp()
+        getProject().setDependencies(dependencyManager)
         war = new War(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(war)
         war.manifest = new GradleManifest()
@@ -53,20 +70,38 @@ class WarTest extends AbstractArchiveTaskTest {
         antWarMocker = new MockFor(AntWar)
         filesFromDepencencyManager = [
                 testLibConf1: ['/file1' as File, '/file3' as File],
-                testLibConf2: ['/file2' as File, '/file4' as File], 
+                testLibConf2: ['/file2' as File, '/file4' as File],
                 testLibConf3: ['/file3' as File],
                 testLibConf4: ['/file4' as File]
         ]
-        prepareDependencyManagerMock(true, true)
     }
 
     private void prepareDependencyManagerMock(boolean failForMissingDependency, boolean includeProjectDependencies) {
-        getContext().checking {
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[0], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[0]]))
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_CONFIGURATIONS[1], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[1]]))
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_EXCLUDE_CONFIGURATIONS[0], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[0]]))
-            allowing(archiveTask.dependencyManager).resolve(TEST_LIB_EXCLUDE_CONFIGURATIONS[1], failForMissingDependency, includeProjectDependencies); will(returnValue(filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[1]]))
+        context.checking {
+            allowing(dependencyManager).configuration(TEST_LIB_CONFIGURATIONS[0]); will(returnValue(
+                    createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[0]])
+            ))
+            allowing(dependencyManager).configuration(TEST_LIB_CONFIGURATIONS[1]); will(returnValue(
+                    createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[1]])
+            ))
+            allowing(dependencyManager).configuration(TEST_LIB_EXCLUDE_CONFIGURATIONS[0]); will(returnValue(
+                    createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[0]])
+            ))
+            allowing(dependencyManager).configuration(TEST_LIB_EXCLUDE_CONFIGURATIONS[1]); will(returnValue(
+                    createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[1]])
+            ))
         }
+    }
+
+    private ConfigurationResolver createConfigurationMock(boolean failForMissingDependency, boolean includeProjectDependencies, List returnValue) {
+        [resolve: { Closure modifier ->
+            ResolveInstruction resolveInstruction = ConfigureUtil.configure(modifier, new ResolveInstruction())
+            assertEquals(failForMissingDependency, resolveInstruction.isFailOnResolveError())
+            if (!includeProjectDependencies) {
+                assertEquals(new TypeSpec(Type.EXTERNAL), resolveInstruction.dependencyFilter)
+            }
+            returnValue
+        }] as ConfigurationResolver
     }
 
     AbstractArchiveTask getArchiveTask() {
@@ -75,8 +110,8 @@ class WarTest extends AbstractArchiveTaskTest {
 
     MockFor getAntMocker(boolean toBeCalled) {
         antWarMocker.demand.execute(toBeCalled ? 1..1 : 0..0) {AntMetaArchiveParameter metaArchiveParameter,
-                                                                     List classesFileSets, List dependencyLibFiles, List additionalLibFileSets,
-                                                                     List webInfFileSets, File webXml ->
+                                                               List classesFileSets, List dependencyLibFiles, List additionalLibFileSets,
+                                                               List webInfFileSets, File webXml ->
             if (toBeCalled) {
                 checkMetaArchiveParameterEqualsArchive(metaArchiveParameter, war)
                 assert classesFileSets.is(war.classesFileSets)
@@ -92,6 +127,31 @@ class WarTest extends AbstractArchiveTaskTest {
     def getAnt() {
         war.antWar
     }
+
+    @Override @Test
+    public void testExecuteWithEmptyClassifier() {
+        prepareDependencyManagerMock(true, true)
+        super.testExecuteWithEmptyClassifier();
+    }
+
+    @Override @Test
+    public void testExecuteWithEmptyAppendix() {
+        prepareDependencyManagerMock(true, true)
+        super.testExecuteWithEmptyAppendix();
+    }
+
+    @Override @Test
+    public void testExecute() {
+        prepareDependencyManagerMock(true, true)
+        super.testExecute();
+    }
+
+    @Override @Test(expected = GradleScriptException)
+    public void testExecuteWithNullDestinationDir() {
+        prepareDependencyManagerMock(true, true)
+        super.testExecuteWithNullDestinationDir();
+    }
+
 
     @Test public void testWar() {
         assertEquals(War.WAR_EXTENSION, war.extension)

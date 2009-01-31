@@ -20,8 +20,6 @@ public interface ProjectInternal extends Project {
 
     Project addChildProject(String name, File projectDir);
 
-    void setGradleUserHome(String gradleUserHome);
-
     IProjectRegistry getProjectRegistry();
 
     void setBuildDirName(String buildDirName);

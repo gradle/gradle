@@ -30,7 +30,6 @@ import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.ivy.plugins.namespace.Namespace;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
@@ -38,10 +37,15 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.dependencies.maven.PomFilterContainer;
-import org.gradle.api.dependencies.maven.MavenResolver;
-import org.gradle.api.dependencies.maven.PublishFilter;
 import org.gradle.api.dependencies.maven.MavenPom;
+import org.gradle.api.dependencies.maven.MavenResolver;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
+import org.gradle.api.dependencies.maven.PublishFilter;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.PublishArtifact;
+import org.gradle.api.filter.Filters;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
@@ -63,11 +67,11 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     private PomFilterContainer pomFilterContainer;
 
-    private DependencyManager dependencyManager;
+    private DependencyManagerInternal dependencyManager;
 
     private Settings settings;
 
-    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManager dependencyManager) {
+    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManagerInternal dependencyManager) {
         this.name = name;
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
@@ -88,7 +92,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         return dependencyManager;
     }
 
-    public void setDependencyManager(DependencyManager dependencyManager) {
+    public void setDependencyManager(DependencyManagerInternal dependencyManager) {
         this.dependencyManager = dependencyManager;
     }
     
@@ -175,7 +179,8 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Map<File, File> deployableUnits = getArtifactPomContainer().createDeployableUnits(
-                Arrays.asList(getDependencyManager().createModuleDescriptor(true).getDependencies()));
+                Arrays.asList(dependencyManager.createModuleDescriptor(Filters.<Configuration>noFilter(), Filters.<Dependency>noFilter(),
+                        Filters.<PublishArtifact>noFilter()).getDependencies()));
         for (File pomFile : deployableUnits.keySet()) {
             addPomAndArtifact(installDeployTaskSupport, pomFile, deployableUnits.get(pomFile));
             execute(installDeployTaskSupport);

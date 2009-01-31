@@ -18,25 +18,21 @@ package org.gradle.api.internal.dependencies;
 
 import groovy.lang.Closure;
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
+import org.gradle.api.Project;
+import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.dependencies.maven.PomFilterContainer;
-import org.gradle.api.dependencies.maven.GroovyPomFilterContainer;
-import org.gradle.api.dependencies.maven.CopyableGroovyPomFilterContainer;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.api.internal.dependencies.maven.deploy.groovy.DefaultGroovyPomFilterContainer;
-import org.gradle.api.internal.dependencies.maven.DefaultMavenPomFactory;
+import org.gradle.api.internal.dependencies.ivy.IvyHandler;
+import org.gradle.api.internal.dependencies.ivy.ResolverFactory;
+import org.gradle.api.internal.dependencies.ivy.BuildResolverHandler;
 import org.gradle.api.dependencies.*;
-import org.gradle.util.GUtil;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,33 +42,10 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class BaseDependencyManager extends DefaultDependencyContainer
-        implements DependencyManagerInternal, IvyObjectBuilder<DefaultModuleDescriptor> {
+public class BaseDependencyManager implements DependencyManagerInternal {
     private static Logger logger = LoggerFactory.getLogger(DefaultDependencyManager.class);
 
-    private Map<String, DefaultConfiguration> configurations = new HashMap<String, DefaultConfiguration>();
-
-    private Map<String, List<PublishArtifact>> artifacts = new HashMap<String, List<PublishArtifact>>();
-
-    private Map<String, List<Artifact>> artifactDescriptors = new HashMap<String, List<Artifact>>();
-
-    private List<String> absoluteArtifactPatterns = new ArrayList<String>();
-
-    private Set<File> artifactParentDirs = new HashSet<File>();
-
-    private String defaultArtifactPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN;
-
-    private ResolverFactory resolverFactory;
-
-    private IIvyFactory ivyFactory;
-
-    private DefaultSettingsConverter settingsConverter;
-
-    private ModuleDescriptorConverter moduleDescriptorConverter;
-
-    private IDependencyResolver dependencyResolver;
-
-    private IDependencyPublisher dependencyPublisher;
+    private Project project;
 
     private BuildResolverHandler buildResolverHandler;
 
@@ -80,151 +53,140 @@ public class BaseDependencyManager extends DefaultDependencyContainer
 
     private Conf2ScopeMappingContainer defaultConf2ScopeMapping = new DefaultConf2ScopeMappingContainer();
 
-    private String artifactProductionTaskName;
+    private DependencyContainerInternal dependencyContainer;
 
-    private Map<String, Set<String>> confs4Task = new HashMap<String, Set<String>>();
+    private ConfigurationContainer configurationContainer;
 
-    private Map<String, Set<String>> tasks4Conf = new HashMap<String, Set<String>>();
+    private ArtifactContainer artifactContainer;
 
-    private boolean failForMissingDependencies = true;
+    private IvyHandler ivyHandler;
 
-    private ExcludeRuleContainer excludeRules;
+    private ResolverFactory resolverFactory;
+
+    private ConfigurationResolverFactory configurationResolverFactory;
 
     public BaseDependencyManager() {
 
     }
 
-    public BaseDependencyManager(IIvyFactory ivyFactory, DependencyFactory dependencyFactory,
-                                 ResolverFactory resolverFactory, DefaultSettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
-                                 IDependencyResolver dependencyResolver, IDependencyPublisher dependencyPublisher,
-                                 BuildResolverHandler buildResolverHandler, ExcludeRuleContainer excludeRuleContainer) {
-        super(dependencyFactory, new ArrayList());
-        this.ivyFactory = ivyFactory;
+    public BaseDependencyManager(Project project, DependencyContainerInternal dependencyContainer, ArtifactContainer artifactContainer,
+                                 ConfigurationContainer configurationContainer, ConfigurationResolverFactory configurationResolverFactory,
+                                 ResolverContainer classpathResolvers, ResolverFactory resolverFactory, BuildResolverHandler buildResolverHandler,
+                                 IvyHandler ivyHandler) {
+        this.project = project;
+        this.dependencyContainer = dependencyContainer;
+        this.artifactContainer = artifactContainer;
+        this.configurationContainer = configurationContainer;
+        this.configurationResolverFactory = configurationResolverFactory;
+        this.classpathResolvers = classpathResolvers;
         this.resolverFactory = resolverFactory;
-        this.settingsConverter = settingsConverter;
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
-        this.dependencyResolver = dependencyResolver;
-        this.dependencyPublisher = dependencyPublisher;
         this.buildResolverHandler = buildResolverHandler;
-        this.excludeRules = excludeRuleContainer;
-        this.classpathResolvers = new ResolverContainer(resolverFactory);
+        this.ivyHandler = ivyHandler;
     }
 
-    public List<File> resolve(String conf, boolean failForMissingDependencies, boolean includeProjectDependencies) {
-        return dependencyResolver.resolve(conf, getIvy(), createModuleDescriptor(includeProjectDependencies),
-                failForMissingDependencies);
+    public Project getProject() {
+        return project;
     }
 
-    public List<File> resolve(String conf) {
-        return resolve(conf, this.failForMissingDependencies, true);
+    public List<? extends Dependency> getDependencies() {
+        return dependencyContainer.getDependencies();
     }
 
-    public List<File> resolveTask(String taskName) {
-        Set<String> confs = confs4Task.get(taskName);
-        if (!GUtil.isTrue(confs)) {
-            throw new InvalidUserDataException(String.format("Task %s is not mapped to any conf!", taskName));
+    public <T extends Dependency> List<T> getDependencies(FilterSpec<T> filter) {
+        return dependencyContainer.getDependencies(filter);
+    }
+
+    public void addDependencies(Dependency... dependencies) {
+        dependencyContainer.addDependencies(dependencies);
+    }
+
+    public void dependencies(List<String> confs, Object... dependencies) {
+        dependencyContainer.dependencies(confs, dependencies);
+    }
+
+    public void dependencies(Map<Configuration, List<String>> configurationMappings, Object... dependencies) {
+        dependencyContainer.dependencies(configurationMappings, dependencies);
+    }
+
+    public Dependency dependency(List<String> confs, Object userDependencyDescription, Closure configureClosure) {
+        return dependencyContainer.dependency(confs, userDependencyDescription, configureClosure);
+    }
+
+    public Dependency dependency(Map<Configuration, List<String>> configurationMappings, Object userDependencyDescription, Closure configureClosure) {
+        return dependencyContainer.dependency(configurationMappings, userDependencyDescription, configureClosure);
+    }
+
+    public ClientModule clientModule(List<String> confs, String moduleDescriptor) {
+        return dependencyContainer.clientModule(confs, moduleDescriptor);
+    }
+
+    public ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor) {
+        return dependencyContainer.clientModule(configurationMappings, moduleDescriptor);
+    }
+
+    public ClientModule clientModule(List<String> confs, String moduleDescriptor, Closure configureClosure) {
+        return dependencyContainer.clientModule(confs, moduleDescriptor, configureClosure);
+    }
+
+    public ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor, Closure configureClosure) {
+        return dependencyContainer.clientModule(configurationMappings, moduleDescriptor, configureClosure);
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public ConfigurationResolver addConfiguration(String configuration) {
+        return addConfiguration(configuration, null);
+    }
+
+    public ConfigurationResolver addConfiguration(String name, Closure configureClosure) {
+        return createConfigurationResolver(configurationContainer.add(name, configureClosure));
+    }
+
+    public ConfigurationResolver findConfiguration(String name) {
+        return createConfigurationResolver(configurationContainer.find(name));
+    }
+
+    public ConfigurationResolver configuration(String name) throws UnknownConfigurationException {
+        return configuration(name, null);
+    }
+
+    public ConfigurationResolver configuration(String name, Closure configureClosure) throws UnknownConfigurationException {
+        return createConfigurationResolver(configurationContainer.get(name, configureClosure));
+    }
+
+    public List<ConfigurationResolver> getConfigurations() {
+        List<ConfigurationResolver> configurations = new ArrayList<ConfigurationResolver>();
+        for (Configuration configuration : configurationContainer.get()) {
+            configurations.add(createConfigurationResolver(configuration));
         }
-        Set<File> paths = new LinkedHashSet<File>();
-        for (String conf : confs) {
-            paths.addAll(resolve(conf));
-        }
-        return new ArrayList<File>(paths);
+        return configurations;
     }
 
-    public String antpath(String conf) {
-        return GUtil.join(resolve(conf), ":");
+    private ConfigurationResolver createConfigurationResolver(Configuration configuration) {
+        if (configuration == null) {
+            return null;
+        }
+        return configurationResolverFactory.createConfigurationResolver(configuration, dependencyContainer, classpathResolvers,
+                artifactContainer, configurationContainer);
     }
 
-    public void publish(List<String> configurations, ResolverContainer resolvers, boolean uploadModuleDescriptor) {
-        dependencyPublisher.publish(
-                configurations,
-                resolvers,
-                createModuleDescriptor(true),
-                uploadModuleDescriptor,
-                getProject().getBuildDir(),
-                this,
-                ivy(resolvers.getResolverList()).getPublishEngine()
-        );
+    public ConfigurationContainer getConfigurationContainer() {
+        return configurationContainer;
     }
 
-    public ModuleRevisionId createModuleRevisionId() {
-        Object group = DependencyManager.DEFAULT_GROUP;
-        Object version = DependencyManager.DEFAULT_VERSION;
-        if (getProject().hasProperty("group") && GUtil.isTrue(getProject().property("group"))) {
-            group = getProject().property("group");
-        }
-        if (getProject().hasProperty("version") && GUtil.isTrue(getProject().property("version"))) {
-            version = getProject().property("version");
-        }
-        return new ModuleRevisionId(new ModuleId(group.toString(), getProject().getName()), version.toString());
+    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
+        this.configurationContainer = configurationContainer;
     }
 
     public Ivy getIvy() {
         return ivy(new ArrayList<DependencyResolver>());
     }
 
-    Ivy ivy(List<DependencyResolver> resolvers) {
-        return ivyFactory.createIvy(
-                settingsConverter.convert(
-                        classpathResolvers.getResolverList(),
-                        resolvers,
-                        new File(getProject().getGradleUserHome()),
-                        getBuildResolver(),
-                        getClientModuleRegistry()
-                )
-        );
-    }
-
-    public DependencyManager linkConfWithTask(String conf, String task) {
-        if (!GUtil.isTrue(conf) || !GUtil.isTrue(task)) {
-            throw new InvalidUserDataException("Conf and tasks must be specified!");
-        }
-        if (tasks4Conf.get(conf) == null) {
-            tasks4Conf.put(conf, new LinkedHashSet<String>());
-        }
-        if (confs4Task.get(task) == null) {
-            confs4Task.put(task, new LinkedHashSet<String>());
-        }
-        tasks4Conf.get(conf).add(task);
-        confs4Task.get(task).add(conf);
-        return this;
-    }
-
-    public DependencyManager unlinkConfWithTask(String conf, String task) {
-        if (!GUtil.isTrue(conf) || !GUtil.isTrue(task)) {
-            throw new InvalidUserDataException("Conf and tasks must be specified!");
-        }
-        if (tasks4Conf.get(conf) == null || !tasks4Conf.get(conf).contains(task)) {
-            throw new InvalidUserDataException("Can not unlink Conf= $conf and Task=$task because they are not linked!");
-        }
-        tasks4Conf.get(conf).remove(task);
-        assert confs4Task.get(task) != null;
-        confs4Task.get(task).remove(conf);
-        return this;
-    }
-
-    public void addArtifacts(String configurationName, PublishArtifact... artifacts) {
-        if (this.artifacts.get(configurationName) == null) {
-            this.artifacts.put(configurationName, new ArrayList<PublishArtifact>());
-        }
-        for (PublishArtifact artifact : artifacts) {
-            this.artifacts.get(configurationName).add(artifact);
-        }
-    }
-
-    public Configuration addConfiguration(String configuration) {
-        return addConfiguration(configuration, null);
-    }
-
-    public Configuration addConfiguration(String name, Closure configureClosure) {
-        if (configurations.containsKey(name)) {
-            throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
-                    name));
-        }
-        DefaultConfiguration configuration = new DefaultConfiguration(name, this);
-        configurations.put(name, configuration);
-        ConfigureUtil.configure(configureClosure, configuration);
-        return configuration;
+    public Ivy ivy(List<DependencyResolver> resolvers) {
+        return ivyHandler.ivy(classpathResolvers.getResolverList(),
+                resolvers, project.getBuild().getGradleUserHomeDir(), dependencyContainer.getClientModuleRegistry());
     }
 
     public RepositoryResolver getBuildResolver() {
@@ -236,11 +198,7 @@ public class BaseDependencyManager extends DefaultDependencyContainer
     }
 
     public FileSystemResolver addFlatDirResolver(String name, Object... dirs) {
-        List<File> dirFiles = new ArrayList<File>();
-        for (Object dir : dirs) {
-            dirFiles.add(new File(dir.toString()));
-        }
-        FileSystemResolver resolver = classpathResolvers.createFlatDirResolver(name, dirFiles.toArray(new File[dirFiles.size()]));
+        FileSystemResolver resolver = classpathResolvers.createFlatDirResolver(name, dirs);
         return (FileSystemResolver) classpathResolvers.add(resolver);
     }
 
@@ -253,100 +211,16 @@ public class BaseDependencyManager extends DefaultDependencyContainer
         return classpathResolvers.add(classpathResolvers.createMavenRepoResolver(name, root, jarRepoUrls));
     }
 
-    public Map<String, Configuration> getConfigurations() {
-        return new HashMap<String, Configuration>(configurations);
+    public ResolverFactory getResolverFactory() {
+        return resolverFactory;
     }
 
-    public void setConfigurations(Map<String, DefaultConfiguration> configurations) {
-        this.configurations = configurations;
+    public IvyHandler getIvyConverter() {
+        return ivyHandler;
     }
 
-    public boolean isFailForMissingDependencies() {
-        return failForMissingDependencies;
-    }
-
-    public void setFailForMissingDependencies(boolean failForMissingDependencies) {
-        this.failForMissingDependencies = failForMissingDependencies;
-    }
-
-    public Map<String, List<PublishArtifact>> getArtifacts() {
-        return artifacts;
-    }
-
-    public void setArtifacts(Map<String, List<PublishArtifact>> artifacts) {
-        this.artifacts = artifacts;
-    }
-
-    public Map<String, List<Artifact>> getArtifactDescriptors() {
-        return artifactDescriptors;
-    }
-
-    public void setArtifactDescriptors(Map<String, List<Artifact>> artifactDescriptors) {
-        this.artifactDescriptors = artifactDescriptors;
-    }
-
-    public List<String> getAbsoluteArtifactPatterns() {
-        return absoluteArtifactPatterns;
-    }
-
-    public void setAbsoluteArtifactPatterns(List<String> absoluteArtifactPatterns) {
-        this.absoluteArtifactPatterns = absoluteArtifactPatterns;
-    }
-
-    public Set<File> getArtifactParentDirs() {
-        return artifactParentDirs;
-    }
-
-    public void setArtifactParentDirs(Set<File> artifactParentDirs) {
-        this.artifactParentDirs = artifactParentDirs;
-    }
-
-    public String getDefaultArtifactPattern() {
-        return defaultArtifactPattern;
-    }
-
-    public void setDefaultArtifactPattern(String defaultArtifactPattern) {
-        this.defaultArtifactPattern = defaultArtifactPattern;
-    }
-
-    public IIvyFactory getIvyFactory() {
-        return ivyFactory;
-    }
-
-    public void setIvyFactory(IIvyFactory ivyFactory) {
-        this.ivyFactory = ivyFactory;
-    }
-
-    public SettingsConverter getSettingsConverter() {
-        return settingsConverter;
-    }
-
-    public void setSettingsConverter(DefaultSettingsConverter settingsConverter) {
-        this.settingsConverter = settingsConverter;
-    }
-
-    public ModuleDescriptorConverter getModuleDescriptorConverter() {
-        return moduleDescriptorConverter;
-    }
-
-    public void setModuleDescriptorConverter(ModuleDescriptorConverter moduleDescriptorConverter) {
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
-    }
-
-    public IDependencyResolver getDependencyResolver() {
-        return dependencyResolver;
-    }
-
-    public void setDependencyResolver(IDependencyResolver dependencyResolver) {
-        this.dependencyResolver = dependencyResolver;
-    }
-
-    public IDependencyPublisher getDependencyPublisher() {
-        return dependencyPublisher;
-    }
-
-    public void setDependencyPublisher(IDependencyPublisher dependencyPublisher) {
-        this.dependencyPublisher = dependencyPublisher;
+    public void setIvyConverter(IvyHandler ivyHandler) {
+        this.ivyHandler = ivyHandler;
     }
 
     public BuildResolverHandler getBuildResolverHandler() {
@@ -365,36 +239,8 @@ public class BaseDependencyManager extends DefaultDependencyContainer
         this.classpathResolvers = classpathResolvers;
     }
 
-    public String getArtifactProductionTaskName() {
-        return artifactProductionTaskName;
-    }
-
-    public void setArtifactProductionTaskName(String artifactProductionTaskName) {
-        this.artifactProductionTaskName = artifactProductionTaskName;
-    }
-
-    public Map<String, Set<String>> getConfs4Task() {
-        return confs4Task;
-    }
-
-    public void setConfs4Task(Map<String, Set<String>> confs4Task) {
-        this.confs4Task = confs4Task;
-    }
-
-    public Map<String, Set<String>> getTasks4Conf() {
-        return tasks4Conf;
-    }
-
-    public void setTasks4Conf(Map<String, Set<String>> tasks4Conf) {
-        this.tasks4Conf = tasks4Conf;
-    }
-
     public ExcludeRuleContainer getExcludeRules() {
-        return excludeRules;
-    }
-
-    public ModuleDescriptor createModuleDescriptor(boolean includeProjectDependencies) {
-        return moduleDescriptorConverter.convert(this, includeProjectDependencies);
+        return dependencyContainer.getExcludeRules();
     }
 
     public Conf2ScopeMappingContainer getDefaultMavenScopeMapping() {
@@ -405,37 +251,59 @@ public class BaseDependencyManager extends DefaultDependencyContainer
         this.defaultConf2ScopeMapping = defaultConf2ScopeMapping;
     }
 
-    public void setExcludeRules(ExcludeRuleContainer excludeRules) {
-        this.excludeRules = excludeRules;
+    public void addIvySettingsTransformer(Transformer<IvySettings> transformer) {
+        ivyHandler.getSettingsConverter().addIvyTransformer(transformer);
     }
 
-    public Configuration findConfiguration(String name) {
-        return configurations.get(name);
+    public void addIvySettingsTransformer(Closure transformer) {
+        ivyHandler.getSettingsConverter().addIvyTransformer(transformer);
     }
 
-    public Configuration configuration(String name) throws UnknownConfigurationException {
-        Configuration configuration = findConfiguration(name);
-        if (configuration == null) {
-            throw new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
-        }
-        return configuration;
+    public void addIvyModuleTransformer(Transformer<DefaultModuleDescriptor> transformer) {
+        ivyHandler.getModuleDescriptorConverter().addIvyTransformer(transformer);
     }
 
-    public Configuration configuration(String name, Closure configureClosure) throws UnknownConfigurationException {
-        Configuration configuration = configuration(name);
-        ConfigureUtil.configure(configureClosure, configuration);
-        return configuration;
+    public void addIvyModuleTransformer(Closure transformer) {
+        ivyHandler.getModuleDescriptorConverter().addIvyTransformer(transformer);
     }
 
-    public ResolverFactory getResolverFactory() {
-        return resolverFactory;
+    public DependencyContainer getDependencyContainer() {
+        return dependencyContainer;
     }
 
-    public void addIvyTransformer(Transformer<DefaultModuleDescriptor> transformer) {
-        moduleDescriptorConverter.addIvyTransformer(transformer);
+    public void setDependencyContainer(DependencyContainerInternal dependencyContainer) {
+        this.dependencyContainer = dependencyContainer;
     }
 
-    public void addIvyTransformer(Closure transformer) {
-        moduleDescriptorConverter.addIvyTransformer(transformer);
+    public IvyHandler getIvyHandler() {
+        return ivyHandler;
+    }
+
+    public ModuleDescriptor createModuleDescriptor(FilterSpec<Configuration> configurationFilter, FilterSpec<Dependency> dependencyFilter,
+                                                   FilterSpec<PublishArtifact> artifactFilter) {
+        return ivyHandler.getModuleDescriptorConverter().convert(new HashMap<String, Boolean>(), configurationContainer, configurationFilter,
+                dependencyContainer, dependencyFilter, artifactContainer, artifactFilter);
+    }
+
+    public ArtifactContainer getArtifactContainer() {
+        return artifactContainer;
+    }
+
+    public ConfigurationResolverFactory getConfigurationResolverFactory() {
+        return configurationResolverFactory;
+    }
+
+    public ResolverContainer createResolverContainer() {
+        ResolverContainer resolverContainer = new ResolverContainer(resolverFactory);
+        resolverContainer.setDependencyManager(this);
+        return resolverContainer;
+    }
+
+    public Set<PublishArtifact> getArtifacts() {
+        return artifactContainer.getArtifacts();
+    }
+
+    public void addArtifacts(PublishArtifact... artifacts) {
+        artifactContainer.addArtifacts(artifacts);
     }
 }

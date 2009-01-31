@@ -16,7 +16,10 @@
 package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.UnknownConfigurationException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.WrapUtil;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 import java.util.*;
@@ -25,18 +28,18 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultDependencyConfigurationMappingContainer implements DependencyConfigurationMappingContainer {
-    private Map<String, List<String>> mappings = new HashMap<String, List<String>>();
+    private Map<Configuration, List<String>> mappings = new HashMap<Configuration, List<String>>();
 
-    public DefaultDependencyConfigurationMappingContainer(Map<String, List<String>> mappings) {
-        this.mappings = new HashMap<String, List<String>>(mappings);
+    public DefaultDependencyConfigurationMappingContainer(Map<Configuration, List<String>> mappings) {
+        this.mappings = new HashMap<Configuration, List<String>>(mappings);
     }
 
     public DefaultDependencyConfigurationMappingContainer() {
         super();
     }
 
-    public void addMasters(String... masterConfigurations) {
-        for (String masterConfiguration : masterConfigurations) {
+    public void addMasters(Configuration... masterConfigurations) {
+        for (Configuration masterConfiguration : masterConfigurations) {
             addToMapping(masterConfiguration, Arrays.asList(ModuleDescriptor.DEFAULT_CONFIGURATION));
         }
     }
@@ -45,13 +48,13 @@ public class DefaultDependencyConfigurationMappingContainer implements Dependenc
         addToMapping(WILDCARD, Arrays.asList(dependencyConfigurations));
     }
 
-    public void add(Map<String, List<String>> dependencyConfigurations) {
-        for (String masterConf : dependencyConfigurations.keySet()) {
+    public void add(Map<Configuration, List<String>> dependencyConfigurations) {
+        for (Configuration masterConf : dependencyConfigurations.keySet()) {
             addToMapping(masterConf, dependencyConfigurations.get(masterConf));
         }
     }
 
-    private void addToMapping(String masterConf, List<String> dependencyConfigurations) {
+    private void addToMapping(Configuration masterConf, List<String> dependencyConfigurations) {
         throwExceptionIfNull(masterConf, "A master Conf");
         throwExceptionIfNull(dependencyConfigurations, "The dependency configuration list");
         if (mappings.get(masterConf) == null) {
@@ -69,12 +72,12 @@ public class DefaultDependencyConfigurationMappingContainer implements Dependenc
         }
     }
 
-    public Map<String, List<String>> getMappings() {
+    public Map<Configuration, List<String>> getMappings() {
         return mappings;
     }
 
-    public Set<String> getMasterConfigurations() {
-        Set<String> masterConfs = new HashSet<String>(getMappings().keySet());
+    public Set<Configuration> getMasterConfigurations() {
+        Set<Configuration> masterConfs = new HashSet<Configuration>(getMappings().keySet());
         masterConfs.remove(WILDCARD);
         return masterConfs;
     }
@@ -92,5 +95,20 @@ public class DefaultDependencyConfigurationMappingContainer implements Dependenc
 
     public int hashCode() {
         return (mappings != null ? mappings.hashCode() : 0);
+    }
+
+    public List<String> getDependencyConfigurations(String configuration) {
+        for (Configuration masterConfiguration : mappings.keySet()) {
+            if (masterConfiguration.getName().equals(configuration)) {
+                return mappings.get(masterConfiguration);
+            }
+        }
+        throw new UnknownConfigurationException(String.format("Configuration %s is unknown.", configuration));
+    }
+
+    public void setDependencyConfigurations(String... dependencyConfigurations) {
+        for (Configuration configuration : getMasterConfigurations()) {
+            mappings.put(configuration, WrapUtil.toList(dependencyConfigurations));
+        }
     }
 }

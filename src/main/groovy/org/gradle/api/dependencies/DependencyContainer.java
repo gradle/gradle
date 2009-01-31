@@ -19,6 +19,7 @@ package org.gradle.api.dependencies;
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Project;
+import org.gradle.api.filter.FilterSpec;
 
 import java.util.List;
 import java.util.Map;
@@ -30,46 +31,25 @@ import java.util.Map;
  */
 public interface DependencyContainer {
     /**
-     * Returns the default configurations for this dependency container.
-     *
-     * @return The default configurations. Returns an empty list if there are no default configurations.
-     */
-    List<String> getDefaultConfs();
-
-    /**
-     * Sets the default configurations for this dependency container.
-     *
-     * @param defaultConfs The default configurations. May be empty, should not be null.
-     */
-    void setDefaultConfs(List<String> defaultConfs);
-
-    /**
      * The project associated with this DependencyManager
      *
      * @return an instance of a project
      */
     Project getProject();
-
-    void setProject(Project project);
-
+    
     /**
      * A list of all Gradle Dependency objects.
      *
-     * @see #getDependencies(Filter)
+     * @see #getDependencies(FilterSpec)
      */
-    List<Dependency> getDependencies();
+    List<? extends Dependency> getDependencies();
 
     /**
-     * A list of Gradle Project Dependency based on the given {@link Filter}
+     * A list of Gradle Project Dependency based on the given {@link org.gradle.api.filter.FilterSpec}
      *
      * @see #getDependencies()
      */
-    List<Dependency> getDependencies(Filter filter);
-
-    /**
-     * A list for passing directly instances of Ivy DependencyDescriptor objects.
-     */
-    List<DependencyDescriptor> getDependencyDescriptors();
+    <T extends Dependency> List<T> getDependencies(FilterSpec<T> filter);
 
     /**
      * Adds dependencies. The master confs are mapped to the default configuration of
@@ -87,42 +67,9 @@ public interface DependencyContainer {
      * @param configurationMappings
      * @param dependencies
      */
-    void dependencies(Map<String, List<String>> configurationMappings, Object... dependencies);
-
-    /**
-     * Adds dependencies to the defaultConfs
-     *
-     * @param dependencies
-     */
-    void dependencies(Object... dependencies);
-
-    /**
-     * Add instances of type <code>org.apache.ivy.core.module.descriptor.DependencyDescriptor</code>. Those
-     * instances have an attribute to what confs they belong. There the confs don't need to be passed as an
-     * argument.
-     *
-     * @param dependencyDescriptors
-     */
-    void dependencyDescriptors(DependencyDescriptor... dependencyDescriptors);
-
-    /**
-     * @param confs                     The master confs
-     * @param userDependencyDescription
-     * @return The added Dependency
-     * @see #dependency(java.util.List, Object, Closure)
-     */
-    Dependency dependency(List<String> confs, Object userDependencyDescription);
-
-    /**
-     * Adds a dependency. The configurationMappings defines the mapping between master configurations (keys) and
-     * dependency configurations (value).
-     *
-     * @param configurationMappings
-     * @param userDependencyDescription
-     * @return the added Dependency
-     */
-    Dependency dependency(Map<String, List<String>> configurationMappings, Object userDependencyDescription);
-
+    void dependencies(Map<Configuration, List<String>> configurationMappings, Object... dependencies);
+    
+    void addDependencies(Dependency... dependencies);
 
     /**
      * Adds a dependency. The master confs are mapped to the default configuration of
@@ -144,57 +91,31 @@ public interface DependencyContainer {
      * @param configureClosure
      * @return the added Dependency
      */
-    Dependency dependency(Map<String, List<String>> configurationMappings, Object userDependencyDescription, Closure configureClosure);
-
-    /**
-     * Adds a dependency. The {@link #getDefaultConfs)} are used as master confs.
-     *
-     * @param userDependencyDescription
-     * @return The added dependency.
-     * @deprecated Since Gradle 0.5, use <code>compile("org:junit:4.4")</code> instead.
-     */
-    Dependency dependency(String userDependencyDescription);
-
-    /**
-     * Adds a dependency. The {@link #getDefaultConfs)} are used as master confs.
-     * The configureClosure configures this dependency.
-     *
-     * @param userDependencyDescription
-     * @param configureClosure
-     * @return The added Dependency
-     * @deprecated Since Gradle 0.5, use <code>compile("org:junit:4.4") {}</code> instead.
-     */
-    Dependency dependency(String userDependencyDescription, Closure configureClosure);
+    Dependency dependency(Map<Configuration, List<String>> configurationMappings, Object userDependencyDescription, Closure configureClosure);
 
     /**
      * Adds a client module. The given master confs are mapped to the default configuration of
      * the dependency.
      *
      * @param confs
-     * @param id
+     * @param moduleDescriptor
      * @return
      */
-    ClientModule clientModule(List<String> confs, String id);
+    ClientModule clientModule(List<String> confs, String moduleDescriptor);
 
     /**
      * Adds a client module to the given confs. The configureClosure configures this client module.
      * See {@link ClientModule} for the API that can be used.
      *
-     * @param moduleName
+     * @param moduleDescriptor
      * @param configureClosure
      * @return the added ClientModule
      */
-    ClientModule clientModule(List<String> confs, String moduleName, Closure configureClosure);
+    ClientModule clientModule(List<String> confs, String moduleDescriptor, Closure configureClosure);
 
-    ClientModule clientModule(String moduleName);
+    ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor);
 
-    /**
-     * Adds a client module to the default confs. The configureClosure configures this client module.
-     * See {@link ClientModule} for the API that can be used.
-     *
-     * @param moduleName
-     * @param configureClosure
-     * @return the added ModuleDependency
-     */
-    ClientModule clientModule(String moduleName, Closure configureClosure);
+    ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor, Closure configureClosure);
+
+    ExcludeRuleContainer getExcludeRules();
 }

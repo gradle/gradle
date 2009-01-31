@@ -39,6 +39,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.dependencies.maven.PomFilterContainer
 import org.gradle.api.dependencies.maven.MavenResolver
 import org.gradle.api.dependencies.maven.CopyableGroovyPomFilterContainer
+import org.gradle.api.internal.dependencies.ivy.ResolverFactory
 
 /**
  * @author Hans Dockter
@@ -145,12 +146,12 @@ class ResolverContainerTest {
     }
 
     @Test public void testCreateFlatDirResolver() {
-        File[] expectedRoots = [new File('/rootFolder')]
+        Object[] expectedDirs = ['a', 'b' as File]
         String expectedName = 'libs'
         context.checking {
-            one(resolverFactoryMock).createFlatDirResolver(expectedName, expectedRoots); will(returnValue(expectedResolver))
+            one(resolverFactoryMock).createFlatDirResolver(expectedName, ['a' as File, 'b' as File] as File[]); will(returnValue(expectedResolver))
         }
-        assert resolverContainer.createFlatDirResolver(expectedName, expectedRoots as File[]).is(expectedResolver)
+        assert resolverContainer.createFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
     }
 
     @Test
@@ -205,7 +206,7 @@ class ResolverContainerTest {
 
     private DependencyResolver prepareMavenResolverTests(Class resolverType, String createMethod) {
         File testPomDir = new File("pomdir");
-        DependencyManager dependencyManager = [:] as DependencyManager
+        DependencyManagerInternal dependencyManager = [:] as DependencyManagerInternal
         resolverContainer.setMavenPomDir(testPomDir)
         resolverContainer.setDependencyManager(dependencyManager)
         DependencyResolver expectedResolver = context.mock(resolverType)

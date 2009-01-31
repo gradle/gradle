@@ -34,6 +34,10 @@ import static org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.DependencyManager
+import org.apache.ivy.core.module.descriptor.Configuration
+import org.gradle.api.dependencies.ConfigurationResolver
+import org.gradle.api.dependencies.PublishArtifact
 
 /**
  * @author Hans Dockter
@@ -87,7 +91,8 @@ class BundleTest extends AbstractConventionTaskTest {
         taskFactoryMock = context.mock(ITaskFactory)
         getProject().setTaskFactory(taskFactoryMock)
         testCustomConfigurations = ['customConf1', 'customConf2']
-        testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier', confs: testCustomConfigurations]
+        testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier',
+                confs: testCustomConfigurations]
         testClosure = {
             enabled = false
         }
@@ -157,7 +162,7 @@ class BundleTest extends AbstractConventionTaskTest {
         (Tar) checkForDefaultValues(bundle.tarGz(testClosure), bundle.defaultArchiveTypes['tar.gz'])
     }
 
-    @Test public void xtestTarGzWithArgs() {
+    @Test public void testTarGzWithArgs() {
         prepateProjectMock(bundle.defaultArchiveTypes['tar.gz'], testArgs)
         (Tar) checkForDefaultValues(bundle.tarGz(testArgs, testClosure), bundle.defaultArchiveTypes['tar.gz'], testArgs)
     }
@@ -200,7 +205,7 @@ class BundleTest extends AbstractConventionTaskTest {
         assertEquals(testBundleDependsOn as Set, task2.dependsOn)
     }
 
-    private void preparForDependsOnTest() {
+    private void preparForDependsOnTest(Map args = [:]) {
         Project projectMock = context.mock(ProjectInternal)
         bundle.setProject(projectMock)
         context.checking {
@@ -211,6 +216,7 @@ class BundleTest extends AbstractConventionTaskTest {
             one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip2_zip")
             will(returnValue(Zip.newInstance(getProject(), "zip2_zip")))
         }
+        prepareDependencies(projectMock, args)
     }
 
     private void prepateProjectMock(ArchiveType archiveType, Map args = [:]) {
@@ -226,6 +232,20 @@ class BundleTest extends AbstractConventionTaskTest {
             one(projectMock).createTask([(Task.TASK_TYPE): archiveType.getTaskClass()], taskName)
             will(returnValue(createTask(archiveType.getTaskClass(), getProject(), taskName)))
         }
+      prepareDependencies(projectMock, args) 
+    }
+
+    private void prepareDependencies(Project projectMock, Map args = [:]) {
+        List confs = args.confs != null ? testCustomConfigurations : testDefaultConfigurations
+        List configurationResolvers = confs.collect { context.mock(ConfigurationResolver, it) }
+        DependencyManager dependencyManagerMock = context.mock(DependencyManager)
+        context.checking {
+            allowing(projectMock).getDependencies(); will(returnValue(dependencyManagerMock))
+            confs.eachWithIndex { name, i ->
+               allowing(dependencyManagerMock).configuration(name); will(returnValue(configurationResolvers[i]))
+            }
+            allowing(dependencyManagerMock).addArtifacts(withParam(any(PublishArtifact)))
+        }
     }
 
     private AbstractArchiveTask checkForDefaultValues(AbstractArchiveTask archiveTask, ArchiveType archiveType, Map args = [:]) {
@@ -234,15 +254,12 @@ class BundleTest extends AbstractConventionTaskTest {
         String archiveBaseName = (args.baseName ?: getProject().archivesBaseName);
         String archiveAppendix = args.appendix
         String classifier = args.classifier ? '_' + args.classifier : ''
-        List confs = []
-        confs.addAll(testDefaultConfigurations)
         checkCommonStuff(archiveTask, "${taskName}${classifier}_${archiveType.defaultExtension}",
-                archiveType.conventionMapping, archiveBaseName, archiveAppendix, classifier ? classifier.substring(1) : '', confs)
+                archiveType.conventionMapping, archiveBaseName, archiveAppendix, classifier ? classifier.substring(1) : '')
     }
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
-                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveAppendix, String expectedArchiveClassifier,
-                                                 List expectedConfigurations) {
+                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveAppendix, String expectedArchiveClassifier) {
         assertEquals(false, archiveTask.enabled)
         assertEquals(conventionMapping, archiveTask.conventionMapping)
         assertEquals(expectedArchiveBaseName, archiveTask.baseName)
@@ -250,7 +267,6 @@ class BundleTest extends AbstractConventionTaskTest {
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)
         assertEquals(testChildrenDependsOn as Set, archiveTask.dependsOn)
-        assertEquals(expectedConfigurations, archiveTask.configurations)
         assertEquals(testDefaultDestinationDir, archiveTask.getDestinationDir())
         assert bundle.archiveTasks.contains(archiveTask)
         archiveTask

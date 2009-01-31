@@ -16,9 +16,11 @@
 package org.gradle.api.internal.dependencies.ivy;
 
 import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.gradle.api.Project;
+import org.gradle.util.GUtil;
 
-import java.util.Set;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -32,5 +34,9 @@ public class IvyUtil {
             masterConfigurationNames.add(masterConfigurationObject.getName());
         }
         return masterConfigurationNames;
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(Project project) {
+        return new ModuleRevisionId(new ModuleId(project.getGroup().toString(), project.getName()), project.getVersion().toString());
     }
 }
