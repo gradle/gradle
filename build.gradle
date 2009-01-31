@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Task
-import org.gradle.api.internal.dependencies.ivy.WebdavResolver
+import org.gradle.api.internal.dependencies.WebdavResolver
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.api.tasks.wrapper.Wrapper
@@ -14,7 +14,6 @@ import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.util.GradleVersion
-import org.gradle.api.internal.dependencies.ivy.WebdavResolver
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
