@@ -1,0 +1,161 @@
+
+body {
+    font-family: arial, sans-serif;
+    color: #666666;
+    font-size: 11pt;
+    margin-top: 4em;
+    margin-left: 4em;
+    margin-right: 4em;
+}
+
+a {
+    color: #444444;
+}
+
+a:visited {
+    color: #444444;
+}
+
+h1, h2, h3, h4, h5 {
+    color: #6a915e;
+}
+
+h1 {
+    font-size: 150%;
+}
+
+h2 {
+    font-size: 180%;
+}
+
+h3 {
+    font-size: 110%;
+}
+
+.section h2 {
+    font-size: 130%;
+    margin-top: 1.4em;
+}
+
+.variablelist dt {
+    font-weight: bold;
+}
+
+pre {
+    background-color: #f2f2f2;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 1.2em;
+    padding-right: 1.2em;
+    margin-top: 0.6em;
+    margin-bottom: 0.6em;
+    font-family: Courier, monospace;
+    /*font-size: 90%;*/
+}
+.programlisting {
+    border-left: solid #a2a2a2 5px;
+}
+
+.screen {
+    border-left: solid #a2a2a2 5px;
+}
+
+.example-break {
+    display: none
+}
+
+.chapter .toc {
+    /*float: right;*/
+}
+
+.chapter table {
+    border-collapse: collapse;
+    font-size: 100%;
+    border: solid #d0d0d0 1px;
+}
+
+.chapter table td {
+    /*border: solid #d0d0d0 1px;*/
+    text-align: left;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
+
+.chapter table thead td {
+    font-weight: bold;
+    border-bottom: solid #d0d0d0 1px;
+    background-color: #f2f2f2;
+}
+
+.footnote sup {
+    vertical-align: baseline;
+    font-size: 100%;
+}
+
+/*
+ * HEADER
+ */
+
+.navheader {
+    padding-bottom: 2.4em;
+    color: #a2a2a2;
+}
+
+.navheader a {
+    color: #a2a2a2;
+}
+
+.navheader td {
+    font-size: 90%;
+}
+
+.navheader hr {
+    display: none
+}
+
+/*
+ * FOOTER
+ */
+
+.navfooter {
+    padding-top: 2.4em;
+    color: #a2a2a2;
+}
+
+.navfooter a {
+    color: #a2a2a2;
+}
+
+.navfooter td {
+    font-size: 90%;
+}
+
+.navfooter hr {
+    display: none
+}
+
+/*
+ * TITLEPAGE
+ */
+
+.book > .titlepage {
+    border-top: solid black 1px;
+    border-bottom: solid black 1px;
+    padding-bottom: 2em;
+    padding-top: 2em;
+    margin-bottom: 4em;
+}
+
+.book > .titlepage hr {
+    display: none
+}
+
+.book > .titlepage h1 {
+    font-size: 240%;
+}
+
+.book > .titlepage h3 {
+    color: inherit;
+}
