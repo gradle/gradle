@@ -2,8 +2,10 @@
 \chapter{Command line} % (fold)
 \label{cha:command_line}
 
+\begin{table}
+\begin{center}
 \begin{tabular}{l|l|l}
-\textbf{Option}(-) & \textbf{Long Option}(--) & \textbf{Meaning}\\ \hline
+\textbf{Short Option}(-) & \textbf{Long Option}(--) & \textbf{Meaning}\\ \hline
 -?, -h  & -           & Shows this help message\\
 B & bootstrap-debug & Specify a text to be logged at the beginning (used internally by Gradle's bootstrap class.)\\
 D & systemprop       & Sets a system property of the JVM (e.g. -Dmyprop=myvalue).\\ 
@@ -28,9 +30,11 @@ t & tasks            & Show list of all available tasks and there dependencies.\
 u & no-search-upwards  & Don't search in parent folders for a settings.gradle file.\\
 v & version          & Prints version info.\\
 x & cache-off        & No caching of compiled build scripts.\\
-
 \end{tabular}
-\\
+\end{center}
+\caption{Command Line Options}
+\label{command_line_options}
+\end{table}
  
-\noindent The same information is printed to the console when you execute \texttt{gradle -h}.\\
+\noindent The same information is printed to the console when you execute \texttt{gradle -h}.
 % chapter command_line (end)

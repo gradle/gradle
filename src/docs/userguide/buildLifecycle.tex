@@ -41,14 +41,12 @@ Multi-project builds are always represented by a tree with a single root. Each e
 \label{sub:building_the_tree}
 In the settings file you can use a set of methods to build the project tree. Hierarchical and flat physical layouts get special support. 
 \subsubsection{Hierarchical Layouts} % (fold)
-\label{ssub:hierarchical_layouts}
 \begin{Verbatim}
 include 'project1', 'project2', 'project2/child1'
 \end{Verbatim}
 The include method takes as an argument a relative virtual path to the root project. This relative virtual path is assumed to be equals to the relative physical path of the subproject to the root project. You only need to specify the leafs of the tree. Each parent path of the leaf project is assumed to be another subproject which obeys to the physical path assumption described above.
 % subsubsection hierarchical_layouts (end)
 \subsubsection{Flat Layouts} % (fold)
-\label{ssub:hierarchical_layouts}
 \begin{Verbatim}
 includeFlat 'project1', 'project2'
 \end{Verbatim}

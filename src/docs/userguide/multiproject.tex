@@ -8,7 +8,6 @@ The powerful support for multi-project builds is one of Gradles unique selling p
 Let's start with a very simple multi-project build. After all Gradle is a general purpose build tool at its core. So the projects don't have to be java projects. Our first examples are about marine life. 
 
 \subsection{Defining Common Behavior} % (fold)
-\label{sub:defining_common_behavior}
 We have the following project tree\footnote{F means File and D means Directory}. This is a multi-project build with a root project \texttt{water} and a subproject \texttt{bluewhale}.
 
 \begin{minipage}[t]{7cm}
@@ -24,7 +23,7 @@ D- water
 \end{minipage}
 \\
 
-\noindent And where is the build script for the bluewhale project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the water project and execute it.:
+\noindent And where is the build script for the bluewhale project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the water project and execute it:
 \codeGradleFile[water - ]{../../samples/userguide/multiproject/firstExample/water/build.gradle}
 \outputInputGradle[userguide/multiproject/firstExample/water]{../../samples/userguideOutput/multiprojectFirstExample.out}
 Gradle allows you to access any project of the multi-project build from any build script. The Project API provides a method called project, which takes a path as an argument and returns the project object for this path. The capability to configure a project build from any build script we call \emph{Cross Project Configuration}. Gradle implements this via \emph{Configuration Injection}.
@@ -62,8 +61,7 @@ Other build systems use inheritance as the primary means for defining common beh
 \noindent The Project API also provides a property for accessing the subprojects only. 
 
 \subsection{Defining Common Behavior} % (fold)
-\label{sub:defining_common_behavior}
-\codeGradleFile{../../samples/userguide/multiproject/useSubprojects/water/build.gradle}
+\codeGradleFile[water - ]{../../samples/userguide/multiproject/useSubprojects/water/build.gradle}
 \outputInputGradle[userguide/multiproject/useSubprojects/water]{../../samples/userguideOutput/multiprojectUseSubprojects.out}
 % subsection defining_common_behavior (end)
 
@@ -353,7 +351,6 @@ You might be wondering why we have implemented a feature we obviously don't like
 % section property_and_method_inheritance (end)
 
 \section{Summary} % (fold)
-\label{sec:summary}
 Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message for this chapter is that multi-project builds with Gradle are usually \emph{not} difficult. There are six elements you need to remember: \texttt{allproject}, \texttt{subprojects}, \texttt{dependsOn}, \texttt{childrenDependOnMe}, \texttt{dependOnChildren} and project lib dependencies. 
 \footnote{So we are well in the range of the \href{http://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two}{7 plus 2 Rule} :)}
 With those elements, and keeping in mind that Gradle has a distinct configuration and execution phase, you have already a lot of flexibility. But when you enter steep territory Gradle does not become an obstacle and usually accompanies and carries you to the top of the mountain.

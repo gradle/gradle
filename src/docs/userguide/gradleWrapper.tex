@@ -42,10 +42,16 @@ The Wrapper task adds appropriate file permissions to allow the execution for th
 \label{sec:environment_variable}
 Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuos integration server goes down during unzipping the Gradle distribution. As the distribution directory exists \texttt{gradlew} delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When you have no admin right on the continuous integration server to remove the corrupt files, Gradle offers a solution via environment variables.
 
-\begin{tabularx}{\textwidth}{cX} 
-	\textbf{Variable Name} & \centerline{\textbf{Meaning}}\\
+\begin{table}
+\begin{center}
+\begin{tabularx}{\textwidth}{cX}
+	\textbf{Variable Name} & \textbf{Meaning}\\
     GRADLE\_WRAPPER\_ALWAYS\_UNPACK & If set to \texttt{true}, the distribution directory gets always deleted when \texttt{gradlew} is run and the distribution zip is freshly unpacked. If the zip is not there, Gradle tries to download it. \\
 	GRADLE\_WRAPPER\_ALWAYS\_DOWNLOAD & If set to \texttt{true}, the distribution directory and the distribution zip gets always deleted when \texttt{gradlew} is run and the distribution zip is freshly downloaded. \\
 \end{tabularx}
+\end{center}
+\caption{Gradle Wrapper Environment Variables}
+\end{table}
+
 % section environment_variable (end)
 % chapter the_gradle_wrapper (end)

@@ -25,23 +25,26 @@ Every task has also a \texttt{enabled} flag which defaults to \texttt{true}. Set
 \outputInputTutorial{disableTask}
 
 \section{Obtaining Information About Your Build}
-Gradle provides several ways that you can use to find out many details of your build. This can be useful for
-understanding the structure and dependencies of your build, and for debugging problems. Firstly, Gradle provides several
-command-line options which show particular details of your build. And secondly, Gradle provides a \texttt{project-reports}
-plugin, which adds tasks to generate reports about your build.
+Gradle provides several ways you can find out many details of your build. This can be useful for understanding the structure and
+dependencies of your build, and for debugging problems. Firstly, Gradle provides several command-line options which show
+particular details of your build. And secondly, Gradle provides a \texttt{project-reports} plugin, which adds tasks to
+generate reports about your build.
 
 Running \texttt{gradle --tasks} gives you a list of the tasks which make up the build, broken down by project. This
-report also shows the default tasks, if any, of each project. Note that tasks can have descriptions. Below is an example
+report shows the default tasks, if any, of each project, and the description and dependencies of each task. Below is an example
 of this report:
 \outputInputTutorial{taskListReport}
 
-Running \texttt{gradle --dependencies} gives you a list of the dependencies of the build, broken down by project. Below
-is an example of this report:
+Running \texttt{gradle --dependencies} gives you a list of the dependencies of the build, broken down by project. This report
+shows the configurations of each project. For each configuration, the direct and transitive dependencies of that configuration are shown.
+Below is an example of this report:
 \outputInputTutorial{dependencyListReport}
 
 Running \texttt{gradle --properties} gives you a list of the properties of each project in the build. Below is an
 example of this report:
 \outputInputTutorial{propertyListReport}
+
+Finally, you can use the \texttt{project-reports} plugin to add a number of reporting tasks to your project.
 
 \section{Directory Creation} % (fold)
 \label{sec:directory_creation}
