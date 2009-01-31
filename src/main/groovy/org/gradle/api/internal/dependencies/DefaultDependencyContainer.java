@@ -80,23 +80,23 @@ public class DefaultDependencyContainer implements DependencyContainerInternal {
     }
 
     public ClientModule clientModule(List<String> confs, String id, Closure configureClosure) {
+        return clientModule(getStandardConfigurationMapping(confs).getMappings(), id, configureClosure);
+    }
+
+    public ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor) {
+        return clientModule(configurationMappings, moduleDescriptor, null);
+    }
+
+    public ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor, Closure configureClosure) {
         // todo: We might better have a client module factory here
         DefaultConfigurationContainer defaultConfigurationContainer = new DefaultConfigurationContainer();
         defaultConfigurationContainer.add(Dependency.DEFAULT_CONFIGURATION);
-        ClientModule clientModule = new ClientModule(getStandardConfigurationMapping(confs), id,
+        ClientModule clientModule = new ClientModule(getStandardConfigurationMapping(configurationMappings), moduleDescriptor,
                 new DefaultDependencyContainer(project, defaultConfigurationContainer,
                         dependencyFactory, new DefaultExcludeRuleContainer(), clientModuleRegistry));
         dependencies.add(clientModule);
         ConfigureUtil.configure(configureClosure, clientModule);
         return clientModule;
-    }
-
-    public ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public ClientModule clientModule(Map<Configuration, List<String>> configurationMappings, String moduleDescriptor, Closure configureClosure) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public <T extends Dependency> List<T> getDependencies(FilterSpec<T> filter) {
