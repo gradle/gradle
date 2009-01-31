@@ -14,6 +14,7 @@ import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.util.GradleVersion
+import org.apache.ivy.plugins.resolver.*
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -46,6 +47,11 @@ webSrcDir = new File("$srcRoot", 'website')
 
 dependencies {
     addMavenRepo()
+    classpathResolvers.add(new URLResolver()) {
+      name = 'sf_gradleRepo'
+      addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
+    }
+
     // todo: Improve dependency handling for xUnit jars
     addConfiguration('distLib') {
         visible = false
@@ -53,6 +59,8 @@ dependencies {
     }
     addConfiguration('ftpAntTask')
     addConfiguration('retrotranslatorAntTask')
+    addConfiguration('userGuideStyleSheets')
+    addConfiguration('userGuideTask')
 
     clientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
         clientModule("commons-net:commons-net:1.4.1") {
@@ -62,6 +70,17 @@ dependencies {
 
     retrotranslatorAntTask 'net.sf.retrotranslator:retrotranslator-runtime:1.2.7@jar', 'net.sf.retrotranslator:retrotranslator-transformer:1.2.7@jar',
             'backport-util-concurrent:backport-util-concurrent:3.1@jar'
+
+    userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
+    clientModule(['userGuideTask'], 'fop:fop:0.95') {
+        dependency 'avalon-framework:avalon-framework:4.2.0@jar'
+        dependency 'batik:batik:1.7@jar'
+        dependency 'commons-io:commons-io:1.3.1@jar'
+        dependency 'commons-logging:commons-logging:1.1@jar'
+        dependency 'xmlgraphics-commons:xmlgraphics-commons:1.3.1@jar'
+    }
+    
+    userGuideStyleSheets 'docbook:docbook-xsl:1.74.0@zip'
 
     clientModule(['groovy'], "org.codehaus.groovy:groovy-all:1.5.6") {
         clientModule("org.apache.ant:ant:1.7.0") {
@@ -397,7 +416,116 @@ boolean isLatexInstalled() {
 
 void cleanLatex(File dir) {
     ant.delete() {
-        fileset(dir: dir, includes: "*.aux, *.lg, *.tmp, *.html, *.pdf, *.log, *.dvi, *.css, *.fdb_latexmk, *.idv, *.toc, *.xref, *.4ct, *.4tc, *.out")
+        fileset(dir: dir, includes: "*.aux, *.lg, *.tmp, *.html, *.pdf, *.log, *.dvi, userguide.css, *.fdb_latexmk, *.idv, *.toc, *.xref, *.4ct, *.4tc, *.out")
+    }
+}
+
+File userguideSrc = new File(srcDocsDir, 'userguide')
+File userguideOutDir = new File(project.buildDir, 'docbook')
+File docbookSrc = new File(project.buildDir, 'docbook/src')
+File docbookDir = new File(project.buildDir, 'docbook/stylesheets')
+
+createTask('userguideSrc') {
+    transformer = new org.gradle.build.Latex2Docbook(project)
+    transformer.sourceDir = userguideSrc
+    transformer.destDir = docbookSrc
+    transformer.transform()
+}
+
+createTask('userguideStyleSheets') {
+    ant.unzip(src: dependencies.userGuideStyleSheets.singleFile, dest: docbookDir) {
+        globmapper(from: 'docbook-xsl-1.74.0/*', to: '*')
+    }
+}
+
+createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
+    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
+            "org.apache.xerces.parsers.XIncludeParserConfiguration")
+
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+        arg(value: '-in')
+        arg(value: new File(docbookSrc, 'userguide.xml'))
+        arg(value: '-xsl')
+        arg(value: new File(docbookDir, 'html/chunkfast.xsl'))
+        arg(line: '-param use.extensions 1')
+        arg(line: "-param root.filename userguide")
+        arg(line: "-param base.dir ${userguideOutDir}/")
+        arg(line: "-param html.stylesheet style.css")
+        arg(line: "-param chunk.section.depth 0")
+        arg(line: "-param chunk.quietly 1")
+        arg(line: "-param make.single.year.ranges 1")
+        arg(line: "-param section.autolabel 1")
+        arg(line: "-param section.label.includes.component.label 1")
+        arg(line: "-param navig.showtitles 1")
+        classpath {
+            path(path: dependencies.userGuideTask.asPath)
+            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
+        }
+    }
+    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideOutDir)
+}
+
+createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
+    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
+            "org.apache.xerces.parsers.XIncludeParserConfiguration")
+
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+        arg(value: '-in')
+        arg(value: new File(docbookSrc, 'userguide.xml'))
+        arg(value: '-out')
+        arg(value: new File(userguideOutDir, 'userguide.html'))
+        arg(value: '-xsl')
+        arg(value: new File(docbookDir, 'html/docbook.xsl'))
+        arg(line: '-param use.extensions 1')
+        arg(line: "-param html.stylesheet style.css")
+        arg(line: "-param make.single.year.ranges 1")
+        arg(line: "-param section.autolabel 1")
+        arg(line: "-param section.label.includes.component.label 1")
+        arg(line: "-param navig.showtitles 1")
+        classpath {
+            path(path: dependencies.userGuideTask.asPath)
+            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
+        }
+    }
+    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideOutDir)
+}
+
+createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
+    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
+            "org.apache.xerces.parsers.XIncludeParserConfiguration")
+
+    File foFile = new File(userguideOutDir, "userguide.fo")
+
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+        arg(value: '-in')
+        arg(value: new File(docbookSrc, 'userguide.xml'))
+        arg(value: '-xsl')
+        arg(value: new File(docbookDir, 'fo/docbook.xsl'))
+        arg(value: '-out')
+        arg(value: foFile)
+        arg(line: '-param use.extensions 1')
+        arg(line: '-param fop1.extensions 1')
+        arg(line: '-param paper.type A4')
+        arg(line: '-param body.start.indent 0pt')
+        arg(line: '-param body.font.family serif')
+        arg(line: "-param shade.verbatim 1")
+        arg(line: "-param make.single.year.ranges 1")
+        arg(line: "-param section.autolabel 1")
+        arg(line: "-param section.label.includes.component.label 1")
+        classpath {
+            path(path: dependencies.userGuideTask.asPath)
+            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
+        }
+    }
+
+    ant.java(classname: 'org.apache.fop.cli.Main', failonerror: true, fork: true) {
+        arg(value: '-fo')
+        arg(value: foFile)
+        arg(value: '-pdf')
+        arg(value: new File(userguideOutDir, 'userguide.pdf'))
+        classpath {
+            path(path: dependencies.userGuideTask.asPath)
+        }
     }
 }
 
