@@ -17,21 +17,15 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.dependencies.*;
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.filter.ConfSpec;
-import org.gradle.api.dependencies.filter.TypeSpec;
 import org.gradle.api.dependencies.filter.Type;
-import org.gradle.api.dependencies.filter.DependencyFilters;
 import static org.gradle.api.dependencies.filter.DependencyFilters.*;
-import org.gradle.api.internal.dependencies.ivy.IvyHandler;
+import org.gradle.api.internal.dependencies.ivy.IvyService;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.Transformer;
-import org.gradle.api.filter.AndSpec;
-import org.gradle.api.filter.Filters;
 import static org.gradle.api.filter.Filters.*;
 import org.gradle.util.ConfigureUtil;
 import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.module.descriptor.*;
 
 import java.io.File;
 import java.util.*;
@@ -46,19 +40,19 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private DependencyContainerInternal dependencyContainer;
     private ArtifactContainer artifactContainer;
     private ConfigurationContainer publishConfigurationContainer;
-    private IvyHandler ivyHandler;
+    private IvyService ivyService;
     private ResolverContainer dependencyResolvers;
     private File gradleUserHome;
 
     public DefaultConfigurationResolver(Configuration configuration, DependencyContainerInternal dependencyContainer,
                                         ArtifactContainer artifactContainer, ConfigurationContainer publishConfigurationContainer,
-                                        ResolverContainer dependencyResolvers, IvyHandler ivyHandler, File gradleUserHome) {
+                                        ResolverContainer dependencyResolvers, IvyService ivyService, File gradleUserHome) {
         this.configuration = configuration;
         this.dependencyContainer = dependencyContainer;
         this.artifactContainer = artifactContainer;
         this.publishConfigurationContainer = publishConfigurationContainer;
         this.dependencyResolvers = dependencyResolvers;
-        this.ivyHandler = ivyHandler;
+        this.ivyService = ivyService;
         this.gradleUserHome = gradleUserHome;
     }
 
@@ -68,7 +62,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     public List<File> resolve(ResolveInstructionModifier resolveInstructionModifier) {
         ResolveInstruction resolveInstruction = resolveInstructionModifier.modify(getResolveInstruction());
-        return ivyHandler.resolve(getName(), dependencyContainer.getConfigurations(), dependencyContainer, dependencyResolvers.getResolverList(), resolveInstruction, gradleUserHome);
+        return ivyService.resolve(getName(), dependencyContainer.getConfigurations(), dependencyContainer, dependencyResolvers.getResolverList(), resolveInstruction, gradleUserHome);
     }
 
     public List<File> resolve(final Closure resolveInstructionConfigureClosure) {
@@ -83,7 +77,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     public ResolveReport resolveAsReport(ResolveInstructionModifier resolveInstructionModifier) {
         ResolveInstruction resolveInstruction = resolveInstructionModifier.modify(getResolveInstruction());
-        return ivyHandler.resolveAsReport(getName(), dependencyContainer.getConfigurations(), dependencyContainer, dependencyResolvers.getResolverList(), resolveInstruction, gradleUserHome);
+        return ivyService.resolveAsReport(getName(), dependencyContainer.getConfigurations(), dependencyContainer, dependencyResolvers.getResolverList(), resolveInstruction, gradleUserHome);
     }
 
     public ResolveReport resolveAsReport(final Closure resolveInstructionConfigureClosure) {
@@ -97,7 +91,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     public void publish(ResolverContainer publishResolvers, PublishInstruction publishInstruction) {
-        ivyHandler.publish(getName(), publishInstruction, publishResolvers.getResolverList(), publishConfigurationContainer,
+        ivyService.publish(getName(), publishInstruction, publishResolvers.getResolverList(), publishConfigurationContainer,
                 dependencyContainer, artifactContainer, gradleUserHome);
     }
 
@@ -170,7 +164,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<ConfigurationResolver> resultSet = new HashSet<ConfigurationResolver>();
         for (Configuration configuration : configurations) {
             resultSet.add(new DefaultConfigurationResolver(configuration, dependencyContainer, artifactContainer,
-                    publishConfigurationContainer, dependencyResolvers, ivyHandler, gradleUserHome));
+                    publishConfigurationContainer, dependencyResolvers, ivyService, gradleUserHome));
         }
         return resultSet;
         
@@ -240,8 +234,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return publishConfigurationContainer;
     }
 
-    public IvyHandler getIvyHandler() {
-        return ivyHandler;
+    public IvyService getIvyHandler() {
+        return ivyService;
     }
 
     public File getGradleUserHome() {

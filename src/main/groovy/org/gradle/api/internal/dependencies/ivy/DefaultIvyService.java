@@ -21,7 +21,6 @@ import org.gradle.api.internal.dependencies.*;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.filter.Filters;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -35,8 +34,8 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public class DefaultIvyHandler implements IvyHandler {
-    private static Logger logger = LoggerFactory.getLogger(DefaultIvyHandler.class);
+public class DefaultIvyService implements IvyService {
+    private static Logger logger = LoggerFactory.getLogger(DefaultIvyService.class);
 
     private SettingsConverter settingsConverter;
     private ModuleDescriptorConverter moduleDescriptorConverter;
@@ -45,7 +44,7 @@ public class DefaultIvyHandler implements IvyHandler {
     private IvyDependencyResolver dependencyResolver;
     private IvyDependencyPublisher dependencyPublisher;
 
-    public DefaultIvyHandler(SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
+    public DefaultIvyService(SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
                              IvyFactory ivyFactory, BuildResolverHandler buildResolverHandler, IvyDependencyResolver dependencyResolver,
                              IvyDependencyPublisher dependencyPublisher) {
         this.settingsConverter = settingsConverter;

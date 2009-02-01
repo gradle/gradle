@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.dependencies.DependencyContainer;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.dependencies.ConfigurationResolver;
-import org.gradle.api.internal.dependencies.ivy.IvyHandler;
+import org.gradle.api.internal.dependencies.ivy.IvyService;
 
 import java.io.File;
 
@@ -27,22 +26,22 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DefaultConfigurationResolverFactory implements ConfigurationResolverFactory {
-    private IvyHandler ivyHandler;
+    private IvyService ivyService;
     private File gradleUserHome;
 
-    public DefaultConfigurationResolverFactory(IvyHandler ivyHandler, File gradleUserHome) {
-        this.ivyHandler = ivyHandler;
+    public DefaultConfigurationResolverFactory(IvyService ivyService, File gradleUserHome) {
+        this.ivyService = ivyService;
         this.gradleUserHome = gradleUserHome;
     }
 
     public ConfigurationResolver createConfigurationResolver(Configuration configuration, DependencyContainerInternal dependencyContainer, ResolverContainer resolverContainer,
                                                              ArtifactContainer artifactContainer, ConfigurationContainer publishConfigurationContainer) {
         return new DefaultConfigurationResolver(configuration, dependencyContainer, artifactContainer, publishConfigurationContainer,
-                resolverContainer, ivyHandler, gradleUserHome);
+                resolverContainer, ivyService, gradleUserHome);
     }
 
-    public IvyHandler getIvyHandler() {
-        return ivyHandler;
+    public IvyService getIvyHandler() {
+        return ivyService;
     }
 
     public File getGradleUserHome() {

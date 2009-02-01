@@ -27,12 +27,11 @@ import org.gradle.api.Project;
 import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.api.internal.dependencies.ivy.IvyHandler;
+import org.gradle.api.internal.dependencies.ivy.IvyService;
 import org.gradle.api.internal.dependencies.ivy.ResolverFactory;
 import org.gradle.api.internal.dependencies.ivy.BuildResolverHandler;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +58,7 @@ public class BaseDependencyManager implements DependencyManagerInternal {
 
     private ArtifactContainer artifactContainer;
 
-    private IvyHandler ivyHandler;
+    private IvyService ivyService;
 
     private ResolverFactory resolverFactory;
 
@@ -72,7 +71,7 @@ public class BaseDependencyManager implements DependencyManagerInternal {
     public BaseDependencyManager(Project project, DependencyContainerInternal dependencyContainer, ArtifactContainer artifactContainer,
                                  ConfigurationContainer configurationContainer, ConfigurationResolverFactory configurationResolverFactory,
                                  ResolverContainer classpathResolvers, ResolverFactory resolverFactory, BuildResolverHandler buildResolverHandler,
-                                 IvyHandler ivyHandler) {
+                                 IvyService ivyService) {
         this.project = project;
         this.dependencyContainer = dependencyContainer;
         this.artifactContainer = artifactContainer;
@@ -81,7 +80,7 @@ public class BaseDependencyManager implements DependencyManagerInternal {
         this.classpathResolvers = classpathResolvers;
         this.resolverFactory = resolverFactory;
         this.buildResolverHandler = buildResolverHandler;
-        this.ivyHandler = ivyHandler;
+        this.ivyService = ivyService;
     }
 
     public Project getProject() {
@@ -185,7 +184,7 @@ public class BaseDependencyManager implements DependencyManagerInternal {
     }
 
     public Ivy ivy(List<DependencyResolver> resolvers) {
-        return ivyHandler.ivy(classpathResolvers.getResolverList(),
+        return ivyService.ivy(classpathResolvers.getResolverList(),
                 resolvers, project.getBuild().getGradleUserHomeDir(), dependencyContainer.getClientModuleRegistry());
     }
 
@@ -215,12 +214,12 @@ public class BaseDependencyManager implements DependencyManagerInternal {
         return resolverFactory;
     }
 
-    public IvyHandler getIvyConverter() {
-        return ivyHandler;
+    public IvyService getIvyConverter() {
+        return ivyService;
     }
 
-    public void setIvyConverter(IvyHandler ivyHandler) {
-        this.ivyHandler = ivyHandler;
+    public void setIvyConverter(IvyService ivyService) {
+        this.ivyService = ivyService;
     }
 
     public BuildResolverHandler getBuildResolverHandler() {
@@ -252,19 +251,19 @@ public class BaseDependencyManager implements DependencyManagerInternal {
     }
 
     public void addIvySettingsTransformer(Transformer<IvySettings> transformer) {
-        ivyHandler.getSettingsConverter().addIvyTransformer(transformer);
+        ivyService.getSettingsConverter().addIvyTransformer(transformer);
     }
 
     public void addIvySettingsTransformer(Closure transformer) {
-        ivyHandler.getSettingsConverter().addIvyTransformer(transformer);
+        ivyService.getSettingsConverter().addIvyTransformer(transformer);
     }
 
     public void addIvyModuleTransformer(Transformer<DefaultModuleDescriptor> transformer) {
-        ivyHandler.getModuleDescriptorConverter().addIvyTransformer(transformer);
+        ivyService.getModuleDescriptorConverter().addIvyTransformer(transformer);
     }
 
     public void addIvyModuleTransformer(Closure transformer) {
-        ivyHandler.getModuleDescriptorConverter().addIvyTransformer(transformer);
+        ivyService.getModuleDescriptorConverter().addIvyTransformer(transformer);
     }
 
     public DependencyContainer getDependencyContainer() {
@@ -275,13 +274,13 @@ public class BaseDependencyManager implements DependencyManagerInternal {
         this.dependencyContainer = dependencyContainer;
     }
 
-    public IvyHandler getIvyHandler() {
-        return ivyHandler;
+    public IvyService getIvyHandler() {
+        return ivyService;
     }
 
     public ModuleDescriptor createModuleDescriptor(FilterSpec<Configuration> configurationFilter, FilterSpec<Dependency> dependencyFilter,
                                                    FilterSpec<PublishArtifact> artifactFilter) {
-        return ivyHandler.getModuleDescriptorConverter().convert(new HashMap<String, Boolean>(), configurationContainer, configurationFilter,
+        return ivyService.getModuleDescriptorConverter().convert(new HashMap<String, Boolean>(), configurationContainer, configurationFilter,
                 dependencyContainer, dependencyFilter, artifactContainer, artifactFilter);
     }
 

@@ -37,7 +37,7 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public interface IvyHandler {
+public interface IvyService {
     Ivy ivy(List<DependencyResolver> dependencyResolvers, List<DependencyResolver> publishResolvers, File gradleUserHome, Map<String, ModuleDescriptor> clientModuleRegistry);
 
     SettingsConverter getSettingsConverter();
