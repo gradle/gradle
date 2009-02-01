@@ -15,32 +15,28 @@
  */
 package org.gradle.api.internal.dependencies;
 
+import groovy.lang.Closure;
+import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.Transformer;
+import org.gradle.api.dependencies.*;
+import org.gradle.api.internal.dependencies.ivy.IvyService;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
-import org.junit.runner.RunWith;
-import org.junit.Test;
-import org.junit.Before;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertFalse;
-import org.gradle.api.dependencies.*;
-import org.gradle.api.internal.dependencies.ivy.IvyHandler;
-import org.gradle.api.Transformer;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.sameInstance;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.*;
-import org.hamcrest.Matchers;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.core.report.ResolveReport;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-
-import groovy.lang.Closure;
 
 @RunWith (JMock.class)
 public class DefaultConfigurationResolverTest {
@@ -60,10 +56,10 @@ public class DefaultConfigurationResolverTest {
 
     private final ConfigurationContainer publishConfigurationContainerMock = context.mock(ConfigurationContainer.class);
     private final ResolverContainer dependencyResolversMock = context.mock(ResolverContainer.class);
-    private final IvyHandler ivyHandlerMock = context.mock(IvyHandler.class);
+    private final IvyService ivyServiceMock = context.mock(IvyService.class);
     private final DefaultConfigurationResolver configurationResolver = new DefaultConfigurationResolver(configurationMock,
             dependencyContainerMock, artifactContainerMock, publishConfigurationContainerMock, dependencyResolversMock,
-            ivyHandlerMock, TEST_GRADLE_USER_HOME);
+            ivyServiceMock, TEST_GRADLE_USER_HOME);
     private List<DependencyResolver> testDependencyResolvers = WrapUtil.toList(context.mock(DependencyResolver.class));
     private Set<ConfigurationResolver> chainConfigurations = WrapUtil.<ConfigurationResolver>toSet(configurationResolver);
     private ResolveReport testResolveReport = context.mock(ResolveReport.class);
@@ -96,7 +92,7 @@ public class DefaultConfigurationResolverTest {
         assertThat(configurationResolver.getDependencyContainer(), sameInstance(dependencyContainerMock));
         assertThat(configurationResolver.getDependencyResolvers(), sameInstance(dependencyResolversMock));
         assertThat(configurationResolver.getGradleUserHome(), sameInstance(TEST_GRADLE_USER_HOME));
-        assertThat(configurationResolver.getIvyHandler(), sameInstance(ivyHandlerMock));
+        assertThat(configurationResolver.getIvyHandler(), sameInstance(ivyServiceMock));
         assertThat(configurationResolver.getPublishConfigurationContainer(), sameInstance(publishConfigurationContainerMock));
     }
 
@@ -191,7 +187,7 @@ public class DefaultConfigurationResolverTest {
     @Test
     public void resolve() {
         context.checking(new Expectations() {{
-            allowing(ivyHandlerMock).resolve(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
+            allowing(ivyServiceMock).resolve(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
                     testDependencyResolvers, TEST_RESOLVE_INSTRUCTION, TEST_GRADLE_USER_HOME);
             will(returnValue(TEST_RESOLVE_RESULT));
         }});
@@ -203,7 +199,7 @@ public class DefaultConfigurationResolverTest {
         final ResolveInstruction expectedResolveInstruction = new ResolveInstruction();
         expectedResolveInstruction.setDependencyFilter(HelperUtil.TEST_SEPC);
         context.checking(new Expectations() {{
-            allowing(ivyHandlerMock).resolve(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
+            allowing(ivyServiceMock).resolve(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
                     testDependencyResolvers, expectedResolveInstruction, TEST_GRADLE_USER_HOME);
             will(returnValue(TEST_RESOLVE_RESULT));
         }});
@@ -222,7 +218,7 @@ public class DefaultConfigurationResolverTest {
         final ResolveInstruction expectedResolveInstruction = new ResolveInstruction();
         expectedResolveInstruction.setDependencyFilter(HelperUtil.TEST_SEPC);
         context.checking(new Expectations() {{
-            allowing(ivyHandlerMock).resolveAsReport(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
+            allowing(ivyServiceMock).resolveAsReport(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
                     testDependencyResolvers, expectedResolveInstruction, TEST_GRADLE_USER_HOME);
             will(returnValue(testResolveReport));
         }});

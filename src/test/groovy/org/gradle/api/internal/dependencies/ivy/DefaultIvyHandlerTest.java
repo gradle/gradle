@@ -15,37 +15,38 @@
  */
 package org.gradle.api.internal.dependencies.ivy;
 
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-import org.gradle.api.internal.dependencies.*;
-import org.gradle.api.dependencies.*;
-import org.gradle.api.dependencies.filter.TypeSpec;
-import org.gradle.api.dependencies.filter.Type;
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.HelperUtil;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.publish.PublishEngine;
-import org.apache.ivy.Ivy;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.gradle.api.dependencies.*;
+import org.gradle.api.dependencies.filter.Type;
+import org.gradle.api.dependencies.filter.TypeSpec;
+import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.filter.Filters;
+import org.gradle.api.internal.dependencies.*;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.util.*;
 import java.io.File;
+import java.util.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultIvyHandlerTest {
-    private DefaultIvyHandler ivyHandler;
+    private DefaultIvyService ivyHandler;
     private SettingsConverter settingsConverterMock;
     private ModuleDescriptorConverter moduleDescriptorConverterMock;
     private IvyFactory ivyFactoryMock;
@@ -78,7 +79,7 @@ public class DefaultIvyHandlerTest {
     public void setUp() {
         createMocks();
         initFixture();
-        ivyHandler = new DefaultIvyHandler(settingsConverterMock, moduleDescriptorConverterMock, ivyFactoryMock,
+        ivyHandler = new DefaultIvyService(settingsConverterMock, moduleDescriptorConverterMock, ivyFactoryMock,
                 buildResolverHandlerMock, ivyDependencyResolverMock, ivyDependencyPublisherMock);
     }
 

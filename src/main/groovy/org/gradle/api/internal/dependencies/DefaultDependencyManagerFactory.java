@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.dependencies;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.CacheUsage;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
+import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.internal.dependencies.ivy.*;
 import org.gradle.api.internal.dependencies.ivy.moduleconverter.*;
-import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.GradleUtil;
 import org.gradle.initialization.ISettingsFinder;
-import org.gradle.CacheUsage;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.util.GradleUtil;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.Set;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -53,7 +53,7 @@ public class DefaultDependencyManagerFactory implements DependencyManagerFactory
         }
         DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer();
         DefaultBuildResolverHandler buildResolverHandler = new DefaultBuildResolverHandler(buildResolverDir, new LocalReposCacheHandler());
-        DefaultIvyHandler ivyHandler = new DefaultIvyHandler(
+        DefaultIvyService ivyHandler = new DefaultIvyService(
                 new DefaultSettingsConverter(),
                 new DefaultModuleDescriptorConverter(
                         new DefaultModuleDescriptorFactory(),

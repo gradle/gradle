@@ -28,8 +28,8 @@ import org.gradle.util.HelperUtil;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -101,7 +101,7 @@ public class DefaultDependencyManagerFactoryTest {
         assertSame(dependencyManager.getIvyHandler(), ((DefaultConfigurationResolverFactory) dependencyManager.getConfigurationResolverFactory()).getIvyHandler()); 
         assertSame(testGradleUserHome, ((DefaultConfigurationResolverFactory) dependencyManager.getConfigurationResolverFactory()).getGradleUserHome()); 
         assertNotNull(dependencyManager.getClasspathResolvers());
-        checkIvyHandler((DefaultIvyHandler) dependencyManager.getIvyHandler());
+        checkIvyHandler((DefaultIvyService) dependencyManager.getIvyHandler());
 
     }
 
@@ -113,7 +113,7 @@ public class DefaultDependencyManagerFactoryTest {
         assertEquals(new HashMap<String, ModuleDescriptor>(), dependencyContainer.getClientModuleRegistry());
     }
 
-    private void checkIvyHandler(DefaultIvyHandler ivyHandler) {
+    private void checkIvyHandler(DefaultIvyService ivyHandler) {
         assertThat(ivyHandler.getSettingsConverter(), Matchers.instanceOf(DefaultSettingsConverter.class));
         assertThat(ivyHandler.getModuleDescriptorConverter(), Matchers.instanceOf(DefaultModuleDescriptorConverter.class));
         assertThat(ivyHandler.getIvyFactory(), Matchers.instanceOf(DefaultIvyFactory.class));

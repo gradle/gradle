@@ -15,17 +15,16 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.assertThat;
-import org.gradle.api.internal.dependencies.ivy.IvyHandler;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.ResolverContainer;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.gradle.api.internal.dependencies.ivy.IvyService;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 
@@ -38,7 +37,7 @@ public class DefaultConfigurationResolverFactoryTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
 
-    private IvyHandler ivyHandlerMock = context.mock(IvyHandler.class);
+    private IvyService ivyServiceMock = context.mock(IvyService.class);
     private File gradleUserHomeFile = new File("gradleUserHome");
     private final Configuration configurationMock = context.mock(Configuration.class);
     private final DependencyContainerInternal dependencyContainerMock = context.mock(DependencyContainerInternal.class);
@@ -47,7 +46,7 @@ public class DefaultConfigurationResolverFactoryTest {
     private final ResolverContainer resolverContainerMock = context.mock(ResolverContainer.class);
 
     private DefaultConfigurationResolverFactory configurationResolverFactory = new DefaultConfigurationResolverFactory(
-            ivyHandlerMock, gradleUserHomeFile
+            ivyServiceMock, gradleUserHomeFile
     );
 
     @Test
@@ -60,7 +59,7 @@ public class DefaultConfigurationResolverFactoryTest {
         assertThat(configurationResolver.getDependencyContainer(), sameInstance(dependencyContainerMock));
         assertThat(configurationResolver.getDependencyResolvers(), sameInstance(resolverContainerMock));
         assertThat(configurationResolver.getGradleUserHome(), sameInstance(gradleUserHomeFile));
-        assertThat(configurationResolver.getIvyHandler(), sameInstance(ivyHandlerMock));
+        assertThat(configurationResolver.getIvyHandler(), sameInstance(ivyServiceMock));
         assertThat(configurationResolver.getPublishConfigurationContainer(), sameInstance(publishConfigurationContainerMock));
     }
 }

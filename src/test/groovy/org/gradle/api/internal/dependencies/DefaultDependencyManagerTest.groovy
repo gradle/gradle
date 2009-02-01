@@ -35,7 +35,7 @@ public class DefaultDependencyManagerTest extends BaseDependencyManagerTest {
 
     private DefaultDependencyManager dependencyManager = new DefaultDependencyManager(
             project, dependencyContainerMock, artifactContainerMock, configurationContainerMock,
-            configurationResolverFactoryMock, dependencyResolversMock, resolverFactoryMock, buildResolverHandler, ivyHandlerMock
+            configurationResolverFactoryMock, dependencyResolversMock, resolverFactoryMock, buildResolverHandler, ivyServiceMock
     );
 
     protected BaseDependencyManager getDependencyManager() {

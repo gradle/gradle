@@ -17,18 +17,17 @@
 package org.gradle.api.internal.dependencies
 
 import org.gradle.api.DependencyManager
+import org.gradle.api.Project
 import org.gradle.api.dependencies.Configuration
-import org.gradle.api.dependencies.ExcludeRuleContainer
-import org.gradle.api.internal.dependencies.ivy.SettingsConverter
+import org.gradle.api.dependencies.DependencyContainer
+import org.gradle.api.dependencies.ResolverContainer
+import org.gradle.api.internal.dependencies.ivy.BuildResolverHandler
+import org.gradle.api.internal.dependencies.ivy.IvyService
+import org.gradle.api.internal.dependencies.ivy.ResolverFactory
 import org.gradle.util.WrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.Project
-import org.gradle.api.dependencies.DependencyContainer
-import org.gradle.api.dependencies.ResolverContainer
-import org.gradle.api.internal.dependencies.ivy.ResolverFactory
-import org.gradle.api.internal.dependencies.ivy.IvyHandler
-import org.gradle.api.internal.dependencies.ivy.BuildResolverHandler
+
 
 /**
  * @author Hans Dockter
@@ -43,7 +42,7 @@ public class DefaultDependencyManager extends BaseDependencyManager implements D
     public DefaultDependencyManager(Project project, DependencyContainer dependencyContainer, ArtifactContainer artifactContainer,
                                     ConfigurationContainer configurationContainer, ConfigurationResolverFactory configurationResolverFactory,
                                     ResolverContainer classpathResolvers, ResolverFactory resolverFactory, BuildResolverHandler buildResolverHandler,
-                                    IvyHandler ivyHandler) {
+                                    IvyService ivyHandler) {
         super(project, dependencyContainer, artifactContainer, configurationContainer, configurationResolverFactory, classpathResolvers,
                 resolverFactory, buildResolverHandler, ivyHandler);
     }

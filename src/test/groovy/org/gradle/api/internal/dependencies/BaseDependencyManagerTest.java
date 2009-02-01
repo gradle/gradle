@@ -15,37 +15,37 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-import org.junit.runner.RunWith;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.api.Project;
+import groovy.lang.Closure;
+import org.apache.ivy.Ivy;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.Project;
 import org.gradle.api.Transformer;
+import org.gradle.api.dependencies.*;
 import org.gradle.api.internal.dependencies.ivy.*;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.api.dependencies.*;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.*;
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import java.util.*;
 import java.io.File;
-
-import groovy.lang.Closure;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -66,10 +66,10 @@ public class BaseDependencyManagerTest {
     protected ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
     protected BuildResolverHandler buildResolverHandler = context.mock(BuildResolverHandler.class);
 
-    protected IvyHandler ivyHandlerMock = context.mock(IvyHandler.class);
+    protected IvyService ivyServiceMock = context.mock(IvyService.class);
     private BaseDependencyManager dependencyManager = new BaseDependencyManager(
             project, dependencyContainerMock, artifactContainerMock, configurationContainerMock,
-            configurationResolverFactoryMock, dependencyResolversMock, resolverFactoryMock, buildResolverHandler, ivyHandlerMock
+            configurationResolverFactoryMock, dependencyResolversMock, resolverFactoryMock, buildResolverHandler, ivyServiceMock
     );
     private Dependency testDependency1 = context.mock(Dependency.class, "dep1");
     private Dependency testDependency2 = context.mock(Dependency.class, "dep2");
@@ -306,7 +306,7 @@ public class BaseDependencyManagerTest {
             allowing(dependencyResolversMock).getResolverList();
             will(returnValue(testResolvers));
             
-            allowing(ivyHandlerMock).ivy(testResolvers, publishResolvers, testGradleUserHome, testClientModuleRegistry);
+            allowing(ivyServiceMock).ivy(testResolvers, publishResolvers, testGradleUserHome, testClientModuleRegistry);
             will(returnValue(testIvy));
         }});
         return testIvy;
@@ -388,7 +388,7 @@ public class BaseDependencyManagerTest {
         final Closure transformerClosure = HelperUtil.TEST_CLOSURE;
         final SettingsConverter settingsConverterMock = context.mock(SettingsConverter.class);
         context.checking(new Expectations() {{
-            allowing(ivyHandlerMock).getSettingsConverter();
+            allowing(ivyServiceMock).getSettingsConverter();
             will(returnValue(settingsConverterMock));
             
             one(settingsConverterMock).addIvyTransformer(transformer);
@@ -404,7 +404,7 @@ public class BaseDependencyManagerTest {
         final Transformer<DefaultModuleDescriptor> transformer = context.mock(Transformer.class);
         final Closure transformerClosure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            allowing(ivyHandlerMock).getModuleDescriptorConverter();
+            allowing(ivyServiceMock).getModuleDescriptorConverter();
             will(returnValue(moduleDescriptorConverterMock));
 
             one(moduleDescriptorConverterMock).addIvyTransformer(transformer);
@@ -416,7 +416,7 @@ public class BaseDependencyManagerTest {
 
     @Test
     public void testGetIvyHandler() {
-        assertThat(getDependencyManager().getIvyHandler(), sameInstance(ivyHandlerMock));
+        assertThat(getDependencyManager().getIvyHandler(), sameInstance(ivyServiceMock));
     }
 
     @Test
@@ -424,7 +424,7 @@ public class BaseDependencyManagerTest {
         final ModuleDescriptorConverter moduleDescriptorConverterMock = context.mock(ModuleDescriptorConverter.class);
         final ModuleDescriptor testModuleDescriptor = context.mock(ModuleDescriptor.class);
         context.checking(new Expectations() {{
-            allowing(ivyHandlerMock).getModuleDescriptorConverter();
+            allowing(ivyServiceMock).getModuleDescriptorConverter();
             will(returnValue(moduleDescriptorConverterMock));
 
             allowing(moduleDescriptorConverterMock).convert(new HashMap<String, Boolean>(), configurationContainerMock, HelperUtil.TEST_SEPC,
