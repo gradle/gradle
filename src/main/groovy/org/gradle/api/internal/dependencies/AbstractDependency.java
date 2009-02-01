@@ -16,20 +16,21 @@
 
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.UnknownDependencyNotation;
+import groovy.lang.Closure;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.dependencies.ivy.DependencyDescriptorFactory;
-import org.gradle.api.internal.dependencies.ivy.DefaultDependencyDescriptorFactory;
+import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.dependencies.*;
+import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.dependencies.ivyservice.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.WrapUtil;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
-import java.util.*;
-
-import groovy.lang.Closure;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
 * @author Hans Dockter

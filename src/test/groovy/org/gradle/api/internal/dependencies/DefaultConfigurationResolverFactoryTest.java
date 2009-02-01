@@ -17,7 +17,6 @@ package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.internal.dependencies.ivy.IvyService;
 import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;

@@ -15,22 +15,23 @@
  */
 package org.gradle.api.internal.dependencies;
 
+import groovy.lang.Closure;
+import org.apache.ivy.core.report.ResolveReport;
+import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.*;
-import org.gradle.api.dependencies.Configuration;
+import static org.gradle.api.dependencies.filter.DependencyFilters.confsWithoutExtensions;
+import static org.gradle.api.dependencies.filter.DependencyFilters.type;
 import org.gradle.api.dependencies.filter.Type;
-import static org.gradle.api.dependencies.filter.DependencyFilters.*;
-import org.gradle.api.internal.dependencies.ivy.IvyService;
+import static org.gradle.api.filter.Filters.and;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.Transformer;
-import static org.gradle.api.filter.Filters.*;
 import org.gradle.util.ConfigureUtil;
-import org.apache.ivy.core.report.ResolveReport;
 
 import java.io.File;
-import java.util.*;
-
-import groovy.lang.Closure;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter

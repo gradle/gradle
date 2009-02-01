@@ -15,20 +15,20 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.Transformer;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.internal.dependencies.ivy.DefaultIvyDependencyPublisher;
-import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
+import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import groovy.lang.Closure;
+import org.gradle.api.DependencyManager;
+import org.gradle.api.Transformer;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.PublishArtifact;
+import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.dependencies.ivyservice.DefaultIvyDependencyPublisher;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 
 import java.util.Map;
 import java.util.Set;

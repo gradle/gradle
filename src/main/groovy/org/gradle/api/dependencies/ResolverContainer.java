@@ -17,17 +17,23 @@
 package org.gradle.api.dependencies;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.*;
-import org.gradle.api.InvalidUserDataException;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.dependencies.maven.*;
-import org.gradle.api.internal.dependencies.ivy.ResolverFactory;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.dependencies.maven.GroovyMavenDeployer;
+import org.gradle.api.dependencies.maven.MavenResolver;
 import org.gradle.api.internal.dependencies.DependencyManagerInternal;
+import org.gradle.api.internal.dependencies.ivyservice.ResolverFactory;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter

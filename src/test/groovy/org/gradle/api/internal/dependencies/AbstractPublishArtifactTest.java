@@ -15,26 +15,24 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.junit.Test;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.Transformer;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.internal.dependencies.ivy.DefaultIvyDependencyPublisher;
+import org.gradle.api.Transformer;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.PublishArtifact;
+import org.gradle.api.internal.dependencies.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.hamcrest.Matchers;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.Date;

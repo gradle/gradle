@@ -17,20 +17,17 @@
 package org.gradle.api.dependencies;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.dependencies.*;
-import org.gradle.api.internal.dependencies.ivy.DependencyDescriptorFactory;
-import org.gradle.api.internal.dependencies.ivy.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.dependencies.ivy.ClientModuleDescriptorFactory;
-import org.gradle.api.internal.dependencies.ivy.DefaultClientModuleDescriptorFactory;
-import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.dependencies.DefaultExcludeRuleContainer;
+import org.gradle.api.internal.dependencies.DependencyContainerInternal;
+import org.gradle.api.internal.dependencies.ivyservice.ClientModuleDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivyservice.DefaultClientModuleDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivyservice.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 

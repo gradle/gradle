@@ -16,9 +16,8 @@
 package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.ResolverContainer;
 import org.gradle.api.dependencies.ConfigurationResolver;
-import org.gradle.api.internal.dependencies.ivy.IvyService;
+import org.gradle.api.dependencies.ResolverContainer;
 
 import java.io.File;
 

@@ -19,23 +19,24 @@ package org.gradle.api.dependencies;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.internal.dependencies.*;
-import org.gradle.api.internal.dependencies.ivy.DependencyDescriptorFactory;
-import org.gradle.api.internal.dependencies.ivy.ClientModuleDescriptorFactory;
+import org.gradle.api.internal.dependencies.DefaultConfiguration;
+import org.gradle.api.internal.dependencies.DefaultConfigurationContainer;
+import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer;
+import org.gradle.api.internal.dependencies.DependencyContainerInternal;
+import org.gradle.api.internal.dependencies.ivyservice.ClientModuleDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
+import org.hamcrest.Matchers;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
-import org.hamcrest.Matchers;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter

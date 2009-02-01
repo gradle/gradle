@@ -19,17 +19,9 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.ProjectDependency;
-import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.dependencies.ivy.IvyUtil;
-import org.gradle.util.GUtil;
+import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.util.WrapUtil;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
 * @author Hans Dockter

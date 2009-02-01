@@ -7,7 +7,6 @@ import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.PublishArtifact;
 import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.internal.dependencies.ivy.IvyService;
 
 public interface DependencyManagerInternal extends DependencyManager {
     Ivy getIvy();

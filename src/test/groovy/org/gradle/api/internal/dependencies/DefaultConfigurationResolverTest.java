@@ -20,7 +20,6 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.*;
-import org.gradle.api.internal.dependencies.ivy.IvyService;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
