@@ -1,8 +1,9 @@
 
 body {
-    font-family: arial, sans-serif;
+    font-family: 'Lucida Grande','Lucida Sans Unicode','Geneva','Verdana',sans-serif;
     color: #666666;
     font-size: 11pt;
+    line-height: 150%;
     margin-top: 4em;
     margin-left: 4em;
     margin-right: 4em;
@@ -50,6 +51,7 @@ pre {
     margin-top: 0.6em;
     margin-bottom: 0.6em;
     font-family: Courier, monospace;
+    line-height: 120%;
     /*font-size: 90%;*/
 }
 .programlisting {
@@ -95,45 +97,37 @@ pre {
 }
 
 /*
- * HEADER
+ * HEADER/FOOTER
  */
 
 .navheader {
-    padding-bottom: 2.4em;
-    color: #a2a2a2;
+    margin-bottom: 3em;
+    padding-bottom: 1em;
+    width: 100%;
+    border-bottom: solid #c2c2c2 5px;
 }
-
-.navheader a {
-    color: #a2a2a2;
-}
-
-.navheader td {
-    font-size: 90%;
-}
-
-.navheader hr {
-    display: none
-}
-
-/*
- * FOOTER
- */
 
 .navfooter {
-    padding-top: 2.4em;
-    color: #a2a2a2;
+    margin-top: 3em;
+    padding-top: 1em;
+    width: 100%;
+    border-top: solid #c2c2c2 5px;
 }
 
-.navfooter a {
+.navbar {
     color: #a2a2a2;
-}
-
-.navfooter td {
     font-size: 90%;
+    width: 100%;
+    text-align: right;
 }
 
-.navfooter hr {
-    display: none
+.navbar a {
+    color: #a2a2a2;
+}
+
+.navbar span {
+    padding-left: .8em;
+    padding-right: .8em;
 }
 
 /*
@@ -141,8 +135,6 @@ pre {
  */
 
 .book > .titlepage {
-    border-top: solid black 1px;
-    border-bottom: solid black 1px;
     padding-bottom: 2em;
     padding-top: 2em;
     margin-bottom: 4em;
