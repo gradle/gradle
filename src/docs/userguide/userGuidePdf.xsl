@@ -14,12 +14,88 @@
   ~ limitations under the License.
   -->
 <xsl:stylesheet
-        xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+        xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:fo="http://www.w3.org/1999/XSL/Format"
+        version="1.0">
     <xsl:import href="fo/docbook.xsl"/>
     <xsl:import href="userGuideCommon.xsl"/>
 
     <xsl:param name="fop1.extensions">1</xsl:param>
     <xsl:param name="paper.type">A4</xsl:param>
     <xsl:param name="body.start.indent">0pt</xsl:param>
-    <xsl:param name="shade.verbatim">1</xsl:param>
+
+    <xsl:param name="body.font.family">'Lucida Grande','Lucida Sans Unicode','Geneva','Verdana',sans-serif</xsl:param>
+    <xsl:param name="body.font.master">11</xsl:param>
+
+    <xsl:attribute-set name="root.properties">
+        <xsl:attribute name="color">#666666</xsl:attribute>
+        <xsl:attribute name="line-height">120%</xsl:attribute>
+    </xsl:attribute-set>
+
+    <xsl:attribute-set name="component.title.properties">
+        <xsl:attribute name="color">#6a915e</xsl:attribute>
+        <xsl:attribute name="font-size">22pt</xsl:attribute>
+        <xsl:attribute name="space-after">2cm</xsl:attribute>
+    </xsl:attribute-set>
+
+    <xsl:attribute-set name="section.title.properties">
+        <xsl:attribute name="color">#6a915e</xsl:attribute>
+    </xsl:attribute-set>
+    <xsl:attribute-set name="section.title.level1.properties">
+        <xsl:attribute name="space-before">1.4em</xsl:attribute>
+        <xsl:attribute name="space-after">0.6em</xsl:attribute>
+        <xsl:attribute name="font-size">16pt</xsl:attribute>
+    </xsl:attribute-set>
+    <xsl:attribute-set name="section.title.level2.properties">
+        <xsl:attribute name="font-size">12pt</xsl:attribute>
+    </xsl:attribute-set>
+    <xsl:attribute-set name="section.title.level3.properties">
+        <xsl:attribute name="font-size">11pt</xsl:attribute>
+    </xsl:attribute-set>
+
+    <xsl:attribute-set name="formal.title.properties">
+        <xsl:attribute name="font-size">11pt</xsl:attribute>
+    </xsl:attribute-set>
+    <xsl:attribute-set name="table.properties">
+        <xsl:attribute name="border">thin solid #d0d0d0</xsl:attribute>
+    </xsl:attribute-set>
+
+    <xsl:attribute-set name="verbatim.properties">
+        <xsl:attribute name="font-size">9pt</xsl:attribute>
+        <xsl:attribute name="background-color">#f2f2f2</xsl:attribute>
+        <xsl:attribute name="start-indent">1.7em</xsl:attribute>
+        <xsl:attribute name="end-indent">1.2em</xsl:attribute>
+        <xsl:attribute name="padding-start">1.2em</xsl:attribute>
+        <xsl:attribute name="padding-end">1.2em</xsl:attribute>
+        <xsl:attribute name="space-before">1em</xsl:attribute>
+        <xsl:attribute name="space-after">1em</xsl:attribute>
+        <xsl:attribute name="padding-before">1em</xsl:attribute>
+        <xsl:attribute name="padding-after">1em</xsl:attribute>
+        <xsl:attribute name="border-start-width">0.5em</xsl:attribute>
+        <xsl:attribute name="border-start-style">solid</xsl:attribute>
+        <xsl:attribute name="border-start-color">#a2a2a2</xsl:attribute>
+    </xsl:attribute-set>
+
+    <xsl:template name="book.titlepage.recto">
+        <fo:block padding-before='6cm'>
+            <fo:block font-size='30pt' color='#6a915e'>
+                <xsl:value-of select="/book/bookinfo/title"/>
+            </fo:block>
+            <fo:block font-size='20pt' color='#6a915e' space-before='0.8em'>
+                <xsl:value-of select="/book/bookinfo/subtitle"/>
+            </fo:block>
+            <fo:block font-size='12pt' space-before='6em'>Version
+                <xsl:value-of select="/book/bookinfo/releaseinfo"/>
+            </fo:block>
+        </fo:block>
+    </xsl:template>
+
+    <xsl:template name="table.row.properties">
+        <!-- Keep header row with next row -->
+        <xsl:if test="ancestor::thead">
+            <xsl:attribute name="background-color">#f2f2f2</xsl:attribute>
+            <xsl:attribute name="keep-with-next.within-column">always</xsl:attribute>
+        </xsl:if>
+    </xsl:template>
+
 </xsl:stylesheet>

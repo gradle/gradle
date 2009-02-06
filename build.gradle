@@ -355,6 +355,14 @@ createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
 }
 
 userguideDir = new File(buildDir, "$docsDir.name/userguide")
+userguideSrc = new File(srcDocsDir, 'userguide')
+userguidePdf = new File(explodedDistDocsDir, 'pdf/userguide.pdf')
+userguideHtmlDir = new File(explodedDistDocsDir, 'html')
+userguideSingleHtmlDir = new File(explodedDistDocsDir, 'html_single')
+docbookSrc = new File(project.buildDir, 'docbook/src')
+docbookDir = new File(project.buildDir, 'docbook/stylesheets')
+
+createTask('userguide', dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'])
 
 createTask('userguideVersion') {
     File userguideData = mkdir(userguideDir, 'data')
@@ -362,7 +370,7 @@ createTask('userguideVersion') {
     new File(userguideData, 'javadocDir.tex').write('\\def \\JAVADOCDIR {' + javadocRemoteDir + '}')
 }
 
-createTask('userguide', dependsOn: ['userguideVersion']) {
+createTask('userguideLatex', dependsOn: ['userguideVersion']) {
     File userguideSrc = new File(srcDocsDir, 'userguide')
     ant {
         if (!isLatexInstalled()) {
@@ -374,14 +382,14 @@ createTask('userguide', dependsOn: ['userguideVersion']) {
                 arg(line: "userguide.tex")
             }
         }
-        copy(file: new File(userguideSrc, 'userguide.pdf'), tofile: new File(explodedDistDocsDir, 'pdf/userguide.pdf'))
+        copy(file: new File(userguideSrc, 'userguide.pdf'), tofile: userguidePdf)
         cleanLatex(userguideSrc)
         3.times {
             exec(executable: 'htlatex', dir: userguideSrc, failonerror: true) {
                 arg(line: "userguide.tex \"htmluserguide\"")
             }
         }
-        copy(todir: new File(explodedDistDocsDir, 'html_single')) {
+        copy(todir: userguideSingleHtmlDir) {
             fileset(dir: userguideSrc, includes: '*.html') {
                 include(name: '*.html')
                 include(name: '*.css')
@@ -393,7 +401,7 @@ createTask('userguide', dependsOn: ['userguideVersion']) {
                 arg(line: "userguide.tex \"htmluserguide,2\"")
             }
         }
-        copy(todir: new File(explodedDistDocsDir, 'html')) {
+        copy(todir: userguideHtmlDir) {
             fileset(dir: userguideSrc, includes: '*.html') {
                 include(name: '*.html')
                 include(name: '*.css')
@@ -420,11 +428,6 @@ void cleanLatex(File dir) {
     }
 }
 
-File userguideSrc = new File(srcDocsDir, 'userguide')
-File userguideOutDir = new File(project.buildDir, 'docbook')
-File docbookSrc = new File(project.buildDir, 'docbook/src')
-File docbookDir = new File(project.buildDir, 'docbook/stylesheets')
-
 createTask('userguideSrc') {
     transformer = new org.gradle.build.Latex2Docbook(project)
     transformer.sourceDir = userguideSrc
@@ -450,24 +453,26 @@ createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets'])
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'userGuideHtml.xsl'))
-        arg(line: "-param base.dir ${userguideOutDir}/")
+        arg(line: "-param base.dir ${userguideHtmlDir}/")
         classpath {
             path(path: dependencies.userGuideTask.asPath)
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideOutDir)
+    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideHtmlDir)
 }
 
 createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
     System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
             "org.apache.xerces.parsers.XIncludeParserConfiguration")
 
+    userguideSingleHtmlDir.mkdirs()
+    
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(value: '-out')
-        arg(value: new File(userguideOutDir, 'userguideSingle.html'))
+        arg(value: new File(userguideSingleHtmlDir, 'userguide.html'))
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'userGuideSingleHtml.xsl'))
         classpath {
@@ -475,14 +480,14 @@ createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleShe
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideOutDir)
+    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideSingleHtmlDir)
 }
 
 createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
     System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
             "org.apache.xerces.parsers.XIncludeParserConfiguration")
 
-    File foFile = new File(userguideOutDir, "userguide.fo")
+    File foFile = new File(docbookDir, "userguide.fo")
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
@@ -497,11 +502,12 @@ createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) 
         }
     }
 
+    userguidePdf.parentFile.mkdirs()
     ant.java(classname: 'org.apache.fop.cli.Main', failonerror: true, fork: true) {
         arg(value: '-fo')
         arg(value: foFile)
         arg(value: '-pdf')
-        arg(value: new File(userguideOutDir, 'userguide.pdf'))
+        arg(value: userguidePdf)
         classpath {
             path(path: dependencies.userGuideTask.asPath)
         }
