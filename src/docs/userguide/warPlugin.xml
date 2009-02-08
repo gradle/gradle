@@ -1,0 +1,77 @@
+<chapter id='cha:the_war_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The War Plugin</title>
+    <para>The war plugin extends the JavaPlugin. It disables the default jar archive generation of the Java Plugin and
+        adds a default war archive task. Have also a look at<ulink
+                url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/War.html'>
+            org.gradle.api.tasks.bundling.War</ulink>. \\
+    </para>
+    <section id='sec:default_settings'>
+        <title>Default Settings</title>
+        <para>The default behavior of the War plugin is to copy the content of
+            <literal>src/main/webapp</literal>
+            to the root of the archive. Your
+            <literal>webapp</literal>
+            folder may of course contain a
+            <literal>WEB-INF</literal>
+            sub-directory, which again may contain a
+            <literal>web.xml</literal>
+            file. Your compiled classes are compiled to<literal>WEB-INF/classes</literal>. All the dependencies of the
+            <literal>runtime</literal>
+            <footnote>
+                <para>The
+                    <literal>runtime</literal>
+                    configuration extends the
+                    <literal>compile</literal>
+                    configuration.
+                </para>
+            </footnote>
+            configuration are copied to<literal>WEB-INF/lib</literal>. The War plugin add two new dependency
+            configurations:
+            <literal>providedCompile</literal>
+            and<literal>providedRuntime</literal>. Those new configurations have the same scope as the respective
+            <literal>compile</literal>
+            and
+            <literal>runtime</literal>
+            configurations. Except that they are not added to the war-archive. It is important to note that those
+            <literal>provided</literal>
+            configurations work transitively. Let's say you add
+            <literal>commons-httpclient:commons-httpclient:3.0</literal>
+            to any of the provided configurations. This dependency has a dependency on<literal>commons-codec</literal>.
+            This means neither
+            <literal>httpclient</literal>
+            nor
+            <literal>commons-codec</literal>
+            is added to your war, even if
+            <literal>commons-code</literal>
+            were an explicit dependency of your
+            <literal>compile</literal>
+            configuration. If you don't want this transitive behavior, simply declare your
+            <literal>provided</literal>
+            dependencies like<literal>commons-httpclient:commons-httpclient:3.0@jar</literal>.
+        </para>
+    </section>
+    <section id='sec:customizing'>
+        <title>Customizing</title>
+        <para>Here an example with the most important customization options:
+        </para>
+        <sample src='web-project/build.gradle' title='Sample web-project/build.gradle'/>
+        <para>Of course one can configure the different file-sets with a closure to define excludes and includes. \\
+        </para>
+        <para>If you want to enable the generation of the default jar archive additional to the war archive just type:
+        </para>
+        <programlisting><![CDATA[
+archive_jar.enabled = true
+]]></programlisting>
+    </section>
+    <section id='sec:eclipse_wtp'>
+        <title>Eclipse WTP</title>
+        <para>
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/ide/eclipse/EclipseWtp.html'>
+                org.gradle.api.tasks.ide.eclipse.EclipseWtp
+            </ulink>
+            has a default instance with the name<literal>eclipseWtp</literal>. It generates a
+            <literal>.settings/org.eclipse.wst.common.component</literal>
+            file.
+        </para>
+    </section>
+</chapter>

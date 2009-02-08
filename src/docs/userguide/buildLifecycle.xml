@@ -1,0 +1,206 @@
+<chapter id='cha:the_build_lifecycle' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Build Lifecycle</title>
+    <para>We said earlier, that the core of Gradle is a language for dependency based programming. In Gradle terms this
+        means that you can define tasks and dependencies between tasks. Gradle guarantees that those tasks are executed
+        in the order of their dependencies and are executed only once. Those tasks form an<ulink
+                url='http://en.wikipedia.org/wiki/Directed_acyclic_graph'>Directed Acyclic Graph</ulink>. There are
+        build tools that build up such a DAG as they execute there tasks. Gradle builds the complete DAG
+        <emphasis>before</emphasis>
+        any task is executed. This lies at the heart of Gradle and makes many things possible which would not be
+        possible otherwise.
+    </para>
+    <para>Your build scripts configure this DAG. Therefore they are strictly speaking<emphasis>build configuration
+        scripts</emphasis>.
+    </para>
+    <section id='sec:build_phases'>
+        <title>Build Phases</title>
+        <para>A Gradle build has three distinct phases.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>Initialization</term>
+                <listitem>
+                    <para>Gradle supports single and multi-project builds. During the initialization phase, Gradle
+                        determines which project(s) are going to take part in the build. Also during this phase, Gradle
+                        creates Project objects for every project taking part in the build.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Configuration</term>
+                <listitem>
+                    <para>The build scripts of
+                        <emphasis>all</emphasis>
+                        projects which are part of the build are executed. This configures the project objects.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Execution</term>
+                <listitem>
+                    <para>A subset of the tasks, created and configured during the configuration phase, is executed. The
+                        subset is determined by the task name arguments passed to the gradle command and the current
+                        directory.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+    <section id='sec:settings_file'>
+        <title>Settings File</title>
+        <para>Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle
+            via a naming convention. The default name for this file is<emphasis>settings.gradle</emphasis>. Later in
+            this chapter we explain, how Gradle looks for a settings file.
+        </para>
+        <para>The settings file gets executed during the initialization phase. A multiproject build must have a
+            settings.gradle file in the root project of the multiproject hierarchy. It is required because in the
+            settings.gradle file it is defined, which projects are taking part in the multi-project build (see chapter
+            <xref linkend='cha:multi_project_builds'/>). For a single-project build, a settings.gradle file is optional.
+            You might need it for example, to add libraries to your build script classpath (see chapter<xref
+                    linkend='cha:organizing_build_logic'/>). Let's first do some introspection with a single project
+            build:
+        </para>
+        <sample src='userguide/buildlifecycle/settings.gradle' title='Sample userguide/buildlifecycle/settings.gradle'/>
+        <sample src='userguide/buildlifecycle/build.gradle' title='Sample userguide/buildlifecycle/build.gradle'/>
+        <sampleOutput src='../../samples/userguideOutput/buildlifecycle.out'/>
+        <para>For a build script, the property access and method calls are delegated to a project object. Similarly
+            property access and method calls within the settings file is delegated to a settings object. Have a look at
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Settings.html'>org.gradle.api.Settings</ulink>.
+        </para>
+    </section>
+    <section id='sec:multi_project_builds'>
+        <title>Multi-Project Builds</title>
+        <para>A multi-project build is a build where you build more than one project during a single execution of
+            Gradle. You have to declare the projects taking part in the multiproject build in the settings file. There
+            is much more to say about multi-project builds in the chapter dedicated to this topic (see chapter<xref
+                    linkend='cha:multi_project_builds'/>).
+        </para>
+        <section id='sub:project_locations'>
+            <title>Project Locations</title>
+            <para>Multi-project builds are always represented by a tree with a single root. Each element in the tree
+                represent a project. A project has a virtual and a physical path. The virtual path denotes the position
+                of the project in the multi-project build tree. The project tree is created in the settings.gradle file.
+                By default it is assumed that the location of the settings file is also the location of the root
+                project. But you can redefine the location of the root project in the settings file.
+            </para>
+        </section>
+        <section id='sub:building_the_tree'>
+            <title>Building the tree</title>
+            <para>In the settings file you can use a set of methods to build the project tree. Hierarchical and flat
+                physical layouts get special support.
+            </para>
+            <section>
+                <title>Hierarchical Layouts</title>
+                <programlisting><![CDATA[
+include 'project1', 'project2', 'project2/child1'
+]]></programlisting>
+                <para>The include method takes as an argument a relative virtual path to the root project. This relative
+                    virtual path is assumed to be equals to the relative physical path of the subproject to the root
+                    project. You only need to specify the leafs of the tree. Each parent path of the leaf project is
+                    assumed to be another subproject which obeys to the physical path assumption described above.
+                </para>
+            </section>
+            <section>
+                <title>Flat Layouts</title>
+                <programlisting><![CDATA[
+includeFlat 'project1', 'project2'
+]]></programlisting>
+                <para>The includeFlat method takes directory names as an argument. Those directories need to exist at
+                    the same level as the root project directory. The location of those directories are considered as
+                    child projects of the root project in the virtual multi-project tree.
+                </para>
+            </section>
+        </section>
+        <section id='sub:modifying_element_of_the_project_tree'>
+            <title>Modifying Elements of the Project Tree</title>
+            <para>The multi-project tree created in the settings file is made up of so called project descriptor object.
+                You might modify those descriptor objects in the settings file at any time. To access such a descriptor
+                object you can do:
+            </para>
+            <programlisting><![CDATA[
+myDescriptor = descriptor('path_in_multi_project_tree')
+myOtherDescriptor = descriptor(new File('path_to_projectDir')) 
+]]></programlisting>
+            <para>Via this descriptor you can change the name and the directory of a project.
+            </para>
+        </section>
+    </section>
+    <section id='sec:initialization'>
+        <title>Initialization</title>
+        <para>How does Gradle know whether to do a single or multiproject build? If you trigger a multiproject build
+            from the directory where the settings file is, things are easy. But Gradle also allows you to execute the
+            build from within any subproject taking part in the build.
+            <footnote>
+                <para>Gradle supports partial multiproject builds (see chapter<xref linkend='cha:multi_project_builds'/>
+                    )
+                </para>
+            </footnote>
+            . If you execute Gradle from within a project that has no settings.gradle file, Gradle does the following:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>It searches for a settings.gradle in a directory called 'master' which has the same nesting level
+                    as the current dir.
+                </para>
+            </listitem>
+            <listitem>
+                <para>If not settings.gradle is found, it searches the parent directories for the existence of a
+                    settings.gradle file.
+                </para>
+            </listitem>
+            <listitem>
+                <para>If no settings.gradle file is found, the build is executed as a single project build.
+                </para>
+            </listitem>
+            <listitem>
+                <para>If a settings.gradle file is found, Gradle checks if the current project is part of the
+                    multiproject hierarchy defined in the found settings.gradle file. If not, the build is executed as a
+                    single project build. Otherwise a multiproject build is executed.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>What is the purpose of this behavior? Somehow Gradle has to find out, whether the project you are into, is
+            a subproject of a multiproject build or not. Of course, if it is a subproject, only the subproject and its
+            dependent projects are build. But Gradle needs to create the build configuration for the whole multiproject
+            build (see chapter<xref linkend='cha:multi_project_builds'/>). Via the
+            <literal>-u</literal>
+            command line option, you can tell Gradle not to look in the parent hierarchy for a settings.gradle file. The
+            current project is then always build as a single project build. If the current project contains a
+            settings.gradle file, the
+            <literal>-u</literal>
+            option has no meaning. Such a build is always executed as:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>a single project build, if the settings.gradle file does not define a multiproject hierarchy
+                </para>
+            </listitem>
+            <listitem>
+                <para>a multiproject build, if the settings.gradle file does define a multiproject hierarchy.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>The auto search for a settings file does only work for multi-project builds with a physical hierarchical
+            or flat layout. For a flat layout you must additionally obey to the naming convention described above.
+            Gradle supports arbitrary physical layouts for a multiproject build. But for such arbitrary layouts you need
+            to execute the build from the directory where the settings file is located. For how to run partial builds
+            from the root see<xref linkend='sec:running_partial_build_from_the_root'/>. In our next release we want to
+            enable partial builds from subprojects by specifying the location of the settings file as a command line
+            parameter. \\ Gradle creates Project objects for every project taking part in the build. For a single
+            project build this is only one project. For a multi-project build these are the projects specified in
+            Settings object (plus the root project). Each project object has by default a name equals to the name of its
+            top level folder. Every project except the root project has a parent project and might have child projects.
+        </para>
+    </section>
+    <section id='sec:configuration_and_execution_of_a_single_project_build'>
+        <title>Configuration and Execution of a Single Project Build</title>
+        <para>For a single project build, the workflow of the
+            <emphasis>after initialization</emphasis>
+            phases are pretty simple. The build script is executed against the project object that was created during
+            the initialization phase. Then Gradle looks for tasks with names equals to those passed as command line
+            arguments. If these task names exist, they are executed as a separate build in the order you have passed
+            them. The configuration and execution for multi-project builds is discussed in chapter<xref
+                    linkend='cha:multi_project_builds'/>.
+        </para>
+    </section>
+</chapter>

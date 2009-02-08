@@ -1,0 +1,47 @@
+<book xmlns:xi="http://www.w3.org/2001/XInclude">
+    <bookinfo>
+        <title>Gradle</title>
+        <subtitle>A build system</subtitle>
+        <releaseinfo>build-number</releaseinfo>
+        <copyright>
+            <year>2007-2009</year>
+            <holder>Hans Dockter</holder>
+        </copyright>
+        <legalnotice>
+            <para>Copies of this document may be made for your own use and for distribution to others, provided that you
+                do not charge any fee for such copies and further provided that each copy contains this Copyright
+                Notice, whether distributed in print or electronically.
+            </para>
+        </legalnotice>
+        <author>
+            <firstname>Hans</firstname>
+            <surname>Dockter</surname>
+        </author>
+        <author>
+            <firstname>Adam</firstname>
+            <surname>Murdoch</surname>
+        </author>
+    </bookinfo>
+    <xi:include href='introduction.xml'/>
+    <xi:include href='buildscripts.xml'/>
+    <xi:include href='javaTutorial.xml'/>
+    <xi:include href='thisAndThat.xml'/>
+    <xi:include href='overview.xml'/>
+    <xi:include href='projectTaskApi.xml'/>
+    <xi:include href='tasks.xml'/>
+    <xi:include href='logging.xml'/>
+    <xi:include href='plugins.xml'/>
+    <xi:include href='javaPlugin.xml'/>
+    <xi:include href='groovyPlugin.xml'/>
+    <xi:include href='warPlugin.xml'/>
+    <xi:include href='osgi.xml'/>
+    <xi:include href='depMngmt.xml'/>
+    <xi:include href='maven.xml'/>
+    <xi:include href='buildLifecycle.xml'/>
+    <xi:include href='multiproject.xml'/>
+    <xi:include href='organizeBuildLogic.xml'/>
+    <xi:include href='gradleWrapper.xml'/>
+    <xi:include href='potentialTraps.xml'/>
+    <xi:include href='commandLine.xml'/>
+    <xi:include href='ideSupport.xml'/>
+</book>

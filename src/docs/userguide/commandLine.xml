@@ -1,0 +1,136 @@
+<chapter id='cha:command_line' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Command line</title>
+    <table id='command_line_options'>
+        <title>Command Line Options</title>
+        <thead>
+            <tr>
+                <td>Short Option(-)</td>
+                <td>Long Option(--)</td>
+                <td>Meaning</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>-?, -h</td>
+            <td>-</td>
+            <td>Shows this help message</td>
+        </tr>
+        <tr>
+            <td>B</td>
+            <td>bootstrap-debug</td>
+            <td>Specify a text to be logged at the beginning (used internally by Gradle's bootstrap class.)</td>
+        </tr>
+        <tr>
+            <td>D</td>
+            <td>systemprop</td>
+            <td>Sets a system property of the JVM (e.g. -Dmyprop=myvalue).</td>
+        </tr>
+        <tr>
+            <td>I</td>
+            <td>no-imports</td>
+            <td>Disable usage of default imports for build script files.</td>
+        </tr>
+        <tr>
+            <td>K</td>
+            <td>default-import-file</td>
+            <td>Specifies the default import file.</td>
+        </tr>
+        <tr>
+            <td>P</td>
+            <td>projectprop</td>
+            <td>Sets a project property of the root project (e.g. -Pmyprop=myvalue).</td>
+        </tr>
+        <tr>
+            <td>S</td>
+            <td>-</td>
+            <td>Don't trigger a System.exit(0) for normal termination. Used internally by Gradle's unit tests.</td>
+        </tr>
+        <tr>
+            <td>b</td>
+            <td>buildfile</td>
+            <td>Specifies the build file name (also for subprojects). Defaults to build.gradle.</td>
+        </tr>
+        <tr>
+            <td>c</td>
+            <td>settingsfile</td>
+            <td>Specifies the settings file name. Defaults to settings.gradle.</td>
+        </tr>
+        <tr>
+            <td>d</td>
+            <td>debug</td>
+            <td>Log in debug mode (includes normal stacktrace).</td>
+        </tr>
+        <tr>
+            <td>e</td>
+            <td>embedded</td>
+            <td>Specify an embedded build script.</td>
+        </tr>
+        <tr>
+            <td>f</td>
+            <td>full-stacktrace</td>
+            <td>Print out the full (very verbose) stacktrace for any exceptions.</td>
+        </tr>
+        <tr>
+            <td>g</td>
+            <td>gradle-user-home</td>
+            <td>Specifies the gradle user home dir.</td>
+        </tr>
+        <tr>
+            <td>i</td>
+            <td>info</td>
+            <td>Set log level to info.</td>
+        </tr>
+        <tr>
+            <td>l</td>
+            <td>plugin-properties-file</td>
+            <td>Specifies the plugin properties file.</td>
+        </tr>
+        <tr>
+            <td>m</td>
+            <td>merged-build</td>
+            <td>Merge all tasks into a single build.</td>
+        </tr>
+        <tr>
+            <td>p</td>
+            <td>project-dir</td>
+            <td>Specifies the start dir for Gradle. Defaults to current dir.</td>
+        </tr>
+        <tr>
+            <td>q</td>
+            <td>quiet</td>
+            <td>Log errors only.</td>
+        </tr>
+        <tr>
+            <td>r</td>
+            <td>rebuild-cache</td>
+            <td>Rebuild the cache of compiled build scripts.</td>
+        </tr>
+        <tr>
+            <td>s</td>
+            <td>stacktrace</td>
+            <td>Print out the stacktrace also for user exceptions (e.g. compile error).</td>
+        </tr>
+        <tr>
+            <td>t</td>
+            <td>tasks</td>
+            <td>Show list of all available tasks and there dependencies.</td>
+        </tr>
+        <tr>
+            <td>u</td>
+            <td>no-search-upwards</td>
+            <td>Don't search in parent folders for a settings.gradle file.</td>
+        </tr>
+        <tr>
+            <td>v</td>
+            <td>version</td>
+            <td>Prints version info.</td>
+        </tr>
+        <tr>
+            <td>x</td>
+            <td>cache-off</td>
+            <td>No caching of compiled build scripts.</td>
+        </tr>
+
+    </table>
+    <para>The same information is printed to the console when you execute<literal>gradle -h</literal>.
+    </para>
+</chapter>

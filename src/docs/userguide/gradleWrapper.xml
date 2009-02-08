@@ -1,0 +1,114 @@
+<chapter id='cha:the_gradle_wrapper' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Gradle Wrapper</title>
+    <para>Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An
+        example are continuous integration server where Gradle is not installed and where you have no admin rights for
+        the machine. Or what if you provide an open source project and you want to make it as easy as possible for your
+        users to build it?
+    </para>
+    <para>There is a simple and good news. Gradle provides a solution for this. It ships with a
+        <emphasis>Wrapper</emphasis>
+        task.
+        <footnote>
+            <para>If you download the gradle source distribution or check out Gradle from SVN, you can build Gradle via
+                the gradle wrapper.
+            </para>
+        </footnote>
+        <footnote>
+            <para>Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See
+                <ulink url='http://gradle.org/ci-server.html'/>
+            </para>
+        </footnote>
+        You can create such a task in your build script.
+    </para>
+    <programlisting><![CDATA[
+createTask('wrapper', type: Wrapper).configure {
+    gradleVersion = '0.1'
+}	
+]]></programlisting>
+    <para>You usually explicitly execute this task (for example after a switch to a new version of Gradle). After such
+        an execution you find the following new or updated files in your project folder (if the default configuration is
+        used).
+    </para>
+    <programlisting><![CDATA[
+project-root
+  - gradle-wrapper.jar
+  - gradlew.exe
+  - gradlew.bat
+]]></programlisting>
+    <para>All these files should be submitted to your version control system. The
+        <literal>gradlew</literal>
+        commands can be used
+        <emphasis>exactly</emphasis>
+        the same way as the
+        <literal>gradle</literal>
+        commands.
+    </para>
+    <section id='sec:configuration'>
+        <title>Configuration</title>
+        <para>If you run Gradle with<literal>gradlew</literal>, Gradle checks if a Gradle distribution for the wrapper
+            is available. If not it tries to download it, otherwise it delegates to the
+            <literal>gradle</literal>
+            command of this distribution with all the arguments passed originally to the
+            <literal>gradlew</literal>
+            command.
+        </para>
+        <para>You can specify the download URL of the wrapper distribution. You can also specify where the wrapper
+            should be stored and unpacked (either within the project or within the gradle user home dir). If the wrapper
+            is run and there is local archive of the wrapper distribution Gradle tries to download it and stores it at
+            the specified place. If there is no unpacked wrapper distribution Gradle unpacks the local archive of the
+            wrapper distribution at the specified place.
+        </para>
+        <para>All the configuration options have defaults except the version of the wrapper distribution. If you don't
+            want any download to happen when your project is build via<literal>gradlew</literal>, simply add the Gradle
+            distribution zip to your version control at the location specified by your wrapper configuration.
+        </para>
+        <para>For the details on how to configure the wrapper, see
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/wrapper/Wrapper.html'>Wrapper API</ulink>
+        </para>
+        <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
+        </para>
+    </section>
+    <section id='sec:unix_file_permissions'>
+        <title>Unix file permissions</title>
+        <para>The Wrapper task adds appropriate file permissions to allow the execution for the gradlew *NIX command.
+            Subversion preserves this file permission. We are not sure how other version control systems deal with this.
+            What should always work is to execute<literal>sh gradlew</literal>.
+        </para>
+    </section>
+    <section id='sec:environment_variable'>
+        <title>Environment variable</title>
+        <para>Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuos
+            integration server goes down during unzipping the Gradle distribution. As the distribution directory exists
+            <literal>gradlew</literal>
+            delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When
+            you have no admin right on the continuous integration server to remove the corrupt files, Gradle offers a
+            solution via environment variables.
+        </para>
+        <table>
+            <title>Gradle Wrapper Environment Variables</title>
+            <thead>
+                <tr>
+                    <td>Variable Name</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>GRADLE_WRAPPER_ALWAYS_UNPACK</td>
+                <td>If set to<literal>true</literal>, the distribution directory gets always deleted when
+                    <literal>gradlew</literal>
+                    is run and the distribution zip is freshly unpacked. If the zip is not there, Gradle tries to
+                    download it.
+                </td>
+            </tr>
+            <tr>
+                <td>GRADLE_WRAPPER_ALWAYS_DOWNLOAD</td>
+                <td>If set to<literal>true</literal>, the distribution directory and the distribution zip gets always
+                    deleted when
+                    <literal>gradlew</literal>
+                    is run and the distribution zip is freshly downloaded.
+                </td>
+            </tr>
+
+        </table>
+    </section>
+</chapter>

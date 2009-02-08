@@ -91,7 +91,6 @@
     </xsl:template>
 
     <xsl:template name="table.row.properties">
-        <!-- Keep header row with next row -->
         <xsl:if test="ancestor::thead">
             <xsl:attribute name="background-color">#f2f2f2</xsl:attribute>
             <xsl:attribute name="keep-with-next.within-column">always</xsl:attribute>

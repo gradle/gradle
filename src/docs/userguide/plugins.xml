@@ -1,0 +1,156 @@
+<chapter id='cha:plugins' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Plugins</title>
+    <para>Now we look at
+        <emphasis>how</emphasis>
+        Gradle provides build-by-convention and out of the box functionality. These features are decoupled from the core
+        of Gradle. Gradle provides them via plugins. To make this clear at the very beginning. The plugins provided by
+        Gradle belong to the core distribution of Gradle and they are NEVER updated or changed in any way for a
+        particular Gradle distribution. If there is a bug in the compile functionality of Gradle, we gonna release a new
+        version of Gradle. There is no change of behavior for the lifetime of a given distribution of Gradle. We mention
+        this as there is another build tools with a plugin system which behaves differently.
+    </para>
+    <section id='sec:using_plugins'>
+        <title>Declaring Plugins</title>
+        <para>If you want to use the plugin for building a Java project, simply type
+        </para>
+        <programlisting><![CDATA[
+usePlugin('java')	
+]]></programlisting>
+        <para>at the beginning of your script. That's all. From a technological point of view plugins use just the same
+            operations as you can use from your build scripts. That is they use the Project and Task API (see chapter
+            <xref linkend='cha:the_project_and_task_api'/>). The Gradle plugins use this API for:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Adding tasks to your build (e.g. compile, test)
+                </para>
+            </listitem>
+            <listitem>
+                <para>Creating dependencies between those tasks to let them execute in the appropriate order.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Adding a so called
+                    <emphasis>convention object</emphasis>
+                    to your project configuration.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>Let's check this out:
+        </para>
+        <sample src='userguide/tutorial/pluginIntro/build.gradle'
+                title='Sample userguide/tutorial/pluginIntro/build.gradle'/>
+        <sampleOutput src='pluginIntro.out'/>
+        <para>The JavaPlugin adds a
+            <literal>compile</literal>
+            task to the project object which can be accessed by a build script.
+        </para>
+        <para>The usePlugin method either takes a string or a class as an argument. You can write
+            <footnote>
+                <para>Thanks to Gradles default imports (see<xref linkend='cha:ide_support'/>) you can also write
+                    <literal>usePlugin(JavaPlugin)</literal>
+                    in this case.
+                </para>
+            </footnote>
+        </para>
+        <programlisting><![CDATA[
+usePlugin(org.gradle.api.plugins.JavaPlugin)
+]]></programlisting>
+        <para>Any class, which implements the Plugin interface, can be used as a plugin. Just pass the class as an
+            argument. You don't need to configure anything else for this. If you want to access a custom plugin via a
+            string identifier, you must inform Gradle about the mapping. You can do this in the file
+            <literal>plugin.properties</literal>
+            in the top level directory of Gradle. It looks like this for the current release:
+        </para>
+        <example>
+            <title>plugin.properties</title>
+            <programlisting>
+                <xi:include href='../../../src/docs/userguide/../../toplevel/plugin.properties' parse='text'/>
+            </programlisting>
+        </example>
+        <para>If you want to use your own plugins, you must make sure that they are accessible via the build script
+            classpath. See chapter
+            <xref linkend='cha:organizing_build_logic'/>
+            for more information.
+        </para>
+    </section>
+    <section id='sub:more_about_convention_objects'>
+        <title>Configuration</title>
+        <para>If you use the
+            <emphasis>JavaPlugin</emphasis>
+            there is for example a compile and resources task for your production code (the same is true for your test
+            code). The default location for the output of those task is the directory<literal>build/classes</literal>.
+            What if you want to change this? Let's try:
+        </para>
+        <sample src='userguide/tutorial/pluginConfig/build.gradle'
+                title='Sample userguide/tutorial/pluginConfig/build.gradle'/>
+        <sampleOutput src='pluginConfig.out'/>
+        <para>Setting the
+            <literal>destinationDir</literal>
+            of the resources task had only an effect on the resources task. Maybe this was what you wanted. But what if
+            you want to change the output directory for all tasks? It would be unfortunate if you had to do this for
+            each task separately.
+        </para>
+        <para>Gradles tasks are usually<emphasis>convention aware</emphasis>. A plugin can add a convention object to
+            your build. It can also map certain values of this convention object to task properties.
+        </para>
+        <sample src='userguide/tutorial/pluginConvention/build.gradle'
+                title='Sample userguide/tutorial/pluginConvention/build.gradle'/>
+        <sampleOutput src='pluginConvention.out'/>
+        <para>The
+            <emphasis>JavaPlugin</emphasis>
+            has added a convention object with a
+            <literal>classesDirName</literal>
+            property. The properties of a convention object can be accessed like project properties. As shown in the
+            example, you can also access the convention object explicitly.
+        </para>
+        <para>By setting a task attribute explicitly (as we have done in the first example) you overwrite the convention
+            value for this particular task.
+        </para>
+        <para>Not all of the tasks attributes are mapped to convention object values. It is the decision of the plugin
+            to decide what are the shared properties and then bundle them in a convention object and map them to the
+            tasks.
+        </para>
+        <section>
+            <title>More about convention objects</title>
+            <para>Every project object has a convention object which is a container for convention objects contributed
+                by the plugins declared for your project. If you simply access or set a property or access a method in
+                your build script, the project object first looks if this is a property of itself. If not, it delegates
+                the request to its convention object. The convention object checks if any of the plugin convention
+                objects can fulfill the request (first wins and the order is not defined). The plugin convention objects
+                also introduce a namespace.
+            </para>
+            <programlisting><![CDATA[
+usePlugin('java')
+println classesDir
+println convention.classesDir
+println convention.plugins.java.classesDir
+]]></programlisting>
+            <para>All three statements print out the same property. The more specific statements are useful if there are
+                ambiguities.
+            </para>
+        </section>
+        <section id='sub:declaring_plugins_multiple_times'>
+            <title>Declaring Plugins Multiple Times</title>
+            <para>A plugin is only called once for a given project, even if you have multiple
+                <literal>usePlugin()</literal>
+                statements. An additional call after the first call has no effect but doesn't hurt either. This can be
+                important if you use plugins which extends other plugins. For example
+                <literal>usePlugin('groovy')</literal>
+                calls also the Java Plugin. We say the Groovy plugin extend the Java plugin. But you might as well
+                write:
+            </para>
+            <programlisting><![CDATA[
+usePlugin('java')
+usePlugin('groovy')
+]]></programlisting>
+            <para>If you use cross-project configuration in multi-project builds this is a useful feature.
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Summary</title>
+        <para>Plugins provide tasks, which are glued together via dependsOn relations and a convention object.
+        </para>
+    </section>
+</chapter>

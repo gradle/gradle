@@ -17,32 +17,12 @@
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
     <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideCommon.xsl"/>
+    <xsl:import href="userGuideHtmlCommon.xsl"/>
+
     <xsl:param name="root.filename">userguide</xsl:param>
     <xsl:param name="chunk.section.depth">0</xsl:param>
     <xsl:param name="chunk.quietly">1</xsl:param>
-
-    <xsl:template name="body.attributes">
-    </xsl:template>
-
-    <!-- TABLES -->
-
-    <xsl:template match="table">
-        <xsl:param name="class">
-            <xsl:apply-templates select="." mode="class.value"/>
-        </xsl:param>
-        <div class="{$class}">
-            <div class="{$class}-contents">
-                <table>
-                    <xsl:copy-of select="@*[not(local-name()='id')]"/>
-                    <xsl:attribute name="id">
-                        <xsl:call-template name="object.id"/>
-                    </xsl:attribute>
-                    <xsl:call-template name="htmlTable"/>
-                </table>
-            </div>
-            <xsl:call-template name="formal.object.heading"/>
-        </div>
-    </xsl:template>
+    <!--<xsl:param name="use.id.as.filename">1</xsl:param>-->
 
     <!-- HEADERS AND FOOTERS -->
 
@@ -62,14 +42,12 @@
     <xsl:template name="footer.navigation">
         <xsl:param name="next"/>
         <xsl:param name="prev"/>
-        <xsl:if test=". != /book">
-            <div class='navfooter'>
-                <xsl:call-template name="navlinks">
-                    <xsl:with-param name="next" select="$next"/>
-                    <xsl:with-param name="prev" select="$prev"/>
-                </xsl:call-template>
-            </div>
-        </xsl:if>
+        <div class='navfooter'>
+            <xsl:call-template name="navlinks">
+                <xsl:with-param name="next" select="$next"/>
+                <xsl:with-param name="prev" select="$prev"/>
+            </xsl:call-template>
+        </div>
     </xsl:template>
 
     <xsl:template name="navlinks">

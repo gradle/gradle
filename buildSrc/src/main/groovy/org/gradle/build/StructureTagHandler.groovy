@@ -39,6 +39,7 @@ public class StructureTagHandler extends BufferedTagHandler {
     }
 
     def doEnd(String content) {
+        doBefore()
         writer.print("<${tag}")
         if (label) {
             writer.print(" id='$label'")
@@ -50,5 +51,8 @@ public class StructureTagHandler extends BufferedTagHandler {
         writer.println("<title>${title}</title>")
         writer.print(content)
         writer.println("</${tag}>")
+    }
+    
+    def doBefore() {
     }
 }

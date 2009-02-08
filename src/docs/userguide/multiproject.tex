@@ -19,7 +19,7 @@ D- water
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/firstExample/water/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/firstExample/water/settings.gradle}
 \end{minipage}
 \\
 
@@ -40,7 +40,7 @@ D- water
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/addKrill/water/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/addKrill/water/settings.gradle}
 \end{minipage}
 \\
 
@@ -86,7 +86,7 @@ D- water
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/spreadSpecifics/water/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/spreadSpecifics/water/settings.gradle}
 \end{minipage}
 
 \codeGradleFile[bluewhale - ]{../../samples/userguide/multiproject/spreadSpecifics/water/bluewhale/build.gradle}
@@ -113,7 +113,7 @@ D- water
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/addTropical/water/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/addTropical/water/settings.gradle}
 \end{minipage}
 
 \codeGradleFile[water - ]{../../samples/userguide/multiproject/addTropical/water/build.gradle}
@@ -141,7 +141,7 @@ D- water
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/tropicalWithProperties/water/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/tropicalWithProperties/water/settings.gradle}
 \end{minipage}
 
 \codeGradleFile[bluewhale - ]{../../samples/userguide/multiproject/tropicalWithProperties/water/bluewhale/build.gradle}
@@ -204,7 +204,7 @@ D- messages
 \end{Verbatim}
 \end{minipage}	
 \begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/dependencies/firstMessages/messages/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/dependencies/firstMessages/messages/settings.gradle}
 \end{minipage}
 
 \codeGradleFile[consumer - ]{../../samples/userguide/multiproject/dependencies/firstMessages/messages/consumer/build.gradle}
@@ -222,9 +222,7 @@ D- messages
     F- build.gradle
 \end{Verbatim}
 \end{minipage}	
-\begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/dependencies/messagesHack/messages/settings.gradle}
-\end{minipage}
+\codeInput{../../samples/userguide/multiproject/dependencies/messagesHack/messages/settings.gradle}
 
 \codeGradleFile[aProducer - ]{../../samples/userguide/multiproject/dependencies/messagesHack/messages/aProducer/build.gradle}
 \codeGradleFile[consumer - ]{../../samples/userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle}
@@ -246,9 +244,7 @@ D- messages
     F- build.gradle
 \end{Verbatim}
 \end{minipage}	
-\begin{minipage}[t]{9cm}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/settings.gradle}
-\end{minipage}
+\codeInput{../../samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/settings.gradle}
 
 \codeGradleFile[consumer - ]{../../samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer/build.gradle}
 \codeGradleFile[producer - ]{../../samples/userguide/multiproject/dependencies/messagesWithDependencies/messages/producer/build.gradle}
@@ -300,7 +296,7 @@ D- webDist
   D- hello
     F- src/main/java/org/gradle/sample/HelloServlet.java
 \end{Verbatim}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/dependencies/webDist/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/dependencies/webDist/settings.gradle}
 \codeGradleFile[webDist - ]{../../samples/userguide/multiproject/dependencies/webDist/build.gradle}
 We have an interesting set of dependencies. Obviously the \texttt{date} and \texttt{hello} task have a \emph{configuration} dependency on \texttt{webDist}, as all the build logic for the webapp projects is injected by \texttt{webDist}. The \emph{execution} dependency is in the other direction, as \texttt{webDist} depends on the build artifacts of \texttt{date} and \texttt{hello}. There is even a third dependency. \texttt{webDist} has a \emph{configuration} dependency on \texttt{date} and \texttt{hello} because it needs to know the \texttt{archivePath}. But it asks for this information at \emph{execution time}. Therefore we have no circular dependency.
 
@@ -330,7 +326,7 @@ D- java
   F- build.gradle
 \end{Verbatim}
 We have the projects \texttt{shared}, \texttt{api} and \texttt{personService}. \texttt{personService} has a lib dependency on the other two projects. \texttt{api} has a lib dependency on \texttt{shared}.\footnote{\texttt{services} is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script.}
-\VerbatimInput[frame=single,label=settings.gradle]{../../samples/userguide/multiproject/dependencies/java/settings.gradle}
+\codeInput{../../samples/userguide/multiproject/dependencies/java/settings.gradle}
 \codeGradleFile[userguide/multiproject/dependencies/java - ]{../../samples/userguide/multiproject/dependencies/java/build.gradle}
 All the build logic is in the \texttt{build.gradle} of the root project.
 \footnote{We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the buildscript of the respective projects.} 

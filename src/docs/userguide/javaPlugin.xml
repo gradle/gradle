@@ -1,0 +1,1099 @@
+<chapter id='cha:the_java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Java Plugin</title>
+    <para>Table
+        <xref linkend='javalayout'/>
+        shows the default project layout assumed by the Java Plugin. This is configurable via the convention object.
+        Table
+        <xref linkend='javatasks'/>
+        shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds. Table
+        <xref linkend='javaconventionDir'/>
+        and Table
+        <xref linkend='javaconventionNonDir'/>
+        shows the most important properties of the convention object of the Java plugin.
+        <footnote>
+            <para>The
+                <emphasis>buildDir</emphasis>
+                property is a property of the project object. It defaults to<literal>build</literal>.
+            </para>
+        </footnote>
+        Gradle's conventions contain a convention for the directory hierarchy as well as conventions for the element
+        names of the hierarchy. For example the
+        <literal>srcDirs</literal>
+        are relative to the<literal>srcRoot</literal>. Therefore
+        <literal>srcDirs</literal>
+        is a read-only property. If you want to change the name of the source dirs you need to do this via the
+        <literal>srcDirNames</literal>
+        property. But the paths you specify here are
+        <emphasis>relative</emphasis>
+        to the<literal>srcRoot</literal>. This has the advantage to make bulk changes easy. If you change
+        <literal>srcRoot</literal>
+        from
+        <literal>src</literal>
+        to<literal>source</literal>, this automatically applies to all directory properties which are relative to
+        <literal>srcRoot</literal>. As this also introduces an inflexibility, we have additional floating dirs, which
+        are not bound to any hierarchy (see Table<xref linkend='javaconventionFloatingDir'/>). For example code
+        generation tool could make use of this, by adding a source dir which is located in the build folder.
+    </para>
+    <table id='javalayout'>
+        <title>Default Directory Layout</title>
+        <thead>
+            <tr>
+                <td>Folder</td>
+                <td>Meaning</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>
+                <literal>src/main/java</literal>
+            </td>
+            <td>Application/Library sources</td>
+        </tr>
+        <tr>
+            <td>
+                <literal>src/main/resources</literal>
+            </td>
+            <td>Application/Library resources</td>
+        </tr>
+        <tr>
+            <td>
+                <literal>src/main/webapp</literal>
+            </td>
+            <td>Web application sources</td>
+        </tr>
+        <tr>
+            <td>
+                <literal>src/test/java</literal>
+            </td>
+            <td>Test sources</td>
+        </tr>
+        <tr>
+            <td>
+                <literal>src/test/resources</literal>
+            </td>
+            <td>Test resources</td>
+        </tr>
+
+    </table>
+    <table id='javatasks'>
+        <title>Java Plugin Tasks</title>
+        <thead>
+            <tr>
+                <td>Taskname</td>
+                <td>dependsOn</td>
+                <td>Type</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>clean</td>
+            <td>-</td>
+            <td>org.gradle.api.tasks.Clean</td>
+        </tr>
+        <tr>
+            <td>javadoc</td>
+            <td>-</td>
+            <td>org.gradle.api.tasks.Javadoc</td>
+        </tr>
+        <tr>
+            <td>init</td>
+            <td>-</td>
+            <td>org.gradle.api.tasks.DefaultTask</td>
+        </tr>
+        <tr>
+            <td>resources</td>
+            <td>initialize</td>
+            <td>org.gradle.api.tasks.Resources</td>
+        </tr>
+        <tr>
+            <td>compile</td>
+            <td>resources</td>
+            <td>org.gradle.api.tasks.compile.Compile</td>
+        </tr>
+        <tr>
+            <td>testResources</td>
+            <td>compile</td>
+            <td>org.gradle.api.tasks.Resources</td>
+        </tr>
+        <tr>
+            <td>testCompile</td>
+            <td>testResources</td>
+            <td>org.gradle.api.tasks.compile.Compile</td>
+        </tr>
+        <tr>
+            <td>test</td>
+            <td>testCompile</td>
+            <td>org.gradle.api.tasks.testing.Test</td>
+        </tr>
+        <tr>
+            <td>libs</td>
+            <td>test</td>
+            <td>org.gradle.api.tasks.bundling.Bundle</td>
+        </tr>
+        <tr>
+            <td>uploadLibs</td>
+            <td>libs</td>
+            <td>org.gradle.api.tasks.Upload</td>
+        </tr>
+        <tr>
+            <td>dists</td>
+            <td>libs</td>
+            <td>org.gradle.api.tasks.bundling.Bundle</td>
+        </tr>
+        <tr>
+            <td>uploadDists</td>
+            <td>dists</td>
+            <td>org.gradle.api.tasks.Upload</td>
+        </tr>
+        <tr>
+            <td>upload</td>
+            <td>uploadLibs, uploadDists</td>
+            <td>default task</td>
+        </tr>
+
+    </table>
+    <table id='javaconventionDir'>
+        <title>Java Convention Object - Directory Hierarchy Properties</title>
+        <thead>
+            <tr>
+                <td>Dir Name</td>
+                <td>Dir File</td>
+                <td>Default Value Name</td>
+                <td>Default Value File</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>srcRootName</td>
+            <td>srcRoot</td>
+            <td>
+                <literal>src</literal>
+            </td>
+            <td>
+                <emphasis>projectDir</emphasis>
+                <literal>/src</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>srcDirNames</td>
+            <td>srcDirs</td>
+            <td>
+                <literal>main/java</literal>
+            </td>
+            <td>[
+                <emphasis>srcRoot</emphasis>
+                <literal>/main/java</literal>]
+            </td>
+        </tr>
+        <tr>
+            <td>resourceDirNames</td>
+            <td>resourceDirs</td>
+            <td>
+                <literal>main/resources</literal>
+            </td>
+            <td>[
+                <emphasis>srcRoot</emphasis>
+                <literal>/main/resources</literal>]
+            </td>
+        </tr>
+        <tr>
+            <td>testSrcDirNames</td>
+            <td>testSrcDirs</td>
+            <td>
+                <literal>test/java</literal>
+            </td>
+            <td>[
+                <emphasis>srcRoot</emphasis>
+                <literal>/test/java</literal>]
+            </td>
+        </tr>
+        <tr>
+            <td>testResourceDirNames</td>
+            <td>testResourceDirs</td>
+            <td>
+                <literal>main/resources</literal>
+            </td>
+            <td>[
+                <emphasis>srcRoot</emphasis>
+                <literal>/main/resources</literal>]
+            </td>
+        </tr>
+        <tr>
+            <td>srcDocsDirName</td>
+            <td>srcDocsDir</td>
+            <td>
+                <literal>docs</literal>
+            </td>
+            <td>
+                <emphasis>srcRoot</emphasis>
+                <literal>/docs</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>classesDirName</td>
+            <td>classesDir</td>
+            <td>
+                <literal>classes</literal>
+            </td>
+            <td>
+                <emphasis>buildDir</emphasis>
+                <literal>/classes</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>testClassesDirName</td>
+            <td>testClassesDir</td>
+            <td>
+                <literal>test-classes</literal>
+            </td>
+            <td>
+                <emphasis>buildDir</emphasis>
+                <literal>/test-classes</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>testResultsDir</td>
+            <td>testResultsDirName</td>
+            <td>
+                <literal>test-results</literal>
+            </td>
+            <td>
+                <emphasis>buildDir</emphasis>
+                <literal>/test-results</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>distsDirName</td>
+            <td>distsDir</td>
+            <td>
+                <literal>dists</literal>
+            </td>
+            <td>
+                <emphasis>buildDir</emphasis>
+                <literal>/dists</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>docsDirName</td>
+            <td>docsDir</td>
+            <td>
+                <literal>docs</literal>
+            </td>
+            <td>
+                <emphasis>buildDir</emphasis>
+                <literal>/docs</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>javadocDirName</td>
+            <td>javadocDir</td>
+            <td>
+                <literal>javadoc</literal>
+            </td>
+            <td>
+                <emphasis>buildDir</emphasis>
+                <literal>/javadoc</literal>
+            </td>
+        </tr>
+
+    </table>
+    <table id='javaconventionFloatingDir'>
+        <title>Java Convention Object - Floating Dir Properties</title>
+        <thead>
+            <tr>
+                <td>Property</td>
+                <td>Type</td>
+                <td>Default Value</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>floatingSrcDirs</td>
+            <td>List</td>
+            <td>empty</td>
+        </tr>
+        <tr>
+            <td>floatingResourceDirs</td>
+            <td>List</td>
+            <td>empty</td>
+        </tr>
+        <tr>
+            <td>floatingTestResourceDirs</td>
+            <td>List</td>
+            <td>empty</td>
+        </tr>
+        <tr>
+            <td>floatingTestResourceDirs</td>
+            <td>List</td>
+            <td>empty</td>
+        </tr>
+
+    </table>
+    <table id='javaconventionNonDir'>
+        <title>Java Convention Object - Non Dir Properties</title>
+        <thead>
+            <tr>
+                <td>Property</td>
+                <td>Type</td>
+                <td>Default Value</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>sourceCompatibility</td>
+            <td>String</td>
+            <td>
+                <literal>null</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>targetCompatibility</td>
+            <td>String</td>
+            <td>
+                <literal>null</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>manifest</td>
+            <td>GradleManifest</td>
+            <td>empty</td>
+        </tr>
+        <tr>
+            <td>metaInf</td>
+            <td>List</td>
+            <td>empty</td>
+        </tr>
+
+    </table>
+    <section>
+        <title>Init</title>
+        <para>The
+            <literal>init</literal>
+            task has no default action attached to it. It is meant to be a hook. You can add actions to it or associates
+            your custom tasks with it. The Java Plugin executes this task before any other of its tasks get executed
+            (except
+            <literal>clean</literal>
+            and
+            <literal>javadoc</literal>
+            which does not depends on<literal>init</literal>).
+        </para>
+    </section>
+    <section id='sec:javadoc'>
+        <title>Javadoc</title>
+        <para>The
+            <literal>javadoc</literal>
+            task has no default association with any other task. It has no prerequisites on the actions of other tasks,
+            as it operates on the source. It does not provide a fine-grained configuration API yet. If you need this,
+            you have to use for example Ant's javadoc task directly.
+        </para>
+        <table>
+            <title>Java Convention Object - Javadoc Properties</title>
+            <thead>
+                <tr>
+                    <td>Task Property</td>
+                    <td>Convention Property</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>srcDirs</td>
+                <td>srcDirs</td>
+            </tr>
+            <tr>
+                <td>destinationDir</td>
+                <td>[javadocDir]</td>
+            </tr>
+
+        </table>
+    </section>
+    <section id='sec:clean'>
+        <title>Clean</title>
+        <para>The
+            <literal>clean</literal>
+            task simply removes the directory denoted by its
+            <literal>dir</literal>
+            property. This property is mapped to the
+            <literal>buildDir</literal>
+            property of the project. In future releases there will be more control of what gets deleted. If you need
+            more control now, you can use the<emphasis>Ant delete task</emphasis>.
+        </para>
+    </section>
+    <section id='sec:resources'>
+        <title>Resources</title>
+        <para>The
+            <emphasis>Resources</emphasis>
+            task has two instances,
+            <literal>resources</literal>
+            and<literal>testResources</literal>.
+        </para>
+        <table>
+            <title>Java Convention Object - Resource Properties</title>
+            <thead>
+                <tr>
+                    <td>Task Instance</td>
+                    <td>Task Property</td>
+                    <td>Convention Property</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>resources</td>
+                <td>sourceDirs</td>
+                <td>resourceDirs</td>
+            </tr>
+            <tr>
+                <td>resources</td>
+                <td>destinationDir</td>
+                <td>classesDir</td>
+            </tr>
+            <tr>
+                <td>testResources</td>
+                <td>sourceDirs</td>
+                <td>testResourceDirs</td>
+            </tr>
+            <tr>
+                <td>testResources</td>
+                <td>destinationDir</td>
+                <td>testClassesDir</td>
+            </tr>
+
+        </table>
+        <para>The
+            <literal>resources</literal>
+            task offers includes and excludes directives as well as filters. Have a look at
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/Resources.html'>
+                org.gradle.api.tasks.Resources
+            </ulink>
+            to learn about the details.
+        </para>
+    </section>
+    <section id='sec:compile'>
+        <title>Compile</title>
+        <para>The
+            <emphasis>Compile</emphasis>
+            task has two instances,
+            <literal>compile</literal>
+            and<literal>testCompile</literal>.
+        </para>
+        <table>
+            <title>Java Convention Object - Compile Properties</title>
+            <thead>
+                <tr>
+                    <td>Task Instance</td>
+                    <td>Task Property</td>
+                    <td>Convention Property</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>compile</td>
+                <td>srcDirs</td>
+                <td>srcDirs</td>
+            </tr>
+            <tr>
+                <td>compile</td>
+                <td>destinationDir</td>
+                <td>classesDir</td>
+            </tr>
+            <tr>
+                <td>compile</td>
+                <td>sourceCompatibility</td>
+                <td>sourceCompatibility</td>
+            </tr>
+            <tr>
+                <td>compile</td>
+                <td>targetCompatibility</td>
+                <td>targetCompatibility</td>
+            </tr>
+            <tr>
+                <td>testCompile</td>
+                <td>srcDirs</td>
+                <td>testSrcDirs</td>
+            </tr>
+            <tr>
+                <td>testCompile</td>
+                <td>destinationDir</td>
+                <td>testClassesDir</td>
+            </tr>
+            <tr>
+                <td>testCompile</td>
+                <td>sourceCompatibility</td>
+                <td>sourceCompatibility</td>
+            </tr>
+            <tr>
+                <td>testCompile</td>
+                <td>targetCompatibility</td>
+                <td>targetCompatibility</td>
+            </tr>
+
+        </table>
+        <para>The classpath of the compile task is derived from two sources. One is the
+            <emphasis>configuration</emphasis>
+            assigned to the task by the dependency manager. The other classpath source is the
+            <literal>unmanagedClasspath</literal>
+            property: a list of files denoting a jar or a directory. Usually you create your classpath with the
+            dependency manager. The
+            <literal>unmanagedClasspath</literal>
+            is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is
+            it part of a dependency descriptor if you choose to upload your library to a repository. See section
+            <xref linkend=''/>
+            how the JavaPlugin glues the tasks with the dependency manager and see the whole chapter
+            <xref linkend='cha:dependency_management'/>
+            how to use the dependency manager.
+        </para>
+        <para>Have a look at
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/compile/Compile.html'>
+                org.gradle.api.tasks.compile.Compile
+            </ulink>
+            to learn about the details. The compile task delegates to Ants javac task to do the compile. Via the compile
+            task you can set most of the properties of Ants javac task.
+        </para>
+    </section>
+    <section id='sec:java_test'>
+        <title>Test</title>
+        <para>The
+            <literal>test</literal>
+            task executes the unit tests which have been compiled by the
+            <literal>testCompile</literal>
+            task.
+        </para>
+        <table>
+            <title>Java Convention Object - Test Properties</title>
+            <thead>
+                <tr>
+                    <td>Task Property</td>
+                    <td>Convention Property</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>testClassesDir</td>
+                <td>testClassesDir</td>
+            </tr>
+            <tr>
+                <td>testResultsDir</td>
+                <td>testResultsDir</td>
+            </tr>
+            <tr>
+                <td>unmanagedClasspath</td>
+                <td>[classesDir]</td>
+            </tr>
+
+        </table>
+        <para>Have a look at
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/testing/Test.html'>
+                org.gradle.api.tasks.testing.Test
+            </ulink>
+            to learn more. Right now the test results are always in XML-format. The task has a
+            <literal>stopAtFailuresOrErrors</literal>
+            property to control the behavior when tests are failing. Test
+            <emphasis>always</emphasis>
+            executes all tests. It stops the build afterwards if
+            <literal>stopAtFailuresOrErrors</literal>
+            is true and there are failing tests or tests that have thrown an uncaught exception.
+        </para>
+        <para>Per default the tests are run in a forked JVM and the fork is done per test. You can modify this behavior
+            by setting forking to false or set the forkmode to once.
+        </para>
+        <para>The test task tries to run all classes as tests, that have been compiled from the test source dirs. The
+            Java plugin defines default exclude pattern for the
+            <emphasis>.class</emphasis>
+            files. The default include is
+            <literal>**/*Tests.class", "**/*Test.class</literal>
+            and the default exclude is<literal>**/Abstract*.class</literal>.
+        </para>
+        <para>The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support in
+            one of our next releases.
+        </para>
+    </section>
+    <section id='sec:bundles'>
+        <title>Bundles</title>
+        <para>The
+            <emphasis>Bundle</emphasis>
+            task has two instances,
+            <literal>libs</literal>
+            and<literal>dists</literal>. The Bundle task is a special animal. It is a container for archive tasks (jar,
+            zip, ...).
+        </para>
+        <table>
+            <title>Java Convention Object - Bundle Properties</title>
+            <thead>
+                <tr>
+                    <td>Task Instance</td>
+                    <td>Task Property</td>
+                    <td>Convention Property</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>libs</td>
+                <td>tasksBaseName</td>
+                <td>
+                    <literal>project.archivesBaseName</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>dists</td>
+                <td>tasksBaseName</td>
+                <td>
+                    <literal>project.archivesBaseName</literal>
+                </td>
+            </tr>
+
+        </table>
+        <section id='sub:the_libs_task'>
+            <title>The libs Task</title>
+            <para>The
+                <literal>libs</literal>
+                task contains all the archive tasks which constitute the libraries needed to use your project as a
+                library. Executing the libs task leads to the execution of all the contained archive tasks. In a
+                multi-project build the archives which are produced by the
+                <literal>libs</literal>
+                task are available in the classpath of a dependent project. If you upload your project into a
+                repository, those archives are part of the dependency descriptor. If you come from Maven you can have
+                only one library jar per project. With Ivy you can have as many as you want. The Java plugin adds by
+                default one jar archive to the
+                <literal>libs</literal>
+                task. The task name is by default
+                <literal>archive_jar</literal>
+                and can of course be manipulated by this name. This jar contains the content of the<literal>
+                    classesDir</literal>. This is the behavior your are used from Maven. If you are happy with that you
+                usually don't have to touch this task. Except if you want to change the names of the generated archives.
+            </para>
+            <para>The
+                <literal>libs</literal>
+                task depends on the
+                <literal>test</literal>
+                task and its archive tasks. The archive tasks assigned to the
+                <literal>libs</literal>
+                task depend by default on the
+                <literal>test</literal>
+                task as well. You can change this via the
+                <literal>childrenDependsOn</literal>
+                property of the
+                <literal>libs</literal>
+                task.
+            </para>
+        </section>
+        <section id='sub:the_dists_task'>
+            <title>The dists Task</title>
+            <para>The
+                <literal>dists</literal>
+                task contains all the archive task that make up your distributions. For example a binary and a source
+                distribution. The
+                <literal>dists</literal>
+                task has two purposes. One is providing a hook for distributions in the lifecycle. The other is for
+                uploading distribution archives (the same is also true for the
+                <literal>libs</literal>
+                task.) The
+                <literal>dists</literal>
+                task depends on its archive tasks and the
+                <literal>libs</literal>
+                task. The contained archive tasks depend by default on the
+                <literal>libs</literal>
+                task as well. You can change this via the
+                <literal>childrenDependsOn</literal>
+                property of the
+                <literal>dists</literal>
+                task.
+            </para>
+        </section>
+        <section id='sub:adding_archives'>
+            <title>Adding Archives</title>
+            <para>The Bundle task has a couple of convenience methods for adding new archive tasks to it. Right now
+                there are the methods (<literal>jar</literal>,<literal>war</literal>,<literal>zip</literal>,<literal>
+                    tar</literal>,<literal>tarGz</literal>,<literal>tarBzip2</literal>). They all behave in the same
+                way.
+            </para>
+            <sample src='userguide/tutorial/zip/build.gradle' title='Sample userguide/tutorial/zip/build.gradle'/>
+            <sampleOutput src='zip.out'/>
+            <para>This adds an archive task with the name<literal>archive_zip</literal>. It is important to distinguish
+                between the name of the archive task and the name of the archive generated by the archive task. The name
+                of the generated archive file is by default the name of the project. The default for naming generated
+                archives can be changed with the
+                <literal>archivesBaseName</literal>
+                project property. The name of the archive can be changed at any time later on. You can pass a closure to
+                the
+                <literal>zip()</literal>
+                method, which statements are applied against the newly created archive task object. In section
+                <xref linkend='sec:archive_tasks'/>
+                you will learn more about which statements you can apply against a particular archive task. You could
+                for example change the name of the archive directly in the closure:
+            </para>
+            <sample src='userguide/tutorial/zipWithCustomName/build.gradle'
+                    title='Sample userguide/tutorial/zipWithCustomName/build.gradle'/>
+            <sampleOutput src='zipWithCustomName.out'/>
+            <para>You can further customize the names by passing arguments to archive method of the bundle task:
+            </para>
+            <sample src='userguide/tutorial/zipWithArguments/build.gradle'
+                    title='Sample userguide/tutorial/zipWithArguments/build.gradle'/>
+            <sampleOutput src='zipWithArguments.out'/>
+        </section>
+        <section id='sub:configuration_action'>
+            <title>Configuration Action</title>
+            <para>t.b.d.
+            </para>
+        </section>
+    </section>
+    <section id='sec:archive_tasks'>
+        <title>Archive Tasks</title>
+        <para>An archive task is a task which produces an archive at execution time. The following archives tasks are
+            available:
+        </para>
+        <table>
+            <title>Archive Tasks</title>
+            <thead>
+                <tr>
+                    <td>Type</td>
+                    <td>Accepted file container</td>
+                    <td>Extends</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/Zip.html'>
+                        org.gradle.api.tasks.bundling.Zip
+                    </ulink>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet</td>
+                <td>AbstractArchiveTask</td>
+            </tr>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/Tar.html'>
+                        org.gradle.api.tasks.bundling.Tar
+                    </ulink>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet, tarFileSet</td>
+                <td>Zip</td>
+            </tr>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/Jar.html'>
+                        org.gradle.api.tasks.bundling.Jar
+                    </ulink>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet</td>
+                <td>Zip</td>
+            </tr>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/War.html'>
+                        org.gradle.api.tasks.bundling.War
+                    </ulink>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet</td>
+                <td>Jar</td>
+            </tr>
+
+        </table>
+        <para>The following file containers are available:
+        </para>
+        <table id='filecontainer'>
+            <title>Filecontainer for Archives</title>
+            <thead>
+                <tr>
+                    <td>Type</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/FileSet.html'>
+                        org.gradle.api.tasks.util.FileSet
+                    </ulink>
+                </td>
+                <td>A set of files defined by a common baseDir and include/exclude patterns.</td>
+            </tr>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/ZipFileSet.html'>
+                        org.gradle.api.tasks.util.ZipFileSet
+                    </ulink>
+                </td>
+                <td>Extends FileSet with additional properties known from Ants zipfileset task.</td>
+            </tr>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/TarFileSet.html'>
+                        org.gradle.api.tasks.util.TarFileSet
+                    </ulink>
+                </td>
+                <td>Extends ZipFileSet with additional properties known from Ants tarfileset task.</td>
+            </tr>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/FileCollection.html'>
+                        org.gradle.api.tasks.util.FileCollection
+                    </ulink>
+                </td>
+                <td>An arbitrary collection of files to the archive. In contrast to a FileSet they don't need to have a
+                    common basedir.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/AntDirective.html'>
+                        org.gradle.api.tasks.util.AntDirective
+                    </ulink>
+                </td>
+                <td>An arbitrary Ant resource declaration.</td>
+            </tr>
+
+        </table>
+        <para>To learn about all the details have a look at the javadoc of the archive task class or the file container
+            class itself.
+        </para>
+        <section id='sub:common_properties'>
+            <title>Common Properties</title>
+            <para>The name of the generated archive is assembled from the task properties<literal>baseName</literal>,
+                <literal>classifier</literal>
+                and
+                <literal>extension</literal>
+                to:<literal>baseName-project.version-classifier.extension</literal>.
+                <footnote>
+                    <para>If the classifier is empty the trailing
+                        <literal>-</literal>
+                        is not added to the name. The same is true for the
+                        <literal>project.version</literal>
+                        property
+                    </para>
+                </footnote>
+                . The assembled name is accessible via the
+                <literal>archiveName</literal>
+                property. The
+                <literal>name</literal>
+                property denotes the name of the task, not the generated archive. An archive task has also a
+                <literal>customName</literal>
+                property. If this property is set, the
+                <literal>archiveName</literal>
+                property returns its value instead of assembling a name out of the properties mentioned above.
+            </para>
+            <para>Archives have a
+                <literal>destinationDir</literal>
+                property to specify where the generated archive should be placed. It has also an
+                <literal>archivePath</literal>
+                property, which returns a File object with the absolute path of the generated archive.
+            </para>
+        </section>
+        <section id='sub:adding_content'>
+            <title>Adding Content</title>
+            <para>To add content to an archive you must add file container to an archive (see Table<xref
+                    linkend='filecontainer'/>). You can add as many file container as you like. They behave pretty much
+                the same as the Ant resources with similar names.
+            </para>
+            <programlisting><![CDATA[
+myZipTask.fileSet(dir: 'contentDir') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+}
+]]></programlisting>
+            <para>You can add arbitrary files to an archive:
+            </para>
+            <programlisting><![CDATA[
+myZipTask.files('path_to_file1', 'path_to_file2')
+]]></programlisting>
+            <para>Other examples:
+            </para>
+            <programlisting><![CDATA[
+myZipTask.zipFileSet(dir: 'contentDir') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+	prefix = 'myprefix'
+}
+]]></programlisting>
+            <programlisting><![CDATA[
+myTarTask.tarFileSet(dir: 'contentDir') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+	uid = 'myuid'
+}
+]]></programlisting>
+            <para>There is also the option to add an arbitrary Ant expression describing an Ant resource.
+            </para>
+            <programlisting><![CDATA[
+myZipTask.antDirective {        
+   zipgroupfileset(dir: new File(rootDir, 'lib'))    
+}
+]]></programlisting>
+            <para>This is for rather exotic use cases. Usually you should be fine with the file container provided by
+                Gradle.
+            </para>
+        </section>
+        <section id='sub:merging'>
+            <title>Merging</title>
+            <para>If you want to merge the content of other archives into the archive to be generated Gradle offers you
+                two methods. One is<literal>merge</literal>:
+            </para>
+            <programlisting><![CDATA[
+myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz')
+]]></programlisting>
+            <para>This merges the whole content of the archive passed to the merge method into the generated archive. If
+                you need more control which content of the archive should be merged and to what path, you can pass a
+                closure to the merge method:
+            </para>
+            <programlisting><![CDATA[
+myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+	prefix = 'myprefix'
+}
+]]></programlisting>
+            <para>Under the hood Gradle scans the extension of the archives to be merged. According to the extension, it
+                creates a
+                <literal>ZipFileSet</literal>
+                or<literal>TarFileSet</literal>. The closure is applied to this newly created file container. \\ There
+                is another method for merging called<literal>mergeGroup</literal>.
+            </para>
+            <programlisting><![CDATA[
+myZipTask.mergeGroup('path_to_dir_with_archives') {
+	include('**/*.zip')
+	exclude('**/*.tar.gz')
+}
+]]></programlisting>
+            <para>With this method you can assign a set of archives to be merged. Those archives have to be located
+                under the directory you pass as an argument. You can define filters what archives should be included.
+                They are always included fully and you can't specify a path. If you need this features, you must use the
+                <literal>merge</literal>
+                method.
+            </para>
+        </section>
+        <section id='sub:manifest'>
+            <title>Manifest</title>
+            <para>The convention object of the JavaPlugin has a
+                <literal>manifest</literal>
+                property pointing to an instance of<ulink
+                        url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/GradleManifest.html'>
+                    org.gradle.api.bundling.GradleManifest</ulink>. With this
+                <literal>GradleManifest</literal>
+                object you can define the content of the
+                <literal>MANIFEST.MF</literal>
+                file of all the jar or a war archives in your project.
+            </para>
+            <programlisting><![CDATA[
+manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
+]]></programlisting>
+            <para>You can also define sections of a manifest file.
+            </para>
+            <para>If a particular archive needs unique entries in its manifest you have to create an own
+                <literal>GradleManifest</literal>
+                object for it.
+            </para>
+            <programlisting><![CDATA[
+manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
+myZipTask.manifest = new GradleManifest(manifest)
+myZipTask.manifest.mainAttributes(mykey: "myvalue")
+]]></programlisting>
+            <para>Passing the common manifest object to the constructor of
+                <literal>GradleManifest</literal>
+                add the common manifest values to the task specific manifest instance.
+            </para>
+        </section>
+        <section id='sub:metainf'>
+            <title>MetaInf</title>
+            <para>The convention object of the JavaPlugin has a
+                <literal>metaInf</literal>
+                property pointing to a list of
+                <literal>FileSet</literal>
+                objects. With this file sets you can define which files should be in the META-INF directory of a jar or
+                a war archive.
+            </para>
+            <programlisting><![CDATA[
+metaInf << new FileSet(someDir)
+]]></programlisting>
+        </section>
+    </section>
+    <section id='sec:upload'>
+        <title>Upload</title>
+        <para>The
+            <emphasis>Upload</emphasis>
+            task has two instances,
+            <literal>uploadLibs</literal>
+            and<literal>uploadDists</literal>. An easy way of describing there behavior, is that all archives added to
+            the
+            <literal>libs</literal>
+            and
+            <literal>dists</literal>
+            bundle are uploaded by the corresponding upload task. An upload task uploads to the repositories assigned to
+            it. If needed you have more control on what files get uploaded. Have a look at
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/Upload.html'>org.gradle.api.tasks.Upload
+            </ulink>
+            to learn more.
+        </para>
+    </section>
+    <section id='sec:eclipse'>
+        <title>Eclipse</title>
+        <para>Gradle comes with a number of tasks for generating eclipse files for your projects.
+        </para>
+        <section id='sub:eclipse_classpath'>
+            <title>Eclipse Classpath</title>
+            <para>
+                <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/ide/eclipse/EclipseClasspath.html'>
+                    org.gradle.api.tasks.ide.eclipse.EclipseClasspath
+                </ulink>
+                has a default instance with the name<literal>eclipseCp</literal>. It generates a
+                <literal>.classpath</literal>
+                file.
+            </para>
+            <table>
+                <title>Java Convention Object - Eclipse Properties</title>
+                <thead>
+                    <tr>
+                        <td>Task Property</td>
+                        <td>Convention Property</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>srcDirs</td>
+                    <td>srcDirs + resourcesDirs</td>
+                </tr>
+                <tr>
+                    <td>testSrcDirs</td>
+                    <td>testSrcDirs + testResourcesDirs</td>
+                </tr>
+                <tr>
+                    <td>outputDirectory</td>
+                    <td>classesDir</td>
+                </tr>
+                <tr>
+                    <td>testOutputDirectory</td>
+                    <td>testClassesDir</td>
+                </tr>
+                <tr>
+                    <td>classpathLibs</td>
+                    <td>the resolve result for
+                        <literal>testRuntime</literal>
+                    </td>
+                </tr>
+
+            </table>
+        </section>
+        <section id='sub:eclipse_project'>
+            <title>Eclipse Project</title>
+            <para>
+                <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/ide/eclipse/EclipseProject.html'>
+                    org.gradle.api.tasks.ide.eclipse.EclipseProject
+                </ulink>
+                has a default instance with the name<literal>eclipseProject</literal>. It generates a
+                <literal>.project</literal>
+                file.
+            </para>
+            <table>
+                <title>Java Convention Object - Eclipse Project Properties</title>
+                <thead>
+                    <tr>
+                        <td>Task Property</td>
+                        <td>Convention Property</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>name</td>
+                    <td>project.name</td>
+                </tr>
+                <tr>
+                    <td>projectType</td>
+                    <td>ProjectType.JAVA</td>
+                </tr>
+
+            </table>
+            <para>The java plugin also provides a task called
+                <literal>eclipse</literal>
+                which generates both of the eclipse tasks mentioned above. If you are using the war plugin,
+                <literal>eclipse</literal>
+                also leads to the execution of the
+                <literal>eclipseWtp</literal>
+                task.
+            </para>
+        </section>
+    </section>
+</chapter>

@@ -36,17 +36,17 @@ public class ParaTagHandler extends TagHandler {
     def directive(String name, String directive, List<String> params) {
         if (name == 'codeInput') {
             withNoCollection {
-                String href = '../../../src/docs/userguide/' + params[0]
-                String title = 'Sample ' + params[0].replaceFirst('\\.\\./\\.\\./samples/', '')
-                writer.println("<example><title>${title}</title><programlisting><xi:include href='$href' parse='text'/></programlisting></example>")
+                String href = params[0].replaceFirst('\\.\\./\\.\\./samples/', '')
+                String title = 'Sample ' + href
+                writer.println("<sample src='$href' title='$title'/>")
             }
             return
         }
         if (name == 'codeGradleFile') {
             withNoCollection {
-                String href = '../../../src/docs/userguide/' + params[1]
+                String href = params[1].replaceFirst('\\.\\./\\.\\./samples/', '')
                 String title = params[0] + ' build.gradle'
-                writer.println("<example><title>${title}</title><programlisting><xi:include href='$href' parse='text'/></programlisting></example>")
+                writer.println("<sample src='$href' title='$title'/>")
             }
             return
         }
@@ -60,17 +60,19 @@ public class ParaTagHandler extends TagHandler {
         }
         if (name == 'outputInputTutorial') {
             withNoCollection {
-                String href = '../../../src/samples/userguideOutput/' + params[0] + '.out'
-                String title = "Sample ${params[0]} output"
-                writer.println("<example><title>${title}</title><screen><xi:include href='$href' parse='text'/></screen></example>")
+//                String href = '../../../src/samples/userguideOutput/' + params[0] + '.out'
+//                String title = "Sample output - ${params[0]}"
+//                writer.println("<example><title>${title}</title><screen><xi:include href='$href' parse='text'/></screen></example>")
+                writer.println("<sampleOutput src='${params[0]}.out'/>")
             }
             return
         }
         if (name == 'outputInputGradle') {
             withNoCollection {
-                String href = '../../../src/docs/userguide/' + params[1]
-                String title = params[0]
-                writer.println("<example><title>${title}</title><screen><xi:include href='$href' parse='text'/></screen></example>")
+//                String href = '../../../src/docs/userguide/' + params[1]
+//                String title = params[0]
+//                writer.println("<example><title>${title}</title><screen><xi:include href='$href' parse='text'/></screen></example>")
+                writer.println("<sampleOutput src='${params[1]}'/>")
             }
             return
         }

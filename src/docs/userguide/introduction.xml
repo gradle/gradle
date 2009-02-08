@@ -1,0 +1,50 @@
+<chapter xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Introduction</title>
+    <para>We would like to introduce Gradle to you, a build system that we think is a quantum leap for build technology
+        in the Java (JVM) world. Gradle provides:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>a very flexible general purpose build tool like Ant.
+            </para>
+        </listitem>
+        <listitem>
+            <para>switchable, build-by-convention frameworks a la Maven. But we never lock you in!
+            </para>
+        </listitem>
+        <listitem>
+            <para>a very powerful support for multi-project builds.
+            </para>
+        </listitem>
+        <listitem>
+            <para>a very powerful dependency management (based on Apache Ivy).
+            </para>
+        </listitem>
+        <listitem>
+            <para>full support for your existing Maven or Ivy repository infrastructure.
+            </para>
+        </listitem>
+        <listitem>
+            <para>(optionally) support for transitive dependency management without the need for remote repositories or
+                <literal>pom.xml</literal>
+                and
+                <literal>ivy.xml</literal>
+                files.
+            </para>
+        </listitem>
+        <listitem>
+            <para>Ant tasks as first class citizens.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                <emphasis>Groovy</emphasis>
+                build scripts.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>In chapter
+        <xref linkend='cha:overview'/>
+        you find a detailed overview of Gradle. Now the tutorials are waiting, have fun :)
+    </para>
+</chapter>

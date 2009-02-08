@@ -7,13 +7,13 @@ public class DocumentTagHandler extends TagHandler {
     }
 
     def start() {
-        writer.println('<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">')
+//        writer.println('<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">')
         writer.println('<book xmlns:xi="http://www.w3.org/2001/XInclude">')
         writer.println('<bookinfo>')
         writer.println('<title>Gradle</title>')
         writer.println('<subtitle>A build system</subtitle>')
         writer.println('<releaseinfo>build-number</releaseinfo>')
-        writer.println('<copyright><year>2007-2008</year><holder>Hans Dockter</holder></copyright>')
+        writer.println('<copyright><year>2007-2009</year><holder>Hans Dockter</holder></copyright>')
         writer.println('<legalnotice><para>Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.</para></legalnotice>')
         writer.println('<author><firstname>Hans</firstname><surname>Dockter</surname></author>')
         writer.println('<author><firstname>Adam</firstname><surname>Murdoch</surname></author>')

@@ -1,0 +1,156 @@
+<chapter id='cha:more_about_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>More about Tasks</title>
+    <para>In the introductory tutorial (chapter<xref linkend='cha:gradle_core_tutorial'/>) you have learned how to
+        create simple task. You have also learned how to add additional behavior to those tasks later on. And you have
+        learned how to create dependencies between tasks. This was all about simple tasks. But Gradle takes the concept
+        of tasks further. Gradle supports enhanced tasks. Tasks which have there own properties and methods. This is
+        really different to what you are used from Ant targets. Such enhanced tasks are either provided by you or are
+        provided by Gradle.
+    </para>
+    <section id='sec:configuring_tasks'>
+        <title>Configuring Tasks</title>
+        <para>As an example, let's look at the Resources task provided by Gradle. To create such a Resources task for
+            your build, you may declare in your build script
+            <footnote>
+                <para>If you use the JavaPlugin, this task is automatically created and added to your project
+                </para>
+            </footnote>
+            :
+        </para>
+        <programlisting><![CDATA[
+createTask('resources', type: Resources)
+]]></programlisting>
+        <para>The resources task provides an API to configure it. See<ulink
+                url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/Resources.html'>Resources Task API</ulink>.
+            If you create the resources task like this, it has no default behavior.
+            <footnote>
+                <para>This is different when added by the JavaPlugin
+                </para>
+            </footnote>
+            . We want now use the resources task to learn about different ways to configure it (the result is always the
+            same for our examples).
+        </para>
+        <programlisting><![CDATA[
+Resources resources = createTask('resources', type: Resources)
+resources.from(file('resources'))
+resources.to(file('target'))
+resources.includes('**/*.txt', '**/*.xml', '**/*.properties')	
+]]></programlisting>
+        <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
+            (resources) in the configuration statement every time. This is a redundancy and not very nice to read.
+        </para>
+        <para>There is a more convenient way of doing this.
+        </para>
+        <programlisting><![CDATA[
+Resources resources = createTask('resources', type: Resources)
+resources.from(file('resources')).to(file('target')).
+	includes('**/*.txt', '**/*.xml', '**/*.properties')	
+]]></programlisting>
+        <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
+            has to support this. The from, to and includes methods all return an instance of the resources object. All
+            of Gradles build-in tasks usually support this configuration style.
+        </para>
+        <para>But there is yet another way of configuring the resources task. It also preserves the context and it
+            possibly offers the best readability. It is usually our favorite.
+        </para>
+        <programlisting><![CDATA[
+createTask('resources', type: Resources)
+resources {
+   from(file('resources'))
+   to(file('target'))
+   includes('**/*.txt', '**/*.xml', '**/*.properties')
+}
+]]></programlisting>
+        <para>This works for
+            <emphasis>any</emphasis>
+            task. Line 2 of the example is just a shortcut for<literal>task("resources")</literal>. It is important to
+            note that if you pass a closure to the
+            <literal>task</literal>
+            method, this closure is applied for
+            <emphasis>configuring</emphasis>
+            the task. There is a slightly different ways of doing this.
+        </para>
+        <programlisting><![CDATA[
+Resources resources = createTask('resources', type: Resources).configure {
+   from(file('source'))
+   to(file('target'))
+   includes('**/*.txt', '**/*.xml', '**/*.properties')
+}	
+]]></programlisting>
+        <para>If you pass a closure to the
+            <literal>createTask()</literal>
+            method, this closure gets added as an
+            <emphasis>action</emphasis>
+            to the task. Every task has a configure method, which you can pass a closure for configuring the task. The
+            above example works, because the
+            <literal>createTask</literal>
+            method returns the task object. Gradle uses this style for configuring objects in many places, not just for
+            tasks.
+        </para>
+    </section>
+    <section id='sec:adding_dependencies_to_tasks'>
+        <title>Adding Dependencies to Tasks</title>
+        <para>There are several ways you can define the dependencies of a task. In section
+            <xref linkend='sec:task_dependencies'/>
+            you were introduced to defining dependencies using task names. Task names can refer to tasks in the same
+            project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the
+            name of the task with the path of the project it belongs to. Below is an example which adds a dependency
+            from
+            <literal>projectA:taskX</literal>
+            to
+            <literal>projectB:taskY</literal>:
+        </para>
+        <sample src='userguide/tasks/addDependencyUsingPath/build.gradle'
+                title='Sample userguide/tasks/addDependencyUsingPath/build.gradle'/>
+        <sampleOutput src='addDependencyUsingPath.out'/>
+        <para>Instead of using a task name, you can define a dependency using a
+            <literal>Task</literal>
+            object, as shown in this example:
+        </para>
+        <sample src='userguide/tasks/addDependencyUsingTask/build.gradle'
+                title='Sample userguide/tasks/addDependencyUsingTask/build.gradle'/>
+        <sampleOutput src='addDependencyUsingTask.out'/>
+        <para>For more advanced uses, you can define a task dependency using a closure. When evaluated, the closure is
+            passed the task whose dependencies are being calculated. The closure should return a single
+            <literal>Task</literal>
+            or collection of
+            <literal>Task</literal>
+            objects, which are then treated as dependencies of the task. The following example adds a dependency from
+            <literal>taskX</literal>
+            to all the tasks in the project whose name starts with<literal>lib</literal>:
+        </para>
+        <sample src='userguide/tasks/addDependencyUsingClosure/build.gradle'
+                title='Sample userguide/tasks/addDependencyUsingClosure/build.gradle'/>
+        <sampleOutput src='addDependencyUsingClosure.out'/>
+        <para>For more information about task dependencies, see the
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Task.html'>org.gradle.api.Task</ulink>
+            API.
+        </para>
+    </section>
+    <section>
+        <title>Replacing Tasks</title>
+        <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin
+            with a custom task of a different type. You can achieve this with:
+        </para>
+        <sample src='userguide/tutorial/replaceTask/build.gradle'
+                title='Sample userguide/tutorial/replaceTask/build.gradle'/>
+        <sampleOutput src='replaceTask.out'/>
+        <para>Here we replace a task of type
+            <literal>Resources</literal>
+            with a simple task. When creating the simple task, you have to set the
+            <literal>overwrite</literal>
+            property to true. Otherwise Gradle throws an exception, saying that a task with such a name already exists.
+        </para>
+    </section>
+    <section id='sec:the_idea_behind_gradle_tasks'>
+        <title>Summary</title>
+        <para>If you are coming from Ant, such an enhanced Gradle task as
+            <emphasis>Resources</emphasis>
+            looks like a mixture between an Ant target and an Ant task. And this is actually the case. The separation
+            that Ant does between tasks and targets is not done by Gradle. The simple Gradle tasks are like Ant's
+            targets and the enhanced Gradle tasks also include the Ant task aspects. All of Gradles tasks share a common
+            API and you can create dependencies between them. Such a task might be nicer to configure than an Ant task.
+            It makes full use of the type system, is more expressive and easier to maintain.
+        </para>
+    </section>
+</chapter>

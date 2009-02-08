@@ -1,0 +1,252 @@
+<chapter id='cha:the_this_and_that_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The 'This And That' Tutorial</title>
+    <section>
+        <title>Skipping Tasks</title>
+        <para>Gradle offers multiple ways to skip the execution of a task.
+        </para>
+        <sample src='userguide/tutorial/skipProperties/build.gradle'
+                title='Sample userguide/tutorial/skipProperties/build.gradle'/>
+        <sampleOutput src='skipProperties.out'/>
+        <para>The
+            <literal>-D</literal>
+            option of the
+            <literal>gradle</literal>
+            command has the same effect as the
+            <literal>-D</literal>
+            option of the
+            <literal>java</literal>
+            command. This way you can set system properties of the JVM that runs Gradle. You can add one ore more
+            <emphasis>skip properties</emphasis>
+            to any existing task. If the corresponding system property is set to any value/footnote{The statement
+            <literal>-Dprop</literal>
+            sets the property to empty string, thus you don't need to type more to skip a task.} except false (case does
+            not matter), the actions of the task don't get executed. But often you don't even need to set the skip
+            properties. If you set a system property according to the pattern
+            <literal>skip.
+                <emphasis>taskname</emphasis>
+            </literal>
+            , the actions of this task don't get executed.
+        </para>
+        <sample src='userguide/tutorial/autoskip/build.gradle' title='Sample userguide/tutorial/autoskip/build.gradle'/>
+        <sampleOutput src='autoskip.out'/>
+        <para>If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via
+            the skip properties
+        </para>
+        <sample src='userguide/tutorial/autoskipDepends/build.gradle'
+                title='Sample userguide/tutorial/autoskipDepends/build.gradle'/>
+        <sampleOutput src='autoskipDepends.out'/>
+        <para>If the rules for skipping a task can't be expressed with a simple property, you can use the
+            <literal>StopExecutionException</literal>
+            <footnote>
+                <para>The fully qualified name is
+                    <literal>org.gradle.api.tasks.StopExecutionException</literal>
+                </para>
+            </footnote>
+            . If this exception is thrown by an action, the further execution of this action as well as the execution of
+            any following action of this task is skipped. The build continues with executing the next task.
+        </para>
+        <sample src='userguide/tutorial/stopExecutionException/build.gradle'
+                title='Sample userguide/tutorial/stopExecutionException/build.gradle'/>
+        <sampleOutput src='stopExecutionException.out'/>
+        <para>This feature is helpful if you work with tasks provided by Gradle. It allows you to add
+            <emphasis>conditional</emphasis>
+            execution of the built-in actions of such a task.
+        </para>
+        <para>You might be wondering why there is neither an import for the
+            <literal>StopExecutionException</literal>
+            nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports
+            to your script. These imports are customizable (see Appendix<xref linkend='ide_support'/>).
+        </para>
+        <para>Every task has also a
+            <literal>enabled</literal>
+            flag which defaults to<literal>true</literal>. Setting it to false prevents the execution of any of the
+            tasks actions.
+        </para>
+        <sample src='userguide/tutorial/disableTask/build.gradle'
+                title='Sample userguide/tutorial/disableTask/build.gradle'/>
+        <sampleOutput src='disableTask.out'/>
+    </section>
+    <section>
+        <title>Obtaining Information About Your Build</title>
+        <para>Gradle provides several ways you can find out many details of your build. This can be useful for
+            understanding the structure and dependencies of your build, and for debugging problems. Firstly, Gradle
+            provides several command-line options which show particular details of your build. And secondly, Gradle
+            provides a
+            <literal>project-reports</literal>
+            plugin, which adds tasks to generate reports about your build.
+        </para>
+        <para>Running
+            <literal>gradle --tasks</literal>
+            gives you a list of the tasks which make up the build, broken down by project. This report shows the default
+            tasks, if any, of each project, and the description and dependencies of each task. Below is an example of
+            this report:
+        </para>
+        <sampleOutput src='taskListReport.out'/>
+        <para>Running
+            <literal>gradle --dependencies</literal>
+            gives you a list of the dependencies of the build, broken down by project. This report shows the
+            configurations of each project. For each configuration, the direct and transitive dependencies of that
+            configuration are shown. Below is an example of this report:
+        </para>
+        <sampleOutput src='dependencyListReport.out'/>
+        <para>Running
+            <literal>gradle --properties</literal>
+            gives you a list of the properties of each project in the build. Below is an example of this report:
+        </para>
+        <sampleOutput src='propertyListReport.out'/>
+        <para>Finally, you can use the
+            <literal>project-reports</literal>
+            plugin to add a number of reporting tasks to your project.
+        </para>
+    </section>
+    <section id='sec:directory_creation'>
+        <title>Directory Creation</title>
+        <para>There is a common situation, that multiple tasks depend on the existence of a directory. Of course you can
+            deal with this by adding a
+            <literal>mkdir</literal>
+            to the beginning of those tasks. But this is kind of bloated. There is a better solution (works only if the
+            tasks that need the directory have a
+            <emphasis>dependsOn</emphasis>
+            relationship):
+        </para>
+        <sample src='userguide/tutorial/makeDirectory/build.gradle'
+                title='Sample userguide/tutorial/makeDirectory/build.gradle'/>
+        <sampleOutput src='makeDirectory.out'/>
+        <para>But Gradle offers you also
+            <emphasis>Directory Tasks</emphasis>
+            to deal with this.
+        </para>
+        <sample src='userguide/tutorial/directoryTask/build.gradle'
+                title='Sample userguide/tutorial/directoryTask/build.gradle'/>
+        <sampleOutput src='directoryTask.out'/>
+        <para>A
+            <emphasis>Directory Task</emphasis>
+            is a simple task which name is a relative path to the project dir
+            <footnote>
+                <para>The notation
+                    <literal>dir('/somepath')</literal>
+                    is a convenience method for
+                    <literal>createTask('somepath', type: Directory)</literal>
+                </para>
+            </footnote>
+            . During the execution phase the directory corresponding to this path gets created if it does not exist yet.
+            Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn
+            declaration of a task.
+        </para>
+    </section>
+    <section id='sec:gradle_properties_and_system_properties'>
+        <title>Gradle Properties and System Properties</title>
+        <para>Gradle offers a variety of ways to add properties to your build. With the
+            <literal>-D</literal>
+            command line option you can pass a system property to the JVM which runs Gradle.
+        </para>
+        <para>There is also the possibility to directly add properties to your project objects. You can place a
+            <literal>gradle.properties</literal>
+            file either in the Gradle user home dir (defaults to
+            <literal><emphasis>USER_HOME</emphasis>/.gradle
+            </literal>
+            ) or in your project dir. For multiproject builds you can place
+            <literal>gradle.properties</literal>
+            files in any subproject. The properties of the
+            <literal>gradle.properties</literal>
+            can be accessed via the project object. The properties file in the the user's home directory has precedence
+            over property files in the project directories.
+        </para>
+        <para>You can also add properties directly to your project object via the
+            <literal>-P</literal>
+            command line option. For more exotic use cases you can even pass properties
+            <emphasis>directly</emphasis>
+            to the project object via system and environment properties. For example if you run a build on a continuous
+            integration server where you have no admin rights for the<emphasis>machine</emphasis>. Your build script
+            needs properties which values should not be seen by others. Therefore you can't use the
+            <literal>-P</literal>
+            option. In this case you can add an environment property in the project adminstration section (invisible to
+            normal users).
+            <footnote>
+                <para>
+                    <emphasis>Teamcity</emphasis>
+                    or
+                    <emphasis>Bamboo</emphasis>
+                    are for example CI servers which offer this functionality
+                </para>
+            </footnote>
+            If the environment property follows the pattern<literal>ORG_GRADLE_PROJECT_yourProperty=somevalue</literal>,
+            <literal>yourProperty</literal>
+            is added to your project object. If in the future CI servers support Gradle directly, they might start
+            Gradle via its main method. Therefore we already support the same mechanism for system properties. The only
+            difference is the prefix, which is<literal>org.gradle.project.</literal>.
+        </para>
+        <para>With the
+            <literal>gradle.properties</literal>
+            files you can also set system properties. If a property in such a file has the prefix
+            <literal>systemProp.</literal>
+            the property and its value are added to the system properties (without the prefix).
+        </para>
+        <sample src='userguide/tutorial/properties/gradle.properties'
+                title='Sample userguide/tutorial/properties/gradle.properties'/>
+        <sample src='userguide/tutorial/properties/build.gradle'
+                title='Sample userguide/tutorial/properties/build.gradle'/>
+        <sampleOutput src='properties.out'/>
+        <section id='sub:checking_for_project_properties'>
+            <title>Checking for Project Properties</title>
+            <para>You can access a project property in your build script simply by using it name as you would use a
+                variable. In case this property does not exists, an exception is thrown and the build fails. If your
+                build script relies on optional properties the user might set for example in a gradle.properties file,
+                you need to check for existence before you can access them. You can do this by using the method
+                <literal>hasProperty('propertyName')</literal>
+                which returns
+                <literal>true</literal>
+                or<literal>false</literal>.
+            </para>
+        </section>
+    </section>
+    <section id='sec:accessing_the_web_via_a_proxy'>
+        <title>Accessing the web via a proxy</title>
+        <para>Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to
+            provide special functionality for this. The JVM can be instructed to go via proxy by setting certain system
+            properties. You could set this system properties directly in your build script with<literal>
+                System.properties['proxy.proxyUser'] = 'userid'</literal>. An arguably nicer way is shown in section
+            <xref linkend='sec:gradle_properties_and_system_properties'/>. Your gradle.properties file could look like
+            this:
+        </para>
+        <programlisting><![CDATA[
+systemProp.http.proxyHost=http://www.somehost.org
+systemProp.http.proxyPort=8080
+systemProp.http.proxyUser=userid
+systemProp.http.proxyPassword=password	
+]]></programlisting>
+        <para>We could not find a good overview for all possible proxy settings. The best we can offer are the constants
+            in a file from the ant project. Here a
+            <ulink url='http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&amp;pathrev=556977'>
+                link
+            </ulink>
+            to the svn view. If anyone knows a better overview please let us know via the mailing list.
+        </para>
+    </section>
+    <section id='sec:caching'>
+        <title>Caching</title>
+        <para>To improve the responsiveness Gradle caches the compiled build script by default. The first time you run a
+            build for a project, Gradle creates a
+            <literal>.gradle</literal>
+            directory in which it puts the compiled build script. The next time you run this build, Gradle uses the
+            compiled build script, if the timestamp of the compiled script is newer than the timestamp of the actual
+            build script. Otherwise the build script gets compiled and the new version is stored in the cache. If you
+            run Gradle with the
+            <literal>-x</literal>
+            option, any existing cache is ignored and the build script is compiled and executed on the fly. If you run
+            Gradle with the
+            <literal>-r</literal>
+            option, the build script is always compiled and stored in the cache. That way you can always rebuild the
+            cache if for example the timestamps for some reasons don't reflect that the build script needs to be
+            recomiled.
+        </para>
+    </section>
+    <section id='sec:configuring_arbitrary_objects'>
+        <title>Configuring Arbitrary Objects</title>
+        <para>You can configure arbitrary objects in the following very readable way.
+        </para>
+        <sample src='userguide/tutorial/configureObject/build.gradle'
+                title='Sample userguide/tutorial/configureObject/build.gradle'/>
+        <sampleOutput src='configureObject.out'/>
+    </section>
+</chapter>

@@ -1,0 +1,32 @@
+<chapter id='cha:potential_traps' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Potential Traps</title>
+    <section id='sec:groovy_script_variables'>
+        <title>Groovy Script Variables</title>
+        <para>For Gradle users it is important to understand how Groovy deals with script variables. Groovy has to type
+            of script variables. One with a local scope and one with a script wide scope.
+        </para>
+        <sample src='userguide/tutorial/scope.groovy' title='Sample userguide/tutorial/scope.groovy'/>
+        <sampleOutput src='scope.out'/>
+        <para>Variables which are declared with a type modifier are visible within closures but not visible within
+            methods. This is a heavily discussed behavior in the Groovy community.
+            <footnote>
+                <para>One of those discussions can be found here:
+                    <ulink url='http://www.nabble.com/script-scoping-question-td16034724.html'/>
+                </para>
+            </footnote>
+        </para>
+    </section>
+    <section id='sec:configuration_and_execution_phase'>
+        <title>Configuration and Execution Phase</title>
+        <para>It is important to keep in mind that Gradle has a distinct configuration and execution phase (see chapter
+            <xref linkend='cha:the_build_lifecycle'/>).
+        </para>
+        <sample src='userguide/tutorial/mkdirTrap/build.gradle'
+                title='Sample userguide/tutorial/mkdirTrap/build.gradle'/>
+        <sampleOutput src='mkdirTrap.out'/>
+        <para>As the creation of the directory happens during the configuration phase, the
+            <literal>clean</literal>
+            task removes the directory during the execution phase.
+        </para>
+    </section>
+</chapter>

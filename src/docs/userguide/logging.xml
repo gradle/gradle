@@ -1,0 +1,147 @@
+<chapter id='cha:logging' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Logging</title>
+    <para>The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden
+        by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle
+        has added to log-levels to the ones normally used. Those levels are
+        <emphasis>QUIET</emphasis>
+        and<emphasis>LIFECYCLE</emphasis>. The latter is the default and is telling you just what task is getting
+        executed or skipped.
+    </para>
+    <section id='sec:choosing_a_log_level'>
+        <title>Choosing a log level</title>
+        <para>You can use command line switches to choose different log levels (see table<xref linkend='loglevels'/>).
+            The
+            <literal>WARN</literal>
+            and
+            <emphasis>ERROR</emphasis>
+            levels are included in all the other levels, except<emphasis>QUIET</emphasis>, where only
+            <emphasis>ERROR</emphasis>
+            is included. In table {<xref linkend='stacktraces'/>} you find the command line switches for stacktrace
+            logging.
+        </para>
+        <table id='loglevels'>
+            <title>Log Level</title>
+            <thead>
+                <tr>
+                    <td>Option</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>no logging options</td>
+                <td>LIFECYCLE</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>q</literal>
+                </td>
+                <td>QUIET</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>i</literal>
+                </td>
+                <td>INFO</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>d</literal>
+                </td>
+                <td>DEBUG</td>
+            </tr>
+
+        </table>
+        <table id='stacktraces'>
+            <title>Stacktraces</title>
+            <thead>
+                <tr>
+                    <td>Option</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>neither
+                    <literal>s</literal>
+                    nor
+                    <literal>f</literal>
+                </td>
+                <td>No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in
+                    case of internal exceptions will stacktraces be printed. If the loglevel option
+                    <literal>d</literal>
+                    is chosen, truncated stacktraces are always printed.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>s</literal>
+                </td>
+                <td>Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces
+                    are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not
+                    contain relevant information for what has gone wrong in
+                    <emphasis>your</emphasis>
+                    code.)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>f</literal>
+                </td>
+                <td>The full stacktraces are printed out.</td>
+            </tr>
+
+        </table>
+    </section>
+    <section id='sec:external_tools'>
+        <title>External Tools and Standard Output</title>
+        <para>Gradle uses internally Ant and Ivy a lot. Both have their own logging system. Gradle injects an adapter
+            into there logging system to redirect there logging output into the gradle logging system. There is a 1:1
+            mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy trace level, which is
+            mapped to Gradle debug. This means the default Gradle log level does not show any Ant/Ivy output unless it
+            is an error or a warning.
+        </para>
+        <para>There are many tools out there which still use standard output for logging. Gradle redirects by default
+            standard out to the
+            <emphasis>QUIET</emphasis>
+            level and standard err to the
+            <emphasis>ERROR</emphasis>
+            level. This behavior is configurable. Gradle provides a couple of switches for this. To change the log
+            level, standard out is redirected to, when your build script gets evaluated, the project object offers a
+            method called<ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Project.html'>
+                Project#captureStandardOutput</ulink>. To change the log level for standard out during task execution,
+            tasks offer a method also with the name<ulink
+                    url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Task.html'>Task#captureStandardOutput</ulink>.
+            Tasks and projects also offer a method
+            <literal>disableStandardOutputCapture</literal>
+            which causes the standard out to be send to the default standard out. If you need more fine grained control
+            on how standard out is redirected you can use the class StandardOutputLoggingAdapter.
+        </para>
+    </section>
+    <section id='sec:sending_your_own_log_messages'>
+        <title>Sending your own log messages</title>
+        <para>Gradle provides a
+            <literal>logger</literal>
+            property to a build script, which is an instance of a slf4j logger. Here is the code of the logging
+            integration test, which shows you how to use the logger, as well as working with standard out redirection.
+        </para>
+        <sample src='logging/project1/build.gradle' title='Sample logging/project1/build.gradle'/>
+        <para>Strictly speaking, QUIET and LIFECYCLE are no log levels, but they are markers. But logically Gradle
+            treats them as log levels. In a future version of Gradle we want to provide a logger which provides
+            additional log methods
+            <literal>quiet</literal>
+            and<literal>lifecycle</literal>.
+        </para>
+        <para>You can also hook into Gradle's logging system from within other classes (classes from the buildSrc
+            directory for example). Simply use a slf4j logger.
+        </para>
+        <programlisting><![CDATA[
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;	
+
+public class MyClass {
+    private static Logger logger = LoggerFactory.getLogger(MyClass.class);
+	...
+]]></programlisting>
+        <para>You can use this logger the same way as you use the provided logger in the build script.
+        </para>
+    </section>
+</chapter>

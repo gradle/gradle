@@ -429,10 +429,23 @@ void cleanLatex(File dir) {
 }
 
 createTask('userguideSrc') {
-    transformer = new org.gradle.build.Latex2Docbook(project)
-    transformer.sourceDir = userguideSrc
-    transformer.destDir = docbookSrc
-    transformer.transform()
+    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
+            "org.apache.xerces.parsers.XIncludeParserConfiguration")
+
+    docbookSrc.mkdirs()
+
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+        arg(value: '-in')
+        arg(value: new File(userguideSrc, 'userguide.xml'))
+        arg(value: '-xsl')
+        arg(value: new File(userguideSrc, 'userGuideCustomElements.xsl'))
+        arg(value: '-out')
+        arg(value: new File(docbookSrc, 'userguide.xml'))
+        arg(line: "-param version ${version}")
+        classpath {
+            path(path: dependencies.userGuideTask.asPath)
+        }
+    }
 }
 
 createTask('userguideStyleSheets') {
@@ -534,7 +547,7 @@ createTask('integTest', dependsOn: ['dists']) {
     IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, userguideOutputDir.absolutePath)
 }.skipProperties
 
-createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc'])
+createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc', 'uploadUserguide'])
 
 createTask('install', dependsOn: 'integTest') {
     ant.delete(dir: "$gradle_installDir/$gradle_installDirName")

@@ -1,0 +1,653 @@
+<chapter id='cha:multi_project_builds' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Multi-project builds</title>
+    <para>The powerful support for multi-project builds is one of Gradles unique selling points. This topic is also the
+        intellectually most challenging.
+    </para>
+    <section id='sec:cross_project_configuration'>
+        <title>Cross Project Configuration</title>
+        <para>Let's start with a very simple multi-project build. After all Gradle is a general purpose build tool at
+            its core. So the projects don't have to be java projects. Our first examples are about marine life.
+        </para>
+        <section>
+            <title>Defining Common Behavior</title>
+            <para>We have the following project tree
+                <footnote>
+                    <para>F means File and D means Directory
+                    </para>
+                </footnote>
+                . This is a multi-project build with a root project
+                <literal>water</literal>
+                and a subproject<literal>bluewhale</literal>.
+            </para>
+            <programlisting><![CDATA[
+D- water
+  F- build.gradle
+  F- settings.gradle
+  D- bluewhale	
+]]></programlisting>
+            <sample src='userguide/multiproject/firstExample/water/settings.gradle'
+                    title='Sample userguide/multiproject/firstExample/water/settings.gradle'/>
+            <para>\\
+            </para>
+            <para>And where is the build script for the bluewhale project? In Gradle build scripts are optional.
+                Obviously for a single project build, a project without a build script doesn't make much sense. For
+                multiproject builds the situation is different. Let's look at the build script for the water project and
+                execute it:
+            </para>
+            <sample src='userguide/multiproject/firstExample/water/build.gradle' title='water -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectFirstExample.out'/>
+            <para>Gradle allows you to access any project of the multi-project build from any build script. The Project
+                API provides a method called project, which takes a path as an argument and returns the project object
+                for this path. The capability to configure a project build from any build script we call<emphasis>Cross
+                    Project Configuration</emphasis>. Gradle implements this via<emphasis>Configuration
+                    Injection</emphasis>.
+            </para>
+            <para>We are not that happy with the build script of the water project. It is inconvenient to add the task
+                explicitly for every project. We can do better. Let's first add another project called
+                <emphasis>krill</emphasis>
+                to our multi-project build.
+            </para>
+            <programlisting><![CDATA[
+D- water
+  F- build.gradle
+  F- settings.gradle
+  D- bluewhale
+  D- krill	
+]]></programlisting>
+            <sample src='userguide/multiproject/addKrill/water/settings.gradle'
+                    title='Sample userguide/multiproject/addKrill/water/settings.gradle'/>
+            <para>\\
+            </para>
+            <para>Now we rewrite the water build script and boil it down to a single line.
+            </para>
+            <sample src='userguide/multiproject/addKrill/water/build.gradle' title='water -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectAddKrill.out'/>
+            <para>Is this cool or is this cool? And how does this work? The Project API provides a property
+                <literal>allprojects</literal>
+                which returns a list with the current project and all its subprojects underneath it. If you call
+                <literal>allprojects</literal>
+                with a closure, the statements of the closure are delegated to the projects associated with<literal>
+                    allprojects</literal>. You could also do an iteration via<literal>allprojects.each</literal>, but
+                that would be more verbose. \\
+            </para>
+            <para></para>
+            <para>Other build systems use inheritance as the primary means for defining common behavior. We also offer
+                inheritance for projects as you will see later. But Gradle uses
+                <literal>Configuration Injection</literal>
+                as the usual way of defining common behavior. We think it provides a very powerful and flexible way of
+                configuring multiproject builds.
+            </para>
+        </section>
+    </section>
+    <section id='sec:subproject_configuration'>
+        <title>Subproject Configuration</title>
+        <para>The Project API also provides a property for accessing the subprojects only.
+        </para>
+        <section>
+            <title>Defining Common Behavior</title>
+            <sample src='userguide/multiproject/useSubprojects/water/build.gradle' title='water -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectUseSubprojects.out'/>
+        </section>
+        <section id='sub:adding_specific_behavior'>
+            <title>Adding Specific Behavior</title>
+            <para>You can add specific behavior on top of the common behavior. Usually we put the project specific
+                behavior in the build script of the project where we want to apply this specific behavior. But as we
+                have already seen, we don't have to do it this way. We could add project specific behavior for the
+                bluewhale project like this:
+            </para>
+            <sample src='userguide/multiproject/subprojectsAddFromTop/water/build.gradle'
+                    title='water -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectSubprojectsAddFromTop.out'/>
+            <para>As we have said, we usually prefer to put project specific behavior into the build script of this
+                project. Let's refactor and also add some project specific behavior to the krill project. \\
+            </para>
+            <programlisting><![CDATA[
+D- water
+  F- build.gradle
+  F- settings.gradle
+  D- bluewhale
+    F- build.gradle
+  D- krill
+    F- build.gradle
+]]></programlisting>
+            <sample src='userguide/multiproject/spreadSpecifics/water/settings.gradle'
+                    title='Sample userguide/multiproject/spreadSpecifics/water/settings.gradle'/>
+            <sample src='userguide/multiproject/spreadSpecifics/water/bluewhale/build.gradle'
+                    title='bluewhale -  build.gradle'/>
+            <sample src='userguide/multiproject/spreadSpecifics/water/krill/build.gradle'
+                    title='krill -  build.gradle'/>
+            <sample src='userguide/multiproject/spreadSpecifics/water/build.gradle' title='water -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectSpreadSpecifics.out'/>
+        </section>
+        <section id='sub:project_filtering'>
+            <title>Project Filtering</title>
+            <para>To show more of the power of<emphasis>Configuration Injection</emphasis>, lets' add another project
+                called tropicalFish and add more behavior to the build via the build script of the water project.
+            </para>
+            <section id='ssub:filtering_by_name'>
+                <title>Filtering By Name</title>
+                <programlisting><![CDATA[
+D- water
+  F- build.gradle
+  F- settings.gradle
+  D- bluewhale
+    F- build.gradle
+  D- krill
+    F- build.gradle
+  D- tropicalFish	
+]]></programlisting>
+                <sample src='userguide/multiproject/addTropical/water/settings.gradle'
+                        title='Sample userguide/multiproject/addTropical/water/settings.gradle'/>
+                <sample src='userguide/multiproject/addTropical/water/build.gradle' title='water -  build.gradle'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectAddTropical.out'/>
+                <para>The
+                    <literal>configureProjects</literal>
+                    takes a list as an argument and applies the configuration to the projects in this list.
+                </para>
+            </section>
+            <section id='ssub:filtering_by_properties'>
+                <title>Filtering By Properties</title>
+                <para>Using the projectname for filtering is one option. Using dynamic project properties is another. \\
+                </para>
+                <programlisting><![CDATA[
+D- water
+  F- build.gradle
+  F- settings.gradle
+  D- bluewhale
+    F- build.gradle
+  D- krill
+    F- build.gradle
+  D- tropicalFish
+    F- build.gradle
+]]></programlisting>
+                <sample src='userguide/multiproject/tropicalWithProperties/water/settings.gradle'
+                        title='Sample userguide/multiproject/tropicalWithProperties/water/settings.gradle'/>
+                <sample src='userguide/multiproject/tropicalWithProperties/water/bluewhale/build.gradle'
+                        title='bluewhale -  build.gradle'/>
+                <sample src='userguide/multiproject/tropicalWithProperties/water/krill/build.gradle'
+                        title='krill -  build.gradle'/>
+                <sample src='userguide/multiproject/tropicalWithProperties/water/tropicalFish/build.gradle'
+                        title='tropicalFish -  build.gradle'/>
+                <sample src='userguide/multiproject/tropicalWithProperties/water/build.gradle'
+                        title='water -  build.gradle'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectTropicalWithProperties.out'/>
+                <para>In the
+                    <literal>gradefile</literal>
+                    of the
+                    <literal>water</literal>
+                    project we use an<literal>afterEvaluateListener</literal>. This means that the closure we are
+                    passing gets evaluated
+                    <literal>after</literal>
+                    the build scripts of the subproject are evaluated. As the property
+                    <literal>arctic</literal>
+                    is set in those build scripts, we have to do it this way. You will find more on this topic in
+                    section
+                    <xref linkend='sec:dependencies_which_dependencies'/>
+                </para>
+            </section>
+        </section>
+    </section>
+    <section id='sec:execution_rules_for_multi_project_builds'>
+        <title>Execution rules for multi-project builds</title>
+        <para>When we have executed the
+            <literal>hello</literal>
+            task from the root project dir things behaved in an intuitive way. All the
+            <literal>hello</literal>
+            tasks of the different projects were executed. Let's switch to the
+            <literal>bluewhale</literal>
+            dir and see what happens if we execute Gradle from there.
+        </para>
+        <sampleOutput src='../../samples/userguideOutput/multiprojectSubBuild.out'/>
+        <para>The basic rule behind Gradles behavior is simple. Gradle looks down the hierarchy, starting with the
+            <emphasis>current dir</emphasis>, for tasks with the name
+            <literal>hello</literal>
+            an executes them. One thing is very important to note. Gradle
+            <emphasis>always</emphasis>
+            evaluates
+            <emphasis>every</emphasis>
+            project of the multi-project build and creates all existing task objects. Then, according to the task name
+            arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradles
+            <emphasis>Cross Project Configuration</emphasis>
+            <emphasis>every</emphasis>
+            project has to be evaluated before
+            <emphasis>any</emphasis>
+            task gets executed. We will have a closer look at this in the next section. Let's now have our last marine
+            example. Let's add a task to
+            <literal>bluewhale</literal>
+            and<literal>krill</literal>.
+        </para>
+        <sample src='userguide/multiproject/partialTasks/water/bluewhale/build.gradle'
+                title='bluewhale -  build.gradle'/>
+        <sample src='userguide/multiproject/partialTasks/water/krill/build.gradle' title='krill -  build.gradle'/>
+        <sampleOutput src='../../samples/userguideOutput/multiprojectPartialTasks.out'/>
+        <para>Here the output without the
+            <literal>-q</literal>
+            option
+        </para>
+        <sampleOutput src='../../samples/userguideOutput/multiprojectPartialTasksNotQuiet.out'/>
+        <para>The build is executed from the
+            <literal>water</literal>
+            project. Neither
+            <literal>water</literal>
+            nor
+            <literal>tropicalFish</literal>
+            have a task with the name<literal>distanceToIceberg</literal>. Gradle does not care. The simple rule
+            mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if
+            there is
+            <emphasis>no</emphasis>
+            such task!
+        </para>
+    </section>
+    <section id='sec:running_partial_build_from_the_root'>
+        <title>Running Tasks by there Absolute Path</title>
+        <para>As we have seen, you can run a multi-project build by entering any subproject dir and execute the build
+            from there. All matching task names of the project hierarchy starting with the current dir are executed. But
+            Gradle also offers to execute tasks by their absolute path (see also<xref
+                    linkend='sec:project_and_task_paths'/>):
+        </para>
+        <sampleOutput src='../../samples/userguideOutput/multiprojectAbsoluteTaskPaths.out'/>
+        <para>The build is executed from the
+            <literal>tropicalFish</literal>
+            project. We execute the
+            <literal>hello</literal>
+            tasks of the<literal>water</literal>, the
+            <literal>krill</literal>
+            and the
+            <literal>tropicalFish</literal>
+            project. The first two tasks are specified by there absolute path, the last task is executed on the name
+            matching mechanism described above.
+        </para>
+    </section>
+    <section id='sec:project_and_task_paths'>
+        <title>Project and Task Paths</title>
+        <para>A project path has the following pattern: It starts always with a colon, which denotes the root project.
+            The root project is the only project in a path that is not specified by its name. The path
+            <literal>:bluewhale</literal>
+            corresponds to the file system path
+            <literal>water/project</literal>
+            in the case of the example above.
+        </para>
+        <para>The path of a task is simply its project path plus the task name. For example<literal>
+            :bluewhale:hello</literal>. Within a project you can address a task of the same project just by its name.
+            This is interpreted as a relative path.
+        </para>
+        <para>Originally Gradle has used the
+            <literal>'/'</literal>
+            character as a natural path separator. With the introduction of directory tasks (see<xref
+                    linkend='sec:directory_creation'/>) this was no longer possible, as the name of the directory task
+            contains the
+            <literal>'/'</literal>
+            character.
+        </para>
+    </section>
+    <section id='sec:dependencies_which_dependencies'>
+        <title>Dependencies - Which dependencies?</title>
+        <para>The examples from the last section were special, as the projects had no<emphasis>Execution
+            Dependencies</emphasis>. They had only<emphasis>Configuration Dependencies</emphasis>. Here is an example
+            where this is different:
+        </para>
+        <section id='sub:execution_time_dependencies'>
+            <title>Execution Dependencies</title>
+            <section id='ssub:dependencies_and_execution_order'>
+                <title>Dependencies and Execution Order</title>
+                <programlisting><![CDATA[
+D- messages
+  F- settings.gradle
+  D- consumer
+    F- build.gradle
+  D- producer
+    F- build.gradle
+]]></programlisting>
+                <sample src='userguide/multiproject/dependencies/firstMessages/messages/settings.gradle'
+                        title='Sample userguide/multiproject/dependencies/firstMessages/messages/settings.gradle'/>
+                <sample src='userguide/multiproject/dependencies/firstMessages/messages/consumer/build.gradle'
+                        title='consumer -  build.gradle'/>
+                <sample src='userguide/multiproject/dependencies/firstMessages/messages/producer/build.gradle'
+                        title='producer -  build.gradle'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectFirstMessages.out'/>
+                <para>This did not work out. If nothing else is defined, Gradle executes the task in alphanumeric order.
+                    Therefore
+                    <literal>:consumer:action</literal>
+                    is executed before<literal>:producer:action</literal>. Let's try to solve this with a hack and
+                    rename the producer project to<literal>aProducer</literal>.
+                </para>
+                <programlisting><![CDATA[
+D- messages
+  F- settings.gradle
+  D- aProducer
+    F- build.gradle
+  D- consumer
+    F- build.gradle
+]]></programlisting>
+                <sample src='userguide/multiproject/dependencies/messagesHack/messages/settings.gradle'
+                        title='Sample userguide/multiproject/dependencies/messagesHack/messages/settings.gradle'/>
+                <sample src='userguide/multiproject/dependencies/messagesHack/messages/aProducer/build.gradle'
+                        title='aProducer -  build.gradle'/>
+                <sample src='userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle'
+                        title='consumer -  build.gradle'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesHack.out'/>
+                <para>Now we take the air out of this hack. We simply switch to the
+                    <literal>consumer</literal>
+                    dir and execute the build.
+                </para>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesHackBroken.out'/>
+                <para>For Gradle the two
+                    <literal>action</literal>
+                    tasks are just not related. If you execute the build from the
+                    <literal>messages</literal>
+                    project Gradle executes them both because they have the same name and they are down the hierarchy.
+                    In the last example only one
+                    <literal>action</literal>
+                    was down the hierarchy and therefore it was the only task that got executed. We need something
+                    better than this hack.
+                </para>
+            </section>
+            <section id='ssub:declaring_dependencies'>
+                <title>Declaring Dependencies</title>
+                <programlisting><![CDATA[
+D- messages
+  F- settings.gradle
+  D- consumer
+    F- build.gradle
+  D- producer
+    F- build.gradle
+]]></programlisting>
+                <sample src='userguide/multiproject/dependencies/messagesWithDependencies/messages/settings.gradle'
+                        title='Sample userguide/multiproject/dependencies/messagesWithDependencies/messages/settings.gradle'/>
+                <sample src='userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer/build.gradle'
+                        title='consumer -  build.gradle'/>
+                <sample src='userguide/multiproject/dependencies/messagesWithDependencies/messages/producer/build.gradle'
+                        title='producer -  build.gradle'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesDependencies.out'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesDependenciesSubBuild.out'/>
+                <para>We have now declared that the
+                    <literal>consumer</literal>
+                    project has an
+                    <emphasis>execution dependency</emphasis>
+                    on the
+                    <literal>producer</literal>
+                    project. For Gradle declaring
+                    <emphasis>execution dependencies</emphasis>
+                    between
+                    <emphasis>projects</emphasis>
+                    is syntactic sugar. Under the hood Gradle creates task dependencies out of them. You can also create
+                    cross project tasks dependencies manually by using the absolute path of the tasks.
+                </para>
+            </section>
+            <section id='ssub:the_nature_of_project_dependencies'>
+                <title>The Nature of Project Dependencies</title>
+                <para>Let's change the naming of our tasks and execute the build.
+                </para>
+                <sample src='userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer/build.gradle'
+                        title='consumer -  build.gradle'/>
+                <sample src='userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/producer/build.gradle'
+                        title='producer -  build.gradle'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesDifferentTaskNames.out'/>
+                <para>Uhps. Why does this not work? The
+                    <literal>dependsOn</literal>
+                    command is created for projects with a common lifecycle. Provided you have two Java projects were
+                    one depends on the other. If you trigger a compile for for the dependent project you don't want that
+                    <emphasis>all</emphasis>
+                    tasks of the other project get executed. Therefore a
+                    <literal>dependsOn</literal>
+                    creates dependencies between tasks with equal names. To deal with the scenario above you would do
+                    the following:
+                </para>
+                <sample src='userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer/build.gradle'
+                        title='consumer -  build.gradle'/>
+                <sample src='userguide/multiproject/dependencies/messagesTaskDependencies/messages/producer/build.gradle'
+                        title='producer -  build.gradle'/>
+                <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesTaskDependencies.out'/>
+            </section>
+        </section>
+        <section id='sub:configuration_time_dependencies'>
+            <title>Configuration Time Dependencies</title>
+            <para>Let's have one more example with our producer-consumer build before we enter
+                <emphasis>Java</emphasis>
+                land. We add a property to the producer project and create now a configuration time dependency from
+                consumer on producer.
+            </para>
+            <sample src='userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/consumer/build.gradle'
+                    title='consumer -  build.gradle'/>
+            <sample src='userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/producer/build.gradle'
+                    title='producer -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesConfigDependenciesBroken.out'/>
+            <para>The default
+                <emphasis>evaluation</emphasis>
+                order of the projects is alphanumeric (for the same nesting level). Therefore the
+                <literal>consumer</literal>
+                project is evaluated before the
+                <literal>producer</literal>
+                project and the
+                <literal>key</literal>
+                value of the
+                <literal>producer</literal>
+                is set
+                <emphasis>after</emphasis>
+                it is read by the
+                <literal>consumer</literal>
+                project. Gradle offers a solution for this.
+            </para>
+            <sample src='userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer/build.gradle'
+                    title='consumer -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesConfigDependencies.out'/>
+            <para>The command
+                <literal>evaluationDependsOn</literal>
+                triggers the evaluation of
+                <literal>producer</literal>
+                <emphasis>before</emphasis>
+                <literal>consumer</literal>
+                is evaluated. The example is a bit contrived for the sake of showing the mechanism. In
+                <emphasis>this</emphasis>
+                case there would be an easier solution by reading the key property at execution time.
+            </para>
+            <sample src='userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages/consumer/build.gradle'
+                    title='consumer -  build.gradle'/>
+            <sampleOutput src='../../samples/userguideOutput/multiprojectMessagesConfigDependenciesAltSolution.out'/>
+            <para>Configuration dependencies are very different to execution dependencies. Configuration dependencies
+                are between projects whereas execution dependencies are always resolved to task dependencies. Another
+                difference is that always all projects are configured, even when you start the build from a subproject.
+                The default configuration order is top down, which is usually what is needed.
+            </para>
+            <para>On the same nesting level the configuration order depends on the alphanumeric position. The most
+                common use case is to have multi-project builds that share a common lifecycle (e.g. all projects use the
+                Java plugin). If you declare with
+                <literal>dependsOn</literal>
+                a
+                <emphasis>execution dependency</emphasis>
+                between different projects, the default behavior of this method is to create also a
+                <emphasis>configuration</emphasis>
+                dependency between the two projects. Therefore it is likely that you don't have to define configuration
+                dependencies explicitly.
+            </para>
+        </section>
+        <section id='sub:real_life_examples'>
+            <title>Real Life examples</title>
+            <para>Gradles multi-project features are driven by real life use cases. The first example for describing
+                such a use case, consists of two webapplication projects and a parent project that creates a
+                distribution out of them.
+                <footnote>
+                    <para>The real use case we had, was using<ulink url='http://lucene.apache.org/solr'/>, where you
+                        need a separate war for each index your are accessing. That was one reason why we have created a
+                        distribution of webapps. The Resin servlet container allows us, to let such a distribution point
+                        to a base installation of the servlet container.
+                    </para>
+                </footnote>
+                For the example we use only one build script and do<emphasis>cross project configuration</emphasis>.
+            </para>
+            <programlisting><![CDATA[
+D- webDist
+  F- settings.gradle
+  F- build.gradle
+  D- date
+    F- src/main/java/org/gradle/sample/DateServlet.java
+  D- hello
+    F- src/main/java/org/gradle/sample/HelloServlet.java
+]]></programlisting>
+            <sample src='userguide/multiproject/dependencies/webDist/settings.gradle'
+                    title='Sample userguide/multiproject/dependencies/webDist/settings.gradle'/>
+            <sample src='userguide/multiproject/dependencies/webDist/build.gradle' title='webDist -  build.gradle'/>
+            <para>We have an interesting set of dependencies. Obviously the
+                <literal>date</literal>
+                and
+                <literal>hello</literal>
+                task have a
+                <emphasis>configuration</emphasis>
+                dependency on<literal>webDist</literal>, as all the build logic for the webapp projects is injected by
+                <literal>webDist</literal>. The
+                <emphasis>execution</emphasis>
+                dependency is in the other direction, as
+                <literal>webDist</literal>
+                depends on the build artifacts of
+                <literal>date</literal>
+                and<literal>hello</literal>. There is even a third dependency.
+                <literal>webDist</literal>
+                has a
+                <emphasis>configuration</emphasis>
+                dependency on
+                <literal>date</literal>
+                and
+                <literal>hello</literal>
+                because it needs to know the<literal>archivePath</literal>. But it asks for this information at
+                <emphasis>execution time</emphasis>. Therefore we have no circular dependency.
+            </para>
+            <para>Such and other dependency patterns are daily bread in the problem space of multi-project builds. If a
+                build system does not support such patterns, you either can't solve your problem or you need to do ugly
+                hacks which are hard to maintain and massively afflict your productivity as a build master.
+            </para>
+            <para>There is one more thing to note from the current example. We have used the command<literal>
+                dependOnChildren()</literal>. It is a convenience method and calls the
+                <literal>dependsOn</literal>
+                method of the parent project for every child project (not every sub project). It declares a
+                <literal>execution</literal>
+                dependency of
+                <literal>webDist</literal>
+                on
+                <literal>date</literal>
+                and<literal>hello</literal>.
+            </para>
+            <para>Another use case would be a situation where the subprojects have a configuration
+                <emphasis>and</emphasis>
+                execution dependency on the parent project. This is the case when the parent project does configuration
+                injection into its subprojects, and additionally produces something at execution time that is needed by
+                its child projects (e.g. code generation). In this case the parent project would call the
+                <literal>childrenDependOnMe</literal>
+                method to create an execution dependency for the child projects. We might add an example for this in a
+                future version of the userguide.
+            </para>
+        </section>
+    </section>
+    <section id='sec:project_jar_dependencies'>
+        <title>Project Lib Dependencies</title>
+        <para>What if one projects needs the jar produced by another project in its compile path. And not just the jar
+            but also the transitive dependencies of this jar. Obviously this is a very common use case for Java
+            multi-project builds. As already mentioned in section<xref linkend='sub:project_dependencies'/>, Gradle
+            offers project dependencies for this.
+        </para>
+        <programlisting><![CDATA[
+D- java
+  D- api
+    F- src/main/java/org/gradle/sample/api/Person.java
+    F- src/main/java/org/gradle/sample/api/PersonImpl.java
+  D- services
+    D- personService
+      F- src/main/java/org/gradle/sample/services/PersonService.java
+      F- src/main/test/org/gradle/sample/services/PersonServiceTest.java
+  D- shared 
+    F- src/main/java/org/gradle/sample/shared/Helper.java 
+  F- settings.gradle
+  F- build.gradle
+]]></programlisting>
+        <para>We have the projects<literal>shared</literal>,
+            <literal>api</literal>
+            and<literal>personService</literal>.
+            <literal>personService</literal>
+            has a lib dependency on the other two projects.
+            <literal>api</literal>
+            has a lib dependency on<literal>shared</literal>.
+            <footnote>
+                <para>
+                    <literal>services</literal>
+                    is also a project, but we use it just as a container. It has no build script and gets nothing
+                    injected by another build script.
+                </para>
+            </footnote>
+        </para>
+        <sample src='userguide/multiproject/dependencies/java/settings.gradle'
+                title='Sample userguide/multiproject/dependencies/java/settings.gradle'/>
+        <sample src='userguide/multiproject/dependencies/java/build.gradle'
+                title='userguide/multiproject/dependencies/java -  build.gradle'/>
+        <para>All the build logic is in the
+            <literal>build.gradle</literal>
+            of the root project.
+            <footnote>
+                <para>We do this here, as it makes the layout a bit easier. We usually put the project specific stuff
+                    into the buildscript of the respective projects.
+                </para>
+            </footnote>
+            A
+            <emphasis>lib</emphasis>
+            dependency is a special form of an execution dependency. It causes the other project to be build first and
+            adds the jar with the classes of the other project to the classpath. It also add the dependencies of the
+            other project to the classpath. So you can enter the
+            <literal>api</literal>
+            folder and trigger a<literal>gradle compile</literal>. First
+            <literal>shared</literal>
+            is build and then
+            <literal>api</literal>
+            is build. Project dependencies enable partial multi-project builds.
+        </para>
+        <para>If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might
+            expect some more fine grained control. Gradle offers this to you:
+        </para>
+        <sample src='userguide/multiproject/dependencies/javaWithCustomConf/build.gradle'
+                title='userguide/multiproject/dependencies/javaWithCustomConf -  build.gradle'/>
+        <para>The Java plugin adds per default a jar to your project libraries which contains all the classes. In this
+            example we create an
+            <emphasis>additional</emphasis>
+            library containing only the interfaces of the
+            <literal>api</literal>
+            project. We assign this library to a new<emphasis>dependency configuration</emphasis>. For the person
+            service we declare that the project should be compiled only against the
+            <literal>api</literal>
+            interfaces but tested with all classes from<literal>api</literal>.
+        </para>
+    </section>
+    <section id='sec:property_and_method_inheritance'>
+        <title>Property and Method Inheritance</title>
+        <para>Properties and methods declared in a project are inherited to all its subprojects. This is an alternative
+            to configuration injection. But we think that the model of inheritance does not reflect the problem space of
+            multi-project builds very well. In a future edition of this userguide we might write more about this.
+        </para>
+        <para>Method inheritance might be interesting to use as Gradles
+            <emphasis>Configuration Injection</emphasis>
+            does not support methods yet (but will in a future release.).
+        </para>
+        <para>You might be wondering why we have implemented a feature we obviously don't like that much. One reason is
+            that it is offered by other tools and we want to have the check mark in a feature comparison :). And we like
+            to offer our users a choice.
+        </para>
+    </section>
+    <section>
+        <title>Summary</title>
+        <para>Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message
+            for this chapter is that multi-project builds with Gradle are usually
+            <emphasis>not</emphasis>
+            difficult. There are six elements you need to remember:<literal>allproject</literal>,<literal>
+                subprojects</literal>,<literal>dependsOn</literal>,<literal>childrenDependOnMe</literal>,
+            <literal>dependOnChildren</literal>
+            and project lib dependencies.
+            <footnote>
+                <para>So we are well in the range of the
+                    <ulink url='http://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two'>7 plus 2
+                        Rule
+                    </ulink>
+                    :)
+                </para>
+            </footnote>
+            With those elements, and keeping in mind that Gradle has a distinct configuration and execution phase, you
+            have already a lot of flexibility. But when you enter steep territory Gradle does not become an obstacle and
+            usually accompanies and carries you to the top of the mountain.
+        </para>
+    </section>
+</chapter>

@@ -1,0 +1,204 @@
+<chapter id='cha:overview' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Overview</title>
+    <section id='sec:special_feature_of_gradle'>
+        <title>Features</title>
+        <para>Here is a list of some of Gradle's features.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>Language for Dependency Based Programming</term>
+                <listitem>
+                    <para>This is the core of Gradle. Most build tools do offer such a thing. You can create tasks,
+                        create dependencies between them and those tasks get executed only once and in the right order.
+                        Yet compared to Ant
+                        <footnote>
+                            <para>We mean Ant's targets here.
+                            </para>
+                        </footnote>
+                        Gradle's task offer a rich API and can be any kind of object. Gradle's tasks support
+                        multi-project builds. There is much more to say about tasks later on.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Flexible Build By Convention</term>
+                <listitem>
+                    <para>Gradle offers you build-by-convention
+                        <emphasis>on top</emphasis>
+                        of its core layer. It is the same idea as implemented by Maven. But Gradle's build-by-convention
+                        approach is highly configurable and flexible. And you don't have to use it, if you need utmost
+                        flexibility. You can enable/disable it on a per project basis in a multi-project build.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Ant Tasks</term>
+                <listitem>
+                    <para>Ant tasks are first class citizens. Using Ant tasks from Gradle is as convenient and more
+                        powerful than using Ant tasks from a
+                        <literal>build.xml</literal>
+                        file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Configure By DAG</term>
+                <listitem>
+                    <para>Gradle has a distinct configuration and execution phase. Thus we can offer you special hooks.
+                        You can add configuration to your build, based on the complete execution graph of tasks, before
+                        any task is executed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Easy Ivy</term>
+                <listitem>
+                    <para>Our dependency management is based on Apache Ivy, the most advanced and powerful dependency
+                        management in the Java world. We have Ivy integrated in our build-by-convention framework. It is
+                        ready to go out-of-the-box. Ivy is mostly used via its Ant tasks but it also provides an API.
+                        Gradle integrates deeply with Ivy via this API. Gradle has its own dependency DSL on top of Ivy.
+                        This DSL introduces a couple of features not provided by Ivy itself.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Client Modules</term>
+                <listitem>
+                    <para>We think dependency management is important to any project.
+                        <emphasis>Client Modules</emphasis>
+                        provide this, without the need of remote repositories and
+                        <literal>ivy.xml</literal>
+                        or
+                        <literal>pom.xml</literal>
+                        files. For example you can just put your jars into svn and yet enjoy complete transitive
+                        dependency management. Gradle also support fully Ivy or Maven repository infrastructures based
+                        on
+                        <literal>ivy.xml</literal>
+                        or
+                        <literal>pom.xml</literal>
+                        files and remote repositories.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Cross Project Configuration</term>
+                <listitem>
+                    <para>Enjoy how easy and yet how extremely powerful the handling of multi-project builds can be.
+                        Gradle introduces
+                        <emphasis>Configuration Injection</emphasis>
+                        to make this possible.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Distinct Dependency Hierarchies</term>
+                <listitem>
+                    <para>We allow you to model the project relationships in a multi-project build as they really are
+                        for your problem domain. Gradle follows your layout not vice versa.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Partial Builds</term>
+                <listitem>
+                    <para>With Maven multi-project builds only work if executed from the root project and thus requiring
+                        a complete build. If you build from a subproject, only the subproject is build, not the projects
+                        the subproject depends on. Gradle offers partial builds. The subproject is build plus the
+                        projects it depends on. This is very convenient for larger builds.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Internal Groovy DSL</term>
+                <listitem>
+                    <para>Gradle's build scripts are written in Groovy, not XML. This offers many advantages to XML:
+                        Rich interaction with existing libraries, ease of use, more power and a slower learning curve
+                        are some of them.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>The Gradle Wrapper</term>
+                <listitem>
+                    <para>The Gradle Wrapper allows you to execute Gradle builds on machines where Gradle is not
+                        installed. For example continuous integration servers or machines of users which want to build
+                        your open source project.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>Gradle scales very well. It significantly increases your productivity, from rather simple single project
+            builds up to huge enterprise multi-project builds.
+        </para>
+        <para>Gradle is build by Gradle. From a build perspective Gradle is a simple project. But achieving the high
+            degree of automation we have, would have been very hard (and expensive) to achieve with Ant or Maven.
+        </para>
+    </section>
+    <section id='sec:why_groovy'>
+        <title>Why Groovy?</title>
+        <para>We think the advantages of an internal DSL (based on a dynamic language) over XML are tremendous in case
+            of<emphasis>build scripts</emphasis>. There are a couple of dynamic languages out there. Why Groovy? The
+            answer lies in the context Gradle is operating in. Although Gradle is a general purpose build tool at its
+            core, its main focus are Java projects.
+            <footnote>
+                <para>Gradle also supports Groovy projects. Gradle will support Scala projects in a future release.
+                </para>
+            </footnote>
+            In such projects obviously the team members know Java. One problem we see with Ant
+            <footnote>
+                <para>If the advanced features are used (e.g. mixins, macrodefs, ...)
+                </para>
+            </footnote>
+            and Maven is, that it involves a lot of knowledge only available to the build master. Such builds are very
+            hard to comprehend, let alone to modify by a person not deeply involved with those tools. We think a build
+            should be as transparent as possible to
+            <emphasis>all</emphasis>
+            team members.
+        </para>
+        <para>You might argue why not using Java then as the language for build scripts. We think this is a valid
+            question. It would have the highest transparency for your team and the lowest learning curve. But due to
+            limitations of Java such a build language would not be as nice, expressive and powerful as it could be.
+            <footnote>
+                <para>At
+                    <ulink url='http://www.defmacro.org/ramblings/lisp.html'/>
+                    you find an interesting article comparing Ant, XML, Java and Lisp. It's funny that the 'if Java had
+                    that syntax' syntax in this article is actually the Groovy syntax.
+                </para>
+            </footnote>
+            Languages like Python, Groovy or Ruby do a much better Job here. We have chosen Groovy as it offers by far
+            the highest transparency for Java people. Its base syntax is the same as Java's as well as its type system,
+            its package structure other things. Groovy builds a lot on top of that. But on a common ground with Java.
+        </para>
+        <para>For Java teams which share also Python or Ruby knowledge or are happy to learn it the above arguments
+            don't apply. In the near future Gradle wants to give you a choice between different languages for your build
+            scripts. For Jython or JRuby this should be easy to implement. If members of those communities are
+            interested in joining this effort, this is very much appreciated.
+        </para>
+    </section>
+    <section id='sec:still_missing'>
+        <title>Missing Features</title>
+        <para>Here a list of features you might expect but are not available yet:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Creating IDE project and classpath files. This is one of the top priorities for the next release.
+                    We want to provide this for IntelliJ, Eclipse and NetBeans.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Integration for Emma, Cobertura and JDepends in our build-by-convention framework. Right now you
+                    have to integrate them yourself (for example with the Ant tasks for those tools).
+                </para>
+            </listitem>
+            <listitem>
+                <para>Integration of Jetty in our build-by-convention framework to allow easy startup of a web
+                    application.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Integration of TestNG in our build-by-convention framework.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+</chapter>

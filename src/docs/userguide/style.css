@@ -110,6 +110,7 @@ pre {
 .navfooter {
     margin-top: 3em;
     padding-top: 1em;
+    padding-bottom: 1em;
     width: 100%;
     border-top: solid #c2c2c2 5px;
 }
@@ -135,19 +136,55 @@ pre {
  */
 
 .book > .titlepage {
-    padding-bottom: 2em;
-    padding-top: 2em;
-    margin-bottom: 4em;
+    /*padding-bottom: 2em;*/
+    margin-top: 2em;
+    margin-bottom: 2em;
 }
 
-.book > .titlepage hr {
-    display: none
+.book .titlepage div.title {
+    /*padding-top: 1.6em;*/
+    /*padding-bottom: 1.6em;*/
+    /*border-top: solid #c2c2c2 5px;*/
+    /*border-bottom: solid #c2c2c2 5px;*/
+    /*text-align: right;*/
 }
 
 .book > .titlepage h1 {
     font-size: 240%;
 }
 
+.book > .titlepage h2 {
+    font-size: 160%;
+}
+
 .book > .titlepage h3 {
     color: inherit;
+}
+
+.titlepage .releaseinfo {
+    font-size: 120%;
+    margin-top: 3em;
+    margin-bottom: 3em;
+}
+
+.titlepage .copyright {
+    color: #a2a2a2;
+    font-size: 90%;
+}
+
+.titlepage .legalnotice {
+    color: #a2a2a2;
+    font-size: 90%;
+}
+
+.toc dl {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/*
+ * Single page html
+ */
+.book .chapter {
+    margin-top: 4em;
 }

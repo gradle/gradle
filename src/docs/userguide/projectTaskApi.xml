@@ -1,0 +1,83 @@
+<chapter id='cha:the_project_and_task_api' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Project and Task API</title>
+    <section id='sec:project_api'>
+        <title>Project API</title>
+        <para>In the tutorial in chapter
+            <xref linkend='cha:gradle_core_tutorial'/>
+            we have called for example the method<literal>createTask</literal>. Where does this method come from? We
+            said earlier that the directory containing the build script defines a project for Gradle. For Gradle this
+            means, that it creates an instance of
+            <literal>org.gradle.api.Project</literal>
+            and associates it with the build script. With the build script you can configure this project object.
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Any method you call in your build script, which
+                    <emphasis>is not defined</emphasis>
+                    in the build script, is delegated to the project object.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Any property you access in your build script, which
+                    <emphasis>is not defined</emphasis>
+                    in the build script, is delegated to the project object.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>Let's try this out and try to access the
+            <literal>name</literal>
+            property of the Project object.
+        </para>
+        <sample src='userguide/tutorial/projectApi/build.gradle'
+                title='Sample userguide/tutorial/projectApi/build.gradle'/>
+        <sampleOutput src='projectApi.out'/>
+        <para>Both
+            <literal>println</literal>
+            statements print out the same property. One uses the auto delegation to the project object, for properties
+            not defined in the build script. The other statement uses the
+            <literal>project</literal>
+            property available to any build script, which provides an instance of the associated project object. Only if
+            you define a property or a method which has the same name as a member of the project object, you need to use
+            the
+            <literal>project</literal>
+            property. Look here to learn more about<ulink
+                    url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Project.html'>org.gradle.api.Project</ulink>.
+        </para>
+    </section>
+    <section id='sec:task_api'>
+        <title>Task API</title>
+        <para>Many of the methods of the project object return task objects. We have already seen some ways on how to
+            use the task objects in chapter<xref linkend='cha:gradle_core_tutorial'/>. Look here to learn more about
+            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Task.html'>org.gradle.api.Task</ulink>.
+        </para>
+    </section>
+    <section>
+        <title>Summary</title>
+        <para>The project and the task API constitute the core layer of Gradle and provide all the possible interaction
+            options with this layer.
+            <footnote>
+                <para>There is more to come for this layer in the other chapters, e.g. support for multi-project builds
+                    (see chapter<xref linkend='cha:multi_project_builds'/>).
+                </para>
+            </footnote>
+            This core-layer constitutes a language for dependency based programming.
+            <footnote>
+                <para>Martin Fowler has written about this:
+                    <ulink url='http://martinfowler.com/articles/rake.html#DependencyBasedProgramming'/>
+                </para>
+            </footnote>
+            There are many other projects providing such a language. There is Ant for Java, Rake and Rant for Ruby,
+            SCons for Python, the good old Make and many more.
+            <footnote>
+                <para>Interestingly, Maven2 is the only major build system which does not use dependency based
+                    programming.
+                </para>
+            </footnote>
+            We think that one thing that makes Gradle special compared to the other tools, is its strong support for
+            applying dependency based programming on
+            <literal>multiproject</literal>
+            builds. We also think that just Gradles core layer (together with its integration of the Ant tasks),
+            provides a more convenient build system than Ant's core layer.
+        </para>
+    </section>
+</chapter>

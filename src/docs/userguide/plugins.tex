@@ -25,7 +25,7 @@ The JavaPlugin adds a \texttt{compile} task to the project object which can be a
 usePlugin(org.gradle.api.plugins.JavaPlugin)
 \end{Verbatim} 
 Any class, which implements the Plugin interface, can be used as a plugin. Just pass the class as an argument. You don't need to configure anything else for this. If you want to access a custom plugin via a string identifier, you must inform Gradle about the mapping. You can do this in the file \texttt{plugin.properties} in the top level directory of Gradle. It looks like this for the current release:
-\codeInput{../../toplevel/plugin.properties}
+\VerbatimInput[frame=single,label=plugin.properties]{../../toplevel/plugin.properties}
 If you want to use your own plugins, you must make sure that they are accessible via the build script classpath. See chapter \ref{cha:organizing_build_logic} for more information.
 % section using_plugins (end)
 
