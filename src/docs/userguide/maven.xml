@@ -28,7 +28,7 @@ uploadLibs {
         </para>
         <para>There is some more work to do, if you need support for other protocols than<literal>file</literal>. In
             this case the native Maven code we delegate to needs additional libraries. Those libraries depend on the
-            protocol you need. The available protocols and the corresponding libraries are listed in table<xref
+            protocol you need. The available protocols and the corresponding libraries are listed in <xref
                     linkend='wagonLibs'/>. Those libraries have again transitive dependencies which have transitive
             dependencies. You need to provide the complete list of those to the MavenDeployer{
             <footnote>
@@ -91,7 +91,7 @@ uploadLibs {
         <section id='sub:configuration_of_the_maven_deployer'>
             <title>Configuration of the Maven Deployer</title>
             <para>There are many configuration options for the Maven deployer. The configuration is done with a nested
-                tree. Here is a configuration with all existing elements of this tree. Table
+                tree. Here is a configuration with all existing elements of this tree.
                 <xref linkend='deployerConfig'/>
                 lists the available elements and a link to the javadoc of the corresponding class. In the javadoc you
                 can see the possible attributes you can set for a particular element.
@@ -233,7 +233,7 @@ uploadLibs {
                     url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/maven/MavenPom.html'>
                 org.gradle.dependencies.maven.MavenPom</ulink>.
             </para>
-            <para>To do this for the Maven Installer added by the Maven plugin (see<xref
+            <para>To do this for the Maven Installer added by the Maven plugin (see <xref
                     linkend='sub:installing_to_the_local_repository'/>), you can do:
             </para>
             <programlisting><![CDATA[

@@ -1,4 +1,4 @@
-<chapter id='cha:command_line' xmlns:xi="http://www.w3.org/2001/XInclude">
+<appendix id='cha:command_line' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Command line</title>
     <table id='command_line_options'>
         <title>Command Line Options</title>
@@ -133,4 +133,4 @@
     </table>
     <para>The same information is printed to the console when you execute<literal>gradle -h</literal>.
     </para>
-</chapter>
+</appendix>

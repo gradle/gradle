@@ -43,8 +43,7 @@
             </para>
         </listitem>
     </itemizedlist>
-    <para>In chapter
-        <xref linkend='cha:overview'/>
-        you find a detailed overview of Gradle. Now the tutorials are waiting, have fun :)
+    <para>
+        In <xref linkend='cha:overview'/> you find a detailed overview of Gradle. Now the <link linkend="cha:gradle_core_tutorial">tutorials</link> are waiting, have fun :)
     </para>
 </chapter>

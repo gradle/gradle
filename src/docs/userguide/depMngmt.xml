@@ -72,7 +72,7 @@
             <para>In your dependency description you tell Gradle which version of a dependency is needed by another
                 dependency. This leads frequently to conflicts. Different dependencies rely on different versions of
                 another dependency. The JVM unfortunately does not offer yet any easy way, to have different versions of
-                the same jar in the classpath (See<xref linkend='sub:dependency_management_and_java'/>). What Gradle
+                the same jar in the classpath (See <xref linkend='sub:dependency_management_and_java'/>). What Gradle
                 offers you is a resolution strategy, by default the newest version is used. To deal with problems due to
                 version conflicts, reports with dependency graphs are also very helpful. Such reports are another
                 feature of dependency management.
@@ -115,7 +115,7 @@
             <title>Configurations</title>
             <para>Dependencies are grouped in configurations. Configurations have a name and they can extend each other.
                 If you use the Java or Groovy plugin, Gradle adds a number of related configurations to your build. The
-                plugin also associates configurations with tasks. See section
+                plugin also associates configurations with tasks. See
                 <xref linkend='sec:java_plugin_and_dependency_management'/>
                 for details. Of course you can add your own configurations on top of that. This is very handy for
                 example for adding dependencies not needed for building or running your software (e.g. additional JDBC
@@ -230,7 +230,7 @@ dependencies {
                     url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/ProjectDependency.html'>
                 org.gradle.api.dependencies.ProjectDependency</ulink>.
             </para>
-            <para>Multi-project builds are discussed in chapter<xref linkend='cha:multi_project_builds'/>.
+            <para>Multi-project builds are discussed in <xref linkend='cha:multi_project_builds'/>.
             </para>
         </section>
         <section id='sub:global_excludes'>
@@ -306,13 +306,13 @@ dependencies {
             <literal>compile</literal>
             and
             <literal>test</literal>
-            to this configuration. Table
+            to this configuration.
             <xref linkend='tab:configurations'/>
             shows the details. The Java plugin defines also where to find the jars and zips to be uploaded. Finally it
             does a couple of settings for multi-project builds. If you have for example declared a project dependency
             for the
             <literal>compile</literal>
-            configuration you don't want this project to be build if you execute a<literal>clean</literal>.
+            configuration you don't want this project to be build if you execute a <literal>clean</literal>.
         </para>
         <table id='tab:configurations'>
             <title>Java/Groovy Configurations</title>
@@ -468,7 +468,7 @@ dependencies {
                 library but is simply a distribution. What about open source library projects (e.g. commons-httpclient)
                 that need to upload themselves to the Maven2 repo together with a
                 <literal>pom.xml</literal>
-                file. As soon as the limitation mentioned in subsection
+                file. As soon as the limitation mentioned in
                 <xref linkend='sub:client_module_dependencies'/>
                 has been overcome, your project can upload to such a repository without relying on XML descriptor files
                 themselves.
@@ -545,7 +545,7 @@ dependencies {
                 <literal>MavenRepo</literal>
                 and is added to the
                 <literal>classpathResolvers</literal>
-                (see<xref linkend='sub:resolver_container'/>).
+                (see <xref linkend='sub:resolver_container'/>).
             </para>
             <para>If you want to add a custom repository with a Maven layout you can type:
             </para>
@@ -673,9 +673,9 @@ project-root
                 <literal>addFlatDirResolver</literal>
                 methods adds a resolver to the
                 <literal>classpathResolvers</literal>
-                (see<xref linkend='sub:resolver_container'/>)
+                (see <xref linkend='sub:resolver_container'/>)
             </para>
-            <para>You can add easily file system repositories with a different layout (see<xref
+            <para>You can add easily file system repositories with a different layout (see <xref
                     linkend='sub:more_about_ivy_resolvers'/>)
             </para>
         </section>

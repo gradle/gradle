@@ -3,11 +3,10 @@
     <section id='sec:mavens_fake_first_level_dependencies'>
         <title>Mavens fake first level dependencies</title>
         <para>It is essential to have expressiveness regarding what are first level dependencies and what are
-            dependencies of dependencies. See the discussion in<xref linkend='sub:transitive_dependency_management'/>.
+            dependencies of dependencies. See the discussion in <xref linkend='sub:transitive_dependency_management'/>.
         </para>
         <para>Maven is not always expressive about this. Here is an example of a very common situation. Let's say you
-            want to use dom4j. In Listing
-            <xref linkend='dom4jPom'/>
+            want to use dom4j. In <xref linkend='dom4jPom'/>
             you can see dom4j's pom.xml as it resides in the repository. Assume you want to use the optional xpath
             functionality of dom4j. Dom4j needs Jaxen to support this. As not everybody uses the xpath functionality,
             Jaxen is an optional dependency of dom4j.
@@ -67,12 +66,11 @@
             this case you might define a default configuration and a xpath-configuration in the ivy.xml which resides in
             your repository. You can also use Gradle's
             <emphasis>Client Module Dependencies</emphasis>
-            (see<xref linkend='ssub:client_module_dependencies'/>) to solve this problem. Both solutions do correctly
+            (see <xref linkend='ssub:client_module_dependencies'/>) to solve this problem. Both solutions do correctly
             express what are first level and what are transitive dependencies. If you have your own repository you could
             define your custom pom for dom4j which includes xpath as required. But if another of your projects needs
             dom4j without xpath, it has to explicitly add an exclude for this. Basically Maven makes it very hard to
             work with such situations. Therefore many projects go often for the simplest approach as described in
-            Listing
             <xref linkend='fakeFirstLevelPom'/>
             with the tradeoff that they have a wrong description of there first level dependencies.
         </para>
@@ -88,7 +86,7 @@
             In Maven terms, one artifact in the Maven2 repo has one and only set of runtime dependencies. This probably
             does not reflects reality very well. Take the hibernate module. Depending on the usage scenario, its real
             set of dependencies differ. There might be a hibernate_without_cache, hibernate_with_tangosol, ... . Or have
-            a look at<xref linkend='sub:mavens_fake_first_level_dependencies'/>. It would be nice if there could be a
+            a look at <xref linkend='sub:mavens_fake_first_level_dependencies'/>. It would be nice if there could be a
             dom4j and a dom4j-with-xpath. What Maven offers is the
             <literal>optional</literal>
             keyword. One declares in the repository pom all dependencies which are not necessarily required as optinal.
@@ -114,7 +112,7 @@
     <section id='sec:duplicate_dependencies'>
         <title>Duplicate Dependencies</title>
         <para>Let's say you want to use dom4j and some other project. Let's say you want to use an XPP reader with
-            dom4j. As this is an optional dependency, you have to do the same as described in<xref
+            dom4j. As this is an optional dependency, you have to do the same as described in <xref
                     linkend='firstleveldeps'/>. You have to misleadingly declare xpp3 as a first level dependency.
             Imagine you need also XStream in your project. XStream has a non optional dependency to xpp3_min (a subset
             of xpp3). Either you end up with xpp3 and xpp3_min in your classpath. Or you have to exclude xpp3_min from

@@ -11,9 +11,8 @@
         , with mixed Java and Groovy projects and with pure Groovy projects. The Groovy plugin does not add any tasks.
         It modifies some of the tasks of the JavaPlugin and adds to the
         <emphasis>Convention</emphasis>
-        object. See Table<xref linkend='groovylayout'/>, Table
-        <xref linkend='groovyconvention'/>
-        and Table<xref linkend='groovyconventionFloatingDir'/>. It also add a new dependency configuration<literal>
+        object. See <xref linkend='groovylayout'/>, <xref linkend='groovyconvention'/>
+        and <xref linkend='groovyconventionFloatingDir'/>. It also add a new dependency configuration<literal>
             groovy</literal>.
     </para>
     <para>Gradle is written in Groovy and offers you to write your build scripts in Groovy. But this is an internal
@@ -151,7 +150,7 @@ dependencies {
             <literal>compile</literal>
             and<literal>testCompile</literal>. The task type extends the
             <literal>Compile</literal>
-            task (see section<xref linkend='sec:compile'/>)
+            task (see <xref linkend='sec:compile'/>)
         </para>
         <table>
             <title>Groovy Convention Object - Source Directory Properties</title>
@@ -189,7 +188,7 @@ dependencies {
     <section id='sec:test'>
         <title>Test</title>
         <para>In contrast to the Java plugin the fork mode is set to once by default, because of the significant startup
-            time of Groovy. The Java plugin uses per test as fork mode (see section<xref linkend='sec:java_test'/>).
+            time of Groovy. The Java plugin uses per test as fork mode (see <xref linkend='sec:java_test'/>).
         </para>
     </section>
 </chapter>

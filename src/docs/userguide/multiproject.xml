@@ -181,7 +181,6 @@ D- water
                     the build scripts of the subproject are evaluated. As the property
                     <literal>arctic</literal>
                     is set in those build scripts, we have to do it this way. You will find more on this topic in
-                    section
                     <xref linkend='sec:dependencies_which_dependencies'/>
                 </para>
             </section>
@@ -242,7 +241,7 @@ D- water
         <title>Running Tasks by there Absolute Path</title>
         <para>As we have seen, you can run a multi-project build by entering any subproject dir and execute the build
             from there. All matching task names of the project hierarchy starting with the current dir are executed. But
-            Gradle also offers to execute tasks by their absolute path (see also<xref
+            Gradle also offers to execute tasks by their absolute path (see also <xref
                     linkend='sec:project_and_task_paths'/>):
         </para>
         <sampleOutput src='../../samples/userguideOutput/multiprojectAbsoluteTaskPaths.out'/>
@@ -273,7 +272,7 @@ D- water
         </para>
         <para>Originally Gradle has used the
             <literal>'/'</literal>
-            character as a natural path separator. With the introduction of directory tasks (see<xref
+            character as a natural path separator. With the introduction of directory tasks (see <xref
                     linkend='sec:directory_creation'/>) this was no longer possible, as the name of the directory task
             contains the
             <literal>'/'</literal>
@@ -541,7 +540,7 @@ D- webDist
         <title>Project Lib Dependencies</title>
         <para>What if one projects needs the jar produced by another project in its compile path. And not just the jar
             but also the transitive dependencies of this jar. Obviously this is a very common use case for Java
-            multi-project builds. As already mentioned in section<xref linkend='sub:project_dependencies'/>, Gradle
+            multi-project builds. As already mentioned in <xref linkend='sub:project_dependencies'/>, Gradle
             offers project dependencies for this.
         </para>
         <programlisting><![CDATA[

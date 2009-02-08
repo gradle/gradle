@@ -16,7 +16,7 @@
         <title>Build Sources</title>
         <para>If you run Gradle, it checks for the existence of a folder called<literal>buildSrc</literal>. Just put
             your build source code in this folder and stick to the layout convention for a Java/Groovy project (see
-            Table<xref linkend='javalayout'/>). Gradle then automatically compiles and tests this code and puts it in
+            <xref linkend='javalayout'/>). Gradle then automatically compiles and tests this code and puts it in
             the classpath of your build script. You don't need to provide any further instruction. For multi-project
             builds there can be only one
             <literal>buildSrc</literal>
@@ -40,8 +40,8 @@
         <programlisting><![CDATA[
 dependencies("commons-math:commons-math:1.1:jar")
 ]]></programlisting>
-        <para>You can pass any of the dependencies described in section
-            <xref linkend='sub:dependencies'/>
+        <para>You can pass any of the dependencies described in
+            <xref linkend='sec:how_to_declare_your_dependencies'/>
             (except project dependencies). There is
             <emphasis>no</emphasis>
             need to provide a<emphasis>dependency configuration</emphasis>(e.g.<literal>compile</literal>). For

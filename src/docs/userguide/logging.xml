@@ -9,14 +9,14 @@
     </para>
     <section id='sec:choosing_a_log_level'>
         <title>Choosing a log level</title>
-        <para>You can use command line switches to choose different log levels (see table<xref linkend='loglevels'/>).
+        <para>You can use command line switches to choose different log levels (see <xref linkend='loglevels'/>).
             The
             <literal>WARN</literal>
             and
             <emphasis>ERROR</emphasis>
             levels are included in all the other levels, except<emphasis>QUIET</emphasis>, where only
             <emphasis>ERROR</emphasis>
-            is included. In table {<xref linkend='stacktraces'/>} you find the command line switches for stacktrace
+            is included. In <xref linkend='stacktraces'/> you find the command line switches for stacktrace
             logging.
         </para>
         <table id='loglevels'>

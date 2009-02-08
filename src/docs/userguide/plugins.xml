@@ -17,7 +17,7 @@
 usePlugin('java')	
 ]]></programlisting>
         <para>at the beginning of your script. That's all. From a technological point of view plugins use just the same
-            operations as you can use from your build scripts. That is they use the Project and Task API (see chapter
+            operations as you can use from your build scripts. That is they use the Project and Task API (see
             <xref linkend='cha:the_project_and_task_api'/>). The Gradle plugins use this API for:
         </para>
         <itemizedlist>
@@ -47,7 +47,7 @@ usePlugin('java')
         </para>
         <para>The usePlugin method either takes a string or a class as an argument. You can write
             <footnote>
-                <para>Thanks to Gradles default imports (see<xref linkend='cha:ide_support'/>) you can also write
+                <para>Thanks to Gradles default imports (see <xref linkend='cha:ide_support'/>) you can also write
                     <literal>usePlugin(JavaPlugin)</literal>
                     in this case.
                 </para>
@@ -64,14 +64,10 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         </para>
         <example>
             <title>plugin.properties</title>
-            <programlisting>
-                <xi:include href='../../../src/docs/userguide/../../toplevel/plugin.properties' parse='text'/>
-            </programlisting>
+            <programlisting><xi:include href='../../toplevel/plugin.properties' parse='text'/></programlisting>
         </example>
         <para>If you want to use your own plugins, you must make sure that they are accessible via the build script
-            classpath. See chapter
-            <xref linkend='cha:organizing_build_logic'/>
-            for more information.
+            classpath. See <xref linkend='cha:organizing_build_logic'/> for more information.
         </para>
     </section>
     <section id='sub:more_about_convention_objects'>

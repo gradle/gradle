@@ -1,4 +1,4 @@
-<chapter id='cha:ide_support' xmlns:xi="http://www.w3.org/2001/XInclude">
+<appendix id='cha:ide_support' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Existing IDE Support and how to cope without it</title>
     <section id='sec:intellij'>
         <title>IntelliJ</title>
@@ -40,9 +40,7 @@
         </para>
         <example>
             <title>gradle-imports</title>
-            <programlisting>
-                <xi:include href='../../../src/docs/userguide/../../toplevel/gradle-imports' parse='text'/>
-            </programlisting>
+            <programlisting><xi:include href='../../toplevel/gradle-imports' parse='text'/></programlisting>
         </example>
         <para>You can define a project specific set of imports to be added to your build scripts. Just place a file
             called
@@ -51,4 +49,4 @@
             distribution are disabled. The imports defined in your project directory are always used.
         </para>
     </section>
-</chapter>
+</appendix>

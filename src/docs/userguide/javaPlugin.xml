@@ -1,14 +1,11 @@
 <chapter id='cha:the_java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Java Plugin</title>
-    <para>Table
+    <para>
         <xref linkend='javalayout'/>
         shows the default project layout assumed by the Java Plugin. This is configurable via the convention object.
-        Table
         <xref linkend='javatasks'/>
-        shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds. Table
-        <xref linkend='javaconventionDir'/>
-        and Table
-        <xref linkend='javaconventionNonDir'/>
+        shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds.
+        <xref linkend='javaconventionDir'/> and <xref linkend='javaconventionNonDir'/>
         shows the most important properties of the convention object of the Java plugin.
         <footnote>
             <para>The
@@ -31,7 +28,7 @@
         <literal>src</literal>
         to<literal>source</literal>, this automatically applies to all directory properties which are relative to
         <literal>srcRoot</literal>. As this also introduces an inflexibility, we have additional floating dirs, which
-        are not bound to any hierarchy (see Table<xref linkend='javaconventionFloatingDir'/>). For example code
+        are not bound to any hierarchy (see <xref linkend='javaconventionFloatingDir'/>). For example code
         generation tool could make use of this, by adding a source dir which is located in the build folder.
     </para>
     <table id='javalayout'>
@@ -527,9 +524,9 @@
             dependency manager. The
             <literal>unmanagedClasspath</literal>
             is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is
-            it part of a dependency descriptor if you choose to upload your library to a repository. See section
+            it part of a dependency descriptor if you choose to upload your library to a repository. See
             <xref linkend=''/>
-            how the JavaPlugin glues the tasks with the dependency manager and see the whole chapter
+            how the JavaPlugin glues the tasks with the dependency manager and see the whole
             <xref linkend='cha:dependency_management'/>
             how to use the dependency manager.
         </para>
@@ -705,7 +702,7 @@
                 project property. The name of the archive can be changed at any time later on. You can pass a closure to
                 the
                 <literal>zip()</literal>
-                method, which statements are applied against the newly created archive task object. In section
+                method, which statements are applied against the newly created archive task object. In
                 <xref linkend='sec:archive_tasks'/>
                 you will learn more about which statements you can apply against a particular archive task. You could
                 for example change the name of the archive directly in the closure:
@@ -868,7 +865,7 @@
         </section>
         <section id='sub:adding_content'>
             <title>Adding Content</title>
-            <para>To add content to an archive you must add file container to an archive (see Table<xref
+            <para>To add content to an archive you must add file container to an archive (see <xref
                     linkend='filecontainer'/>). You can add as many file container as you like. They behave pretty much
                 the same as the Ant resources with similar names.
             </para>

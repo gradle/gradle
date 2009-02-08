@@ -2,7 +2,7 @@
     <title>The Gradle Core Tutorial</title>
     <para>If you execute a build, Gradle normally looks for a file called
         <literal>build.gradle</literal>
-        in the current directory (There are command line switches to change this behavior. See Appendix<xref
+        in the current directory (There are command line switches to change this behavior. See <xref
                 linkend='cha:command_line'/>). We call the build.gradle a build script. Although strictly speaking it is
         a build configuration script, as we see later. In Gradle the location of the build script file defines a
         project. The name of the directory containing the build script is the name of the project.
@@ -73,7 +73,7 @@
             is declared before
             <literal>taskY</literal>
             is created. This is very important for multi-project builds. Task dependencies are discussed in more detail
-            in section<xref linkend='sec:adding_dependencies_to_tasks'/>.
+            in <xref linkend='sec:adding_dependencies_to_tasks'/>.
         </para>
     </section>
     <section>
@@ -186,7 +186,7 @@
         <sampleOutput src='antChecksumWithMethod.out'/>
         <para>Later you will see that such methods can be shared among subprojects in multi-project builds. If your
             build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have
-            devoted a whole chapter to this. See Chapter<xref linkend='cha:organizing_build_logic'/>.
+            devoted a whole chapter to this. See <xref linkend='cha:organizing_build_logic'/>.
         </para>
     </section>
     <section id='sec:default_tasks'>
@@ -203,7 +203,7 @@
     </section>
     <section>
         <title>Configure By DAG</title>
-        <para>As we describe in full detail later (See chapter<xref linkend='cha:the_build_lifecycle'/>) Gradle has a
+        <para>As we describe in full detail later (See <xref linkend='cha:the_build_lifecycle'/>) Gradle has a
             configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should
             be executed. Gradle offers you a hook to make use of this information. A usecase for this would be to check
             if the release task is part of the tasks to be executed. Depending on this you can assign different values
@@ -224,9 +224,9 @@
     <section>
         <title>Summary</title>
         <para>This is not the end of the story for tasks. So far we have worked with simple tasks. Tasks will be
-            revisited in chapter
+            revisited in
             <xref linkend='cha:more_about_tasks'/>
-            and when we look at the Java Plugin in chapter<xref linkend='cha:the_java_plugin'/>.
+            and when we look at the Java Plugin in <xref linkend='cha:the_java_plugin'/>.
         </para>
     </section>
 </chapter>

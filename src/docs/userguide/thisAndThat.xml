@@ -55,7 +55,7 @@
         <para>You might be wondering why there is neither an import for the
             <literal>StopExecutionException</literal>
             nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports
-            to your script. These imports are customizable (see Appendix<xref linkend='ide_support'/>).
+            to your script. These imports are customizable (see <xref linkend='cha:ide_support'/>).
         </para>
         <para>Every task has also a
             <literal>enabled</literal>
@@ -205,7 +205,7 @@
         <para>Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to
             provide special functionality for this. The JVM can be instructed to go via proxy by setting certain system
             properties. You could set this system properties directly in your build script with<literal>
-                System.properties['proxy.proxyUser'] = 'userid'</literal>. An arguably nicer way is shown in section
+                System.properties['proxy.proxyUser'] = 'userid'</literal>. An arguably nicer way is shown in
             <xref linkend='sec:gradle_properties_and_system_properties'/>. Your gradle.properties file could look like
             this:
         </para>
