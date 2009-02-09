@@ -21,10 +21,10 @@ import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.IvyObjectBuilder;
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.dependencies.ArtifactContainer;
 import org.gradle.api.internal.dependencies.ConfigurationContainer;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
+import org.gradle.api.specs.Spec;
 
 import java.util.Map;
 
@@ -32,7 +32,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface ModuleDescriptorConverter extends IvyObjectBuilder<DefaultModuleDescriptor> {
-    ModuleDescriptor convert(Map<String, Boolean> transitiveOverride, ConfigurationContainer configurationContainer, FilterSpec<Configuration> configurationFilter,
-                             DependencyContainerInternal dependencyContainer, FilterSpec<Dependency> dependencyFilter,
-                             ArtifactContainer artifactContainer, FilterSpec<PublishArtifact> artifactFilter);
+    ModuleDescriptor convert(Map<String, Boolean> transitiveOverride, ConfigurationContainer configurationContainer, Spec<Configuration> configurationSpec,
+                             DependencyContainerInternal dependencyContainer, Spec<Dependency> dependencySpec,
+                             ArtifactContainer artifactContainer, Spec<PublishArtifact> artifactSpec);
 }

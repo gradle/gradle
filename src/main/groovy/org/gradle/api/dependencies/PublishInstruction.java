@@ -15,8 +15,8 @@
  */
 package org.gradle.api.dependencies;
 
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.io.File;
 
@@ -26,26 +26,26 @@ import java.io.File;
 public class PublishInstruction {
     private ModuleDescriptorInstruction moduleDescriptor = new ModuleDescriptorInstruction();
 
-    private FilterSpec<PublishArtifact> artifactFilter = Filters.noFilter();
+    private Spec<PublishArtifact> artifactSpec = Specs.satisfyAll();
 
     public ModuleDescriptorInstruction getModuleDescriptor() {
         return moduleDescriptor;
     }
 
-    public FilterSpec<PublishArtifact> getArtifactFilter() {
-        return artifactFilter;
+    public Spec<PublishArtifact> getArtifactSpec() {
+        return artifactSpec;
     }
 
-    public void setArtifactFilter(FilterSpec<PublishArtifact> artifactFilter) {
-        this.artifactFilter = artifactFilter;
+    public void setArtifactSpec(Spec<PublishArtifact> artifactSpec) {
+        this.artifactSpec = artifactSpec;
     }
 
     public static class ModuleDescriptorInstruction {
         private boolean publish = true;
 
-        private FilterSpec<Configuration> configurationFilter = Filters.noFilter();
+        private Spec<Configuration> configurationSpec = Specs.satisfyAll();
 
-        private FilterSpec<Dependency> dependencyFilter = Filters.noFilter();
+        private Spec<Dependency> dependencySpec = Specs.satisfyAll();
 
         private File ivyFileParentDir = null;
 
@@ -57,20 +57,20 @@ public class PublishInstruction {
             this.publish = publish;
         }
 
-        public FilterSpec<Configuration> getConfigurationFilter() {
-            return configurationFilter;
+        public Spec<Configuration> getConfigurationSpec() {
+            return configurationSpec;
         }
 
-        public void setConfigurationFilter(FilterSpec<Configuration> configurationFilter) {
-            this.configurationFilter = configurationFilter;
+        public void setConfigurationSpec(Spec<Configuration> configurationSpec) {
+            this.configurationSpec = configurationSpec;
         }
 
-        public FilterSpec<Dependency> getDependencyFilter() {
-            return dependencyFilter;
+        public Spec<Dependency> getDependencySpec() {
+            return dependencySpec;
         }
 
-        public void setDependencyFilter(FilterSpec<Dependency> dependencyFilter) {
-            this.dependencyFilter = dependencyFilter;
+        public void setDependencySpec(Spec<Dependency> dependencySpec) {
+            this.dependencySpec = dependencySpec;
         }
 
         public File getIvyFileParentDir() {

@@ -1,4 +1,4 @@
-package org.gradle.api.dependencies.filter;
+package org.gradle.api.dependencies.specs;
 
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.ProjectDependency;

@@ -13,47 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.filter;
+package org.gradle.api.specs;
 
-import org.gradle.api.dependencies.Dependency;
-
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
-public class Filters {
-    public static final FilterSpec NO_FILTER = new FilterSpec() {
+public class Specs {
+    public static final Spec SATISFIES_ALL = new Spec() {
         public boolean isSatisfiedBy(Object dependency) {
             return true;
         }
     };
 
-    public static <T> FilterSpec<T> noFilter() {
-        return (FilterSpec<T>) NO_FILTER;
+    public static <T> Spec<T> satisfyAll() {
+        return (Spec<T>) SATISFIES_ALL;
     }
 
-    public static <T> List<T> filterIterable(Iterable<T> iterable, FilterSpec<T> filter) {
+    public static <T> List<T> filterIterable(Iterable<T> iterable, Spec<T> spec) {
         List<T> result = new ArrayList<T>();
         for (T t : iterable) {
-            if (filter.isSatisfiedBy(t)) {
+            if (spec.isSatisfiedBy(t)) {
                 result.add(t);
             }
         }
         return result;
     }
 
-    public static <T> AndSpec<T> and(FilterSpec<T>... specs) {
+    public static <T> AndSpec<T> and(Spec<T>... specs) {
         return new AndSpec<T>(specs);  
     }
 
-    public static <T> OrSpec<T> or(FilterSpec<T>... specs) {
+    public static <T> OrSpec<T> or(Spec<T>... specs) {
         return new OrSpec<T>(specs);
     }
 
-    public static <T> NotSpec<T> not(FilterSpec<T> spec) {
+    public static <T> NotSpec<T> not(Spec<T> spec) {
         return new NotSpec<T>(spec);  
     }
 }

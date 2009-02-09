@@ -16,12 +16,13 @@
 package org.gradle.api.internal.dependencies.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.dependencies.PublishArtifact;
 import org.gradle.api.internal.dependencies.ArtifactContainer;
+import org.gradle.api.specs.Spec;
 
 /**
  * @author Hans Dockter
  */
 public interface ArtifactsToModuleDescriptorConverter {
-    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, ArtifactContainer artifactContainer, FilterSpec filter);
+    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, ArtifactContainer artifactContainer, Spec<PublishArtifact> artifactSpec);
 }

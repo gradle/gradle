@@ -16,45 +16,33 @@
 
 package org.gradle.util
 
+import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.gradle.CacheUsage
+import org.gradle.StartParameter
+import org.gradle.api.internal.dependencies.DefaultConfiguration
+import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer
 import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.specs.AndSpec
+import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.EmptyScript
-import org.gradle.util.GradleUtil
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.ScriptWithSource
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.StartParameter
-import org.gradle.CacheUsage
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.gradle.initialization.ISettingsFinder
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
-import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer
-import org.gradle.initialization.ISettingsFinder
-import org.gradle.groovy.scripts.ScriptSource
-import org.codehaus.groovy.control.CompilerConfiguration
-import org.gradle.groovy.scripts.ScriptWithSource
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.internal.dependencies.DefaultConfiguration
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.jmock.Expectations
-import org.gradle.api.internal.dependencies.DependencyManagerInternal
-import org.gradle.api.dependencies.ConfigurationResolver
-import org.gradle.api.Task
-import org.gradle.api.DependencyManager
-import org.gradle.api.dependencies.ResolveInstruction
-import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier
-import org.gradle.api.internal.dependencies.BaseDependencyManager
-import org.gradle.api.Project
-import org.gradle.api.internal.dependencies.DefaultDependencyContainer
-import org.gradle.api.internal.dependencies.DefaultConfigurationContainer
-import org.gradle.api.internal.dependencies.DefaultExcludeRuleContainer
-import org.gradle.api.filter.FilterSpec
-import org.gradle.api.filter.AndSpec
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
@@ -63,7 +51,7 @@ import org.gradle.api.filter.AndSpec
 class HelperUtil {
     public static final Closure TEST_CLOSURE = {}
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
-    public static final FilterSpec TEST_SEPC  = new AndSpec()
+    public static final Spec TEST_SEPC  = new AndSpec()
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
         return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [

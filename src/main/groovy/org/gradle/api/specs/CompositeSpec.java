@@ -13,44 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dependencies.filter;
+package org.gradle.api.specs;
 
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.filter.FilterSpec;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
-public class TypeSpec<T extends Dependency> implements FilterSpec<T> {
+abstract public class CompositeSpec<T> implements Spec<T> {
+    private List<Spec> specs;
 
-    private Type type;
-
-    public TypeSpec(Type type) {
-        this.type = type;
+    protected CompositeSpec(Spec... specs) {
+        this.specs = Arrays.asList(specs);
     }
 
-    public boolean isSatisfiedBy(Dependency dependency) {
-        return type.isOf(dependency);
-    }
-
-    public Type getType() {
-        return type;
+    public List<Spec> getSpecs() {
+        return Collections.unmodifiableList(specs);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof CompositeSpec)) return false;
 
-        TypeSpec typeSpec = (TypeSpec) o;
+        CompositeSpec that = (CompositeSpec) o;
 
-        if (type != typeSpec.type) return false;
+        if (specs != null ? !specs.equals(that.specs) : that.specs != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        return type != null ? type.hashCode() : 0;
+        return specs != null ? specs.hashCode() : 0;
     }
 }

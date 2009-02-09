@@ -22,23 +22,23 @@ import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
 import org.gradle.api.internal.dependencies.ivyservice.IvyUtil;
+import org.gradle.api.specs.Spec;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultDependenciesToModuleDescriptorConverter implements DependenciesToModuleDescriptorConverter {
     public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, DependencyContainerInternal dependencyContainer,
-                                          FilterSpec filterSpec) {
-        addDependencies(moduleDescriptor, dependencyContainer, filterSpec);
+                                          Spec spec) {
+        addDependencies(moduleDescriptor, dependencyContainer, spec);
         addExcludeRules(moduleDescriptor, dependencyContainer);
         addConflictManager(moduleDescriptor);
     }
 
-    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, DependencyContainerInternal dependencyContainer, FilterSpec<Dependency> filterSpec) {
-        for (Dependency dependency : dependencyContainer.getDependencies(filterSpec)) {
+    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, DependencyContainerInternal dependencyContainer, Spec<Dependency> spec) {
+        for (Dependency dependency : dependencyContainer.getDependencies(spec)) {
             moduleDescriptor.addDependency(dependency.createDependencyDescriptor(moduleDescriptor));
         }
     }

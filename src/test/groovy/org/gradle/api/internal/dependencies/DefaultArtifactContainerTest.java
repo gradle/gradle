@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.dependencies;
 
+import org.gradle.api.dependencies.PublishArtifact;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.assertThat;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
 
 import java.util.Set;
 
@@ -67,7 +68,7 @@ public class DefaultArtifactContainerTest {
         artifactContainer.addArtifacts(publishArtifact2);
         final boolean[] artifact1Offered = new boolean[]{false};
         final boolean[] artifact2Offered = new boolean[]{false};
-        Set<PublishArtifact> actualArtifacts = artifactContainer.getArtifacts(new FilterSpec<PublishArtifact>() {
+        Set<PublishArtifact> actualArtifacts = artifactContainer.getArtifacts(new Spec<PublishArtifact>() {
             public boolean isSatisfiedBy(PublishArtifact filterCandidate) {
                 if (filterCandidate == publishArtifact1) {
                     artifact1Offered[0] = true;

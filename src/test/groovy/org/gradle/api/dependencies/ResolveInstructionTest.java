@@ -15,13 +15,12 @@
  */
 package org.gradle.api.dependencies;
 
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
+import org.gradle.api.specs.Specs;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
-import org.gradle.api.filter.Filters;
-import org.gradle.util.HelperUtil;
+import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -32,7 +31,7 @@ public class ResolveInstructionTest {
         ResolveInstruction resolveInstruction = new ResolveInstruction();
         assertThat(resolveInstruction.isFailOnResolveError(), equalTo(true));
         assertThat(resolveInstruction.isTransitive(), equalTo(true));
-        assertThat(resolveInstruction.getDependencyFilter(), equalTo(Filters.NO_FILTER));
+        assertThat(resolveInstruction.getDependencySpec(), equalTo(Specs.SATISFIES_ALL));
     }
 
     @Test
@@ -40,7 +39,7 @@ public class ResolveInstructionTest {
         ResolveInstruction resolveInstructionSource = new ResolveInstruction();
         assertThat(resolveInstructionSource, sameInstance(resolveInstructionSource.setTransitive(false)));
         assertThat(resolveInstructionSource, sameInstance(resolveInstructionSource.setFailOnResolveError(false)));
-        assertThat(resolveInstructionSource, sameInstance(resolveInstructionSource.setDependencyFilter(HelperUtil.TEST_SEPC)));
+        assertThat(resolveInstructionSource, sameInstance(resolveInstructionSource.setDependencySpec(HelperUtil.TEST_SEPC)));
         assertThat(new ResolveInstruction(resolveInstructionSource), equalTo(resolveInstructionSource));
     }
 }

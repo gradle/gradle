@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
+import groovy.lang.Closure;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.UnknownConfigurationException;
-import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
-import groovy.lang.Closure;
+import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 import java.util.Set;
 
@@ -94,7 +94,7 @@ public class DefaultConfigurationContainerTest {
     public void testGetWithFilter() {
         Configuration configuration = configurationContainer.add(TEST_NAME);
         configurationContainer.add(TEST_NAME + "delta");
-        Set<Configuration> result = configurationContainer.get(new FilterSpec<Configuration>() {
+        Set<Configuration> result = configurationContainer.get(new Spec<Configuration>() {
             public boolean isSatisfiedBy(Configuration element) {
                 return element.getName().equals(TEST_NAME);
             }

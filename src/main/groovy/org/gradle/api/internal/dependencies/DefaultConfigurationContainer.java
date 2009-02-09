@@ -19,8 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.UnknownConfigurationException;
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
@@ -79,8 +79,8 @@ public class DefaultConfigurationContainer implements ConfigurationContainer {
         return new HashSet<Configuration>(configurations.values());
     }
 
-    public Set<Configuration> get(FilterSpec<Configuration> filter) {
-        return new HashSet<Configuration>(Filters.filterIterable(configurations.values(), filter));
+    public Set<Configuration> get(Spec<Configuration> spec) {
+        return new HashSet<Configuration>(Specs.filterIterable(configurations.values(), spec));
     }
 
     public void setConfigurations(Map<String, Configuration> configurations) {

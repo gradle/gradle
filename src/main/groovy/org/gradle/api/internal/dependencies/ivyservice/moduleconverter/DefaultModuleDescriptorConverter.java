@@ -26,13 +26,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.dependencies.ArtifactContainer;
 import org.gradle.api.internal.dependencies.ConfigurationContainer;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
 import org.gradle.api.internal.dependencies.ivyservice.IvyUtil;
 import org.gradle.api.internal.dependencies.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.specs.Spec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,18 +63,18 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
         this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
     }
 
-    public ModuleDescriptor convert(Map<String, Boolean> transitiveOverride, ConfigurationContainer configurationContainer, FilterSpec<Configuration> configurationFilter,
-                                    DependencyContainerInternal dependencyContainer, FilterSpec<Dependency> dependencyFilter,
-                                    ArtifactContainer artifactContainer, FilterSpec<PublishArtifact> artifactFilter) {
+    public ModuleDescriptor convert(Map<String, Boolean> transitiveOverride, ConfigurationContainer configurationContainer, Spec<Configuration> configurationSpec,
+                                    DependencyContainerInternal dependencyContainer, Spec<Dependency> dependencySpec,                                
+                                    ArtifactContainer artifactContainer, Spec<PublishArtifact> artifactSpec) {
         String status = getStatus(dependencyContainer.getProject());
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(dependencyContainer.getProject());
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(
                 moduleRevisionId,
                 status,
                 null);
-        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurationContainer, configurationFilter, transitiveOverride);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, dependencyContainer, dependencyFilter);
-        artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, artifactContainer, artifactFilter);
+        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurationContainer, configurationSpec, transitiveOverride);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, dependencyContainer, dependencySpec);
+        artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, artifactContainer, artifactSpec);
         return transformer.transform(moduleDescriptor);
     }
 

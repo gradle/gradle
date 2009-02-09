@@ -19,15 +19,15 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.dependencies.ArtifactContainer;
+import org.gradle.api.specs.Spec;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
-    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, ArtifactContainer artifactContainer, FilterSpec filter) {
-        for (PublishArtifact publishArtifact : artifactContainer.getArtifacts(filter)) {
+    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, ArtifactContainer artifactContainer, Spec<PublishArtifact> artifactSpec) {
+        for (PublishArtifact publishArtifact : artifactContainer.getArtifacts(artifactSpec)) {
             Artifact ivyArtifact = publishArtifact.createIvyArtifact(moduleDescriptor.getModuleRevisionId());
             for (Configuration configuration : publishArtifact.getConfigurations()) {
                 moduleDescriptor.addArtifact(configuration.getName(), ivyArtifact);

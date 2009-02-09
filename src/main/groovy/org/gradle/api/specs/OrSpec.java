@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.dependencies;
-
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.DependencyContainer;
-
-import java.util.Map;
-import java.util.Set;
+package org.gradle.api.specs;
 
 /**
  * @author Hans Dockter
  */
-public interface DependencyContainerInternal extends DependencyContainer {
-    Map<String, ModuleDescriptor> getClientModuleRegistry();
+public class OrSpec<T> extends CompositeSpec<T> {
+    public OrSpec(Spec... specs) {
+        super(specs);
+    }
 
-    Set<Configuration> getConfigurations();
+    public boolean isSatisfiedBy(T object) {
+        for (Spec spec : getSpecs()) {
+            if (spec.isSatisfiedBy(object)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
 }

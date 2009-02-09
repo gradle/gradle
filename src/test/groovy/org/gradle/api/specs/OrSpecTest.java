@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.filter;
+package org.gradle.api.specs;
 
-import org.junit.Test;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import org.gradle.api.filter.CompositeSpec;
 import org.gradle.api.dependencies.Dependency;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-public class AndSpecTest extends AbstractCompositeTest {
-    public CompositeSpec createCompositeSpec(FilterSpec... filterSpecs) {
-        return new AndSpec(filterSpecs);
+public class OrSpecTest extends AbstractCompositeTest {
+    private JUnit4Mockery context = new JUnit4Mockery();
+
+    public CompositeSpec createCompositeSpec(Spec... specs) {
+        return new OrSpec(specs);
     }
 
     @Test
-    public void isSatisfiedByWithAllTrue() {
-        assertTrue(new AndSpec(createAtomicElements(true, true, true)).isSatisfiedBy(new Object()));
+    public void isSatisfiedByWithOneTrue() {
+        assertTrue(new OrSpec(createAtomicElements(false, true, false)).isSatisfiedBy(context.mock(Dependency.class)));
     }
 
     @Test
-    public void isSatisfiedByWithOneFalse() {
-        assertFalse(new AndSpec(createAtomicElements(true, false, true)).isSatisfiedBy(new Object()));
+    public void isSatisfiedByWithAllFalse() {
+        assertFalse(new AndSpec(createAtomicElements(false, false, false)).isSatisfiedBy(context.mock(Dependency.class)));
     }
 }

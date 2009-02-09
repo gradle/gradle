@@ -23,8 +23,8 @@ import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.PublishArtifact;
 import org.gradle.api.dependencies.PublishInstruction;
 import org.gradle.api.dependencies.ResolveInstruction;
-import org.gradle.api.filter.Filters;
 import org.gradle.api.internal.dependencies.*;
+import org.gradle.api.specs.Specs;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,8 +114,8 @@ public class DefaultIvyService implements IvyService {
                     new ArrayList<DependencyResolver>(),
                     gradleUserHome,
                     dependencyContainer.getClientModuleRegistry());
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(WrapUtil.toMap(conf, resolveInstruction.isTransitive()), new DefaultConfigurationContainer(configurations), Filters.<Configuration>noFilter(),
-                dependencyContainer, resolveInstruction.getDependencyFilter(), ArtifactContainer.EMPTY_CONTAINER, Filters.<PublishArtifact>noFilter());
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(WrapUtil.toMap(conf, resolveInstruction.isTransitive()), new DefaultConfigurationContainer(configurations), Specs.<Configuration>satisfyAll(),
+                dependencyContainer, resolveInstruction.getDependencySpec(), ArtifactContainer.EMPTY_CONTAINER, Specs.<PublishArtifact>satisfyAll());
         return dependencyResolver.resolveAsReport(conf, resolveInstruction, ivy, moduleDescriptor);
     }
 
@@ -134,9 +134,9 @@ public class DefaultIvyService implements IvyService {
                 confs,
                 publishInstruction,
                 publishResolvers,
-                moduleDescriptorConverter.convert(new HashMap<String, Boolean>(), configurationContainer, publishInstruction.getModuleDescriptor().getConfigurationFilter(),
-                        dependencyContainer, publishInstruction.getModuleDescriptor().getDependencyFilter(),
-                        artifactContainer, publishInstruction.getArtifactFilter()),
+                moduleDescriptorConverter.convert(new HashMap<String, Boolean>(), configurationContainer, publishInstruction.getModuleDescriptor().getConfigurationSpec(),
+                        dependencyContainer, publishInstruction.getModuleDescriptor().getDependencySpec(),
+                        artifactContainer, publishInstruction.getArtifactSpec()),
                 ivy.getPublishEngine());
     }
 }

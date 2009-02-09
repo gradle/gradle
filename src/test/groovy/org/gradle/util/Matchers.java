@@ -15,17 +15,16 @@
  */
 package org.gradle.util;
 
+import groovy.lang.Closure;
+import org.gradle.api.dependencies.ResolveInstruction;
+import org.gradle.api.dependencies.ResolveInstructionModifier;
+import org.gradle.api.specs.Spec;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
-import org.gradle.api.dependencies.ResolveInstructionModifier;
-import org.gradle.api.dependencies.ResolveInstruction;
-import org.gradle.api.filter.FilterSpec;
 
 import java.util.regex.Pattern;
-
-import groovy.lang.Closure;
 
 public class Matchers {
     @Factory
@@ -47,7 +46,7 @@ public class Matchers {
     }
 
     @Factory
-    public static Matcher<ResolveInstructionModifier> modifierMatcher(final FilterSpec<ResolveInstruction> acceptanceFilter) {
+    public static Matcher<ResolveInstructionModifier> modifierMatcher(final Spec<ResolveInstruction> acceptanceFilter) {
         return new BaseMatcher<ResolveInstructionModifier>() {
             public void describeTo(Description description) {
                 description.appendText("matching resolve instruction modifier");
@@ -61,7 +60,7 @@ public class Matchers {
     }
 
     @Factory
-    public static Matcher<Closure> modifierClosureMatcher(final FilterSpec<ResolveInstruction> acceptanceFilter) {
+    public static Matcher<Closure> modifierClosureMatcher(final Spec<ResolveInstruction> acceptanceFilter) {
         return new BaseMatcher<Closure>() {
             public void describeTo(Description description) {
                 description.appendText("matching closure modifier");

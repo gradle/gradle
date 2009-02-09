@@ -13,37 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.filter;
+package org.gradle.api.specs;
 
-import org.gradle.api.filter.CompositeSpec;
-import org.gradle.api.dependencies.Dependency;
 import org.gradle.util.WrapUtil;
-import org.junit.Test;
+import static org.junit.Assert.*;
 import org.junit.Before;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import org.junit.Test;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 abstract public class AbstractCompositeTest {
-    private FilterSpec filterSpec1;
-    private FilterSpec filterSpec2;
+    private Spec spec1;
+    private Spec spec2;
 
-    public abstract CompositeSpec createCompositeSpec(FilterSpec... filterSpecs);
+    public abstract CompositeSpec createCompositeSpec(Spec... specs);
 
     @Before
     public void setUp() {
-        filterSpec1 = new FilterSpec<Object>() {
+        spec1 = new Spec<Object>() {
             public boolean isSatisfiedBy(Object o) {
                 return false;
             }
         };
-        filterSpec2 = new FilterSpec<Object>() {
+        spec2 = new Spec<Object>() {
             public boolean isSatisfiedBy(Object o) {
                 return false;
             }
@@ -52,25 +48,25 @@ abstract public class AbstractCompositeTest {
 
     @Test
     public void init() {
-        CompositeSpec compositeSpec = createCompositeSpec(filterSpec1, filterSpec2);
-        assertEquals(WrapUtil.toList(filterSpec1, filterSpec2), compositeSpec.getSpecs());
+        CompositeSpec compositeSpec = createCompositeSpec(spec1, spec2);
+        assertEquals(WrapUtil.toList(spec1, spec2), compositeSpec.getSpecs());
     }
 
-    protected FilterSpec[] createAtomicElements(boolean... satisfies) {
-        List<FilterSpec> result = new ArrayList<FilterSpec>();
+    protected Spec[] createAtomicElements(boolean... satisfies) {
+        List<Spec> result = new ArrayList<Spec>();
         for (final boolean satisfy : satisfies) {
-            result.add(new FilterSpec<Object>() {
+            result.add(new Spec<Object>() {
                 public boolean isSatisfiedBy(Object o) {
                     return satisfy;
                 }
             });
         }
-        return result.toArray(new FilterSpec[result.size()]);
+        return result.toArray(new Spec[result.size()]);
     }
 
     @Test
     public void equality() {
-        assertTrue(createCompositeSpec(filterSpec1).equals(createCompositeSpec(filterSpec1)));
-        assertFalse(createCompositeSpec(filterSpec1).equals(createCompositeSpec(filterSpec2)));
+        assertTrue(createCompositeSpec(spec1).equals(createCompositeSpec(spec1)));
+        assertFalse(createCompositeSpec(spec1).equals(createCompositeSpec(spec2)));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.filter;
+package org.gradle.api.specs;
 
 /**
  * @author Hans Dockter
  */
-public class NotSpec<T> implements FilterSpec<T> {
-    private FilterSpec<T> sourceSpec;
-
-    public NotSpec(FilterSpec<T> sourceSpec) {
-        this.sourceSpec = sourceSpec;
+public class AndSpec<T> extends CompositeSpec<T> {
+    public AndSpec(Spec... specs) {
+        super(specs);
     }
 
-    public boolean isSatisfiedBy(T element) {
-        return !sourceSpec.isSatisfiedBy(element);
+    public boolean isSatisfiedBy(T object) {
+        for (Spec spec : getSpecs()) {
+            if (!spec.isSatisfiedBy(object)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

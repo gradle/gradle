@@ -17,24 +17,20 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
+import org.gradle.api.DependencyManager
+import org.gradle.api.GradleScriptException
+import org.gradle.api.dependencies.ConfigurationResolver
+import org.gradle.api.dependencies.ResolveInstruction
+import org.gradle.api.dependencies.specs.DependencyTypeSpec
+import org.gradle.api.dependencies.specs.Type
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.util.ConfigureUtil
+import org.gradle.util.JUnit4GroovyMockery
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.dependencies.ConfigurationResolver
-import org.hamcrest.Matcher
-import org.gradle.util.Matchers
-import org.gradle.api.dependencies.ResolveInstruction
-import org.gradle.api.filter.FilterSpec
-import org.gradle.api.dependencies.filter.TypeSpec
-import org.gradle.api.dependencies.filter.Type
-import org.gradle.util.ConfigureUtil
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.GradleScriptException
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.api.DependencyManager
 
 /**
  * @author Hans Dockter
@@ -98,7 +94,7 @@ class WarTest extends AbstractArchiveTaskTest {
             ResolveInstruction resolveInstruction = ConfigureUtil.configure(modifier, new ResolveInstruction())
             assertEquals(failForMissingDependency, resolveInstruction.isFailOnResolveError())
             if (!includeProjectDependencies) {
-                assertEquals(new TypeSpec(Type.EXTERNAL), resolveInstruction.dependencyFilter)
+                assertEquals(new DependencyTypeSpec(Type.EXTERNAL), resolveInstruction.dependencySpec)
             }
             returnValue
         }] as ConfigurationResolver

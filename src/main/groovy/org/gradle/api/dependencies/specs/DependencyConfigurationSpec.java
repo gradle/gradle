@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dependencies.filter;
+package org.gradle.api.dependencies.specs;
 
-import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.specs.Spec;
 
 import java.util.*;
 
 /**
  * @author Hans Dockter
  */
-public class ConfSpec<T extends Dependency> implements FilterSpec<T> {
+public class DependencyConfigurationSpec<T extends Dependency> implements Spec<T> {
     boolean includeExtendees;
     private List<String> confs;
 
-    public ConfSpec(boolean includeExtendees, String... confs) {
+    public DependencyConfigurationSpec(boolean includeExtendees, String... confs) {
         this.includeExtendees = includeExtendees;
         this.confs = Arrays.asList(confs);
     }
@@ -65,7 +65,7 @@ public class ConfSpec<T extends Dependency> implements FilterSpec<T> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ConfSpec confSpec = (ConfSpec) o;
+        DependencyConfigurationSpec confSpec = (DependencyConfigurationSpec) o;
 
         if (includeExtendees != confSpec.includeExtendees) return false;
         if (confs != null ? !confs.equals(confSpec.confs) : confSpec.confs != null) return false;

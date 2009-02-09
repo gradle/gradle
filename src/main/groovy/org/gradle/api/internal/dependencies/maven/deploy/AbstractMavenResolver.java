@@ -37,18 +37,18 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.PublishArtifact;
 import org.gradle.api.dependencies.maven.MavenPom;
 import org.gradle.api.dependencies.maven.MavenResolver;
 import org.gradle.api.dependencies.maven.PomFilterContainer;
 import org.gradle.api.dependencies.maven.PublishFilter;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.filter.Filters;
 import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.specs.Specs;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
@@ -179,8 +179,8 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Map<File, File> deployableUnits = getArtifactPomContainer().createDeployableUnits(
-                Arrays.asList(dependencyManager.createModuleDescriptor(Filters.<Configuration>noFilter(), Filters.<Dependency>noFilter(),
-                        Filters.<PublishArtifact>noFilter()).getDependencies()));
+                Arrays.asList(dependencyManager.createModuleDescriptor(Specs.<Configuration>satisfyAll(), Specs.<Dependency>satisfyAll(),
+                        Specs.<PublishArtifact>satisfyAll()).getDependencies()));
         for (File pomFile : deployableUnits.keySet()) {
             addPomAndArtifact(installDeployTaskSupport, pomFile, deployableUnits.get(pomFile));
             execute(installDeployTaskSupport);

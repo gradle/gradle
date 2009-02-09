@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.filter;
+package org.gradle.api.specs;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -29,8 +29,8 @@ public class NotSpecTest {
         assertThat(new NotSpec(createFilterSpec()).isSatisfiedBy(false), equalTo(true));
     }
 
-    private FilterSpec<Boolean> createFilterSpec() {
-        return new FilterSpec<Boolean>() {
+    private Spec<Boolean> createFilterSpec() {
+        return new Spec<Boolean>() {
             public boolean isSatisfiedBy(Boolean element) {
                 return element;
             }

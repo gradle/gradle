@@ -29,10 +29,10 @@ import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.dependencies.ivyservice.BuildResolverHandler;
 import org.gradle.api.internal.dependencies.ivyservice.ResolverFactory;
 import org.gradle.api.internal.dependencies.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.specs.Spec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,8 +92,8 @@ public class BaseDependencyManager implements DependencyManagerInternal {
         return dependencyContainer.getDependencies();
     }
 
-    public <T extends Dependency> List<T> getDependencies(FilterSpec<T> filter) {
-        return dependencyContainer.getDependencies(filter);
+    public <T extends Dependency> List<T> getDependencies(Spec<T> spec) {
+        return dependencyContainer.getDependencies(spec);
     }
 
     public void addDependencies(Dependency... dependencies) {
@@ -279,10 +279,10 @@ public class BaseDependencyManager implements DependencyManagerInternal {
         return ivyService;
     }
 
-    public ModuleDescriptor createModuleDescriptor(FilterSpec<Configuration> configurationFilter, FilterSpec<Dependency> dependencyFilter,
-                                                   FilterSpec<PublishArtifact> artifactFilter) {
-        return ivyService.getModuleDescriptorConverter().convert(new HashMap<String, Boolean>(), configurationContainer, configurationFilter,
-                dependencyContainer, dependencyFilter, artifactContainer, artifactFilter);
+    public ModuleDescriptor createModuleDescriptor(Spec<Configuration> configurationSpec, Spec<Dependency> dependencySpec,
+                                                   Spec<PublishArtifact> artifactSpec) {
+        return ivyService.getModuleDescriptorConverter().convert(new HashMap<String, Boolean>(), configurationContainer, configurationSpec,
+                dependencyContainer, dependencySpec, artifactContainer, artifactSpec);
     }
 
     public ArtifactContainer getArtifactContainer() {

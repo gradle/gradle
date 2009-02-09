@@ -16,13 +16,13 @@
 package org.gradle.api.internal.dependencies.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
+import org.gradle.api.specs.Spec;
 
 /**
  * @author Hans Dockter
  */
 public interface DependenciesToModuleDescriptorConverter {
     void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, DependencyContainerInternal dependencyContainer,
-                                          FilterSpec filterSpec);
+                                          Spec spec);
 }

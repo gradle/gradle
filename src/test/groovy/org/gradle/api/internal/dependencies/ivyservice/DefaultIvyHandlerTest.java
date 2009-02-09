@@ -23,11 +23,11 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.dependencies.*;
-import org.gradle.api.dependencies.filter.Type;
-import org.gradle.api.dependencies.filter.TypeSpec;
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
+import org.gradle.api.dependencies.specs.DependencyTypeSpec;
+import org.gradle.api.dependencies.specs.Type;
 import org.gradle.api.internal.dependencies.*;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
@@ -103,7 +103,7 @@ public class DefaultIvyHandlerTest {
         testGradleUserHome = new File("testGradleUserHome");
         testClientModuleRegistry = WrapUtil.toMap("a", context.mock(ModuleDescriptor.class));
         testIvySettings = new IvySettings();
-        testResolveInstruction = new ResolveInstruction().setDependencyFilter(new TypeSpec(Type.EXTERNAL));
+        testResolveInstruction = new ResolveInstruction().setDependencySpec(new DependencyTypeSpec(Type.EXTERNAL));
         testModuleDescriptor = HelperUtil.getTestModuleDescriptor(WrapUtil.toSet(TEST_CONF));
         testClasspath = WrapUtil.toList(new File("cp"));
         testReport = new ResolveReport(testModuleDescriptor);
@@ -145,8 +145,8 @@ public class DefaultIvyHandlerTest {
 
     @Test
     public void testIvy() {
-        customizeMocks(null, Filters.NO_FILTER, Filters.NO_FILTER, testDependencyResolvers, testPublishResolvers, testClientModuleRegistry, ArtifactContainer.EMPTY_CONTAINER,
-                Filters.NO_FILTER, new HashMap<String, Boolean>());
+        customizeMocks(null, Specs.SATISFIES_ALL, Specs.SATISFIES_ALL, testDependencyResolvers, testPublishResolvers, testClientModuleRegistry, ArtifactContainer.EMPTY_CONTAINER,
+                Specs.SATISFIES_ALL, new HashMap<String, Boolean>());
         ivyHandler.ivy(testDependencyResolvers, testPublishResolvers, testGradleUserHome, testClientModuleRegistry);
     }
 
@@ -182,9 +182,9 @@ public class DefaultIvyHandlerTest {
     }
 
     private void customizeMocksForResolve() {
-        customizeMocks(new DefaultConfigurationContainer(testConfigurations), Filters.NO_FILTER,
-                testResolveInstruction.getDependencyFilter(), testDependencyResolvers, new ArrayList<DependencyResolver>(), testClientModuleRegistry,
-                ArtifactContainer.EMPTY_CONTAINER, Filters.NO_FILTER, WrapUtil.toMap(TEST_CONF, testResolveInstruction.isTransitive()));
+        customizeMocks(new DefaultConfigurationContainer(testConfigurations), Specs.SATISFIES_ALL,
+                testResolveInstruction.getDependencySpec(), testDependencyResolvers, new ArrayList<DependencyResolver>(), testClientModuleRegistry,
+                ArtifactContainer.EMPTY_CONTAINER, Specs.SATISFIES_ALL, WrapUtil.toMap(TEST_CONF, testResolveInstruction.isTransitive()));
     }
 
     @Test
@@ -192,9 +192,9 @@ public class DefaultIvyHandlerTest {
         final ConfigurationContainer configurationContainerMock = context.mock(ConfigurationContainer.class);
         final ArtifactContainer artifactContainerMock = context.mock(ArtifactContainer.class);
         final PublishInstruction testPublishInstruction = new PublishInstruction();
-        customizeMocks(configurationContainerMock, testPublishInstruction.getModuleDescriptor().getConfigurationFilter(),
-                testPublishInstruction.getModuleDescriptor().getDependencyFilter(), new ArrayList<DependencyResolver>(), testPublishResolvers, new HashMap<String, ModuleDescriptor>(),
-                artifactContainerMock, testPublishInstruction.getArtifactFilter(), new HashMap<String, Boolean>());
+        customizeMocks(configurationContainerMock, testPublishInstruction.getModuleDescriptor().getConfigurationSpec(),
+                testPublishInstruction.getModuleDescriptor().getDependencySpec(), new ArrayList<DependencyResolver>(), testPublishResolvers, new HashMap<String, ModuleDescriptor>(),
+                artifactContainerMock, testPublishInstruction.getArtifactSpec(), new HashMap<String, Boolean>());
         final String testConf2 = "testConf2";
         context.checking(new Expectations() {{
             allowing(configurationContainerMock).get(TEST_CONF);
@@ -212,13 +212,13 @@ public class DefaultIvyHandlerTest {
     }
 
     private void customizeMocks(final ConfigurationContainer configurationContainer,
-                                final FilterSpec<Configuration> moduleDescriptorConfigurationFilter,
-                                final FilterSpec<Dependency> moduleDescriptorDependencyFilter,
+                                final Spec<Configuration> moduleDescriptorConfigurationFilter,
+                                final Spec<Dependency> moduleDescriptorDependencyFilter,
                                 final List<DependencyResolver> settingsConverterDependencyResolvers,
                                 final List<DependencyResolver> settingsConverterPublishResolvers,
                                 final Map<String, ModuleDescriptor> settingsConverterClientModuleRegistry,
                                 final ArtifactContainer moduleConverterArtifactContainer,
-                                final FilterSpec<PublishArtifact> moduleDescriptorArtifactFilter,
+                                final Spec<PublishArtifact> moduleDescriptorArtifactFilter,
                                 final Map<String, Boolean> transitiveOverride) {
         context.checking(new Expectations() {{
             allowing(moduleDescriptorConverterMock).convert(transitiveOverride, configurationContainer, moduleDescriptorConfigurationFilter, dependencyContainerMock, moduleDescriptorDependencyFilter,

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.dependencies;
 
-import org.gradle.api.filter.Filters;
+import org.gradle.api.specs.Specs;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
@@ -40,8 +40,8 @@ public class PublishInstructionTest {
     public void init() {
         assertThat(getInstruction().getModuleDescriptor().isPublish(), equalTo(true));
         assertThat(getInstruction().getModuleDescriptor().getIvyFileParentDir(), equalTo(null));
-        assertThat(getInstruction().getModuleDescriptor().getConfigurationFilter(), equalTo(Filters.NO_FILTER));
-        assertThat(getInstruction().getModuleDescriptor().getDependencyFilter(), equalTo(Filters.NO_FILTER));
-        assertThat(getInstruction().getArtifactFilter(), equalTo(Filters.NO_FILTER));
+        assertThat(getInstruction().getModuleDescriptor().getConfigurationSpec(), equalTo(Specs.SATISFIES_ALL));
+        assertThat(getInstruction().getModuleDescriptor().getDependencySpec(), equalTo(Specs.SATISFIES_ALL));
+        assertThat(getInstruction().getArtifactSpec(), equalTo(Specs.SATISFIES_ALL));
     }
 }

@@ -22,10 +22,10 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.ProjectDependency;
-import org.gradle.api.dependencies.filter.TypeSpec;
-import org.gradle.api.dependencies.filter.Type;
-import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.dependencies.specs.DependencyTypeSpec;
+import org.gradle.api.dependencies.specs.Type;
+import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.War;
@@ -112,7 +112,7 @@ public class WarPlugin implements Plugin {
                 * request the project dependencies not via a resolve. We would have to filter the project dependencies
                 * ourselfes. This is not completely trivial due to configuration inheritance.
                 */
-                return task.getProject().getDependencies().getDependencies(new TypeSpec(Type.PROJECT));
+                return task.getProject().getDependencies().getDependencies(new DependencyTypeSpec(Type.PROJECT));
             }
         }));
 
@@ -127,7 +127,7 @@ public class WarPlugin implements Plugin {
     }
 
     private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {
-        for (Dependency dependentProject : project.getDependencies().getDependencies(new TypeSpec<Dependency>(Type.PROJECT))) {
+        for (Dependency dependentProject : project.getDependencies().getDependencies(new DependencyTypeSpec<Dependency>(Type.PROJECT))) {
             eclipseWtp.dependsOn(((ProjectDependency) dependentProject).getProject().getPath() + ":eclipseProject");
         }
     }

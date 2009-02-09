@@ -196,7 +196,7 @@ public class DefaultConfigurationResolverTest {
     @Test
     public void resolveWithInstructionModifier() {
         final ResolveInstruction expectedResolveInstruction = new ResolveInstruction();
-        expectedResolveInstruction.setDependencyFilter(HelperUtil.TEST_SEPC);
+        expectedResolveInstruction.setDependencySpec(HelperUtil.TEST_SEPC);
         context.checking(new Expectations() {{
             allowing(ivyServiceMock).resolve(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
                     testDependencyResolvers, expectedResolveInstruction, TEST_GRADLE_USER_HOME);
@@ -205,7 +205,7 @@ public class DefaultConfigurationResolverTest {
         ResolveInstructionModifier resolveInstructionModifier = new ResolveInstructionModifier() {
             public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
                 ResolveInstruction newResolveInstruction = new ResolveInstruction(resolveInstruction);
-                newResolveInstruction.setDependencyFilter(HelperUtil.TEST_SEPC);
+                newResolveInstruction.setDependencySpec(HelperUtil.TEST_SEPC);
                 return newResolveInstruction;
             }
         };
@@ -215,7 +215,7 @@ public class DefaultConfigurationResolverTest {
     @Test
     public void resolveAsReportWithInstructionModifier() {
         final ResolveInstruction expectedResolveInstruction = new ResolveInstruction();
-        expectedResolveInstruction.setDependencyFilter(HelperUtil.TEST_SEPC);
+        expectedResolveInstruction.setDependencySpec(HelperUtil.TEST_SEPC);
         context.checking(new Expectations() {{
             allowing(ivyServiceMock).resolveAsReport(TEST_CONF_NAME, dependencyContainerConfigurations, dependencyContainerMock,
                     testDependencyResolvers, expectedResolveInstruction, TEST_GRADLE_USER_HOME);
@@ -224,7 +224,7 @@ public class DefaultConfigurationResolverTest {
         ResolveInstructionModifier resolveInstructionModifier = new ResolveInstructionModifier() {
             public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
                 ResolveInstruction newResolveInstruction = new ResolveInstruction(resolveInstruction);
-                newResolveInstruction.setDependencyFilter(HelperUtil.TEST_SEPC);
+                newResolveInstruction.setDependencySpec(HelperUtil.TEST_SEPC);
                 return newResolveInstruction;
             }
         };

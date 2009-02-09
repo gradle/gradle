@@ -24,12 +24,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.dependencies.filter.ConfSpec;
-import org.gradle.api.filter.AndSpec;
-import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.dependencies.specs.DependencyConfigurationSpec;
 import org.gradle.api.internal.dependencies.ArtifactContainer;
 import org.gradle.api.internal.dependencies.ConfigurationContainer;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
+import org.gradle.api.specs.AndSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
@@ -50,9 +50,9 @@ import java.util.Map;
  */
 @RunWith(JMock.class)
 public class DefaultModuleDescriptorConverterTest {
-    private static final FilterSpec<Dependency> TEST_DEPENDENCY_FILTER_SPEC = new ConfSpec<Dependency>(true, "conf1");
-    private static final FilterSpec<PublishArtifact> TEST_PUBLISH_FILTER_SPEC = new AndSpec<PublishArtifact>();
-    private static final FilterSpec<Configuration> TEST_CONFIGURATION_FILTER_SPEC = new AndSpec<Configuration>();
+    private static final Spec<Dependency> TEST_DEPENDENCY_SPEC = new DependencyConfigurationSpec<Dependency>(true, "conf1");
+    private static final Spec<PublishArtifact> TEST_PUBLISH_SPEC = new AndSpec<PublishArtifact>();
+    private static final Spec<Configuration> TEST_CONFIGURATION_SPEC = new AndSpec<Configuration>();
 
     private static final String TEST_STATUS = "testStatus";
 
@@ -134,19 +134,19 @@ public class DefaultModuleDescriptorConverterTest {
             will(returnValue(expectedModuleDescriptor));
 
             one(configurationsToModuleDescriptorConverter).addConfigurations(expectedModuleDescriptor, configurationContainerMock,
-                    TEST_CONFIGURATION_FILTER_SPEC, testTransitiveOverride);
-            one(artifactsToModuleDescriptorConverterMock).addArtifacts(expectedModuleDescriptor, artifactContainerMock, TEST_PUBLISH_FILTER_SPEC);
+                    TEST_CONFIGURATION_SPEC, testTransitiveOverride);
+            one(artifactsToModuleDescriptorConverterMock).addArtifacts(expectedModuleDescriptor, artifactContainerMock, TEST_PUBLISH_SPEC);
             one(dependenciesToModuleDescriptorConverterMock).addDependencyDescriptors(expectedModuleDescriptor, dependencyContainerInternalMock,
-                    TEST_DEPENDENCY_FILTER_SPEC);
+                    TEST_DEPENDENCY_SPEC);
         }});
 
         if (transformer != null) {
             defaultModuleDescriptorConverter.addIvyTransformer(transformer);
         }
         DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor) defaultModuleDescriptorConverter.convert(
-                testTransitiveOverride, configurationContainerMock, TEST_CONFIGURATION_FILTER_SPEC,
-                dependencyContainerInternalMock, TEST_DEPENDENCY_FILTER_SPEC,
-                artifactContainerMock, TEST_PUBLISH_FILTER_SPEC);
+                testTransitiveOverride, configurationContainerMock, TEST_CONFIGURATION_SPEC,
+                dependencyContainerInternalMock, TEST_DEPENDENCY_SPEC,
+                artifactContainerMock, TEST_PUBLISH_SPEC);
         assertThat(actualModuleDescriptor, Matchers.equalTo(expectedModuleDescriptor));
         return actualModuleDescriptor;
     }

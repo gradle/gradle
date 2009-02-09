@@ -17,8 +17,8 @@ package org.gradle.api.internal.dependencies.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.dependencies.ConfigurationContainer;
+import org.gradle.api.specs.Spec;
 
 import java.util.Map;
 
@@ -27,8 +27,8 @@ import java.util.Map;
  */
 public class DefaultConfigurationsToModuleDescriptorConverter implements ConfigurationsToModuleDescriptorConverter {
     public void addConfigurations(DefaultModuleDescriptor moduleDescriptor, ConfigurationContainer configurationContainer,
-                                  FilterSpec<Configuration> filter, Map<String, Boolean> transitiveOverride) {
-        for (Configuration configuration : configurationContainer.get(filter)) {
+                                  Spec<Configuration> configurationSpec, Map<String, Boolean> transitiveOverride) {
+        for (Configuration configuration : configurationContainer.get(configurationSpec)) {
             moduleDescriptor.addConfiguration(configuration.getIvyConfiguration(getTransitiveValue(configuration, transitiveOverride)));
         }
     }

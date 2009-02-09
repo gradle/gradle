@@ -17,9 +17,8 @@
 package org.gradle.api.dependencies;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Project;
-import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.specs.Spec;
 
 import java.util.List;
 import java.util.Map;
@@ -40,16 +39,16 @@ public interface DependencyContainer {
     /**
      * A list of all Gradle Dependency objects.
      *
-     * @see #getDependencies(FilterSpec)
+     * @see #getDependencies(org.gradle.api.specs.Spec)
      */
     List<? extends Dependency> getDependencies();
 
     /**
-     * A list of Gradle Project Dependency based on the given {@link org.gradle.api.filter.FilterSpec}
+     * A list of Gradle Project Dependency based on the given {@link org.gradle.api.specs.Spec}
      *
      * @see #getDependencies()
      */
-    <T extends Dependency> List<T> getDependencies(FilterSpec<T> filter);
+    <T extends Dependency> List<T> getDependencies(Spec<T> spec);
 
     /**
      * Adds dependencies. The master confs are mapped to the default configuration of

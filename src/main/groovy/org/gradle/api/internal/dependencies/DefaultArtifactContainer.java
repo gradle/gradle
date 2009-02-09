@@ -16,13 +16,12 @@
 package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
-import java.util.*;
-import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -48,8 +47,8 @@ public class DefaultArtifactContainer implements ArtifactContainer {
         return artifacts;
     }
 
-    public Set<PublishArtifact> getArtifacts(FilterSpec<PublishArtifact> filter) {
-        return new HashSet<PublishArtifact>(Filters.filterIterable(getArtifacts(), filter));
+    public Set<PublishArtifact> getArtifacts(Spec<PublishArtifact> spec) {
+        return new HashSet<PublishArtifact>(Specs.filterIterable(getArtifacts(), spec));
     }
 
     //    private Map<String, List<PublishArtifact>> artifacts = new HashMap<String, List<PublishArtifact>>();

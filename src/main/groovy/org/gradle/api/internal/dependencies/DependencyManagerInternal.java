@@ -6,13 +6,13 @@ import org.gradle.api.DependencyManager;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.specs.Spec;
 
 public interface DependencyManagerInternal extends DependencyManager {
     Ivy getIvy();
 
     IvyService getIvyHandler();
 
-    ModuleDescriptor createModuleDescriptor(FilterSpec<Configuration> configurationFilter, FilterSpec<Dependency> dependencyFilter,
-                                                   FilterSpec<PublishArtifact> artifactFilter);
+    ModuleDescriptor createModuleDescriptor(Spec<Configuration> configurationSpec, Spec<Dependency> dependencySpec,
+                                                   Spec<PublishArtifact> artifactSpec);
 }

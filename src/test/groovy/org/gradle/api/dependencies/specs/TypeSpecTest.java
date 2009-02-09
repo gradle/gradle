@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dependencies.filter;
+package org.gradle.api.dependencies.specs;
 
-import org.junit.Test;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.gradle.api.dependencies.ProjectDependency;
 import org.gradle.api.dependencies.ModuleDependency;
+import org.gradle.api.dependencies.ProjectDependency;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -31,18 +29,18 @@ public class TypeSpecTest {
 
     @Test
     public void init() {
-        assertSame(Type.PROJECT, new TypeSpec(Type.PROJECT).getType());
+        assertSame(Type.PROJECT, new DependencyTypeSpec(Type.PROJECT).getType());
     }
 
     @Test
     public void testIsSatisfiedBy() {
-        assertTrue(new TypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ProjectDependency.class)));
-        assertFalse(new TypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ModuleDependency.class)));
+        assertTrue(new DependencyTypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ProjectDependency.class)));
+        assertFalse(new DependencyTypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ModuleDependency.class)));
     }
 
     @Test
     public void equality() {
-        assertTrue(new TypeSpec(Type.PROJECT).equals(new TypeSpec(Type.PROJECT)));
-        assertFalse(new TypeSpec(Type.PROJECT).equals(new TypeSpec(Type.EXTERNAL)));
+        assertTrue(new DependencyTypeSpec(Type.PROJECT).equals(new DependencyTypeSpec(Type.PROJECT)));
+        assertFalse(new DependencyTypeSpec(Type.PROJECT).equals(new DependencyTypeSpec(Type.EXTERNAL)));
     }
 }

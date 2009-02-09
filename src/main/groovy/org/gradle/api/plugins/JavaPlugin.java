@@ -18,9 +18,9 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.dependencies.*;
-import org.gradle.api.dependencies.filter.TypeSpec;
-import org.gradle.api.dependencies.filter.Type;
 import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.dependencies.specs.DependencyTypeSpec;
+import org.gradle.api.dependencies.specs.Type;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
@@ -41,7 +41,6 @@ import org.gradle.util.WrapUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.File;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -186,7 +185,7 @@ public class JavaPlugin implements Plugin {
                         return task.getProject().getDependencies().configuration(TEST_RUNTIME).resolve(new ResolveInstructionModifier() {
                             public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
                                 return new ResolveInstruction(resolveInstruction).
-                                        setDependencyFilter(new TypeSpec(Type.EXTERNAL)).
+                                        setDependencySpec(new DependencyTypeSpec(Type.EXTERNAL)).
                                         setFailOnResolveError(((EclipseClasspath) task).getFailForMissingDependencies());
                             }
                         });
@@ -199,7 +198,7 @@ public class JavaPlugin implements Plugin {
                         * request the project dependencies not via a resolve. We would have to filter the project dependencies
                         * ourselfes. This is not completely trivial due to configuration inheritance.
                         */
-                        return task.getProject().getDependencies().getDependencies(new TypeSpec(Type.PROJECT));
+                        return task.getProject().getDependencies().getDependencies(new DependencyTypeSpec(Type.PROJECT));
                     }
                 }));
         return eclipseClasspath;

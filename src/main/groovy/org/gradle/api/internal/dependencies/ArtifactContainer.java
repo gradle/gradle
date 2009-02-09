@@ -16,11 +16,10 @@
 package org.gradle.api.internal.dependencies;
 
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.filter.FilterSpec;
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.specs.Spec;
 
-import java.util.*;
-import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -35,7 +34,7 @@ public interface ArtifactContainer {
             return Collections.emptySet();
         }
 
-        public Set<PublishArtifact> getArtifacts(FilterSpec<PublishArtifact> filter) {
+        public Set<PublishArtifact> getArtifacts(Spec<PublishArtifact> spec) {
             return Collections.emptySet();
         }
     };
@@ -45,5 +44,5 @@ public interface ArtifactContainer {
 
     Set<PublishArtifact> getArtifacts();
 
-    Set<PublishArtifact> getArtifacts(FilterSpec<PublishArtifact> filter);
+    Set<PublishArtifact> getArtifacts(Spec<PublishArtifact> spec);
 }

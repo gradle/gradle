@@ -15,17 +15,16 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.dependencies.*;
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
-import org.gradle.api.Project;
-import org.gradle.util.GUtil;
-import org.gradle.util.ConfigureUtil;
+import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.Project;
+import org.gradle.api.dependencies.*;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
+import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
 
 import java.util.*;
-
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
@@ -99,8 +98,8 @@ public class DefaultDependencyContainer implements DependencyContainerInternal {
         return clientModule;
     }
 
-    public <T extends Dependency> List<T> getDependencies(FilterSpec<T> filter) {
-        return Filters.filterIterable((Iterable<T>) getDependencies(), filter);
+    public <T extends Dependency> List<T> getDependencies(Spec<T> spec) {
+        return Specs.filterIterable((Iterable<T>) getDependencies(), spec);
     }
 
     private Configuration[] getConfigurations(List<String> masterConfs) {

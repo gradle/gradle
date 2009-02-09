@@ -15,38 +15,38 @@
  */
 package org.gradle.api.internal.dependencies.maven.deploy;
 
-import org.gradle.api.dependencies.maven.PomFilterContainer;
-import org.gradle.api.dependencies.maven.MavenPom;
-import org.gradle.api.dependencies.maven.PublishFilter;
-import org.gradle.api.dependencies.maven.MavenResolver;
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
-import org.gradle.api.internal.dependencies.DependencyManagerInternal;
-import org.gradle.util.JUnit4GroovyMockery;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.tools.ant.Project;
-import org.junit.Before;
-import org.junit.Test;import static org.junit.Assert.assertSame;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.codehaus.plexus.PlexusContainerException;
-import org.hamcrest.Matcher;
+import org.gradle.api.dependencies.maven.MavenPom;
+import org.gradle.api.dependencies.maven.MavenResolver;
+import org.gradle.api.dependencies.maven.PomFilterContainer;
+import org.gradle.api.dependencies.maven.PublishFilter;
+import org.gradle.api.internal.dependencies.DependencyManagerInternal;
+import org.gradle.api.specs.Specs;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.assertSame;
+import org.junit.Before;
+import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
-import java.io.IOException;
-import java.io.File;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -88,7 +88,7 @@ public abstract class AbstractMavenResolverTest {
         final ModuleDescriptor moduleDescriptorMock = context.mock(ModuleDescriptor.class);
         context.checking(new Expectations() {
             {
-                allowing(dependencyManagerMock).createModuleDescriptor(Filters.NO_FILTER, Filters.NO_FILTER, Filters.NO_FILTER); will(returnValue(moduleDescriptorMock));
+                allowing(dependencyManagerMock).createModuleDescriptor(Specs.SATISFIES_ALL, Specs.SATISFIES_ALL, Specs.SATISFIES_ALL); will(returnValue(moduleDescriptorMock));
                 allowing(moduleDescriptorMock).getDependencies(); will(returnValue(testDependencies.toArray(new DependencyDescriptor[testDependencies.size()])));
             }
         });

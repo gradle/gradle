@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.dependencies;
 
+import groovy.lang.Closure;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.UnknownConfigurationException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.filter.FilterSpec;
+import org.gradle.api.specs.Spec;
 
-import java.util.Map;
-import java.util.List;
 import java.util.Set;
-
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
@@ -32,7 +29,7 @@ import groovy.lang.Closure;
 public interface ConfigurationContainer {
     Set<Configuration> get();
 
-    Set<Configuration> get(FilterSpec<Configuration> filter);
+    Set<Configuration> get(Spec<Configuration> spec);
 
     Configuration add(String configuration, Closure configureClosure) throws InvalidUserDataException;
 

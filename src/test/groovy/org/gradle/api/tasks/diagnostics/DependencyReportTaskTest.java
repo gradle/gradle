@@ -23,11 +23,11 @@ import org.gradle.api.Project;
 import org.gradle.api.dependencies.ConfigurationResolver;
 import org.gradle.api.dependencies.ResolveInstruction;
 import org.gradle.api.dependencies.report.IvyDependencyGraph;
-import org.gradle.api.filter.FilterSpec;
 import org.gradle.api.internal.dependencies.DependencyManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.Matchers;
+import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -74,7 +74,7 @@ public class DependencyReportTaskTest {
         final ConfigurationResolver configuration2 = context.mock(ConfigurationResolver.class, "Configuration2");
         final ResolveReport report = new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org", "mod"), "rev"), "status", null));
 
-        final FilterSpec<ResolveInstruction> resolveInstructionMatcher = new FilterSpec<ResolveInstruction>() {
+        final Spec<ResolveInstruction> resolveInstructionMatcher = new Spec<ResolveInstruction>() {
             public boolean isSatisfiedBy(ResolveInstruction element) {
                 return element.isFailOnResolveError() == false;
             }

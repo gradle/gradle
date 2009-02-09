@@ -15,14 +15,14 @@
  */
 package org.gradle.api.dependencies;
 
-import org.gradle.api.filter.FilterSpec;
-import org.gradle.api.filter.Filters;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 /**
  * @author Hans Dockter
  */
 public class ResolveInstruction {
-    private FilterSpec<Dependency> dependencyFilter = Filters.NO_FILTER;
+    private Spec<Dependency> dependencySpec = Specs.SATISFIES_ALL;
 
     private boolean transitive = true;
 
@@ -32,17 +32,17 @@ public class ResolveInstruction {
     }
 
     public ResolveInstruction(ResolveInstruction resolveInstruction) {
-        dependencyFilter = resolveInstruction.getDependencyFilter();
+        dependencySpec = resolveInstruction.getDependencySpec();
         transitive = resolveInstruction.isTransitive();
         failOnResolveError = resolveInstruction.isFailOnResolveError();
     }
 
-    public FilterSpec<Dependency> getDependencyFilter() {
-        return dependencyFilter;
+    public Spec<Dependency> getDependencySpec() {
+        return dependencySpec;
     }
 
-    public ResolveInstruction setDependencyFilter(FilterSpec<Dependency> dependencyFilter) {
-        this.dependencyFilter = dependencyFilter;
+    public ResolveInstruction setDependencySpec(Spec<Dependency> dependencySpec) {
+        this.dependencySpec = dependencySpec;
         return this;
     }
     
@@ -73,7 +73,7 @@ public class ResolveInstruction {
 
         if (failOnResolveError != that.failOnResolveError) return false;
         if (transitive != that.transitive) return false;
-        if (dependencyFilter != null ? !dependencyFilter.equals(that.dependencyFilter) : that.dependencyFilter != null)
+        if (dependencySpec != null ? !dependencySpec.equals(that.dependencySpec) : that.dependencySpec != null)
             return false;
 
         return true;
@@ -81,7 +81,7 @@ public class ResolveInstruction {
 
     @Override
     public int hashCode() {
-        int result = dependencyFilter != null ? dependencyFilter.hashCode() : 0;
+        int result = dependencySpec != null ? dependencySpec.hashCode() : 0;
         result = 31 * result + (transitive ? 1 : 0);
         result = 31 * result + (failOnResolveError ? 1 : 0);
         return result;

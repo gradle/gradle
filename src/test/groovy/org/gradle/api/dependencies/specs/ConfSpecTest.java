@@ -13,29 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dependencies.filter;
+package org.gradle.api.dependencies.specs;
 
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import org.gradle.util.WrapUtil;
-import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.filter.ConfSpec;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.gradle.api.dependencies.Dependency;
+import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class ConfSpecTest {
-    private ConfSpec confSpec;
+    private DependencyConfigurationSpec confSpec;
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
@@ -46,26 +43,26 @@ public class ConfSpecTest {
     @Test
     public void init() {
         List<String> testConfs = WrapUtil.toList(TEST_CONF1, TEST_CONF2);
-        confSpec = new ConfSpec(true, testConfs.toArray(new String[testConfs.size()]));
+        confSpec = new DependencyConfigurationSpec(true, testConfs.toArray(new String[testConfs.size()]));
         assertEquals(testConfs, confSpec.getConfs());
     }
 
     @Test
     public void testIsSatisfiedBy() {
         final Dependency dependency = prepareMocks();
-        assertTrue(new ConfSpec(true, TEST_CONF1).isSatisfiedBy(dependency));
-        assertTrue(new ConfSpec(true, TEST_CONF2).isSatisfiedBy(dependency));
-        assertTrue(new ConfSpec(true, TEST_CONF3).isSatisfiedBy(dependency));
-        assertFalse(new ConfSpec(true, TEST_CONF1 + "delta").isSatisfiedBy(dependency));
+        assertTrue(new DependencyConfigurationSpec(true, TEST_CONF1).isSatisfiedBy(dependency));
+        assertTrue(new DependencyConfigurationSpec(true, TEST_CONF2).isSatisfiedBy(dependency));
+        assertTrue(new DependencyConfigurationSpec(true, TEST_CONF3).isSatisfiedBy(dependency));
+        assertFalse(new DependencyConfigurationSpec(true, TEST_CONF1 + "delta").isSatisfiedBy(dependency));
     }
 
     @Test
     public void testIsSatisfiedByWithoutSuperConfs() {
         final Dependency dependency = prepareMocks();
-        assertTrue(new ConfSpec(false, TEST_CONF1).isSatisfiedBy(dependency));
-        assertTrue(new ConfSpec(false, TEST_CONF2).isSatisfiedBy(dependency));
-        assertFalse(new ConfSpec(false, TEST_CONF3).isSatisfiedBy(dependency));
-        assertFalse(new ConfSpec(false, TEST_CONF1 + "delta").isSatisfiedBy(dependency));
+        assertTrue(new DependencyConfigurationSpec(false, TEST_CONF1).isSatisfiedBy(dependency));
+        assertTrue(new DependencyConfigurationSpec(false, TEST_CONF2).isSatisfiedBy(dependency));
+        assertFalse(new DependencyConfigurationSpec(false, TEST_CONF3).isSatisfiedBy(dependency));
+        assertFalse(new DependencyConfigurationSpec(false, TEST_CONF1 + "delta").isSatisfiedBy(dependency));
     }
 
     private Dependency prepareMocks() {
@@ -95,8 +92,8 @@ public class ConfSpecTest {
 
     @Test
     public void equality() {
-        assertTrue(new ConfSpec(false, TEST_CONF1).equals(new ConfSpec(false, TEST_CONF1)));
-        assertFalse(new ConfSpec(true, TEST_CONF1).equals(new ConfSpec(false, TEST_CONF1)));
-        assertFalse(new ConfSpec(true, TEST_CONF1).equals(new ConfSpec(true, TEST_CONF2)));
+        assertTrue(new DependencyConfigurationSpec(false, TEST_CONF1).equals(new DependencyConfigurationSpec(false, TEST_CONF1)));
+        assertFalse(new DependencyConfigurationSpec(true, TEST_CONF1).equals(new DependencyConfigurationSpec(false, TEST_CONF1)));
+        assertFalse(new DependencyConfigurationSpec(true, TEST_CONF1).equals(new DependencyConfigurationSpec(true, TEST_CONF2)));
     }
 }
