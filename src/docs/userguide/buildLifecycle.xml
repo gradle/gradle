@@ -92,7 +92,7 @@
             <section>
                 <title>Hierarchical Layouts</title>
                 <programlisting><![CDATA[
-include 'project1', 'project2', 'project2/child1'
+include 'project1', 'project2', 'project2:child1'
 ]]></programlisting>
                 <para>The include method takes as an argument a relative virtual path to the root project. This relative
                     virtual path is assumed to be equals to the relative physical path of the subproject to the root
