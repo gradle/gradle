@@ -31,7 +31,7 @@ D- ultimateApp
             <literal>shared</literal>
             is code used both by
             <literal>api</literal>
-            and<literal>webservice</literal>. Let's look at the Gradle build scripts of those projects.
+            and <literal>webservice</literal>. Let's look at the Gradle build scripts of those projects.
         </para>
         <programlisting><![CDATA[
 subprojects {
@@ -75,7 +75,7 @@ dists {
             <literal>shared</literal>
             project. Due to this dependency
             <literal>shared</literal>
-            gets now always build before<literal>api</literal>. We also add a distribution, that gets shipped to the
+            gets now always build before <literal>api</literal>. We also add a distribution, that gets shipped to the
             client.
         </para>
     </section>

@@ -2,14 +2,14 @@
     <title>The Build Lifecycle</title>
     <para>We said earlier, that the core of Gradle is a language for dependency based programming. In Gradle terms this
         means that you can define tasks and dependencies between tasks. Gradle guarantees that those tasks are executed
-        in the order of their dependencies and are executed only once. Those tasks form an<ulink
+        in the order of their dependencies and are executed only once. Those tasks form an <ulink
                 url='http://en.wikipedia.org/wiki/Directed_acyclic_graph'>Directed Acyclic Graph</ulink>. There are
         build tools that build up such a DAG as they execute there tasks. Gradle builds the complete DAG
         <emphasis>before</emphasis>
         any task is executed. This lies at the heart of Gradle and makes many things possible which would not be
         possible otherwise.
     </para>
-    <para>Your build scripts configure this DAG. Therefore they are strictly speaking<emphasis>build configuration
+    <para>Your build scripts configure this DAG. Therefore they are strictly speaking <emphasis>build configuration
         scripts</emphasis>.
     </para>
     <section id='sec:build_phases'>
@@ -49,7 +49,7 @@
     <section id='sec:settings_file'>
         <title>Settings File</title>
         <para>Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle
-            via a naming convention. The default name for this file is<emphasis>settings.gradle</emphasis>. Later in
+            via a naming convention. The default name for this file is <emphasis>settings.gradle</emphasis>. Later in
             this chapter we explain, how Gradle looks for a settings file.
         </para>
         <para>The settings file gets executed during the initialization phase. A multiproject build must have a
@@ -65,7 +65,7 @@
         <sampleOutput src='../../samples/userguideOutput/buildlifecycle.out'/>
         <para>For a build script, the property access and method calls are delegated to a project object. Similarly
             property access and method calls within the settings file is delegated to a settings object. Have a look at
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Settings.html'>org.gradle.api.Settings</ulink>.
+            <apilink class='org.gradle.api.Settings'/>.
         </para>
     </section>
     <section id='sec:multi_project_builds'>
@@ -185,7 +185,7 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
             to execute the build from the directory where the settings file is located. For how to run partial builds
             from the root see <xref linkend='sec:running_partial_build_from_the_root'/>. In our next release we want to
             enable partial builds from subprojects by specifying the location of the settings file as a command line
-            parameter. \\ Gradle creates Project objects for every project taking part in the build. For a single
+            parameter. Gradle creates Project objects for every project taking part in the build. For a single
             project build this is only one project. For a multi-project build these are the projects specified in
             Settings object (plus the root project). Each project object has by default a name equals to the name of its
             top level folder. Every project except the root project has a parent project and might have child projects.

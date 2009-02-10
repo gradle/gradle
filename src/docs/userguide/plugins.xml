@@ -75,7 +75,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         <para>If you use the
             <emphasis>JavaPlugin</emphasis>
             there is for example a compile and resources task for your production code (the same is true for your test
-            code). The default location for the output of those task is the directory<literal>build/classes</literal>.
+            code). The default location for the output of those task is the directory <literal>build/classes</literal>.
             What if you want to change this? Let's try:
         </para>
         <sample src='userguide/tutorial/pluginConfig/build.gradle'
@@ -87,7 +87,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
             you want to change the output directory for all tasks? It would be unfortunate if you had to do this for
             each task separately.
         </para>
-        <para>Gradles tasks are usually<emphasis>convention aware</emphasis>. A plugin can add a convention object to
+        <para>Gradles tasks are usually <emphasis>convention aware</emphasis>. A plugin can add a convention object to
             your build. It can also map certain values of this convention object to task properties.
         </para>
         <sample src='userguide/tutorial/pluginConvention/build.gradle'

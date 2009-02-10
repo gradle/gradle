@@ -131,6 +131,6 @@
         </tr>
 
     </table>
-    <para>The same information is printed to the console when you execute<literal>gradle -h</literal>.
+    <para>The same information is printed to the console when you execute <literal>gradle -h</literal>.
     </para>
 </appendix>

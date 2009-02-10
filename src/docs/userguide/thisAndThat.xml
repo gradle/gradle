@@ -59,7 +59,7 @@
         </para>
         <para>Every task has also a
             <literal>enabled</literal>
-            flag which defaults to<literal>true</literal>. Setting it to false prevents the execution of any of the
+            flag which defaults to <literal>true</literal>. Setting it to false prevents the execution of any of the
             tasks actions.
         </para>
         <sample src='userguide/tutorial/disableTask/build.gradle'
@@ -143,8 +143,7 @@
         <para>There is also the possibility to directly add properties to your project objects. You can place a
             <literal>gradle.properties</literal>
             file either in the Gradle user home dir (defaults to
-            <literal><emphasis>USER_HOME</emphasis>/.gradle
-            </literal>
+            <literal><emphasis>USER_HOME</emphasis>/.gradle</literal>
             ) or in your project dir. For multiproject builds you can place
             <literal>gradle.properties</literal>
             files in any subproject. The properties of the
@@ -157,7 +156,7 @@
             command line option. For more exotic use cases you can even pass properties
             <emphasis>directly</emphasis>
             to the project object via system and environment properties. For example if you run a build on a continuous
-            integration server where you have no admin rights for the<emphasis>machine</emphasis>. Your build script
+            integration server where you have no admin rights for the <emphasis>machine</emphasis>. Your build script
             needs properties which values should not be seen by others. Therefore you can't use the
             <literal>-P</literal>
             option. In this case you can add an environment property in the project adminstration section (invisible to
@@ -170,11 +169,11 @@
                     are for example CI servers which offer this functionality
                 </para>
             </footnote>
-            If the environment property follows the pattern<literal>ORG_GRADLE_PROJECT_yourProperty=somevalue</literal>,
+            If the environment property follows the pattern <literal>ORG_GRADLE_PROJECT_yourProperty=somevalue</literal>,
             <literal>yourProperty</literal>
             is added to your project object. If in the future CI servers support Gradle directly, they might start
             Gradle via its main method. Therefore we already support the same mechanism for system properties. The only
-            difference is the prefix, which is<literal>org.gradle.project.</literal>.
+            difference is the prefix, which is <literal>org.gradle.project.</literal>.
         </para>
         <para>With the
             <literal>gradle.properties</literal>
@@ -196,7 +195,7 @@
                 <literal>hasProperty('propertyName')</literal>
                 which returns
                 <literal>true</literal>
-                or<literal>false</literal>.
+                or <literal>false</literal>.
             </para>
         </section>
     </section>
@@ -204,7 +203,7 @@
         <title>Accessing the web via a proxy</title>
         <para>Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to
             provide special functionality for this. The JVM can be instructed to go via proxy by setting certain system
-            properties. You could set this system properties directly in your build script with<literal>
+            properties. You could set this system properties directly in your build script with <literal>
                 System.properties['proxy.proxyUser'] = 'userid'</literal>. An arguably nicer way is shown in
             <xref linkend='sec:gradle_properties_and_system_properties'/>. Your gradle.properties file could look like
             this:

@@ -10,7 +10,7 @@
     <section>
         <title>Hello World</title>
         <para>In Gradle everything revolves around tasks. The tasks for your build are defined in the build script. To
-            try this out, create the following build script named<literal>build.gradle</literal>.
+            try this out, create the following build script named <literal>build.gradle</literal>.
         </para>
         <sample src='userguide/tutorial/hello/build.gradle' title='Sample userguide/tutorial/hello/build.gradle'/>
         <para>Enter with your shell into the containing directory and execute the build script
@@ -36,7 +36,7 @@
             terminology to Ant as we think the word 'task' is more expressive than the word 'target'. Unfortunately this
             introduces a terminology clash with Ant, as Ant calls its commands, like
             <literal>javac</literal>
-            or<literal>copy</literal>, task. So if we talk about tasks, we
+            or <literal>copy</literal>, task. So if we talk about tasks, we
             <emphasis>always</emphasis>
             mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we
             explicitly say
@@ -86,7 +86,7 @@
     </section>
     <section>
         <title>Manipulating existing tasks</title>
-        <para>Once tasks are created they can be accessed via an<emphasis>API</emphasis>. This is different to Ant. For
+        <para>Once tasks are created they can be accessed via an <emphasis>API</emphasis>. This is different to Ant. For
             example you can create additional dependencies.
         </para>
         <sample src='userguide/tutorial/dynamicDepends/build.gradle'
@@ -115,7 +115,7 @@
                 title='Sample userguide/tutorial/helloWithShortCut/build.gradle'/>
         <sampleOutput src='helloWithShortCut.out'/>
         <para>This enables very readable code. Especially when using the out of the box tasks provided by the plugins
-            (e.g.<literal>compile</literal>).
+            (e.g. <literal>compile</literal>).
         </para>
     </section>
     <section id='sec:dynamic_properties'>
@@ -143,10 +143,10 @@
             </footnote>
             .
         </para>
-        <para>The second layer of Ant is its wealth of Ant tasks and types, like<literal>javac</literal>,
+        <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
             <literal>copy</literal>
-            or<literal>jar</literal>. For this layer Gradle provides excellent integration simply by relying on Groovy.
-            Groovy is shipped with the fantastic<literal>AntBuilder</literal>. Using Ant tasks from Gradle is as
+            or <literal>jar</literal>. For this layer Gradle provides excellent integration simply by relying on Groovy.
+            Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks from Gradle is as
             convenient and more powerful than using Ant tasks from a
             <literal>build.xml</literal>
             file. Let's look at an example:
@@ -196,7 +196,7 @@
         <sample src='userguide/tutorial/defaultTasks/build.gradle'
                 title='Sample userguide/tutorial/defaultTasks/build.gradle'/>
         <sampleOutput src='defaultTasks.out'/>
-        <para>This is equivalent to running<literal>gradle clean run</literal>. In a multi-project build every
+        <para>This is equivalent to running <literal>gradle clean run</literal>. In a multi-project build every
             subproject can have its own specific default tasks. If a subproject does not specify default tasks, the
             default tasks of the parent project are used (if defined).
         </para>

@@ -136,35 +136,27 @@ pre {
  */
 
 .book > .titlepage {
-    /*padding-bottom: 2em;*/
     margin-top: 2em;
     margin-bottom: 2em;
 }
 
-.book .titlepage div.title {
-    /*padding-top: 1.6em;*/
-    /*padding-bottom: 1.6em;*/
-    /*border-top: solid #c2c2c2 5px;*/
-    /*border-bottom: solid #c2c2c2 5px;*/
-    /*text-align: right;*/
-}
-
-.book > .titlepage h1 {
+.titlepage h1.title {
     font-size: 240%;
 }
 
-.book > .titlepage h2 {
+.titlepage h2.subtitle {
     font-size: 160%;
 }
 
-.book > .titlepage h3 {
-    color: inherit;
-}
-
 .titlepage .releaseinfo {
+    color: #666666;
     font-size: 120%;
     margin-top: 3em;
     margin-bottom: 3em;
+}
+
+.titlepage .author {
+    color: #666666;
 }
 
 .titlepage .copyright {

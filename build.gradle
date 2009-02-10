@@ -362,71 +362,7 @@ userguideSingleHtmlDir = new File(explodedDistDocsDir, 'html_single')
 docbookSrc = new File(project.buildDir, 'docbook/src')
 docbookDir = new File(project.buildDir, 'docbook/stylesheets')
 
-createTask('userguide', dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'])
-
-createTask('userguideVersion') {
-    File userguideData = mkdir(userguideDir, 'data')
-    new File(userguideData, 'version.tex').write(version.toString())
-    new File(userguideData, 'javadocDir.tex').write('\\def \\JAVADOCDIR {' + javadocRemoteDir + '}')
-}
-
-createTask('userguideLatex', dependsOn: ['userguideVersion']) {
-    File userguideSrc = new File(srcDocsDir, 'userguide')
-    ant {
-        if (!isLatexInstalled()) {
-            throw new StopExecutionException('Latex is not installed. We skip the userguide!')
-        }
-        cleanLatex(userguideSrc)
-        3.times {
-            exec(executable: 'pdflatex', dir: userguideSrc, failonerror: true) {
-                arg(line: "userguide.tex")
-            }
-        }
-        copy(file: new File(userguideSrc, 'userguide.pdf'), tofile: userguidePdf)
-        cleanLatex(userguideSrc)
-        3.times {
-            exec(executable: 'htlatex', dir: userguideSrc, failonerror: true) {
-                arg(line: "userguide.tex \"htmluserguide\"")
-            }
-        }
-        copy(todir: userguideSingleHtmlDir) {
-            fileset(dir: userguideSrc, includes: '*.html') {
-                include(name: '*.html')
-                include(name: '*.css')
-            }
-        }
-        cleanLatex(userguideSrc)
-        3.times {
-            exec(executable: 'htlatex', dir: userguideSrc, failonerror: true) {
-                arg(line: "userguide.tex \"htmluserguide,2\"")
-            }
-        }
-        copy(todir: userguideHtmlDir) {
-            fileset(dir: userguideSrc, includes: '*.html') {
-                include(name: '*.html')
-                include(name: '*.css')
-            }
-        }
-        cleanLatex(userguideSrc)
-    }
-}
-
-boolean isLatexInstalled() {
-    try {
-        ant.exec(output: new File(userguideDir, 'findLatexOut'), executable: 'pdflatex', dir: projectDir) {
-            arg(line: "-help")
-        }
-    } catch (Throwable e) {
-        return false
-    }
-    true
-}
-
-void cleanLatex(File dir) {
-    ant.delete() {
-        fileset(dir: dir, includes: "*.aux, *.lg, *.tmp, *.html, *.pdf, *.log, *.dvi, userguide.css, *.fdb_latexmk, *.idv, *.toc, *.xref, *.4ct, *.4tc, *.out")
-    }
-}
+createTask('userguide', dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
 
 createTask('userguideSrc') {
     System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
@@ -442,6 +378,7 @@ createTask('userguideSrc') {
         arg(value: '-out')
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(line: "-param version ${version}")
+        arg(line: "-param javadoc.url http://www.gradle.org/${javadocRemoteDir}")
         classpath {
             path(path: dependencies.userGuideTask.asPath)
         }

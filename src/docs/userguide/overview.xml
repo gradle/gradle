@@ -137,7 +137,7 @@
     <section id='sec:why_groovy'>
         <title>Why Groovy?</title>
         <para>We think the advantages of an internal DSL (based on a dynamic language) over XML are tremendous in case
-            of<emphasis>build scripts</emphasis>. There are a couple of dynamic languages out there. Why Groovy? The
+            of <emphasis>build scripts</emphasis>. There are a couple of dynamic languages out there. Why Groovy? The
             answer lies in the context Gradle is operating in. Although Gradle is a general purpose build tool at its
             core, its main focus are Java projects.
             <footnote>

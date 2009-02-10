@@ -4,7 +4,7 @@
         by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle
         has added to log-levels to the ones normally used. Those levels are
         <emphasis>QUIET</emphasis>
-        and<emphasis>LIFECYCLE</emphasis>. The latter is the default and is telling you just what task is getting
+        and <emphasis>LIFECYCLE</emphasis>. The latter is the default and is telling you just what task is getting
         executed or skipped.
     </para>
     <section id='sec:choosing_a_log_level'>
@@ -14,7 +14,7 @@
             <literal>WARN</literal>
             and
             <emphasis>ERROR</emphasis>
-            levels are included in all the other levels, except<emphasis>QUIET</emphasis>, where only
+            levels are included in all the other levels, except <emphasis>QUIET</emphasis>, where only
             <emphasis>ERROR</emphasis>
             is included. In <xref linkend='stacktraces'/> you find the command line switches for stacktrace
             logging.
@@ -106,14 +106,14 @@
             <emphasis>ERROR</emphasis>
             level. This behavior is configurable. Gradle provides a couple of switches for this. To change the log
             level, standard out is redirected to, when your build script gets evaluated, the project object offers a
-            method called<ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Project.html'>
-                Project#captureStandardOutput</ulink>. To change the log level for standard out during task execution,
-            tasks offer a method also with the name<ulink
-                    url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Task.html'>Task#captureStandardOutput</ulink>.
+            method called <apilink class="org.gradle.api.Project" method="captureStandardOutput"/>. To change the log
+            level for standard out during task execution,
+            tasks offer a method also with the name <apilink class="org.gradle.api.Task" method="captureStandardOutput"/>.
             Tasks and projects also offer a method
             <literal>disableStandardOutputCapture</literal>
             which causes the standard out to be send to the default standard out. If you need more fine grained control
-            on how standard out is redirected you can use the class StandardOutputLoggingAdapter.
+            on how standard out is redirected you can use the class
+            <apilink class="org.gradle.logging.StandardOutputLoggingAdapter"/>.
         </para>
     </section>
     <section id='sec:sending_your_own_log_messages'>
@@ -128,7 +128,7 @@
             treats them as log levels. In a future version of Gradle we want to provide a logger which provides
             additional log methods
             <literal>quiet</literal>
-            and<literal>lifecycle</literal>.
+            and <literal>lifecycle</literal>.
         </para>
         <para>You can also hook into Gradle's logging system from within other classes (classes from the buildSrc
             directory for example). Simply use a slf4j logger.

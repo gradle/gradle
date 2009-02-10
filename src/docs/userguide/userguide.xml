@@ -2,7 +2,6 @@
     <bookinfo>
         <title>Gradle</title>
         <subtitle>A build system</subtitle>
-        <releaseinfo>build-number</releaseinfo>
         <copyright>
             <year>2007-2009</year>
             <holder>Hans Dockter</holder>

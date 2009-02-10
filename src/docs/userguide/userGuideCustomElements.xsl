@@ -16,6 +16,7 @@
 <xsl:stylesheet
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
     <xsl:param name="version"/>
+    <xsl:param name="javadoc.url"/>
 
     <xsl:template match="@*|node()">
         <xsl:copy>
@@ -23,8 +24,22 @@
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="bookinfo/releaseinfo">
-        <releaseinfo><xsl:value-of select="$version"/></releaseinfo>
+    <xsl:template match="bookinfo">
+        <xsl:copy>
+            <xsl:apply-templates select="*"/>
+            <releaseinfo><xsl:value-of select="$version"/></releaseinfo>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="apilink">
+        <ulink>
+            <xsl:attribute name="url">
+                <xsl:value-of select="$javadoc.url"/>/<xsl:value-of select="translate(@class, '.', '/')"/>.html<xsl:if
+                    test="@method">#<xsl:value-of select="@method"/></xsl:if>
+            </xsl:attribute>
+            <xsl:attribute name="title">Javadoc for <xsl:value-of select="@class"/></xsl:attribute>
+            <classname><xsl:value-of select="@class"/><xsl:if test="@method">.<xsl:value-of select="@method"/>()</xsl:if></classname>
+        </ulink>
     </xsl:template>
 
     <xsl:template match="sample">

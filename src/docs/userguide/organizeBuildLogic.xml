@@ -14,7 +14,7 @@
     </para>
     <section id='sec:build_sources'>
         <title>Build Sources</title>
-        <para>If you run Gradle, it checks for the existence of a folder called<literal>buildSrc</literal>. Just put
+        <para>If you run Gradle, it checks for the existence of a folder called <literal>buildSrc</literal>. Just put
             your build source code in this folder and stick to the layout convention for a Java/Groovy project (see
             <xref linkend='javalayout'/>). Gradle then automatically compiles and tests this code and puts it in
             the classpath of your build script. You don't need to provide any further instruction. For multi-project
@@ -44,7 +44,7 @@ dependencies("commons-math:commons-math:1.1:jar")
             <xref linkend='sec:how_to_declare_your_dependencies'/>
             (except project dependencies). There is
             <emphasis>no</emphasis>
-            need to provide a<emphasis>dependency configuration</emphasis>(e.g.<literal>compile</literal>). For
+            need to provide a <emphasis>dependency configuration</emphasis>(e.g. <literal>compile</literal>). For
             multi-project builds dependencies declared in the
             <literal>settings.gradle</literal>
             file of the root project, are available to all build scripts of the sub-projects.
@@ -59,7 +59,7 @@ dependencies("commons-math:commons-math:1.1:jar")
                     task need the
                     <emphasis>same</emphasis>
                     library you would have to define it two times. In such a case it would be nice, if Ant's optional
-                    task would automatically pickup the classpath defined in the<literal>gradesettings</literal>.
+                    task would automatically pickup the classpath defined in the <literal>gradesettings</literal>.
                 </para>
             </footnote>
         </para>

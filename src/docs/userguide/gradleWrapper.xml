@@ -45,7 +45,7 @@ project-root
     </para>
     <section id='sec:configuration'>
         <title>Configuration</title>
-        <para>If you run Gradle with<literal>gradlew</literal>, Gradle checks if a Gradle distribution for the wrapper
+        <para>If you run Gradle with <literal>gradlew</literal>, Gradle checks if a Gradle distribution for the wrapper
             is available. If not it tries to download it, otherwise it delegates to the
             <literal>gradle</literal>
             command of this distribution with all the arguments passed originally to the
@@ -59,11 +59,10 @@ project-root
             wrapper distribution at the specified place.
         </para>
         <para>All the configuration options have defaults except the version of the wrapper distribution. If you don't
-            want any download to happen when your project is build via<literal>gradlew</literal>, simply add the Gradle
+            want any download to happen when your project is build via <literal>gradlew</literal>, simply add the Gradle
             distribution zip to your version control at the location specified by your wrapper configuration.
         </para>
-        <para>For the details on how to configure the wrapper, see
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/wrapper/Wrapper.html'>Wrapper API</ulink>
+        <para>For the details on how to configure the wrapper, see <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
         </para>
         <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
@@ -72,7 +71,7 @@ project-root
         <title>Unix file permissions</title>
         <para>The Wrapper task adds appropriate file permissions to allow the execution for the gradlew *NIX command.
             Subversion preserves this file permission. We are not sure how other version control systems deal with this.
-            What should always work is to execute<literal>sh gradlew</literal>.
+            What should always work is to execute <literal>sh gradlew</literal>.
         </para>
     </section>
     <section id='sec:environment_variable'>
@@ -94,7 +93,7 @@ project-root
             </thead>
             <tr>
                 <td>GRADLE_WRAPPER_ALWAYS_UNPACK</td>
-                <td>If set to<literal>true</literal>, the distribution directory gets always deleted when
+                <td>If set to <literal>true</literal>, the distribution directory gets always deleted when
                     <literal>gradlew</literal>
                     is run and the distribution zip is freshly unpacked. If the zip is not there, Gradle tries to
                     download it.
@@ -102,7 +101,7 @@ project-root
             </tr>
             <tr>
                 <td>GRADLE_WRAPPER_ALWAYS_DOWNLOAD</td>
-                <td>If set to<literal>true</literal>, the distribution directory and the distribution zip gets always
+                <td>If set to <literal>true</literal>, the distribution directory and the distribution zip gets always
                     deleted when
                     <literal>gradlew</literal>
                     is run and the distribution zip is freshly downloaded.

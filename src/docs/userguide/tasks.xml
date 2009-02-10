@@ -20,8 +20,7 @@
         <programlisting><![CDATA[
 createTask('resources', type: Resources)
 ]]></programlisting>
-        <para>The resources task provides an API to configure it. See<ulink
-                url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/Resources.html'>Resources Task API</ulink>.
+        <para>The resources task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Resources"/>).
             If you create the resources task like this, it has no default behavior.
             <footnote>
                 <para>This is different when added by the JavaPlugin
@@ -63,7 +62,7 @@ resources {
 ]]></programlisting>
         <para>This works for
             <emphasis>any</emphasis>
-            task. Line 2 of the example is just a shortcut for<literal>task("resources")</literal>. It is important to
+            task. Line 2 of the example is just a shortcut for <literal>task("resources")</literal>. It is important to
             note that if you pass a closure to the
             <literal>task</literal>
             method, this closure is applied for
@@ -117,14 +116,12 @@ Resources resources = createTask('resources', type: Resources).configure {
             <literal>Task</literal>
             objects, which are then treated as dependencies of the task. The following example adds a dependency from
             <literal>taskX</literal>
-            to all the tasks in the project whose name starts with<literal>lib</literal>:
+            to all the tasks in the project whose name starts with <literal>lib</literal>:
         </para>
         <sample src='userguide/tasks/addDependencyUsingClosure/build.gradle'
                 title='Sample userguide/tasks/addDependencyUsingClosure/build.gradle'/>
         <sampleOutput src='addDependencyUsingClosure.out'/>
-        <para>For more information about task dependencies, see the
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Task.html'>org.gradle.api.Task</ulink>
-            API.
+        <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.
         </para>
     </section>
     <section>

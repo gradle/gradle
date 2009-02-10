@@ -10,23 +10,23 @@
         <footnote>
             <para>The
                 <emphasis>buildDir</emphasis>
-                property is a property of the project object. It defaults to<literal>build</literal>.
+                property is a property of the project object. It defaults to <literal>build</literal>.
             </para>
         </footnote>
         Gradle's conventions contain a convention for the directory hierarchy as well as conventions for the element
         names of the hierarchy. For example the
         <literal>srcDirs</literal>
-        are relative to the<literal>srcRoot</literal>. Therefore
+        are relative to the <literal>srcRoot</literal>. Therefore
         <literal>srcDirs</literal>
         is a read-only property. If you want to change the name of the source dirs you need to do this via the
         <literal>srcDirNames</literal>
         property. But the paths you specify here are
         <emphasis>relative</emphasis>
-        to the<literal>srcRoot</literal>. This has the advantage to make bulk changes easy. If you change
+        to the <literal>srcRoot</literal>. This has the advantage to make bulk changes easy. If you change
         <literal>srcRoot</literal>
         from
         <literal>src</literal>
-        to<literal>source</literal>, this automatically applies to all directory properties which are relative to
+        to <literal>source</literal>, this automatically applies to all directory properties which are relative to
         <literal>srcRoot</literal>. As this also introduces an inflexibility, we have additional floating dirs, which
         are not bound to any hierarchy (see <xref linkend='javaconventionFloatingDir'/>). For example code
         generation tool could make use of this, by adding a source dir which is located in the build folder.
@@ -367,7 +367,7 @@
             <literal>clean</literal>
             and
             <literal>javadoc</literal>
-            which does not depends on<literal>init</literal>).
+            which does not depends on <literal>init</literal>).
         </para>
     </section>
     <section id='sec:javadoc'>
@@ -406,7 +406,7 @@
             property. This property is mapped to the
             <literal>buildDir</literal>
             property of the project. In future releases there will be more control of what gets deleted. If you need
-            more control now, you can use the<emphasis>Ant delete task</emphasis>.
+            more control now, you can use the <emphasis>Ant delete task</emphasis>.
         </para>
     </section>
     <section id='sec:resources'>
@@ -415,7 +415,7 @@
             <emphasis>Resources</emphasis>
             task has two instances,
             <literal>resources</literal>
-            and<literal>testResources</literal>.
+            and <literal>testResources</literal>.
         </para>
         <table>
             <title>Java Convention Object - Resource Properties</title>
@@ -451,10 +451,7 @@
         <para>The
             <literal>resources</literal>
             task offers includes and excludes directives as well as filters. Have a look at
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/Resources.html'>
-                org.gradle.api.tasks.Resources
-            </ulink>
-            to learn about the details.
+            <apilink class="org.gradle.api.tasks.Resources"/> to learn about the details.
         </para>
     </section>
     <section id='sec:compile'>
@@ -463,7 +460,7 @@
             <emphasis>Compile</emphasis>
             task has two instances,
             <literal>compile</literal>
-            and<literal>testCompile</literal>.
+            and <literal>testCompile</literal>.
         </para>
         <table>
             <title>Java Convention Object - Compile Properties</title>
@@ -525,15 +522,11 @@
             <literal>unmanagedClasspath</literal>
             is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is
             it part of a dependency descriptor if you choose to upload your library to a repository. See
-            <xref linkend=''/>
-            how the JavaPlugin glues the tasks with the dependency manager and see the whole
-            <xref linkend='cha:dependency_management'/>
+            <xref linkend='sec:java_plugin_and_dependency_management'/>
+            how the JavaPlugin glues the tasks with the dependency manager and see the whole <xref linkend='cha:dependency_management'/>
             how to use the dependency manager.
         </para>
-        <para>Have a look at
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/compile/Compile.html'>
-                org.gradle.api.tasks.compile.Compile
-            </ulink>
+        <para>Have a look at <apilink class="org.gradle.api.tasks.compile.Compile"/>
             to learn about the details. The compile task delegates to Ants javac task to do the compile. Via the compile
             task you can set most of the properties of Ants javac task.
         </para>
@@ -568,10 +561,7 @@
             </tr>
 
         </table>
-        <para>Have a look at
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/testing/Test.html'>
-                org.gradle.api.tasks.testing.Test
-            </ulink>
+        <para>Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/>
             to learn more. Right now the test results are always in XML-format. The task has a
             <literal>stopAtFailuresOrErrors</literal>
             property to control the behavior when tests are failing. Test
@@ -588,7 +578,7 @@
             <emphasis>.class</emphasis>
             files. The default include is
             <literal>**/*Tests.class", "**/*Test.class</literal>
-            and the default exclude is<literal>**/Abstract*.class</literal>.
+            and the default exclude is <literal>**/Abstract*.class</literal>.
         </para>
         <para>The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support in
             one of our next releases.
@@ -600,7 +590,7 @@
             <emphasis>Bundle</emphasis>
             task has two instances,
             <literal>libs</literal>
-            and<literal>dists</literal>. The Bundle task is a special animal. It is a container for archive tasks (jar,
+            and <literal>dists</literal>. The Bundle task is a special animal. It is a container for archive tasks (jar,
             zip, ...).
         </para>
         <table>
@@ -643,7 +633,7 @@
                 <literal>libs</literal>
                 task. The task name is by default
                 <literal>archive_jar</literal>
-                and can of course be manipulated by this name. This jar contains the content of the<literal>
+                and can of course be manipulated by this name. This jar contains the content of the <literal>
                     classesDir</literal>. This is the behavior your are used from Maven. If you are happy with that you
                 usually don't have to touch this task. Except if you want to change the names of the generated archives.
             </para>
@@ -688,13 +678,13 @@
         <section id='sub:adding_archives'>
             <title>Adding Archives</title>
             <para>The Bundle task has a couple of convenience methods for adding new archive tasks to it. Right now
-                there are the methods (<literal>jar</literal>,<literal>war</literal>,<literal>zip</literal>,<literal>
-                    tar</literal>,<literal>tarGz</literal>,<literal>tarBzip2</literal>). They all behave in the same
+                there are the methods (<literal>jar</literal>, <literal>war</literal>, <literal>zip</literal>, <literal>
+                    tar</literal>, <literal>tarGz</literal>, <literal>tarBzip2</literal>). They all behave in the same
                 way.
             </para>
             <sample src='userguide/tutorial/zip/build.gradle' title='Sample userguide/tutorial/zip/build.gradle'/>
             <sampleOutput src='zip.out'/>
-            <para>This adds an archive task with the name<literal>archive_zip</literal>. It is important to distinguish
+            <para>This adds an archive task with the name <literal>archive_zip</literal>. It is important to distinguish
                 between the name of the archive task and the name of the archive generated by the archive task. The name
                 of the generated archive file is by default the name of the project. The default for naming generated
                 archives can be changed with the
@@ -738,36 +728,28 @@
             </thead>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/Zip.html'>
-                        org.gradle.api.tasks.bundling.Zip
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.bundling.Zip"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet</td>
                 <td>AbstractArchiveTask</td>
             </tr>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/Tar.html'>
-                        org.gradle.api.tasks.bundling.Tar
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.bundling.Tar"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet, tarFileSet</td>
                 <td>Zip</td>
             </tr>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/Jar.html'>
-                        org.gradle.api.tasks.bundling.Jar
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.bundling.Jar"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet</td>
                 <td>Zip</td>
             </tr>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/War.html'>
-                        org.gradle.api.tasks.bundling.War
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.bundling.War"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet</td>
                 <td>Jar</td>
@@ -786,33 +768,25 @@
             </thead>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/FileSet.html'>
-                        org.gradle.api.tasks.util.FileSet
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.util.FileSet"/>
                 </td>
                 <td>A set of files defined by a common baseDir and include/exclude patterns.</td>
             </tr>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/ZipFileSet.html'>
-                        org.gradle.api.tasks.util.ZipFileSet
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.util.ZipFileSet"/>
                 </td>
                 <td>Extends FileSet with additional properties known from Ants zipfileset task.</td>
             </tr>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/TarFileSet.html'>
-                        org.gradle.api.tasks.util.TarFileSet
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.util.TarFileSet"/>
                 </td>
                 <td>Extends ZipFileSet with additional properties known from Ants tarfileset task.</td>
             </tr>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/FileCollection.html'>
-                        org.gradle.api.tasks.util.FileCollection
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.util.FileCollection"/>
                 </td>
                 <td>An arbitrary collection of files to the archive. In contrast to a FileSet they don't need to have a
                     common basedir.
@@ -820,9 +794,7 @@
             </tr>
             <tr>
                 <td>
-                    <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/util/AntDirective.html'>
-                        org.gradle.api.tasks.util.AntDirective
-                    </ulink>
+                    <apilink class="org.gradle.api.tasks.util.AntDirective"/>
                 </td>
                 <td>An arbitrary Ant resource declaration.</td>
             </tr>
@@ -833,11 +805,11 @@
         </para>
         <section id='sub:common_properties'>
             <title>Common Properties</title>
-            <para>The name of the generated archive is assembled from the task properties<literal>baseName</literal>,
+            <para>The name of the generated archive is assembled from the task properties <literal>baseName</literal>,
                 <literal>classifier</literal>
                 and
                 <literal>extension</literal>
-                to:<literal>baseName-project.version-classifier.extension</literal>.
+                to: <literal>baseName-project.version-classifier.extension</literal>.
                 <footnote>
                     <para>If the classifier is empty the trailing
                         <literal>-</literal>
@@ -910,7 +882,7 @@ myZipTask.antDirective {
         <section id='sub:merging'>
             <title>Merging</title>
             <para>If you want to merge the content of other archives into the archive to be generated Gradle offers you
-                two methods. One is<literal>merge</literal>:
+                two methods. One is <literal>merge</literal>:
             </para>
             <programlisting><![CDATA[
 myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz')
@@ -929,8 +901,8 @@ myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz') {
             <para>Under the hood Gradle scans the extension of the archives to be merged. According to the extension, it
                 creates a
                 <literal>ZipFileSet</literal>
-                or<literal>TarFileSet</literal>. The closure is applied to this newly created file container. \\ There
-                is another method for merging called<literal>mergeGroup</literal>.
+                or <literal>TarFileSet</literal>. The closure is applied to this newly created file container. There
+                is another method for merging called <literal>mergeGroup</literal>.
             </para>
             <programlisting><![CDATA[
 myZipTask.mergeGroup('path_to_dir_with_archives') {
@@ -949,12 +921,8 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
             <title>Manifest</title>
             <para>The convention object of the JavaPlugin has a
                 <literal>manifest</literal>
-                property pointing to an instance of<ulink
-                        url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/bundling/GradleManifest.html'>
-                    org.gradle.api.bundling.GradleManifest</ulink>. With this
-                <literal>GradleManifest</literal>
-                object you can define the content of the
-                <literal>MANIFEST.MF</literal>
+                property pointing to an instance of <apilink class="org.gradle.api.bundling.GradleManifest"/>. With this
+                <literal>GradleManifest</literal> object you can define the content of the <literal>MANIFEST.MF</literal>
                 file of all the jar or a war archives in your project.
             </para>
             <programlisting><![CDATA[
@@ -996,16 +964,14 @@ metaInf << new FileSet(someDir)
             <emphasis>Upload</emphasis>
             task has two instances,
             <literal>uploadLibs</literal>
-            and<literal>uploadDists</literal>. An easy way of describing there behavior, is that all archives added to
+            and <literal>uploadDists</literal>. An easy way of describing there behavior, is that all archives added to
             the
             <literal>libs</literal>
             and
             <literal>dists</literal>
             bundle are uploaded by the corresponding upload task. An upload task uploads to the repositories assigned to
             it. If needed you have more control on what files get uploaded. Have a look at
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/Upload.html'>org.gradle.api.tasks.Upload
-            </ulink>
-            to learn more.
+            <apilink class="org.gradle.api.tasks.Upload"/> to learn more.
         </para>
     </section>
     <section id='sec:eclipse'>
@@ -1015,12 +981,9 @@ metaInf << new FileSet(someDir)
         <section id='sub:eclipse_classpath'>
             <title>Eclipse Classpath</title>
             <para>
-                <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/ide/eclipse/EclipseClasspath.html'>
-                    org.gradle.api.tasks.ide.eclipse.EclipseClasspath
-                </ulink>
-                has a default instance with the name<literal>eclipseCp</literal>. It generates a
-                <literal>.classpath</literal>
-                file.
+                <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClasspath"/>
+                has a default instance with the name <literal>eclipseCp</literal>. It generates a
+                <literal>.classpath</literal> file.
             </para>
             <table>
                 <title>Java Convention Object - Eclipse Properties</title>
@@ -1058,12 +1021,9 @@ metaInf << new FileSet(someDir)
         <section id='sub:eclipse_project'>
             <title>Eclipse Project</title>
             <para>
-                <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/tasks/ide/eclipse/EclipseProject.html'>
-                    org.gradle.api.tasks.ide.eclipse.EclipseProject
-                </ulink>
-                has a default instance with the name<literal>eclipseProject</literal>. It generates a
-                <literal>.project</literal>
-                file.
+                <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/>
+                has a default instance with the name <literal>eclipseProject</literal>. It generates a
+                <literal>.project</literal> file.
             </para>
             <table>
                 <title>Java Convention Object - Eclipse Project Properties</title>

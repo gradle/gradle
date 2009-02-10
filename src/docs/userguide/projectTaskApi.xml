@@ -3,10 +3,10 @@
     <section id='sec:project_api'>
         <title>Project API</title>
         <para>In the tutorial in <xref linkend='cha:gradle_core_tutorial'/>
-            we have called for example the method<literal>createTask</literal>. Where does this method come from? We
+            we have called for example the method <literal>createTask</literal>. Where does this method come from? We
             said earlier that the directory containing the build script defines a project for Gradle. For Gradle this
             means, that it creates an instance of
-            <literal>org.gradle.api.Project</literal>
+            <apilink class='org.gradle.api.Project'/>
             and associates it with the build script. With the build script you can configure this project object.
         </para>
         <itemizedlist>
@@ -39,15 +39,14 @@
             you define a property or a method which has the same name as a member of the project object, you need to use
             the
             <literal>project</literal>
-            property. Look here to learn more about<ulink
-                    url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Project.html'>org.gradle.api.Project</ulink>.
+            property. Look here to learn more about <apilink class='org.gradle.api.Project'/>.
         </para>
     </section>
     <section id='sec:task_api'>
         <title>Task API</title>
         <para>Many of the methods of the project object return task objects. We have already seen some ways on how to
             use the task objects in <xref linkend='cha:gradle_core_tutorial'/>. Look here to learn more about
-            <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/Task.html'>org.gradle.api.Task</ulink>.
+            <apilink class="org.gradle.api.Task"/>.
         </para>
     </section>
     <section>

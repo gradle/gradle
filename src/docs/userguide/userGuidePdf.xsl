@@ -27,9 +27,11 @@
     <xsl:param name="body.font.family">'Lucida Grande','Lucida Sans Unicode','Geneva','Verdana',sans-serif</xsl:param>
     <xsl:param name="body.font.master">11</xsl:param>
 
+    <xsl:param name="ulink.show">0</xsl:param>
+
     <xsl:attribute-set name="root.properties">
         <xsl:attribute name="color">#666666</xsl:attribute>
-        <xsl:attribute name="line-height">120%</xsl:attribute>
+        <!--<xsl:attribute name="text-align">left</xsl:attribute>-->
     </xsl:attribute-set>
 
     <xsl:attribute-set name="component.title.properties">
@@ -60,6 +62,10 @@
         <xsl:attribute name="border">thin solid #d0d0d0</xsl:attribute>
     </xsl:attribute-set>
 
+    <xsl:attribute-set name="normal.para.spacing">
+        <xsl:attribute name="line-height">140%</xsl:attribute>
+    </xsl:attribute-set>
+
     <xsl:attribute-set name="verbatim.properties">
         <xsl:attribute name="font-size">9pt</xsl:attribute>
         <xsl:attribute name="background-color">#f2f2f2</xsl:attribute>
@@ -78,14 +84,14 @@
 
     <xsl:template name="book.titlepage.recto">
         <fo:block padding-before='6cm'>
-            <fo:block font-size='30pt' color='#6a915e'>
+            <fo:block font-size='30pt' color='#6a915e' font-weight='bold' font-stretch='expanded'>
                 <xsl:value-of select="/book/bookinfo/title"/>
             </fo:block>
-            <fo:block font-size='20pt' color='#6a915e' space-before='0.8em'>
+            <fo:block font-size='20pt' color='#6a915e' font-weight='bold' font-stretch='expanded' space-before='0.8em'>
                 <xsl:value-of select="/book/bookinfo/subtitle"/>
             </fo:block>
-            <fo:block font-size='12pt' space-before='6em'>Version
-                <xsl:value-of select="/book/bookinfo/releaseinfo"/>
+            <fo:block font-size='14pt' font-weight='bold' font-stretch='expanded' space-before='6em'>
+                Version <xsl:value-of select="/book/bookinfo/releaseinfo"/>
             </fo:block>
         </fo:block>
     </xsl:template>

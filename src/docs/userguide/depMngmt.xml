@@ -83,7 +83,7 @@
             <para>Traditionally, Java has offered no support at all for dealing with libraries and versions. There are
                 no standard ways to say that
                 <literal>foo-1.0.jar</literal>
-                depends on a<literal>bar-2.0.jar</literal>. This has led to proprietary solutions. The most popular ones
+                depends on a <literal>bar-2.0.jar</literal>. This has led to proprietary solutions. The most popular ones
                 are Maven and Ivy. Maven is a complete build system whereas Ivy focuses solely on dependency management.
             </para>
             <para>Both approaches rely on descriptor xml files, which contains information about the dependencies of a
@@ -129,7 +129,7 @@
             <title>Module Dependencies</title>
             <para>Module dependencies are the most common dependencies. They correspond to a dependency in a repository
                 you have declared. Gradle provides different notations for module dependencies. The most common notation
-                for such a dependency follows the pattern:<literal>[group]:[artifact]:[version]</literal>. Here is an
+                for such a dependency follows the pattern: <literal>[group]:[artifact]:[version]</literal>. Here is an
                 example for a module dependency:
             </para>
             <programlisting><![CDATA[
@@ -154,15 +154,12 @@ dependencies {
 }
 ]]></programlisting>
             <para>Have a look at
-                <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/ModuleDependency.html'>
-                    org.gradle.api.dependencies.ModuleDependency
-                </ulink>
-                to learn more about the API.
+                <apilink class='org.gradle.api.dependencies.ModuleDependency'/> to learn more about the API.
             </para>
             <section id='ssub:classifiers'>
                 <title>Classifiers</title>
                 <para>The Maven dependency management has the notion of classifiers. Gradle supports this. To use
-                    Classifiers in Maven you can type:<literal>"org.testng:testng:5.8:jdk15"</literal>.
+                    Classifiers in Maven you can type: <literal>"org.testng:testng:5.8:jdk15"</literal>.
                 </para>
             </section>
             <section id='ssub:artifact_dependencies'>
@@ -170,7 +167,7 @@ dependencies {
                 <para>An artifact only notation creates a module dependency which only downloads one artifact file. The
                     notation for such a dependency follows the pattern:
                     <literal>[group]:[artifact]:[version]@[extension]</literal>
-                    or<literal>[group]:[artifact]:[version]:[classifier]@[extension]</literal>. For example:
+                    or <literal>[group]:[artifact]:[version]:[classifier]@[extension]</literal>. For example:
                 </para>
                 <programlisting><![CDATA[
 dependencies {
@@ -202,9 +199,7 @@ addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") 
             <para>This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does
                 not look for an xml descriptor to figure them out but gets the information from the build file. The
                 dependencies of a client module can be normal module dependencies or artifact dependencies or another
-                client module. Have also a look at<ulink
-                        url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/ClientModule.html'>
-                    org.gradle.api.dependencies.ClientModule</ulink>.
+                client module. Have also a look at <apilink class='org.gradle.api.dependencies.ClientModule'/>
             </para>
             <para>In the current release
                 <emphasis>Client Modules</emphasis>
@@ -219,16 +214,14 @@ addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") 
         <section id='sub:project_dependencies'>
             <title>Project dependencies</title>
             <para>Gradle distinguishes between external dependencies and dependencies on projects which are part of the
-                same multi-project build. For the latter you can declare<emphasis>Project Dependencies</emphasis>.
+                same multi-project build. For the latter you can declare <emphasis>Project Dependencies</emphasis>.
             </para>
             <programlisting><![CDATA[
 dependencies {
     compile project(':shared')
 }
 ]]></programlisting>
-            <para>Have also a look at<ulink
-                    url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/ProjectDependency.html'>
-                org.gradle.api.dependencies.ProjectDependency</ulink>.
+            <para>Have also a look at <apilink class="org.gradle.api.dependencies.ProjectDependency"/>
             </para>
             <para>Multi-project builds are discussed in <xref linkend='cha:multi_project_builds'/>.
             </para>
@@ -256,9 +249,7 @@ dependencies {
           ExactPatternMatcher.INSTANCE, null));
 }
 ]]></programlisting>
-            <para>Have also a look at<ulink
-                    url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/ExcludeRuleContainer.html'>
-                org.gradle.api.dependencies.ExcludeRuleContainer</ulink>.
+            <para>Have also a look at <apilink class="org.gradle.api.dependencies.ExcludeRuleContainer"/>
             </para>
         </section>
         <section id='sub:ivy_dependencies'>
@@ -267,11 +258,8 @@ dependencies {
                 dependency objects. Our notation provides a large subset of what is possible with Ivy. If you want or
                 need to options that can't be expresses by the Gradle domain, you have two options:
             </para>
-            <para>You can use our ivy transforms to modify the Ivy objects created by Gradle. Look at the Javadoc
-                <ulink url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/Dependency.html'>
-                    org.gradle.api.dependencies.Dependency
-                </ulink>
-                to learn more.
+            <para>You can use our ivy transforms to modify the Ivy objects created by Gradle. Look at
+                <apilink class='org.gradle.api.dependencies.Dependency'/> to learn more.
             </para>
             <para>Or you can pass ivy dependency objects directly to Gradle.
             </para>
@@ -290,9 +278,7 @@ dependencies {
                 <literal>project</literal>
                 object offers a property called
                 <literal>dependencies</literal>
-                which points to an instance of<ulink
-                        url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/DepencencyManager.html'>
-                    org.gradle.api.DependencyManager</ulink>. If you call
+                which points to an instance of <apilink class="org.gradle.api.DependencyManager"/>. If you call
                 <literal>dependencies</literal>
                 with a closure, all statements within the closure are delegated first to the dependency manager. This is
                 the same mechanism which is used for configuring tasks.
@@ -377,7 +363,7 @@ dependencies {
     </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
         <title>Strategies of transitive dependency management</title>
-        <para>Many projects rely on the<ulink url='http://repo1.maven.org/maven2'>Maven2 repository</ulink>. This is not
+        <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven2 repository</ulink>. This is not
             without problems.
         </para>
         <itemizedlist>
@@ -518,13 +504,13 @@ dependencies {
             <title>Introduction</title>
             <para>Gradle (Ivy) distinguishes between
                 <emphasis>resolvers</emphasis>
-                and<emphasis>repositories</emphasis>. A repository is the physical source for your dependencies. A
+                and <emphasis>repositories</emphasis>. A repository is the physical source for your dependencies. A
                 resolver is responsible for retrieving a dependency (usually from a repository but not necessarily). As
                 a Gradle or Ivy user,
                 <emphasis>resolvers</emphasis>
                 are the objects your are working with. You can also aggregate multiple resolvers in a certain order (not
                 just linked lists). It is one of the very strengths of Ivy, how versatile you can aggregate resolvers
-                and that you can write easily your<emphasis>own</emphasis>. Gradle for example makes use of this to
+                and that you can write easily your <emphasis>own</emphasis>. Gradle for example makes use of this to
                 implement client modules. If you add a resolver, you always have to give it a name. This name is used to
                 internally address a resolver but is also used for the dependency logging. The Java plugin does not add
                 any default resolver to your projects dependency manager. Gradle offers a couple of convenience methods
@@ -586,8 +572,7 @@ dependencies {
 ]]></programlisting>
             <para>We have 4 files in different repositories. For this example let's assume that
                 <literal>repotest-1.0.pom</literal>
-                is in the official Maven repository and that the other files are in<literal>
-                    http://repo.gradle.org</literal>.
+                is in the official Maven repository and that the other files are in <literal>http://repo.gradle.org</literal>.
             </para>
             <para>Let's define our resolvers like this:
             </para>
@@ -600,7 +585,7 @@ dependencies {
 ]]></programlisting>
             <para>Gradle finds
                 <literal>repotest-1.0.pom</literal>
-                in the official Maven repo. After this it tries to find the corresponding artifact<literal>
+                in the official Maven repo. After this it tries to find the corresponding artifact <literal>
                     repotest-1.0.jar</literal>. It looks only in the Maven repo for this file as it expects to find pom
                 and artifact by the same resolver. The build fails.
             </para>
@@ -616,18 +601,17 @@ dependencies {
                 <literal>repotest-1.0.pom</literal>
                 in the Maven repo. After this it tries to find the corresponding artifact
                 <literal>repotest-1.0.jar</literal>
-                and finds it in<literal>http://repo.gradle.org</literal>. But what about<literal>
-                    testdep-1.0.pom</literal>? As Gradle looks for poms only in the Maven repo it can't find this pom
-                file.
+                and finds it in <literal>http://repo.gradle.org</literal>. But what about <literal>testdep-1.0.pom</literal>?
+                As Gradle looks for poms only in the Maven repo it can't find this pom file.
                 <footnote>
                     <para>To make things more flexible (or complicated): By default the build would not fail, as Ivy's
                         default behavior is to create internally a default pom if it can't find a pom. This default pom
                         has of course no dependencies and defines just the artifact
                         <literal>testdep-1.0.jar</literal>
-                        and would be found in<literal>http://repo.gradle.org</literal>. If you want the build to fail if
+                        and would be found in <literal>http://repo.gradle.org</literal>. If you want the build to fail if
                         a pom can't be found you must the set the
                         <literal>allownomd</literal>
-                        property of the resolver to<literal>false</literal>.
+                        property of the resolver to <literal>false</literal>.
                     </para>
                 </footnote>
             </para>
@@ -691,7 +675,7 @@ project-root
             <title>Resolver Container</title>
             <para>There are three hooks for adding resolvers. Via the resolvers assigned to the
                 <literal>classpathResolvers</literal>
-                property of the dependency manager, the<literal>compile</literal>,
+                property of the dependency manager, the <literal>compile</literal>,
                 <literal>testCompile</literal>
                 and
                 <literal>test</literal>
@@ -703,15 +687,11 @@ project-root
                 <literal>uploadResolvers</literal>
                 property. You can assign one resolver to multiple hooks.
             </para>
-            <para>All of those hooks are instances of<ulink
-                    url='http://www.gradle.org/JAVADOCDIR/org/gradle/api/dependencies/ResolverContainer.html'>
-                org.gradle.api.dependencies.ResolverContainer</ulink>. This class provided methods for adding new
-                resolvers at a particular position in the resolve chain.
+            <para>All of those hooks are instances of <apilink class="org.gradle.api.dependencies.ResolverContainer"/>.
+                This class provided methods for adding new resolvers at a particular position in the resolve chain.
                 <footnote>
-                    <para>Ivy power users can set<literal>dependencies.chainConfigurer = { // some statements
-                        }</literal>. This closure is applied to the
-                        <literal>ChainResolver</literal>
-                        containing the other Ivy resolvers.
+                    <para>Ivy power users can set <literal>dependencies.chainConfigurer = { // some statements }</literal>.
+                        This closure is applied to the <literal>ChainResolver</literal> containing the other Ivy resolvers.
                     </para>
                 </footnote>
                 Ivy offers more complex structures for resolvers than simple chains. The resolver container does not
