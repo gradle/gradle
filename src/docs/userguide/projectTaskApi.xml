@@ -74,7 +74,7 @@
             We think that one thing that makes Gradle special compared to the other tools, is its strong support for
             applying dependency based programming on
             <literal>multiproject</literal>
-            builds. We also think that just Gradles core layer (together with its integration of the Ant tasks),
+            builds. We also think that just Gradle's core layer (together with its integration of the Ant tasks),
             provides a more convenient build system than Ant's core layer.
         </para>
     </section>

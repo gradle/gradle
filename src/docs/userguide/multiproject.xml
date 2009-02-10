@@ -1,6 +1,6 @@
 <chapter id='cha:multi_project_builds' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Multi-project builds</title>
-    <para>The powerful support for multi-project builds is one of Gradles unique selling points. This topic is also the
+    <para>The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the
         intellectually most challenging.
     </para>
     <section id='sec:cross_project_configuration'>
@@ -193,7 +193,7 @@ D- water
             dir and see what happens if we execute Gradle from there.
         </para>
         <sampleOutput src='../../samples/userguideOutput/multiprojectSubBuild.out'/>
-        <para>The basic rule behind Gradles behavior is simple. Gradle looks down the hierarchy, starting with the
+        <para>The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarchy, starting with the
             <emphasis>current dir</emphasis>, for tasks with the name
             <literal>hello</literal>
             an executes them. One thing is very important to note. Gradle
@@ -201,7 +201,7 @@ D- water
             evaluates
             <emphasis>every</emphasis>
             project of the multi-project build and creates all existing task objects. Then, according to the task name
-            arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradles
+            arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradle's
             <emphasis>Cross Project Configuration</emphasis>
             <emphasis>every</emphasis>
             project has to be evaluated before
@@ -458,7 +458,7 @@ D- messages
         </section>
         <section id='sub:real_life_examples'>
             <title>Real Life examples</title>
-            <para>Gradles multi-project features are driven by real life use cases. The first example for describing
+            <para>Gradle's multi-project features are driven by real life use cases. The first example for describing
                 such a use case, consists of two webapplication projects and a parent project that creates a
                 distribution out of them.
                 <footnote>
@@ -614,7 +614,7 @@ D- java
             to configuration injection. But we think that the model of inheritance does not reflect the problem space of
             multi-project builds very well. In a future edition of this userguide we might write more about this.
         </para>
-        <para>Method inheritance might be interesting to use as Gradles
+        <para>Method inheritance might be interesting to use as Gradle's
             <emphasis>Configuration Injection</emphasis>
             does not support methods yet (but will in a future release.).
         </para>

@@ -2,7 +2,7 @@
     <title>Existing IDE Support and how to cope without it</title>
     <section id='sec:intellij'>
         <title>IntelliJ</title>
-        <para>Gradle has been mainly developed with Idea IntelliJ and its very good Groovy plugin. Gradles build script
+        <para>Gradle has been mainly developed with Idea IntelliJ and its very good Groovy plugin. Gradle's build script
             <footnote>
                 <para>Gradle is build with Gradle
                 </para>
@@ -17,7 +17,7 @@
             additional libraries for your build scripts they would further pollute your project classpath.
         </para>
         <para>We hope that in the future
-            <literal>build.gradles</literal>
+            <literal>build.gradle's</literal>
             get special treatment by IntelliJ and you will be able to define a specific classpath for them.
         </para>
     </section>

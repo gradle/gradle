@@ -432,7 +432,7 @@ dependencies {
                         this will be also possible with client modules in a future release.
                     </para>
                 </footnote>
-                Together with a continous integration server this offers a strong integration for projects with separate
+                Together with a continuous integration server this offers a strong integration for projects with separate
                 builds. As you have seen, Gradle fully supports this approach.
             </para>
         </section>
@@ -542,7 +542,7 @@ dependencies {
 ]]></programlisting>
             <para>Quite often certain jars are not in the official Maven repository for licensing reasons (e.g. JTA).
                 But the poms are there and you want to use them. Gradle (and Ivy) use the same resolver to look for the
-                pom and the corresponding artifact. It is not possible to define a chain of resolvers, where one
+                pom and the corresponding artifact. It is now possible to define a chain of resolvers, where one
                 resolver is used for retrieving the pom and another resolver is used for retrieving the artifact. For
                 the dependencies of the artifact the chain of resolvers can be used. To solve this problem
             </para>
@@ -679,7 +679,7 @@ project-root
                 <literal>testCompile</literal>
                 and
                 <literal>test</literal>
-                tasks retrieve there dependencies. The
+                tasks retrieve their dependencies. The
                 <literal>uploadLibs</literal>
                 and
                 <literal>uploadDists</literal>
@@ -716,7 +716,7 @@ project-root
             </itemizedlist>
             <para>If you declare a dependency like
                 <literal>junit:junit:3.8.2</literal>
-                how does Gradle finds it in the repositories. Somehow the dependency information has to be mapped to a
+                how does Gradle find it in the repositories. Somehow the dependency information has to be mapped to a
                 path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern how this path
                 should look like. Here are some examples:
                 <footnote>
@@ -753,7 +753,7 @@ dependencies {
                 <emphasis>Gradle</emphasis>
                 distribution. An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found
                 <ulink url='http://ant.apache.org/ivy/latest-milestone/configuration/resolvers.html'>here</ulink>. With
-                Gradle you just don't configure them via xml but directly via there API.
+                Gradle you just don't configure them via xml but directly via their API.
             </para>
         </section>
     </section>

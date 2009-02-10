@@ -3,7 +3,7 @@
     <section id='sec:introduction'>
         <title>Introduction</title>
         <para>With Gradle you can deploy to remote Maven repositories or install to your local Maven repository. This
-            includes all Maven metadata manipulation and works also for Maven snapshots. In fact, Gradles deployment is
+            includes all Maven metadata manipulation and works also for Maven snapshots. In fact, Gradle's deployment is
             100 percent Maven compatible as we use the native Maven Ant tasks under the hood.
         </para>
         <para>Deploying to a Maven repository is only half the fun if you don't have a pom. Fortunately Gradle can
@@ -26,7 +26,7 @@ uploadLibs {
             <literal>uploadLibs</literal>
             task will generate the pom and deploys the artifact and the pom to the specified repository.
         </para>
-        <para>There is some more work to do, if you need support for other protocols than <literal>file</literal>. In
+        <para>There is some more work to do if you need support for other protocols than <literal>file</literal>. In
             this case the native Maven code we delegate to needs additional libraries. Those libraries depend on the
             protocol you need. The available protocols and the corresponding libraries are listed in <xref
                     linkend='wagonLibs'/>. Those libraries have again transitive dependencies which have transitive
@@ -300,7 +300,7 @@ uploadLibs {
                 </listitem>
             </itemizedlist>
             <para>Gradle exclude rules are converted to Maven excludes if possible. Such a conversion is possible if in
-                the Gradle exlude rule the organisation as well as the module name is specified (as Maven needs both in
+                the Gradle exclude rule the organisation as well as the module name is specified (as Maven needs both in
                 contrast to Ivy). Right now Global Excludes are not converted to the Maven Pom.
             </para>
         </section>

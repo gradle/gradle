@@ -47,7 +47,7 @@ resources.from(file('resources')).to(file('target')).
 ]]></programlisting>
         <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
             has to support this. The from, to and includes methods all return an instance of the resources object. All
-            of Gradles build-in tasks usually support this configuration style.
+            of Gradle's build-in tasks usually support this configuration style.
         </para>
         <para>But there is yet another way of configuring the resources task. It also preserves the context and it
             possibly offers the best readability. It is usually our favorite.
@@ -145,7 +145,7 @@ Resources resources = createTask('resources', type: Resources).configure {
             <emphasis>Resources</emphasis>
             looks like a mixture between an Ant target and an Ant task. And this is actually the case. The separation
             that Ant does between tasks and targets is not done by Gradle. The simple Gradle tasks are like Ant's
-            targets and the enhanced Gradle tasks also include the Ant task aspects. All of Gradles tasks share a common
+            targets and the enhanced Gradle tasks also include the Ant task aspects. All of Gradle's tasks share a common
             API and you can create dependencies between them. Such a task might be nicer to configure than an Ant task.
             It makes full use of the type system, is more expressive and easier to maintain.
         </para>

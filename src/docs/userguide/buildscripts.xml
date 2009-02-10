@@ -46,7 +46,7 @@
     </section>
     <section>
         <title>Build scripts are code</title>
-        <para>Gradles build scripts expose to you the full power of Groovy. As an appetizer, have a look at this:
+        <para>Gradle's build scripts expose to you the full power of Groovy. As an appetizer, have a look at this:
         </para>
         <sample src='userguide/tutorial/upper/build.gradle' title='Sample userguide/tutorial/upper/build.gradle'/>
         <sampleOutput src='upper.out'/>
@@ -130,7 +130,7 @@
     </section>
     <section>
         <title>Ant</title>
-        <para>Let's talk a little bit about Gradles Ant integration. Ant can be divided into two layers. The first layer
+        <para>Let's talk a little bit about Gradle's Ant integration. Ant can be divided into two layers. The first layer
             is the Ant language. It contains the syntax for the build.xml, the handling of the targets, special
             constructs like macrodefs, etc. Basically everything except the Ant tasks and types. Gradle does not offer
             any special integration for this first layer. Of course you can in your build script execute an Ant build as

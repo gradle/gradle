@@ -47,7 +47,7 @@ usePlugin('java')
         </para>
         <para>The usePlugin method either takes a string or a class as an argument. You can write
             <footnote>
-                <para>Thanks to Gradles default imports (see <xref linkend='cha:ide_support'/>) you can also write
+                <para>Thanks to Gradle's default imports (see <xref linkend='cha:ide_support'/>) you can also write
                     <literal>usePlugin(JavaPlugin)</literal>
                     in this case.
                 </para>

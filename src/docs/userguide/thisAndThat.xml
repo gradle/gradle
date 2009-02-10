@@ -237,7 +237,7 @@ systemProp.http.proxyPassword=password
             <literal>-r</literal>
             option, the build script is always compiled and stored in the cache. That way you can always rebuild the
             cache if for example the timestamps for some reasons don't reflect that the build script needs to be
-            recomiled.
+            recompiled.
         </para>
     </section>
     <section id='sec:configuring_arbitrary_objects'>
