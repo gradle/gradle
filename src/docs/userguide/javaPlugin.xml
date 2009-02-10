@@ -311,7 +311,7 @@
             <td>empty</td>
         </tr>
         <tr>
-            <td>floatingTestResourceDirs</td>
+            <td>floatingTestSrcDirs</td>
             <td>List</td>
             <td>empty</td>
         </tr>

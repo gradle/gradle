@@ -116,21 +116,10 @@ dependencies {
             <td>empty</td>
         </tr>
         <tr>
-            <td>floatingGroovyResourceDirs</td>
+            <td>floatingGroovyTestSrcDirs</td>
             <td>List</td>
             <td>empty</td>
         </tr>
-        <tr>
-            <td>floatingGroovyTestResourceDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-        <tr>
-            <td>floatingGroovyTestResourceDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-
     </table>
     <para>All the Groovy source directories can contain Groovy
         <emphasis>and</emphasis>
