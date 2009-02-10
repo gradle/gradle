@@ -32,7 +32,7 @@ createTask('resources', type: Resources)
         <programlisting><![CDATA[
 Resources resources = createTask('resources', type: Resources)
 resources.from(file('resources'))
-resources.to(file('target'))
+resources.into(file('target'))
 resources.includes('**/*.txt', '**/*.xml', '**/*.properties')	
 ]]></programlisting>
         <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
