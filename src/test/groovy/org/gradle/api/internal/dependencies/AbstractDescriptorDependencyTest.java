@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,26 @@
  */
 package org.gradle.api.internal.dependencies;
 
-import org.gradle.api.Project;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
+import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-public class ProjectDependencyFactory implements IDependencyImplementationFactory {
-    public Dependency createDependency(DependencyConfigurationMappingContainer configurationMappings, Object userDependencyDescription, Project project) {
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(configurationMappings, userDependencyDescription, project);
-        return projectDependency;
+public abstract class AbstractDescriptorDependencyTest extends AbstractDependencyTest {
+    protected abstract Object getUserDescription();
+
+    protected abstract AbstractDescriptorDependency getDependency();
+
+    @Before
+    @Override
+    public void setUp() {
+        super.setUp();
+    }
+
+    @Test
+    public void testGenericInit() {
+        assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
     }
 }

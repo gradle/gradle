@@ -35,7 +35,7 @@ import java.io.File;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultProjectDependencyTest extends AbstractDependencyTest {
+public class DefaultProjectDependencyTest extends AbstractDescriptorDependencyTest {
     private static final String TEST_DEPENDENCY_CONF = "depconf";
 
     private DefaultProjectDependency projectDependency;
@@ -43,7 +43,7 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
     private Project dependencyProject;
     private DependencyDescriptorFactory dependencyDescriptorFactoryMock;
 
-    protected AbstractDependency getDependency() {
+    protected AbstractDescriptorDependency getDependency() {
         return projectDependency;
     }
 

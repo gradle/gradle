@@ -21,17 +21,20 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Project;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.api.dependencies.ProjectDependency;
+import org.gradle.api.internal.dependencies.ivyservice.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.WrapUtil;
 
 /**
 * @author Hans Dockter
 */
-public class DefaultProjectDependency extends AbstractDependency implements ProjectDependency {
+public class DefaultProjectDependency extends AbstractDescriptorDependency implements ProjectDependency {
     private Project project;
 
     private Project dependencyProject;
 
     private boolean transitive = true;
+    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
 
     public DefaultProjectDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object dependencyProject, Project project) {
         super(dependencyConfigurationMappings, dependencyProject);
@@ -83,5 +86,13 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
 
     public String getVersion() {
         return dependencyProject.getVersion().toString();
+    }
+   
+    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
+        return dependencyDescriptorFactory;
+    }
+
+    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 }

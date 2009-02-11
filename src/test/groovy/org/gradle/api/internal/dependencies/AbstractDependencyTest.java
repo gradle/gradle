@@ -18,13 +18,10 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Transformer;
-import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.sameInstance;
-import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -32,8 +29,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -50,7 +45,6 @@ abstract public class AbstractDependencyTest {
     protected static final DefaultProject TEST_PROJECT = new DefaultProject("someName");
 
     protected abstract AbstractDependency getDependency();
-    protected abstract Object getUserDescription();
     protected abstract void expectDescriptorBuilt(DependencyDescriptor descriptor);
 
     private ModuleDescriptor parentModuleDescriptorMock;
@@ -64,7 +58,6 @@ abstract public class AbstractDependencyTest {
 
     @Test
     public void testGenericInit() {
-        assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
         assertEquals(TEST_CONF_MAPPING, getDependency().getDependencyConfigurationMappings());
     }
 

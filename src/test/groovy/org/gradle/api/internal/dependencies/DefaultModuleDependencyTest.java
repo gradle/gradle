@@ -37,7 +37,7 @@ import java.awt.*;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultModuleDependencyTest extends AbstractDependencyTest {
+public class DefaultModuleDependencyTest extends AbstractDescriptorDependencyTest {
     static final String TEST_GROUP = "org.gradle";
     static final String TEST_NAME = "gradle-core";
     static final String TEST_VERSION = "4.4-beta2";
@@ -54,7 +54,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
 
     private DefaultModuleDependency moduleDependency;
 
-    public AbstractDependency getDependency() {
+    public AbstractDescriptorDependency getDependency() {
         return moduleDependency;
     }
 

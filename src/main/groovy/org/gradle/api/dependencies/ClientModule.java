@@ -22,30 +22,20 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.dependencies.AbstractDependency;
 import org.gradle.api.internal.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.internal.dependencies.DefaultExcludeRuleContainer;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
 import org.gradle.api.internal.dependencies.ivyservice.ClientModuleDescriptorFactory;
 import org.gradle.api.internal.dependencies.ivyservice.DefaultClientModuleDescriptorFactory;
 import org.gradle.api.internal.dependencies.ivyservice.DefaultDependencyDescriptorFactory;
 import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModule implements ExternalDependency, IClientModule {
+public class ClientModule extends AbstractDependency implements ExternalDependency, IClientModule {
     public static final String CLIENT_MODULE_KEY = "org.gradle.clientModule";
-
-    private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
-
-    private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
 
     private String id;
 
@@ -58,8 +48,6 @@ public class ClientModule implements ExternalDependency, IClientModule {
     private boolean force = false;
 
     private boolean transitive = true;
-
-    private List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
 
     private ChainingTransformer<DependencyDescriptor> transformer
             = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
@@ -75,11 +63,11 @@ public class ClientModule implements ExternalDependency, IClientModule {
 
     public ClientModule(DependencyConfigurationMappingContainer dependencyConfigurationMappings,
                         String id, DependencyContainerInternal dependencyContainer) {
+        super(dependencyConfigurationMappings);
         if (id == null) {
             throw new InvalidUserDataException("Client module notation must not be null.");
         }
         this.id = id;
-        this.dependencyConfigurationMappings = dependencyConfigurationMappings;
         this.dependencyContainer = dependencyContainer;
         initFromUserDescription(id);
     }
@@ -91,7 +79,7 @@ public class ClientModule implements ExternalDependency, IClientModule {
         boolean hasClassifier = moduleDescriptionParts.length == 4;
         if (hasClassifier) {
             String classifier = moduleDescriptionParts[3];
-            artifacts.add(new DefaultDependencyArtifact(name, DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, classifier, null));
+            getArtifacts().add(new DefaultDependencyArtifact(name, DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, classifier, null));
         }
     }
 
@@ -174,75 +162,6 @@ public class ClientModule implements ExternalDependency, IClientModule {
     public ClientModule setTransitive(boolean transitive) {
         this.transitive = transitive;
         return this;
-    }
-
-    public List<DependencyArtifact> getArtifacts() {
-        return artifacts;
-    }
-
-    public void setArtifacts(List<DependencyArtifact> artifacts) {
-        this.artifacts = artifacts;
-    }
-
-    public ClientModule addArtifact(DependencyArtifact artifact) {
-        artifacts.add(artifact);
-        return this;
-    }
-
-    public DependencyArtifact artifact(Closure configureClosure) {
-        DependencyArtifact artifact =  (DependencyArtifact) ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
-        artifacts.add(artifact);
-        return artifact;
-    }
-
-    public Dependency exclude(Map<String, String> excludeProperties) {
-        excludeRules.add(excludeProperties);
-        return this;
-    }
-
-    public Dependency exclude(Map<String, String> excludeProperties, List<String> confs) {
-        excludeRules.add(excludeProperties, confs);
-        return this;
-    }
-
-    public ExcludeRuleContainer getExcludeRules() {
-        return excludeRules;
-    }
-
-    public void setExcludeRules(ExcludeRuleContainer excludeRules) {
-        this.excludeRules = excludeRules;
-    }
-
-    public DependencyConfigurationMappingContainer getDependencyConfigurationMappings() {
-        return dependencyConfigurationMappings;
-    }
-
-    public void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings) {
-        this.dependencyConfigurationMappings = dependencyConfigurationMappings;
-    }
-
-    public void addDependencyConfiguration(String... dependencyConfigurations) {
-        dependencyConfigurationMappings.add(dependencyConfigurations);
-    }
-
-    public void addConfigurationMapping(Map<org.gradle.api.dependencies.Configuration, List<String>> dependencyConfigurations) {
-        dependencyConfigurationMappings.add(dependencyConfigurations);
-    }
-
-    public Map<org.gradle.api.dependencies.Configuration, List<String>> getConfigurationMappings() {
-        return dependencyConfigurationMappings.getMappings();
-    }
-
-    public void addConfiguration(org.gradle.api.dependencies.Configuration... masterConfigurations) {
-        dependencyConfigurationMappings.addMasters(masterConfigurations);
-    }
-
-    public List<String> getDependencyConfigurations(String configuration) {
-        return dependencyConfigurationMappings.getDependencyConfigurations(configuration);
-    }
-
-    public Set<org.gradle.api.dependencies.Configuration> getConfigurations() {
-        return dependencyConfigurationMappings.getMasterConfigurations();
     }
 
     public void dependencies(Object... dependencies) {

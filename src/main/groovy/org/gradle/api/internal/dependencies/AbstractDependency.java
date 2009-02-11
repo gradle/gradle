@@ -18,13 +18,9 @@ package org.gradle.api.internal.dependencies;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.dependencies.ivyservice.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
@@ -36,10 +32,8 @@ import java.util.Set;
 * @author Hans Dockter
 */
 public abstract class AbstractDependency implements Dependency {
-    private Object userDependencyDescription;
 
-    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
-    private ChainingTransformer<DependencyDescriptor> transformer 
+    private ChainingTransformer<DependencyDescriptor> transformer
             = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
 
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
@@ -50,46 +44,8 @@ public abstract class AbstractDependency implements Dependency {
     protected AbstractDependency() {
     }
 
-    public AbstractDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDependencyDescription) {
-        if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
-            throw new UnknownDependencyNotation("Description " + userDependencyDescription + " not valid!");
-        }
-        if (dependencyConfigurationMappings == null) {
-            throw new InvalidUserDataException("Configuration mapping must not be null.");
-        }
+    protected AbstractDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings) {
         this.dependencyConfigurationMappings = dependencyConfigurationMappings;
-        this.userDependencyDescription = userDependencyDescription;
-    }
-
-    public abstract boolean isValidDescription(Object userDependencyDescription);
-
-    public abstract Class[] userDepencencyDescriptionType();
-
-    private boolean isValidType(Object userDependencyDescription) {
-        for (Class clazz : userDepencencyDescriptionType()) {
-            if (clazz.isAssignableFrom(userDependencyDescription.getClass())) {
-                return true; 
-            }
-        }
-        return false;
-    }
-
-    public void initialize() {}
-
-    public Object getUserDependencyDescription() {
-        return userDependencyDescription;
-    }
-
-    public void setUserDependencyDescription(Object userDependencyDescription) {
-        this.userDependencyDescription = userDependencyDescription;
-    }
-
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
-    }
-
-    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 
     public Dependency exclude(Map<String, String> excludeProperties) {

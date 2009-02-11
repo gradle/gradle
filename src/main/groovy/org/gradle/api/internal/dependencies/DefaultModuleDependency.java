@@ -23,6 +23,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.dependencies.DependencyArtifact;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
 import org.gradle.api.dependencies.ModuleDependency;
+import org.gradle.api.internal.dependencies.ivyservice.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.WrapUtil;
 
 import java.util.regex.Matcher;
@@ -31,7 +33,7 @@ import java.util.regex.Pattern;
 /**
  * @author Hans Dockter
  */
-public class DefaultModuleDependency extends AbstractDependency implements ModuleDependency {
+public class DefaultModuleDependency extends AbstractDescriptorDependency implements ModuleDependency {
     private static final Pattern extensionSplitter = Pattern.compile("^(.+)\\@([^:]+$)");
 
     private String group;
@@ -41,6 +43,7 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     private boolean force = false;
     private boolean changing = false;
     private boolean transitive = true;
+    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
 
     public DefaultModuleDependency() {
         super();
@@ -155,5 +158,13 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     public DefaultModuleDependency setChanging(boolean changing) {
         this.changing = changing;
         return this;
+    }
+
+    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
+        return dependencyDescriptorFactory;
+    }
+
+    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 }

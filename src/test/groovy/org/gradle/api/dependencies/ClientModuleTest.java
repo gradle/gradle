@@ -17,11 +17,11 @@
 package org.gradle.api.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.DefaultConfiguration;
-import org.gradle.api.internal.dependencies.DefaultConfigurationContainer;
-import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer;
+import org.gradle.api.internal.dependencies.AbstractDependency;
+import org.gradle.api.internal.dependencies.AbstractDependencyTest;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
 import org.gradle.api.internal.dependencies.ivyservice.ClientModuleDescriptorFactory;
 import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
@@ -29,9 +29,9 @@ import org.gradle.util.HelperUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -42,18 +42,13 @@ import java.util.Map;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class ClientModuleTest {
+public class ClientModuleTest extends AbstractDependencyTest {
     static final String TEST_GROUP = "org.gradle";
     static final String TEST_NAME = "gradle-core";
     static final String TEST_VERSION = "4.4-beta2";
     static final String TEST_CLASSIFIER = "jdk-1.4";
     static final String TEST_MODULE_DESCRIPTOR = String.format("%s:%s:%s", TEST_GROUP, TEST_NAME, TEST_VERSION);
     static final String TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER = TEST_MODULE_DESCRIPTOR + ":" + TEST_CLASSIFIER;
-
-    protected static final DefaultDependencyConfigurationMappingContainer TEST_CONF_MAPPING =
-            new DefaultDependencyConfigurationMappingContainer() {{
-                addMasters(new DefaultConfiguration("someConf", new DefaultConfigurationContainer()));
-            }};
 
     ClientModule clientModule;
 
@@ -63,9 +58,30 @@ public class ClientModuleTest {
 
     DefaultDependencyDescriptor expectedDependencyDescriptor;
 
-    private JUnit4Mockery context = new JUnit4Mockery();
     private DependencyDescriptorFactory dependencyDescriptorFactoryMock;
 
+    protected AbstractDependency getDependency() {
+        return clientModule;
+    }
+
+    protected void expectDescriptorBuilt(final DependencyDescriptor descriptor) {
+        context.checking(new Expectations() {{
+            allowing(getParentModuleDescriptorMock()).getConfigurations();
+            allowing(getParentModuleDescriptorMock()).getConfiguration(with(any(String.class)));
+            one(dependencyDescriptorFactoryMock).createFromClientModule(getParentModuleDescriptorMock(),
+                    clientModule);
+            will(returnValue(descriptor));
+        }});
+    }
+
+    @Ignore
+    public void testTransformerCanModifyIvyDescriptor() {
+    }
+
+    @Ignore
+    public void testTransformationClosureCanModifyIvyDescriptor() {
+        
+    }
 
     @Before
     public void setUp() {
@@ -73,6 +89,7 @@ public class ClientModuleTest {
         dependencyContainerMock = context.mock(DependencyContainerInternal.class);
         clientModule = new ClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR, dependencyContainerMock);
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor();
+        super.setUp();
     }
 
     @Test
