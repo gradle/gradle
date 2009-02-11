@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.dependencies;
+package org.gradle.api.internal.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.dependencies.AbstractDependency;
-import org.gradle.api.internal.dependencies.AbstractDependencyTest;
-import org.gradle.api.internal.dependencies.DependencyContainerInternal;
+import org.gradle.api.dependencies.DependencyArtifact;
 import org.gradle.api.internal.dependencies.ivyservice.ClientModuleDescriptorFactory;
 import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.HelperUtil;
@@ -42,7 +40,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class ClientModuleTest extends AbstractDependencyTest {
+public class DefaultClientModuleTest extends AbstractDependencyTest {
     static final String TEST_GROUP = "org.gradle";
     static final String TEST_NAME = "gradle-core";
     static final String TEST_VERSION = "4.4-beta2";
@@ -50,7 +48,7 @@ public class ClientModuleTest extends AbstractDependencyTest {
     static final String TEST_MODULE_DESCRIPTOR = String.format("%s:%s:%s", TEST_GROUP, TEST_NAME, TEST_VERSION);
     static final String TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER = TEST_MODULE_DESCRIPTOR + ":" + TEST_CLASSIFIER;
 
-    ClientModule clientModule;
+    DefaultClientModule clientModule;
 
     Map<String, ModuleDescriptor> testModuleRegistry = new HashMap<String, ModuleDescriptor>();
 
@@ -87,7 +85,7 @@ public class ClientModuleTest extends AbstractDependencyTest {
     public void setUp() {
         dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
         dependencyContainerMock = context.mock(DependencyContainerInternal.class);
-        clientModule = new ClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR, dependencyContainerMock);
+        clientModule = new DefaultClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR, dependencyContainerMock);
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor();
         super.setUp();
     }
@@ -99,7 +97,7 @@ public class ClientModuleTest extends AbstractDependencyTest {
 
     @Test
     public void testInitWitClassifier() {
-        clientModule = new ClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, dependencyContainerMock);
+        clientModule = new DefaultClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, dependencyContainerMock);
         checkInit(TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
         DependencyArtifact artifact = clientModule.getArtifacts().get(0);
         assertEquals(TEST_NAME, artifact.getName());
@@ -121,28 +119,28 @@ public class ClientModuleTest extends AbstractDependencyTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void testInitWithNull() {
-        new ClientModule(TEST_CONF_MAPPING, null, dependencyContainerMock);
+        new DefaultClientModule(TEST_CONF_MAPPING, null, dependencyContainerMock);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testInitWithFiveParts() {
-        new ClientModule(TEST_CONF_MAPPING, "1:2:3:4:5", dependencyContainerMock);
+        new DefaultClientModule(TEST_CONF_MAPPING, "1:2:3:4:5", dependencyContainerMock);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testInitWithTwoParts() {
-        new ClientModule(TEST_CONF_MAPPING, "1:2", dependencyContainerMock);
+        new DefaultClientModule(TEST_CONF_MAPPING, "1:2", dependencyContainerMock);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testInitWithOneParts() {
-        new ClientModule(TEST_CONF_MAPPING, "1", dependencyContainerMock);
+        new DefaultClientModule(TEST_CONF_MAPPING, "1", dependencyContainerMock);
     }
 
 
     @Test
     public void testCreateDependencyDescriptor() {
-        final ClientModule clientModule = new ClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, dependencyContainerMock);
+        final DefaultClientModule clientModule = new DefaultClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, dependencyContainerMock);
         final ClientModuleDescriptorFactory clientModuleDescriptorFactoryMock = context.mock(ClientModuleDescriptorFactory.class);
                 clientModule.setClientModuleDescriptorFactory(clientModuleDescriptorFactoryMock);
         clientModule.setDependencyDescriptorFactory(dependencyDescriptorFactoryMock);

@@ -138,7 +138,7 @@ public class DefaultDependencyDescriptorFactoryTest {
 
     @Test
     public void testCreateFromClientModule() {
-        ClientModule moduleDependency = (ClientModule) new ClientModule(TEST_CONF_MAPPING, "org.gradle:gradle-core:1.0", null).
+        DefaultClientModule moduleDependency = (DefaultClientModule) new DefaultClientModule(TEST_CONF_MAPPING, "org.gradle:gradle-core:1.0", null).
                 setForce(true).
                 addArtifact(artifact).
                 addArtifact(artifactWithClassifierAndConfs);

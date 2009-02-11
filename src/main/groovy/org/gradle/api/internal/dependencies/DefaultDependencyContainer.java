@@ -90,7 +90,7 @@ public class DefaultDependencyContainer implements DependencyContainerInternal {
         // todo: We might better have a client module factory here
         DefaultConfigurationContainer defaultConfigurationContainer = new DefaultConfigurationContainer();
         defaultConfigurationContainer.add(Dependency.DEFAULT_CONFIGURATION);
-        ClientModule clientModule = new ClientModule(getStandardConfigurationMapping(configurationMappings), moduleDescriptor,
+        DefaultClientModule clientModule = new DefaultClientModule(getStandardConfigurationMapping(configurationMappings), moduleDescriptor,
                 new DefaultDependencyContainer(project, defaultConfigurationContainer,
                         dependencyFactory, new DefaultExcludeRuleContainer(), clientModuleRegistry));
         dependencies.add(clientModule);

@@ -51,7 +51,7 @@ public class GenericDependencyTest {
                 {new DefaultProjectDependency(AbstractDependencyTest.TEST_CONF_MAPPING,
                         HelperUtil.createRootProject(new File("a")),
                         HelperUtil.createRootProject(new File("a")))},
-                {new ClientModule(AbstractDependencyTest.TEST_CONF_MAPPING, "org:name:1.0", null)}
+                {new DefaultClientModule(AbstractDependencyTest.TEST_CONF_MAPPING, "org:name:1.0", null)}
         });
     }
 

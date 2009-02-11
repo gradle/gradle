@@ -104,7 +104,7 @@ public interface DependencyContainer {
 
     /**
      * Adds a client module to the given confs. The configureClosure configures this client module.
-     * See {@link ClientModule} for the API that can be used.
+     * See {@link org.gradle.api.internal.dependencies.DefaultClientModule} for the API that can be used.
      *
      * @param moduleDescriptor
      * @param configureClosure
