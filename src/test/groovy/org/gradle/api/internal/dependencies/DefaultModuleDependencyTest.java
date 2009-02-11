@@ -19,7 +19,7 @@ package org.gradle.api.internal.dependencies;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.UnknownDependencyNotation;
-import org.gradle.api.dependencies.Artifact;
+import org.gradle.api.dependencies.DependencyArtifact;
 import org.gradle.api.internal.dependencies.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
@@ -110,7 +110,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
         checkCommonModuleProperties();
         assertFalse(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
-        Artifact artifact = moduleDependency.getArtifacts().get(0);
+        DependencyArtifact artifact = moduleDependency.getArtifacts().get(0);
         assertEquals(TEST_NAME, artifact.getName());
         assertEquals(TEST_TYPE, artifact.getType());
         assertEquals(null, artifact.getClassifier());
@@ -121,10 +121,10 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
         checkCommonModuleProperties();
         assertTrue(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
-        Artifact artifact = moduleDependency.getArtifacts().get(0);
+        DependencyArtifact artifact = moduleDependency.getArtifacts().get(0);
         assertEquals(TEST_NAME, artifact.getName());
-        assertEquals(Artifact.DEFAULT_TYPE, artifact.getType());
-        assertEquals(Artifact.DEFAULT_TYPE, artifact.getExtension());
+        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getType());
+        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getExtension());
         assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
     }
 
@@ -133,7 +133,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
         checkCommonModuleProperties();
         assertFalse(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
-        Artifact artifact = moduleDependency.getArtifacts().get(0);
+        DependencyArtifact artifact = moduleDependency.getArtifacts().get(0);
         assertEquals(TEST_NAME, artifact.getName());
         assertEquals(TEST_TYPE, artifact.getType());
         assertEquals(TEST_TYPE, artifact.getExtension());

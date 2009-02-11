@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.dependencies.DefaultExcludeRuleContainer;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
 import org.gradle.api.internal.dependencies.ivyservice.ClientModuleDescriptorFactory;
@@ -58,7 +59,7 @@ public class ClientModule implements ExternalDependency, IClientModule {
 
     private boolean transitive = true;
 
-    private List<Artifact> artifacts = new ArrayList<Artifact>();
+    private List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
 
     private ChainingTransformer<DependencyDescriptor> transformer
             = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
@@ -90,7 +91,7 @@ public class ClientModule implements ExternalDependency, IClientModule {
         boolean hasClassifier = moduleDescriptionParts.length == 4;
         if (hasClassifier) {
             String classifier = moduleDescriptionParts[3];
-            artifacts.add(new Artifact(name, Artifact.DEFAULT_TYPE, Artifact.DEFAULT_TYPE, classifier, null));
+            artifacts.add(new DefaultDependencyArtifact(name, DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, classifier, null));
         }
     }
 
@@ -175,21 +176,21 @@ public class ClientModule implements ExternalDependency, IClientModule {
         return this;
     }
 
-    public List<Artifact> getArtifacts() {
+    public List<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
 
-    public void setArtifacts(List<Artifact> artifacts) {
+    public void setArtifacts(List<DependencyArtifact> artifacts) {
         this.artifacts = artifacts;
     }
 
-    public ClientModule addArtifact(Artifact artifact) {
+    public ClientModule addArtifact(DependencyArtifact artifact) {
         artifacts.add(artifact);
         return this;
     }
 
-    public Artifact artifact(Closure configureClosure) {
-        Artifact artifact =  (Artifact) ConfigureUtil.configure(configureClosure, new Artifact());
+    public DependencyArtifact artifact(Closure configureClosure) {
+        DependencyArtifact artifact =  (DependencyArtifact) ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
         artifacts.add(artifact);
         return artifact;
     }

@@ -84,10 +84,10 @@ public class ClientModuleTest {
     public void testInitWitClassifier() {
         clientModule = new ClientModule(TEST_CONF_MAPPING, TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER, dependencyContainerMock);
         checkInit(TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
-        Artifact artifact = clientModule.getArtifacts().get(0);
+        DependencyArtifact artifact = clientModule.getArtifacts().get(0);
         assertEquals(TEST_NAME, artifact.getName());
-        assertEquals(Artifact.DEFAULT_TYPE, artifact.getType());
-        assertEquals(Artifact.DEFAULT_TYPE, artifact.getExtension());
+        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getType());
+        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getExtension());
         assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
     }
 

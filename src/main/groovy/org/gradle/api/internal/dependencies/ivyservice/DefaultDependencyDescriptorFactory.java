@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.dependencies.Artifact;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.util.WrapUtil;
@@ -81,8 +80,8 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
                         dependency.getVersion());
     }
 
-    private void addArtifacts(List<Artifact> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
-        for (Artifact artifact : artifacts) {
+    private void addArtifacts(List<DependencyArtifact> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
+        for (DependencyArtifact artifact : artifacts) {
             DefaultDependencyArtifactDescriptor artifactDescriptor = null;
             try {
                 artifactDescriptor = new DefaultDependencyArtifactDescriptor(

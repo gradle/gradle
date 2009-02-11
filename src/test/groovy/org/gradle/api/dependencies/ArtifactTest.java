@@ -15,11 +15,10 @@
  */
 package org.gradle.api.dependencies;
 
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertSame;
+import org.gradle.api.internal.dependencies.DefaultDependencyArtifact;
 import org.gradle.util.WrapUtil;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class ArtifactTest {
         String testExtension = "ext";
         String testClassifier = "classifier";
         String testUrl = "url";
-        Artifact artifact = new Artifact(testName, testType, testExtension, testClassifier, testUrl);
+        DependencyArtifact artifact = new DefaultDependencyArtifact(testName, testType, testExtension, testClassifier, testUrl);
         assertEquals(testName, artifact.getName());
         assertEquals(testType, artifact.getType());
         assertEquals(testExtension, artifact.getExtension());

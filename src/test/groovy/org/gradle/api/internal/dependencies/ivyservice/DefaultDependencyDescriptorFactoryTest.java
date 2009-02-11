@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.Artifact;
 import org.gradle.api.dependencies.*;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.internal.dependencies.*;
@@ -68,8 +67,8 @@ public class DefaultDependencyDescriptorFactoryTest {
     private DefaultExcludeRule excludeRuleWithAllConf;
     private DefaultExcludeRule excludeRuleWithConf;
     private Map<Configuration, List<String>> testDependencyConfigurations;
-    private Artifact artifact;
-    private Artifact artifactWithClassifierAndConfs;
+    private DefaultDependencyArtifact artifact;
+    private DefaultDependencyArtifact artifactWithClassifierAndConfs;
     private static final String DEPENDENCY_PROJECT_NAME = "depProject";
 
     @Before
@@ -101,8 +100,8 @@ public class DefaultDependencyDescriptorFactoryTest {
             }
         });
 
-        artifact = new Artifact("name", "type", null, null, null);
-        artifactWithClassifierAndConfs = new Artifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com");
+        artifact = new DefaultDependencyArtifact("name", "type", null, null, null);
+        artifactWithClassifierAndConfs = new DefaultDependencyArtifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com");
         artifactWithClassifierAndConfs.setConfs(WrapUtil.toList(TEST_CONF_2, TEST_CONF_3));
     }
 
@@ -189,7 +188,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         checkArtifacts(dependencyDescriptor, artifact, artifactWithClassifierAndConfs);
     }
 
-    private void checkArtifacts(DefaultDependencyDescriptor dependencyDescriptor, Artifact artifact, Artifact artifactWithClassifierAndConfs) {
+    private void checkArtifacts(DefaultDependencyDescriptor dependencyDescriptor, DependencyArtifact artifact, DependencyArtifact artifactWithClassifierAndConfs) {
         DependencyArtifactDescriptor artifactDescriptor = dependencyDescriptor.getDependencyArtifacts(TEST_CONF)[0];
         assertTrue(Arrays.asList(dependencyDescriptor.getDependencyArtifacts(TEST_CONF_2)).contains(artifactDescriptor));
         assertTrue(Arrays.asList(dependencyDescriptor.getDependencyArtifacts(TEST_CONF_3)).contains(artifactDescriptor));
@@ -213,7 +212,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         }
     }
 
-    private void compareArtifacts(Artifact artifact, DependencyArtifactDescriptor artifactDescriptor) {
+    private void compareArtifacts(DependencyArtifact artifact, DependencyArtifactDescriptor artifactDescriptor) {
         assertEquals(artifact.getName(), artifactDescriptor.getName());
         assertEquals(artifact.getType(), artifactDescriptor.getType());
     }

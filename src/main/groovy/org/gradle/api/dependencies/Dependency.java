@@ -71,11 +71,11 @@ public interface Dependency extends ConfigurationHolder, IvyObjectBuilder<Depend
 
     Dependency setTransitive(boolean transitive);
 
-    List<Artifact> getArtifacts();
+    List<DependencyArtifact> getArtifacts();
 
-    Dependency addArtifact(Artifact artifact);
+    Dependency addArtifact(DependencyArtifact artifact);
 
-    Artifact artifact(Closure configureClosure);
+    DependencyArtifact artifact(Closure configureClosure);
 
     void addDependencyConfiguration(String... dependencyConfigurations);
 

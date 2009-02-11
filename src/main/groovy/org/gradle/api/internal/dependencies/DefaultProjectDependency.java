@@ -37,6 +37,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
         super(dependencyConfigurationMappings, dependencyProject);
         this.project = project;
         this.dependencyProject = (Project) dependencyProject;
+        this.dependencyProject = (Project) dependencyProject;
     }
 
     public boolean isValidDescription(Object userDependencyDescription) {

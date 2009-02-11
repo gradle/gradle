@@ -18,18 +18,20 @@ package org.gradle.api.internal.dependencies;
 import org.gradle.api.dependencies.*;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.hasItems;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;import static org.junit.Assert.assertThat;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.hamcrest.Matchers;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -118,14 +120,14 @@ public class GenericDependencyTest {
     @Test
     public void artifacts() {
         assertEquals(0, dependency.getArtifacts().size());
-        Artifact artifact = new Artifact("name1", "type1", "ext1", "classifier1", "url");
+        DefaultDependencyArtifact artifact = new DefaultDependencyArtifact("name1", "type1", "ext1", "classifier1", "url");
         dependency.addArtifact(artifact);
         assertEquals(1, dependency.getArtifacts().size());
         assertSame(artifact, dependency.getArtifacts().get(0));
-        Artifact artifact2 = dependency.artifact(HelperUtil.createSetterClosure("Name", "testname"));
+        DependencyArtifact artifact2 = dependency.artifact(HelperUtil.createSetterClosure("Name", "testname"));
         assertEquals("testname", artifact2.getName());
         assertEquals(2, dependency.getArtifacts().size());
-        assertThat(dependency.getArtifacts(), Matchers.hasItems(artifact, artifact2));
+        assertThat(dependency.getArtifacts(), hasItems(artifact, artifact2));
         context.assertIsSatisfied();
     }
 }

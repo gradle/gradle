@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.dependencies;
+package org.gradle.api.internal.dependencies;
 
-import java.util.List;
+import org.gradle.api.dependencies.DependencyArtifact;
+
 import java.util.ArrayList;
+import java.util.List;
 
-/**
- * <p>An {@code Artifact} represents an artifact included in a {@link Dependency}.</p>
- *
- * @author Hans Dockter
- */
-public class Artifact {
-    public static final String DEFAULT_TYPE = "jar";
+public class DefaultDependencyArtifact implements DependencyArtifact {
 
     private String name;
     private String type;
@@ -35,10 +31,10 @@ public class Artifact {
     private List<String> confs = new ArrayList<String>();
 
 
-    public Artifact() {
+    public DefaultDependencyArtifact() {
     }
 
-    public Artifact(String name, String type, String extension, String classifier, String url) {
+    public DefaultDependencyArtifact(String name, String type, String extension, String classifier, String url) {
         this.name = name;
         this.type = type;
         this.extension = extension;

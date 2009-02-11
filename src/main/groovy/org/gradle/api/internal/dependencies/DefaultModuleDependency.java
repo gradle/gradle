@@ -17,20 +17,14 @@
 package org.gradle.api.internal.dependencies;
 
 import groovy.lang.GString;
-import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.dependencies.Artifact;
-import org.gradle.api.dependencies.ModuleDependency;
-import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.DependencyArtifact;
 import org.gradle.api.dependencies.DependencyConfigurationMappingContainer;
+import org.gradle.api.dependencies.ModuleDependency;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.ConfigureUtil;
 
-import java.util.List;
-import java.util.Set;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,11 +70,11 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
         if (moduleDescriptionParts.length == 4) {
             classifier = moduleDescriptionParts[3];
             if (artifactType == null) {
-                artifactType = Artifact.DEFAULT_TYPE;
+                artifactType = DependencyArtifact.DEFAULT_TYPE;
             }
         }
         if (artifactType != null) {
-            addArtifact(new Artifact(name, artifactType, artifactType, classifier, null));
+            addArtifact(new DefaultDependencyArtifact(name, artifactType, artifactType, classifier, null));
         }
     }
 

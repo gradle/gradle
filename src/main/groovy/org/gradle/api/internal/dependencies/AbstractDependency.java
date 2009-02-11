@@ -45,7 +45,7 @@ public abstract class AbstractDependency implements Dependency {
     private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
 
     private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
-    private List<Artifact> artifacts = new ArrayList<Artifact>();
+    private List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
 
     protected AbstractDependency() {
     }
@@ -118,21 +118,21 @@ public abstract class AbstractDependency implements Dependency {
         this.dependencyConfigurationMappings = dependencyConfigurationMappings;
     }
 
-    public List<Artifact> getArtifacts() {
+    public List<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
 
-    public void setArtifacts(List<Artifact> artifacts) {
+    public void setArtifacts(List<DependencyArtifact> artifacts) {
         this.artifacts = artifacts;
     }
 
-    public AbstractDependency addArtifact(Artifact artifact) {
+    public AbstractDependency addArtifact(DependencyArtifact artifact) {
         artifacts.add(artifact);
         return this;
     }
 
-    public Artifact artifact(Closure configureClosure) {
-        Artifact artifact =  (Artifact) ConfigureUtil.configure(configureClosure, new Artifact());
+    public DependencyArtifact artifact(Closure configureClosure) {
+        DependencyArtifact artifact =  (DependencyArtifact) ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
         artifacts.add(artifact);
         return artifact;
     }
