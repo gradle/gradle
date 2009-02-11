@@ -24,7 +24,7 @@ import org.junit.Test;
 /**
  * @author Hans Dockter
  */
-public class TypeSpecTest {
+public class DependencyTypeSpecTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Test

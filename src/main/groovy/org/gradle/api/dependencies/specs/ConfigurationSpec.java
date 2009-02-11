@@ -16,7 +16,7 @@
 package org.gradle.api.dependencies.specs;
 
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.ConfigurationHolder;
 import org.gradle.api.specs.Spec;
 
 import java.util.*;
@@ -24,18 +24,18 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class DependencyConfigurationSpec<T extends Dependency> implements Spec<T> {
+public class ConfigurationSpec<T extends ConfigurationHolder> implements Spec<T> {
     boolean includeExtendees;
     private List<String> confs;
 
-    public DependencyConfigurationSpec(boolean includeExtendees, String... confs) {
+    public ConfigurationSpec(boolean includeExtendees, String... confs) {
         this.includeExtendees = includeExtendees;
         this.confs = Arrays.asList(confs);
     }
 
-    public boolean isSatisfiedBy(Dependency dependency) {
+    public boolean isSatisfiedBy(ConfigurationHolder configurationHolder) {
         for (String conf : confs) {
-            for (Configuration configuration : getConfigurations(dependency, includeExtendees)) {
+            for (Configuration configuration : getConfigurations(configurationHolder, includeExtendees)) {
                     if (configuration.getName().equals(conf)) {
                         return true;
                     }
@@ -44,9 +44,9 @@ public class DependencyConfigurationSpec<T extends Dependency> implements Spec<T
         return false;
     }
 
-    private Set<Configuration> getConfigurations(Dependency dependency, boolean includeExtendees) {
+    private Set<Configuration> getConfigurations(ConfigurationHolder configurationHolder, boolean includeExtendees) {
         Set<Configuration> result = new HashSet<Configuration>();
-        for (Configuration configuration : dependency.getConfigurations()) {
+        for (Configuration configuration : configurationHolder.getConfigurations()) {
             if (includeExtendees) {
                 result.addAll(configuration.getChain());
             } else {
@@ -65,7 +65,7 @@ public class DependencyConfigurationSpec<T extends Dependency> implements Spec<T
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DependencyConfigurationSpec confSpec = (DependencyConfigurationSpec) o;
+        ConfigurationSpec confSpec = (ConfigurationSpec) o;
 
         if (includeExtendees != confSpec.includeExtendees) return false;
         if (confs != null ? !confs.equals(confSpec.confs) : confSpec.confs != null) return false;

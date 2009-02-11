@@ -31,4 +31,6 @@ public class AndSpec<T> extends CompositeSpec<T> {
         }
         return true;
     }
+
+
 }

@@ -24,7 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.Configuration;
 import org.gradle.api.dependencies.Dependency;
 import org.gradle.api.dependencies.PublishArtifact;
-import org.gradle.api.dependencies.specs.DependencyConfigurationSpec;
+import org.gradle.api.dependencies.specs.ConfigurationSpec;
 import org.gradle.api.internal.dependencies.ArtifactContainer;
 import org.gradle.api.internal.dependencies.ConfigurationContainer;
 import org.gradle.api.internal.dependencies.DependencyContainerInternal;
@@ -50,7 +50,7 @@ import java.util.Map;
  */
 @RunWith(JMock.class)
 public class DefaultModuleDescriptorConverterTest {
-    private static final Spec<Dependency> TEST_DEPENDENCY_SPEC = new DependencyConfigurationSpec<Dependency>(true, "conf1");
+    private static final Spec<Dependency> TEST_DEPENDENCY_SPEC = new ConfigurationSpec<Dependency>(true, "conf1");
     private static final Spec<PublishArtifact> TEST_PUBLISH_SPEC = new AndSpec<PublishArtifact>();
     private static final Spec<Configuration> TEST_CONFIGURATION_SPEC = new AndSpec<Configuration>();
 

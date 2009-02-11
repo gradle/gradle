@@ -15,16 +15,13 @@
  */
 package org.gradle.api.dependencies;
 
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.FileCollection;
-import org.gradle.api.tasks.TaskDependency;
+import groovy.lang.Closure;
 import org.apache.ivy.core.report.ResolveReport;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
-import java.util.Set;
 import java.util.List;
-
-import groovy.lang.Closure;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -50,8 +47,33 @@ public interface ConfigurationResolver extends Configuration, FileCollection {
 
     String getUploadTaskName();
 
+    /**
+     * Returns a task dependencies object containing all required dependencies to build the project dependencies
+     * belonging to this configuration or to one of its super configurations.
+     * 
+     * @return a task dependency object
+     */
     TaskDependency getBuildProjectDependencies();
+
+    /**
+     * Returns a task dependencies object containing all required dependencies to build the artifacts
+     * belonging to this configuration or to one of its super configurations.
+     *
+     * @return a task dependency object
+     */
+    TaskDependency getBuildArtifactDependencies();
 
     void publish(ResolverContainer publishResolvers, PublishInstruction publishInstruction);
 
+    List<Dependency> getDependencies();
+
+    List<Dependency> getAllDependencies();
+
+    List<ProjectDependency> getProjectDependencies();
+
+    List<ProjectDependency> getAllProjectDependencies();
+
+    Set<PublishArtifact> getArtifacts();
+
+    Set<PublishArtifact> getAllArtifacts();
 }

@@ -17,12 +17,14 @@ package org.gradle.api.internal.dependencies;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.report.ResolveReport;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.*;
-import static org.gradle.api.dependencies.specs.DependencySpecs.confsWithoutExtensions;
-import static org.gradle.api.dependencies.specs.DependencySpecs.type;
+import org.gradle.api.dependencies.specs.ConfigurationSpec;
+import static org.gradle.api.dependencies.specs.DependencySpecs.*;
 import org.gradle.api.dependencies.specs.Type;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.specs.AndSpec;
 import static org.gradle.api.specs.Specs.and;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.ConfigureUtil;
@@ -114,26 +116,62 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     public TaskDependency getBuildProjectDependencies() {
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        for (ConfigurationResolver configurationResolver : getExtendsFrom()) {
-            taskDependency.add(configurationResolver.getBuildProjectDependencies());
-        }
-        for (ProjectDependency projectDependency : getProjectDependencies()) {
-            List<String> dependencyConfigurations = projectDependency.getDependencyConfigurations(getName());
-            for (String dependencyConfiguration : dependencyConfigurations) {
-                ConfigurationResolver configuration = projectDependency.getDependencyProject().getDependencies().configuration(dependencyConfiguration);
-                taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
+        return new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+                for (ConfigurationResolver configurationResolver : getExtendsFrom()) {
+                    taskDependency.add(configurationResolver.getBuildProjectDependencies());
+                }
+                for (ProjectDependency projectDependency : getProjectDependencies()) {
+                    List<String> dependencyConfigurations = projectDependency.getDependencyConfigurations(getName());
+                    for (String dependencyConfiguration : dependencyConfigurations) {
+                        ConfigurationResolver configuration = projectDependency.getDependencyProject().getDependencies().configuration(dependencyConfiguration);
+                        taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
+                    }
+                }
+                return taskDependency.getDependencies(task);
             }
-        }
-        return taskDependency;
+        };
+    }
+
+    public TaskDependency getBuildArtifactDependencies() {
+        return new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+                for (PublishArtifact publishArtifact : getAllArtifacts()) {
+                    taskDependency.add(publishArtifact.getTaskDependency());
+                }
+                return taskDependency.getDependencies(task);
+            }
+        };
     }
 
     public List<Dependency> getDependencies() {
         return dependencyContainer.getDependencies(confsWithoutExtensions(getName()));
     }
 
+    public List<Dependency> getAllDependencies() {
+        return dependencyContainer.getDependencies(confs(getName()));
+    }
+
     public List<ProjectDependency> getProjectDependencies() {
-        return dependencyContainer.getDependencies(and(confsWithoutExtensions(getName()), type(Type.PROJECT)));
+        return dependencyContainer.getDependencies(andWithProjectSpec(confsWithoutExtensions(getName())));
+    }
+
+    public List<ProjectDependency> getAllProjectDependencies() {
+        return dependencyContainer.getDependencies(andWithProjectSpec(confs(getName())));
+    }
+
+    public Set<PublishArtifact> getArtifacts() {
+        return artifactContainer.getArtifacts(confsWithoutExtensions(getName()));
+    }
+
+    public Set<PublishArtifact> getAllArtifacts() {
+        return artifactContainer.getArtifacts(confs(getName()));
+    }
+
+    private AndSpec andWithProjectSpec(ConfigurationSpec specs) {
+        return and(specs, type(Type.PROJECT));
     }
 
     public String getName() {
@@ -168,7 +206,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                     publishConfigurationContainer, dependencyResolvers, ivyService, gradleUserHome));
         }
         return resultSet;
-        
+
     }
 
     public ConfigurationResolver setExtendsFrom(Set<String> superConfigs) {

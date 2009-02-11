@@ -18,8 +18,15 @@ package org.gradle.api.internal.dependencies;
 import groovy.lang.Closure;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.dependencies.*;
+import org.gradle.api.dependencies.specs.ConfigurationSpec;
+import static org.gradle.api.dependencies.specs.DependencySpecs.*;
+import org.gradle.api.dependencies.specs.Type;
+import org.gradle.api.specs.Spec;
+import static org.gradle.api.specs.Specs.and;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
@@ -63,6 +70,11 @@ public class DefaultConfigurationResolverTest {
     private Set<ConfigurationResolver> chainConfigurations = WrapUtil.<ConfigurationResolver>toSet(configurationResolver);
     private ResolveReport testResolveReport = context.mock(ResolveReport.class);
     private Set<Configuration> dependencyContainerConfigurations = WrapUtil.toSet(context.mock(Configuration.class, "dependencyContainerConfMock"));
+    private List<Dependency> testDependencies = WrapUtil.toList(context.mock(Dependency.class));
+    private ProjectDependency projectDependencyMock = context.mock(ProjectDependency.class);
+    private List<ProjectDependency> testProjectDependencies = WrapUtil.toList(projectDependencyMock);
+    private PublishArtifact publishArtifactMock = context.mock(PublishArtifact.class);
+    private Set<PublishArtifact> testArtifacts = WrapUtil.toSet(publishArtifactMock);
 
     @Before
     public void setUp() {
@@ -240,4 +252,91 @@ public class DefaultConfigurationResolverTest {
     public void uploadTaskName() {
         assertThat(configurationResolver.getUploadTaskName(), equalTo("uploadTestConf"));
     }
+
+    @Test
+    public void buildArtifacts() {
+        final TaskDependency taskDependencyMock = context.mock(TaskDependency.class);
+        final Task taskMock = context.mock(Task.class);
+        context.checking(new Expectations() {{
+            allowing(artifactContainerMock).getArtifacts(confs(TEST_CONF_NAME));
+            will(returnValue(WrapUtil.toSet(publishArtifactMock)));
+
+            allowing(publishArtifactMock).getTaskDependency();
+            will(returnValue(taskDependencyMock));
+
+            allowing(taskDependencyMock).getDependencies(with(any(Task.class)));
+            will(returnValue(WrapUtil.toSet(taskMock)));
+        }});
+        assertThat((Set<Task>) configurationResolver.getBuildArtifactDependencies().getDependencies(taskMock),
+                equalTo(WrapUtil.toSet(taskMock)));
+    }
+
+//    @Test
+//    public void buildProjectDependencies() {
+//        final TaskDependency taskDependencyMock = context.mock(TaskDependency.class);
+//        final Task taskMock = context.mock(Task.class);
+//        context.checking(new Expectations() {{
+//            allowing(dependencyContainerMock).getDependencies(and(confs(TEST_CONF_NAME), type(Type.PROJECT)));
+//            will(returnValue(WrapUtil.toSet(projectDependencyMock)));
+//
+//            allowing(projectDependencyMock).getTaskDependency();
+//            will(returnValue(taskDependencyMock));
+//
+//            allowing(taskDependencyMock).getDependencies(with(any(Task.class)));
+//            will(returnValue(WrapUtil.toSet(taskMock)));
+//        }});
+//        assertThat((Set<Task>) configurationResolver.getBuildArtifactDependencies().getDependencies(taskMock),
+//                equalTo(WrapUtil.toSet(taskMock)));
+//    }
+    
+    @Test
+    public void getDependencies() {
+        prepareDependencyContainerMock(confsWithoutExtensions(TEST_CONF_NAME), testDependencies);
+        assertThat(configurationResolver.getDependencies(), equalTo(testDependencies));
+    }
+
+    @Test
+    public void getAllDependencies() {
+        prepareDependencyContainerMock(confs(TEST_CONF_NAME), testDependencies);
+        assertThat(configurationResolver.getAllDependencies(), equalTo(testDependencies));
+    }
+
+    @Test
+    public void getProjectDependencies() {
+        prepareDependencyContainerMock(and(confsWithoutExtensions(TEST_CONF_NAME), type(Type.PROJECT)), testProjectDependencies);
+        assertThat(configurationResolver.getProjectDependencies(), equalTo(testProjectDependencies));
+    }
+
+    @Test
+    public void getAllProjectDependencies() {
+        prepareDependencyContainerMock(and(confs(TEST_CONF_NAME), type(Type.PROJECT)), testProjectDependencies);
+        assertThat(configurationResolver.getAllProjectDependencies(), equalTo(testProjectDependencies));
+    }
+
+    private void prepareDependencyContainerMock(final Spec spec, final List<? extends Dependency> testDependencies) {
+        context.checking(new Expectations() {{
+            allowing(dependencyContainerMock).getDependencies(spec);
+            will(returnValue(testDependencies));
+        }});
+    }
+
+    @Test
+    public void getArtifacts() {
+        prepareArtifactContainerMock(confsWithoutExtensions(TEST_CONF_NAME));
+        assertThat(configurationResolver.getArtifacts(), equalTo(testArtifacts));
+    }
+
+    @Test
+    public void getAllArtifacts() {
+        prepareArtifactContainerMock(confs(TEST_CONF_NAME));
+        assertThat(configurationResolver.getAllArtifacts(), equalTo(testArtifacts));
+    }
+
+    private void prepareArtifactContainerMock(final ConfigurationSpec spec) {
+        context.checking(new Expectations() {{
+            allowing(artifactContainerMock).getArtifacts(spec);
+            will(returnValue(testArtifacts));
+        }});
+    }
+
 }

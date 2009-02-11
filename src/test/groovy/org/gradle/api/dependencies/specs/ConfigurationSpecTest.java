@@ -16,7 +16,7 @@
 package org.gradle.api.dependencies.specs;
 
 import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.dependencies.ConfigurationHolder;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -31,8 +31,8 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class ConfSpecTest {
-    private DependencyConfigurationSpec confSpec;
+public class ConfigurationSpecTest {
+    private ConfigurationSpec confSpec;
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
@@ -43,37 +43,37 @@ public class ConfSpecTest {
     @Test
     public void init() {
         List<String> testConfs = WrapUtil.toList(TEST_CONF1, TEST_CONF2);
-        confSpec = new DependencyConfigurationSpec(true, testConfs.toArray(new String[testConfs.size()]));
+        confSpec = new ConfigurationSpec(true, testConfs.toArray(new String[testConfs.size()]));
         assertEquals(testConfs, confSpec.getConfs());
     }
 
     @Test
     public void testIsSatisfiedBy() {
-        final Dependency dependency = prepareMocks();
-        assertTrue(new DependencyConfigurationSpec(true, TEST_CONF1).isSatisfiedBy(dependency));
-        assertTrue(new DependencyConfigurationSpec(true, TEST_CONF2).isSatisfiedBy(dependency));
-        assertTrue(new DependencyConfigurationSpec(true, TEST_CONF3).isSatisfiedBy(dependency));
-        assertFalse(new DependencyConfigurationSpec(true, TEST_CONF1 + "delta").isSatisfiedBy(dependency));
+        final ConfigurationHolder configurationHolder = prepareMocks();
+        assertTrue(new ConfigurationSpec(true, TEST_CONF1).isSatisfiedBy(configurationHolder));
+        assertTrue(new ConfigurationSpec(true, TEST_CONF2).isSatisfiedBy(configurationHolder));
+        assertTrue(new ConfigurationSpec(true, TEST_CONF3).isSatisfiedBy(configurationHolder));
+        assertFalse(new ConfigurationSpec(true, TEST_CONF1 + "delta").isSatisfiedBy(configurationHolder));
     }
 
     @Test
     public void testIsSatisfiedByWithoutSuperConfs() {
-        final Dependency dependency = prepareMocks();
-        assertTrue(new DependencyConfigurationSpec(false, TEST_CONF1).isSatisfiedBy(dependency));
-        assertTrue(new DependencyConfigurationSpec(false, TEST_CONF2).isSatisfiedBy(dependency));
-        assertFalse(new DependencyConfigurationSpec(false, TEST_CONF3).isSatisfiedBy(dependency));
-        assertFalse(new DependencyConfigurationSpec(false, TEST_CONF1 + "delta").isSatisfiedBy(dependency));
+        final ConfigurationHolder configurationHolder = prepareMocks();
+        assertTrue(new ConfigurationSpec(false, TEST_CONF1).isSatisfiedBy(configurationHolder));
+        assertTrue(new ConfigurationSpec(false, TEST_CONF2).isSatisfiedBy(configurationHolder));
+        assertFalse(new ConfigurationSpec(false, TEST_CONF3).isSatisfiedBy(configurationHolder));
+        assertFalse(new ConfigurationSpec(false, TEST_CONF1 + "delta").isSatisfiedBy(configurationHolder));
     }
 
-    private Dependency prepareMocks() {
-        final Dependency dependency = context.mock(Dependency.class);
+    private ConfigurationHolder prepareMocks() {
+        final ConfigurationHolder configurationHolder = context.mock(ConfigurationHolder.class);
         final Configuration configurationMock3 = createConfigurationMock(TEST_CONF3);
         final Configuration configurationMock1 = createConfigurationMock(TEST_CONF1, configurationMock3);
         final Configuration configurationMock2 = createConfigurationMock(TEST_CONF2);
         context.checking(new Expectations() {{
-            allowing(dependency).getConfigurations(); will(returnValue(WrapUtil.toSet(configurationMock1, configurationMock2)));
+            allowing(configurationHolder).getConfigurations(); will(returnValue(WrapUtil.toSet(configurationMock1, configurationMock2)));
         }});
-        return dependency;
+        return configurationHolder;
     }
 
     private Configuration createConfigurationMock(final String name, final Configuration... superConfs) {
@@ -92,8 +92,8 @@ public class ConfSpecTest {
 
     @Test
     public void equality() {
-        assertTrue(new DependencyConfigurationSpec(false, TEST_CONF1).equals(new DependencyConfigurationSpec(false, TEST_CONF1)));
-        assertFalse(new DependencyConfigurationSpec(true, TEST_CONF1).equals(new DependencyConfigurationSpec(false, TEST_CONF1)));
-        assertFalse(new DependencyConfigurationSpec(true, TEST_CONF1).equals(new DependencyConfigurationSpec(true, TEST_CONF2)));
+        assertTrue(new ConfigurationSpec(false, TEST_CONF1).equals(new ConfigurationSpec(false, TEST_CONF1)));
+        assertFalse(new ConfigurationSpec(true, TEST_CONF1).equals(new ConfigurationSpec(false, TEST_CONF1)));
+        assertFalse(new ConfigurationSpec(true, TEST_CONF1).equals(new ConfigurationSpec(true, TEST_CONF2)));
     }
 }

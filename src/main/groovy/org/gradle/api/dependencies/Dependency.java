@@ -21,14 +21,13 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * <p>A {@code Dependency} represents a dependency on the artifacts from a particular source.</p>
  *
  * @author Hans Dockter
  */
-public interface Dependency extends IvyObjectBuilder<DependencyDescriptor> {
+public interface Dependency extends ConfigurationHolder, IvyObjectBuilder<DependencyDescriptor> {
     public static final String DEFAULT_CONFIGURATION = "default";
     public static final String MASTER_CONFIGURATION = "master";
 
@@ -87,8 +86,6 @@ public interface Dependency extends IvyObjectBuilder<DependencyDescriptor> {
     Map<Configuration, List<String>> getConfigurationMappings();
 
     void addConfiguration(Configuration... masterConfigurations);
-
-    Set<Configuration> getConfigurations();
 
     void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings);
 }
