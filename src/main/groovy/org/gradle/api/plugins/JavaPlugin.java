@@ -23,7 +23,10 @@ import org.gradle.api.dependencies.specs.DependencyTypeSpec;
 import org.gradle.api.dependencies.specs.Type;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Clean;
+import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.Resources;
+import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
@@ -35,7 +38,9 @@ import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -244,24 +249,8 @@ public class JavaPlugin implements Plugin {
         ConfigurationPublishInstruction publishInstruction = new ConfigurationPublishInstruction(configuration.getName());
         publishInstruction.getModuleDescriptor().setIvyFileParentDir(project.getBuildDir());
         upload.setPublishInstruction(publishInstruction);
-        upload.dependsOn(createUploadDependencies(project, configuration));
+        upload.dependsOn(configuration.getBuildArtifactDependencies());
         return upload;
-    }
-
-    private TaskDependency createUploadDependencies(final Project project, final ConfigurationResolver configuration) {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                Set<? extends Task> tasks = new HashSet<Task>();
-                for (PublishArtifact publishArtifact : project.getDependencies().getArtifacts()) {
-                    for (Configuration artifactConfiguration : publishArtifact.getConfigurations()) {
-                        if (configuration.getChain().contains(artifactConfiguration)) {
-                            tasks.addAll((Collection) publishArtifact.getTaskDependency().getDependencies(task));
-                        }
-                    }
-                }
-                return tasks;
-            }
-        };
     }
 
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {

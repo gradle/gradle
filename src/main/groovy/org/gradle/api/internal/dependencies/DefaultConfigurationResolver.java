@@ -138,7 +138,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-                for (PublishArtifact publishArtifact : getAllArtifacts()) {
+                for (ConfigurationResolver configurationResolver : getExtendsFrom()) {
+                    taskDependency.add(configurationResolver.getBuildArtifactDependencies());
+                }
+                for (PublishArtifact publishArtifact : getArtifacts()) {
                     taskDependency.add(publishArtifact.getTaskDependency());
                 }
                 return taskDependency.getDependencies(task);

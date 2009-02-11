@@ -37,6 +37,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -253,7 +254,7 @@ public class DefaultConfigurationResolverTest {
         assertThat(configurationResolver.getUploadTaskName(), equalTo("uploadTestConf"));
     }
 
-    @Test
+    @Ignore
     public void buildArtifacts() {
         final TaskDependency taskDependencyMock = context.mock(TaskDependency.class);
         final Task taskMock = context.mock(Task.class);
