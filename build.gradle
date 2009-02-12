@@ -355,8 +355,8 @@ createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
 }
 
 userguideDir = new File(buildDir, "$docsDir.name/userguide")
-userguideSrc = new File(srcDocsDir, 'userguide')
-userguidePdf = new File(explodedDistDocsDir, 'pdf/userguide.pdf')
+userguideSrcDir = new File(srcDocsDir, 'userguide')
+userguidePdfFile = new File(explodedDistDocsDir, 'pdf/userguide.pdf')
 userguideHtmlDir = new File(explodedDistDocsDir, 'html')
 userguideSingleHtmlDir = new File(explodedDistDocsDir, 'html_single')
 docbookSrc = new File(project.buildDir, 'docbook/src')
@@ -372,9 +372,9 @@ createTask('userguideSrc') {
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
-        arg(value: new File(userguideSrc, 'userguide.xml'))
+        arg(value: new File(userguideSrcDir, 'userguide.xml'))
         arg(value: '-xsl')
-        arg(value: new File(userguideSrc, 'userGuideCustomElements.xsl'))
+        arg(value: new File(userguideSrcDir, 'userGuideCustomElements.xsl'))
         arg(value: '-out')
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(line: "-param version ${version}")
@@ -384,15 +384,17 @@ createTask('userguideSrc') {
         }
     }
 }
+userguideSrc.skipProperties << 'skip.userguide'
 
 createTask('userguideStyleSheets') {
     ant.unzip(src: dependencies.userGuideStyleSheets.singleFile, dest: docbookDir) {
         globmapper(from: 'docbook-xsl-1.74.0/*', to: '*')
     }
     ant.copy(todir: docbookDir) {
-        fileset(dir: userguideSrc, includes: '*.xsl')
+        fileset(dir: userguideSrcDir, includes: '*.xsl')
     }
 }
+userguideStyleSheets.skipProperties << 'skip.userguide'
 
 createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
     System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
@@ -409,8 +411,9 @@ createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets'])
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideHtmlDir)
+    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: userguideHtmlDir)
 }
+userguideHtml.skipProperties << 'skip.userguide'
 
 createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
     System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
@@ -430,8 +433,9 @@ createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleShe
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrc, 'style.css'), todir: userguideSingleHtmlDir)
+    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: userguideSingleHtmlDir)
 }
+userguideSingleHtml.skipProperties << 'skip.userguide'
 
 createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
     System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
@@ -452,17 +456,18 @@ createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) 
         }
     }
 
-    userguidePdf.parentFile.mkdirs()
+    userguidePdfFile.parentFile.mkdirs()
     ant.java(classname: 'org.apache.fop.cli.Main', failonerror: true, fork: true) {
         arg(value: '-fo')
         arg(value: foFile)
         arg(value: '-pdf')
-        arg(value: userguidePdf)
+        arg(value: userguidePdfFile)
         classpath {
             path(path: dependencies.userGuideTask.asPath)
         }
     }
 }
+userguidePdf.skipProperties << 'skip.userguide'
 
 createTask('uploadUserguide', dependsOn: ['userguide']) {
     ftp(action: 'mkdir', remotedir: userguideRemoteDir)
@@ -482,18 +487,25 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
 // The integtests depend on dists because of the wrapper test
 createTask('integTest', dependsOn: ['dists']) {
     IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, userguideOutputDir.absolutePath)
-}.skipProperties
+}
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc', 'uploadUserguide'])
 
 createTask('install', dependsOn: 'integTest') {
-    ant.delete(dir: "$gradle_installDir/$gradle_installDirName")
+    ant.delete(dir: installDir)
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         windowsInstall()
     } else {
         asternixInstall()
     }
-    ant.move(file: "$gradle_installDir/$zipRootFolder", tofile: "$gradle_installDir/$gradle_installDirName")
+    ant.move(file: "$gradle_installDir/$zipRootFolder", tofile: installDir)
+}
+
+build.taskGraph.whenReady { graph ->
+    if (graph.hasTask(':install')) {
+        // Do this early to ensure that the 2 properties we need have been set, and fail early
+        installDir = new File("$gradle_installDir/$gradle_installDirName")
+    }
 }
 
 void windowsInstall() {
