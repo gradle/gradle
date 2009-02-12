@@ -28,7 +28,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.CacheUsage
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultDependencyConfigurationMappingContainer
