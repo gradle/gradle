@@ -17,8 +17,11 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.Project
-import org.gradle.api.dependencies.specs.DependencyTypeSpec
-import org.gradle.api.dependencies.specs.Type
+import org.gradle.api.artifacts.specs.DependencyTypeSpec
+import org.gradle.api.artifacts.specs.Type
+import org.gradle.api.tasks.bundling.AntMetaArchiveParameter
+import org.gradle.api.tasks.bundling.AntWar
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.GUtil
 import org.slf4j.Logger

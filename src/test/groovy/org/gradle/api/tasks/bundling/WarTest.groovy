@@ -19,18 +19,21 @@ package org.gradle.api.tasks.bundling
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.DependencyManager
 import org.gradle.api.GradleScriptException
-import org.gradle.api.dependencies.ConfigurationResolver
-import org.gradle.api.dependencies.ResolveInstruction
-import org.gradle.api.dependencies.specs.DependencyTypeSpec
-import org.gradle.api.dependencies.specs.Type
+import org.gradle.api.artifacts.ConfigurationResolver
+import org.gradle.api.artifacts.ResolveInstruction
+import org.gradle.api.artifacts.specs.DependencyTypeSpec
+import org.gradle.api.artifacts.specs.Type
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.JUnit4GroovyMockery
-import static org.junit.Assert.assertEquals
+import org.jmock.integration.junit4.JMock
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.tasks.bundling.*
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter

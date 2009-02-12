@@ -18,25 +18,27 @@ package org.gradle.api.tasks.javadoc;
 import org.apache.tools.ant.BuildException;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.GradleException;
-import org.gradle.api.dependencies.ConfigurationResolver;
-import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier;
+import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
+import org.gradle.api.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.JMockUtil;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import static java.util.Collections.*;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)

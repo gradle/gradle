@@ -16,27 +16,24 @@
 
 package org.gradle.initialization
 
-import org.gradle.StartParameter
+import org.gradle.api.DependencyManager
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurationResolver
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.initialization.BuildListenerAction
+import org.gradle.initialization.BuildSourceBuilder
+import org.gradle.initialization.CacheInvalidationStrategy
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNull
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.GradleFactory
-import org.gradle.Gradle
-import org.gradle.BuildListener
-import org.gradle.api.DependencyManager
-import org.gradle.api.dependencies.Dependency
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.CacheUsage
-import org.gradle.api.dependencies.Configuration
-import org.gradle.api.plugins.ReportingBasePlugin
-import org.gradle.api.dependencies.ConfigurationResolver
+import org.gradle.*
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter

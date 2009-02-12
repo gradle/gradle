@@ -265,7 +265,7 @@ uploadLibs {
     }
 }
 ]]></programlisting>
-            <para>To learn more about this have a look at <apilink class="org.gradle.api.dependencies.maven.GroovyPomFilterContainer"/>
+            <para>To learn more about this have a look at <apilink class="org.gradle.api.artifacts.maven.GroovyPomFilterContainer"/>
                 and its associated classes.
             </para>
         </section>
@@ -278,7 +278,7 @@ uploadLibs {
                 configurations can be mapped to more than one scope. One can assign also a priority to a particular
                 configuration-to-scope mapping. The default mapping is accessible via the dependency manager like
                 <literal>dependencies.defaultMavenScopeMapping</literal>. Have a look at
-                <apilink class="org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer"/>
+                <apilink class="org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer"/>
                 to learn how you can use the returned instance. Let's look at different mapping scenarios:
             </para>
             <itemizedlist>

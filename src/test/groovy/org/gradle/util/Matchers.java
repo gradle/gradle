@@ -16,8 +16,8 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
-import org.gradle.api.dependencies.ResolveInstruction;
-import org.gradle.api.dependencies.ResolveInstructionModifier;
+import org.gradle.api.artifacts.ResolveInstruction;
+import org.gradle.api.artifacts.ResolveInstructionModifier;
 import org.gradle.api.specs.Spec;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;

@@ -17,22 +17,22 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.DependencyManager
 import org.gradle.api.GradleScriptException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.dependencies.DefaultPublishArtifact
 import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.tasks.bundling.AntArchiveParameter
+import org.gradle.api.tasks.bundling.AntMetaArchiveParameter
+import org.gradle.api.tasks.bundling.ArchiveDetector
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.util.HelperUtil
-import org.gradle.util.JUnit4GroovyMockery
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.internal.dependencies.ArchivePublishArtifact
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter

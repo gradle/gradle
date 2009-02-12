@@ -20,8 +20,8 @@ import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.ProjectDependency;
-import org.gradle.api.internal.dependencies.DefaultProjectDependency;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 
 import java.util.*;
 

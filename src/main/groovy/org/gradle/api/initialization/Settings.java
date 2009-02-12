@@ -17,15 +17,15 @@
 package org.gradle.api.initialization;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolverContainer;
 
 import java.io.File;
 

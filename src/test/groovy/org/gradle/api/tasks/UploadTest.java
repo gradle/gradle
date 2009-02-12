@@ -16,24 +16,22 @@
 
 package org.gradle.api.tasks;
 
-import groovy.mock.interceptor.MockFor;
 import org.gradle.api.DependencyManager;
-import org.gradle.api.dependencies.ConfigurationPublishInstruction;
-import org.gradle.api.dependencies.ConfigurationResolver;
+import org.gradle.api.artifacts.ConfigurationPublishInstruction;
+import org.gradle.api.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**

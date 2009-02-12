@@ -15,7 +15,7 @@
  */
 package org.gradle.api.specs;
 
-import org.gradle.api.dependencies.Dependency;
+import org.gradle.api.artifacts.Dependency;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

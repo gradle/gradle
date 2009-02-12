@@ -17,14 +17,16 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
-import static org.gradle.util.WrapUtil.*
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.junit.Test
-import org.gradle.api.dependencies.Dependency
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.project.PluginRegistry
-import org.gradle.api.internal.dependencies.Configurations
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.util.HelperUtil
+import org.junit.Test
+import static org.gradle.util.WrapUtil.toSet
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter

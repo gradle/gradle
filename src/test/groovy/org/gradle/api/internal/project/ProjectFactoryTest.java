@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.project;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.BuildInternal;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.internal.artifacts.DependencyManagerFactory;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -33,7 +34,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;

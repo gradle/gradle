@@ -15,11 +15,11 @@
  */
 package org.gradle.util;
 
-import org.jmock.Mockery;
-import org.jmock.Expectations;
-import org.gradle.api.dependencies.ConfigurationResolveInstructionModifier;
-import org.gradle.api.dependencies.ConfigurationResolver;
 import org.gradle.api.DependencyManager;
+import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
+import org.gradle.api.artifacts.ConfigurationResolver;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
 
 import java.io.File;
 import java.util.List;

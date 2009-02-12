@@ -17,16 +17,18 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.plugins.GroovyPlugin
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
-import static org.gradle.util.WrapUtil.*
+import org.junit.Test
+import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.junit.Test
-import org.gradle.api.internal.dependencies.Configurations
 
 /**
  * @author Hans Dockter

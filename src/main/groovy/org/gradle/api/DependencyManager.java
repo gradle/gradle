@@ -17,19 +17,16 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.dependencies.*;
-import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.dependencies.ConfigurationResolver;
+import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -186,7 +183,7 @@ public interface DependencyManager extends DependencyContainer {
     
     /**
      * Returns the default mapping between configurations and Maven scopes. This default mapping is used by default a
-     * {@link org.gradle.api.internal.dependencies.maven.deploy.BaseMavenDeployer} to create and deploy pom. If wished,
+     * {@link org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer} to create and deploy pom. If wished,
      * a MavenUploadResolver sepcific setting can be defined.
      */
     Conf2ScopeMappingContainer getDefaultMavenScopeMapping();
@@ -221,7 +218,7 @@ public interface DependencyManager extends DependencyContainer {
     ConfigurationResolver addConfiguration(String configuration, Closure configureClosure) throws InvalidUserDataException;
 
     /**
-     * <p>Locates a {@link org.gradle.api.dependencies.Configuration} by name.</p>
+     * <p>Locates a {@link org.gradle.api.artifacts.Configuration} by name.</p>
      *
      * @param name The name of the configuration.
      * @return The configuration. Returns null if the configuration cannot be found.
@@ -229,18 +226,18 @@ public interface DependencyManager extends DependencyContainer {
     ConfigurationResolver findConfiguration(String name);
 
     /**
-     * <p>Locates a {@link org.gradle.api.dependencies.Configuration} by name.</p>
+     * <p>Locates a {@link org.gradle.api.artifacts.Configuration} by name.</p>
      *
      * <p>You can also call this method from your build script by using the name of the configuration.</p>
      *
      * @param name The name of the configuration.
      * @return The configuration. Never returns null.
-     * @throws org.gradle.api.dependencies.UnknownConfigurationException when a configuration with the given name cannot be found.
+     * @throws org.gradle.api.artifacts.UnknownConfigurationException when a configuration with the given name cannot be found.
      */
     ConfigurationResolver configuration(String name) throws UnknownConfigurationException;
 
     /**
-     * <p>Locates a {@link org.gradle.api.dependencies.Configuration} by name and configures it.</p>
+     * <p>Locates a {@link org.gradle.api.artifacts.Configuration} by name and configures it.</p>
      *
      * <p>You can also call this method from your build script by using the name of the configuration followed by a
      * closure.</p>
@@ -248,7 +245,7 @@ public interface DependencyManager extends DependencyContainer {
      * @param name The name of the configuration.
      * @param configureClosure The closure to use to configure the configuration.
      * @return The configuration. Never returns null.
-     * @throws org.gradle.api.dependencies.UnknownConfigurationException when a configuration with the given name cannot be found.
+     * @throws org.gradle.api.artifacts.UnknownConfigurationException when a configuration with the given name cannot be found.
      */
     ConfigurationResolver configuration(String name, Closure configureClosure) throws UnknownConfigurationException;
 

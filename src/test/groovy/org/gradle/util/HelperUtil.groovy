@@ -28,10 +28,10 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.CacheUsage
 import org.gradle.StartParameter
-import org.gradle.api.internal.dependencies.DefaultConfiguration
-import org.gradle.api.internal.dependencies.DefaultDependencyConfigurationMappingContainer
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
-import org.gradle.api.internal.project.*
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
+import org.gradle.api.internal.artifacts.configurations.DefaultDependencyConfigurationMappingContainer
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
@@ -43,6 +43,8 @@ import org.gradle.initialization.ISettingsFinder
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
+import org.gradle.util.WrapUtil
+import org.gradle.api.internal.project.*
 
 /**
  * @author Hans Dockter
@@ -199,7 +201,7 @@ class HelperUtil {
 
     static DefaultDependencyConfigurationMappingContainer getConfMappings(def confsCollection) {
         DefaultDependencyConfigurationMappingContainer testConfigurationMappings = new DefaultDependencyConfigurationMappingContainer()
-        testConfigurationMappings.addMasters(confsCollection.collect { new DefaultConfiguration(it, null) } as org.gradle.api.dependencies.Configuration[])
+        testConfigurationMappings.addMasters(confsCollection.collect { new DefaultConfiguration(it, null) } as org.gradle.api.artifacts.Configuration[])
         testConfigurationMappings
     }
 

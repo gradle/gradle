@@ -17,10 +17,10 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.dependencies.*;
-import org.gradle.api.dependencies.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.dependencies.specs.DependencyTypeSpec;
-import org.gradle.api.dependencies.specs.Type;
+import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.specs.DependencyTypeSpec;
+import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;

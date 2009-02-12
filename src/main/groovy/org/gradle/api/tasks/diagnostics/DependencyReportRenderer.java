@@ -15,8 +15,8 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.dependencies.report.IvyDependencyGraph;
-import org.gradle.api.dependencies.Configuration;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.report.IvyDependencyGraph;
 
 import java.io.IOException;
 

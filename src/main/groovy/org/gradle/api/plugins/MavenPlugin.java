@@ -17,12 +17,11 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.PublishInstruction;
-import org.gradle.api.dependencies.ConfigurationPublishInstruction;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.tasks.Upload;
+import org.gradle.api.artifacts.ConfigurationPublishInstruction;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.artifacts.DependencyManagerInternal;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.internal.dependencies.DependencyManagerInternal;
+import org.gradle.api.tasks.Upload;
 import org.gradle.util.GUtil;
 
 import java.util.Map;

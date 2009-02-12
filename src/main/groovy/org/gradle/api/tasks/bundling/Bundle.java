@@ -19,11 +19,10 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.dependencies.Configuration;
-import org.gradle.api.dependencies.ConfigurationResolver;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.dependencies.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 

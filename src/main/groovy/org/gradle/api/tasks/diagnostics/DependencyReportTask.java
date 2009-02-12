@@ -16,17 +16,16 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
-import org.gradle.api.dependencies.ConfigurationResolver;
-import org.gradle.api.dependencies.ResolveInstruction;
-import org.gradle.api.dependencies.ResolveInstructionModifier;
-import org.gradle.api.dependencies.report.IvyDependencyGraph;
-import org.gradle.api.dependencies.report.IvyDependencyGraphBuilder;
-import org.gradle.api.internal.dependencies.DependencyManagerInternal;
+import org.gradle.api.artifacts.ConfigurationResolver;
+import org.gradle.api.artifacts.ResolveInstruction;
+import org.gradle.api.artifacts.ResolveInstructionModifier;
+import org.gradle.api.artifacts.report.IvyDependencyGraph;
+import org.gradle.api.artifacts.report.IvyDependencyGraphBuilder;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * The {@code DependencyReportTask} displays the dependency tree for a project. Can be configured to output to a file,

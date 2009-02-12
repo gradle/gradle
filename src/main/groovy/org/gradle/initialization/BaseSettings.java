@@ -19,31 +19,29 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
-import org.gradle.invocation.DefaultBuild;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.dependencies.Dependency;
-import org.gradle.api.dependencies.ResolverContainer;
-import org.gradle.api.dependencies.ConfigurationResolvers;
+import org.gradle.api.artifacts.ConfigurationResolvers;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.internal.artifacts.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.invocation.DefaultBuild;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URLClassLoader;
-import java.util.Map;
-import java.util.Set;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter

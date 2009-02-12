@@ -16,9 +16,12 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ConfigurationResolver
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ITaskFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -28,16 +31,15 @@ import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.ConventionValue
 import org.gradle.api.tasks.bundling.Bundle.ConfigureAction
 import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.DependencyManager
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.gradle.api.dependencies.ConfigurationResolver
-import org.gradle.api.dependencies.PublishArtifact
+import org.gradle.api.tasks.bundling.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 
 /**
  * @author Hans Dockter

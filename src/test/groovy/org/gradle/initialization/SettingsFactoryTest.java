@@ -18,14 +18,15 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
+import org.gradle.api.internal.artifacts.DependencyManagerFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

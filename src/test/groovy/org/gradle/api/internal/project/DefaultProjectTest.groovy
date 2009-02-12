@@ -20,9 +20,9 @@ import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
-import org.gradle.api.*
+import org.gradle.api.Project.State
 import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.dependencies.DependencyManagerFactory
+import org.gradle.api.internal.artifacts.DependencyManagerFactory
 import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
@@ -34,15 +34,18 @@ import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.invocation.DefaultBuild
+import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
-import static org.hamcrest.Matchers.*
+import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.util.HelperUtil
+import org.gradle.api.*
+import org.gradle.api.internal.project.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter

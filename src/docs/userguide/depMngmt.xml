@@ -154,7 +154,7 @@ dependencies {
 }
 ]]></programlisting>
             <para>Have a look at
-                <apilink class='org.gradle.api.dependencies.ModuleDependency'/> to learn more about the API.
+                <apilink class='org.gradle.api.artifacts.ModuleDependency'/> to learn more about the API.
             </para>
             <section id='ssub:classifiers'>
                 <title>Classifiers</title>
@@ -199,7 +199,7 @@ addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") 
             <para>This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does
                 not look for an xml descriptor to figure them out but gets the information from the build file. The
                 dependencies of a client module can be normal module dependencies or artifact dependencies or another
-                client module. Have also a look at <apilink class='org.gradle.api.dependencies.ClientModule'/>
+                client module. Have also a look at <apilink class='org.gradle.api.artifacts.ClientModule'/>
             </para>
             <para>In the current release
                 <emphasis>Client Modules</emphasis>
@@ -221,7 +221,7 @@ dependencies {
     compile project(':shared')
 }
 ]]></programlisting>
-            <para>Have also a look at <apilink class="org.gradle.api.dependencies.ProjectDependency"/>
+            <para>Have also a look at <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
             </para>
             <para>Multi-project builds are discussed in <xref linkend='cha:multi_project_builds'/>.
             </para>
@@ -249,7 +249,7 @@ dependencies {
           ExactPatternMatcher.INSTANCE, null));
 }
 ]]></programlisting>
-            <para>Have also a look at <apilink class="org.gradle.api.dependencies.ExcludeRuleContainer"/>
+            <para>Have also a look at <apilink class="org.gradle.api.artifacts.ExcludeRuleContainer"/>
             </para>
         </section>
         <section id='sub:ivy_dependencies'>
@@ -259,7 +259,7 @@ dependencies {
                 need to options that can't be expresses by the Gradle domain, you have two options:
             </para>
             <para>You can use our ivy transforms to modify the Ivy objects created by Gradle. Look at
-                <apilink class='org.gradle.api.dependencies.Dependency'/> to learn more.
+                <apilink class='org.gradle.api.artifacts.Dependency'/> to learn more.
             </para>
             <para>Or you can pass ivy dependency objects directly to Gradle.
             </para>
@@ -687,7 +687,7 @@ project-root
                 <literal>uploadResolvers</literal>
                 property. You can assign one resolver to multiple hooks.
             </para>
-            <para>All of those hooks are instances of <apilink class="org.gradle.api.dependencies.ResolverContainer"/>.
+            <para>All of those hooks are instances of <apilink class="org.gradle.api.artifacts.ResolverContainer"/>.
                 This class provided methods for adding new resolvers at a particular position in the resolve chain.
                 <footnote>
                     <para>Ivy power users can set <literal>dependencies.chainConfigurer = { // some statements }</literal>.

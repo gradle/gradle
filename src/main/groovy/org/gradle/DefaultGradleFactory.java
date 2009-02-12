@@ -15,16 +15,16 @@
  */
 package org.gradle;
 
+import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory;
+import org.gradle.api.internal.artifacts.DependencyManagerFactory;
 import org.gradle.api.internal.project.*;
-import org.gradle.api.internal.dependencies.DependencyManagerFactory;
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.groovy.scripts.*;
-import org.gradle.initialization.*;
-import org.gradle.util.WrapUtil;
-import org.gradle.logging.AntLoggingAdapter;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
+import org.gradle.groovy.scripts.*;
+import org.gradle.initialization.*;
+import org.gradle.logging.AntLoggingAdapter;
+import org.gradle.util.WrapUtil;
 
 /**
  * @author Hans Dockter
