@@ -24,17 +24,17 @@ import java.io.StringWriter;
 
 public class PropertyReportRendererTest {
     private StringWriter out;
-    private PropertyReportRenderer formatter;
+    private PropertyReportRenderer renderer;
 
     @Before
     public void setUp() {
         out = new StringWriter();
-        formatter = new PropertyReportRenderer(out);
+        renderer = new PropertyReportRenderer(out);
     }
 
     @Test
     public void writesProperty() {
-        formatter.addProperty("prop", "value");
+        renderer.addProperty("prop", "value");
 
         assertThat(out.toString(), containsLine("prop: value"));
     }

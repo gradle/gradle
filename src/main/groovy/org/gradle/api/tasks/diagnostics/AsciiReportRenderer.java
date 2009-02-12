@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.report.IvyDependency;
 import org.gradle.api.artifacts.report.IvyDependencyGraph;
+import org.gradle.api.Project;
 
 import java.io.IOException;
 
@@ -27,9 +28,32 @@ import java.io.IOException;
  * @author Phil Messenger
  */
 public class AsciiReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
+    private boolean hasConfigs;
+
+    public AsciiReportRenderer() {
+    }
+
+    public AsciiReportRenderer(Appendable writer) {
+        super(writer);
+    }
+
+    @Override
+    public void startProject(Project project) {
+        super.startProject(project);
+        hasConfigs = false;
+    }
+
+    @Override
+    public void completeProject(Project project) {
+        if (!hasConfigs) {
+            getFormatter().format("No configurations%n");
+        }
+        super.completeProject(project);
+    }
 
     public void startConfiguration(Configuration configuration) {
-        getFormatter().format("Configuration '%s'%n", configuration.getName());
+        hasConfigs = true;
+        getFormatter().format("%s%n", configuration.getName());
     }
 
     public void completeConfiguration(Configuration configuration) {
@@ -62,7 +86,7 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
                 buffer.append("|");
             }
 
-			buffer.append("\t");
+			buffer.append("      ");
 		}
 
 		buffer.append("|-----");

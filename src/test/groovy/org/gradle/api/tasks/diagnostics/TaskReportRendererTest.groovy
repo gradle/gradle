@@ -28,8 +28,8 @@ import org.junit.Test
  * @author Hans Dockter
  */
 class TaskReportRendererTest {
-    StringWriter writer = new StringWriter()
-    TaskReportRenderer renderer = new TaskReportRenderer(writer)
+    private final StringWriter writer = new StringWriter()
+    private final TaskReportRenderer renderer = new TaskReportRenderer(writer)
 
     @Test public void testWritesTaskAndDependencies() {
         Task task11 = [getPath: {':task11'}] as Task

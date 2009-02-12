@@ -67,8 +67,6 @@ public class TextProjectReportRendererTest {
         context.checking(new Expectations() {{
             allowing(project).getRootProject();
             will(returnValue(project));
-            allowing(project).getPath();
-            will(returnValue("<path>"));
         }});
 
         TextProjectReportRenderer renderer = new TextProjectReportRenderer(writer);
@@ -76,7 +74,7 @@ public class TextProjectReportRendererTest {
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(writer.toString(), containsLine("Root Project <path>"));
+        assertThat(writer.toString(), containsLine("Root Project"));
     }
     
     @Test

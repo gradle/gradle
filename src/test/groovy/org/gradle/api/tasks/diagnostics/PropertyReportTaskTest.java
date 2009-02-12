@@ -73,4 +73,21 @@ public class PropertyReportTaskTest {
 
         task.generate(project);
     }
+
+    @Test
+    public void doesNotShowContentsOfThePropertiesProperty() throws IOException {
+        context.checking(new Expectations() {{
+            one(project).getProperties();
+            will(returnValue(GUtil.map("prop", "value", "properties", "prop")));
+
+            Sequence sequence = context.sequence("seq");
+
+            one(renderer).addProperty("prop", "value");
+            inSequence(sequence);
+            one(renderer).addProperty("properties", "{...}");
+            inSequence(sequence);
+        }});
+
+        task.generate(project);
+    }
 }

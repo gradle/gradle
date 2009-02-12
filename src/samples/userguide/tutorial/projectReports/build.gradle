@@ -5,5 +5,11 @@ createTask('clean', description: "Deletes the build directory ($buildDirName)")
 createTask('dists', dependsOn: {subprojects.collect{project -> project.libs}})
 
 subprojects {
+    dependencies {
+        addMavenRepo()
+        addConfiguration('compile')
+        compile "commons-io:commons-io:1.2"
+    }
+    
     createTask('libs')
 }

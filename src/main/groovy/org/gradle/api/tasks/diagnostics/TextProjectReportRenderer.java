@@ -45,7 +45,7 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
     public void startProject(Project project) {
         formatter.format("%n%s%n", SEPARATOR);
         if (project.getRootProject() == project) {
-            formatter.format("Root Project %s%n", project.getPath());
+            formatter.format("Root Project%n");
         } else {
             formatter.format("Project %s%n", project.getPath());
         }
