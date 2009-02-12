@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.artifacts.ivyservice.ClientModuleDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.DependencyContainerInternal;
 import org.gradle.util.HelperUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;

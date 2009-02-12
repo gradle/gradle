@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDependencyNotation;

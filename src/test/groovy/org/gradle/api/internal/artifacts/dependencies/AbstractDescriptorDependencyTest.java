@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.internal.artifacts.dependencies.AbstractDescriptorDependency;
 import static org.junit.Assert.assertEquals;
