@@ -25,4 +25,6 @@ compile {
 manifest.mainAttributes(myprop: 'myvalue')
 metaInf << new FileSet(new File(srcRoot, 'metaInfFiles'))
 
-test.options.systemProperties['org.gradle.integtest.buildDir'] = buildDir.absolutePath
+test {
+	useJUnit().options.systemProperties['org.gradle.integtest.buildDir'] = buildDir.absolutePath
+}

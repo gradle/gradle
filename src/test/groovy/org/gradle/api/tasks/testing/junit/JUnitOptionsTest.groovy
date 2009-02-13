@@ -14,29 +14,32 @@
  * limitations under the License.
  */
  
-package org.gradle.api.tasks.testing
+package org.gradle.api.tasks.testing.junit
 
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.api.tasks.testing.junit.JUnitOptions
+import org.gradle.api.tasks.testing.FormatterOptions
+import org.gradle.api.tasks.testing.JunitForkOptions;
 
 /**
  * @author Hans Dockter
  */
-class JunitOptionsTest {
+class JUnitOptionsTest {
     static final Map TEST_FORMATTER_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
-    JunitOptions junitOptions
+    JUnitOptions junitOptions
 
     @Before public void setUp()  {
-        junitOptions = new JunitOptions()
+        junitOptions = new JUnitOptions()
         junitOptions.formatterOptions  = [optionMap: {TEST_FORMATTER_OPTION_MAP}] as FormatterOptions
         junitOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as JunitForkOptions
     }
 
     @Test public void testCompileOptions() {
-        junitOptions = new JunitOptions()
+        junitOptions = new JUnitOptions()
         assertTrue(junitOptions.fork)
         assertTrue(junitOptions.filterTrace)
         assertTrue(junitOptions.reloading)

@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing
+package org.gradle.api.tasks.testing.junit
 
 import org.gradle.api.tasks.compile.AbstractOptions
+import org.gradle.api.tasks.testing.FormatterOptions
+import org.gradle.api.tasks.testing.JunitForkOptions
+import org.gradle.api.tasks.testing.AbstractTestFramework
+import org.gradle.api.GradleException
 
 /**
  * @author Hans Dockter
  */
-class JunitOptions extends AbstractOptions {
+class JUnitOptions extends AbstractOptions {
     boolean fork = true
     boolean filterTrace = true
     boolean showOutput = false
@@ -55,9 +59,27 @@ class JunitOptions extends AbstractOptions {
         super.optionMap() + forkOptions.optionMap()
     }
 
-    JunitOptions fork(Map forkArgs) {
+    JUnitOptions fork(Map forkArgs) {
         fork = true
         forkOptions.define(forkArgs)
         this
+    }
+
+    public def propertyMissing(String name) {
+        throw new GradleException(
+            """
+            Property ${name} could not be found in the options of the JUnit test framework.
+
+            ${AbstractTestFramework.USE_OF_CORRECT_TEST_FRAMEWORK}
+            """);
+    }
+
+    public def methodMissing(String name, args) {
+        throw new GradleException(
+            """
+            Method ${name} could not be found in the options of the JUnit test framework.
+
+            ${AbstractTestFramework.USE_OF_CORRECT_TEST_FRAMEWORK}
+            """);
     }
 }

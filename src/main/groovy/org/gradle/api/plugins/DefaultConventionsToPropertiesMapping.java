@@ -151,6 +151,17 @@ public class DefaultConventionsToPropertiesMapping {
         public Object getValue(Convention convention, Task task) {
             return task.getProject().getDependencies();
         }
+    },
+			"testSrcDirs", new ConventionValue() {
+        public Object getValue(Convention convention, Task task) {
+            // TODO IMPROVE I really don't like this but don't know a better way at the moment
+            if ( task.getProject().getAppliedPlugins().contains(GroovyPlugin.class) ) {
+                return ((GroovyPluginConvention) convention.getPlugins().get("groovy")).getGroovyTestSrcDirs();
+            }
+            else {
+                return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestSrcDirs();
+            }
+        }
     });
 
     public final static Map ARCHIVE = GUtil.map(

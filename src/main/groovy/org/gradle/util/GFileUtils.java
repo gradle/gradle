@@ -32,7 +32,9 @@ import java.net.URL;
  * @author Hans Dockter
  */
 public class GFileUtils {
-    
+
+    public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+
     public static FileInputStream openInputStream(File file) {
         try {
             return FileUtils.openInputStream(file);
@@ -87,6 +89,17 @@ public class GFileUtils {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static File toFile(String...filePathParts) {
+        final StringWriter filePathBuffer = new StringWriter();
+        
+        for ( int i=0;i<filePathParts.length;i++) {
+            filePathBuffer.write(filePathParts[i]);
+            if ( i+1 < filePathParts.length ) filePathBuffer.write(FILE_SEPARATOR);
+        }
+
+        return new File(filePathBuffer.toString());
     }
 
     public static File toFile(URL url) {

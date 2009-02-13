@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing
+package org.gradle.api.tasks.testing.junit
 
 import org.gradle.util.BootstrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.tasks.testing.Test
 
 
 /**
@@ -27,20 +28,18 @@ import org.slf4j.LoggerFactory
 //todo: assertions for fork and permissions for non fork
 //todo: offer all the power of ant selectors
 //todo: Find a more stable way to find the ant junit jars
-class AntJunit {
-    private static Logger logger = LoggerFactory.getLogger(AntJunit)
+class AntJUnitExecute {
+    private static Logger logger = LoggerFactory.getLogger(AntJUnitExecute)
 
     private static final String CLASSPATH_ID = 'runtests.classpath'
 
-    public static final String FAILURES_OR_ERRORS_PROPERTY = 'org.gradle.api.tasks.testing.failuresOrErrors'
-
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, File testReportDir, List includes, List excludes, JunitOptions junitOptions, AntBuilder ant) {
+    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, List includes, List excludes, JUnitOptions junitOptions, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)
         createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles)
         Map otherArgs = [
                 includeantruntime: 'false',
-                errorproperty: FAILURES_OR_ERRORS_PROPERTY,
-                failureproperty: FAILURES_OR_ERRORS_PROPERTY
+                errorproperty: Test.FAILURES_OR_ERRORS_PROPERTY,
+                failureproperty: Test.FAILURES_OR_ERRORS_PROPERTY
         ]
         ant.junit(otherArgs + junitOptions.optionMap()) {
             junitOptions.forkOptions.jvmArgs.each {
@@ -66,10 +65,6 @@ class AntJunit {
             classpath() {
                 path(refid: CLASSPATH_ID)
             }
-        }
-        ant.junitreport(todir: testResultsDir.absolutePath) {
-            fileset(dir: testResultsDir.absolutePath, includes: '*.xml')
-            report(todir: testReportDir.absolutePath)
         }
     }
 

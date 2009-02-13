@@ -21,14 +21,20 @@ import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.compile.ClasspathConverter;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+
+import groovy.lang.MissingPropertyException;
+import groovy.lang.Closure;
 
 /**
  * A task for executin Junit 3.8.x and Junit 4 tests.
@@ -38,13 +44,17 @@ import java.util.List;
 public class Test extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Test.class);
 
+    public static final String FAILURES_OR_ERRORS_PROPERTY = "org.gradle.api.tasks.testing.failuresOrErrors";
+
+    public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
+
+    private List testSrcDirs = null;
+
     private File testClassesDir = null;
 
     private File testResultsDir = null;
 
     private File testReportDir = null;
-
-    private JunitOptions options = new JunitOptions();
 
     private List<String> includes;
 
@@ -54,8 +64,6 @@ public class Test extends ConventionTask {
 
     private List unmanagedClasspath = null;
 
-    private AntJunit antJunit = new AntJunit();
-
     private DependencyManager dependencyManager = null;
 
     private ConfigurationResolveInstructionModifier resolveInstructionModifier;
@@ -63,6 +71,10 @@ public class Test extends ConventionTask {
     protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
 
     protected ClasspathConverter classpathConverter = new ClasspathConverter();
+
+    private TestFramework testFramework = null;
+
+    private boolean testReport = true;
 
     public Test(Project project, String name) {
         super(project, name);
@@ -74,16 +86,22 @@ public class Test extends ConventionTask {
     }
 
     protected void executeTests(Task task) {
-        if (getTestClassesDir() == null) throw new InvalidUserDataException(
-                "The testClassesDir property is not set, testing can't be triggered!");
-        if (getTestResultsDir() == null) throw new InvalidUserDataException(
-                "The testResultsDir property is not set, testing can't be triggered!");
+        if (getTestClassesDir() == null)
+            throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
+        if (getTestResultsDir() == null)
+            throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!");
 
         existingDirsFilter.checkExistenceAndThrowStopActionIfNot(getTestClassesDir());
 
-        antJunit.execute(getTestClassesDir(), getClasspath(), getTestResultsDir(), getTestReportDir(), includes,
-                excludes, options, getProject().getAnt());
-        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(AntJunit.FAILURES_OR_ERRORS_PROPERTY))) {
+        final TestFramework testFramework = getTestFramework();
+
+        testFramework.execute(getProject(), this);
+
+        if (testReport) {
+            testFramework.report(getProject(), this);
+        }
+
+        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
     }
@@ -178,23 +196,6 @@ public class Test extends ConventionTask {
     }
 
     /**
-     * Returns an JUnit option instance to read or modify.
-     * @return
-     */
-    public JunitOptions getOptions() {
-        return options;
-    }
-
-    /**
-     * Sets a new JUnit options instance. It is usually not necessary to set a new instance.
-     * 
-     * @param options The new instance
-     */
-    public void setOptions(JunitOptions options) {
-        this.options = options;
-    }
-
-    /**
      * Returns the include patterns for test execution.
      * 
      * @see #include(String[])
@@ -264,20 +265,89 @@ public class Test extends ConventionTask {
         this.unmanagedClasspath = unmanagedClasspath;
     }
 
-    /**
-     * Returns the AntJunit instance the test execution is delegated to.
-     */
-    public AntJunit getAntJunit() {
-        return antJunit;
+    public TestFramework getTestFramework() {
+        return getTestFramework(null);
+    }
+
+    public TestFramework getTestFramework(Closure testFrameworkConfigure) {
+        if ( testFramework == null ) {
+            return useDefaultTestFramework(testFrameworkConfigure);
+        }
+
+        return testFramework;
     }
 
     /**
-     * Sets the AntJunit instance the test execution is delegated to.
+     * Backwards compatible access to the TestFramework options.
+     *
+     * Be sure to call the appropriate useJUnit/useTestNG/useTestFramework function or set the default before using this function.
      * 
-     * @param antJunit The new instance
+     * @return
      */
-    public void setAntJunit(AntJunit antJunit) {
-        this.antJunit = antJunit;
+    public Object getOptions() {
+        return getTestFramework().getOptions();
+    }
+
+    public TestFramework useTestFramework(TestFramework testFramework) {
+        return useTestFramework(testFramework, null);
+    }
+
+    public TestFramework useTestFramework(TestFramework testFramework, Closure testFrameworkConfigure) {
+        if ( testFramework == null )
+            throw new IllegalArgumentException("testFramework is null!");
+
+        testFramework.initialize(getProject(), this);
+
+        this.testFramework = testFramework;
+
+        if ( testFrameworkConfigure != null )
+            ConfigureUtil.configure(testFrameworkConfigure, testFramework.getOptions());
+
+        return testFramework;
+    }
+
+    public TestFramework useJUnit() {
+        return useJUnit(null);
+    }
+
+    public TestFramework useJUnit(Closure testFrameworkConfigure) {
+        return useTestFramework(new JUnitTestFramework(), testFrameworkConfigure);
+    }
+
+    public TestFramework useTestNG() {
+        return useTestNG(null);
+    }
+
+    public TestFramework useTestNG(Closure testFrameworkConfigure) {
+        return useTestFramework(new TestNGTestFramework(), testFrameworkConfigure);
+    }
+
+    public TestFramework useDefaultTestFramework(Closure testFrameworkConfigure) {
+        try {
+            final String testFrameworkDefault = (String)getProject().property(TEST_FRAMEWORK_DEFAULT_PROPERTY);
+
+            if ( testFrameworkDefault == null || "".equals(testFrameworkDefault) || "junit".equalsIgnoreCase(testFrameworkDefault) ) {
+                return useJUnit();
+            }
+            else if ( "testng".equalsIgnoreCase(testFrameworkDefault) ) {
+                return useTestNG();
+            }
+            else {
+                try {
+                    final Class testFrameworkClass = Class.forName(testFrameworkDefault);
+
+                    return useTestFramework((TestFramework)testFrameworkClass.newInstance(), testFrameworkConfigure);
+                } catch (ClassNotFoundException e) {
+                    throw new GradleException(testFrameworkDefault + " could not be found on the classpath", e);
+                } catch (Exception e) {
+                    throw new GradleException("Could not create an instance of the test framework class " + testFrameworkDefault + ". Make sure that it has a public noargs constructor.", e);
+                }
+
+            }
+        }
+        catch ( MissingPropertyException e ) {
+            return useJUnit();
+        }
     }
 
     /**
@@ -302,5 +372,29 @@ public class Test extends ConventionTask {
 
     public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
         this.resolveInstructionModifier = resolveInstructionModifier;
+	}
+
+    public boolean isTestReport() {
+        return testReport;
+    }
+
+    public void setTestReport(boolean testReport) {
+        this.testReport = testReport;
+    }
+
+    public void enableTestReport() {
+        this.testReport = true;
+    }
+
+    public void disableTestReport() {
+        this.testReport = false;
+    }
+
+    public List getTestSrcDirs() {
+        return (List) conv(testSrcDirs, "testSrcDirs");
+    }
+
+    public void setTestSrcDirs(List testSrcDir) {
+        this.testSrcDirs = testSrcDir;
     }
 }

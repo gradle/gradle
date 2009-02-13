@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.testing;
 
-import groovy.util.AntBuilder;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
@@ -32,11 +31,8 @@ import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.GUtil;
 import org.gradle.util.JMockUtil;
 import org.gradle.util.WrapUtil;
-import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
-import org.jmock.api.Action;
-import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
@@ -70,7 +66,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private AntJunit antJunitMock;
+    TestFramework testFrameworkMock;
 
     private DependencyManager dependencyManagerMock;
 
@@ -80,7 +76,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        antJunitMock = context.mock(AntJunit.class);
+        testFrameworkMock = context.mock(TestFramework.class);
         classpathConverterMock = context.mock(ClasspathConverter.class);
         existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
         dependencyManagerMock = context.mock(DependencyManager.class);
@@ -88,7 +84,10 @@ public class TestTest extends AbstractConventionTaskTest {
         super.setUp();
         test = new Test(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         ((AbstractProject) test.getProject()).setProjectDir(TEST_ROOT_DIR);
-        test.setAntJunit(antJunitMock);
+        context.checking(new Expectations(){{
+            one(testFrameworkMock).initialize(getProject(), test);
+        }});
+        test.useTestFramework(testFrameworkMock);
     }
 
     public AbstractTask getTask() {
@@ -96,8 +95,7 @@ public class TestTest extends AbstractConventionTaskTest {
     }
 
     @org.junit.Test public void testInit() {
-        assertNotNull(test.getAntJunit());
-        assertNotNull(test.getOptions());
+        assertNotNull(test.getTestFramework());
         assertNotNull(test.existingDirsFilter);
         assertNotNull(test.classpathConverter);
         assertNull(test.getTestClassesDir());
@@ -115,8 +113,20 @@ public class TestTest extends AbstractConventionTaskTest {
         setUpMocks(test);
         setExistingDirsFilter();
         context.checking(new Expectations() {{
-            one(antJunitMock).execute(TEST_TEST_CLASSES_DIR, TEST_CONVERTED_CLASSPATH, TEST_TEST_RESULTS_DIR, TEST_TEST_REPORT_DIR,
-                    test.getIncludes(), test.getExcludes(), test.getOptions(), getProject().getAnt());
+            one(testFrameworkMock).execute(getProject(), test);
+            one(testFrameworkMock).report(getProject(), test);
+        }});
+
+        test.execute();
+    }
+
+    @org.junit.Test
+    public void testExecuteWithoutReporting() {
+        setUpMocks(test);
+        setExistingDirsFilter();
+        test.setTestReport(false);
+        context.checking(new Expectations() {{
+            one(testFrameworkMock).execute(getProject(), test);
         }});
 
         test.execute();
@@ -127,9 +137,7 @@ public class TestTest extends AbstractConventionTaskTest {
         setUpMocks(test);
         setExistingDirsFilter();
         context.checking(new Expectations() {{
-            one(antJunitMock).execute(TEST_TEST_CLASSES_DIR, TEST_CONVERTED_CLASSPATH, TEST_TEST_RESULTS_DIR, TEST_TEST_REPORT_DIR,
-                    test.getIncludes(), test.getExcludes(), test.getOptions(), getProject().getAnt());
-            will(new AntPropertyAction(AntJunit.FAILURES_OR_ERRORS_PROPERTY, "somevalue"));
+            one(testFrameworkMock).execute(getProject(), test);
         }});
         test.execute();
     }
@@ -139,9 +147,8 @@ public class TestTest extends AbstractConventionTaskTest {
         setExistingDirsFilter();
         test.setStopAtFailuresOrErrors(false);
         context.checking(new Expectations() {{
-            one(antJunitMock).execute(TEST_TEST_CLASSES_DIR, TEST_CONVERTED_CLASSPATH, TEST_TEST_RESULTS_DIR, TEST_TEST_REPORT_DIR,
-                    test.getIncludes(), test.getExcludes(), test.getOptions(), getProject().getAnt());
-            will(new AntPropertyAction(AntJunit.FAILURES_OR_ERRORS_PROPERTY, "somevalue"));
+            one(testFrameworkMock).execute(getProject(), test);
+            one(testFrameworkMock).report(getProject(), test);
         }});
         test.execute();
     }
@@ -231,25 +238,5 @@ public class TestTest extends AbstractConventionTaskTest {
             allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(TEST_TEST_CLASSES_DIR);
         }});
         test.existingDirsFilter = existentDirsFilterMock;
-    }
-
-    public static class AntPropertyAction implements Action {
-        String propertyKey;
-        String propertyValue;
-
-        public AntPropertyAction(String propertyKey, String propertyValue) {
-            this.propertyKey = propertyKey;
-            this.propertyValue = propertyValue;
-        }
-
-        public void describeTo(Description description) {
-            description.appendText("writes");
-        }
-
-        public Object invoke(Invocation invocation) throws Throwable {
-            AntBuilder antBuilder = (AntBuilder) invocation.getParameter(7);
-            antBuilder.getProject().setProperty(propertyKey, propertyValue);
-            return null;
-        }
     }
 }

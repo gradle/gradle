@@ -33,6 +33,7 @@ import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
+import org.hamcrest.Matcher;
 import static org.junit.Assert.*;
 import org.junit.Before;
 
@@ -91,7 +92,8 @@ public class AbstractIntegrationTest {
                 "import static org.hamcrest.Matchers.*");
 
         testFile("gradle-home/plugin.properties").writelns(
-                "groovy=org.gradle.api.plugins.GroovyPlugin");
+                "groovy=org.gradle.api.plugins.GroovyPlugin"
+        );
 
         parameter.setGradleUserHomeDir(testFile("user-home").asFile());
 
@@ -161,6 +163,14 @@ public class AbstractIntegrationTest {
         public String toString() {
             return file.getPath();
         }
+
+        public TestFile writelns(List<String> lines) {
+            Formatter formatter = new Formatter();
+            for (String line : lines) {
+                formatter.format("%s%n", line);
+            }
+            return write(formatter);
+        }
     }
     
     public static class GradleExecution {
@@ -193,6 +203,7 @@ public class AbstractIntegrationTest {
         }
 
         private GradleExecutionResult execute() {
+            
             Gradle gradle = Gradle.newInstance(parameter);
             gradle.addBuildListener(new ListenerImpl());
             BuildResult result = gradle.run();
@@ -291,6 +302,10 @@ public class AbstractIntegrationTest {
             }
         }
 
+        public GradleException getFailure() {
+            return failure;
+        }
+
         public void assertHasLineNumber(int lineNumber) {
             assertThat(failure.getMessage(), containsString(String.format(" line: %d", lineNumber)));
         }
@@ -303,8 +318,18 @@ public class AbstractIntegrationTest {
             assertThat(failure.getCause().getMessage(), endsWith(description));
         }
 
+        public void assertDescription(Matcher<String> matcher)
+        {
+            assertThat(failure.getCause().getMessage(), matcher);
+        }
+
         public void assertHasContext(String context) {
             assertThat(failure.getMessage(), containsString(context));
+        }
+
+        public void assertContext(Matcher<String> matcher)
+        {
+            assertThat(failure.getMessage(), matcher);
         }
     }
 

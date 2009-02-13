@@ -52,8 +52,6 @@ public class GroovyPlugin implements Plugin {
 
         configureTestCompile(javaPlugin, project);
 
-        ((Test) project.task(TEST)).getOptions().getForkOptions().setForkMode(ForkMode.ONCE);
-
         configureJavadoc(project);
 
         configureGroovydoc(project);

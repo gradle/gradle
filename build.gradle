@@ -61,6 +61,7 @@ dependencies {
     addConfiguration('retrotranslatorAntTask')
     addConfiguration('userGuideStyleSheets')
     addConfiguration('userGuideTask')
+    addConfiguration('testngIntegrationTesting')
 
     clientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
         clientModule("commons-net:commons-net:1.4.1") {
@@ -127,6 +128,11 @@ dependencies {
         dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
     }
     distLib "junit:junit:4.4@jar"
+    clientModule(['testngIntegrationTesting'],'testng:testng:5.8') {
+		addArtifact(new Artifact('testng','jar','jar','jdk15', "http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk15.jar"))
+		addArtifact(new Artifact('testng','jar','jar','jdk14', "http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk14.jar"))
+	}
+    testngIntegrationTesting "org.codehaus.groovy:groovy-all:1.5.6"
 }
 
 distributionUploadUrl = null
@@ -167,7 +173,7 @@ resources.doLast {
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere", '-Xms128m', '-Xmx1g'])
+    useJUnit().options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere", '-Xms128m', '-Xmx1g'])
 }
 
 libs {
@@ -191,6 +197,15 @@ samplesSrcDir = new File(srcRoot, 'samples')
 userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 
 createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
+    File testngIntegTestLibDir = new File(rootDir, 'src/samples/testng/lib')
+    ant.mkdir(dir:testngIntegTestLibDir.absolutePath)
+    List testng = dependencies.resolve('testngIntegrationTesting')
+    ant {
+        testng.each {
+            copy(file: it, todir: testngIntegTestLibDir)
+        }
+    }
+
     [explodedDistDir, explodedDistSamplesDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
