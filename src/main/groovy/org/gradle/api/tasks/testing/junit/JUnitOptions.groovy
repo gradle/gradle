@@ -16,16 +16,16 @@
 
 package org.gradle.api.tasks.testing.junit
 
-import org.gradle.api.tasks.compile.AbstractOptions
 import org.gradle.api.tasks.testing.FormatterOptions
 import org.gradle.api.tasks.testing.JunitForkOptions
 import org.gradle.api.tasks.testing.AbstractTestFramework
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 
 /**
  * @author Hans Dockter
  */
-class JUnitOptions extends AbstractOptions {
+class JUnitOptions extends AbstractTestFrameworkOptions {
     boolean fork = true
     boolean filterTrace = true
     boolean showOutput = false
@@ -55,6 +55,10 @@ class JUnitOptions extends AbstractOptions {
         ]
     }
 
+    public JUnitOptions(JUnitTestFramework junitTestFramework) {
+        super(junitTestFramework)
+    }
+
     Map optionMap() {
         super.optionMap() + forkOptions.optionMap()
     }
@@ -63,23 +67,5 @@ class JUnitOptions extends AbstractOptions {
         fork = true
         forkOptions.define(forkArgs)
         this
-    }
-
-    public def propertyMissing(String name) {
-        throw new GradleException(
-            """
-            Property ${name} could not be found in the options of the JUnit test framework.
-
-            ${AbstractTestFramework.USE_OF_CORRECT_TEST_FRAMEWORK}
-            """);
-    }
-
-    public def methodMissing(String name, args) {
-        throw new GradleException(
-            """
-            Method ${name} could not be found in the options of the JUnit test framework.
-
-            ${AbstractTestFramework.USE_OF_CORRECT_TEST_FRAMEWORK}
-            """);
     }
 }

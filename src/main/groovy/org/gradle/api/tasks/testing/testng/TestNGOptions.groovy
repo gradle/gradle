@@ -16,15 +16,19 @@
 package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
-import org.gradle.api.tasks.compile.AbstractOptions
-import org.gradle.api.tasks.testing.AbstractTestFramework
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
+import org.gradle.api.Project
+import org.gradle.util.GFileUtils
 import org.gradle.api.GradleException
 
 /**
  * @author Tom Eyckmans
  */
 
-public class TestNGOptions extends AbstractOptions {
+public class TestNGOptions extends AbstractTestFrameworkOptions {
+
+    public static final String JDK_ANNOTATIONS = 'JDK'
+    public static final String JAVADOC_ANNOTATIONS = 'Javadoc'
 
     /**
      * Either the string "JDK" or "Javadoc". Defines which kind of annotations are used in these tests. If you use "Javadoc", you will also need to specify "sourcedir".
@@ -33,7 +37,7 @@ public class TestNGOptions extends AbstractOptions {
      *
      * Defaults to "JDK" if you're using the JDK 5 jar and to "Javadoc" if you're using the JDK 1.4 jar.
      */
-    String annotations = 'JDK'
+    String annotations
 
     /**
      * A reference to a FileSet structure of the test classes to be run. 
@@ -101,12 +105,12 @@ public class TestNGOptions extends AbstractOptions {
     /**
      * The list of groups to run, separated by spaces or commas.
      */
-    List groups = []
+    List includeGroups = []
 
     /**
      * The list of groups to exclude, separated by spaces or commas.
      */
-    List excludedGroups = []
+    List excludeGroups = []
 
     /**
      * The JVM to use, which will be run by Runtime.exec()
@@ -126,7 +130,7 @@ public class TestNGOptions extends AbstractOptions {
     /**
      * Directory for reports output.
      */
-    String outputDir
+    //String outputDir
 
     /**
      * The name of a property to set in the event of a skipped test. It is used only if the haltonskipped is not set.
@@ -188,7 +192,7 @@ public class TestNGOptions extends AbstractOptions {
     /**
      * The directory where the ant task should change to before running TestNG.
      */
-    String workingDir
+    //String workingDir
     
     /**
      * A reference to a FileSet structure for the suite definitions to be run.
@@ -213,13 +217,65 @@ public class TestNGOptions extends AbstractOptions {
     Map systemProperties = [:]
     Map environment = [:]
 
+    /**
+     * The suiteXmlFiles to use for running TestNG.
+     *
+     * Note: The suiteXmlFiles can be used in conjunction with the suiteXmlBuilder.
+     */
+    List<File> suiteXmlFiles = []
+
+    StringWriter suiteXmlWriter = null
+    MarkupBuilder suiteXmlBuilder = null
+    private File projectDir
+
+    public TestNGOptions(TestNGTestFramework testngTestFramework, File projectDir) {
+        super(testngTestFramework)
+        this.projectDir = projectDir
+    }
+
+    void setAnnotationsOnSourceCompatibility(String sourceCompatibilityProp) {
+        try {
+            // TODO IMPROVE This is not a very smart way of checking if the JDK used is >= 1.5
+            // this could be improved together with added the java('default:1.5') dependency notation
+            // we could have a Version and VersionFormat that are really comparable. But for now this will do.
+            int sourceCompatibilityPropLength = sourceCompatibilityProp.length()
+            if ( sourceCompatibilityPropLength >= 3 ) { // version is something like 1.5.0.12 or 1.6.0.2
+                sourceCompatibilityProp = sourceCompatibilityProp.substring(0, 3);
+
+                double sourceCompatibility = Double.parseDouble(sourceCompatibilityProp.substring(0,1)) // version is something like 5.0.2
+
+                if ( sourceCompatibility >= 5 ) {
+                    jdkAnnotations()
+                }
+                else {
+                    sourceCompatibility = Double.parseDouble(sourceCompatibilityProp);
+
+                    if ( sourceCompatibility >= 1.5 ) {
+                        jdkAnnotations()
+                    }
+                    else {
+                        javadocAnnotations()
+                    }
+                }
+            }
+            else { // version is something like 5 or 6
+                // we can asume jdk annotations because they only started to use the minor versions as major from 1.5
+                jdkAnnotations()
+            }
+        }
+        catch ( NumberFormatException e ) {
+            // In this day and age we assume jdk >= 1.5
+            jdkAnnotations()
+        }
+    }
+
     List excludedFieldsFromOptionMap() {
-        List excludedFieldsFromOptionMap = [   'testResources',
+        List excludedFieldsFromOptionMap = [   'testResources', 'projectDir', 
             'systemProperties', 'jvmArgs', 'environment',
             'suiteXmlFiles','suiteXmlWriter','suiteXmlBuilder']
 
-        if ( groups.empty ) excludedFieldsFromOptionMap << 'groups'
-        if ( excludedGroups.empty ) excludedFieldsFromOptionMap << 'excludedGroups'
+        if ( includeGroups.empty ) excludedFieldsFromOptionMap << 'includeGroups'
+        if ( excludeGroups.empty ) excludedFieldsFromOptionMap << 'excludeGroups'
         if ( jvm == null ) excludedFieldsFromOptionMap << 'jvm'
         if ( listeners.empty ) excludedFieldsFromOptionMap << 'listeners'
         if ( skippedProperty == null ) excludedFieldsFromOptionMap << 'skippedProperty'
@@ -238,7 +294,8 @@ public class TestNGOptions extends AbstractOptions {
     Map fieldName2AntMap() {
         [
             outputDir: 'outputdir',
-            excludedGroups: 'excludedgroups',
+            includeGroups : 'groups',
+            excludeGroups : 'excludedGroups',
             suiteName : 'suitename',
             testName : 'testname'
         ]
@@ -248,31 +305,46 @@ public class TestNGOptions extends AbstractOptions {
         super.optionMap()
     }
 
-    /**
-     * The suiteXmlFiles to use for running TestNG.
-     *
-     * Note: The suiteXmlFiles can be used in conjunction with the suiteXmlBuilder.
-     */
-    List<File> suiteXmlFiles = []
-
-    StringWriter suiteXmlWriter = null
-    MarkupBuilder suiteXmlBuilder = null
-    MarkupBuilder suiteXmlBuilder()
-    {
+    MarkupBuilder suiteXmlBuilder() {
         suiteXmlWriter = new StringWriter()
         suiteXmlBuilder = new MarkupBuilder(suiteXmlWriter)
         return suiteXmlBuilder
     }
 
-    List<File> getSuites(File testResultsDir)
-    {
+    /**
+     * Add suite files by Strings. Each suiteFile String should be a path relative to the project root.
+     */
+    void suites(String ... suiteFiles) {
+        suiteFiles.each { it ->
+            suiteXmlFiles.add(new File(projectDir, it))
+        }
+    }
+
+    /**
+    * Add suite files by File objects.
+     */
+    void suites(File ... suiteFiles) {
+        suiteXmlFiles.addAll(Arrays.asList(suiteFiles))
+    }
+
+    List<File> getSuites(File testSuitesDir) {
         List<File> suites = []
 
-        // TODO copy all suiteXmlFiles to the testOutputDir
-        suites.addAll(suiteXmlFiles)
+        // Suites need to be in one directory because the suites can only be passed to the testng ant task as an ant fileset.
+        suiteXmlFiles.each { File it ->
+            final File targetSuiteFile = new File(testSuitesDir, it.getName())
+
+            if ( !targetSuiteFile.delete() ) {
+                throw new GradleException("Failed to delete TestNG suite XML file " + targetSuiteFile.absolutePath);
+            }
+
+            GFileUtils.copyFile(it, targetSuiteFile)
+
+            suites.add(targetSuiteFile)
+        }
 
         if ( suiteXmlBuilder != null ) {
-            final File buildSuiteXml = new File(testResultsDir.absolutePath, "build-suite.xml");
+            final File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml");
 
             if ( buildSuiteXml.exists() ) {
                 if ( !buildSuiteXml.delete() )
@@ -288,25 +360,32 @@ public class TestNGOptions extends AbstractOptions {
         return suites
     }
 
-    TestNGOptions dumpCommand()
-    {
+    TestNGOptions dumpCommand() {
         this.dumpCommand = true
 
         return this
     }
 
-    TestNGOptions jdkAnnotations()
-    {
-        this.annotations = 'JDK'
+    TestNGOptions jdkAnnotations() {
+        this.annotations = JDK_ANNOTATIONS
 
         return this
     }
 
-    TestNGOptions javadocAnnotations()
-    {
-        this.annotations = 'Javadoc'
+    TestNGOptions javadocAnnotations() {
+        this.annotations = JAVADOC_ANNOTATIONS
 
         return this
+    }
+
+    public TestNGOptions includeGroups(String...includeGroups) {
+        this.includeGroups.addAll(Arrays.asList(includeGroups))
+        return this
+    }
+
+    public TestNGOptions excludeGroups(String...excludeGroups) {
+        this.excludeGroups.addAll(Arrays.asList(excludeGroups))
+        return this;
     }
 
     public def propertyMissing(String name) {
@@ -314,13 +393,7 @@ public class TestNGOptions extends AbstractOptions {
             return suiteXmlBuilder.getMetaClass()."${name}"
         }
         else {
-            throw new GradleException(
-            // wrong indentation otherwise the exception message is not displayed correctly.
-            """
-            Property ${name} could not be found in the options of the TestNG test framework.
-
-            ${AbstractTestFramework.USE_OF_CORRECT_TEST_FRAMEWORK}
-            """);
+            super.propertyMissing(name)
         }
     }
 
@@ -329,13 +402,7 @@ public class TestNGOptions extends AbstractOptions {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
         }
         else {
-            throw new GradleException(
-            // wrong indentation otherwise the exception message is not displayed correctly.
-            """
-            Method ${name} could not be found in the options of the TestNG test framework.
-
-            ${AbstractTestFramework.USE_OF_CORRECT_TEST_FRAMEWORK}
-            """);
+            super.methodMissing(name, args)
         }
     }
 }

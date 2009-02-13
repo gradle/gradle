@@ -27,5 +27,5 @@ public interface TestFramework {
 
     void report(Project project, Test testTask);
 
-    Object getOptions();
+    AbstractTestFrameworkOptions getOptions();
 }

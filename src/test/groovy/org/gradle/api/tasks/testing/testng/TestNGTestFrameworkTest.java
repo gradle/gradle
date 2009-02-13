@@ -41,7 +41,12 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
     {
         setMocks();
 
-        context.checking(new Expectations(){{}});
+        final String sourceCompatibility = "1.5";
+        context.checking(new Expectations(){{
+            one(projectMock).getProjectDir();will(returnValue(new File("projectDir")));
+            one(projectMock).property("sourceCompatibility");will(returnValue(sourceCompatibility));
+            one(testngOptionsMock).setAnnotationsOnSourceCompatibility(sourceCompatibility);
+        }});
 
         testNGTestFramework.initialize(projectMock, testMock);
 

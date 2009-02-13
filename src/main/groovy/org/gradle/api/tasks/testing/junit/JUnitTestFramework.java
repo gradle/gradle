@@ -35,10 +35,14 @@ public class JUnitTestFramework extends AbstractTestFramework {
     private AntJUnitReport antJUnitReport = null;
     private JUnitOptions options = null;
 
+    public JUnitTestFramework() {
+        super("JUnit");
+    }
+
     public void initialize(Project project, Test testTask) {
         antJUnitExecute = new AntJUnitExecute();
         antJUnitReport = new AntJUnitReport();
-        options = new JUnitOptions();
+        options = new JUnitOptions(this);
 
         final Set<Class<? extends Plugin>> appliedPlugins = project.getAppliedPlugins();
 

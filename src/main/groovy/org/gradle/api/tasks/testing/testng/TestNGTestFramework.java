@@ -1,6 +1,7 @@
 package org.gradle.api.tasks.testing.testng;
 
 import org.gradle.api.Project;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.testing.Test;
 
 import org.gradle.api.tasks.testing.AbstractTestFramework;
@@ -12,9 +13,15 @@ public class TestNGTestFramework extends AbstractTestFramework {
     private AntTestNGExecute antTestNGExecute;
     private TestNGOptions options;
 
+    public TestNGTestFramework() {
+        super("TestNG");
+    }
+
     public void initialize(Project project, Test testTask) {
         antTestNGExecute = new AntTestNGExecute();
-        options = new TestNGOptions();
+        options = new TestNGOptions(this, project.getProjectDir());
+
+        options.setAnnotationsOnSourceCompatibility((String)project.property("sourceCompatibility"));
     }
 
     public void execute(Project project, Test testTask) {

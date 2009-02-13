@@ -34,11 +34,10 @@ public class AntTestNGExecute {
 
         testngTaskDef(classPath, ant, options)
 
-        options.outputDir = testReportDir.absolutePath;
-        options.workingDir = testResultsDir.absolutePath;
-        
         Map otherArgs = [
             failureProperty : Test.FAILURES_OR_ERRORS_PROPERTY,
+            outputDir : testReportDir.absolutePath,
+            workingDir : testResultsDir.absolutePath, 
             haltonfailure : false,
             haltonskipped : false,
             useDefaultListeners : testReport

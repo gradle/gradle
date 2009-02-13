@@ -14,6 +14,16 @@ public abstract class AbstractTestFramework implements TestFramework {
         "            - Call useJUnit(), useTestNG() or useTestFramework(<your own TestFramework implementation class>) as first statement in the test { } block. \n" +
         "            - Set the test.framework.default property in a gradle.properties file ";
 
+    protected String name;
+
+    protected AbstractTestFramework(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     protected void configureDefaultIncludesExcludes(Project project, Test testTask) {
         final List includes = testTask.getIncludes();
         if ( includes == null || includes.isEmpty() ) {

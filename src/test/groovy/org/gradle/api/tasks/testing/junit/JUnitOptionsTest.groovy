@@ -21,25 +21,28 @@ import org.junit.Before
 import org.junit.Test
 import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.api.tasks.testing.FormatterOptions
-import org.gradle.api.tasks.testing.JunitForkOptions;
+import org.gradle.api.tasks.testing.JunitForkOptions
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest;
 
 /**
  * @author Hans Dockter
  */
-class JUnitOptionsTest {
+class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramework> {
     static final Map TEST_FORMATTER_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
     JUnitOptions junitOptions
 
     @Before public void setUp()  {
-        junitOptions = new JUnitOptions()
+        super.setUp(JUnitTestFramework);
+
+        junitOptions = new JUnitOptions(testFrameworkMock)
         junitOptions.formatterOptions  = [optionMap: {TEST_FORMATTER_OPTION_MAP}] as FormatterOptions
         junitOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as JunitForkOptions
     }
 
     @Test public void testCompileOptions() {
-        junitOptions = new JUnitOptions()
+        junitOptions = new JUnitOptions(testFrameworkMock)
         assertTrue(junitOptions.fork)
         assertTrue(junitOptions.filterTrace)
         assertTrue(junitOptions.reloading)
