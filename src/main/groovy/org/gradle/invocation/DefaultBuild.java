@@ -25,7 +25,7 @@ public class DefaultBuild implements BuildInternal {
         this.startParameter = startParameter;
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.projectRegistry = new DefaultProjectRegistry();
-        this.taskGraph = new DefaultTaskExecuter(new Dag<Task>());
+        this.taskGraph = new DefaultTaskExecuter();
     }
 
     public String getGradleVersion() {

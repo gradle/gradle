@@ -63,11 +63,6 @@ public class DependencyReportTaskTest {
     }
 
     @Test
-    public void isDagNeutral() {
-        assertTrue(task.isDagNeutral());
-    }
-
-    @Test
     public void passesEachProjectConfigurationToRenderer() throws IOException {
         final DependencyManagerInternal dependencyManager = context.mock(DependencyManagerInternal.class);
         final ConfigurationResolver configuration1 = context.mock(ConfigurationResolver.class, "Configuration1");

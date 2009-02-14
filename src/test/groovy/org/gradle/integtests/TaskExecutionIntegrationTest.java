@@ -19,17 +19,22 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         buildFile.writelns(
                 "import org.gradle.integtests.TaskExecutionIntegrationTest",
                 "createTask('a', dependsOn: 'b') { task ->",
+                "    assertTrue(build.taskGraph.hasTask(task))",
                 "    assertTrue(build.taskGraph.hasTask(':a'))",
+                "    assertTrue(build.taskGraph.hasTask(a))",
                 "    assertTrue(build.taskGraph.hasTask(':b'))",
+                "    assertTrue(build.taskGraph.hasTask(b))",
                 "    assertTrue(build.taskGraph.allTasks.contains(task))",
                 "    assertTrue(build.taskGraph.allTasks.contains(project.task('b')))",
                 "}",
                 "createTask('b')",
                 "build.taskGraph.whenReady { graph ->",
                 "    assertTrue(graph.hasTask(':a'))",
+                "    assertTrue(graph.hasTask(a))",
                 "    assertTrue(graph.hasTask(':b'))",
-                "    assertTrue(graph.allTasks.contains(task('a')))",
-                "    assertTrue(graph.allTasks.contains(task('b')))",
+                "    assertTrue(graph.hasTask(b))",
+                "    assertTrue(graph.allTasks.contains(a))",
+                "    assertTrue(graph.allTasks.contains(b))",
                 "    TaskExecutionIntegrationTest.graphListenerNotified = true",
                 "}"
         );
@@ -39,39 +44,53 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void buildIsReusedForDagNeutralPrimaryTasks() {
+    public void executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
+                "build.taskGraph.whenReady { assertFalse(project.hasProperty('graphReady')); graphReady = true }",
                 "createTask('a') { task -> project.executedA = task }",
-                "a.dagNeutral = true",
                 "createTask('b') { ",
                 "    assertSame(a, project.executedA);",
                 "    assertTrue(build.taskGraph.hasTask(':a'))",
                 "}",
                 "createTask('c', dependsOn: 'a')",
-                "c.dagNeutral = true"
+                "createTask('d', dependsOn: 'a')",
+                "createTask('e', dependsOn: ['a', 'd'])"
                 );
         usingBuildFile(buildFile).runTasks("a", "b").assertTasksExecuted(":a", ":b");
-        // does not execute task more than once
         usingBuildFile(buildFile).runTasks("a", "a").assertTasksExecuted(":a");
         usingBuildFile(buildFile).runTasks("c", "a").assertTasksExecuted(":a", ":c");
+        usingBuildFile(buildFile).runTasks("c", "e").assertTasksExecuted(":a", ":c", ":d", ":e");
     }
 
     @Test
-    public void buildIsReusedForMergedBuild() {
+    public void executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
+        testFile("settings.gradle").writelns("include 'child1', 'child2'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "createTask('a') { task -> project.executedA = task }",
-                "createTask('b') { ",
-                "    assertSame(a, project.executedA);",
-                "    assertTrue(build.taskGraph.hasTask(':a'))",
-                "}",
-                "createTask('c', dependsOn: 'a')"
+                "createTask('a')",
+                "allprojects {",
+                "    createTask('b')",
+                "    createTask('c', dependsOn: ['b', ':a'])",
+                "}"
                 );
-        usingBuildFile(buildFile).inMergedBuild().runTasks("a", "b").assertTasksExecuted(":a", ":b");
-        // does not execute task more than once
-        usingBuildFile(buildFile).inMergedBuild().runTasks("a", "a").assertTasksExecuted(":a");
-        usingBuildFile(buildFile).inMergedBuild().runTasks("c", "a").assertTasksExecuted(":a", ":c");
+        usingBuildFile(buildFile).runTasks("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child2:b", ":child2:c");
+        usingBuildFile(buildFile).runTasks("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child2:b", ":a", ":child2:c");
+    }
+
+    @Test
+    public void executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
+        testFile("settings.gradle").writelns("include 'child1', 'child2'");
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                "defaultTasks 'a', 'b'",
+                "createTask('a')",
+                "subprojects {",
+                "    createTask('a', dependsOn: ':a')",
+                "    createTask('b', dependsOn: ':a')",
+                "}"
+                );
+        usingBuildFile(buildFile).runTasks().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b");
     }
 
     @Test @Ignore

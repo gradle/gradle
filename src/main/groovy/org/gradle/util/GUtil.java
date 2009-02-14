@@ -162,4 +162,18 @@ public class GUtil {
         return map;
     }
 
+    public static String toString(Iterable<String> names) {
+        Formatter formatter = new Formatter();
+        boolean first = true;
+        for (String name : names) {
+            if (first) {
+                formatter.format("'%s'", name);
+                first = false;
+            }
+            else {
+                formatter.format(", '%s'", name);
+            }
+        }
+        return formatter.toString();
+    }
 }

@@ -20,18 +20,19 @@ import org.gradle.api.Task;
 
 public interface TaskExecuter extends TaskExecutionGraph {
     /**
-     * Adds the given tasks and their dependencies to this graph.
+     * Adds the given tasks and their dependencies to this graph. Tasks are executed in an arbitrary order. The
+     * tasks are executed before any tasks from a subsequent call to this method are executed. 
      */
     void addTasks(Iterable<? extends Task> tasks);
 
     /**
      * Executes the tasks in this graph. Discards the contents of this graph when completed.
      */
-    boolean execute();
+    void execute();
 
     /**
      * Adds the given tasks and their dependencies to this graph, then executes all the tasks in this graph. Discards
      * the contents of this graph when completed.
      */
-    boolean execute(Iterable<? extends Task> tasks);
+    void execute(Iterable<? extends Task> tasks);
 }

@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -31,27 +32,48 @@ import org.junit.runner.RunWith;
 public class ProjectDefaultsBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Project project = context.mock(Project.class, "[project]");
+    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
 
-    @Test public void usesProjectDefaultTasksFromInitialProject() {
+    @Test public void usesProjectDefaultTasksFromProject() {
         context.checking(new Expectations() {{
             one(project).getDefaultTasks();
-            will(returnValue(WrapUtil.toList("a", "b")));
+            will(returnValue(toList("a", "b")));
             Task task = context.mock(Task.class);
             atLeast(1).of(project).getTasksByName("a", true);
-            will(returnValue(WrapUtil.toSet(task)));
+            will(returnValue(toSet(task)));
             atLeast(1).of(project).getTasksByName("b", true);
-            will(returnValue(WrapUtil.toSet(task)));
+            will(returnValue(toSet(task)));
+
+            one(taskExecuter).addTasks(toSet(task));
+            one(taskExecuter).addTasks(toSet(task));
+            one(taskExecuter).execute();
         }});
 
         BuildExecuter executer = new ProjectDefaultsBuildExecuter();
-        assertThat(executer.hasNext(), equalTo(true));
         executer.select(project);
+        executer.execute(taskExecuter);
+    }
+
+    @Test public void createsDescription() {
+        context.checking(new Expectations() {{
+            one(project).getDefaultTasks();
+            will(returnValue(toList("a", "b")));
+            Task task = context.mock(Task.class);
+            atLeast(1).of(project).getTasksByName("a", true);
+            will(returnValue(toSet(task)));
+            atLeast(1).of(project).getTasksByName("b", true);
+            will(returnValue(toSet(task)));
+        }});
+
+        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
+        executer.select(project);
+        assertThat(executer.getDescription(), equalTo("project default tasks 'a', 'b'"));    
     }
 
     @Test public void failsWhenNoProjectDefaultTasksSpecified() {
         context.checking(new Expectations() {{
             one(project).getDefaultTasks();
-            will(returnValue(WrapUtil.toList()));
+            will(returnValue(toList()));
         }});
 
         BuildExecuter executer = new ProjectDefaultsBuildExecuter();
@@ -61,26 +83,5 @@ public class ProjectDefaultsBuildExecuterTest {
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("No tasks have been specified and [project] has not defined any default tasks."));
         }
-    }
-
-    @Test public void usesOnlyTheFirstProject() {
-        final Project project1 = context.mock(Project.class, "project1");
-        final Project project2 = context.mock(Project.class, "project2");
-
-        context.checking(new Expectations() {{
-            one(project1).getDefaultTasks();
-            will(returnValue(WrapUtil.toList("a", "b")));
-            Task task = context.mock(Task.class);
-            atLeast(1).of(project1).getTasksByName("a", true);
-            will(returnValue(WrapUtil.toSet(task)));
-            atLeast(1).of(project1).getTasksByName("b", true);
-            will(returnValue(WrapUtil.toSet(task)));
-            atLeast(1).of(project2).getTasksByName("b", true);
-            will(returnValue(WrapUtil.toSet(task)));
-        }});
-
-        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
-        executer.select(project1);
-        executer.select(project2);
     }
 }

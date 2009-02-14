@@ -103,25 +103,22 @@ public class Gradle {
 
     private void runInternal(SettingsInternal settings, StartParameter startParameter) {
         ClassLoader classLoader = settings.createClassLoader();
-        Boolean rebuildDag = true;
-        BuildInternal build = null;
+
+        // Load build
+        BuildInternal build = buildLoader.load(settings.getRootProject(), classLoader, startParameter,
+                gradlePropertiesLoader.getGradleProperties());
+        fireProjectsLoaded(build);
+
+        // Configure build
+        buildConfigurer.process(build.getRootProject());
+        fireProjectsEvaluated(build);
+        attachTaskGraphListener(build);
+
+        // Execute build
         BuildExecuter executer = startParameter.getBuildExecuter();
-        while (executer.hasNext()) {
-            if (rebuildDag) {
-                build = buildLoader.load(settings.getRootProject(), classLoader, startParameter,
-                        gradlePropertiesLoader.getGradleProperties());
-                fireProjectsLoaded(build);
-                buildConfigurer.process(build.getRootProject());
-                fireProjectsEvaluated(build);
-                attachTaskGraphListener(build);
-            } else {
-                logger.info("DAG must not be rebuild as the task chain before was dag neutral!");
-            }
-            executer.select(build.getCurrentProject());
-            logger.info(String.format("++++ Starting build for %s.", executer.getDescription()));
-            executer.execute(build.getTaskGraph());
-            rebuildDag = executer.requiresProjectReload();
-        }
+        executer.select(build.getCurrentProject());
+        logger.info(String.format("Starting build for %s.", executer.getDescription()));
+        executer.execute(build.getTaskGraph());
     }
 
     private void attachTaskGraphListener(BuildInternal build) {

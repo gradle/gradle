@@ -20,10 +20,6 @@ public class DelegatingBuildExecuter implements BuildExecuter {
         this.delegate = delegate;
     }
 
-    public boolean hasNext() {
-        return delegate.hasNext();
-    }
-
     public void select(Project project) {
         delegate.select(project);
     }
@@ -34,9 +30,5 @@ public class DelegatingBuildExecuter implements BuildExecuter {
 
     public void execute(TaskExecuter executer) {
         delegate.execute(executer);
-    }
-
-    public boolean requiresProjectReload() {
-        return delegate.requiresProjectReload();
     }
 }

@@ -17,21 +17,20 @@ package org.gradle.execution;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.util.GUtil;
 
 import java.util.List;
 
 /**
  * A {@link BuildExecuter} which selects the default tasks for a project.
  */
-public class ProjectDefaultsBuildExecuter extends  DelegatingBuildExecuter {
-    public boolean hasNext() {
-        return getDelegate() == null || getDelegate().hasNext();
-    }
+public class ProjectDefaultsBuildExecuter extends DelegatingBuildExecuter {
+    private List<String> defaultTasks;
 
     public void select(Project project) {
         if (getDelegate() == null) {
             // Gather the default tasks from this first group project
-            List<String> defaultTasks = project.getDefaultTasks();
+            defaultTasks = project.getDefaultTasks();
             if (defaultTasks.size() == 0) {
                 throw new InvalidUserDataException(String.format(
                         "No tasks have been specified and %s has not defined any default tasks.", project));
@@ -40,5 +39,10 @@ public class ProjectDefaultsBuildExecuter extends  DelegatingBuildExecuter {
         }
 
         super.select(project);
+    }
+
+    @Override
+    public String getDescription() {
+        return String.format("project default tasks %s", GUtil.toString(defaultTasks));
     }
 }

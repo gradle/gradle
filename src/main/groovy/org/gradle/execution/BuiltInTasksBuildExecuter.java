@@ -57,7 +57,6 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
         }
 
     private Options options;
-    private boolean selected;
     private Task task;
 
     public BuiltInTasksBuildExecuter(Options options) {
@@ -68,14 +67,8 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
         this.options = options;
     }
 
-    public boolean hasNext() {
-        return !selected;
-    }
-
     public void select(Project project) {
-        assert !selected;
         task = options.createTask(project);
-        selected = true;
     }
 
     public String getDescription() {
@@ -87,11 +80,6 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
     }
 
     public void execute(TaskExecuter executer) {
-        assert selected;
         executer.execute(Collections.singleton(task));
-    }
-
-    public boolean requiresProjectReload() {
-        return false;
     }
 }

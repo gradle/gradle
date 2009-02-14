@@ -29,7 +29,6 @@ import org.junit.Before
 import org.junit.Test
 import org.gradle.api.initialization.Settings
 import org.gradle.util.HelperUtil
-import org.gradle.execution.MergingBuildExecuter
 import org.gradle.api.logging.LogLevel
 
 /**
@@ -73,7 +72,6 @@ class StartParameterTest {
         assertThat(parameter.projectProperties, notNullValue())
         assertThat(parameter.systemPropertiesArgs, notNullValue())
         assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
-        assertFalse(parameter.mergedBuild)
     }
 
     @Test public void testSetTaskNames() {
@@ -94,13 +92,6 @@ class StartParameterTest {
         assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
     }
 
-    @Test public void testWrapsBuildExecuterWhenMergedBuild() {
-        StartParameter parameter = new StartParameter()
-        parameter.mergedBuild = true
-
-        assertThat(parameter.buildExecuter, instanceOf(MergingBuildExecuter))
-    }
-  
     @Test public void testUseEmbeddedBuildFile() {
         StartParameter parameter = new StartParameter();
         parameter.useEmbeddedBuildFile("<content>")
@@ -137,7 +128,6 @@ class StartParameterTest {
         // Non-copied
         parameter.setBuildFileName("b");
         parameter.getTaskNames().add("t1");
-        parameter.mergedBuild = true
 
         StartParameter newParameter = parameter.newBuild();
 
@@ -151,6 +141,5 @@ class StartParameterTest {
 
         assertThat(newParameter.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
         assertTrue(newParameter.taskNames.empty)
-        assertFalse(newParameter.mergedBuild)
     }
 }

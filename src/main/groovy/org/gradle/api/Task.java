@@ -262,24 +262,6 @@ public interface Task extends Comparable<Task> {
     Task configure(Closure configureClosure);
 
     /**
-     * <p>Returns whether this task is dag neutral or not.</p>
-     *
-     * @see #setDagNeutral(boolean)
-     */
-    boolean isDagNeutral();
-
-    /**
-     * <p>Set's the dag neutral state of the task. The concept of dag neutrality is important to improve the
-     * performance, when two primary tasks are executed as part of one build (e.g. <code>gradle clean install</code>).
-     * Gradle guarantees that executing two tasks at once has the same behavior than executing them one after another.
-     * If the execution of the first task changes the state of the task execution graph (e.g. if a task action changes a
-     * project property), Gradle needs to rebuild the task execution graph before the execution of the second task. If
-     * the first task plus all its dependent tasks declare themselves as dag neutral, Gradle does not rebuild the
-     * graph.</p>
-     */
-    void setDagNeutral(boolean dagNeutral);
-
-    /**
      * <p>Returns the list of skip properties. The returned list can be used to add further skip properties. If a system
      * property with the same key as one of the skip properties is set to a value different than <i>false</i>, none of
      * the task actions are executed. It has the same effect as disabling the task. Therefore when starting gradle it is

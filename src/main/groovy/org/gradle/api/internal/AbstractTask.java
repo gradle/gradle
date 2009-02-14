@@ -57,8 +57,6 @@ public abstract class AbstractTask implements TaskInternal {
 
     private String path = null;
 
-    private boolean dagNeutral = false;
-
     private StandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
 
     private DefaultTaskDependency dependencies = new DefaultTaskDependency();
@@ -156,14 +154,6 @@ public abstract class AbstractTask implements TaskInternal {
 
     public String getPath() {
         return path;
-    }
-
-    public boolean isDagNeutral() {
-        return dagNeutral;
-    }
-
-    public void setDagNeutral(boolean dagNeutral) {
-        this.dagNeutral = dagNeutral;
     }
 
     public Task deleteAllActions() {

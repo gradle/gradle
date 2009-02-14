@@ -55,11 +55,6 @@ public class TaskReportTaskTest {
     }
 
     @Test
-    public void isDagNeutral() {
-        assertTrue(task.isDagNeutral());
-    }
-
-    @Test
     public void passesEachTaskToRenderer() throws IOException {
         context.checking(new Expectations() {{
             Task task1 = context.mock(Task.class, "task1");

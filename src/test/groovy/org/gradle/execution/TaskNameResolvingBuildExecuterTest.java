@@ -19,8 +19,10 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
@@ -34,7 +36,7 @@ import java.util.TreeSet;
 @RunWith (org.jmock.integration.junit4.JMock.class)
 public class TaskNameResolvingBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Project project = context.mock(Project.class, "child");
+    private final Project project = context.mock(Project.class, "[project]");
 
     @Before
     public void setUp() {
@@ -50,24 +52,24 @@ public class TaskNameResolvingBuildExecuterTest {
             will(returnValue(task));
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("a:b"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b"));
         executer.select(project);
         assertThat(executer.getDescription(), equalTo("primary task 'a:b'"));
-        assertThat(executer.getTasks(), equalTo((Iterable<Task>) WrapUtil.toSet(task)));
+        assertThat(executer.getTasks(), equalTo((Iterable<Task>) toSet(task)));
     }
 
     @Test
     public void selectsAllTasksWithTheProvidedName() {
         Task task1 = context.mock(Task.class, "task1");
         Task task2 = context.mock(Task.class, "task2");
-        final Set<Task> tasks = WrapUtil.toSet(task1, task2);
+        final Set<Task> tasks = toSet(task1, task2);
 
         context.checking(new Expectations() {{
             atLeast(1).of(project).getTasksByName("name", true);
             will(returnValue(tasks));
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name"));
         executer.select(project);
         assertThat(executer.getDescription(), equalTo("primary task 'name'"));
         assertThat(executer.getTasks(), equalTo((Iterable<Task>) tasks));
@@ -78,68 +80,48 @@ public class TaskNameResolvingBuildExecuterTest {
         Task task1 = context.mock(Task.class, "task1");
         Task task2 = context.mock(Task.class, "task2");
         final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
-        final Set<Task> tasks = WrapUtil.toSet(task1, task2);
+        final Set<Task> tasks = toSet(task1, task2);
 
         context.checking(new Expectations() {{
             atLeast(1).of(project).getTasksByName("name", true);
             will(returnValue(tasks));
-            one(taskExecuter).execute(tasks);
-            will(returnValue(false));
+            one(taskExecuter).addTasks(tasks);
+            one(taskExecuter).execute();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name"));
         executer.select(project);
         executer.execute(taskExecuter);
-        assertThat(executer.requiresProjectReload(), equalTo(false));
     }
     
     @Test
     public void treatsEachProvidedNameAsASeparateGroup() {
-        final Project project1 = context.mock(Project.class, "project1");
-        final Project project2 = context.mock(Project.class, "project2");
+        final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
         final Task task1 = context.mock(Task.class, "task1");
         final Task task2 = context.mock(Task.class, "task2");
 
         context.checking(new Expectations() {{
-            allowing(project1).getTasksByName(with(aNonNull(String.class)), with(equalTo(true)));
-            will(returnValue(WrapUtil.toSet(task1)));
-            atLeast(1).of(project2).getTasksByName("name2", true);
-            will(returnValue(WrapUtil.toSet(task2)));
-        }});
-
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
-        executer.select(project1);
-        assertThat(executer.getDescription(), equalTo("primary task 'name1'"));
-        assertThat(executer.getTasks(), equalTo((Iterable<Task>) WrapUtil.toSet(task1)));
-
-        executer.select(project2);
-        assertThat(executer.getDescription(), equalTo("primary task 'name2'"));
-        assertThat(executer.getTasks(), equalTo((Iterable<Task>) WrapUtil.toSet(task2)));
-    }
-
-    @Test
-    public void hasNoNextGroupOnceAllNamesHaveBeenVisited() {
-        final Task task = context.mock(Task.class);
-
-        context.checking(new Expectations() {{
-            atLeast(1).of(project).getTasksByName("name1", true);
-            will(returnValue(WrapUtil.toSet(task)));
+            allowing(project).getTasksByName("name1", true);
+            will(returnValue(toSet(task1)));
             atLeast(1).of(project).getTasksByName("name2", true);
-            will(returnValue(WrapUtil.toSet(task)));
+            will(returnValue(toSet(task2)));
+
+            Sequence sequence = context.sequence("tasks");
+
+            one(taskExecuter).addTasks(toSet(task1));
+            inSequence(sequence);
+
+            one(taskExecuter).addTasks(toSet(task2));
+            inSequence(sequence);
+
+            one(taskExecuter).execute();
+            inSequence(sequence);
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
-
-        assertThat(executer.hasNext(), equalTo(true));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
         executer.select(project);
-
-        assertThat(executer.hasNext(), equalTo(true));
-        executer.select(project);
-
-        assertThat(executer.hasNext(), equalTo(false));
-        executer.select(project);
-        assertThat(executer.getDescription(), equalTo(""));
-        assertThat(executer.getTasks(), equalTo((Iterable<Task>) new TreeSet<Task>()));
+        assertThat(executer.getDescription(), equalTo("primary tasks 'name1', 'name2'"));
+        executer.execute(taskExecuter);
     }
 
     @Test
@@ -148,17 +130,17 @@ public class TaskNameResolvingBuildExecuterTest {
 
         context.checking(new Expectations() {{
             atLeast(1).of(project).getTasksByName("name1", true);
-            will(returnValue(WrapUtil.toSet()));
+            will(returnValue(toSet()));
             atLeast(1).of(project).getTasksByName("name2", true);
-            will(returnValue(WrapUtil.toSet(task)));
+            will(returnValue(toSet(task)));
         }});
 
-        BuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
+        BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
         try {
             executer.select(project);
             fail();
         } catch (UnknownTaskException e) {
-            assertThat(e.getMessage(), equalTo("Task 'name1' not found in this project."));
+            assertThat(e.getMessage(), equalTo("Task 'name1' not found in [project]."));
         }
     }
 
@@ -170,15 +152,15 @@ public class TaskNameResolvingBuildExecuterTest {
             atLeast(1).of(project).findTask("a:b");
             will(returnValue(null));
             atLeast(1).of(project).getTasksByName("name2", true);
-            will(returnValue(WrapUtil.toSet(task)));
+            will(returnValue(toSet(task)));
         }});
 
-        BuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("a:b", "name2"));
+        BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b", "name2"));
         try {
             executer.select(project);
             fail();
         } catch (UnknownTaskException e) {
-            assertThat(e.getMessage(), equalTo("Task 'a:b' not found in this project."));
+            assertThat(e.getMessage(), equalTo("Task 'a:b' not found in [project]."));
         }
     }
 
@@ -186,17 +168,17 @@ public class TaskNameResolvingBuildExecuterTest {
     public void failsWhenMultipleUnknownTaskNamesAreProvided() {
         context.checking(new Expectations() {{
             atLeast(1).of(project).getTasksByName("name1", true);
-            will(returnValue(WrapUtil.toSet()));
+            will(returnValue(toSet()));
             atLeast(1).of(project).getTasksByName("name2", true);
-            will(returnValue(WrapUtil.toSet()));
+            will(returnValue(toSet()));
         }});
 
-        BuildExecuter executer = new TaskNameResolvingBuildExecuter(WrapUtil.toList("name1", "name2"));
+        BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
         try {
             executer.select(project);
             fail();
         } catch (UnknownTaskException e) {
-            assertThat(e.getMessage(), equalTo("Tasks ['name1', 'name2'] not found in this project."));
+            assertThat(e.getMessage(), equalTo("Tasks 'name1', 'name2' not found in [project]."));
         }
     }
 }

@@ -68,7 +68,6 @@ public class MainTest {
     private boolean expectedSearchUpwards;
     private String expectedEmbeddedScript;
     private StartParameter actualStartParameter;
-    private boolean expectedMergedBuild;
     private LogLevel expectedLogLevel;
 
     private Gradle gradleMock;
@@ -128,7 +127,6 @@ public class MainTest {
         assertEquals(expectedGradleImportsFile, startParameter.getDefaultImportsFile());
         assertEquals(expectedPluginPropertiesFile, startParameter.getPluginPropertiesFile());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
-        assertEquals(expectedMergedBuild, startParameter.isMergedBuild());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
     }
 
@@ -285,12 +283,6 @@ public class MainTest {
     public void testMainWithSearchUpwardsFlagSet() throws Throwable {
         expectedSearchUpwards = false;
         checkMain("-u");
-    }
-
-    @Test
-    public void testMainWithMergedBuild() throws Throwable {
-        expectedMergedBuild = true;
-        checkMain("-m");
     }
 
     @Test

@@ -54,13 +54,6 @@ public class BuiltInTasksBuildExecuterTest {
     }
 
     @Test
-    public void hasNextBeforeFirstSelection() {
-        assertThat(executer.hasNext(), equalTo(true));
-        executer.select(project);
-        assertThat(executer.hasNext(), equalTo(false));
-    }
-
-    @Test
     public void executesTaskReportTask() {
         executer.select(project);
         assertThat(executer.getTask(), instanceOf(TaskReportTask.class));
@@ -102,12 +95,4 @@ public class BuiltInTasksBuildExecuterTest {
         assertThat(executer.getDescription(), equalTo("dependency list"));
         executer.execute(taskExecuter);
     }
-
-    @Test
-    public void doesNotRequireProjectReload() {
-        assertThat(executer.requiresProjectReload(), equalTo(false));
-        executer.select(project);
-        assertThat(executer.requiresProjectReload(), equalTo(false));
-    }
-
 }

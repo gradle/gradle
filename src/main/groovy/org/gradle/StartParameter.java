@@ -24,7 +24,6 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.execution.TaskNameResolvingBuildExecuter;
 import org.gradle.execution.ProjectDefaultsBuildExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.MergingBuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.GUtil;
@@ -63,7 +62,6 @@ public class StartParameter {
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
     private BuildExecuter buildExecuter;
-    private boolean mergedBuild;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     /**
@@ -113,7 +111,6 @@ public class StartParameter {
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.buildExecuter = buildExecuter;
-        startParameter.mergedBuild = mergedBuild;
         startParameter.logLevel = logLevel;
 
         return startParameter;
@@ -221,9 +218,6 @@ public class StartParameter {
         }
         BuildExecuter executer = GUtil.isTrue(taskNames) ? new TaskNameResolvingBuildExecuter(taskNames)
                 : new ProjectDefaultsBuildExecuter();
-        if (mergedBuild) {
-            executer = new MergingBuildExecuter(executer);
-        }
         return executer;
     }
 
@@ -331,14 +325,6 @@ public class StartParameter {
 
     public void setSettingsFileName(String settingsFileName) {
         this.settingsFileName = settingsFileName;
-    }
-
-    public boolean isMergedBuild() {
-        return mergedBuild;
-    }
-
-    public void setMergedBuild(boolean merged) {
-        this.mergedBuild = merged;
     }
 
     public LogLevel getLogLevel() {

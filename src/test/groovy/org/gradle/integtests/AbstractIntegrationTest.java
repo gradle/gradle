@@ -155,6 +155,14 @@ public class AbstractIntegrationTest {
             return this;
         }
 
+        public void touch() {
+            try {
+                FileUtils.touch(file);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
         public File asFile() {
             return file;
         }
@@ -187,11 +195,6 @@ public class AbstractIntegrationTest {
             return this;
         }
 
-        public GradleExecution inMergedBuild() {
-            parameter.setMergedBuild(true);
-            return this;
-        }
-
         public GradleExecutionResult runTasks(String... names) {
             parameter.setTaskNames(Arrays.asList(names));
             return execute();
@@ -202,6 +205,11 @@ public class AbstractIntegrationTest {
             return execute();
         }
 
+        public GradleExecutionResult showDependencyList() {
+            parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
+            return execute();
+        }
+        
         private GradleExecutionResult execute() {
             
             Gradle gradle = Gradle.newInstance(parameter);

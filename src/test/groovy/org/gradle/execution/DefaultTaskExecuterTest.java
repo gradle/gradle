@@ -56,7 +56,7 @@ public class DefaultTaskExecuterTest {
     @Before
     public void setUp() {
         root = createRootProject(new File("root"));
-        taskExecuter = new DefaultTaskExecuter(new Dag<Task>());
+        taskExecuter = new DefaultTaskExecuter();
     }
 
     @Test
@@ -72,7 +72,19 @@ public class DefaultTaskExecuterTest {
     }
 
     @Test
-    public void testExecutesTasksWithNoDependenciesInNameOrder() {
+    public void testExecutesDependenciesInNameOrder() {
+        Task a = createTask("a");
+        Task b = createTask("b");
+        Task c = createTask("c");
+        Task d = createTask("d", b, a, c);
+
+        taskExecuter.execute(toList(d));
+
+        assertThat(executedTasks, equalTo(toList(a, b, c, d)));
+    }
+
+    @Test
+    public void testExecutesTasksInASingleBatchInNameOrder() {
         Task a = createTask("a");
         Task b = createTask("b");
         Task c = createTask("c");
@@ -83,16 +95,34 @@ public class DefaultTaskExecuterTest {
     }
 
     @Test
-    public void testExecuteWithRebuildDagAndDagNeutralTask() {
-        Task neutral = createTask("a");
-        neutral.setDagNeutral(true);
-        Task notNeutral = createTask("b");
-        notNeutral.setDagNeutral(false);
+    public void testExecutesBatchesInOrderAdded() {
+        Task a = createTask("a");
+        Task b = createTask("b");
+        Task c = createTask("c");
+        Task d = createTask("d");
 
-        assertFalse(taskExecuter.execute(toList(neutral)));
-        assertTrue(taskExecuter.execute(toList(notNeutral)));
+        taskExecuter.addTasks(toList(c, b));
+        taskExecuter.addTasks(toList(d, a));
+        taskExecuter.execute();
+
+        assertThat(executedTasks, equalTo(toList(b, c, a, d)));
     }
 
+    @Test
+    public void testExecutesSharedDependenciesOfBatchesOnceOnly() {
+        Task a = createTask("a");
+        Task b = createTask("b");
+        Task c = createTask("c", a, b);
+        Task d = createTask("d");
+        Task e = createTask("e", b, d);
+
+        taskExecuter.addTasks(toList(c));
+        taskExecuter.addTasks(toList(e));
+        taskExecuter.execute();
+
+        assertThat(executedTasks, equalTo(toList(a, b, c, d, e)));
+    }
+    
     @Test
     public void testAddTasksAddsDependencies() {
         Task a = createTask("a");
@@ -102,9 +132,13 @@ public class DefaultTaskExecuterTest {
         taskExecuter.addTasks(toList(d));
 
         assertTrue(taskExecuter.hasTask(":a"));
+        assertTrue(taskExecuter.hasTask(a));
         assertTrue(taskExecuter.hasTask(":b"));
+        assertTrue(taskExecuter.hasTask(b));
         assertTrue(taskExecuter.hasTask(":c"));
+        assertTrue(taskExecuter.hasTask(c));
         assertTrue(taskExecuter.hasTask(":d"));
+        assertTrue(taskExecuter.hasTask(d));
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b, c, d)));
     }
 
@@ -130,6 +164,14 @@ public class DefaultTaskExecuterTest {
         }
 
         try {
+            taskExecuter.hasTask(createTask("a"));
+            fail();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage(), equalTo(
+                    "Task information is not available, as this task execution graph has not been populated."));
+        }
+
+        try {
             taskExecuter.getAllTasks();
             fail();
         } catch (IllegalStateException e) {
@@ -139,35 +181,37 @@ public class DefaultTaskExecuterTest {
     }
 
     @Test
-    public void testKeepsTasksAfterExecute() {
+    public void testDiscardsTasksAfterExecute() {
         Task a = createTask("a");
         Task b = createTask("b", a);
 
         taskExecuter.addTasks(toList(b));
         taskExecuter.execute();
 
-        assertTrue(taskExecuter.hasTask(":a"));
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b)));
+        assertFalse(taskExecuter.hasTask(":a"));
+        assertFalse(taskExecuter.hasTask(a));
+        assertTrue(taskExecuter.getAllTasks().isEmpty());
     }
 
     @Test
     public void testCanExecuteMultipleTimes() {
         Task a = createTask("a");
         Task b = createTask("b", a);
-        Task c = createTask("c", a);
+        Task c = createTask("c");
 
         taskExecuter.addTasks(toList(b));
         taskExecuter.execute();
+        assertThat(executedTasks, equalTo(toList(a, b)));
 
         executedTasks.clear();
+
         taskExecuter.addTasks(toList(c));
 
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b, c)));
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(c)));
 
         taskExecuter.execute();
 
         assertThat(executedTasks, equalTo(toList(c)));
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b, c)));
     }
 
     @Test
@@ -301,7 +345,6 @@ public class DefaultTaskExecuterTest {
     private Task createTask(String name, final Task... dependsOn) {
         final TaskInternal task = new DefaultTask(root, name);
         task.dependsOn((Object[]) dependsOn);
-        task.setDagNeutral(true);
         task.doFirst(new TaskAction() {
             public void execute(Task task) {
                 executedTasks.add(task);

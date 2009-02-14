@@ -19,7 +19,6 @@ package org.gradle.execution;
 import groovy.lang.Closure;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -29,13 +28,7 @@ import org.gradle.util.ListenerBroadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -43,61 +36,76 @@ import java.util.TreeSet;
 public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskExecuter.class);
 
-    private final Dag<Task> dag;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners
             = new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class);
     private final ListenerBroadcast<TaskExecutionListener> taskListeners = new ListenerBroadcast<TaskExecutionListener>(
             TaskExecutionListener.class);
-    private final Set<Task> executed = new LinkedHashSet<Task>();
+    private final Set<Task> executionPlan = new LinkedHashSet<Task>();
     private boolean populated;
-
-    public DefaultTaskExecuter(Dag<Task> dag) {
-        this.dag = dag;
-    }
 
     public void addTasks(Iterable<? extends Task> tasks) {
         assert tasks != null;
 
         Clock clock = new Clock();
-        fillDag(tasks);
-        populated = true;
-        logger.debug("Timing: Creating the DAG took " + clock.getTime());
 
+        Set<Task> sortedTasks = new TreeSet<Task>();
+        for (Task task : tasks) {
+            sortedTasks.add(task);
+        }
+        fillDag(sortedTasks);
+        populated = true;
+
+        logger.debug("Timing: Creating the DAG took " + clock.getTime());
     }
 
-    public boolean execute() {
+    public void execute() {
         Clock clock = new Clock();
 
         graphListeners.getSource().graphPopulated(this);
 
-        Set<Task> tasks = new LinkedHashSet<Task>();
-        accumulateTasks(new TreeSet<Task>(dag.getSources()), tasks);
-
         try {
-            boolean dagNeutral = execute(tasks);
+            doExecute(executionPlan);
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
-            return !dagNeutral;
         } finally {
-            executed.addAll(tasks);
-            dag.reset();
+            executionPlan.clear();
         }
     }
 
-    public boolean execute(Iterable<? extends Task> tasks) {
+    public void execute(Iterable<? extends Task> tasks) {
         addTasks(tasks);
-        return execute();
+        execute();
     }
 
-    private void fillDag(Iterable<? extends Task> tasks) {
-        for (Task task : tasks) {
-            logger.debug("Find dependsOn tasks for {}", task);
-            Set<? extends Task> dependsOnTasks = task.getTaskDependencies().getDependencies(task);
-            addTask(task, dependsOnTasks);
-            if (dependsOnTasks.size() > 0) {
-                logger.debug("Found dependsOn tasks for {}: {}", task, dependsOnTasks);
-                fillDag(dependsOnTasks);
+    private void fillDag(Collection<? extends Task> tasks) {
+        Set<Task> visiting = new HashSet<Task>();
+        List<Task> queue = new ArrayList<Task>();
+        queue.addAll(tasks);
+
+        while (!queue.isEmpty()) {
+            Task task = queue.get(0);
+            if (executionPlan.contains(task)) {
+                // Already in plan - skip
+                queue.remove(0);
+                continue;
+            }
+
+            if (visiting.add(task)) {
+                // Have not seen this task before - add its dependencies to the head of the queue and leave this
+                // task in the queue
+                Set<Task> dependsOnTasks = new TreeSet<Task>(Collections.reverseOrder());
+                dependsOnTasks.addAll(task.getTaskDependencies().getDependencies(task));
+                for (Task dependsOnTask : dependsOnTasks) {
+                    if (visiting.contains(dependsOnTask)) {
+                        throw new CircularReferenceException(String.format(
+                                "Circular dependency between tasks. Cycle includes %s.", task));
+                    }
+                    queue.add(0, dependsOnTask);
+                }
             } else {
-                logger.debug("Found no dependsOn tasks for {}", task);
+                // Have visited this task's dependencies - add it to the end of the plan
+                queue.remove(0);
+                visiting.remove(task);
+                executionPlan.add(task);
             }
         }
     }
@@ -130,28 +138,12 @@ public class DefaultTaskExecuter implements TaskExecuter {
         taskListeners.add("afterExecute", closure);
     }
 
-    private void addTask(Task task, Iterable<? extends Task> dependsOnTasks) {
-        logger.debug("Add task: {} DependsOnTasks: {}", task, dependsOnTasks);
-        dag.addVertex(task);
-        for (Task dependsOnTask : dependsOnTasks) {
-            if (!dag.addEdge(task, dependsOnTask)) {
-                throw new CircularReferenceException(String.format("Can't establish dependency %s ==> %s", task,
-                        dependsOnTask));
-            }
-        }
-    }
-
-    private boolean execute(Set<? extends Task> tasks) {
-        boolean dagNeutral = true;
+    private void doExecute(Iterable<? extends Task> tasks) {
         for (Task task : tasks) {
             if (!task.getExecuted()) {
                 executeTask(task);
-                if (dagNeutral) {
-                    dagNeutral = task.isDagNeutral();
-                }
             }
         }
-        return dagNeutral;
     }
 
     private void executeTask(Task task) {
@@ -180,6 +172,11 @@ public class DefaultTaskExecuter implements TaskExecuter {
         taskListeners.getSource().afterExecute(task, failure);
     }
 
+    public boolean hasTask(Task task) {
+        assertPopulated();
+        return executionPlan.contains(task);
+    }
+
     public boolean hasTask(String path) {
         assertPopulated();
         assert path != null && path.length() > 0;
@@ -193,9 +190,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
 
     public List<Task> getAllTasks() {
         assertPopulated();
-        Set<Task> tasks = new LinkedHashSet<Task>(executed);
-        accumulateTasks(new TreeSet<Task>(dag.getSources()), tasks);
-        return new ArrayList<Task>(tasks);
+        return new ArrayList<Task>(executionPlan);
     }
 
     private void assertPopulated() {
@@ -204,21 +199,4 @@ public class DefaultTaskExecuter implements TaskExecuter {
                     "Task information is not available, as this task execution graph has not been populated.");
         }
     }
-
-    private void accumulateTasks(Set<? extends Task> tasks, Collection<Task> taskList) {
-        for (Task task : tasks) {
-            accumulateTasks(new TreeSet<Task>(dag.getChildren(task)), taskList);
-            taskList.add(task);
-        }
-    }
-
-    public Set<Project> getProjects() {
-        assertPopulated();
-        HashSet<Project> projects = new HashSet<Project>();
-        for (Task task : getAllTasks()) {
-            projects.add(task.getProject());
-        }
-        return projects;
-    }
-
 }

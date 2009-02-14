@@ -179,33 +179,12 @@ public class GradleTest {
     }
 
     @Test
-    public void testRunWithRebuildDagFalse() {
-        expectSettingsBuilt();
-        expectTasksRunWithoutDagRebuild();
-        gradle.run();
-    }
-
-    @Test
-    public void testRunWithDefaultTasks() {
-        expectSettingsBuilt();
-        expectedStartParams.setTaskNames(new ArrayList<String>());
-        expectedTaskNames = WrapUtil.toList("c", "d");
-        expectedCurrentProject.setDefaultTasks(expectedTaskNames);
-        expectTasks("c", "d");
-        expectTasksRunWithoutDagRebuild();
-        gradle.run();
-    }
-
-    @Test
     public void testNotifiesListenerOfBuildStages() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         context.checking(new Expectations() {{
             one(buildListenerMock).buildStarted(expectedStartParams);
             one(buildListenerMock).settingsEvaluated(settingsMock);
-            one(buildListenerMock).projectsLoaded(buildMock);
-            one(buildListenerMock).projectsEvaluated(buildMock);
-//            one(buildListenerMock).taskGraphPopulated(taskExecuterMock);
             one(buildListenerMock).projectsLoaded(buildMock);
             one(buildListenerMock).projectsEvaluated(buildMock);
 //            one(buildListenerMock).taskGraphPopulated(taskExecuterMock);
@@ -260,38 +239,17 @@ public class GradleTest {
         });
     }
 
-    private void expectTasksRunWithoutDagRebuild() {
-        context.checking(new Expectations() {
-            {
-                one(buildConfigurerMock).process(expectedRootProject);
-                one(taskExecuterMock).execute(expectedTasks.get(0));
-                will(returnValue(false));
-                one(taskExecuterMock).execute(expectedTasks.get(1));
-                will(returnValue(false));
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
-                        testGradleProperties);
-                will(returnValue(buildMock));
-                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
-            }
-        });
-    }
-
     private void expectTasksRunWithDagRebuild() {
         context.checking(new Expectations() {
             {
-                one(buildConfigurerMock).process(expectedRootProject);
-                one(taskExecuterMock).execute(expectedTasks.get(0));
-                will(returnValue(true));
-                one(taskExecuterMock).execute(expectedTasks.get(1));
-                will(returnValue(true));
                 one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
                         testGradleProperties);
                 will(returnValue(buildMock));
-                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams, testGradleProperties);
-                will(returnValue(buildMock));
                 one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
+                one(taskExecuterMock).addTasks(expectedTasks.get(0));
+                one(taskExecuterMock).addTasks(expectedTasks.get(1));
+                one(taskExecuterMock).execute();
             }
         });
     }
@@ -304,7 +262,9 @@ public class GradleTest {
                 will(returnValue(buildMock));
                 one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(taskExecuterMock).execute(expectedTasks.get(0));
+                one(taskExecuterMock).addTasks(expectedTasks.get(0));
+                one(taskExecuterMock).addTasks(expectedTasks.get(1));
+                one(taskExecuterMock).execute();
                 will(throwException(failure));
             }
         });

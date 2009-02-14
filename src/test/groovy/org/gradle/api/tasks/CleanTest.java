@@ -71,11 +71,6 @@ public class CleanTest extends AbstractConventionTaskTest {
         assertNull(clean.dir);
     }
 
-    @Override @Test
-    public void testDagNeutral() {
-        assertTrue(getTask().isDagNeutral());
-    }
-
     @Test
     public void testExecute() throws IOException {
         clean.dir = HelperUtil.makeNewTestDir();

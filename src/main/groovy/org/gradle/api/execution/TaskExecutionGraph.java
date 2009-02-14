@@ -96,6 +96,15 @@ public interface TaskExecutionGraph {
     boolean hasTask(String path);
 
     /**
+     * <p>Determines whether the given task is included in the execution plan.</p>
+     *
+     * @param task the task
+     * @return true if the given task is included in the execution plan.
+     * @throws IllegalStateException When this graph has not been populated.
+     */
+    boolean hasTask(Task task);
+
+    /**
      * <p>Returns the tasks which are included in the execution plan. The tasks are returned in the order that they will
      * be executed.</p>
      *

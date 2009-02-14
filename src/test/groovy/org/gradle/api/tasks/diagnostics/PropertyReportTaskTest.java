@@ -52,11 +52,6 @@ public class PropertyReportTaskTest {
     }
 
     @Test
-    public void isDagNeutral() {
-        assertTrue(task.isDagNeutral());
-    }
-
-    @Test
     public void passesEachProjectPropertyToRenderer() throws IOException {
         context.checking(new Expectations() {{
             one(project).getProperties();

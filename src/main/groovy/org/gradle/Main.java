@@ -67,7 +67,6 @@ public class Main {
     private static final String VERSION = "v";
     private static final String CACHE = "C";
     private static final String HELP = "h";
-    private static final String MERGED_BUILD = "m";
 
     private final String[] args;
     private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
@@ -95,7 +94,6 @@ public class Main {
                 acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS, "no-imports"), "Disable usage of default imports for build script files.");
                 acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"),
                         String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
-                acceptsAll(WrapUtil.toList(MERGED_BUILD, "merged-build"), "Merge all tasks into a single build.");
                 acceptsAll(WrapUtil.toList(CACHE, "cache"),
                         "Specifies how compiled build scripts should be cached. Possible values are: 'rebuild', 'off', 'on'. Default value is 'on'").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
@@ -226,7 +224,6 @@ public class Main {
         } else {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
-        startParameter.setMergedBuild(options.has(MERGED_BUILD));
 
         startParameter.setLogLevel(getLogLevel(options));
 

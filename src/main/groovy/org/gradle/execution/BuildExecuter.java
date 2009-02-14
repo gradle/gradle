@@ -18,32 +18,23 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 
 /**
- * Selects and executes the groups of tasks requested for a build.
+ * Selects and executes the tasks requested for a build.
  */
 public interface BuildExecuter {
-    /**
-     * Returns true if this selector has another group of tasks to execute.
-     */
-    boolean hasNext();
 
     /**
-     * Moves to the next group of tasks to execute.  The project is not rebuilt while executing a single group of
-     * tasks, but may be rebuilt between groups.
+     * Selects the tasks to execute, if any. This method is called before any other methods on this executer.
      */
     void select(Project project);
 
     /**
-     * Returns the description of the current group.
+     * Returns the description of this executer. The result is used for log and error messages. Called after {@link
+     * #select(org.gradle.api.Project)}.
      */
     String getDescription();
 
     /**
-     * Executes the current group of tasks.
+     * Executes the selected tasks. Called after {@link #select(org.gradle.api.Project)}.
      */
     void execute(TaskExecuter executer);
-
-    /**
-     * Returns true if the project heirarchiy should be reloaded before executing the current group, false if not.
-     */
-    boolean requiresProjectReload();
 }

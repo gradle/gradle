@@ -34,7 +34,6 @@ public abstract class AbstractReportTask extends DefaultTask {
 
     public AbstractReportTask(Project project, String name) {
         super(project, name);
-        setDagNeutral(true);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 generate();

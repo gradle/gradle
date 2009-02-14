@@ -18,8 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.util.GUtil;
 
 import java.util.*;
 
@@ -28,53 +27,36 @@ import java.util.*;
  * projects whose name is the given name.
  */
 public class TaskNameResolvingBuildExecuter implements BuildExecuter {
-    private static Logger logger = LoggerFactory.getLogger(TaskNameResolvingBuildExecuter.class);
-    private final Iterable<String> names;
-    private Iterator<String> current;
-    private Set<Task> tasks;
-    private String description;
-    private boolean reloadProjects;
+    private final List<String> names;
+    private final List<Collection<Task>> tasks = new ArrayList<Collection<Task>>();
+    private final String description;
 
-    public TaskNameResolvingBuildExecuter(Iterable<String> names) {
-        this.names = names;
-    }
-
-    public boolean hasNext() {
-        return current == null || current.hasNext();
+    public TaskNameResolvingBuildExecuter(Collection<String> names) {
+        this.names = new ArrayList<String>(names);
+        if (names.size() == 1) {
+            description = String.format("primary task %s", GUtil.toString(names));
+        } else {
+            description = String.format("primary tasks %s", GUtil.toString(names));
+        }
     }
 
     public void select(Project project) {
-        if (current == null) {
-            // First group, check for unknown tasks
-            current = names.iterator();
-            checkForUnknownTasks(project);
-        }
-
-        if (!current.hasNext()) {
-            tasks = Collections.emptySet();
-            description = "";
-            return;
-        }
-
-        String taskName = current.next();
-        description = String.format("primary task '%s'", taskName);
-        tasks = findTasks(project, taskName);
-    }
-
-    private void checkForUnknownTasks(Project project) {
         Set<String> unknownTasks = new LinkedHashSet<String>();
         for (String taskName : names) {
-            if (findTasks(project, taskName).size() == 0) {
-                unknownTasks.add(String.format("'%s'", taskName));
+            Set<Task> tasksForName = findTasks(project, taskName);
+            if (tasksForName.size() == 0) {
+                unknownTasks.add(taskName);
             }
+            tasks.add(tasksForName);
         }
+
         if (unknownTasks.size() == 0) {
             return;
         }
         if (unknownTasks.size() == 1) {
-            throw new UnknownTaskException(String.format("Task %s not found in this project.", unknownTasks.iterator().next()));
+            throw new UnknownTaskException(String.format("Task %s not found in %s.", GUtil.toString(unknownTasks), project));
         } else {
-            throw new UnknownTaskException(String.format("Tasks %s not found in this project.", unknownTasks));
+            throw new UnknownTaskException(String.format("Tasks %s not found in %s.", GUtil.toString(unknownTasks), project));
         }
     }
 
@@ -92,7 +74,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
     }
 
     public Iterable<Task> getTasks() {
-        return tasks;
+        return new HashSet<Task>(GUtil.flatten(tasks));
     }
 
     public String getDescription() {
@@ -100,11 +82,9 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
     }
 
     public void execute(TaskExecuter executer) {
-        logger.debug(String.format("Selected for execution: %s.", tasks));
-        reloadProjects = executer.execute(tasks);
-    }
-
-    public boolean requiresProjectReload() {
-        return reloadProjects;
+        for (Collection<Task> tasksForName : tasks) {
+            executer.addTasks(tasksForName);
+        }
+        executer.execute();
     }
 }

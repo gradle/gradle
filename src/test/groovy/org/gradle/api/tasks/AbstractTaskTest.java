@@ -82,12 +82,6 @@ public abstract class AbstractTaskTest {
         assertEquals(new HashMap(), getTask().getAdditionalProperties());
     }
 
-    // We do it in an own method, so that its easy to overwrite the test for getTask() which deviate from default.
-    @Test
-    public void testDagNeutral() {
-        assertFalse(getTask().isDagNeutral());
-    }
-
     @Test
     public void testPath() {
         DefaultProject rootProject = HelperUtil.createRootProject(new File("parent", "root"));
