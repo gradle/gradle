@@ -926,7 +926,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
                 file of all the jar or a war archives in your project.
             </para>
             <programlisting><![CDATA[
-manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
+manifest.mainAttributes("Implementation-Title": "Gradle", "Implementation-Version": version)
 ]]></programlisting>
             <para>You can also define sections of a manifest file.
             </para>
@@ -935,7 +935,7 @@ manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: 
                 object for it.
             </para>
             <programlisting><![CDATA[
-manifest.mainAttributes(Implementation-Title: "Gradle", Implementation-Version: $version)
+manifest.mainAttributes("Implementation-Title": "Gradle", "Implementation-Version": version)
 myZipTask.manifest = new GradleManifest(manifest)
 myZipTask.manifest.mainAttributes(mykey: "myvalue")
 ]]></programlisting>

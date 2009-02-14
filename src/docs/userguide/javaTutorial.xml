@@ -1,7 +1,8 @@
 <chapter id='cha:the_java_projects_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Java Projects Appetizer</title>
-    <para>We have in-depth coverage with many examples about the Java plugin, the dependency management and
-        multi-project builds in the later chapters. In this chapter we want to give you just a first idea.
+    <para>We have in-depth coverage with many examples about the Java plugin, dependency management and
+        multi-project builds in later chapters. In this chapter we want to give you a first idea of how to build a
+        Java project.
     </para>
     <section id='sec:examples'>
         <title>Examples</title>
@@ -10,11 +11,9 @@
         <programlisting><![CDATA[
 usePlugin('java')
 ]]></programlisting>
-        <para>Executing
-            <literal>gradle libs</literal>
-            will compile, test and jar your code. If you specify a remote repository, executing
-            <literal>gradle uploadLibs</literal>
-            will do additionally an upload of your jar to a remote repository. Builds have usually more requirements.
+        <para>Executing <literal>gradle libs</literal> will compile, test and jar your code. If you specify a remote
+            repository, executing <literal>gradle uploadLibs</literal>
+            will additionally upload your jar to a remote repository. Builds usually have more requirements.
             Let's look at a typical multi-project build.
         </para>
         <programlisting><![CDATA[
@@ -23,15 +22,10 @@ D- ultimateApp
   D- webservice
   D- shared
 ]]></programlisting>
-        <para>We have three projects.
-            <literal>api</literal>
-            is shipped to the client to provide them a Java client for your XML webservice.
-            <literal>webservice</literal>
-            is a webapp which returns XML.
-            <literal>shared</literal>
-            is code used both by
-            <literal>api</literal>
-            and <literal>webservice</literal>. Let's look at the Gradle build scripts of those projects.
+        <para>We have three projects. Project <literal>api</literal> produces a JAR file which is shipped to the client to
+            provide them a Java client for your XML webservice. Project <literal>webservice</literal> is a webapp which returns XML.
+            Project <literal>shared</literal> contains code used both by <literal>api</literal>
+            and <literal>webservice</literal>. Let's look at the Gradle build scripts of these projects.
         </para>
         <programlisting><![CDATA[
 subprojects {
@@ -51,11 +45,10 @@ subprojects {
 	}
 }
 ]]></programlisting>
-        <para>The commons stuff for all Java projects we do define in the root project. Not by inheritance but via
+        <para>The common stuff for each of the projects we define in the root project. Not by inheritance but via
             <emphasis>Configuration Injection</emphasis>. The root project is like a container and
-            <literal>subprojects</literal>
-            iterates over the elements of this container and injects the specified configuration. This way we can easily
-            define the manifest content for all archives.
+            <literal>subprojects</literal> iterates over the elements of this container - the projects in this instance -
+            and injects the specified configuration. This way we can easily define the manifest content for all archives.
         </para>
         <programlisting><![CDATA[
 dependencies {
@@ -69,14 +62,10 @@ dists {
 	}
 }
 ]]></programlisting>
-        <para>In the
-            <literal>api</literal>
-            build script we add further dependencies. One dependency are the jars of the
-            <literal>shared</literal>
-            project. Due to this dependency
-            <literal>shared</literal>
-            gets now always build before <literal>api</literal>. We also add a distribution, that gets shipped to the
-            client.
+        <para>In the <literal>api</literal> build script we add further dependencies. One dependency is on the jars
+            produced by the <literal>shared</literal> project. Due to this dependency, Gradle will ensure that
+            project <literal>shared</literal> always gets built before project <literal>api</literal>.
+            We also add a distribution, that gets shipped to the client.
         </para>
     </section>
 </chapter>

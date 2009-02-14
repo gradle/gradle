@@ -1,19 +1,9 @@
 >gradle test
-Modern compiler found.
-Recursive: true
-Buildfilename: gradlefile
 This is executed during the initialization phase.
-No build sources found.
-:: loading settings :: url = jar:file:/Users/hans/IdeaProjects/gradle-release/gradle-core-RB-0.1/build/ 
-:: resolving dependencies :: org.gradle#build;SNAPSHOT
-confs: [build]
-++++ Starting build for primary task: test
-++ Loading Project objects
-++ Configuring Project objects
 This is executed during the configuration phase.
-Project=: evaluated.
-++ Executing: test Recursive:true Startproject: :
-Executing: :test
+:test
 This is executed during the execution phase.
+
 BUILD SUCCESSFUL
-Total time: 1 seconds
+
+Total time: 1.023 secs

@@ -13,11 +13,11 @@
             </para>
         </listitem>
         <listitem>
-            <para>a very powerful support for multi-project builds.
+            <para>very powerful support for multi-project builds.
             </para>
         </listitem>
         <listitem>
-            <para>a very powerful dependency management (based on Apache Ivy).
+            <para>very powerful dependency management (based on Apache Ivy).
             </para>
         </listitem>
         <listitem>
@@ -26,9 +26,7 @@
         </listitem>
         <listitem>
             <para>(optionally) support for transitive dependency management without the need for remote repositories or
-                <literal>pom.xml</literal>
-                and
-                <literal>ivy.xml</literal>
+                <literal>pom.xml</literal> and <literal>ivy.xml</literal>
                 files.
             </para>
         </listitem>
@@ -38,8 +36,7 @@
         </listitem>
         <listitem>
             <para>
-                <emphasis>Groovy</emphasis>
-                build scripts.
+                <emphasis>Groovy</emphasis> build scripts.
             </para>
         </listitem>
     </itemizedlist>

@@ -7,25 +7,15 @@
         <sample src='userguide/tutorial/skipProperties/build.gradle'
                 title='Sample userguide/tutorial/skipProperties/build.gradle'/>
         <sampleOutput src='skipProperties.out'/>
-        <para>The
-            <literal>-D</literal>
-            option of the
-            <literal>gradle</literal>
-            command has the same effect as the
-            <literal>-D</literal>
-            option of the
-            <literal>java</literal>
-            command. This way you can set system properties of the JVM that runs Gradle. You can add one ore more
-            <emphasis>skip properties</emphasis>
-            to any existing task. If the corresponding system property is set to any value/footnote{The statement
-            <literal>-Dprop</literal>
-            sets the property to empty string, thus you don't need to type more to skip a task.} except false (case does
-            not matter), the actions of the task don't get executed. But often you don't even need to set the skip
-            properties. If you set a system property according to the pattern
-            <literal>skip.
-                <emphasis>taskname</emphasis>
-            </literal>
-            , the actions of this task don't get executed.
+        <para>The <literal>-D</literal> option of the <literal>gradle</literal> command has the same effect as the
+            <literal>-D</literal> option of the <literal>java</literal> command. This way you can set system properties
+            of the JVM that runs Gradle. You can use this to add one or more <emphasis>skip properties</emphasis>
+            to any task. If the corresponding system property is set to any value
+                <footnote><para>The statement <literal>-Dprop</literal> sets the property to empty string, thus you
+                don't need to type more to skip a task.</para></footnote>
+            except false (case does not matter), the actions of the task don't get executed. But often you don't even
+            need to set the skip properties. If you set a system property according to the pattern
+            <literal>skip.<emphasis>taskname</emphasis></literal>, the actions of the task don't get executed.
         </para>
         <sample src='userguide/tutorial/autoskip/build.gradle' title='Sample userguide/tutorial/autoskip/build.gradle'/>
         <sampleOutput src='autoskip.out'/>
@@ -36,29 +26,22 @@
                 title='Sample userguide/tutorial/autoskipDepends/build.gradle'/>
         <sampleOutput src='autoskipDepends.out'/>
         <para>If the rules for skipping a task can't be expressed with a simple property, you can use the
-            <literal>StopExecutionException</literal>
-            <footnote>
-                <para>The fully qualified name is
-                    <literal>org.gradle.api.tasks.StopExecutionException</literal>
-                </para>
-            </footnote>
-            . If this exception is thrown by an action, the further execution of this action as well as the execution of
+            <apilink class="org.gradle.api.tasks.StopExecutionException"/>. If this exception is thrown by an action,
+            the further execution of this action as well as the execution of
             any following action of this task is skipped. The build continues with executing the next task.
         </para>
         <sample src='userguide/tutorial/stopExecutionException/build.gradle'
                 title='Sample userguide/tutorial/stopExecutionException/build.gradle'/>
         <sampleOutput src='stopExecutionException.out'/>
         <para>This feature is helpful if you work with tasks provided by Gradle. It allows you to add
-            <emphasis>conditional</emphasis>
-            execution of the built-in actions of such a task.
+            <emphasis>conditional</emphasis> execution of the built-in actions of such a task.
         </para>
         <para>You might be wondering why there is neither an import for the
             <literal>StopExecutionException</literal>
             nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports
             to your script. These imports are customizable (see <xref linkend='cha:ide_support'/>).
         </para>
-        <para>Every task has also a
-            <literal>enabled</literal>
+        <para>Every task has also a <literal>enabled</literal>
             flag which defaults to <literal>true</literal>. Setting it to false prevents the execution of any of the
             tasks actions.
         </para>

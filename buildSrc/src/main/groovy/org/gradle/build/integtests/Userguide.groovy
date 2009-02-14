@@ -19,6 +19,7 @@ package org.gradle.build.integtests
 import groovy.io.PlatformLineWriter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.junit.Assert
 
 /**
  * @author Hans Dockter
@@ -41,15 +42,35 @@ class Userguide {
             result.output = ">$result.unixCommand$NL" + result.output
             String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
             try {
-                assert result.output == expectedResult
+                compareStrings(expectedResult, result.output)
             } catch (AssertionError e) {
                 println 'Expected Result:'
                 println expectedResult
                 println 'Actual Result:'
                 println result.output
-                checkDifference(expectedResult, result.output)
                 throw e
             }
+        }
+    }
+
+    private static def compareStrings(String expected, String actual) {
+        List actualLines = actual.readLines()
+        List expectedLines = expected.readLines()
+        int pos = 0
+        for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
+            String expectedLine = expectedLines[pos]
+            String actualLine = actualLines[pos]
+            boolean matches = actualLine == expectedLine ||
+                    expectedLine.matches('Total time: .+ secs') && actualLine.matches('Total time: .+ secs')
+            if (!matches) {
+                Assert.fail("Unexpected value at line ${pos+1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}")
+            }
+        }
+        if (pos == actualLines.size() && pos < expectedLines.size()) {
+            Assert.fail("Lines missing from actual result, starting at line ${pos + 1}.${NL}Expected: ${expectedLines[pos]}")
+        }
+        if (pos < actualLines.size() && pos == expectedLines.size()) {
+            Assert.fail("Extra lines in actual result, starting at line ${pos + 1}.${NL}Actual: ${actualLines[pos]}")
         }
     }
 
@@ -57,28 +78,6 @@ class Userguide {
         StringWriter stringWriter = new StringWriter()
         new PlatformLineWriter(stringWriter).withWriter { it.write(text) }
         stringWriter.toString()
-    }
-
-    static void checkDifference(String expected, String actual) {
-        String source = expected.length() > actual.length() ? expected : actual
-        source.eachWithIndex {c, index ->
-            boolean expectedOutOfRange = false
-            boolean actualOutOfRange = false
-            boolean difference = false
-            if (index >= expected.length()) {
-                expectedOutOfRange = true
-            } else if (index >= actual.length()) {
-                actualOutOfRange = true
-            } else if (expected[index] != actual[index]) {
-                difference = true
-            }
-            if (expectedOutOfRange || actualOutOfRange || difference) {
-                println "Difference in position $index:"
-                println("Expected: " + (expectedOutOfRange ? 'Out of range' : "${(char) expected[index]} ${(int) expected[index]}"))
-                println("Actual: " + (expectedOutOfRange ? 'Out of range' : "${(char) actual[index]} ${(int) actual[index]}"))
-            }
-        }
-
     }
 
     static void main(String[] args) {
@@ -147,12 +146,17 @@ class Userguide {
                 run('tutorial', 'zip', 'init'),
                 run('tutorial', 'zipWithCustomName', 'init'),
                 run('tutorial', 'zipWithArguments', 'init'),
+                run('buildlifecycle', 'test').withLoggingLevel(Executer.LIFECYCLE),
                 run('tasks', 'addDependencyUsingTask', 'taskX'),
                 run('tasks', 'addDependencyUsingPath', 'taskX'),
                 run('tasks', 'addDependencyUsingClosure', 'taskX')
         ]
     }
 
+    static GradleRun run(String id, String execute, int debugLevel = Executer.QUIET) {
+        new GradleRun(subDir: id, id: id, execute: execute, debugLevel: debugLevel)
+    }
+    
     static GradleRun run(String subDir, String id, String execute, int debugLevel = Executer.QUIET) {
         new GradleRun(subDir: "$subDir/$id", id: id, execute: execute, debugLevel: debugLevel)
     }
@@ -172,7 +176,6 @@ class Userguide {
         new GroovyShell(new Binding(out: printWriter)).evaluate(script)
         [output: stringWriter, command: "groovy $script.name", unixCommand: "groovy $script.name", windowsCommand: "groovy $script.name"]
     }
-
 }
 
 class GradleRun {
@@ -191,6 +194,11 @@ class GradleRun {
 
     def withOutputFile(outputFile) {
         this.outputFile = outputFile
+        this
+    }
+    
+    def withLoggingLevel(int debugLevel) {
+        this.debugLevel = debugLevel
         this
     }
 }

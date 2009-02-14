@@ -1,47 +1,38 @@
 <chapter id='cha:gradle_core_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Gradle Core Tutorial</title>
-    <para>If you execute a build, Gradle normally looks for a file called
-        <literal>build.gradle</literal>
-        in the current directory (There are command line switches to change this behavior. See <xref
-                linkend='cha:command_line'/>). We call the build.gradle a build script. Although strictly speaking it is
-        a build configuration script, as we see later. In Gradle the location of the build script file defines a
+    <para>If you execute a build, Gradle normally looks for a file called <filename>build.gradle</filename>
+        in the current directory (There are command line switches to change this behavior. See <xref linkend='cha:command_line'/>).
+        We call the <filename>build.gradle</filename> file a build script. Although strictly speaking it is
+        a build configuration script, as we will see later. In Gradle the location of the build script file defines a
         project. The name of the directory containing the build script is the name of the project.
     </para>
     <section>
         <title>Hello World</title>
         <para>In Gradle everything revolves around tasks. The tasks for your build are defined in the build script. To
-            try this out, create the following build script named <literal>build.gradle</literal>.
+            try this out, create the following build script named <filename>build.gradle</filename>.
         </para>
         <sample src='userguide/tutorial/hello/build.gradle' title='Sample userguide/tutorial/hello/build.gradle'/>
-        <para>Enter with your shell into the containing directory and execute the build script
+        <para>Enter with your shell into the containing directory and execute the build script:
             <footnote>
-                <para>Every code sample in this chapter can be found in the
-                    <literal>samples</literal>
+                <para>Every code sample in this chapter can be found in the <filename>samples</filename>
                     dir of your Gradle distribution. The output box always denotes the directory name relative to the
-                    <literal>samples</literal>
-                    dir.
+                    <filename>samples</filename> dir.
                 </para>
             </footnote>
             <footnote>
-                <para>The scripts are executed with the
-                    <literal>-q</literal>
-                    options which suppresses the Gradle logging.
+                <para>The scripts are executed with the <literal>-q</literal> options which suppresses the Gradle logging.
+                    See <xref linkend="cha:logging"/> for more details.
                 </para>
             </footnote>
-            :
         </para>
         <sampleOutput src='hello.out'/>
         <para>If you think this looks damn similar to Ant's targets, well, you are right. Gradle tasks are the
             equivalent to Ant targets. But as you will see, they are much more powerful. We have used a different
-            terminology to Ant as we think the word 'task' is more expressive than the word 'target'. Unfortunately this
-            introduces a terminology clash with Ant, as Ant calls its commands, like
-            <literal>javac</literal>
-            or <literal>copy</literal>, task. So if we talk about tasks, we
-            <emphasis>always</emphasis>
-            mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we
-            explicitly say
-            <emphasis>ant</emphasis>
-            task.
+            terminology to Ant as we think the word <emphasis>task</emphasis> is more expressive than the word
+            <emphasis>target</emphasis> . Unfortunately this introduces a terminology clash with Ant, as Ant calls its
+            commands, such as <literal>javac</literal> or<literal>copy</literal>, tasks. So when we talk about tasks, we
+            <emphasis>always</emphasis> mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about
+            Ant tasks (Ant commands), we explicitly say <emphasis>ant</emphasis> task.
         </para>
     </section>
     <section>
@@ -66,20 +57,15 @@
         <sample src='userguide/tutorial/lazyDependsOn/build.gradle'
                 title='Sample userguide/tutorial/lazyDependsOn/build.gradle'/>
         <sampleOutput src='lazyDependsOn.out'/>
-        <para>The dependency of
-            <literal>taskX</literal>
-            to
-            <literal>taskY</literal>
-            is declared before
-            <literal>taskY</literal>
-            is created. This is very important for multi-project builds. Task dependencies are discussed in more detail
-            in <xref linkend='sec:adding_dependencies_to_tasks'/>.
+        <para>The dependency of <literal>taskX</literal> to <literal>taskY</literal> is declared before
+            <literal>taskY</literal> is created. This is very important for multi-project builds. Task dependencies are
+            discussed in more detail in<xref linkend='sec:adding_dependencies_to_tasks'/>.
         </para>
     </section>
     <section>
         <title>Dynamic tasks</title>
-        <para>The power of Groovy can not only be used inside the tasks. You can use it for example to dynamically
-            create tasks.
+        <para>The power of Groovy be used for more than definining what a task does. For example, you can also use it
+            to dynamically create tasks.
         </para>
         <sample src='userguide/tutorial/dynamic/build.gradle' title='Sample userguide/tutorial/dynamic/build.gradle'/>
         <sampleOutput src='dynamic.out'/>
@@ -97,19 +83,14 @@
         <sample src='userguide/tutorial/helloEnhanced/build.gradle'
                 title='Sample userguide/tutorial/helloEnhanced/build.gradle'/>
         <sampleOutput src='helloEnhanced.out'/>
-        <para>The calls
-            <literal>doFirst</literal>
-            and
-            <literal>doLast</literal>
-            can be executed multiple times. What they do is to add an action to the beginning or the end of the tasks
-            actions list.
+        <para>The calls <literal>doFirst</literal> and <literal>doLast</literal> can be executed multiple times.
+            They add an action to the beginning or the end of the task's actions list. When the task executes, the
+            actions in the action list are executed in order. 
         </para>
     </section>
     <section>
         <title>Shortcut notations</title>
-        <para>There is a convenient notation for accessing
-            <emphasis>existing</emphasis>
-            tasks.
+        <para>There is a convenient notation for accessing <emphasis>existing</emphasis> tasks.
         </para>
         <sample src='userguide/tutorial/helloWithShortCut/build.gradle'
                 title='Sample userguide/tutorial/helloWithShortCut/build.gradle'/>
@@ -120,9 +101,7 @@
     </section>
     <section id='sec:dynamic_properties'>
         <title>Dynamic Task Properties</title>
-        <para>You can assign arbitrary
-            <emphasis>new</emphasis>
-            properties to any task.
+        <para>You can assign arbitrary <emphasis>new</emphasis> properties to any task.
         </para>
         <sample src='userguide/tutorial/dynamicProperties/build.gradle'
                 title='Sample userguide/tutorial/dynamicProperties/build.gradle'/>
@@ -135,29 +114,26 @@
             constructs like macrodefs, etc. Basically everything except the Ant tasks and types. Gradle does not offer
             any special integration for this first layer. Of course you can in your build script execute an Ant build as
             an external process. Your build script may contain statements like:
-            <literal>"ant clean compile".execute()</literal>
+            <literal>"ant clean compile".execute()</literal>.
             <footnote>
                 <para>In Groovy you can execute Strings. To learn more about executing external processes with Groovy
                     have a look in GINA 9.3.2 or at the Groovy wiki
                 </para>
             </footnote>
-            .
         </para>
         <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
             <literal>copy</literal>
             or <literal>jar</literal>. For this layer Gradle provides excellent integration simply by relying on Groovy.
             Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks from Gradle is as
-            convenient and more powerful than using Ant tasks from a
-            <literal>build.xml</literal>
-            file. Let's look at an example:
+            convenient and more powerful than using Ant tasks from a <literal>build.xml</literal> file.
+            Let's look at an example:
         </para>
         <sample src='userguide/tutorial/antChecksum/build.gradle'
                 title='Sample userguide/tutorial/antChecksum/build.gradle'/>
         <sampleOutput src='antChecksum.out'/>
-        <para>In your build script, a property called
-            <literal>ant</literal>
-            is provided by Gradle. It is a reference to an instance of Groovys AntBuilder. The AntBuilder is used the
-            following way:
+        <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. It is a reference
+            to an instance of Groovy's <literal>AntBuilder</literal>. The <literal>AntBuilder</literal>
+            is used the following way:
         </para>
         <itemizedlist>
             <listitem>
@@ -191,7 +167,7 @@
     </section>
     <section id='sec:default_tasks'>
         <title>Default Tasks</title>
-        <para>Gradle allows you to define one ore more default tasks for your build.
+        <para>Gradle allows you to define one or more default tasks for your build.
         </para>
         <sample src='userguide/tutorial/defaultTasks/build.gradle'
                 title='Sample userguide/tutorial/defaultTasks/build.gradle'/>
@@ -213,20 +189,15 @@
                 title='Sample userguide/tutorial/configByDag/build.gradle'/>
         <sampleOutput src='configByDag.out'/>
         <para>The important thing is, that the fact that the release task has been choosen, has an effect
-            <emphasis>before</emphasis>
-            the release task gets executed. Nor has the release task to be the
-            <emphasis>primary</emphasis>
-            task (i.e. the task passed to the
-            <literal>gradle</literal>
-            command).
+            <emphasis>before</emphasis> the release task gets executed. Nor has the release task to be the
+            <emphasis>primary</emphasis> task (i.e. the task passed to the <literal>gradle</literal> command).
         </para>
     </section>
     <section>
         <title>Summary</title>
         <para>This is not the end of the story for tasks. So far we have worked with simple tasks. Tasks will be
-            revisited in
-            <xref linkend='cha:more_about_tasks'/>
-            and when we look at the Java Plugin in <xref linkend='cha:the_java_plugin'/>.
+            revisited in <xref linkend='cha:more_about_tasks'/> and when we look at the Java Plugin in
+            <xref linkend='cha:the_java_plugin'/>.
         </para>
     </section>
 </chapter>
