@@ -105,8 +105,8 @@ public class Main {
                 acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
                 acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.");
                 acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.");
-                acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start dir for Gradle. Defaults to current dir.").withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home dir.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start directory for Gradle. Defaults to current directory.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"), "Specifies the default import file.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settingsfile"),
@@ -116,7 +116,7 @@ public class Main {
                 acceptsAll(WrapUtil.toList(SYSTEM_PROP, "systemprop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PROJECT_PROP, "projectprop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.").withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(HELP, "?"), "Shows this help message");
+                acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
             }
         };
 

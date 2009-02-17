@@ -62,10 +62,10 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
             <literal>plugin.properties</literal>
             in the top level directory of Gradle. It looks like this for the current release:
         </para>
-        <example>
+        <figure>
             <title>plugin.properties</title>
             <programlisting><xi:include href='../../toplevel/plugin.properties' parse='text'/></programlisting>
-        </example>
+        </figure>
         <para>If you want to use your own plugins, you must make sure that they are accessible via the build script
             classpath. See <xref linkend='cha:organizing_build_logic'/> for more information.
         </para>

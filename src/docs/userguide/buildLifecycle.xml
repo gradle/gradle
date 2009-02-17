@@ -39,8 +39,8 @@
                 <term>Execution</term>
                 <listitem>
                     <para>A subset of the tasks, created and configured during the configuration phase, is executed. The
-                        subset is determined by the task name arguments passed to the gradle command and the current
-                        directory.
+                        subset is determined by the task name arguments passed to the <command>gradle</command>
+                        command and the current directory.
                     </para>
                 </listitem>
             </varlistentry>

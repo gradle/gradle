@@ -1,136 +1,126 @@
 <appendix id='cha:command_line' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Command line</title>
-    <table id='command_line_options'>
-        <title>Command Line Options</title>
-        <thead>
-            <tr>
-                <td>Short Option(-)</td>
-                <td>Long Option(--)</td>
-                <td>Meaning</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>-?, -h</td>
-            <td>-</td>
-            <td>Shows this help message</td>
-        </tr>
-        <tr>
-            <td>B</td>
-            <td>bootstrap-debug</td>
-            <td>Specify a text to be logged at the beginning (used internally by Gradle's bootstrap class.)</td>
-        </tr>
-        <tr>
-            <td>D</td>
-            <td>systemprop</td>
-            <td>Sets a system property of the JVM (e.g. -Dmyprop=myvalue).</td>
-        </tr>
-        <tr>
-            <td>I</td>
-            <td>no-imports</td>
-            <td>Disable usage of default imports for build script files.</td>
-        </tr>
-        <tr>
-            <td>K</td>
-            <td>default-import-file</td>
-            <td>Specifies the default import file.</td>
-        </tr>
-        <tr>
-            <td>P</td>
-            <td>projectprop</td>
-            <td>Sets a project property of the root project (e.g. -Pmyprop=myvalue).</td>
-        </tr>
-        <tr>
-            <td>S</td>
-            <td>-</td>
-            <td>Don't trigger a System.exit(0) for normal termination. Used internally by Gradle's unit tests.</td>
-        </tr>
-        <tr>
-            <td>b</td>
-            <td>buildfile</td>
-            <td>Specifies the build file name (also for subprojects). Defaults to build.gradle.</td>
-        </tr>
-        <tr>
-            <td>c</td>
-            <td>settingsfile</td>
-            <td>Specifies the settings file name. Defaults to settings.gradle.</td>
-        </tr>
-        <tr>
-            <td>d</td>
-            <td>debug</td>
-            <td>Log in debug mode (includes normal stacktrace).</td>
-        </tr>
-        <tr>
-            <td>e</td>
-            <td>embedded</td>
-            <td>Specify an embedded build script.</td>
-        </tr>
-        <tr>
-            <td>f</td>
-            <td>full-stacktrace</td>
-            <td>Print out the full (very verbose) stacktrace for any exceptions.</td>
-        </tr>
-        <tr>
-            <td>g</td>
-            <td>gradle-user-home</td>
-            <td>Specifies the gradle user home dir.</td>
-        </tr>
-        <tr>
-            <td>i</td>
-            <td>info</td>
-            <td>Set log level to info.</td>
-        </tr>
-        <tr>
-            <td>l</td>
-            <td>plugin-properties-file</td>
-            <td>Specifies the plugin properties file.</td>
-        </tr>
-        <tr>
-            <td>m</td>
-            <td>merged-build</td>
-            <td>Merge all tasks into a single build.</td>
-        </tr>
-        <tr>
-            <td>p</td>
-            <td>project-dir</td>
-            <td>Specifies the start dir for Gradle. Defaults to current dir.</td>
-        </tr>
-        <tr>
-            <td>q</td>
-            <td>quiet</td>
-            <td>Log errors only.</td>
-        </tr>
-        <tr>
-            <td>r</td>
-            <td>rebuild-cache</td>
-            <td>Rebuild the cache of compiled build scripts.</td>
-        </tr>
-        <tr>
-            <td>s</td>
-            <td>stacktrace</td>
-            <td>Print out the stacktrace also for user exceptions (e.g. compile error).</td>
-        </tr>
-        <tr>
-            <td>t</td>
-            <td>tasks</td>
-            <td>Show list of all available tasks and there dependencies.</td>
-        </tr>
-        <tr>
-            <td>u</td>
-            <td>no-search-upwards</td>
-            <td>Don't search in parent folders for a settings.gradle file.</td>
-        </tr>
-        <tr>
-            <td>v</td>
-            <td>version</td>
-            <td>Prints version info.</td>
-        </tr>
-        <tr>
-            <td>x</td>
-            <td>cache-off</td>
-            <td>No caching of compiled build scripts.</td>
-        </tr>
-
-    </table>
-    <para>The same information is printed to the console when you execute <literal>gradle -h</literal>.
+    <title>Gradle Command Line</title>
+    <para>The <command>gradle</command> command has the following usage:
+        <cmdsynopsis>
+            <command>gradle</command>
+            <arg choice="opt" rep="repeat">option</arg>
+            <arg choice="opt" rep="repeat">task-name</arg>
+        </cmdsynopsis>
+        The command-line options available for the <command>gradle</command> command are listed below:
     </para>
+    <variablelist>
+        <varlistentry>
+            <term><literal>-?</literal>, <literal>-h</literal>, <literal>--help</literal></term>
+            <listitem><para>Shows a help message.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-C</literal>, <literal>--cache</literal></term>
+            <listitem><para>Specifies how compiled build scripts should be cached. Possible values are:
+                <literal>rebuild</literal>, <literal>off</literal>, <literal>on</literal>. Default value is
+                <literal>on</literal>. See <xref linkend="sec:caching"/> for more details.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-D</literal>, <literal>--systemprop</literal></term>
+            <listitem><para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-I</literal>, <literal>--no-imports</literal></term>
+            <listitem><para>Disable usage of default imports for build script files. See
+                <xref linkend="sec:using_gradle_without_ide_support"/> for details.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-K</literal>, <literal>--default-import-file</literal></term>
+            <listitem><para>Specifies the default import file.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-P</literal>, <literal>--projectprop</literal></term>
+            <listitem><para>Sets a project property of the root project, for example
+                <literal>-Pmyprop=myvalue</literal>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-b</literal>, <literal>--buildfile</literal></term>
+            <listitem><para>Specifies the build file name (also for subprojects). Defaults to
+                <filename>build.gradle</filename>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-c</literal>, <literal>--settingsfile</literal></term>
+            <listitem><para>Specifies the settings file name. Defaults to <filename>settings.gradle</filename>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-d</literal>, <literal>--debug</literal></term>
+            <listitem><para>Log in debug mode (includes normal stacktrace). See <xref linkend="cha:logging"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-e</literal>, <literal>--embedded</literal></term>
+            <listitem><para>Specify an embedded build script.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-f</literal>, <literal>--full-stacktrace</literal></term>
+            <listitem><para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="cha:logging"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-g</literal>, <literal>--gradle-user-home</literal></term>
+            <listitem><para>Specifies the gradle user home directory.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-i</literal>, <literal>--info</literal></term>
+            <listitem><para>Set log level to info. See <xref linkend="cha:logging"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-l</literal>, <literal>--plugin-properties-file</literal></term>
+            <listitem><para>Specifies the plugin properties file.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-n</literal>, <literal>--dependencies</literal></term>
+            <listitem><para>Show list of all project dependencies.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-p</literal>, <literal>--project-dir</literal></term>
+            <listitem><para>Specifies the start directory for Gradle. Defaults to current directory.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-q</literal>, <literal>--quiet</literal></term>
+            <listitem><para>Log errors only. See <xref linkend="cha:logging"/>.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-r</literal>, <literal>--properties</literal></term>
+            <listitem><para>Show list of all available project properties.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-s</literal>, <literal>--stacktrace</literal></term>
+            <listitem><para>Print out the stacktrace also for user exceptions (e.g. compile error). See <xref linkend="cha:logging"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-t</literal>, <literal>--tasks</literal></term>
+            <listitem><para>Show list of all available tasks and their dependencies.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-u</literal>, <literal>--no-search-upwards</literal></term>
+            <listitem><para>Don't search in parent folders for a <literal>settings.gradle</literal> file.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>-v</literal>, <literal>--version</literal></term>
+            <listitem><para>Prints version info.
+            </para></listitem>
+        </varlistentry>
+    </variablelist>
+    
+    <para>The same information is printed to the console when you execute <literal>gradle -h</literal>.</para>
 </appendix>

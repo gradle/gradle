@@ -132,6 +132,7 @@ class Userguide {
                 run('tutorial', 'lazyDependsOn', 'taskX'),
                 run('tutorial', 'makeDirectory', 'compile'),
                 run('tutorial', 'mkdirTrap', 'compile'),
+                run('tutorial', 'multipleTasksFromCommandLine', 'libs test'),
                 run('tutorial', 'pluginConfig', 'check'),
                 run('tutorial', 'pluginConvention', 'check'),
                 run('tutorial', 'pluginIntro', 'check'),

@@ -1,0 +1,11 @@
+createTask('compile') {
+    println 'compiling source'
+}
+
+createTask('test', dependsOn: 'compile') {
+    println 'running tests'
+}
+
+createTask('libs', dependsOn: 'compile') {
+    println 'building libs'
+}

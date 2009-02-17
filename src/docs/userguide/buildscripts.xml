@@ -1,5 +1,5 @@
 <chapter id='cha:gradle_core_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The Gradle Core Tutorial</title>
+    <title>Tutorial - Using Tasks</title>
     <para>If you execute a build, Gradle normally looks for a file called <filename>build.gradle</filename>
         in the current directory (There are command line switches to change this behavior. See <xref linkend='cha:command_line'/>).
         We call the <filename>build.gradle</filename> file a build script. Although strictly speaking it is
@@ -190,7 +190,7 @@
         <sampleOutput src='configByDag.out'/>
         <para>The important thing is, that the fact that the release task has been choosen, has an effect
             <emphasis>before</emphasis> the release task gets executed. Nor has the release task to be the
-            <emphasis>primary</emphasis> task (i.e. the task passed to the <literal>gradle</literal> command).
+            <emphasis>primary</emphasis> task (i.e. the task passed to the <command>gradle</command> command).
         </para>
     </section>
     <section>

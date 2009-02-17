@@ -9,8 +9,8 @@
         <emphasis>Wrapper</emphasis>
         task.
         <footnote>
-            <para>If you download the gradle source distribution or check out Gradle from SVN, you can build Gradle via
-                the gradle wrapper.
+            <para>If you download the Gradle source distribution or check out Gradle from SVN, you can build Gradle via
+                the Gradle wrapper.
             </para>
         </footnote>
         <footnote>
@@ -35,21 +35,14 @@ project-root
   - gradlew.exe
   - gradlew.bat
 ]]></programlisting>
-    <para>All these files should be submitted to your version control system. The
-        <literal>gradlew</literal>
-        commands can be used
-        <emphasis>exactly</emphasis>
-        the same way as the
-        <literal>gradle</literal>
-        commands.
+    <para>All these files should be submitted to your version control system. The <command>gradlew</command> command
+        can be used <emphasis>exactly</emphasis> the same way as the <command>gradle</command> command.
     </para>
     <section id='sec:configuration'>
         <title>Configuration</title>
-        <para>If you run Gradle with <literal>gradlew</literal>, Gradle checks if a Gradle distribution for the wrapper
-            is available. If not it tries to download it, otherwise it delegates to the
-            <literal>gradle</literal>
-            command of this distribution with all the arguments passed originally to the
-            <literal>gradlew</literal>
+        <para>If you run Gradle with <command>gradlew</command>, Gradle checks if a Gradle distribution for the wrapper
+            is available. If not it tries to download it, otherwise it delegates to the <command>gradle</command>
+            command of this distribution with all the arguments passed originally to the <command>gradlew</command>
             command.
         </para>
         <para>You can specify the download URL of the wrapper distribution. You can also specify where the wrapper

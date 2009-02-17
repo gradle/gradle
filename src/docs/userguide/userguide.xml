@@ -23,6 +23,7 @@
     </bookinfo>
     <xi:include href='introduction.xml'/>
     <xi:include href='buildscripts.xml'/>
+    <xi:include href='commandLineTutorial.xml'/>
     <xi:include href='javaTutorial.xml'/>
     <xi:include href='thisAndThat.xml'/>
     <xi:include href='overview.xml'/>

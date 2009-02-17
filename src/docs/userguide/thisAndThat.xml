@@ -1,5 +1,5 @@
 <chapter id='cha:the_this_and_that_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The 'This And That' Tutorial</title>
+    <title>Tutorial - 'This and That'</title>
     <section>
         <title>Skipping Tasks</title>
         <para>Gradle offers multiple ways to skip the execution of a task.
@@ -7,11 +7,11 @@
         <sample src='userguide/tutorial/skipProperties/build.gradle'
                 title='Sample userguide/tutorial/skipProperties/build.gradle'/>
         <sampleOutput src='skipProperties.out'/>
-        <para>The <literal>-D</literal> option of the <literal>gradle</literal> command has the same effect as the
-            <literal>-D</literal> option of the <literal>java</literal> command. This way you can set system properties
+        <para>The <option>-D</option> option of the <command>gradle</command> command has the same effect as the
+            <option>-D</option> option of the <command>java</command> command. This way you can set system properties
             of the JVM that runs Gradle. You can use this to add one or more <emphasis>skip properties</emphasis>
             to any task. If the corresponding system property is set to any value
-                <footnote><para>The statement <literal>-Dprop</literal> sets the property to empty string, thus you
+                <footnote><para>The statement <option>-Dprop</option> sets the property to empty string, thus you
                 don't need to type more to skip a task.</para></footnote>
             except false (case does not matter), the actions of the task don't get executed. But often you don't even
             need to set the skip properties. If you set a system property according to the pattern

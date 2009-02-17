@@ -4,13 +4,16 @@ body {
     color: #666666;
     font-size: 11pt;
     line-height: 150%;
-    margin-top: 4em;
+    margin-top: 2em;
+    margin-bottom: 2em;
     margin-left: 4em;
     margin-right: 4em;
 }
 
 a {
     color: #444444;
+    text-decoration: none;
+    border-bottom: dotted 1px;
 }
 
 a:visited {
@@ -52,32 +55,34 @@ pre {
     margin-bottom: 0.6em;
     font-family: Courier, monospace;
     line-height: 120%;
-    /*font-size: 90%;*/
 }
+
 .programlisting {
-    border-left: solid #a2a2a2 5px;
+    border-left: solid #c0c0c0 0.4em;
+    overflow-x: auto;
 }
 
 .screen {
-    border-left: solid #a2a2a2 5px;
+    border-left: solid #c0c0c0 0.4em;
+    overflow-x: auto;
 }
 
-.example-break {
+.example-break, .figure-break {
     display: none
 }
 
-.chapter .toc {
-    /*float: right;*/
+.cmdsynopsis {
+    font-family: Courier, monospace;
+    margin-left: 2em;
 }
 
-.chapter table {
+.table table {
     border-collapse: collapse;
     font-size: 100%;
     border: solid #d0d0d0 1px;
 }
 
-.chapter table td {
-    /*border: solid #d0d0d0 1px;*/
+.table table td {
     text-align: left;
     padding-left: 0.8em;
     padding-right: 0.8em;
@@ -85,7 +90,7 @@ pre {
     padding-bottom: 0.3em;
 }
 
-.chapter table thead td {
+.table table thead td {
     font-weight: bold;
     border-bottom: solid #d0d0d0 1px;
     background-color: #f2f2f2;
@@ -104,15 +109,14 @@ pre {
     margin-bottom: 3em;
     padding-bottom: 1em;
     width: 100%;
-    border-bottom: solid #c2c2c2 5px;
+    border-bottom: solid #d0d0d0 0.4em;
 }
 
 .navfooter {
     margin-top: 3em;
     padding-top: 1em;
-    padding-bottom: 1em;
     width: 100%;
-    border-top: solid #c2c2c2 5px;
+    border-top: solid #d0d0d0 0.4em;
 }
 
 .navbar {
@@ -136,7 +140,7 @@ pre {
  */
 
 .book > .titlepage {
-    margin-top: 2em;
+    margin-top: 6em;
     margin-bottom: 2em;
 }
 
@@ -146,6 +150,7 @@ pre {
 
 .titlepage h2.subtitle {
     font-size: 160%;
+    font-style: italic;
 }
 
 .titlepage .releaseinfo {
