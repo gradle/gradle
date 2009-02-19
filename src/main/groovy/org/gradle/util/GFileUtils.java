@@ -441,4 +441,12 @@ public class GFileUtils {
             throw new UncheckedIOException(e);
         }
     }
+
+    public static File canonicalise(File src) {
+        try {
+            return src.getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 }

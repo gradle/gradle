@@ -113,9 +113,8 @@ class BuildLoaderTest {
             allowing(child2).getProjectDir()
             will(returnValue(child2ProjectDescriptor.dir))
 
-            one(projectFactory).createProject(withParam(equalTo(rootProjectDescriptor.getName())),
+            one(projectFactory).createProject(withParam(equalTo(rootProjectDescriptor)),
                     withParam(nullValue()),
-                    withParam(equalTo(testRootProjectDir)),
                     withParam(notNullValue()))
             will(returnValue(rootProject))
 
@@ -125,7 +124,9 @@ class BuildLoaderTest {
             one(rootProject).setProperty('prop2', 'value2')
             one(rootProject).setProperty('prop3', 'value3')
 
-            one(rootProject).addChildProject('parent', parentProjectDescriptor.dir)
+            one(projectFactory).createProject(withParam(equalTo(parentProjectDescriptor)),
+                    withParam(equalTo(rootProject)),
+                    withParam(notNullValue()))
             will(returnValue(parentProject))
 
             one(parentProject).setProperty('parentProp1', 'parentValue1')
@@ -134,14 +135,18 @@ class BuildLoaderTest {
             one(parentProject).setProperty('prop2', 'value2')
             one(parentProject).setProperty('prop3', 'value3')
 
-            one(parentProject).addChildProject('child1', child1ProjectDescriptor.dir)
+            one(projectFactory).createProject(withParam(equalTo(child1ProjectDescriptor)),
+                    withParam(equalTo(parentProject)),
+                    withParam(notNullValue()))
             will(returnValue(child1))
 
             one(child1).setProperty('prop1', 'value1')
             one(child1).setProperty('prop2', 'value2')
             one(child1).setProperty('prop3', 'value3')
 
-            one(parentProject).addChildProject('child2', child2ProjectDescriptor.dir)
+            one(projectFactory).createProject(withParam(equalTo(child2ProjectDescriptor)),
+                    withParam(equalTo(parentProject)),
+                    withParam(notNullValue()))
             will(returnValue(child2))
 
             one(child2).setProperty('prop1', 'value1')

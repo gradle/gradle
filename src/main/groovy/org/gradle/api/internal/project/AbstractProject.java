@@ -115,8 +115,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private List<AfterEvaluateListener> afterEvaluateListeners = new ArrayList<AfterEvaluateListener>();
 
-    private IProjectFactory projectFactory;
-
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
 
     private DynamicObjectHelper dynamicObjectHelper;
@@ -130,9 +128,8 @@ public abstract class AbstractProject implements ProjectInternal {
     public AbstractProject(String name, ProjectInternal parent, File projectDir, String buildFileName,
                            ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
                            DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory,
-                           BuildScriptProcessor buildScriptProcessor,
-                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                           IProjectFactory projectFactory, BuildInternal build) {
+                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
+                           IProjectRegistry projectRegistry, BuildInternal build) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -150,7 +147,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.state = State.CREATED;
         this.archivesTaskBaseName = Project.DEFAULT_ARCHIVES_TASK_BASE_NAME;
         this.archivesBaseName = name;
-        this.projectFactory = projectFactory;
         this.buildScriptSource = buildScriptSource;
         this.build = build;
 
@@ -245,14 +241,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setPluginRegistry(PluginRegistry pluginRegistry) {
         this.pluginRegistry = pluginRegistry;
-    }
-
-    public IProjectFactory getProjectFactory() {
-        return projectFactory;
-    }
-
-    public void setProjectFactory(IProjectFactory projectFactory) {
-        this.projectFactory = projectFactory;
     }
 
     public File getRootDir() {
@@ -647,13 +635,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return task;
     }
 
-    public Project addChildProject(String name, File projectDir) {
-        childProjects.put(name, createChildProject(name, projectDir));
-        return childProjects.get(name);
-    }
-
-    protected ProjectInternal createChildProject(String name, File projectDir) {
-        return projectFactory.createProject(name, this, projectDir, build);
+    public void addChildProject(ProjectInternal childProject) {
+        childProjects.put(childProject.getName(), childProject);
     }
 
     public File getProjectDir() {

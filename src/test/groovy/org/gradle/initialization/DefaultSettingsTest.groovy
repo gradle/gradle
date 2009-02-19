@@ -60,7 +60,7 @@ class DefaultSettingsTest {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
-        startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
+        startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'), buildFileName: 'root.gradle')
         dependencyManagerMock = context.mock(DependencyManager)
         buildSourceBuilderMock = context.mock(BuildSourceBuilder)
         dependencyManagerFactoryMock = context.mock(DependencyManagerFactory)
@@ -86,13 +86,10 @@ class DefaultSettingsTest {
         assertEquals([JavaPlugin.CLEAN, ConfigurationResolvers.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
                 settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
-        checkRootProjectDescriptor();
-    }
-
-    private void checkRootProjectDescriptor() {
         assertNull(settings.getRootProject().getParent())
         assertEquals(settingsDir, settings.getRootProject().getDir())
         assertEquals(settings.getRootProject().getDir().getName(), settings.getRootProject().getName())
+        assertEquals(settings.rootProject.buildFileName, startParameter.buildFileName);
     }
 
     @Test public void testInclude() {

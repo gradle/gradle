@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -73,24 +71,20 @@ public class BuildLoader {
                                         StartParameter startParameter,
                                         Map<String, String> externalProjectProperties) {
         DefaultBuild build = new DefaultBuild(startParameter, buildScriptClassLoader);
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor.getName(), null,
-                rootProjectDescriptor.getDir(), build);
+        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, build);
         build.setRootProject(rootProject);
 
         addPropertiesToProject(externalProjectProperties, rootProject);
-        addProjects(rootProject, rootProjectDescriptor, startParameter, externalProjectProperties);
+        addProjects(rootProject, rootProjectDescriptor, build, externalProjectProperties);
         return build;
     }
 
-    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor,
-                             StartParameter startParameter,
+    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, BuildInternal build,
                              Map<String, String> externalProjectProperties) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ProjectInternal childProject = (ProjectInternal) parent.addChildProject(childProjectDescriptor.getName(),
-                    childProjectDescriptor.getDir());
-            addPropertiesToProject(externalProjectProperties,
-                    childProject);
-            addProjects(childProject, childProjectDescriptor, startParameter, externalProjectProperties);
+            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, build);
+            addPropertiesToProject(externalProjectProperties, childProject);
+            addProjects(childProject, childProjectDescriptor, build, externalProjectProperties);
         }
     }
 

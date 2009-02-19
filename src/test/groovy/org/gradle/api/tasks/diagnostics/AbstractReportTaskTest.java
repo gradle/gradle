@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.HelperUtil.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -34,7 +35,7 @@ import java.io.IOException;
 @RunWith(JMock.class)
 public class AbstractReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final DefaultProject project = HelperUtil.createRootProject();
+    private final DefaultProject project = createRootProject();
     private Runnable generator;
     private TestReportTask task;
     private ProjectReportRenderer renderer;
@@ -61,7 +62,7 @@ public class AbstractReportTaskTest {
 
     @Test @Ignore
     public void setsOutputFileNameOnRendererBeforeGeneration() throws IOException {
-        final File file = new File(HelperUtil.getTestDir(), "report.txt");
+        final File file = new File(getTestDir(), "report.txt");
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
@@ -79,8 +80,8 @@ public class AbstractReportTaskTest {
 
     @Test @Ignore
     public void passesEachProjectToRenderer() throws IOException {
-        final Project child1 = project.addChildProject("child1", null);
-        final Project child2 = project.addChildProject("child2", null);
+        final Project child1 = createChildProject(project, "child1");
+        final Project child2 = createChildProject(project, "child2");
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
@@ -112,7 +113,7 @@ public class AbstractReportTaskTest {
 
     @Test @Ignore
     public void createsMissingOutputDirectory() throws IOException {
-        final File file = new File(HelperUtil.getTestDir(), "missing/missing.txt");
+        final File file = new File(getTestDir(), "missing/missing.txt");
         assertFalse(file.getParentFile().isDirectory());
 
         context.checking(new Expectations() {{

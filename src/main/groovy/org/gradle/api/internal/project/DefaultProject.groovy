@@ -39,9 +39,9 @@ class DefaultProject extends AbstractProject {
                           DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory, 
                           BuildScriptProcessor buildScriptProcessor,
                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                          IProjectFactory projectFactory, BuildInternal build) {
+                          BuildInternal build) {
         super(name, parent, projectDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
-                antBuilderFactory, buildScriptProcessor, pluginRegistry, projectRegistry, projectFactory, build);
+                antBuilderFactory, buildScriptProcessor, pluginRegistry, projectRegistry, build);
     }
 
     def propertyMissing(String name) {

@@ -116,14 +116,21 @@ class DefaultProjectTest {
         pluginRegistry = new PluginRegistry(new File('somepath'))
         projectRegistry = build.projectRegistry
         buildScriptProcessor = new BuildScriptProcessor()
-        ProjectFactory factory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor,
-                pluginRegistry, new StartParameter(), null, antBuilderFactoryMock)
         project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
-                factory, build);
-        child1 = project.addChildProject("child1", new File("child1"))
-        childchild = child1.addChildProject("childchild", new File("childchild"))
-        child2 = project.addChildProject("child2", new File("child2"))
+                build);
+        child1 = new DefaultProject("child1", project, new File("child1"), null, null, buildScriptClassLoader,
+                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
+                pluginRegistry, projectRegistry, build)
+        project.addChildProject(child1)
+        childchild = new DefaultProject("childchild", child1, new File("childchild"), null, null, buildScriptClassLoader,
+                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
+                pluginRegistry, projectRegistry, build)
+        child1.addChildProject(childchild)
+        child2 = new DefaultProject("child2", project, new File("child2"), null, null, buildScriptClassLoader,
+                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
+                pluginRegistry, projectRegistry, build)
+        project.addChildProject(child2)
         testTask = new DefaultTask(project, TEST_TASK_NAME)
         project.standardOutputRedirector = outputRedirectorMock
         listWithAllChildProjects*.standardOutputRedirector = outputRedirectorOtherProjectsMock
@@ -136,7 +143,7 @@ class DefaultProjectTest {
         checkProject(project, null, 'root', rootDir)
         assertNotNull(new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, new DefaultProjectRegistry(),
-                null, build).standardOutputRedirector)
+                build).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
@@ -398,15 +405,18 @@ class DefaultProjectTest {
     }
 
     @Test void testAddAndGetChildProject() {
-        File child1Dir = "child1dir" as File
-        File child2Dir = "child2dir" as File
+        ProjectInternal child1 = ['getName': {-> 'child1'}] as ProjectInternal
+        ProjectInternal child2 = ['getName': {-> 'child2'}] as ProjectInternal
+
         project.childProjects = [:]
-        project.addChildProject('child1', child1Dir)
+
+        project.addChildProject(child1)
         assertEquals(1, project.childProjects.size())
-        checkProject(project.childProjects.child1, project, 'child1', child1Dir)
-        project.addChildProject('child2', child2Dir)
+        assertSame(child1, project.childProjects.child1)
+
+        project.addChildProject(child2)
         assertEquals(2, project.childProjects.size())
-        checkProject(project.childProjects.child2, project, 'child2', child2Dir)
+        assertSame(child2, project.childProjects.child2)
     }
 
     @Test public void testDefaultTasks() {

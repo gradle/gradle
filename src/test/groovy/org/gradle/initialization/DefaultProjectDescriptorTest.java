@@ -45,8 +45,10 @@ public class DefaultProjectDescriptorTest {
     @Before
     public void setUp() {
         testProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
-        parentProjectDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), testProjectDescriptorRegistry);
-        projectDescriptor = new DefaultProjectDescriptor(parentProjectDescriptor, TEST_NAME, TEST_DIR, testProjectDescriptorRegistry);
+        parentProjectDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"),
+                testProjectDescriptorRegistry);
+        projectDescriptor = new DefaultProjectDescriptor(parentProjectDescriptor, TEST_NAME, TEST_DIR,
+                testProjectDescriptorRegistry);
     }
 
     @Test
@@ -57,6 +59,7 @@ public class DefaultProjectDescriptorTest {
         assertSame(testProjectDescriptorRegistry, projectDescriptor.getProjectDescriptorRegistry());
         assertEquals(TEST_NAME, projectDescriptor.getName());
         assertEquals(TEST_DIR, projectDescriptor.getDir());
+        assertEquals(Project.DEFAULT_BUILD_FILE, projectDescriptor.getBuildFileName());
         checkPath();
     }
 
@@ -71,7 +74,8 @@ public class DefaultProjectDescriptorTest {
         final IProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(IProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
         context.checking(new Expectations() {{
-          one(projectDescriptorRegistryMock).changeDescriptorPath(projectDescriptor.getPath(), Project.PATH_SEPARATOR + newName);
+            one(projectDescriptorRegistryMock).changeDescriptorPath(projectDescriptor.getPath(),
+                    Project.PATH_SEPARATOR + newName);
         }});
         projectDescriptor.setName(newName);
         assertEquals(newName, projectDescriptor.getName());
@@ -83,9 +87,15 @@ public class DefaultProjectDescriptorTest {
         final IProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(IProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
         context.checking(new Expectations() {{
-          one(projectDescriptorRegistryMock).changeProjectDir(projectDescriptor.getDir(), newDir);
+            one(projectDescriptorRegistryMock).changeProjectDir(projectDescriptor.getDir(), newDir);
         }});
         projectDescriptor.setDir(newDir);
         assertEquals(newDir, projectDescriptor.getDir());
+    }
+
+    @Test
+    public void buildFileIsBuiltFromBuildFileNameAndProjectDir() {
+        projectDescriptor.setBuildFileName("project.gradle");
+        assertEquals(new File(TEST_DIR, "project.gradle"), projectDescriptor.getBuildFile());
     }
 }

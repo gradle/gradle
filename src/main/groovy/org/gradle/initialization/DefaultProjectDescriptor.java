@@ -18,6 +18,8 @@ package org.gradle.initialization;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.Project;
 import org.gradle.util.PathHelper;
+import org.gradle.util.GFileUtils;
+import org.apache.ivy.util.FileUtil;
 
 import java.io.File;
 import java.util.Set;
@@ -33,6 +35,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
     private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
     private IProjectDescriptorRegistry projectDescriptorRegistry;
     private String path;
+    private String buildFileName = Project.DEFAULT_BUILD_FILE;
 
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir, IProjectDescriptorRegistry projectDescriptorRegistry) {
         this.parent = parent;
@@ -98,6 +101,18 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
 
     void setPath(String path) {
         this.path = path;
+    }
+
+    public String getBuildFileName() {
+        return buildFileName;
+    }
+
+    public void setBuildFileName(String name) {
+        this.buildFileName = name;
+    }
+
+    public File getBuildFile() {
+        return new File(dir, buildFileName);
     }
 
     public IProjectDescriptorRegistry getProjectDescriptorRegistry() {

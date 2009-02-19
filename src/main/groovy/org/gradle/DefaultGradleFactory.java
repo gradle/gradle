@@ -86,9 +86,7 @@ public class DefaultGradleFactory implements GradleFactory {
                                         importsReader
                                 ),
                                 new PluginRegistry(
-                                        startParameter.getPluginPropertiesFile()),
-                                startParameter,
-                                startParameter.getBuildScriptSource(),
+                                        startParameter.getPluginPropertiesFile()), startParameter.getBuildScriptSource(),
                                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
                 ),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()));

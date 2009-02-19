@@ -36,7 +36,7 @@ class ProjectDependencies2TaskResolverTest {
     @Before public void setUp()  {
         resolver = new ProjectDependencies2TaskResolver()
         root = HelperUtil.createRootProject(new File('rootDir'))
-        child = root.addChildProject("child", new File("projectDir"))
+        child = HelperUtil.createChildProject(root, "child")
         rootTask = new DefaultTask(root, 'compile')
         childTask = new DefaultTask(child, 'compile')
         root.taskEngine.addTask(rootTask)

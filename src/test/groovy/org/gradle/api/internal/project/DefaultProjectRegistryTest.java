@@ -46,8 +46,8 @@ public class DefaultProjectRegistryTest {
     public void setUp() {
         projectRegistry = new DefaultProjectRegistry();
         rootMock = HelperUtil.createRootProject(new File("root"));
-        childMock = (DefaultProject) rootMock.addChildProject(CHILD_NAME, new File(CHILD_NAME));
-        childChildMock = (DefaultProject) childMock.addChildProject(CHILD_CHILD_NAME, new File(CHILD_CHILD_NAME));
+        childMock = HelperUtil.createChildProject(rootMock, CHILD_NAME);
+        childChildMock = HelperUtil.createChildProject(childMock, CHILD_CHILD_NAME);
         projectRegistry.addProject(rootMock);
         projectRegistry.addProject(childMock);
         projectRegistry.addProject(childChildMock);
@@ -65,12 +65,13 @@ public class DefaultProjectRegistryTest {
         assertSame(expectedGetProject, projectRegistry.getProject(project.getPath()));
         assertEquals(expectedAllProjects, projectRegistry.getAllProjects(project.getPath()));
         assertEquals(expectedSubProjects, projectRegistry.getSubProjects(project.getPath()));
-        assertEquals(expectedGetProject, projectRegistry.getProject(new File(project.getName())));
+        assertSame(expectedGetProject, projectRegistry.getProject(project.getProjectDir()));
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void addProjectWithExistingProjectDir() {
-        Project duplicateProjectDirProject = childMock.addChildProject("childchild2", childMock.getProjectDir());
+        DefaultProject duplicateProjectDirProject = HelperUtil.createChildProject(childMock, "childchild2");
+        duplicateProjectDirProject.setProjectDir(childMock.getProjectDir());
         projectRegistry.addProject(duplicateProjectDirProject);
     }
 

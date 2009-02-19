@@ -44,6 +44,8 @@ import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.DefaultProjectDescriptorRegistry
 
 /**
  * @author Hans Dockter
@@ -83,18 +85,19 @@ class HelperUtil {
                 new DefaultDependencyManagerFactory(settingsFinder, CacheUsage.ON),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
-                new StartParameter(),
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
         DefaultBuild build = new DefaultBuild(new StartParameter(), null)
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, build)
+        DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
+                new DefaultProjectDescriptorRegistry())
+        DefaultProject project = projectFactory.createProject(descriptor, null, build)
         project.setBuildScript(new EmptyScript())
         return project;
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name) {
-        return new DefaultProject(
+        DefaultProject project = new DefaultProject(
                 name,
                 parentProject,
                 new File("projectDir" + name),
@@ -107,8 +110,9 @@ class HelperUtil {
                 parentProject.buildScriptProcessor,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
-                parentProject.projectFactory,
                 parentProject.build)
+        parentProject.addChildProject project 
+        return project
     }
 
     static org.gradle.StartParameter dummyStartParameter() {

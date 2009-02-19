@@ -18,7 +18,7 @@ public interface ProjectInternal extends Project {
 
     ClassLoader getBuildScriptClassLoader();
 
-    Project addChildProject(String name, File projectDir);
+    void addChildProject(ProjectInternal childProject);
 
     IProjectRegistry getProjectRegistry();
 

@@ -59,6 +59,27 @@ public interface ProjectDescriptor {
     void setDir(File dir);
 
     /**
+     * Returns the name of the build file for this project. This name is interpretted relative to the project directory.
+     *
+     * @return The build file name.
+     */
+    String getBuildFileName();
+
+    /**
+     * Sets the name of the build file. This name is interpretted relative to the project directory.
+     *
+     * @param name The build file name. Should not be null.
+     */
+    void setBuildFileName(String name);
+
+    /**
+     * Returns the build file for this project.
+     *
+     * @return The build file. Never returns null.
+     */
+    File getBuildFile();
+    
+    /**
      * Returns the parent of this project, if any. Returns null if this project is the root project.
      *
      * @return The parent, or null if this is the root project.

@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.artifacts.DependencyManagerFactory;
+import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -32,7 +33,6 @@ public class ProjectFactory implements IProjectFactory {
     private DependencyManagerFactory dependencyManagerFactory;
     private BuildScriptProcessor buildScriptProcessor;
     private PluginRegistry pluginRegistry;
-    private StartParameter startParameter;
     private ScriptSource embeddedScript;
     private ITaskFactory taskFactory;
     private AntBuilderFactory antBuilderFactory;
@@ -42,20 +42,17 @@ public class ProjectFactory implements IProjectFactory {
 
     public ProjectFactory(ITaskFactory taskFactory, DependencyManagerFactory dependencyManagerFactory,
                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
-                          StartParameter startParameter, ScriptSource embeddedScript,
-                          AntBuilderFactory antBuilderFactory) {
+                          ScriptSource embeddedScript, AntBuilderFactory antBuilderFactory) {
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
-        this.startParameter = startParameter;
         this.embeddedScript = embeddedScript;
         this.antBuilderFactory = antBuilderFactory;
     }
 
-    public DefaultProject createProject(String name, ProjectInternal parent, File projectDir, BuildInternal build) {
-        File buildFile = new File(projectDir, startParameter.getBuildFileName());
-
+    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, BuildInternal build) {
+        File buildFile = projectDescriptor.getBuildFile();
         ScriptSource source;
         if (embeddedScript != null) {
             source = embeddedScript;
@@ -64,10 +61,14 @@ public class ProjectFactory implements IProjectFactory {
         } else {
             source = new FileScriptSource("build file", buildFile);
         }
-        
-        return new DefaultProject(name, parent, projectDir, startParameter.getBuildFileName(), source,
-                build.getBuildScriptClassLoader(), taskFactory, dependencyManagerFactory, antBuilderFactory,
-                buildScriptProcessor, pluginRegistry,
-                build.getProjectRegistry(), this, build);
+
+        DefaultProject project = new DefaultProject(projectDescriptor.getName(), parent, projectDescriptor.getDir(),
+                projectDescriptor.getBuildFileName(), source, build.getBuildScriptClassLoader(), taskFactory,
+                dependencyManagerFactory, antBuilderFactory, buildScriptProcessor, pluginRegistry,
+                build.getProjectRegistry(), build);
+        if (parent != null) {
+            parent.addChildProject(project);
+        }
+        return project;
     }
 }
