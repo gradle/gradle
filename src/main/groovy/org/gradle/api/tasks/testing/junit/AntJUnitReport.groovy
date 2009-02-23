@@ -23,7 +23,7 @@ class AntJUnitReport {
     void execute(File testResultsDir, File testReportDir, AntBuilder ant)
     {
         ant.junitreport(todir: testResultsDir.absolutePath) {
-            fileset(dir: testResultsDir.absolutePath, includes: '*.xml')
+            fileset(dir: testResultsDir.absolutePath, includes: 'TEST-*.xml')
             report(todir: testReportDir.absolutePath)
         }
     }
