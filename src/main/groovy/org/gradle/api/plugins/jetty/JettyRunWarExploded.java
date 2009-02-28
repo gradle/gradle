@@ -15,15 +15,14 @@
 
 package org.gradle.api.plugins.jetty;
 
+import org.gradle.api.Project;
+import org.mortbay.util.Scanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.mortbay.util.Scanner;
-import org.gradle.api.plugins.jetty.util.BuildFileHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.gradle.api.Project;
 
 /**
  * <p>
@@ -66,7 +65,7 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
      */
     public void configureScanner() {
         final ArrayList scanList = new ArrayList();
-        scanList.add(BuildFileHelper.getBuildFile(getProject()));
+        scanList.add(getProject().getBuildFile());
         File webInfDir = new File(webApp, "WEB-INF");
         scanList.add(new File(webInfDir, "web.xml"));
         File jettyWebXmlFile = findJettyWebXmlFile(webInfDir);
@@ -83,7 +82,7 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
         listeners.add(new Scanner.BulkListener() {
             public void filesChanged(List changes) {
                 try {
-                    boolean reconfigure = changes.contains(BuildFileHelper.getBuildFile(getProject()).getCanonicalPath());
+                    boolean reconfigure = changes.contains(getProject().getBuildFile().getCanonicalPath());
                     restartWebApp(reconfigure);
                 }
                 catch (Exception e) {
@@ -109,7 +108,7 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
             logger.info("Reconfiguring scanner after change to pom.xml ...");
             ArrayList scanList = getScanList();
             scanList.clear();
-            scanList.add(BuildFileHelper.getBuildFile(getProject()));
+            scanList.add(getProject().getBuildFile());
             File webInfDir = new File(webApp, "WEB-INF");
             scanList.add(new File(webInfDir, "web.xml"));
             File jettyWebXmlFile = findJettyWebXmlFile(webInfDir);

@@ -33,11 +33,11 @@ public interface BuildInternal extends Build {
     TaskExecuter getTaskGraph();
 
     /**
-     * Returns the currently selected project.
+     * Returns the default project.
      */
-    ProjectInternal getCurrentProject();
+    ProjectInternal getDefaultProject();
 
-    IProjectRegistry getProjectRegistry();
+    IProjectRegistry<ProjectInternal> getProjectRegistry();
 
     /**
      * Returns the classloader to use for the build files of this build.

@@ -107,7 +107,10 @@ class DefaultProjectTest {
         dependencyManagerMock = context.mock(DependencyManager)
         dependencyManagerFactoryMock = [createDependencyManager: {Project project, File gradleUserHome -> dependencyManagerMock}] as DependencyManagerFactory
         script = context.mock(ScriptSource.class)
-
+        context.checking {
+            allowing(script).getDescription(); will(returnValue('[build file]'))
+        }
+        
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
         build = new DefaultBuild(new StartParameter(), buildScriptClassLoader)
@@ -116,18 +119,18 @@ class DefaultProjectTest {
         pluginRegistry = new PluginRegistry(new File('somepath'))
         projectRegistry = build.projectRegistry
         buildScriptProcessor = new BuildScriptProcessor()
-        project = new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
+        project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
                 build);
-        child1 = new DefaultProject("child1", project, new File("child1"), null, null, buildScriptClassLoader,
+        child1 = new DefaultProject("child1", project, new File("child1"), null, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
                 pluginRegistry, projectRegistry, build)
         project.addChildProject(child1)
-        childchild = new DefaultProject("childchild", child1, new File("childchild"), null, null, buildScriptClassLoader,
+        childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
                 pluginRegistry, projectRegistry, build)
         child1.addChildProject(childchild)
-        child2 = new DefaultProject("child2", project, new File("child2"), null, null, buildScriptClassLoader,
+        child2 = new DefaultProject("child2", project, new File("child2"), null, script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
                 pluginRegistry, projectRegistry, build)
         project.addChildProject(child2)
@@ -141,7 +144,7 @@ class DefaultProjectTest {
         assertSame project, child1.parent
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
-        assertNotNull(new DefaultProject('root', null, rootDir, TEST_BUILD_FILE_NAME, script, buildScriptClassLoader,
+        assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
                 taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, new DefaultProjectRegistry(),
                 build).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
@@ -155,7 +158,7 @@ class DefaultProjectTest {
         assertSame(rootDir, project.rootDir)
         assertSame(projectDir, project.projectDir)
         assertSame this.project, project.rootProject
-        assertEquals(TEST_BUILD_FILE_NAME, project.buildFileName)
+        assertEquals(new File(projectDir, TEST_BUILD_FILE_NAME), project.buildFile)
         assertSame project.buildScriptClassLoader, buildScriptClassLoader
         assertSame buildScriptProcessor, project.buildScriptProcessor
         assertSame antBuilderFactoryMock, project.antBuilderFactory
@@ -167,7 +170,6 @@ class DefaultProjectTest {
         assert project.dependencyManagerFactory.is(dependencyManagerFactoryMock)
         assert project.dependencies.is(dependencyManagerMock)
         assert pluginRegistry.is(project.pluginRegistry)
-        assert project.projectRegistry.getProject(project.path).is(project)
         assert projectRegistry.is(project.projectRegistry)
         assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
         assertEquals project.name, project.archivesBaseName

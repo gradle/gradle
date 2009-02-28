@@ -71,7 +71,7 @@ public class ProjectFactoryTest {
 
         context.checking(new Expectations() {{
             allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)), with(any(File.class)));
-            allowing(projectRegistry).addProject(with(any(Project.class)));
+            allowing(projectRegistry).addProject(with(any(ProjectInternal.class)));
             allowing(build).getProjectRegistry();
             will(returnValue(projectRegistry));
             allowing(build).getBuildScriptClassLoader();
@@ -93,7 +93,7 @@ public class ProjectFactoryTest {
         DefaultProject project = projectFactory.createProject(descriptor, null, build);
 
         assertEquals("somename", project.getName());
-        assertEquals("build.gradle", project.getBuildFileName());
+        assertEquals(buildFile, project.getBuildFile());
         assertNull(project.getParent());
         assertSame(rootDir, project.getRootDir());
         assertSame(rootDir, project.getProjectDir());
@@ -119,7 +119,7 @@ public class ProjectFactoryTest {
         DefaultProject project = projectFactory.createProject(projectDescriptor, parentProject, build);
 
         assertEquals("somename", project.getName());
-        assertEquals("build.gradle", project.getBuildFileName());
+        assertEquals(buildFile, project.getBuildFile());
         assertSame(parentProject, project.getParent());
         assertSame(rootDir, project.getRootDir());
         assertSame(projectDir, project.getProjectDir());
@@ -151,7 +151,7 @@ public class ProjectFactoryTest {
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, build);
 
         assertEquals("somename", project.getName());
-        assertEquals("build.gradle", project.getBuildFileName());
+        assertEquals(new File(rootDir, "build.gradle"), project.getBuildFile());
         assertSame(rootDir, project.getRootDir());
         assertSame(rootDir, project.getProjectDir());
         assertNull(project.getParent());
@@ -174,7 +174,7 @@ public class ProjectFactoryTest {
         context.checking(new Expectations(){{
             allowing(descriptor).getName();
             will(returnValue(name));
-            allowing(descriptor).getDir();
+            allowing(descriptor).getProjectDir();
             will(returnValue(projectDir));
             allowing(descriptor).getBuildFile();
             will(returnValue(buildFile));

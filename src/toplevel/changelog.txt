@@ -1,50 +1,6 @@
-Release Notes - Gradle - Version 0.5.2
+Release Notes - Gradle - Version 0.6
 
+** Incompatibilities with 0.5
 
-** Bug
-    * [GRADLE-354] - An invalid bulid script cache causes an exceptions under Windows.
-
-
-Release Notes - Gradle - Version 0.5.1
-
-** Bug
-    * [GRADLE-311] - Cached build script is not updated when build file is reverted
-    * [GRADLE-318] - Build fails when buildSrc directory contains java source files and does not contain a build.gradle file. The build fails also for Groovy projects that have no java code.
-    * [GRADLE-319] - Gradle fails with NPE for a build/settings script which does not contain any executable code
-    * [GRADLE-330] - Setting archivesBaseName has no effect on the default archive name, if usePlugin('java') has been called before.
-    * [GRADLE-341] - stdout capture discards empty lines
-    * [GRADLE-343] - Jetty plugin fails to start with 2.5 deployment descriptor
-
-** Improvement
-    * [GRADLE-186] - Invalidate cache if a new version of Gradle is used.
-    * [GRADLE-334] - Make specifying the version optional for flat dir resolver. 
-
-** New Feature
-    * [GRADLE-342] - Compile task needs to support the compilerarg parameters
-
-
-** Incompatibilities to 0.5
-
-There is a slight incompatibility which probably won't affect most of the builds. To fix GRADLE-330, the archiveTask has now an additional property called appendix which is part of the generated jar name. Before this fix, the baseName and the appendix of the arguments of the archive methods was added and assigned to the baseName of the archive task. Now those arguments are assigned to the respective archive task properties. 
-
-Example: 
-archivesBaseName = 'gradle'
-
-libs {
-	// NO INCOMPATIBILITIES
-	// Creates and archive task with the baseName 'gradle' and the appendix 'all'. The name of the generated archive is gradle-all-<version>.jar
-	// Before 0.5.1: Creates and archive task with the baseName 'gradle-all'. The name of the generated archive is the same as above
-	jar(appendix: 'all') 
-
-	// NO INCOMPATIBILITIES
-	// Creates and archive task with the baseName 'myGradle' and the appendix 'all'. The name of the generated archive is myGradle-all-<version>.jar
-	// Before 0.5.1: Creates and archive task with the baseName 'myGradle-all'. The name of the generated archive is the same as above
-	jar(baseName: 'myGradle', appendix: 'all')
-	
-	// INCOMPATIBILITIES occur, if the appendix argument in the archive method is set and the baseName of the created archive task is overwritten later on.
-	// In 0.5.1 the following lead to an archive task with the baseName 'newGradle' and the appendix 'all'. The name of the generated archive is
-	// newGradle-all-<version>.jar
-	// Before 0.5.1: The archive task has the baseName 'newGrade'. The name of the generated archive is newGradle-<version>.jar
-	jar(appendix: 'all')
-	archive_gradle_all_jar.baseName = 'newGradle'
-} 
+- ProjectDescriptor.getDir() and setDir() have been renamed to getProjectDir() and setProjectDir()
+- Project.getBuildFileName() has been replaced with Project.getBuildFile()

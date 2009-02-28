@@ -18,61 +18,58 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildInternal
-import org.gradle.api.internal.project.BuildScriptProcessor
-import org.gradle.api.internal.project.IProjectFactory
-import org.gradle.api.internal.project.IProjectRegistry
-import org.gradle.api.internal.project.PluginRegistry
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.BuildLoader
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.DefaultProjectDescriptorRegistry
+import org.gradle.initialization.IProjectDescriptorRegistry
 import org.gradle.invocation.DefaultBuild
+import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import static org.hamcrest.Matchers.*
 import org.jmock.integration.junit4.JMock
 import org.junit.After
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.util.GUtil
+import org.gradle.api.internal.project.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
+import org.gradle.api.InvalidUserDataException
 
 /**
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
 class BuildLoaderTest {
-    BuildLoader projectsLoader
+
+    BuildLoader buildLoader
     IProjectFactory projectFactory
-    BuildScriptProcessor buildScriptProcessor
-    PluginRegistry pluginRegistry
     File testDir
-    File testRootProjectDir
-    File testParentProjectDir
+    File rootProjectDir
+    File childProjectDir
     ClassLoader testClassLoader
-    Map testProjectProperties
-    File testUserHomeDir
-    DefaultProjectDescriptorRegistry projectDescriptorRegistry
+    IProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
+    StartParameter startParameter = new StartParameter()
+    ProjectDescriptor rootDescriptor
+    ProjectInternal rootProject
+    ProjectDescriptor childDescriptor
+    ProjectInternal childProject
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp()  {
         testClassLoader = new URLClassLoader([] as URL[])
-        testProjectProperties = [startProp1: 'startPropValue1', startProp2: 'startPropValue2']
         projectFactory = context.mock(IProjectFactory)
-        buildScriptProcessor = new BuildScriptProcessor()
-        pluginRegistry = new PluginRegistry()
-        projectsLoader = new BuildLoader(projectFactory)
+        buildLoader = new BuildLoader(projectFactory)
         testDir = HelperUtil.makeNewTestDir()
-        (testRootProjectDir = new File(testDir, 'root')).mkdirs()
-        (testParentProjectDir = new File(testRootProjectDir, 'parent')).mkdirs()
-        testUserHomeDir = 'someUserHome' as File
-        projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-    }
-
-
-    @Test public void testProjectsLoader() {
-        assertSame(projectFactory, projectsLoader.projectFactory)
+        (rootProjectDir = new File(testDir, 'root')).mkdirs()
+        (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
+        startParameter.currentDir = rootProjectDir
+        rootDescriptor = descriptor('root', null, rootProjectDir)
+        rootProject = project(rootDescriptor, null)
+        childDescriptor = descriptor('child', rootDescriptor, childProjectDir)
+        childProject = project(childDescriptor, rootProject)
     }
 
     @After
@@ -80,89 +77,127 @@ class BuildLoaderTest {
         HelperUtil.deleteTestDir()
     }
 
-    @Test public void testCreateProjects() {
-        ProjectInternal rootProject = context.mock(ProjectInternal, 'root')
-        ProjectInternal parentProject = context.mock(ProjectInternal, 'parent')
-        ProjectInternal child1 = context.mock(ProjectInternal, 'child1')
-        ProjectInternal child2 = context.mock(ProjectInternal, 'child2')
-        IProjectRegistry projectRegistry = context.mock(IProjectRegistry)
-
-        StartParameter startParameter = new StartParameter(
-                currentDir: new File(testRootProjectDir, 'parent'),
-                gradleUserHomeDir: testUserHomeDir)
-        DefaultProjectDescriptor rootProjectDescriptor = new DefaultProjectDescriptor(null, 'root', testRootProjectDir, projectDescriptorRegistry)
-        DefaultProjectDescriptor parentProjectDescriptor = new DefaultProjectDescriptor(rootProjectDescriptor, 'parent',
-                testParentProjectDir, projectDescriptorRegistry)
-        DefaultProjectDescriptor child1ProjectDescriptor = new DefaultProjectDescriptor(parentProjectDescriptor, 'child1', new File('child1'), projectDescriptorRegistry)
-        DefaultProjectDescriptor child2ProjectDescriptor = new DefaultProjectDescriptor(parentProjectDescriptor, 'child2', new File('child2'), projectDescriptorRegistry)
-
-        Map testExternalProps = [prop1: 'value1', prop2: 'value2', prop3: 'value3']
-        Map testRootProjectProps = [rootProp1: 'rootValue1', rootProp2: 'rootValue2', prop1: 'rootValue']
-        Map testParentProjectProps = [parentProp1: 'parentValue1', parentProp2: 'parentValue2', prop1: 'parentValue']
-
-        GUtil.saveProperties(new Properties(testRootProjectProps), new File(testRootProjectDir, Project.GRADLE_PROPERTIES))
-        GUtil.saveProperties(new Properties(testParentProjectProps), new File(testParentProjectDir, Project.GRADLE_PROPERTIES))
+    @Test public void createsBuildWithRootProject() {
+        ProjectDescriptor rootDescriptor = descriptor('root', null, rootProjectDir)
+        ProjectInternal rootProject = project(rootDescriptor, null)
 
         context.checking {
-            allowing(rootProject).getProjectDir()
-            will(returnValue(testRootProjectDir))
-            allowing(parentProject).getProjectDir()
-            will(returnValue(parentProjectDescriptor.dir))
-            allowing(child1).getProjectDir()
-            will(returnValue(child1ProjectDescriptor.dir))
-            allowing(child2).getProjectDir()
-            will(returnValue(child2ProjectDescriptor.dir))
+            one(projectFactory).createProject(withParam(equalTo(rootDescriptor)),
+                    withParam(nullValue()),
+                    withParam(notNullValue()))
+            will(returnValue(rootProject))
+        }
 
-            one(projectFactory).createProject(withParam(equalTo(rootProjectDescriptor)),
+        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+
+        assertThat(build.buildScriptClassLoader, sameInstance(testClassLoader))
+        assertThat(build.startParameter, sameInstance(startParameter))
+        assertThat(build.rootProject, sameInstance(rootProject))
+        assertThat(build.defaultProject, sameInstance(rootProject))
+    }
+
+    @Test public void createsBuildWithMultipleProjects() {
+        expectProjectsCreated()
+
+        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+
+        assertThat(build.rootProject, sameInstance(rootProject))
+        assertThat(build.defaultProject, sameInstance(rootProject))
+
+        assertThat(build.rootProject.childProjects['child'], sameInstance(childProject))
+    }
+
+    @Test public void setsExternalPropertiesOnEachProject() {
+        expectProjectsCreated()
+
+        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [buildDirName: 'target', prop: 'value'])
+
+        assertThat(build.rootProject.buildDirName, equalTo('target'))
+        assertThat(build.rootProject.prop, equalTo('value'))
+
+        assertThat(build.rootProject.project('child').buildDirName, equalTo('target'))
+        assertThat(build.rootProject.project('child').prop, equalTo('value'))
+    }
+
+    @Test public void setsProjectSpecificProperties() {
+        GUtil.saveProperties(new Properties([buildDirName: 'target/root', prop: 'rootValue']), new File(rootProjectDir, Project.GRADLE_PROPERTIES))
+        GUtil.saveProperties(new Properties([buildDirName: 'target/child', prop: 'childValue']), new File(childProjectDir, Project.GRADLE_PROPERTIES))
+
+        expectProjectsCreated()
+
+        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+
+        assertThat(build.rootProject.buildDirName, equalTo('target/root'))
+        assertThat(build.rootProject.prop, equalTo('rootValue'))
+
+        assertThat(build.rootProject.project('child').buildDirName, equalTo('target/child'))
+        assertThat(build.rootProject.project('child').prop, equalTo('childValue'))
+    }
+
+    @Test public void selectsDefaultProject() {
+        expectProjectsCreated()
+
+        ProjectSpec selector = context.mock(ProjectSpec)
+        startParameter.defaultProjectSelector = selector
+        context.checking {
+            one(selector).isSatisfiedBy(rootProject)
+            will(returnValue(false))
+            one(selector).isSatisfiedBy(childProject)
+            will(returnValue(true))
+        }
+
+        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+        assertThat(build.defaultProject, sameInstance(childProject))
+    }
+
+    @Test public void failsWhenBuildHasMultipleDefaultProjects() {
+        expectProjectsCreated()
+
+        ProjectSpec selector = context.mock(ProjectSpec)
+        startParameter.defaultProjectSelector = selector
+        context.checking {
+            one(selector).isSatisfiedBy(rootProject)
+            will(returnValue(true))
+            one(selector).isSatisfiedBy(childProject)
+            will(returnValue(true))
+            allowing(selector).getDescription()
+            will(returnValue('[description]'))
+        }
+
+        try {
+            buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo('Multiple projects [description].'))
+        }
+    }
+
+    private def expectProjectsCreated() {
+        context.checking {
+            one(projectFactory).createProject(withParam(equalTo(rootDescriptor)),
                     withParam(nullValue()),
                     withParam(notNullValue()))
             will(returnValue(rootProject))
 
-            one(rootProject).setProperty('rootProp1', 'rootValue1')
-            one(rootProject).setProperty('rootProp2', 'rootValue2')
-            one(rootProject).setProperty('prop1', 'value1')
-            one(rootProject).setProperty('prop2', 'value2')
-            one(rootProject).setProperty('prop3', 'value3')
-
-            one(projectFactory).createProject(withParam(equalTo(parentProjectDescriptor)),
+            one(projectFactory).createProject(withParam(equalTo(childDescriptor)),
                     withParam(equalTo(rootProject)),
                     withParam(notNullValue()))
-            will(returnValue(parentProject))
-
-            one(parentProject).setProperty('parentProp1', 'parentValue1')
-            one(parentProject).setProperty('parentProp2', 'parentValue2')
-            one(parentProject).setProperty('prop1', 'value1')
-            one(parentProject).setProperty('prop2', 'value2')
-            one(parentProject).setProperty('prop3', 'value3')
-
-            one(projectFactory).createProject(withParam(equalTo(child1ProjectDescriptor)),
-                    withParam(equalTo(parentProject)),
-                    withParam(notNullValue()))
-            will(returnValue(child1))
-
-            one(child1).setProperty('prop1', 'value1')
-            one(child1).setProperty('prop2', 'value2')
-            one(child1).setProperty('prop3', 'value3')
-
-            one(projectFactory).createProject(withParam(equalTo(child2ProjectDescriptor)),
-                    withParam(equalTo(parentProject)),
-                    withParam(notNullValue()))
-            will(returnValue(child2))
-
-            one(child2).setProperty('prop1', 'value1')
-            one(child2).setProperty('prop2', 'value2')
-            one(child2).setProperty('prop3', 'value3')
-
-            one(rootProject).getProjectRegistry()
-            will(returnValue(projectRegistry))
-
-            one(projectRegistry).getProject(startParameter.currentDir)
-            will(returnValue(child2))
+            will(returnValue(childProject))
         }
+    }
 
-        BuildInternal build = projectsLoader.load(rootProjectDescriptor, testClassLoader, startParameter, testExternalProps)
-        assertTrue(build.class.equals(DefaultBuild))
-        assertThat(build.rootProject, sameInstance(rootProject))
-        assertThat(build.currentProject, sameInstance(child2))
+    private ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {
+        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry)
+    }
+
+    private ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {
+        DefaultProject project
+        if (parent) {
+            project = HelperUtil.createChildProject(parent, descriptor.name)
+            project.projectDir = descriptor.projectDir
+        } else {
+            project = HelperUtil.createRootProject(descriptor.projectDir)
+        }
+        project
     }
 }

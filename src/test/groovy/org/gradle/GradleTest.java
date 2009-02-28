@@ -136,7 +136,7 @@ public class GradleTest {
                 will(returnValue(expectedRootProjectDescriptor));
                 allowing(buildMock).getRootProject();
                 will(returnValue(expectedRootProject));
-                allowing(buildMock).getCurrentProject();
+                allowing(buildMock).getDefaultProject();
                 will(returnValue(expectedCurrentProject));
                 allowing(buildMock).getTaskGraph();
                 will(returnValue(taskExecuterMock));

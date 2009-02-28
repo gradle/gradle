@@ -31,11 +31,11 @@ public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
         propertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter);
 
         SettingsInternal settings = processor.process(settingsFinder, startParameter, propertiesLoader);
-        if (settings.findProject(startParameter.getCurrentDir()) != null) {
+        if (!settings.getProjectRegistry().findAll(startParameter.getDefaultProjectSelector()).isEmpty()) {
             return settings;
         }
 
-        // The settings we found did not include the current directory. Try again with no search upwards.
+        // The settings we found did not include the default project. Try again with no search upwards.
 
         StartParameter noSearchParameter = startParameter.newInstance();
         noSearchParameter.setSearchUpwards(false);

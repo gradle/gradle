@@ -30,35 +30,36 @@ import org.junit.Test
 import org.gradle.api.initialization.Settings
 import org.gradle.util.HelperUtil
 import org.gradle.api.logging.LogLevel
+import org.gradle.util.Matchers
+import org.gradle.initialization.ProjectDirectoryProjectSpec
+import org.gradle.initialization.ProjectSpec
 
 /**
  * @author Hans Dockter
  */
 class StartParameterTest {
-    StartParameter testObj
     File gradleHome
 
     @Before public void setUp() {
         gradleHome = HelperUtil.testDir
-
-        testObj = new StartParameter(
-                settingsFileName: 'settingsfile',
-                buildFileName: 'buildfile',
-                taskNames: ['a'],
-                currentDir: new File('a'),
-                searchUpwards: true,
-                projectProperties: [a: 'a'],
-                systemPropertiesArgs: [b: 'b'],
-                gradleUserHomeDir: new File('b'),
-                defaultImportsFile: new File('imports'),
-                pluginPropertiesFile: new File('plugin'),
-                cacheUsage: CacheUsage.ON
-        )
     }
 
     @Test public void testNewInstance() {
+        StartParameter testObj = new StartParameter()
+        testObj.settingsFileName = 'settingsfile'
+        testObj.buildFileName = 'buildfile'
+        testObj.taskNames = ['a']
+        testObj.currentDir = new File('a')
+        testObj.searchUpwards = false
+        testObj.projectProperties = [a: 'a']
+        testObj.systemPropertiesArgs = [b: 'b']
+        testObj.gradleUserHomeDir = new File('b')
+        testObj.defaultImportsFile = new File('imports')
+        testObj.pluginPropertiesFile = new File('plugin')
+        testObj.cacheUsage = CacheUsage.ON
+
         StartParameter startParameter = testObj.newInstance()
-        assert startParameter.equals(testObj)
+        assertEquals(testObj, startParameter)
     }
 
     @Test public void testDefaultValues() {
@@ -72,8 +73,18 @@ class StartParameterTest {
         assertThat(parameter.projectProperties, notNullValue())
         assertThat(parameter.systemPropertiesArgs, notNullValue())
         assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(parameter.currentDir)))
     }
 
+    @Test public void testSetCurrentDir() {
+        StartParameter parameter = new StartParameter()
+        File dir = new File('current')
+        parameter.currentDir = dir
+
+        assertThat(parameter.currentDir, equalTo(dir.canonicalFile))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(dir.canonicalFile)))
+    }
+    
     @Test public void testSetTaskNames() {
         StartParameter parameter = new StartParameter()
         parameter.setTaskNames(Arrays.asList("a", "b"))
@@ -126,8 +137,10 @@ class StartParameterTest {
         parameter.defaultImportsFile = new File("imports")
 
         // Non-copied
-        parameter.setBuildFileName("b");
-        parameter.getTaskNames().add("t1");
+        parameter.currentDir = new File("other")
+        parameter.buildFileName = "b"
+        parameter.taskNames.add("t1");
+        parameter.defaultProjectSelector = [:] as ProjectSpec
 
         StartParameter newParameter = parameter.newBuild();
 
@@ -141,5 +154,7 @@ class StartParameterTest {
 
         assertThat(newParameter.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
         assertTrue(newParameter.taskNames.empty)
+        assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
+        assertThat(newParameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(newParameter.currentDir)))
     }
 }

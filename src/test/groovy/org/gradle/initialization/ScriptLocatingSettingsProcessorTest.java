@@ -16,8 +16,12 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -41,6 +45,8 @@ public class ScriptLocatingSettingsProcessorTest {
     private final SettingsProcessor processor = new ScriptLocatingSettingsProcessor(delegate);
     private final File currentDir = new File("currentDir");
     private final File settingsDir = new File("settingsDir");
+    private final IProjectRegistry<ProjectIdentifier> projectRegistry = context.mock(IProjectRegistry.class);
+    private final ProjectSpec defaultProjectSelector = context.mock(ProjectSpec.class);
 
     @Before
     public void setUp() {
@@ -48,8 +54,11 @@ public class ScriptLocatingSettingsProcessorTest {
         startParameter = context.mock(StartParameter.class);
 
         context.checking(new Expectations(){{
-            allowing(startParameter).getCurrentDir();
-            will(returnValue(currentDir));
+            allowing(startParameter).getDefaultProjectSelector();
+            will(returnValue(defaultProjectSelector));
+
+            allowing(settings).getProjectRegistry();
+            will(returnValue(projectRegistry));
         }});
     }
 
@@ -66,8 +75,8 @@ public class ScriptLocatingSettingsProcessorTest {
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
-            one(settings).findProject(currentDir);
-            will(returnValue(context.mock(ProjectDescriptor.class)));
+            one(projectRegistry).findAll(defaultProjectSelector);
+            will(returnValue(toSet(context.mock(ProjectDescriptor.class))));
         }});
 
         assertThat(processor.process(finder, startParameter, propertiesLoader), sameInstance(settings));
@@ -89,8 +98,8 @@ public class ScriptLocatingSettingsProcessorTest {
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
-            one(settings).findProject(currentDir);
-            will(returnValue(null));
+            one(projectRegistry).findAll(defaultProjectSelector);
+            will(returnValue(toSet()));
 
             one(startParameter).newInstance();
             will(returnValue(noSearchParameter));

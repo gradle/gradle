@@ -17,9 +17,9 @@ package org.gradle.initialization;
 
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.util.PathHelper;
 import org.gradle.util.GFileUtils;
-import org.apache.ivy.util.FileUtil;
 
 import java.io.File;
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.LinkedHashSet;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDescriptor implements ProjectDescriptor {
+public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdentifier {
     private String name;
     private File dir;
     private DefaultProjectDescriptor parent;
@@ -43,7 +43,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
         this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
-        projectDescriptorRegistry.addProjectDescriptor(this);
+        projectDescriptorRegistry.addProject(this);
         if (parent != null) {
             parent.getChildren().add(this);
         }
@@ -78,16 +78,19 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
         this.name = name;
     }
 
-    public File getDir() {
+    public File getProjectDir() {
         return dir;
     }
 
-    public void setDir(File dir) {
-        projectDescriptorRegistry.changeProjectDir(getDir(), dir);
+    public void setProjectDir(File dir) {
         this.dir = dir;
     }
 
     public DefaultProjectDescriptor getParent() {
+        return parent;
+    }
+
+    public ProjectIdentifier getParentIdentifier() {
         return parent;
     }
 
@@ -112,7 +115,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor {
     }
 
     public File getBuildFile() {
-        return new File(dir, buildFileName);
+        return GFileUtils.canonicalise(new File(dir, buildFileName));
     }
 
     public IProjectDescriptorRegistry getProjectDescriptorRegistry() {

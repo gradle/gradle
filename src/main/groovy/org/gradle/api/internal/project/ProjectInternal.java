@@ -4,10 +4,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.groovy.scripts.ScriptSource;
 
-import java.io.File;
-import java.util.Map;
-
-public interface ProjectInternal extends Project {
+public interface ProjectInternal extends Project, ProjectIdentifier {
     ProjectInternal getParent();
 
     Project evaluate();
@@ -20,9 +17,7 @@ public interface ProjectInternal extends Project {
 
     void addChildProject(ProjectInternal childProject);
 
-    IProjectRegistry getProjectRegistry();
-
-    void setBuildDirName(String buildDirName);
+    IProjectRegistry<ProjectInternal> getProjectRegistry();
 
     DynamicObject getInheritedScope();
 }

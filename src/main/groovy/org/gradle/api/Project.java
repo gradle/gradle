@@ -229,16 +229,15 @@ public interface Project extends Comparable<Project> {
     void setBuildDirName(String buildDirName);
 
     /**
-     * <p>Returns the name of the build file Gradle tries to apply against this project object. The default is <code>
-     * {@value #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file name is {@value
-     * #EMBEDDED_SCRIPT_ID}.</p>
+     * <p>Returns the build file Gradle will evaulate against this project object. The default is <code>
+     * {@value #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null.
      *
-     * <p>You can access this property in your build file using <code>buildFileName</code></p>
+     * <p>You can access this property in your build file using <code>buildFile</code></p>
      *
-     * @return Current build file name. Never returns null.
+     * @return Current build file. Never returns null.
      * @see #getBuildFileClassName()
      */
-    String getBuildFileName();
+    File getBuildFile();
 
     /**
      * <p>Returns the name of the classname the build file compiles to. They might be the same but not necessarily. If
@@ -248,7 +247,7 @@ public interface Project extends Comparable<Project> {
      * empty embedded script which obeys to the same naming convention as described above.</p>
      *
      * @return Current build file class name. Never returns null.
-     * @see #getBuildFileName()
+     * @see #getBuildFile()
      */
     String getBuildFileClassName();
 

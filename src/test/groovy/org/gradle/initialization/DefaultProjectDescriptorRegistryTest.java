@@ -15,10 +15,13 @@
  */
 package org.gradle.initialization;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertNull;import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 
@@ -26,30 +29,26 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DefaultProjectDescriptorRegistryTest {
-    private static final String TEST_NAME = "testName";
     private static final File TEST_DIR = new File("testDir");
-    
-    private DefaultProjectDescriptorRegistry projectDescriptorRegistry;
-    private DefaultProjectDescriptor projectDescriptor;
 
-    @Before
-    public void setUp() {
-        projectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
-        projectDescriptor = new DefaultProjectDescriptor(null, TEST_NAME, TEST_DIR, new DefaultProjectDescriptorRegistry());
-        projectDescriptorRegistry.addProjectDescriptor(projectDescriptor);
-    }
+    private final DefaultProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry();
 
     @Test
     public void addProjectDescriptor() {
-        assertSame(projectDescriptor, projectDescriptorRegistry.getProjectDescriptor(projectDescriptor.getPath()));
-        assertSame(projectDescriptor, projectDescriptorRegistry.getProjectDescriptor(projectDescriptor.getDir()));
+        DefaultProjectDescriptor rootProject = new DefaultProjectDescriptor(null, "testName", TEST_DIR, registry);
+
+        registry.addProject(rootProject);
+        assertSame(rootProject, registry.getProject(rootProject.getPath()));
+        assertSame(rootProject, registry.getProject(rootProject.getProjectDir()));
     }
 
     @Test
-    public void changeProjectDir() {
-        File newDir = new File("newDir");
-        projectDescriptorRegistry.changeProjectDir(TEST_DIR, newDir);
-        assertNull(projectDescriptorRegistry.getProjectDescriptor(TEST_DIR));
-        assertSame(projectDescriptor, projectDescriptorRegistry.getProjectDescriptor(newDir));
+    public void changeProjectDescriptorPath() {
+        DefaultProjectDescriptor project = new DefaultProjectDescriptor(null, "name", TEST_DIR, registry);
+        registry.addProject(project);
+
+        registry.changeDescriptorPath(":", ":newPath");
+        assertThat(registry.getProject(":"), nullValue());
+        assertThat(registry.getProject(":newPath"), sameInstance(project));
     }
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
+import org.gradle.api.specs.Spec;
 
 import java.util.Set;
 import java.io.File;
@@ -23,14 +23,16 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public interface IProjectRegistry {
-    void addProject(Project project);
+public interface IProjectRegistry<T extends ProjectIdentifier> {
+    void addProject(T project);
 
-    Project getProject(String path);
+    T getProject(String path);
 
-    Project getProject(File projectDir);
+    T getProject(File projectDir);
 
-    Set<Project> getAllProjects(String path);
+    Set<T> getAllProjects(String path);
 
-    Set<Project> getSubProjects(String path);
+    Set<T> getSubProjects(String path);
+
+    Set<T> findAll(Spec<? super T> constraint);
 }

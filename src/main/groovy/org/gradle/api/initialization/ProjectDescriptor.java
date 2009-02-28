@@ -49,14 +49,14 @@ public interface ProjectDescriptor {
      *
      * @return The project directory. Never returns null.
      */
-    File getDir();
+    File getProjectDir();
 
     /**
      * Sets the project directory of this project.
      *
      * @param dir The new project directory. Should not be null.
      */
-    void setDir(File dir);
+    void setProjectDir(File dir);
 
     /**
      * Returns the name of the build file for this project. This name is interpretted relative to the project directory.

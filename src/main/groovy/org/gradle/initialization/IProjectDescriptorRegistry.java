@@ -16,20 +16,13 @@
 package org.gradle.initialization;
 
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.project.IProjectRegistry;
 
 import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-public interface IProjectDescriptorRegistry {
-    void addProjectDescriptor(DefaultProjectDescriptor projectDescriptor);
-
-    DefaultProjectDescriptor getProjectDescriptor(String path);
-
-    DefaultProjectDescriptor getProjectDescriptor(File projectDir);
-
+public interface IProjectDescriptorRegistry extends IProjectRegistry<DefaultProjectDescriptor> {
     void changeDescriptorPath(String oldPath, String newPath);
-
-    void changeProjectDir(File oldDir, File newDir);
 }

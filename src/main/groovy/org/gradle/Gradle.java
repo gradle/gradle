@@ -116,7 +116,7 @@ public class Gradle {
 
         // Execute build
         BuildExecuter executer = startParameter.getBuildExecuter();
-        executer.select(build.getCurrentProject());
+        executer.select(build.getDefaultProject());
         logger.info(String.format("Starting build for %s.", executer.getDescription()));
         executer.execute(build.getTaskGraph());
     }

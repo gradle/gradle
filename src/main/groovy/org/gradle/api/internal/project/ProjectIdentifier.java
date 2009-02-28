@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.api.internal.project;
 
-import org.gradle.api.internal.project.DefaultProjectRegistry;
+import java.io.File;
 
-/**
- * @author Hans Dockter
- */
-public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<DefaultProjectDescriptor> implements IProjectDescriptorRegistry {
+// TODO need a better name for this
+public interface ProjectIdentifier {
+    String getName();
 
-    public void changeDescriptorPath(String oldPath, String newPath) {
-        DefaultProjectDescriptor projectDescriptor = removeProject(oldPath);
-        projectDescriptor.setPath(newPath);
-        addProject(projectDescriptor);
-    }
+    String getPath();
+
+    ProjectIdentifier getParentIdentifier();
+
+    File getProjectDir();
+
+    File getBuildFile();
 }

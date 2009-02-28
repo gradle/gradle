@@ -19,12 +19,12 @@ public class DefaultBuild implements BuildInternal {
     private TaskExecuter taskGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
-    private DefaultProjectRegistry projectRegistry;
+    private DefaultProjectRegistry<ProjectInternal> projectRegistry;
 
     public DefaultBuild(StartParameter startParameter, ClassLoader buildScriptClassLoader) {
         this.startParameter = startParameter;
         this.buildScriptClassLoader = buildScriptClassLoader;
-        this.projectRegistry = new DefaultProjectRegistry();
+        this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         this.taskGraph = new DefaultTaskExecuter();
     }
 
@@ -52,7 +52,7 @@ public class DefaultBuild implements BuildInternal {
         this.rootProject = rootProject;
     }
 
-    public ProjectInternal getCurrentProject() {
+    public ProjectInternal getDefaultProject() {
         return currentProject;
     }
 
@@ -68,7 +68,7 @@ public class DefaultBuild implements BuildInternal {
         this.taskGraph = taskGraph;
     }
 
-    public IProjectRegistry getProjectRegistry() {
+    public IProjectRegistry<ProjectInternal> getProjectRegistry() {
         return projectRegistry;
     }
 

@@ -27,6 +27,9 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.GUtil;
+import org.gradle.util.GFileUtils;
+import org.gradle.initialization.ProjectSpec;
+import org.gradle.initialization.ProjectDirectoryProjectSpec;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,7 +53,7 @@ public class StartParameter {
     private String settingsFileName = Settings.DEFAULT_SETTINGS_FILE;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
     private List<String> taskNames = new ArrayList<String>();
-    private File currentDir = new File(System.getProperty("user.dir"));
+    private File currentDir;
     private boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
@@ -62,6 +65,7 @@ public class StartParameter {
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
     private BuildExecuter buildExecuter;
+    private ProjectSpec defaultProjectSelector;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     /**
@@ -69,24 +73,7 @@ public class StartParameter {
      * command-line with no arguments.
      */
     public StartParameter() {
-    }
-
-    StartParameter(String settingsFileName, String buildFileName, List<String> taskNames, File currentDir,
-                          boolean searchUpwards, Map<String, String> projectProperties,
-                          Map<String, String> systemPropertiesArgs, File gradleUserHomeDir, File defaultImportsFile,
-                          File pluginPropertiesFile, CacheUsage cacheUsage, LogLevel logLevel) {
-        this.settingsFileName = settingsFileName;
-        this.buildFileName = buildFileName;
-        this.taskNames = taskNames;
-        this.currentDir = currentDir;
-        this.searchUpwards = searchUpwards;
-        this.projectProperties = projectProperties;
-        this.systemPropertiesArgs = systemPropertiesArgs;
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        this.defaultImportsFile = defaultImportsFile;
-        this.pluginPropertiesFile = pluginPropertiesFile;
-        this.cacheUsage = cacheUsage;
-        this.logLevel = logLevel;
+        setCurrentDir(new File(System.getProperty("user.dir")));
     }
 
     /**
@@ -111,6 +98,7 @@ public class StartParameter {
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.buildExecuter = buildExecuter;
+        startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.logLevel = logLevel;
 
         return startParameter;
@@ -260,7 +248,8 @@ public class StartParameter {
     }
 
     public void setCurrentDir(File currentDir) {
-        this.currentDir = currentDir;
+        this.currentDir = GFileUtils.canonicalise(currentDir);
+        defaultProjectSelector = new ProjectDirectoryProjectSpec(this.currentDir);
     }
 
     public boolean isSearchUpwards() {
@@ -333,5 +322,24 @@ public class StartParameter {
 
     public void setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
+    }
+
+    /**
+     * Returns the selector used to choose the default project of the build. This is the project used as the starting
+     * point when resolving task names, and for determining the default tasks.
+     *
+     * @return The default project. Never returns null.
+     */
+    public ProjectSpec getDefaultProjectSelector() {
+        return defaultProjectSelector;
+    }
+
+    /**
+     * Sets the selector used to choose the default project of the build.
+     *
+     * @param defaultProjectSelector The selector. Should not be null.
+     */
+    public void setDefaultProjectSelector(ProjectSpec defaultProjectSelector) {
+        this.defaultProjectSelector = defaultProjectSelector;
     }
 }

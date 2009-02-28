@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.invocation.DefaultBuild;
 import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -53,16 +55,18 @@ public class BuildLoader {
      * ready for the projects to be evaluated.
      */
     public BuildInternal load(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
-                              StartParameter startParameter,
-                              Map<String, String> externalProjectProperties) {
+                              StartParameter startParameter, Map<String, String> externalProjectProperties) {
         logger.debug("Loading Project objects");
         Clock clock = new Clock();
         DefaultBuild build = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter,
                 externalProjectProperties);
-        ProjectInternal currentProject = (ProjectInternal) build.getRootProject().getProjectRegistry().getProject(
-                startParameter.getCurrentDir());
-        assert currentProject != null;
-        build.setCurrentProject(currentProject);
+        ProjectSpec selector = startParameter.getDefaultProjectSelector();
+        Set<ProjectInternal> currentProjects = build.getRootProject().getProjectRegistry().findAll(selector);
+        if (currentProjects.size() > 1) {
+            throw new InvalidUserDataException(String.format("Multiple projects %s.", selector.getDescription()));
+        }
+        assert currentProjects.size() == 1;
+        build.setCurrentProject(currentProjects.iterator().next());
         logger.debug("Timing: Loading projects took: " + clock.getTime());
         return build;
     }

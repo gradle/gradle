@@ -18,13 +18,15 @@ package org.gradle.api.internal.project;
 import static junit.framework.Assert.assertSame;
 import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.gradle.util.WrapUtil.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.util.SortedSet;
@@ -40,11 +42,11 @@ public class DefaultProjectRegistryTest {
     private DefaultProject childMock;
     private DefaultProject childChildMock;
 
-    private DefaultProjectRegistry projectRegistry;
-    
+    private DefaultProjectRegistry<ProjectInternal> projectRegistry;
+
     @Before
     public void setUp() {
-        projectRegistry = new DefaultProjectRegistry();
+        projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         rootMock = HelperUtil.createRootProject(new File("root"));
         childMock = HelperUtil.createChildProject(rootMock, CHILD_NAME);
         childChildMock = HelperUtil.createChildProject(childMock, CHILD_CHILD_NAME);
@@ -55,9 +57,10 @@ public class DefaultProjectRegistryTest {
 
     @Test
     public void addProject() {
-        checkAccessMethods(rootMock, WrapUtil.toSortedSet(rootMock, childMock, childChildMock), WrapUtil.toSortedSet(childMock, childChildMock), rootMock);
-        checkAccessMethods(childMock, WrapUtil.toSortedSet(childMock, childChildMock), WrapUtil.toSortedSet(childChildMock), childMock);
-        checkAccessMethods(childChildMock, WrapUtil.toSortedSet(childChildMock), new TreeSet(), childChildMock);
+        checkAccessMethods(rootMock, toSortedSet(rootMock, childMock, childChildMock), toSortedSet(childMock,
+                childChildMock), rootMock);
+        checkAccessMethods(childMock, toSortedSet(childMock, childChildMock), toSortedSet(childChildMock), childMock);
+        checkAccessMethods(childChildMock, toSortedSet(childChildMock), new TreeSet(), childChildMock);
     }
 
     private void checkAccessMethods(Project project, SortedSet<DefaultProject> expectedAllProjects,
@@ -68,17 +71,50 @@ public class DefaultProjectRegistryTest {
         assertSame(expectedGetProject, projectRegistry.getProject(project.getProjectDir()));
     }
 
-    @Test(expected = InvalidUserDataException.class)
-    public void addProjectWithExistingProjectDir() {
+    @Test
+    public void cannotLocateProjectsWithAmbiguousProjectDir() {
         DefaultProject duplicateProjectDirProject = HelperUtil.createChildProject(childMock, "childchild2");
         duplicateProjectDirProject.setProjectDir(childMock.getProjectDir());
         projectRegistry.addProject(duplicateProjectDirProject);
+
+        try {
+            projectRegistry.getProject(childMock.getProjectDir());
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), startsWith("Found multiple projects with project directory "));
+        }
     }
 
     @Test
     public void accessMethodsForNonExistingsPaths() {
-        projectRegistry = new DefaultProjectRegistry();
+        projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         Project otherRoot = HelperUtil.createRootProject(new File("otherRoot"));
-        checkAccessMethods(otherRoot, new TreeSet(), new TreeSet(), null);
+        assertNull(projectRegistry.getProject(otherRoot.getPath()));
+        assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getAllProjects(otherRoot.getPath()));
+        assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getSubProjects(otherRoot.getPath()));
+        assertNull(projectRegistry.getProject(otherRoot.getProjectDir()));
+    }
+
+    @Test
+    public void canLocateAllProjectsWhichMatchSpec() {
+        Spec<Project> spec = new Spec<Project>() {
+            public boolean isSatisfiedBy(Project element) {
+                return element.getName().contains("child");
+            }
+        };
+
+        assertThat(projectRegistry.findAll(spec), equalTo(toSet((ProjectInternal) childMock, childChildMock)));
+    }
+
+    @Test
+    public void canRemoveProject() {
+        String path = childChildMock.getPath();
+        assertThat(projectRegistry.removeProject(path), sameInstance((ProjectInternal) childChildMock));
+        assertThat(projectRegistry.getProject(path), nullValue());
+        assertThat(projectRegistry.getProject(childChildMock.getProjectDir()), nullValue());
+        assertTrue(projectRegistry.getAllProjects(path).isEmpty());
+        assertTrue(projectRegistry.getSubProjects(path).isEmpty());
+        assertFalse(projectRegistry.getAllProjects(":").contains(childChildMock));
+        assertFalse(projectRegistry.getSubProjects(":").contains(childChildMock));
     }
 }

@@ -62,6 +62,10 @@ public class AbstractIntegrationTest {
         return new TestFile(new File(getTestDir(), name));
     }
 
+    public TestFile testFile(File dir, String name) {
+        return new TestFile(new File(dir, name));
+    }
+
     protected File getTestBuildFile(String name) {
         URL resource = getClass().getResource("testProjects/" + name);
         assertThat(resource, notNullValue());

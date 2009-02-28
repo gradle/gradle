@@ -30,6 +30,7 @@ import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DependencyManagerFactory;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.invocation.DefaultBuild;
@@ -108,15 +109,15 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public DefaultProjectDescriptor findProject(String path) {
-        return projectDescriptorRegistry.getProjectDescriptor(path);
+        return projectDescriptorRegistry.getProject(path);
     }
 
     public DefaultProjectDescriptor findProject(File projectDir) {
-        return projectDescriptorRegistry.getProjectDescriptor(projectDir);
+        return projectDescriptorRegistry.getProject(projectDir);
     }
 
     public DefaultProjectDescriptor project(String path) {
-        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(path);
+        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProject(path);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", path));
         }
@@ -124,7 +125,7 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public DefaultProjectDescriptor project(File projectDir) {
-        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(projectDir);
+        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProject(projectDir);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectDir));
         }
@@ -138,9 +139,9 @@ public class BaseSettings implements SettingsInternal {
             DefaultProjectDescriptor parentProjectDescriptor = rootProjectDescriptor;
             for (String pathElement : pathElements) {
                 subPath = subPath + ":" + pathElement;
-                DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProjectDescriptor(subPath);
+                DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProject(subPath);
                 if (projectDescriptor == null) {
-                    parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getDir(), pathElement));
+                    parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getProjectDir(), pathElement));
                 } else {
                     parentProjectDescriptor = projectDescriptor;
                 }
@@ -151,7 +152,7 @@ public class BaseSettings implements SettingsInternal {
     public void includeFlat(String[] projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
-                    new File(rootProjectDescriptor.getDir().getParentFile(), projectName));
+                    new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
         }
     }
 
@@ -224,7 +225,7 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public File getRootDir() {
-        return rootProjectDescriptor.getDir();
+        return rootProjectDescriptor.getProjectDir();
     }
 
     public DependencyManager getDependencyManager() {
@@ -289,5 +290,9 @@ public class BaseSettings implements SettingsInternal {
 
     protected DynamicObjectHelper getDynamicObjectHelper() {
         return dynamicObjectHelper;
+    }
+
+    public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
+        return projectDescriptorRegistry;
     }
 }

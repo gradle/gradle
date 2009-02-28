@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mortbay.util.Scanner;
-import org.gradle.api.plugins.jetty.util.BuildFileHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.Project;
@@ -76,7 +75,7 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
     */
     public void configureScanner() {
         final ArrayList scanList = new ArrayList();
-        scanList.add(BuildFileHelper.getBuildFile(getProject()));
+        scanList.add(getProject().getBuildFile());
         scanList.add(getWebApp());
         setScanList(scanList);
 
@@ -84,7 +83,7 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
         listeners.add(new Scanner.BulkListener() {
             public void filesChanged(List changes) {
                 try {
-                    boolean reconfigure = changes.contains(BuildFileHelper.getBuildFile(getProject()).getCanonicalPath());
+                    boolean reconfigure = changes.contains(getProject().getBuildFile().getCanonicalPath());
                     restartWebApp(reconfigure);
                 }
                 catch (Exception e) {
@@ -111,7 +110,7 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
             logger.info("Reconfiguring scanner after change to pom.xml ...");
             ArrayList scanList = getScanList();
             scanList.clear();
-            scanList.add(BuildFileHelper.getBuildFile(getProject()));
+            scanList.add(getProject().getBuildFile());
             scanList.add(getWebApp());
             setScanList(scanList);
             getScanner().setScanDirs(scanList);

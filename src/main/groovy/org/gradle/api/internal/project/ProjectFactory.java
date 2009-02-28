@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.artifacts.DependencyManagerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
@@ -62,8 +61,8 @@ public class ProjectFactory implements IProjectFactory {
             source = new FileScriptSource("build file", buildFile);
         }
 
-        DefaultProject project = new DefaultProject(projectDescriptor.getName(), parent, projectDescriptor.getDir(),
-                projectDescriptor.getBuildFileName(), source, build.getBuildScriptClassLoader(), taskFactory,
+        DefaultProject project = new DefaultProject(projectDescriptor.getName(), parent, projectDescriptor.getProjectDir(),
+                projectDescriptor.getBuildFile(), source, build.getBuildScriptClassLoader(), taskFactory,
                 dependencyManagerFactory, antBuilderFactory, buildScriptProcessor, pluginRegistry,
                 build.getProjectRegistry(), build);
         if (parent != null) {

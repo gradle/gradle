@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jetty.util;
+package org.gradle.initialization;
 
-import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.specs.Spec;
 
-import java.io.File;
-
-/**
- * @author Hans Dockter
- */
-public class BuildFileHelper {
-    public static File getBuildFile(Project project) {
-        return new File(project.getProjectDir(), project.getBuildFileName());
-    }
+public interface ProjectSpec extends Spec<ProjectIdentifier> {
+    String getDescription();
 }

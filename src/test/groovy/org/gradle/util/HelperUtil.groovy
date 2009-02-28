@@ -101,7 +101,7 @@ class HelperUtil {
                 name,
                 parentProject,
                 new File("projectDir" + name),
-                parentProject.buildFileName,
+                parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.buildScriptClassLoader,
                 parentProject.taskFactory,
@@ -116,20 +116,9 @@ class HelperUtil {
     }
 
     static org.gradle.StartParameter dummyStartParameter() {
-        return new StartParameter(
-                "settingsFileName",
-                "buildFileName",
-                ["onetask", "secondTask"],
-                new File("currentDir"),
-                true,
-                [:],
-                [:],
-                new File("gradleUserHome"),
-                new File("defaultImports"),
-                new File("pluginProperties"),
-                CacheUsage.ON,
-                LogLevel.LIFECYCLE
-        );
+        StartParameter parameter = new StartParameter()
+        parameter.gradleHomeDir = new File('gradle home')
+        return parameter
     }
 
     static def pureStringTransform(def collection) {

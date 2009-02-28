@@ -45,7 +45,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void embeddedBuildFileIgnoresBuildAndScriptFiles() throws IOException {
+    public void embeddedBuildFileIgnoresBuildAndScriptFiles() {
         File rootDir = getTestDir();
         testFile("settings.gradle").write("throw new RuntimeException()");
         testFile("build.gradle").write("throw new RuntimeException()");
@@ -53,7 +53,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canDeterminesRootProjectAndCurrentProjectBasedOnCurrentDirectory() throws IOException {
+    public void canDetermineRootProjectAndCurrentProjectBasedOnCurrentDirectory() {
         File rootDir = getTestDir();
         File childDir = new File(rootDir, "child");
 
@@ -66,18 +66,82 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void handlesProjectInSubdirectoryOfAnotherMultiProjectBuild() throws IOException {
+    public void canDetermineRootProjectAndCurrentProjectBasedOnBuildFileName() {
+        testFile("settings.gradle").write("include('child')");
+
+        TestFile rootBuildFile = testFile("build.gradle");
+        rootBuildFile.write("createTask('do-stuff')");
+
+        TestFile childBuildFile = testFile("child/build.gradle");
+        childBuildFile.write("createTask('do-stuff')");
+
+        usingBuildFile(rootBuildFile).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        usingBuildFile(childBuildFile).withSearchUpwards().runTasks(":do-stuff", "do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+    }
+
+    @Test @Ignore
+    public void ignoresMultiProjectBuildInSameDirectory() {
+        testFile("settings.gradle").write("rootProject.buildFileName = 'root.gradle'");
+        testFile("root.gradle").write("throw new RuntimeException()");
+        
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.write("createTask('do-stuff')");
+
+        inTestDirectory().runTasks("do-stuff");
+        usingBuildFile(buildFile).runTasks("do-stuff");
+    }
+
+    @Test
+    public void ignoresMultiProjectBuildInParentDirectory() {
         testFile("settings.gradle").write("include('another')");
         testFile("gradle.properties").writelns("prop=value2", "otherProp=value");
 
-        TestFile buildFile = testFile("subdirectory/build.gradle");
+        File subDirectory = new File(getTestDir(), "subdirectory");
+        TestFile buildFile = testFile(subDirectory, "build.gradle");
         buildFile.writelns("createTask('do-stuff') {",
                 "assertThat(prop, equalTo('value'))",
                 "assertTrue(!project.hasProperty('otherProp'))",
                 "}");
         testFile("subdirectory/gradle.properties").write("prop=value");
 
+        inDirectory(subDirectory).withSearchUpwards().runTasks("do-stuff");
         usingBuildFile(buildFile).withSearchUpwards().runTasks("do-stuff");
     }
 
+    @Test
+    public void multiProjectBuildCanHaveMultipleProjectsWithSameProjectDir() {
+        testFile("settings.gradle").writelns(
+            "include 'child1', 'child2'",
+            "project(':child1').projectDir = new File(settingsDir, 'shared')",
+            "project(':child2').projectDir = new File(settingsDir, 'shared')"
+        );
+        testFile("shared/build.gradle").write("createTask('do-stuff')");
+
+        inTestDirectory().runTasks("do-stuff").assertTasksExecuted(":child1:do-stuff", ":child2:do-stuff");
+    }
+
+    @Test
+    public void multiProjectBuildCanHaveSeveralProjectsWithSameBuildFile() {
+        testFile("settings.gradle").writelns(
+            "include 'child1', 'child2'",
+            "project(':child1').buildFileName = '../child.gradle'",
+            "project(':child2').buildFileName = '../child.gradle'"
+        );
+        testFile("child.gradle").write("createTask('do-stuff')");
+
+        inTestDirectory().runTasks("do-stuff").assertTasksExecuted(":child1:do-stuff", ":child2:do-stuff");
+    }
+
+    @Test @Ignore
+    public void multiProjectBuildCanHaveSettingsFileAndRootBuildFileInSubDir() {
+        testFile("root/settings.gradle").writelns(
+            "includeFlat 'child'",
+            "rootProject.projectDir = new File(settingsDir, '..')",
+            "rootProject.buildFileName = 'root/build.gradle'"
+        );
+        testFile("root/build.gradle").write("createTask('do-stuff')");
+        testFile("child/builld.gradle").write("createTask('do-stuff')");
+
+        inDirectory(new File(getTestDir(), "root")).runTasks("do-stuff").assertTasksExecuted(":root:do-stuff", ":child:do-stuff");
+    }
 }

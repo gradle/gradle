@@ -23,9 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
-import org.gradle.api.plugins.jetty.util.BuildFileHelper;
-import org.gradle.api.plugins.WarPlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.mortbay.resource.Resource;
 import org.mortbay.resource.ResourceCollection;
 import org.mortbay.util.Scanner;
@@ -303,14 +300,14 @@ public class JettyRun extends AbstractJettyRunTask {
         if (jettyWebXmlFile != null)
             scanList.add(jettyWebXmlFile);
         scanList.addAll(getExtraScanTargets());
-        scanList.add(BuildFileHelper.getBuildFile(getProject()));
+        scanList.add(getProject().getBuildFile());
         scanList.addAll(getClassPathFiles());
         setScanList(scanList);
         ArrayList listeners = new ArrayList();
         listeners.add(new Scanner.BulkListener() {
             public void filesChanged(List changes) {
                 try {
-                    boolean reconfigure = changes.contains(BuildFileHelper.getBuildFile(getProject()).getCanonicalPath());
+                    boolean reconfigure = changes.contains(getProject().getBuildFile().getCanonicalPath());
                     restartWebApp(reconfigure);
                 }
                 catch (Exception e) {
@@ -341,7 +338,7 @@ public class JettyRun extends AbstractJettyRunTask {
             if (getJettyEnvXmlFile() != null)
                 scanList.add(getJettyEnvXmlFile());
             scanList.addAll(getExtraScanTargets());
-            scanList.add(BuildFileHelper.getBuildFile(getProject()));
+            scanList.add(getProject().getBuildFile());
             scanList.addAll(getClassPathFiles());
             getScanner().setScanDirs(scanList);
         }

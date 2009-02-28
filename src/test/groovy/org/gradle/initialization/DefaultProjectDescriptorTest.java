@@ -24,10 +24,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 import org.gradle.api.Project;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Mockery;
 import org.jmock.Expectations;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author Hans Dockter
@@ -39,7 +39,6 @@ public class DefaultProjectDescriptorTest {
     private static final String TEST_NAME = "testName";
     private static final File TEST_DIR = new File("testDir");
     private DefaultProjectDescriptorRegistry testProjectDescriptorRegistry;
-    private String newName;
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
@@ -58,7 +57,7 @@ public class DefaultProjectDescriptorTest {
         assertTrue(parentProjectDescriptor.getChildren().contains(projectDescriptor));
         assertSame(testProjectDescriptorRegistry, projectDescriptor.getProjectDescriptorRegistry());
         assertEquals(TEST_NAME, projectDescriptor.getName());
-        assertEquals(TEST_DIR, projectDescriptor.getDir());
+        assertEquals(TEST_DIR, projectDescriptor.getProjectDir());
         assertEquals(Project.DEFAULT_BUILD_FILE, projectDescriptor.getBuildFileName());
         checkPath();
     }
@@ -82,20 +81,8 @@ public class DefaultProjectDescriptorTest {
     }
 
     @Test
-    public void setDir() {
-        final File newDir = new File("newDir");
-        final IProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(IProjectDescriptorRegistry.class);
-        projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
-        context.checking(new Expectations() {{
-            one(projectDescriptorRegistryMock).changeProjectDir(projectDescriptor.getDir(), newDir);
-        }});
-        projectDescriptor.setDir(newDir);
-        assertEquals(newDir, projectDescriptor.getDir());
-    }
-
-    @Test
-    public void buildFileIsBuiltFromBuildFileNameAndProjectDir() {
+    public void buildFileIsBuiltFromBuildFileNameAndProjectDir() throws IOException {
         projectDescriptor.setBuildFileName("project.gradle");
-        assertEquals(new File(TEST_DIR, "project.gradle"), projectDescriptor.getBuildFile());
+        assertEquals(new File(TEST_DIR, "project.gradle").getCanonicalFile(), projectDescriptor.getBuildFile());
     }
 }

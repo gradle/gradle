@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class EmbeddedScriptSettingsFinderTest {
@@ -28,7 +29,7 @@ public class EmbeddedScriptSettingsFinderTest {
     }
 
     @Test
-    public void usesCurrentDirAsSettingsDir() {
+    public void usesCurrentDirAsSettingsDir() throws IOException {
         StartParameter parameter = new StartParameter();
         File currentDir = new File("current dir");
 
@@ -36,6 +37,6 @@ public class EmbeddedScriptSettingsFinderTest {
 
         settingsFinder.find(parameter);
 
-        assertThat(settingsFinder.getSettingsDir(), sameInstance(currentDir));
+        assertThat(settingsFinder.getSettingsDir(), equalTo(currentDir.getCanonicalFile()));
     }
 }

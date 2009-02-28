@@ -57,7 +57,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ClassLoader buildScriptClassLoader;
 
-    private String buildFileName;
+    private File buildFile;
 
     private Script buildScript;
 
@@ -109,7 +109,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ITaskFactory taskFactory;
 
-    private IProjectRegistry projectRegistry;
+    private IProjectRegistry<ProjectInternal> projectRegistry;
 
     private DependencyManagerFactory dependencyManagerFactory;
 
@@ -125,17 +125,17 @@ public abstract class AbstractProject implements ProjectInternal {
         dynamicObjectHelper.setConvention(new Convention());
     }
 
-    public AbstractProject(String name, ProjectInternal parent, File projectDir, String buildFileName,
+    public AbstractProject(String name, ProjectInternal parent, File projectDir, File buildFile,
                            ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
                            DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory,
                            BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
-                           IProjectRegistry projectRegistry, BuildInternal build) {
+                           IProjectRegistry<ProjectInternal> projectRegistry, BuildInternal build) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
         this.parent = parent;
         this.name = name;
-        this.buildFileName = buildFileName;
+        this.buildFile = buildFile;
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.taskFactory = taskFactory;
         this.dependencyManagerFactory = dependencyManagerFactory;
@@ -206,16 +206,16 @@ public abstract class AbstractProject implements ProjectInternal {
         this.buildScriptClassLoader = buildScriptClassLoader;
     }
 
-    public String getBuildFileName() {
-        return buildFileName;
+    public File getBuildFile() {
+        return buildFile;
     }
 
     public String getBuildFileClassName() {
         return buildScriptSource.getClassName();
     }
 
-    public void setBuildFileName(String buildFileName) {
-        this.buildFileName = buildFileName;
+    public void setBuildFile(File buildFile) {
+        this.buildFile = buildFile;
     }
 
     public Script getBuildScript() {
@@ -254,6 +254,10 @@ public abstract class AbstractProject implements ProjectInternal {
     public void setParent(ProjectInternal parent) {
         this.parent = parent;
         dynamicObjectHelper.setParent(parent == null ? null : parent.getInheritedScope());
+    }
+
+    public ProjectIdentifier getParentIdentifier() {
+        return parent;
     }
 
     public DynamicObjectHelper getDynamicObjectHelper() {
@@ -408,11 +412,11 @@ public abstract class AbstractProject implements ProjectInternal {
         this.taskFactory = taskFactory;
     }
 
-    public IProjectRegistry getProjectRegistry() {
+    public IProjectRegistry<ProjectInternal> getProjectRegistry() {
         return projectRegistry;
     }
 
-    public void setProjectRegistry(IProjectRegistry projectRegistry) {
+    public void setProjectRegistry(IProjectRegistry<ProjectInternal> projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 
@@ -474,11 +478,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Set<Project> getAllprojects() {
-        return projectRegistry.getAllProjects(this.path);
+        return new TreeSet<Project>(projectRegistry.getAllProjects(this.path));
     }
 
     public Set<Project> getSubprojects() {
-        return projectRegistry.getSubProjects(this.path);
+        return new TreeSet<Project>(projectRegistry.getSubProjects(this.path));
     }
 
     public void subprojects(ProjectAction action) {
@@ -531,7 +535,7 @@ public abstract class AbstractProject implements ProjectInternal {
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = State.INITIALIZED;
         notifyAfterEvaluateListener();
-        logger.info("Project= " + path + " evaluated.");
+        logger.info(String.format("Project %s evaluated using %s.", path, getBuildScriptSource().getDescription()));
         logger.debug("Timing: Project evaluation took " + clock.getTime());
         return this;
     }
