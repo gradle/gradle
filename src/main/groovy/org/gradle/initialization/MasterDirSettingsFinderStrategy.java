@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 
 import java.io.File;
 
@@ -30,7 +31,7 @@ public class MasterDirSettingsFinderStrategy extends AbstractSettingsFileSearchS
         if (searchDir != null && startParameter.isSearchUpwards()) {
             for (File file : searchDir.listFiles()) {
                 if (file.isDirectory() && file.getName().equals(MASTER_DIR_NAME)) {
-                    File settingsFile = new File(file, startParameter.getSettingsFileName());
+                    File settingsFile = new File(file, Settings.DEFAULT_SETTINGS_FILE);
                     if (settingsFile.isFile()) {
                         return settingsFile;
                     }

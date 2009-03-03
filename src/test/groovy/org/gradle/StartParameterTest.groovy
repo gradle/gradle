@@ -33,6 +33,9 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.util.Matchers
 import org.gradle.initialization.ProjectDirectoryProjectSpec
 import org.gradle.initialization.ProjectSpec
+import org.gradle.initialization.BuildFileProjectSpec
+import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -46,8 +49,8 @@ class StartParameterTest {
 
     @Test public void testNewInstance() {
         StartParameter testObj = new StartParameter()
-        testObj.settingsFileName = 'settingsfile'
-        testObj.buildFileName = 'buildfile'
+        testObj.settingsFile = 'settingsfile' as File
+        testObj.buildFile = 'buildfile' as File
         testObj.taskNames = ['a']
         testObj.currentDir = new File('a')
         testObj.searchUpwards = false
@@ -66,9 +69,13 @@ class StartParameterTest {
         StartParameter parameter = new StartParameter();
         assertThat(parameter.gradleUserHomeDir, equalTo(new File(Main.DEFAULT_GRADLE_USER_HOME)))
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
-        assertThat(parameter.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
+
+        assertThat(parameter.buildFile, nullValue())
+        
+        assertThat(parameter.settingsFile, nullValue())
+        assertThat(parameter.settingsScriptSource, nullValue())
+
         assertThat(parameter.logLevel, equalTo(LogLevel.LIFECYCLE))
-        assertThat(parameter.settingsFileName, equalTo(Settings.DEFAULT_SETTINGS_FILE))
         assertThat(parameter.taskNames, notNullValue())
         assertThat(parameter.projectProperties, notNullValue())
         assertThat(parameter.systemPropertiesArgs, notNullValue())
@@ -83,6 +90,55 @@ class StartParameterTest {
 
         assertThat(parameter.currentDir, equalTo(dir.canonicalFile))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(dir.canonicalFile)))
+    }
+
+    @Test public void testSetBuildFile() {
+        StartParameter parameter = new StartParameter()
+        File file = new File('test/build file')
+        parameter.buildFile = file
+
+        assertThat(parameter.buildFile, equalTo(file.canonicalFile))
+        assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new BuildFileProjectSpec(file.canonicalFile)))
+    }
+
+    @Test public void testSetNullBuildFile() {
+        StartParameter parameter = new StartParameter()
+        parameter.buildFile = null
+
+        assertThat(parameter.buildFile, nullValue())
+        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(parameter.currentDir)))
+    }
+
+    @Test public void testSetSettingsFile() {
+        StartParameter parameter = new StartParameter()
+        File file = new File('some dir/settings file')
+        parameter.settingsFile = file
+
+        assertThat(parameter.settingsFile, equalTo(file.canonicalFile))
+        assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
+        assertThat(parameter.settingsScriptSource, reflectionEquals(new FileScriptSource("settings file", file.canonicalFile)))
+    }
+    
+    @Test public void testSetNullSettingsFile() {
+        StartParameter parameter = new StartParameter()
+        parameter.settingsFile = null
+
+        assertThat(parameter.settingsFile, nullValue())
+        assertThat(parameter.settingsScriptSource, nullValue())
+    }
+
+    @Test public void testSetSettingsScriptSource() {
+        StartParameter parameter = new StartParameter()
+        parameter.settingsFile = new File('settings file')
+
+        ScriptSource scriptSource = {} as ScriptSource
+
+        parameter.settingsScriptSource = scriptSource
+
+        assertThat(parameter.settingsScriptSource, sameInstance(scriptSource))
+        assertThat(parameter.settingsFile, nullValue())
     }
     
     @Test public void testSetTaskNames() {
@@ -107,7 +163,6 @@ class StartParameterTest {
         StartParameter parameter = new StartParameter();
         parameter.useEmbeddedBuildFile("<content>")
         assertThat(parameter.buildScriptSource, reflectionEquals(new StringScriptSource("embedded build file", "<content>")))
-        assertThat(parameter.buildFileName, equalTo(Project.EMBEDDED_SCRIPT_ID))
         assertThat(parameter.settingsScriptSource, reflectionEquals(new StringScriptSource("empty settings file", "")))
         assertThat(parameter.searchUpwards, equalTo(false))
     }
@@ -115,13 +170,15 @@ class StartParameterTest {
     @Test public void testSettingGradleHomeSetsDefaultLocationsIfNotAlreadySet() {
         StartParameter parameter = new StartParameter()
         parameter.gradleHomeDir = gradleHome
-        assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome, Main.IMPORTS_FILE_NAME)))
-        assertThat(parameter.pluginPropertiesFile, equalTo(new File(gradleHome, Main.DEFAULT_PLUGIN_PROPERTIES)))
+        assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
+        assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome.canonicalFile, Main.IMPORTS_FILE_NAME)))
+        assertThat(parameter.pluginPropertiesFile, equalTo(new File(gradleHome.canonicalFile, Main.DEFAULT_PLUGIN_PROPERTIES)))
 
         parameter = new StartParameter()
         parameter.defaultImportsFile = new File("imports")
         parameter.pluginPropertiesFile = new File("plugins")
         parameter.gradleHomeDir = gradleHome
+        assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
         assertThat(parameter.defaultImportsFile, equalTo(new File("imports")))
         assertThat(parameter.pluginPropertiesFile, equalTo(new File("plugins")))
     }
@@ -138,7 +195,8 @@ class StartParameterTest {
 
         // Non-copied
         parameter.currentDir = new File("other")
-        parameter.buildFileName = "b"
+        parameter.buildFile = new File("build file")
+        parameter.settingsFile = new File("settings file")
         parameter.taskNames.add("t1");
         parameter.defaultProjectSelector = [:] as ProjectSpec
 
@@ -152,7 +210,8 @@ class StartParameterTest {
         assertThat(newParameter.pluginPropertiesFile, equalTo(parameter.pluginPropertiesFile));
         assertThat(newParameter.defaultImportsFile, equalTo(parameter.defaultImportsFile));
 
-        assertThat(newParameter.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
+        assertThat(newParameter.buildFile, nullValue())
+        assertThat(newParameter.settingsFile, nullValue())
         assertTrue(newParameter.taskNames.empty)
         assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
         assertThat(newParameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(newParameter.currentDir)))

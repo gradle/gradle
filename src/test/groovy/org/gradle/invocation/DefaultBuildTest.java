@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 public class DefaultBuildTest {
     @Test
@@ -18,15 +19,15 @@ public class DefaultBuildTest {
     }
 
     @Test
-    public void usesStartParameterForDirLocations() {
+    public void usesStartParameterForDirLocations() throws IOException {
         StartParameter parameter = new StartParameter();
         parameter.setGradleHomeDir(new File("home"));
         parameter.setGradleUserHomeDir(new File("user"));
 
         DefaultBuild build = new DefaultBuild(parameter, null);
 
-        assertThat(build.getGradleHomeDir(), equalTo(new File("home")));
-        assertThat(build.getGradleUserHomeDir(), equalTo(new File("user")));
+        assertThat(build.getGradleHomeDir(), equalTo(new File("home").getCanonicalFile()));
+        assertThat(build.getGradleUserHomeDir(), equalTo(new File("user").getCanonicalFile()));
     }
 
     @Test

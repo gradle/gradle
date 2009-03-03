@@ -124,8 +124,7 @@ public class AbstractIntegrationTest {
     
     protected GradleExecution usingBuildFile(File file) {
         StartParameter parameter = startParameter();
-        parameter.setCurrentDir(file.getParentFile());
-        parameter.setBuildFileName(file.getName());
+        parameter.setBuildFile(file);
         return new GradleExecution(parameter);
     }
 
@@ -238,8 +237,7 @@ public class AbstractIntegrationTest {
         }
 
         public GradleExecution usingSettingsFile(File settingsFile) {
-            assertThat(settingsFile.getParentFile(), equalTo(parameter.getCurrentDir()));
-            parameter.setSettingsFileName(settingsFile.getName());
+            parameter.setSettingsFile(settingsFile);
             return this;
         }
 

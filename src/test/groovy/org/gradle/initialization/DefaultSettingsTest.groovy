@@ -60,7 +60,7 @@ class DefaultSettingsTest {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
-        startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'), buildFileName: 'root.gradle')
+        startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         dependencyManagerMock = context.mock(DependencyManager)
         buildSourceBuilderMock = context.mock(BuildSourceBuilder)
         dependencyManagerFactoryMock = context.mock(DependencyManagerFactory)
@@ -82,14 +82,14 @@ class DefaultSettingsTest {
         assert settings.dependencyManager.is(dependencyManagerMock)
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
-        assertEquals(Project.DEFAULT_BUILD_FILE, settings.buildSrcStartParameter.buildFileName)
+        assertNull(settings.buildSrcStartParameter.buildFile)
         assertEquals([JavaPlugin.CLEAN, ConfigurationResolvers.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
                 settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
         assertNull(settings.getRootProject().getParent())
         assertEquals(settingsDir, settings.getRootProject().getProjectDir())
         assertEquals(settings.getRootProject().getProjectDir().getName(), settings.getRootProject().getName())
-        assertEquals(settings.rootProject.buildFileName, startParameter.buildFileName);
+        assertEquals(settings.rootProject.buildFileName, Project.DEFAULT_BUILD_FILE);
     }
 
     @Test public void testInclude() {
@@ -131,7 +131,7 @@ class DefaultSettingsTest {
         assertSame(settings.getRootProject(), projectDescriptor.getParent())
         assertSame(settings.getProjectDescriptorRegistry(), projectDescriptor.getProjectDescriptorRegistry())
         assertEquals(testName, projectDescriptor.getName())
-        assertEquals(testDir, projectDescriptor.getProjectDir())
+        assertEquals(testDir.canonicalFile, projectDescriptor.getProjectDir())
     }
 
     @Test public void testFindDescriptorByPath() {

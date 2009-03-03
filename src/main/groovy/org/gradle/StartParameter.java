@@ -18,18 +18,18 @@ package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.Project;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.initialization.Settings;
 import org.gradle.execution.TaskNameResolvingBuildExecuter;
 import org.gradle.execution.ProjectDefaultsBuildExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.GFileUtils;
 import org.gradle.initialization.ProjectSpec;
 import org.gradle.initialization.ProjectDirectoryProjectSpec;
+import org.gradle.initialization.BuildFileProjectSpec;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,11 +50,9 @@ import java.util.Map;
  * @see Gradle
  */
 public class StartParameter {
-    private String settingsFileName = Settings.DEFAULT_SETTINGS_FILE;
-    private String buildFileName = Project.DEFAULT_BUILD_FILE;
     private List<String> taskNames = new ArrayList<String>();
     private File currentDir;
-    private boolean searchUpwards;
+    private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir = new File(Main.DEFAULT_GRADLE_USER_HOME);
@@ -67,13 +65,15 @@ public class StartParameter {
     private BuildExecuter buildExecuter;
     private ProjectSpec defaultProjectSelector;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private File buildFile;
+    private File settingsFile;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
      * command-line with no arguments.
      */
     public StartParameter() {
-        setCurrentDir(new File(System.getProperty("user.dir")));
+        setCurrentDir(null);
     }
 
     /**
@@ -83,8 +83,7 @@ public class StartParameter {
      */
     public StartParameter newInstance() {
         StartParameter startParameter = new StartParameter();
-        startParameter.settingsFileName = settingsFileName;
-        startParameter.buildFileName = buildFileName;
+        startParameter.buildFile = buildFile;
         startParameter.taskNames = taskNames;
         startParameter.currentDir = currentDir;
         startParameter.searchUpwards = searchUpwards;
@@ -97,6 +96,7 @@ public class StartParameter {
         startParameter.cacheUsage = cacheUsage;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
+        startParameter.settingsFile = settingsFile;
         startParameter.buildExecuter = buildExecuter;
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.logLevel = logLevel;
@@ -129,12 +129,31 @@ public class StartParameter {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
-    public String getBuildFileName() {
-        return buildFileName;
+    /**
+     * Returns the build file to use to select the default project. Returns null when the build file is not used to
+     * select the default project.
+     *
+     * @return The build file. May be null.
+     */
+    public File getBuildFile() {
+        return buildFile;
     }
 
-    public void setBuildFileName(String buildFileName) {
-        this.buildFileName = buildFileName;
+    /**
+     * Sets the build file to use to select the default project. Use null to disable selecting the default project using
+     * the build file.
+     *
+     * @param buildFile The build file. May be null.
+     */
+    public void setBuildFile(File buildFile) {
+        if (buildFile == null) {
+            this.buildFile = null;
+            setCurrentDir(null);
+        } else {
+            this.buildFile = GFileUtils.canonicalise(buildFile);
+            currentDir = this.buildFile.getParentFile();
+            defaultProjectSelector = new BuildFileProjectSpec(this.buildFile);
+        }
     }
 
     public File getGradleHomeDir() {
@@ -142,12 +161,12 @@ public class StartParameter {
     }
 
     public void setGradleHomeDir(File gradleHomeDir) {
-        this.gradleHomeDir = gradleHomeDir;
+        this.gradleHomeDir = GFileUtils.canonicalise(gradleHomeDir);
         if (defaultImportsFile == null) {
-            defaultImportsFile = new File(gradleHomeDir, Main.IMPORTS_FILE_NAME);
+            defaultImportsFile = new File(this.gradleHomeDir, Main.IMPORTS_FILE_NAME);
         }
         if (pluginPropertiesFile == null) {
-            pluginPropertiesFile = new File(gradleHomeDir, Main.DEFAULT_PLUGIN_PROPERTIES);
+            pluginPropertiesFile = new File(this.gradleHomeDir, Main.DEFAULT_PLUGIN_PROPERTIES);
         }
     }
 
@@ -162,22 +181,24 @@ public class StartParameter {
     }
 
     /**
-     * <p>Returns the {@link ScriptSource} to use for the settings file for this build. Returns null when the default
-     * settings file is to be used.</p>
+     * <p>Returns the {@link ScriptSource} to use for the settings script for this build. Returns null when the default
+     * settings script is to be used.</p>
      *
-     * @return The settings file source, or null to use the default.
+     * @return The settings script source, or null to use the default.
      */
     public ScriptSource getSettingsScriptSource() {
         return settingsScriptSource;
     }
 
     /**
-     * <p>Sets the {@link ScriptSource} to use for the settings file. Set to null to use the default settings file.</p>
+     * <p>Sets the {@link ScriptSource} to use for the settings script. Set to null to use the default settings
+     * script.</p>
      *
-     * @param settingsScriptSource The settings file source.
+     * @param settingsScriptSource The settings script source.
      */
     public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
         this.settingsScriptSource = settingsScriptSource;
+        settingsFile = null;
     }
 
     /**
@@ -189,7 +210,6 @@ public class StartParameter {
      */
     public StartParameter useEmbeddedBuildFile(String buildScript) {
         buildScriptSource = new StringScriptSource("embedded build file", buildScript);
-        buildFileName = Project.EMBEDDED_SCRIPT_ID;
         settingsScriptSource = new StringScriptSource("empty settings file", "");
         searchUpwards = false;
         return this;
@@ -204,9 +224,8 @@ public class StartParameter {
         if (buildExecuter != null) {
             return buildExecuter;
         }
-        BuildExecuter executer = GUtil.isTrue(taskNames) ? new TaskNameResolvingBuildExecuter(taskNames)
+        return GUtil.isTrue(taskNames) ? new TaskNameResolvingBuildExecuter(taskNames)
                 : new ProjectDefaultsBuildExecuter();
-        return executer;
     }
 
     /**
@@ -243,12 +262,26 @@ public class StartParameter {
         buildExecuter = null;
     }
 
+    /**
+     * Returns the directory to use to select the default project, and to search for the settings file.
+     *
+     * @return The current directory. Never returns null.
+     */
     public File getCurrentDir() {
         return currentDir;
     }
 
+    /**
+     * Sets the directory to use to select the default project, and to search for the settings file.
+     *
+     * @param currentDir The directory. Should not be null.
+     */
     public void setCurrentDir(File currentDir) {
-        this.currentDir = GFileUtils.canonicalise(currentDir);
+        if (currentDir != null) {
+            this.currentDir = GFileUtils.canonicalise(currentDir);
+        } else {
+            this.currentDir = new File(System.getProperty("user.dir"));
+        }
         defaultProjectSelector = new ProjectDirectoryProjectSpec(this.currentDir);
     }
 
@@ -281,7 +314,7 @@ public class StartParameter {
     }
 
     public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
+        this.gradleUserHomeDir = GFileUtils.canonicalise(gradleUserHomeDir);
     }
 
     public File getDefaultImportsFile() {
@@ -308,12 +341,29 @@ public class StartParameter {
         this.cacheUsage = cacheUsage;
     }
 
-    public String getSettingsFileName() {
-        return settingsFileName;
+    /**
+     * Sets the settings file to use for the build. Use null to use the default settings file.
+     *
+     * @param settingsFile The settings file to use. May be null.
+     */
+    public void setSettingsFile(File settingsFile) {
+        if (settingsFile == null) {
+            this.settingsFile = null;
+            settingsScriptSource = null;
+        } else {
+            this.settingsFile = GFileUtils.canonicalise(settingsFile);
+            currentDir = this.settingsFile.getParentFile();
+            settingsScriptSource = new FileScriptSource("settings file", this.settingsFile);
+        }
     }
 
-    public void setSettingsFileName(String settingsFileName) {
-        this.settingsFileName = settingsFileName;
+    /**
+     * Returns the settings file to use for the build. Returns null when the default settings file is to be used.
+     *
+     * @return The settings file. May return null.
+     */
+    public File getSettingsFile() {
+        return settingsFile;
     }
 
     public LogLevel getLogLevel() {
@@ -326,7 +376,7 @@ public class StartParameter {
 
     /**
      * Returns the selector used to choose the default project of the build. This is the project used as the starting
-     * point when resolving task names, and for determining the default tasks.
+     * point for resolving task names, and for determining the default tasks.
      *
      * @return The default project. Never returns null.
      */

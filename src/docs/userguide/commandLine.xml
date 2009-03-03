@@ -21,7 +21,7 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-D</literal>, <literal>--systemprop</literal></term>
+            <term><literal>-D</literal>, <literal>--system-prop</literal></term>
             <listitem><para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
             </para></listitem>
         </varlistentry>
@@ -36,21 +36,19 @@
             <listitem><para>Specifies the default import file.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-P</literal>, <literal>--projectprop</literal></term>
+            <term><literal>-P</literal>, <literal>--project-prop</literal></term>
             <listitem><para>Sets a project property of the root project, for example
                 <literal>-Pmyprop=myvalue</literal>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-b</literal>, <literal>--buildfile</literal></term>
-            <listitem><para>Specifies the build file name (also for subprojects). Defaults to
-                <filename>build.gradle</filename>.
+            <term><literal>-b</literal>, <literal>--build-file</literal></term>
+            <listitem><para>Specifies the build file.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-c</literal>, <literal>--settingsfile</literal></term>
-            <listitem><para>Specifies the settings file name. Defaults to <filename>settings.gradle</filename>.
-            </para></listitem>
+            <term><literal>-c</literal>, <literal>--settings-file</literal></term>
+            <listitem><para>Specifies the settings file.</para></listitem>
         </varlistentry>
         <varlistentry>
             <term><literal>-d</literal>, <literal>--debug</literal></term>

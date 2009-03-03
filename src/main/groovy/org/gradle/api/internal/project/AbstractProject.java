@@ -36,6 +36,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.PathHelper;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,10 @@ import java.util.*;
 public abstract class AbstractProject implements ProjectInternal {
     private static Logger logger = LoggerFactory.getLogger(AbstractProject.class);
     private static Logger buildLogger = LoggerFactory.getLogger(Project.class);
+
+    public enum State {
+        CREATED, INITIALIZING, INITIALIZED
+    }
 
     private Project rootProject;
 
@@ -168,10 +173,6 @@ public abstract class AbstractProject implements ProjectInternal {
         }
 
         projectRegistry.addProject(this);
-    }
-
-    public String getRelativeFilePath() {
-        return "/" + rootProject.getName() + "/" + path.substring(1).replace(Project.PATH_SEPARATOR, "/");
     }
 
     public Project getRootProject() {
@@ -594,7 +595,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Map<String, Task> getTasks() {
-        return (Map<String, Task>) taskEngine.getProperties();
+        return taskEngine.getProperties();
     }
 
     public Task task(String path) {
@@ -652,7 +653,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File getBuildDir() {
-        return new File(getProjectDir(), buildDirName);
+        return GFileUtils.canonicalise(new File(getProjectDir(), buildDirName));
     }
 
     public void dependsOn(String path) {
@@ -747,7 +748,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File file(Object path, PathValidation validation) {
-        return baseDirConverter.baseDir(path.toString(), getProjectDir(), validation);
+        return GFileUtils.canonicalise(baseDirConverter.baseDir(path.toString(), getProjectDir(), validation));
     }
 
     public File relativePath(Object path) {

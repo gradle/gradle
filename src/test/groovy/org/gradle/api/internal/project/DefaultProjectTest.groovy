@@ -20,7 +20,6 @@ import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
-import org.gradle.api.Project.State
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.artifacts.DependencyManagerFactory
 import org.gradle.api.invocation.Build
@@ -37,13 +36,11 @@ import org.gradle.invocation.DefaultBuild
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
-import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
-import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -174,7 +171,7 @@ class DefaultProjectTest {
         assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
         assertEquals project.name, project.archivesBaseName
         assertEquals([] as Set, project.appliedPlugins)
-        assertEquals Project.State.CREATED, project.state
+        assertEquals AbstractProject.State.CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
@@ -217,7 +214,7 @@ class DefaultProjectTest {
             one(outputRedirectorMock).flush()
         }
         assertSame(project, project.evaluate())
-        assertEquals(Project.State.INITIALIZED, project.state)
+        assertEquals(AbstractProject.State.INITIALIZED, project.state)
         assert afterEvaluate1Called
         assert afterEvaluate2Called
         assert project.buildScript.is(testScript)
@@ -832,7 +829,7 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testBuildDir() {
-        assertEquals(new File(child1.projectDir, "${Project.DEFAULT_BUILD_DIR_NAME}"), child1.buildDir)
+        assertEquals(new File(child1.projectDir, "${Project.DEFAULT_BUILD_DIR_NAME}").canonicalFile, child1.buildDir)
     }
 
     @Test void testFile() {
@@ -844,6 +841,7 @@ def scriptMethod(Closure closure) {
             assertEquals(expectedPath, path)
             assertEquals(child1.getProjectDir(), baseDir)
             assertEquals(expectedValidation, pathValidation)
+            baseDir
         }] as BaseDirConverter
         child1.file(expectedPath, PathValidation.FILE)
         assertTrue(converterCalled)

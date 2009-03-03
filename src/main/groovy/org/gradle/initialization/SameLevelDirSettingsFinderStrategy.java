@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 
 import java.io.File;
 
@@ -29,7 +30,7 @@ public class SameLevelDirSettingsFinderStrategy extends AbstractSettingsFileSear
         if (parentDir != null && startParameter.isSearchUpwards()) {
             for (File potentialSameLevelDir : parentDir.listFiles()) {
                 if (potentialSameLevelDir.isDirectory()) {
-                    File settingsFile = new File(potentialSameLevelDir, startParameter.getSettingsFileName());
+                    File settingsFile = new File(potentialSameLevelDir, Settings.DEFAULT_SETTINGS_FILE);
                     if (settingsFile.isFile()) {
                         return settingsFile;
                     }
@@ -39,7 +40,7 @@ public class SameLevelDirSettingsFinderStrategy extends AbstractSettingsFileSear
         return null;
     }
 
-    protected boolean isSettingsFile(StartParameter startParameter, File file) {
-        return file.isFile() && file.getName().equals(startParameter.getSettingsFileName());
+    protected boolean isSettingsFile(File file) {
+        return file.isFile() && file.getName().equals(Settings.DEFAULT_SETTINGS_FILE);
     }
 }

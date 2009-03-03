@@ -50,32 +50,34 @@ public class DefaultGradleFactory implements GradleFactory {
         IScriptProcessor scriptProcessor = new DefaultScriptProcessor(
                 new DefaultScriptCompilationHandler(new DefaultCachePropertiesHandler()),
                 startParameter.getCacheUsage());
-        ISettingsFinder settingsFinder = startParameter.getSettingsScriptSource() == null
-                ? new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
-                new MasterDirSettingsFinderStrategy(),
-                new ParentDirSettingsFinderStrategy()))
-                : new EmbeddedScriptSettingsFinder();
+
+        ISettingsFinder settingsFinder = new EmbeddedScriptSettingsFinder(
+                new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
+                        new MasterDirSettingsFinderStrategy(),
+                        new ParentDirSettingsFinderStrategy()))
+        );
         DependencyManagerFactory dependencyManagerFactory = new DefaultDependencyManagerFactory(settingsFinder, startParameter.getCacheUsage());
         Gradle gradle = new Gradle(
                 startParameter,
                 settingsFinder,
                 new DefaultGradlePropertiesLoader(),
                 new ScriptLocatingSettingsProcessor(
-                        new ScriptEvaluatingSettingsProcessor(
-                                new DefaultSettingsScriptMetaData(),
-                                scriptProcessor,
-                                importsReader,
-                                new SettingsFactory(
-                                        new DefaultProjectDescriptorRegistry(),
-                                        dependencyManagerFactory,
-                                        new BuildSourceBuilder(new DefaultGradleFactory(
-                                                new LoggingConfigurer() {
-                                                    public void configure(LogLevel logLevel) {
-                                                        // do nothing
-                                                    }
-                                                }
-                                        ), new DefaultCacheInvalidationStrategy())))
-                ),
+                        new PropertiesLoadingSettingsProcessor(
+                                new ScriptEvaluatingSettingsProcessor(
+                                        new DefaultSettingsScriptMetaData(),
+                                        scriptProcessor,
+                                        importsReader,
+                                        new SettingsFactory(
+                                                new DefaultProjectDescriptorRegistry(),
+                                                dependencyManagerFactory,
+                                                new BuildSourceBuilder(new DefaultGradleFactory(
+                                                        new LoggingConfigurer() {
+                                                            public void configure(LogLevel logLevel) {
+                                                                // do nothing
+                                                            }
+                                                        }
+                                                ), new DefaultCacheInvalidationStrategy())))
+                )),
                 new BuildLoader(
                         new ProjectFactory(
                                 new TaskFactory(),
@@ -86,7 +88,8 @@ public class DefaultGradleFactory implements GradleFactory {
                                         importsReader
                                 ),
                                 new PluginRegistry(
-                                        startParameter.getPluginPropertiesFile()), startParameter.getBuildScriptSource(),
+                                        startParameter.getPluginPropertiesFile()),
+                                startParameter.getBuildScriptSource(),
                                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
                 ),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()));

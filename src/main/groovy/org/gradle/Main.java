@@ -109,12 +109,10 @@ public class Main {
                 acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"), "Specifies the default import file.").withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settingsfile"),
-                        String.format("Specifies the settings file name. Defaults to %s.", Settings.DEFAULT_SETTINGS_FILE)).withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(BUILD_FILE, "buildfile"),
-                        String.format("Specifies the build file name (also for subprojects). Defaults to %s.", Project.DEFAULT_BUILD_FILE)).withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(SYSTEM_PROP, "systemprop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
-                acceptsAll(WrapUtil.toList(PROJECT_PROP, "projectprop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settings-file"), "Specifies the settings file.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(BUILD_FILE, "build-file"), "Specifies the build file.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(SYSTEM_PROP, "system-prop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(PROJECT_PROP, "project-prop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
             }
@@ -184,10 +182,10 @@ public class Main {
             startParameter.setGradleUserHomeDir(new File(options.argumentOf(GRADLE_USER_HOME)));
         }
         if (options.hasArgument(BUILD_FILE)) {
-            startParameter.setBuildFileName(options.argumentOf(BUILD_FILE));
+            startParameter.setBuildFile(new File(options.argumentOf(BUILD_FILE)));
         }
         if (options.hasArgument(SETTINGS_FILE)) {
-            startParameter.setSettingsFileName(options.argumentOf(SETTINGS_FILE));
+            startParameter.setSettingsFile(new File(options.argumentOf(SETTINGS_FILE)));
         }
         if (options.hasArgument(PLUGIN_PROPERTIES_FILE)) {
             startParameter.setPluginPropertiesFile(new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)));

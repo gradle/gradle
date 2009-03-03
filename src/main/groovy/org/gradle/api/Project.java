@@ -1029,10 +1029,4 @@ public interface Project extends Comparable<Project> {
     Rule addRule(Rule rule);
 
     List<Rule> getRules();
-
-    State getState();
-
-    public enum State {
-        CREATED, INITIALIZING, INITIALIZED
-    }
 }

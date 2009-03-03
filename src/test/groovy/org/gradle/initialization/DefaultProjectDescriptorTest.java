@@ -51,13 +51,13 @@ public class DefaultProjectDescriptorTest {
     }
 
     @Test
-    public void init() {
+    public void init() throws IOException {
         assertSame(parentProjectDescriptor, projectDescriptor.getParent());
         assertEquals(1, parentProjectDescriptor.getChildren().size());
         assertTrue(parentProjectDescriptor.getChildren().contains(projectDescriptor));
         assertSame(testProjectDescriptorRegistry, projectDescriptor.getProjectDescriptorRegistry());
         assertEquals(TEST_NAME, projectDescriptor.getName());
-        assertEquals(TEST_DIR, projectDescriptor.getProjectDir());
+        assertEquals(TEST_DIR.getCanonicalFile(), projectDescriptor.getProjectDir());
         assertEquals(Project.DEFAULT_BUILD_FILE, projectDescriptor.getBuildFileName());
         checkPath();
     }

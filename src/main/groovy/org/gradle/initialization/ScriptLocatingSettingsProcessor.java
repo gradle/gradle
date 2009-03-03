@@ -16,7 +16,9 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.initialization.ProjectDescriptor;
 
 public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor processor;
@@ -28,20 +30,32 @@ public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
     public SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter,
                                     IGradlePropertiesLoader propertiesLoader) {
         settingsFinder.find(startParameter);
-        propertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter);
 
         SettingsInternal settings = processor.process(settingsFinder, startParameter, propertiesLoader);
         if (!settings.getProjectRegistry().findAll(startParameter.getDefaultProjectSelector()).isEmpty()) {
             return settings;
         }
 
-        // The settings we found did not include the default project. Try again with no search upwards.
+        // The settings we found did not include the desired default project. Try again with an empty settings file.
 
         StartParameter noSearchParameter = startParameter.newInstance();
-        noSearchParameter.setSearchUpwards(false);
+        noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
         settingsFinder.find(noSearchParameter);
-        propertiesLoader.loadProperties(settingsFinder.getSettingsDir(), noSearchParameter);
 
-        return processor.process(settingsFinder, noSearchParameter, propertiesLoader);
+        settings = processor.process(settingsFinder, noSearchParameter, propertiesLoader);
+
+        ProjectDescriptor rootProject = settings.getRootProject();
+
+        if (noSearchParameter.getBuildFile() != null) {
+            // Haven't implemented anything else
+            assert noSearchParameter.getBuildFile().getParentFile().equals(rootProject.getProjectDir());
+            rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
+        }
+        
+        // Should end up with a single project in the build, and it should match the default project criteria
+        assert rootProject.getChildren().isEmpty();
+        assert !settings.getProjectRegistry().findAll(noSearchParameter.getDefaultProjectSelector()).isEmpty();
+
+        return settings;
     }
 }

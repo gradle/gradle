@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 
 import java.io.File;
 
@@ -27,8 +28,7 @@ public class ParentDirSettingsFinderStrategy extends AbstractSettingsFileSearchS
     protected File findBeyondCurrentDir(StartParameter startParameter) {
         File searchDir = startParameter.getCurrentDir().getParentFile();
         while (searchDir != null && startParameter.isSearchUpwards()) {
-            File settingsFile = new File(searchDir,
-                    startParameter.getSettingsFileName());
+            File settingsFile = new File(searchDir, Settings.DEFAULT_SETTINGS_FILE);
             if (settingsFile.exists() && settingsFile.isFile()) {
                 return settingsFile;
             }
@@ -37,7 +37,7 @@ public class ParentDirSettingsFinderStrategy extends AbstractSettingsFileSearchS
         return null;
     }
 
-    protected boolean isSettingsFile(StartParameter startParameter, File file) {
-        return file.isFile() && file.getName().equals(startParameter.getSettingsFileName());
+    protected boolean isSettingsFile(File file) {
+        return file.isFile() && file.getName().equals(Settings.DEFAULT_SETTINGS_FILE);
     }
 }

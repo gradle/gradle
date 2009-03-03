@@ -17,9 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.Rule;
-import org.gradle.api.Project;
 
 import java.util.Map;
 import java.util.List;
@@ -35,4 +33,6 @@ public interface TaskEngine extends DynamicObject {
     List<Rule> getRules();
 
     void addTask(Task task);
+
+    Map<String, Task> getProperties();
 }

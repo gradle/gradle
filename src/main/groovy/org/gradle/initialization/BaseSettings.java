@@ -88,7 +88,6 @@ public class BaseSettings implements SettingsInternal {
         dependencyManager.addConfiguration(BUILD_CONFIGURATION);
         assignBuildSrcStartParameter(startParameter);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
-        rootProjectDescriptor.setBuildFileName(startParameter.getBuildFileName());
         dynamicObjectHelper = new DynamicObjectHelper(this);
     }
 

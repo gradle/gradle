@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.api.initialization.Settings;
 
 import java.io.File;
 
@@ -25,7 +25,7 @@ import java.io.File;
  */
 public abstract class AbstractSettingsFileSearchStrategyTemplate implements ISettingsFileSearchStrategy {
     public File find(StartParameter startParameter) {
-        File currentDirSettingsFile = new File(startParameter.getCurrentDir(), startParameter.getSettingsFileName());
+        File currentDirSettingsFile = new File(startParameter.getCurrentDir(), Settings.DEFAULT_SETTINGS_FILE);
         if (currentDirSettingsFile.isFile()) {
             return currentDirSettingsFile;
         }

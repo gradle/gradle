@@ -58,7 +58,7 @@ public class BuildSourceBuilder {
     }
 
     public List<File> createBuildSourceClasspath(StartParameter startParameter) {
-        assert startParameter.getCurrentDir() != null && GUtil.isTrue(startParameter.getBuildFileName());
+        assert startParameter.getCurrentDir() != null && startParameter.getBuildFile() == null;
 
         logger.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
@@ -88,7 +88,7 @@ public class BuildSourceBuilder {
                 startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.INIT));
             }
 
-            if (!new File(startParameter.getCurrentDir(), startParameter.getBuildFileName()).isFile()) {
+            if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
                 logger.debug("Build script file does not exists. Using default one.");
                 startParameterArg.useEmbeddedBuildFile(getDefaultScript());
             }

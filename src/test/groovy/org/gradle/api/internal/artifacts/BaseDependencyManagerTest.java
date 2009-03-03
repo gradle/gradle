@@ -48,6 +48,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -283,23 +284,23 @@ public class BaseDependencyManagerTest {
     }
 
     @Test
-    public void testGetIvy() {
+    public void testGetIvy() throws IOException {
         final Ivy testIvy = configureGetIvy(new ArrayList<DependencyResolver>());
         assertThat(getDependencyManager().getIvy(), sameInstance(testIvy));
     }
 
     @Test
-    public void testIvy() {
+    public void testIvy() throws IOException {
         List<DependencyResolver> testPublishResolvers = WrapUtil.toList(context.mock(DependencyResolver.class, "publish")); 
         final Ivy testIvy = configureGetIvy(testPublishResolvers);
         assertThat(getDependencyManager().ivy(testPublishResolvers), sameInstance(testIvy));
     }
 
-    private Ivy configureGetIvy(final List<DependencyResolver> publishResolvers) {
+    private Ivy configureGetIvy(final List<DependencyResolver> publishResolvers) throws IOException {
         final Ivy testIvy = new Ivy();
         final List<DependencyResolver> testResolvers = WrapUtil.toList(context.mock(DependencyResolver.class));
         final Map<String, ModuleDescriptor> testClientModuleRegistry = WrapUtil.toMap("key", context.mock(ModuleDescriptor.class));
-        final File testGradleUserHome = new File("testGradleUserHome");
+        final File testGradleUserHome = new File("testGradleUserHome").getCanonicalFile();
         project.getBuild().getStartParameter().setGradleUserHomeDir(testGradleUserHome);
 
         context.checking(new Expectations() {{

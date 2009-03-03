@@ -16,8 +16,9 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.util.WrapUtil;
+import org.gradle.groovy.scripts.StringScriptSource;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.util.Matchers;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -44,7 +45,6 @@ public class ScriptLocatingSettingsProcessorTest {
     private final SettingsInternal settings = context.mock(SettingsInternal.class, "settings");
     private final SettingsProcessor processor = new ScriptLocatingSettingsProcessor(delegate);
     private final File currentDir = new File("currentDir");
-    private final File settingsDir = new File("settingsDir");
     private final IProjectRegistry<ProjectIdentifier> projectRegistry = context.mock(IProjectRegistry.class);
     private final ProjectSpec defaultProjectSelector = context.mock(ProjectSpec.class);
 
@@ -67,11 +67,6 @@ public class ScriptLocatingSettingsProcessorTest {
         context.checking(new Expectations() {{
             one(finder).find(startParameter);
 
-            one(finder).getSettingsDir();
-            will(returnValue(settingsDir));
-
-            one(propertiesLoader).loadProperties(settingsDir, startParameter);
-
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
@@ -84,16 +79,12 @@ public class ScriptLocatingSettingsProcessorTest {
 
     @Test
     public void usesCurrentDirAsSettingsDirWhenLocatedSettingsDoNotContainProjectForCurrentDir() {
-        final StartParameter noSearchParameter = new StartParameter();
+        final StartParameter noSearchParameter = context.mock(StartParameter.class, "noSearchParameter");
         final SettingsInternal currentDirSettings = context.mock(SettingsInternal.class, "currentDirSettings");
+        final ProjectDescriptor rootProject = context.mock(ProjectDescriptor.class);
 
         context.checking(new Expectations() {{
             one(finder).find(startParameter);
-
-            one(finder).getSettingsDir();
-            will(returnValue(settingsDir));
-
-            one(propertiesLoader).loadProperties(settingsDir, startParameter);
 
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
@@ -104,15 +95,31 @@ public class ScriptLocatingSettingsProcessorTest {
             one(startParameter).newInstance();
             will(returnValue(noSearchParameter));
 
+            one(noSearchParameter).setSettingsScriptSource(with(Matchers.reflectionEquals(new StringScriptSource(
+                    "empty settings file", ""))));
+
             one(finder).find(noSearchParameter);
-
-            one(finder).getSettingsDir();
-            will(returnValue(currentDir));
-
-            one(propertiesLoader).loadProperties(currentDir, noSearchParameter);
 
             one(delegate).process(finder, noSearchParameter, propertiesLoader);
             will(returnValue(currentDirSettings));
+
+            allowing(noSearchParameter).getBuildFile();
+            will(returnValue(null));
+            
+            allowing(noSearchParameter).getDefaultProjectSelector();
+            will(returnValue(defaultProjectSelector));
+
+            allowing(currentDirSettings).getRootProject();
+            will(returnValue(rootProject));
+
+            allowing(currentDirSettings).getProjectRegistry();
+            will(returnValue(projectRegistry));
+
+            allowing(rootProject).getChildren();
+            will(returnValue(toSet()));
+
+            allowing(projectRegistry).findAll(defaultProjectSelector);
+            will(returnValue(toSet(rootProject)));
         }});
 
         assertThat(processor.process(finder, startParameter, propertiesLoader), sameInstance(currentDirSettings));

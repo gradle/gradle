@@ -40,7 +40,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir, IProjectDescriptorRegistry projectDescriptorRegistry) {
         this.parent = parent;
         this.name = name;
-        this.dir = dir;
+        this.dir = GFileUtils.canonicalise(dir);
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
         projectDescriptorRegistry.addProject(this);
@@ -83,7 +83,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public void setProjectDir(File dir) {
-        this.dir = dir;
+        this.dir = GFileUtils.canonicalise(dir);
     }
 
     public DefaultProjectDescriptor getParent() {

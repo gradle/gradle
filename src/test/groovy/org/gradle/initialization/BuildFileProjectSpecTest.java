@@ -18,42 +18,39 @@ package org.gradle.initialization;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.util.HelperUtil;
 import org.gradle.api.internal.project.ProjectIdentifier;
 
 import java.io.File;
-import java.io.IOException;
 
 @RunWith(JMock.class)
-public class ProjectDirectoryProjectSpecTest {
+public class BuildFileProjectSpecTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final File testDir = HelperUtil.getTestDir();
-    ProjectDirectoryProjectSpec spec = new ProjectDirectoryProjectSpec(testDir);
+    private final File file = new File(HelperUtil.getTestDir(), "build");
+    BuildFileProjectSpec spec = new BuildFileProjectSpec(file);
 
     @Test
-    public void selectsProjectWithSameProjectDir() {
-        ProjectIdentifier project = project(testDir);
+    public void selectsProjectWithSameBuildFile() {
+        ProjectIdentifier project = project(file);
 
         assertTrue(spec.isSatisfiedBy(project));
     }
 
     @Test
-    public void doesNotSelectProjectWithDifferentProjectDir() {
-        ProjectIdentifier project = project(new File(testDir, "child"));
+    public void doesNotSelectProjectWithDifferentBuildFile() {
+        ProjectIdentifier project = project(new File("other"));
 
         assertFalse(spec.isSatisfiedBy(project));
     }
 
-    private ProjectIdentifier project(final File projectDir) {
+    private ProjectIdentifier project(final File buildFile) {
         final ProjectIdentifier projectIdentifier = context.mock(ProjectIdentifier.class);
         context.checking(new Expectations(){{
-            allowing(projectIdentifier).getProjectDir();
-            will(returnValue(projectDir));
+            allowing(projectIdentifier).getBuildFile();
+            will(returnValue(buildFile));
         }});
         return projectIdentifier;
     }

@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 import org.gradle.util.HelperUtil;
 import org.junit.After;
 import org.junit.Test;
@@ -28,7 +29,6 @@ import java.io.IOException;
  * @author Hans Dockter
  */
 public abstract class AbstractSettingsFinderStrategyTest {
-    protected static final String TEST_SETTINGS_FILE_NAME = "some-settings.gradle";
     protected File testDir;
     protected File currentDir;
 
@@ -40,7 +40,7 @@ public abstract class AbstractSettingsFinderStrategyTest {
     }
 
     protected File createSettingsFile(File dir) {
-        File file = new File(dir, TEST_SETTINGS_FILE_NAME);
+        File file = new File(dir, Settings.DEFAULT_SETTINGS_FILE);
         try {
             file.createNewFile();
         } catch (IOException e) {
@@ -54,7 +54,6 @@ public abstract class AbstractSettingsFinderStrategyTest {
         StartParameter startParameter = new StartParameter();
         startParameter.setCurrentDir(currentDir);
         startParameter.setSearchUpwards(searchUpwards);
-        startParameter.setSettingsFileName(TEST_SETTINGS_FILE_NAME);
         return startParameter;
     }
 

@@ -18,7 +18,6 @@ package org.gradle;
 
 import joptsimple.OptionException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuildExecuter;
@@ -26,8 +25,7 @@ import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
-import static org.gradle.util.WrapUtil.toList;
-import static org.gradle.util.WrapUtil.toMap;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -55,8 +53,8 @@ public class MainTest {
     // This property has to be also set as system property gradle.home when running this test
     private final static String TEST_GRADLE_HOME = "roadToNowhere";
 
-    private String expectedBuildFileName;
-    private String expectedSettingsFileName;
+    private File expectedBuildFile;
+    private File expectedSettingsFile;
     private File expectedGradleUserHome;
     private File expectedGradleImportsFile;
     private File expectedPluginPropertiesFile;
@@ -71,10 +69,15 @@ public class MainTest {
     private LogLevel expectedLogLevel;
 
     private Gradle gradleMock;
+    private String oldGradleHome;
+
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
     public void setUp() throws IOException {
+        oldGradleHome = System.getProperty(Main.GRADLE_HOME_PROPERTY_KEY);
+        System.setProperty(Main.GRADLE_HOME_PROPERTY_KEY, TEST_GRADLE_HOME);
+
         context.setImposteriser(ClassImposteriser.INSTANCE);
         gradleMock = context.mock(Gradle.class);
 
@@ -86,14 +89,14 @@ public class MainTest {
         });
 
         expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME);
-        expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME);
-        expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES);
+        expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME).getCanonicalFile();
+        expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES).getCanonicalFile();
         expectedTaskNames = toList();
         expectedProjectDir = new File("").getCanonicalFile();
         expectedProjectProperties = new HashMap();
         expectedSystemProperties = new HashMap();
-        expectedSettingsFileName = Settings.DEFAULT_SETTINGS_FILE;
-        expectedBuildFileName = Project.DEFAULT_BUILD_FILE;
+        expectedSettingsFile = null;
+        expectedBuildFile = null;
         expectedCacheUsage = CacheUsage.ON;
         expectedSearchUpwards = true;
         expectedEmbeddedScript = "somescript";
@@ -103,6 +106,9 @@ public class MainTest {
     @After
     public void tearDown() {
         Gradle.injectCustomFactory(null);
+        if (oldGradleHome != null) {
+            System.setProperty(Main.GRADLE_HOME_PROPERTY_KEY, oldGradleHome);
+        }
     }
 
     @Test
@@ -115,8 +121,8 @@ public class MainTest {
     }
 
     private void checkStartParameter(StartParameter startParameter, boolean emptyTasks) {
-        assertEquals(expectedBuildFileName, startParameter.getBuildFileName());
-        assertEquals(expectedSettingsFileName, startParameter.getSettingsFileName());
+        assertEquals(expectedBuildFile, startParameter.getBuildFile());
+        assertEquals(expectedSettingsFile, startParameter.getSettingsFile());
         assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
@@ -219,14 +225,14 @@ public class MainTest {
 
     @Test
     public void testMainWithSpecifiedBuildFileName() throws Throwable {
-        expectedBuildFileName = "somename";
-        checkMain("-b", expectedBuildFileName);
+        expectedBuildFile = new File("somename").getCanonicalFile();
+        checkMain("-b", "somename");
     }
 
     @Test
     public void testMainWithSpecifiedSettingsFileName() throws Throwable {
-        expectedSettingsFileName = "somesettings";
-        checkMain("-c", expectedSettingsFileName);
+        expectedSettingsFile = new File("somesettings").getCanonicalFile();
+        checkMain("-c", "somesettings");
     }
 
     @Test
@@ -287,7 +293,6 @@ public class MainTest {
 
     @Test
     public void testMainWithEmbeddedScript() throws Throwable {
-        expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
         expectedSearchUpwards = false;
         checkMain(true, false, "-e", expectedEmbeddedScript);
     }
@@ -346,7 +351,6 @@ public class MainTest {
 
     @Test
     public void testMainWithShowTasksAndEmbeddedScript() throws Throwable {
-        expectedBuildFileName = Project.EMBEDDED_SCRIPT_ID;
         expectedSearchUpwards = false;
         checkMain(true, true, "-e", expectedEmbeddedScript, "-t");
     }
@@ -391,8 +395,6 @@ public class MainTest {
         } catch (InvalidUserDataException e) {
             // ignore
         }
-        // Tests are run in one JVM. Therefore we need to set it again.
-        System.getProperties().put(Main.GRADLE_HOME_PROPERTY_KEY, TEST_GRADLE_HOME);
     }
 
     private class BuildCompletedError extends Error {
