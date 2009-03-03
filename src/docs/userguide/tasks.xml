@@ -99,44 +99,41 @@ Resources resources = createTask('resources', type: Resources).configure {
             to
             <literal>projectB:taskY</literal>:
         </para>
-        <sample src='userguide/tasks/addDependencyUsingPath/build.gradle'
-                title='Sample userguide/tasks/addDependencyUsingPath/build.gradle'/>
-        <sampleOutput src='addDependencyUsingPath.out'/>
+        <sample id="addDependencyUsingPath" dir="userguide/tasks/addDependencyUsingPath">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
         <para>Instead of using a task name, you can define a dependency using a
-            <literal>Task</literal>
-            object, as shown in this example:
+            <classname>Task</classname> object, as shown in this example:
         </para>
-        <sample src='userguide/tasks/addDependencyUsingTask/build.gradle'
-                title='Sample userguide/tasks/addDependencyUsingTask/build.gradle'/>
-        <sampleOutput src='addDependencyUsingTask.out'/>
+        <sample id="addDependencyUsingTask" dir="userguide/tasks/addDependencyUsingTask">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
         <para>For more advanced uses, you can define a task dependency using a closure. When evaluated, the closure is
             passed the task whose dependencies are being calculated. The closure should return a single
-            <literal>Task</literal>
-            or collection of
-            <literal>Task</literal>
-            objects, which are then treated as dependencies of the task. The following example adds a dependency from
-            <literal>taskX</literal>
+            <classname>Task</classname> or collection of <classname>Task</classname> objects, which are then treated
+            as dependencies of the task. The following example adds a dependency from <literal>taskX</literal>
             to all the tasks in the project whose name starts with <literal>lib</literal>:
         </para>
-        <sample src='userguide/tasks/addDependencyUsingClosure/build.gradle'
-                title='Sample userguide/tasks/addDependencyUsingClosure/build.gradle'/>
-        <sampleOutput src='addDependencyUsingClosure.out'/>
-        <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.
-        </para>
+        <sample id="addDependencyUsingClosure" dir="userguide/tasks/addDependencyUsingClosure">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
+        <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.</para>
     </section>
     <section>
         <title>Replacing Tasks</title>
         <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin
             with a custom task of a different type. You can achieve this with:
         </para>
-        <sample src='userguide/tutorial/replaceTask/build.gradle'
-                title='Sample userguide/tutorial/replaceTask/build.gradle'/>
-        <sampleOutput src='replaceTask.out'/>
-        <para>Here we replace a task of type
-            <literal>Resources</literal>
-            with a simple task. When creating the simple task, you have to set the
-            <literal>overwrite</literal>
-            property to true. Otherwise Gradle throws an exception, saying that a task with such a name already exists.
+        <sample id="replaceTask" dir="userguide/tutorial/replaceTask">
+            <sourcefile file="build.gradle"/>
+            <output args="-q resources"/>
+        </sample>
+        <para>Here we replace a task of type <literal>Resources</literal> with a simple task. When creating the simple
+            task, you have to set the <literal>overwrite</literal> property to true. Otherwise Gradle throws an
+            exception, saying that a task with such a name already exists.
         </para>
     </section>
     <section id='sec:the_idea_behind_gradle_tasks'>

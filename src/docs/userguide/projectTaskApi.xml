@@ -27,9 +27,10 @@
             <literal>name</literal>
             property of the Project object.
         </para>
-        <sample src='userguide/tutorial/projectApi/build.gradle'
-                title='Sample userguide/tutorial/projectApi/build.gradle'/>
-        <sampleOutput src='projectApi.out'/>
+        <sample id="projectApi" dir="userguide/tutorial/projectApi">
+            <sourcefile file="build.gradle"/>
+            <output args="-q check"/>
+        </sample>
         <para>Both
             <literal>println</literal>
             statements print out the same property. One uses the auto delegation to the project object, for properties

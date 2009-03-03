@@ -383,21 +383,13 @@ createTask('userguideSrc') {
     System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
             "org.apache.xerces.parsers.XIncludeParserConfiguration")
 
-    docbookSrc.mkdirs()
-
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
-        arg(value: '-in')
-        arg(value: new File(userguideSrcDir, 'userguide.xml'))
-        arg(value: '-xsl')
-        arg(value: new File(userguideSrcDir, 'userGuideCustomElements.xsl'))
-        arg(value: '-out')
-        arg(value: new File(docbookSrc, 'userguide.xml'))
-        arg(line: "-param version ${version}")
-        arg(line: "-param javadoc.url http://www.gradle.org/${javadocRemoteDir}")
-        classpath {
-            path(path: dependencies.userGuideTask.asPath)
-        }
-    }
+    def transformer = new org.gradle.build.docs.UserGuideTransformer()
+    transformer.version = "${version}"
+    transformer.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    transformer.sourceFile = new File(userguideSrcDir, 'userguide.xml')
+    transformer.destFile = new File(docbookSrc, 'userguide.xml')
+    transformer.classpath = dependencies.userGuideTask
+    transformer.execute()
 }
 userguideSrc.skipProperties << 'skip.userguide'
 

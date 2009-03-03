@@ -25,15 +25,18 @@ D- water
   F- settings.gradle
   D- bluewhale	
 ]]></programlisting>
-            <sample src='userguide/multiproject/firstExample/water/settings.gradle'
-                    title='Sample userguide/multiproject/firstExample/water/settings.gradle'/>
+            <sample id="multiprojectFirstExample" dir="userguide/multiproject/firstExample/water">
+                <sourcefile file="settings.gradle"/>
+            </sample>
             <para>And where is the build script for the bluewhale project? In Gradle build scripts are optional.
                 Obviously for a single project build, a project without a build script doesn't make much sense. For
                 multiproject builds the situation is different. Let's look at the build script for the water project and
                 execute it:
             </para>
-            <sample src='userguide/multiproject/firstExample/water/build.gradle' title='water -  build.gradle'/>
-            <sampleOutput src='multiprojectFirstExample.out'/>
+            <sample id="multiprojectFirstExample" dir="userguide/multiproject/firstExample/water">
+                <sourcefile file="build.gradle"/>
+                <output args="-q hello"/>
+            </sample>
             <para>Gradle allows you to access any project of the multi-project build from any build script. The Project
                 API provides a method called project, which takes a path as an argument and returns the project object
                 for this path. The capability to configure a project build from any build script we call <emphasis>Cross
@@ -52,12 +55,14 @@ D- water
   D- bluewhale
   D- krill	
 ]]></programlisting>
-            <sample src='userguide/multiproject/addKrill/water/settings.gradle'
-                    title='Sample userguide/multiproject/addKrill/water/settings.gradle'/>
-            <para>Now we rewrite the water build script and boil it down to a single line.
-            </para>
-            <sample src='userguide/multiproject/addKrill/water/build.gradle' title='water -  build.gradle'/>
-            <sampleOutput src='multiprojectAddKrill.out'/>
+            <sample id="multiprojectAddKrill" dir="userguide/multiproject/addKrill/water">
+                <sourcefile file="settings.gradle"/>
+            </sample>
+            <para>Now we rewrite the water build script and boil it down to a single line.</para>
+            <sample id="multiprojectAddKrill" dir="userguide/multiproject/addKrill/water">
+                <sourcefile file="build.gradle"/>
+                <output args="-q hello"/>
+            </sample>
             <para>Is this cool or is this cool? And how does this work? The Project API provides a property
                 <literal>allprojects</literal>
                 which returns a list with the current project and all its subprojects underneath it. If you call
@@ -81,8 +86,10 @@ D- water
         </para>
         <section>
             <title>Defining Common Behavior</title>
-            <sample src='userguide/multiproject/useSubprojects/water/build.gradle' title='water -  build.gradle'/>
-            <sampleOutput src='multiprojectUseSubprojects.out'/>
+            <sample id="multiprojectUseSubprojects" dir="userguide/multiproject/useSubprojects/water">
+                <sourcefile file="build.gradle"/>
+                <output args="-q hello"/>
+            </sample>
         </section>
         <section id='sub:adding_specific_behavior'>
             <title>Adding Specific Behavior</title>
@@ -91,9 +98,10 @@ D- water
                 have already seen, we don't have to do it this way. We could add project specific behavior for the
                 bluewhale project like this:
             </para>
-            <sample src='userguide/multiproject/subprojectsAddFromTop/water/build.gradle'
-                    title='water -  build.gradle'/>
-            <sampleOutput src='multiprojectSubprojectsAddFromTop.out'/>
+            <sample id="multiprojectSubprojectsAddFromTop" dir="userguide/multiproject/subprojectsAddFromTop/water">
+                <sourcefile file="build.gradle"/>
+                <output args="-q hello"/>
+            </sample>
             <para>As we have said, we usually prefer to put project specific behavior into the build script of this
                 project. Let's refactor and also add some project specific behavior to the krill project.
             </para>
@@ -106,14 +114,13 @@ D- water
   D- krill
     F- build.gradle
 ]]></programlisting>
-            <sample src='userguide/multiproject/spreadSpecifics/water/settings.gradle'
-                    title='Sample userguide/multiproject/spreadSpecifics/water/settings.gradle'/>
-            <sample src='userguide/multiproject/spreadSpecifics/water/bluewhale/build.gradle'
-                    title='bluewhale -  build.gradle'/>
-            <sample src='userguide/multiproject/spreadSpecifics/water/krill/build.gradle'
-                    title='krill -  build.gradle'/>
-            <sample src='userguide/multiproject/spreadSpecifics/water/build.gradle' title='water -  build.gradle'/>
-            <sampleOutput src='multiprojectSpreadSpecifics.out'/>
+            <sample id="multiprojectSpreadSpecifics" dir="userguide/multiproject/spreadSpecifics/water">
+                <sourcefile file="settings.gradle"/>
+                <sourcefile file="bluewhale/build.gradle"/>
+                <sourcefile file="krill/build.gradle"/>
+                <sourcefile file="build.gradle"/>
+                <output args="-q hello"/>
+            </sample>
         </section>
         <section id='sub:project_filtering'>
             <title>Project Filtering</title>
@@ -132,10 +139,11 @@ D- water
     F- build.gradle
   D- tropicalFish	
 ]]></programlisting>
-                <sample src='userguide/multiproject/addTropical/water/settings.gradle'
-                        title='Sample userguide/multiproject/addTropical/water/settings.gradle'/>
-                <sample src='userguide/multiproject/addTropical/water/build.gradle' title='water -  build.gradle'/>
-                <sampleOutput src='multiprojectAddTropical.out'/>
+                <sample id="multiprojectAddTropical" dir="userguide/multiproject/addTropical/water">
+                    <sourcefile file="settings.gradle"/>
+                    <sourcefile file="build.gradle"/>
+                    <output args="-q hello"/>
+                </sample>
                 <para>The
                     <literal>configureProjects</literal>
                     takes a list as an argument and applies the configuration to the projects in this list.
@@ -156,17 +164,14 @@ D- water
   D- tropicalFish
     F- build.gradle
 ]]></programlisting>
-                <sample src='userguide/multiproject/tropicalWithProperties/water/settings.gradle'
-                        title='Sample userguide/multiproject/tropicalWithProperties/water/settings.gradle'/>
-                <sample src='userguide/multiproject/tropicalWithProperties/water/bluewhale/build.gradle'
-                        title='bluewhale -  build.gradle'/>
-                <sample src='userguide/multiproject/tropicalWithProperties/water/krill/build.gradle'
-                        title='krill -  build.gradle'/>
-                <sample src='userguide/multiproject/tropicalWithProperties/water/tropicalFish/build.gradle'
-                        title='tropicalFish -  build.gradle'/>
-                <sample src='userguide/multiproject/tropicalWithProperties/water/build.gradle'
-                        title='water -  build.gradle'/>
-                <sampleOutput src='multiprojectTropicalWithProperties.out'/>
+                <sample id="multiprojectTropicalWithProperties" dir="userguide/multiproject/tropicalWithProperties/water">
+                    <sourcefile file="settings.gradle"/>
+                    <sourcefile file="bluewhale/build.gradle"/>
+                    <sourcefile file="krill/build.gradle"/>
+                    <sourcefile file="tropicalFish/build.gradle"/>
+                    <sourcefile file="build.gradle"/>
+                    <output args="-q hello"/>
+                </sample>
                 <para>In the
                     <literal>gradefile</literal>
                     of the
@@ -192,7 +197,9 @@ D- water
             <literal>bluewhale</literal>
             dir and see what happens if we execute Gradle from there.
         </para>
-        <sampleOutput src='multiprojectSubBuild.out'/>
+        <sample id="multiprojectSubBuild" dir="userguide/multiproject/tropicalWithProperties/water/bluewhale">
+           <output args='-q hello'/>
+        </sample>
         <para>The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarchy, starting with the
             <emphasis>current dir</emphasis>, for tasks with the name
             <literal>hello</literal>
@@ -211,15 +218,15 @@ D- water
             <literal>bluewhale</literal>
             and <literal>krill</literal>.
         </para>
-        <sample src='userguide/multiproject/partialTasks/water/bluewhale/build.gradle'
-                title='bluewhale -  build.gradle'/>
-        <sample src='userguide/multiproject/partialTasks/water/krill/build.gradle' title='krill -  build.gradle'/>
-        <sampleOutput src='multiprojectPartialTasks.out'/>
-        <para>Here the output without the
-            <literal>-q</literal>
-            option
-        </para>
-        <sampleOutput src='multiprojectPartialTasksNotQuiet.out'/>
+        <sample id="multiprojectPartialTasks" dir="userguide/multiproject/partialTasks/water">
+            <sourcefile file="bluewhale/build.gradle"/>
+            <sourcefile file="krill/build.gradle"/>
+            <output args="-q hello"/>
+        </sample>
+        <para>Here the output without the <literal>-q</literal> option:</para>
+        <sample id="multiprojectPartialTasksNotQuiet" dir="userguide/multiproject/partialTasks/water">
+            <output args="hello"/>
+        </sample>
         <para>The build is executed from the
             <literal>water</literal>
             project. Neither
@@ -234,21 +241,17 @@ D- water
         </para>
     </section>
     <section id='sec:running_partial_build_from_the_root'>
-        <title>Running Tasks by there Absolute Path</title>
+        <title>Running Tasks by their Absolute Path</title>
         <para>As we have seen, you can run a multi-project build by entering any subproject dir and execute the build
             from there. All matching task names of the project hierarchy starting with the current dir are executed. But
             Gradle also offers to execute tasks by their absolute path (see also <xref
                     linkend='sec:project_and_task_paths'/>):
         </para>
-        <sampleOutput src='multiprojectAbsoluteTaskPaths.out'/>
-        <para>The build is executed from the
-            <literal>tropicalFish</literal>
-            project. We execute the
-            <literal>hello</literal>
-            tasks of the <literal>water</literal>, the
-            <literal>krill</literal>
-            and the
-            <literal>tropicalFish</literal>
+        <sample id="multiprojectAbsoluteTaskPaths" dir="userguide/multiproject/tropicalWithProperties/water/tropicalFish">
+            <output args="-q :hello :krill:hello hello"/>
+        </sample>
+        <para>The build is executed from the <literal>tropicalFish</literal> project. We execute the <literal>hello</literal>
+            tasks of the <literal>water</literal>, the <literal>krill</literal> and the <literal>tropicalFish</literal>
             project. The first two tasks are specified by there absolute path, the last task is executed on the name
             matching mechanism described above.
         </para>
@@ -293,13 +296,12 @@ D- messages
   D- producer
     F- build.gradle
 ]]></programlisting>
-                <sample src='userguide/multiproject/dependencies/firstMessages/messages/settings.gradle'
-                        title='Sample userguide/multiproject/dependencies/firstMessages/messages/settings.gradle'/>
-                <sample src='userguide/multiproject/dependencies/firstMessages/messages/consumer/build.gradle'
-                        title='consumer -  build.gradle'/>
-                <sample src='userguide/multiproject/dependencies/firstMessages/messages/producer/build.gradle'
-                        title='producer -  build.gradle'/>
-                <sampleOutput src='multiprojectFirstMessages.out'/>
+                <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages">
+                    <sourcefile file="settings.gradle"/>
+                    <sourcefile file="consumer/build.gradle"/>
+                    <sourcefile file="producer/build.gradle"/>
+                    <output args="-q action"/>
+                </sample>
                 <para>This did not work out. If nothing else is defined, Gradle executes the task in alphanumeric order.
                     Therefore
                     <literal>:consumer:action</literal>
@@ -314,18 +316,18 @@ D- messages
   D- consumer
     F- build.gradle
 ]]></programlisting>
-                <sample src='userguide/multiproject/dependencies/messagesHack/messages/settings.gradle'
-                        title='Sample userguide/multiproject/dependencies/messagesHack/messages/settings.gradle'/>
-                <sample src='userguide/multiproject/dependencies/messagesHack/messages/aProducer/build.gradle'
-                        title='aProducer -  build.gradle'/>
-                <sample src='userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle'
-                        title='consumer -  build.gradle'/>
-                <sampleOutput src='multiprojectMessagesHack.out'/>
-                <para>Now we take the air out of this hack. We simply switch to the
-                    <literal>consumer</literal>
-                    dir and execute the build.
+                <sample id="multiprojectMessagesHack" dir="userguide/multiproject/dependencies/messagesHack/messages">
+                    <sourcefile file="settings.gradle"/>
+                    <sourcefile file="aProducer/build.gradle"/>
+                    <sourcefile file="consumer/build.gradle"/>
+                    <output args="-q action"/>
+                </sample>
+                <para>Now we take the air out of this hack. We simply switch to the <literal>consumer</literal> dir and
+                    execute the build.
                 </para>
-                <sampleOutput src='multiprojectMessagesHackBroken.out'/>
+                <sample id="multiprojectMessagesHackBroken" dir="userguide/multiproject/dependencies/messagesHack/messages/consumer">
+                    <output args="-q action"/>
+                </sample>
                 <para>For Gradle the two
                     <literal>action</literal>
                     tasks are just not related. If you execute the build from the
@@ -347,14 +349,15 @@ D- messages
   D- producer
     F- build.gradle
 ]]></programlisting>
-                <sample src='userguide/multiproject/dependencies/messagesWithDependencies/messages/settings.gradle'
-                        title='Sample userguide/multiproject/dependencies/messagesWithDependencies/messages/settings.gradle'/>
-                <sample src='userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer/build.gradle'
-                        title='consumer -  build.gradle'/>
-                <sample src='userguide/multiproject/dependencies/messagesWithDependencies/messages/producer/build.gradle'
-                        title='producer -  build.gradle'/>
-                <sampleOutput src='multiprojectMessagesDependencies.out'/>
-                <sampleOutput src='multiprojectMessagesDependenciesSubBuild.out'/>
+                <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages">
+                    <sourcefile file="settings.gradle"/>
+                    <sourcefile file="consumer/build.gradle"/>
+                    <sourcefile file="producer/build.gradle"/>
+                    <output args="-q action"/>
+                </sample>
+                <sample id="multiprojectMessagesDependenciesSubBuild" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer">
+                    <output args="-q action"/>
+                </sample>
                 <para>We have now declared that the
                     <literal>consumer</literal>
                     project has an
@@ -373,11 +376,11 @@ D- messages
                 <title>The Nature of Project Dependencies</title>
                 <para>Let's change the naming of our tasks and execute the build.
                 </para>
-                <sample src='userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/consumer/build.gradle'
-                        title='consumer -  build.gradle'/>
-                <sample src='userguide/multiproject/dependencies/messagesDifferentTaskNames/messages/producer/build.gradle'
-                        title='producer -  build.gradle'/>
-                <sampleOutput src='multiprojectMessagesDifferentTaskNames.out'/>
+                <sample id="multiprojectMessagesDifferentTaskNames" dir="userguide/multiproject/dependencies/messagesDifferentTaskNames/messages">
+                    <sourcefile file="consumer/build.gradle"/>
+                    <sourcefile file="producer/build.gradle"/>
+                    <output args="-q consume"/>
+                </sample>
                 <para>Uhps. Why does this not work? The
                     <literal>dependsOn</literal>
                     command is created for projects with a common lifecycle. Provided you have two Java projects were
@@ -388,11 +391,11 @@ D- messages
                     creates dependencies between tasks with equal names. To deal with the scenario above you would do
                     the following:
                 </para>
-                <sample src='userguide/multiproject/dependencies/messagesTaskDependencies/messages/consumer/build.gradle'
-                        title='consumer -  build.gradle'/>
-                <sample src='userguide/multiproject/dependencies/messagesTaskDependencies/messages/producer/build.gradle'
-                        title='producer -  build.gradle'/>
-                <sampleOutput src='multiprojectMessagesTaskDependencies.out'/>
+                <sample id="multiprojectMessagesTaskDependencies" dir="userguide/multiproject/dependencies/messagesTaskDependencies/messages">
+                    <sourcefile file="consumer/build.gradle"/>
+                    <sourcefile file="producer/build.gradle"/>
+                    <output args="-q consume"/>
+                </sample>
             </section>
         </section>
         <section id='sub:configuration_time_dependencies'>
@@ -402,11 +405,11 @@ D- messages
                 land. We add a property to the producer project and create now a configuration time dependency from
                 consumer on producer.
             </para>
-            <sample src='userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/consumer/build.gradle'
-                    title='consumer -  build.gradle'/>
-            <sample src='userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages/producer/build.gradle'
-                    title='producer -  build.gradle'/>
-            <sampleOutput src='multiprojectMessagesConfigDependenciesBroken.out'/>
+            <sample id="multiprojectMessagesConfigDependenciesBroken" dir="userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages">
+                <sourcefile file="consumer/build.gradle"/>
+                <sourcefile file="producer/build.gradle"/>
+                <output args="-q consume"/>
+            </sample>
             <para>The default
                 <emphasis>evaluation</emphasis>
                 order of the projects is alphanumeric (for the same nesting level). Therefore the
@@ -423,9 +426,10 @@ D- messages
                 <literal>consumer</literal>
                 project. Gradle offers a solution for this.
             </para>
-            <sample src='userguide/multiproject/dependencies/messagesConfigDependencies/messages/consumer/build.gradle'
-                    title='consumer -  build.gradle'/>
-            <sampleOutput src='multiprojectMessagesConfigDependencies.out'/>
+            <sample id="multiprojectMessagesConfigDependencies" dir="userguide/multiproject/dependencies/messagesConfigDependencies/messages">
+                <sourcefile file="consumer/build.gradle"/>
+                <output args="-q consume"/>
+            </sample>
             <para>The command
                 <literal>evaluationDependsOn</literal>
                 triggers the evaluation of
@@ -436,9 +440,10 @@ D- messages
                 <emphasis>this</emphasis>
                 case there would be an easier solution by reading the key property at execution time.
             </para>
-            <sample src='userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages/consumer/build.gradle'
-                    title='consumer -  build.gradle'/>
-            <sampleOutput src='multiprojectMessagesConfigDependenciesAltSolution.out'/>
+            <sample id="multiprojectMessagesConfigDependenciesAltSolution" dir="userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages">
+                <sourcefile file="consumer/build.gradle"/>
+                <output args="-q consume"/>
+            </sample>
             <para>Configuration dependencies are very different to execution dependencies. Configuration dependencies
                 are between projects whereas execution dependencies are always resolved to task dependencies. Another
                 difference is that always all projects are configured, even when you start the build from a subproject.
@@ -479,9 +484,10 @@ D- webDist
   D- hello
     F- src/main/java/org/gradle/sample/HelloServlet.java
 ]]></programlisting>
-            <sample src='userguide/multiproject/dependencies/webDist/settings.gradle'
-                    title='Sample userguide/multiproject/dependencies/webDist/settings.gradle'/>
-            <sample src='userguide/multiproject/dependencies/webDist/build.gradle' title='webDist -  build.gradle'/>
+            <sample id="webdist" dir="userguide/multiproject/dependencies/webDist">
+                <sourcefile file="settings.gradle"/>
+                <sourcefile file="build.gradle"/>
+            </sample>
             <para>We have an interesting set of dependencies. Obviously the
                 <literal>date</literal>
                 and
@@ -568,20 +574,18 @@ D- java
                 </para>
             </footnote>
         </para>
-        <sample src='userguide/multiproject/dependencies/java/settings.gradle'
-                title='Sample userguide/multiproject/dependencies/java/settings.gradle'/>
-        <sample src='userguide/multiproject/dependencies/java/build.gradle'
-                title='userguide/multiproject/dependencies/java -  build.gradle'/>
+        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java">
+            <sourcefile file="settings.gradle"/>
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>All the build logic is in the
-            <literal>build.gradle</literal>
-            of the root project.
+            <literal>build.gradle</literal> of the root project.
             <footnote>
                 <para>We do this here, as it makes the layout a bit easier. We usually put the project specific stuff
                     into the buildscript of the respective projects.
                 </para>
             </footnote>
-            A
-            <emphasis>lib</emphasis>
+            A <emphasis>lib</emphasis>
             dependency is a special form of an execution dependency. It causes the other project to be build first and
             adds the jar with the classes of the other project to the classpath. It also add the dependencies of the
             other project to the classpath. So you can enter the
@@ -595,8 +599,9 @@ D- java
         <para>If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might
             expect some more fine grained control. Gradle offers this to you:
         </para>
-        <sample src='userguide/multiproject/dependencies/javaWithCustomConf/build.gradle'
-                title='userguide/multiproject/dependencies/javaWithCustomConf -  build.gradle'/>
+        <sample id="javaWithCustomConf" dir="userguide/multiproject/dependencies/javaWithCustomConf">
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>The Java plugin adds per default a jar to your project libraries which contains all the classes. In this
             example we create an
             <emphasis>additional</emphasis>

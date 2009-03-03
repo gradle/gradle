@@ -60,9 +60,11 @@
                     linkend='cha:organizing_build_logic'/>). Let's first do some introspection with a single project
             build:
         </para>
-        <sample src='userguide/buildlifecycle/settings.gradle' title='Sample userguide/buildlifecycle/settings.gradle'/>
-        <sample src='userguide/buildlifecycle/build.gradle' title='Sample userguide/buildlifecycle/build.gradle'/>
-        <sampleOutput src='buildlifecycle.out'/>
+        <sample id="buildlifecycle" dir="userguide/buildlifecycle">
+            <sourcefile file="settings.gradle"/>
+            <sourcefile file="build.gradle"/>
+            <output args="test"/>
+        </sample>
         <para>For a build script, the property access and method calls are delegated to a project object. Similarly
             property access and method calls within the settings file is delegated to a settings object. Have a look at
             <apilink class='org.gradle.api.Settings'/>.

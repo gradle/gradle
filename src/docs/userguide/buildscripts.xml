@@ -11,7 +11,9 @@
         <para>In Gradle everything revolves around tasks. The tasks for your build are defined in the build script. To
             try this out, create the following build script named <filename>build.gradle</filename>.
         </para>
-        <sample src='userguide/tutorial/hello/build.gradle' title='Sample userguide/tutorial/hello/build.gradle'/>
+        <sample id="hello" dir="userguide/tutorial/hello">
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>Enter with your shell into the containing directory and execute the build script:
             <footnote>
                 <para>Every code sample in this chapter can be found in the <filename>samples</filename>
@@ -25,7 +27,9 @@
                 </para>
             </footnote>
         </para>
-        <sampleOutput src='hello.out'/>
+        <sample id="hello" dir="userguide/tutorial/hello">
+            <output args="-q hello"/>
+        </sample>
         <para>If you think this looks damn similar to Ant's targets, well, you are right. Gradle tasks are the
             equivalent to Ant targets. But as you will see, they are much more powerful. We have used a different
             terminology to Ant as we think the word <emphasis>task</emphasis> is more expressive than the word
@@ -39,27 +43,32 @@
         <title>Build scripts are code</title>
         <para>Gradle's build scripts expose to you the full power of Groovy. As an appetizer, have a look at this:
         </para>
-        <sample src='userguide/tutorial/upper/build.gradle' title='Sample userguide/tutorial/upper/build.gradle'/>
-        <sampleOutput src='upper.out'/>
-        <para>or
-        </para>
-        <sample src='userguide/tutorial/count/build.gradle' title='Sample userguide/tutorial/count/build.gradle'/>
-        <sampleOutput src='count.out'/>
+        <sample id="upper" dir="userguide/tutorial/upper">
+            <sourcefile file="build.gradle"/>
+            <output args="-q upper"/>
+        </sample>
+        <para>or</para>
+        <sample id="count" dir="userguide/tutorial/count">
+            <sourcefile file="build.gradle"/>
+            <output args="-q count"/>
+        </sample>
     </section>
     <section id='sec:task_dependencies'>
         <title>Task dependencies</title>
         <para>As you probably have guessed, you can declare dependencies between your tasks.
         </para>
-        <sample src='userguide/tutorial/intro/build.gradle' title='Sample userguide/tutorial/intro/build.gradle'/>
-        <sampleOutput src='intro.out'/>
-        <para>To add a dependency, the corresponding task does not need to exist.
-        </para>
-        <sample src='userguide/tutorial/lazyDependsOn/build.gradle'
-                title='Sample userguide/tutorial/lazyDependsOn/build.gradle'/>
-        <sampleOutput src='lazyDependsOn.out'/>
+        <sample id="intro" dir="userguide/tutorial/intro">
+            <sourcefile file="build.gradle"/>
+            <output args="-q intro"/>
+        </sample>
+        <para>To add a dependency, the corresponding task does not need to exist.</para>
+        <sample id="lazyDependsOn" dir="userguide/tutorial/lazyDependsOn">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
         <para>The dependency of <literal>taskX</literal> to <literal>taskY</literal> is declared before
             <literal>taskY</literal> is created. This is very important for multi-project builds. Task dependencies are
-            discussed in more detail in<xref linkend='sec:adding_dependencies_to_tasks'/>.
+            discussed in more detail in <xref linkend='sec:adding_dependencies_to_tasks'/>.
         </para>
     </section>
     <section>
@@ -67,22 +76,25 @@
         <para>The power of Groovy be used for more than definining what a task does. For example, you can also use it
             to dynamically create tasks.
         </para>
-        <sample src='userguide/tutorial/dynamic/build.gradle' title='Sample userguide/tutorial/dynamic/build.gradle'/>
-        <sampleOutput src='dynamic.out'/>
+        <sample id="dynamic" dir="userguide/tutorial/dynamic">
+            <sourcefile file="build.gradle"/>
+            <output args="-q task_1"/>
+        </sample>
     </section>
     <section>
         <title>Manipulating existing tasks</title>
         <para>Once tasks are created they can be accessed via an <emphasis>API</emphasis>. This is different to Ant. For
             example you can create additional dependencies.
         </para>
-        <sample src='userguide/tutorial/dynamicDepends/build.gradle'
-                title='Sample userguide/tutorial/dynamicDepends/build.gradle'/>
-        <sampleOutput src='dynamicDepends.out'/>
-        <para>Or you can add behavior to an existing task.
-        </para>
-        <sample src='userguide/tutorial/helloEnhanced/build.gradle'
-                title='Sample userguide/tutorial/helloEnhanced/build.gradle'/>
-        <sampleOutput src='helloEnhanced.out'/>
+        <sample id="dynamicDepends" dir="userguide/tutorial/dynamicDepends">
+            <sourcefile file="build.gradle"/>
+            <output args="-q task_0"/>
+        </sample>
+        <para>Or you can add behavior to an existing task.</para>
+        <sample id="helloEnhanced" dir="userguide/tutorial/helloEnhanced">
+            <sourcefile file="build.gradle"/>
+            <output args="-q hello"/>
+        </sample>
         <para>The calls <literal>doFirst</literal> and <literal>doLast</literal> can be executed multiple times.
             They add an action to the beginning or the end of the task's actions list. When the task executes, the
             actions in the action list are executed in order. 
@@ -92,20 +104,21 @@
         <title>Shortcut notations</title>
         <para>There is a convenient notation for accessing <emphasis>existing</emphasis> tasks.
         </para>
-        <sample src='userguide/tutorial/helloWithShortCut/build.gradle'
-                title='Sample userguide/tutorial/helloWithShortCut/build.gradle'/>
-        <sampleOutput src='helloWithShortCut.out'/>
+        <sample id="helloWithShortCut" dir="userguide/tutorial/helloWithShortCut">
+            <sourcefile file="build.gradle"/>
+            <output args="-q hello"/>
+        </sample>
         <para>This enables very readable code. Especially when using the out of the box tasks provided by the plugins
-            (e.g. <literal>compile</literal>).
-        </para>
+            (e.g. <literal>compile</literal>).</para>
     </section>
     <section id='sec:dynamic_properties'>
         <title>Dynamic Task Properties</title>
         <para>You can assign arbitrary <emphasis>new</emphasis> properties to any task.
         </para>
-        <sample src='userguide/tutorial/dynamicProperties/build.gradle'
-                title='Sample userguide/tutorial/dynamicProperties/build.gradle'/>
-        <sampleOutput src='dynamicProperties.out'/>
+        <sample id="dynamicProperties" dir="userguide/tutorial/dynamicProperties">
+            <sourcefile file="build.gradle"/>
+            <output args="-q showProps"/>
+        </sample>
     </section>
     <section>
         <title>Ant</title>
@@ -128,9 +141,10 @@
             convenient and more powerful than using Ant tasks from a <literal>build.xml</literal> file.
             Let's look at an example:
         </para>
-        <sample src='userguide/tutorial/antChecksum/build.gradle'
-                title='Sample userguide/tutorial/antChecksum/build.gradle'/>
-        <sampleOutput src='antChecksum.out'/>
+        <sample id="antChecksum" dir="userguide/tutorial/antChecksum">
+            <sourcefile file="build.gradle"/>
+            <output args="-q checksum"/>
+        </sample>
         <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. It is a reference
             to an instance of Groovy's <literal>AntBuilder</literal>. The <literal>AntBuilder</literal>
             is used the following way:
@@ -157,9 +171,10 @@
         <para>Gradle scales in how you can organize your build logic. The first level of organizing your build logic for
             the example above, is extracting a method.
         </para>
-        <sample src='userguide/tutorial/antChecksumWithMethod/build.gradle'
-                title='Sample userguide/tutorial/antChecksumWithMethod/build.gradle'/>
-        <sampleOutput src='antChecksumWithMethod.out'/>
+        <sample id="antChecksumWithMethod" dir="userguide/tutorial/antChecksumWithMethod">
+            <sourcefile file="build.gradle"/>
+            <output args="-q checksum"/>
+        </sample>
         <para>Later you will see that such methods can be shared among subprojects in multi-project builds. If your
             build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have
             devoted a whole chapter to this. See <xref linkend='cha:organizing_build_logic'/>.
@@ -169,9 +184,10 @@
         <title>Default Tasks</title>
         <para>Gradle allows you to define one or more default tasks for your build.
         </para>
-        <sample src='userguide/tutorial/defaultTasks/build.gradle'
-                title='Sample userguide/tutorial/defaultTasks/build.gradle'/>
-        <sampleOutput src='defaultTasks.out'/>
+        <sample id="defaultTasks" dir="userguide/tutorial/defaultTasks">
+            <sourcefile file="build.gradle"/>
+            <output args="-q"/>
+        </sample>
         <para>This is equivalent to running <literal>gradle clean run</literal>. In a multi-project build every
             subproject can have its own specific default tasks. If a subproject does not specify default tasks, the
             default tasks of the parent project are used (if defined).
@@ -185,9 +201,10 @@
             if the release task is part of the tasks to be executed. Depending on this you can assign different values
             to some variables.
         </para>
-        <sample src='userguide/tutorial/configByDag/build.gradle'
-                title='Sample userguide/tutorial/configByDag/build.gradle'/>
-        <sampleOutput src='configByDag.out'/>
+        <sample id="configByDag" dir="userguide/tutorial/configByDag">
+            <sourcefile file="build.gradle"/>
+            <output args="-q release"/>
+        </sample>
         <para>The important thing is, that the fact that the release task has been choosen, has an effect
             <emphasis>before</emphasis> the release task gets executed. Nor has the release task to be the
             <emphasis>primary</emphasis> task (i.e. the task passed to the <command>gradle</command> command).

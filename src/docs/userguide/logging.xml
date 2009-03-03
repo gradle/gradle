@@ -123,7 +123,9 @@
             property to a build script, which is an instance of a slf4j logger. Here is the code of the logging
             integration test, which shows you how to use the logger, as well as working with standard out redirection.
         </para>
-        <sample src='logging/project1/build.gradle' title='Sample logging/project1/build.gradle'/>
+        <sample id="logging" dir="logging/project1">
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>Strictly speaking, QUIET and LIFECYCLE are no log levels, but they are markers. But logically Gradle
             treats them as log levels. In a future version of Gradle we want to provide a logger which provides
             additional log methods

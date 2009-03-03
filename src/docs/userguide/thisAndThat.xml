@@ -4,9 +4,10 @@
         <title>Skipping Tasks</title>
         <para>Gradle offers multiple ways to skip the execution of a task.
         </para>
-        <sample src='userguide/tutorial/skipProperties/build.gradle'
-                title='Sample userguide/tutorial/skipProperties/build.gradle'/>
-        <sampleOutput src='skipProperties.out'/>
+        <sample id="skipProperties" dir="userguide/tutorial/skipProperties">
+            <sourcefile file="build.gradle"/>
+            <output args="-q -DmySkipProperty skipMe"/>
+        </sample>
         <para>The <option>-D</option> option of the <command>gradle</command> command has the same effect as the
             <option>-D</option> option of the <command>java</command> command. This way you can set system properties
             of the JVM that runs Gradle. You can use this to add one or more <emphasis>skip properties</emphasis>
@@ -17,22 +18,26 @@
             need to set the skip properties. If you set a system property according to the pattern
             <literal>skip.<emphasis>taskname</emphasis></literal>, the actions of the task don't get executed.
         </para>
-        <sample src='userguide/tutorial/autoskip/build.gradle' title='Sample userguide/tutorial/autoskip/build.gradle'/>
-        <sampleOutput src='autoskip.out'/>
+        <sample id="autoskip" dir="userguide/tutorial/autoskip">
+            <sourcefile file="build.gradle"/>
+            <output args="-q -Dskip.autoskip autoskip"/>
+        </sample>
         <para>If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via
             the skip properties
         </para>
-        <sample src='userguide/tutorial/autoskipDepends/build.gradle'
-                title='Sample userguide/tutorial/autoskipDepends/build.gradle'/>
-        <sampleOutput src='autoskipDepends.out'/>
+        <sample id="autoskipDepends" dir="userguide/tutorial/autoskipDepends">
+            <sourcefile file="build.gradle"/>
+            <output args="-q -Dskip.autoskip depends"/>
+        </sample>
         <para>If the rules for skipping a task can't be expressed with a simple property, you can use the
             <apilink class="org.gradle.api.tasks.StopExecutionException"/>. If this exception is thrown by an action,
             the further execution of this action as well as the execution of
             any following action of this task is skipped. The build continues with executing the next task.
         </para>
-        <sample src='userguide/tutorial/stopExecutionException/build.gradle'
-                title='Sample userguide/tutorial/stopExecutionException/build.gradle'/>
-        <sampleOutput src='stopExecutionException.out'/>
+        <sample id="stopExecutionException" dir="userguide/tutorial/stopExecutionException">
+            <sourcefile file="build.gradle"/>
+            <output args="-q myTask"/>
+        </sample>
         <para>This feature is helpful if you work with tasks provided by Gradle. It allows you to add
             <emphasis>conditional</emphasis> execution of the built-in actions of such a task.
         </para>
@@ -45,9 +50,10 @@
             flag which defaults to <literal>true</literal>. Setting it to false prevents the execution of any of the
             tasks actions.
         </para>
-        <sample src='userguide/tutorial/disableTask/build.gradle'
-                title='Sample userguide/tutorial/disableTask/build.gradle'/>
-        <sampleOutput src='disableTask.out'/>
+        <sample id="disableTask" dir="userguide/tutorial/disableTask">
+            <sourcefile file="build.gradle"/>
+            <output args="-q disableMe"/>
+        </sample>
     </section>
     <section>
         <title>Obtaining Information About Your Build</title>
@@ -64,22 +70,27 @@
             tasks, if any, of each project, and the description and dependencies of each task. Below is an example of
             this report:
         </para>
-        <sampleOutput src='taskListReport.out'/>
+        <sample id="taskListReport" dir="userguide/tutorial/projectReports">
+            <output args="--tasks"/>
+        </sample>
         <para>Running
             <literal>gradle --dependencies</literal>
             gives you a list of the dependencies of the build, broken down by project. This report shows the
             configurations of each project. For each configuration, the direct and transitive dependencies of that
             configuration are shown. Below is an example of this report:
         </para>
-        <sampleOutput src='dependencyListReport.out'/>
+        <sample id="dependencyListReport" dir="userguide/tutorial/projectReports">
+            <output args="--dependencies"/>
+        </sample>
         <para>Running
             <literal>gradle --properties</literal>
             gives you a list of the properties of each project in the build. Below is an example of this report:
         </para>
-        <sampleOutput src='propertyListReport.out'/>
-        <para>Finally, you can use the
-            <literal>project-reports</literal>
-            plugin to add a number of reporting tasks to your project.
+        <sample id="propertyListReport" dir="userguide/tutorial/projectReports">
+            <output args="--properties"/>
+        </sample>
+        <para>Finally, you can use the <literal>project-reports</literal> plugin to add a number of reporting tasks to
+            your project.
         </para>
     </section>
     <section id='sec:directory_creation'>
@@ -92,18 +103,16 @@
             <emphasis>dependsOn</emphasis>
             relationship):
         </para>
-        <sample src='userguide/tutorial/makeDirectory/build.gradle'
-                title='Sample userguide/tutorial/makeDirectory/build.gradle'/>
-        <sampleOutput src='makeDirectory.out'/>
-        <para>But Gradle offers you also
-            <emphasis>Directory Tasks</emphasis>
-            to deal with this.
-        </para>
-        <sample src='userguide/tutorial/directoryTask/build.gradle'
-                title='Sample userguide/tutorial/directoryTask/build.gradle'/>
-        <sampleOutput src='directoryTask.out'/>
-        <para>A
-            <emphasis>Directory Task</emphasis>
+        <sample id="makeDirectory" dir="userguide/tutorial/makeDirectory">
+            <sourcefile file="build.gradle"/>
+            <output args="-q compile"/>
+        </sample>
+        <para>But Gradle offers you also <emphasis>Directory Tasks</emphasis> to deal with this.</para>
+        <sample id="directoryTask" dir="userguide/tutorial/directoryTask">
+            <sourcefile file="build.gradle"/>
+            <output args="-q otherResources"/>
+        </sample>
+        <para>A <emphasis>Directory Task</emphasis>
             is a simple task which name is a relative path to the project dir
             <footnote>
                 <para>The notation
@@ -164,11 +173,11 @@
             <literal>systemProp.</literal>
             the property and its value are added to the system properties (without the prefix).
         </para>
-        <sample src='userguide/tutorial/properties/gradle.properties'
-                title='Sample userguide/tutorial/properties/gradle.properties'/>
-        <sample src='userguide/tutorial/properties/build.gradle'
-                title='Sample userguide/tutorial/properties/build.gradle'/>
-        <sampleOutput src='properties.out'/>
+        <sample id="properties" dir="userguide/tutorial/properties">
+            <sourcefile file="gradle.properties"/>
+            <sourcefile file="build.gradle"/>
+            <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>
+        </sample>
         <section id='sub:checking_for_project_properties'>
             <title>Checking for Project Properties</title>
             <para>You can access a project property in your build script simply by using it name as you would use a
@@ -227,8 +236,9 @@ systemProp.http.proxyPassword=password
         <title>Configuring Arbitrary Objects</title>
         <para>You can configure arbitrary objects in the following very readable way.
         </para>
-        <sample src='userguide/tutorial/configureObject/build.gradle'
-                title='Sample userguide/tutorial/configureObject/build.gradle'/>
-        <sampleOutput src='configureObject.out'/>
+        <sample id="configureObject" dir="userguide/tutorial/configureObject">
+            <sourcefile file="build.gradle"/>
+            <output args="-q configure"/>
+        </sample>
     </section>
 </chapter>

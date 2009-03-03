@@ -25,11 +25,15 @@
             command-line, and will also execute the dependencies for each task. Each task is executed once only,
             regardless of why it is included in the build: whether it was specified on the command-line, or it a
             dependency of another task, or both. Let's look at an example:</para>
-        <sample src="userguide/tutorial/multipleTasksFromCommandLine/build.gradle"/>
+        <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/multipleTasksFromCommandLine">
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>Below is the result of executing <literal>gradle -q libs test</literal> for this build script. Notice that
             the <literal>compile</literal> task is executed once, even though it is a dependency of both
             <literal>libs</literal> and <literal>test</literal>.</para>
-        <sampleOutput src='multipleTasksFromCommandLine.out'/>
+        <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/multipleTasksFromCommandLine">
+            <output args="-q libs test"/>
+        </sample>
         Because each task is executed once only, executing <literal>gradle libs libs</literal> is exactly the same
         as executing <literal>gradle libs</literal>.
     </section>

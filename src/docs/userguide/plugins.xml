@@ -38,9 +38,10 @@ usePlugin('java')
         </itemizedlist>
         <para>Let's check this out:
         </para>
-        <sample src='userguide/tutorial/pluginIntro/build.gradle'
-                title='Sample userguide/tutorial/pluginIntro/build.gradle'/>
-        <sampleOutput src='pluginIntro.out'/>
+        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro">
+            <sourcefile file="build.gradle"/>
+            <output args="-q check"/>
+        </sample>
         <para>The JavaPlugin adds a
             <literal>compile</literal>
             task to the project object which can be accessed by a build script.
@@ -78,9 +79,10 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
             code). The default location for the output of those task is the directory <literal>build/classes</literal>.
             What if you want to change this? Let's try:
         </para>
-        <sample src='userguide/tutorial/pluginConfig/build.gradle'
-                title='Sample userguide/tutorial/pluginConfig/build.gradle'/>
-        <sampleOutput src='pluginConfig.out'/>
+        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig">
+            <sourcefile file="build.gradle"/>
+            <output args="-q check"/>
+        </sample>
         <para>Setting the
             <literal>destinationDir</literal>
             of the resources task had only an effect on the resources task. Maybe this was what you wanted. But what if
@@ -90,9 +92,10 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         <para>Gradles tasks are usually <emphasis>convention aware</emphasis>. A plugin can add a convention object to
             your build. It can also map certain values of this convention object to task properties.
         </para>
-        <sample src='userguide/tutorial/pluginConvention/build.gradle'
-                title='Sample userguide/tutorial/pluginConvention/build.gradle'/>
-        <sampleOutput src='pluginConvention.out'/>
+        <sample id="pluginConvention" dir="userguide/tutorial/pluginConvention">
+            <sourcefile file="build.gradle"/>
+            <output args="-q check"/>
+        </sample>
         <para>The
             <emphasis>JavaPlugin</emphasis>
             has added a convention object with a

@@ -13,7 +13,7 @@
         <literal>libs</literal>
         bundle. This
         <literal>osgi</literal>
-        property points to an instance of <apilink src="org.gradle.api.plugins.osgi.OsgiManifest"/>. Via the
+        property points to an instance of <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/>. Via the
         OsgiManifest object you can control the generation of the OSGi Manifest of the respective jar. The OSGi plugin
         assign default values to the OsgiManifest object.
     </para>

@@ -52,7 +52,9 @@
         <title>Customizing</title>
         <para>Here an example with the most important customization options:
         </para>
-        <sample src='web-project/build.gradle' title='Sample web-project/build.gradle'/>
+        <sample id="webproject" dir="web-project">
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>Of course one can configure the different file-sets with a closure to define excludes and includes.
         </para>
         <para>If you want to enable the generation of the default jar archive additional to the war archive just type:
