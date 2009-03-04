@@ -1,24 +1,9 @@
 >gradle distanceToIceberg
-Modern compiler found.
-Recursive: true
-Buildfilename: build.gradle
-No build sources found.
-:: loading settings :: url = jar:file:/Users/hans/java/gradle-SNAPSHOT/lib/ivy-2.0.0.beta2_20080305165542.jar!/org/apache/ivy/core/settings/ivysettings.xml
-:: resolving dependencies :: org.gradle#build;SNAPSHOT
-	confs: [build]
-++++ Starting build for primary task: distanceToIceberg
-++ Loading Project objects
-++ Configuring Project objects
-Project=: evaluated.
-Project=:bluewhale evaluated.
-Project=:krill evaluated.
-Project=:tropicalFish evaluated.
-++ Executing: distanceToIceberg Recursive:true Startproject: :
-Executing: :bluewhale:distanceToIceberg
+:bluewhale:distanceToIceberg
 20 nautical miles
-Executing: :krill:distanceToIceberg
+:krill:distanceToIceberg
 5 nautical miles
 
 BUILD SUCCESSFUL
 
-Total time: 1 seconds
+Total time: 1 secs

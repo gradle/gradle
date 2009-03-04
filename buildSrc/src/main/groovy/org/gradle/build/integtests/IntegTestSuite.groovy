@@ -20,7 +20,10 @@ package org.gradle.build.integtests
  * @author Hans Dockter
  */
 class IntegTestSuite {
-    static void execute(String distDirPath, String samplesDirPath, String userguideOutputDir) {
+    static void execute(File distDir, File samplesDir, File userguideOutputDir, File userguideDir) {
+        String distDirPath = distDir.absolutePath
+        String samplesDirPath = samplesDir.absolutePath
+        Userguide.execute(distDir, samplesDir, userguideOutputDir, userguideDir)
         CacheProject.execute(distDirPath, samplesDirPath)
         CommandLine.execute(distDirPath, samplesDirPath)
         WrapperProject.execute(distDirPath, samplesDirPath)
@@ -32,7 +35,6 @@ class IntegTestSuite {
         PomGeneration.execute(distDirPath, samplesDirPath)
         WaterProject.execute(distDirPath, samplesDirPath)
         org.gradle.build.integtests.Version.execute(distDirPath)
-        Userguide.execute(distDirPath, samplesDirPath, userguideOutputDir)
         MavenRepo.execute(distDirPath, samplesDirPath)
         deleteGradleDirs(samplesDirPath)
     }

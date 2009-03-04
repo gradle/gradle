@@ -71,7 +71,7 @@
             this report:
         </para>
         <sample id="taskListReport" dir="userguide/tutorial/projectReports">
-            <output args="--tasks"/>
+            <output args="-q --tasks"/>
         </sample>
         <para>Running
             <literal>gradle --dependencies</literal>
@@ -80,15 +80,15 @@
             configuration are shown. Below is an example of this report:
         </para>
         <sample id="dependencyListReport" dir="userguide/tutorial/projectReports">
-            <output args="--dependencies"/>
+            <output args="-q --dependencies"/>
         </sample>
         <para>Running
             <literal>gradle --properties</literal>
-            gives you a list of the properties of each project in the build. Below is an example of this report:
+            gives you a list of the properties of each project in the build.
         </para>
-        <sample id="propertyListReport" dir="userguide/tutorial/projectReports">
-            <output args="--properties"/>
-        </sample>
+        <!--<sample id="propertyListReport" dir="userguide/tutorial/projectReports">-->
+            <!--<output args="-q - -properties"/>-->
+        <!--</sample>-->
         <para>Finally, you can use the <literal>project-reports</literal> plugin to add a number of reporting tasks to
             your project.
         </para>

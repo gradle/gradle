@@ -221,11 +221,11 @@ D- water
         <sample id="multiprojectPartialTasks" dir="userguide/multiproject/partialTasks/water">
             <sourcefile file="bluewhale/build.gradle"/>
             <sourcefile file="krill/build.gradle"/>
-            <output args="-q hello"/>
+            <output args="-q distanceToIceberg"/>
         </sample>
         <para>Here the output without the <literal>-q</literal> option:</para>
         <sample id="multiprojectPartialTasksNotQuiet" dir="userguide/multiproject/partialTasks/water">
-            <output args="hello"/>
+            <output args="distanceToIceberg"/>
         </sample>
         <para>The build is executed from the
             <literal>water</literal>

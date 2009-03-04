@@ -491,9 +491,10 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
     }
 }
 
-// The integtests depend on dists because of the wrapper test
-createTask('integTest', dependsOn: ['dists']) {
-    IntegTestSuite.execute(explodedDistDir.absolutePath, explodedDistSamplesDir.absolutePath, userguideOutputDir.absolutePath)
+// The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
+// the userguide source
+createTask('integTest', dependsOn: ['dists', 'userguideSrc']) {
+    IntegTestSuite.execute(explodedDistDir, explodedDistSamplesDir, userguideOutputDir, docbookSrc)
 }
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc', 'uploadUserguide'])
