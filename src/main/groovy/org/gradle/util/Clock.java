@@ -21,21 +21,39 @@ package org.gradle.util;
  */
 public class Clock {
     long start;
+    private TimeProvider timeProvider;
+
+    private static final long MS_PER_MINUTE = 60000;
+    private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
 
     public Clock() {
+        this(new TrueTimeProvider());
+    }
+
+    protected Clock(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
         reset();
     }
 
     public String getTime() {
-        return getTimeInMs() / 1000.0 + " secs";
+        StringBuffer result = new StringBuffer();
+        long timeInMs = getTimeInMs();
+        if (timeInMs > MS_PER_HOUR) {
+            result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
+        }
+        if (timeInMs > MS_PER_MINUTE) {
+            result.append((timeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append(" mins ");
+        }
+        result.append((timeInMs % MS_PER_MINUTE) / 1000.0).append(" secs");
+        return result.toString();
     }
 
     public long getTimeInMs() {
-        return System.currentTimeMillis() - start;
+        return timeProvider.getCurrentTime() - start;
     }
 
     public void reset() {
-        start = System.currentTimeMillis();
+        start = timeProvider.getCurrentTime();
     }
 
 }
