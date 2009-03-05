@@ -53,6 +53,7 @@ public class MainTest {
     // This property has to be also set as system property gradle.home when running this test
     private final static String TEST_GRADLE_HOME = "roadToNowhere";
 
+    private String previousGradleHome;
     private File expectedBuildFile;
     private File expectedSettingsFile;
     private File expectedGradleUserHome;
@@ -69,15 +70,12 @@ public class MainTest {
     private LogLevel expectedLogLevel;
 
     private Gradle gradleMock;
-    private String oldGradleHome;
-
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
     public void setUp() throws IOException {
-        oldGradleHome = System.getProperty(Main.GRADLE_HOME_PROPERTY_KEY);
-        System.setProperty(Main.GRADLE_HOME_PROPERTY_KEY, TEST_GRADLE_HOME);
-
+        previousGradleHome = System.getProperty("gradle.home");
+        System.setProperty("gradle.home", "roadToNowhere");
         context.setImposteriser(ClassImposteriser.INSTANCE);
         gradleMock = context.mock(Gradle.class);
 
@@ -105,10 +103,12 @@ public class MainTest {
 
     @After
     public void tearDown() {
-        Gradle.injectCustomFactory(null);
-        if (oldGradleHome != null) {
-            System.setProperty(Main.GRADLE_HOME_PROPERTY_KEY, oldGradleHome);
+        if (previousGradleHome != null) {
+            System.setProperty("gradle.home", previousGradleHome);
+        } else {
+            System.getProperties().remove("gradle.home");
         }
+        Gradle.injectCustomFactory(null);
     }
 
     @Test

@@ -173,7 +173,7 @@ resources.doLast {
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", "-Dgradle.home=roadToNowhere", '-Xms128m', '-Xmx1g'])
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g'])
 }
 
 libs {
