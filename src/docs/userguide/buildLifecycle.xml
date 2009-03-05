@@ -49,13 +49,14 @@
     <section id='sec:settings_file'>
         <title>Settings File</title>
         <para>Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle
-            via a naming convention. The default name for this file is <emphasis>settings.gradle</emphasis>. Later in
+            via a naming convention. The default name for this file is <filename>settings.gradle</filename>. Later in
             this chapter we explain, how Gradle looks for a settings file.
         </para>
         <para>The settings file gets executed during the initialization phase. A multiproject build must have a
-            settings.gradle file in the root project of the multiproject hierarchy. It is required because in the
-            settings.gradle file it is defined, which projects are taking part in the multi-project build (see
-            <xref linkend='cha:multi_project_builds'/>). For a single-project build, a settings.gradle file is optional.
+            <filename>settings.gradle</filename>
+            file in the root project of the multiproject hierarchy. It is required because in the
+            settings file it is defined, which projects are taking part in the multi-project build (see
+            <xref linkend='cha:multi_project_builds'/>). For a single-project build, a settings file is optional.
             You might need it for example, to add libraries to your build script classpath (see <xref
                     linkend='cha:organizing_build_logic'/>). Let's first do some introspection with a single project
             build:
@@ -67,7 +68,7 @@
         </sample>
         <para>For a build script, the property access and method calls are delegated to a project object. Similarly
             property access and method calls within the settings file is delegated to a settings object. Have a look at
-            <apilink class='org.gradle.api.Settings'/>.
+            <apilink class='org.gradle.api.initialization.Settings'/>.
         </para>
     </section>
     <section id='sec:multi_project_builds'>
@@ -81,9 +82,10 @@
             <title>Project Locations</title>
             <para>Multi-project builds are always represented by a tree with a single root. Each element in the tree
                 represent a project. A project has a virtual and a physical path. The virtual path denotes the position
-                of the project in the multi-project build tree. The project tree is created in the settings.gradle file.
-                By default it is assumed that the location of the settings file is also the location of the root
-                project. But you can redefine the location of the root project in the settings file.
+                of the project in the multi-project build tree. The project tree is created in the
+                <filename>settings.gradle</filename> file. By default it is assumed that the location of the settings
+                file is also the location of the root project. But you can redefine the location of the root project
+                in the settings file.
             </para>
         </section>
         <section id='sub:building_the_tree'>
@@ -136,26 +138,27 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
                 <para>Gradle supports partial multiproject builds (see <xref linkend='cha:multi_project_builds'/>)
                 </para>
             </footnote>
-            . If you execute Gradle from within a project that has no settings.gradle file, Gradle does the following:
+            . If you execute Gradle from within a project that has no <filename>settings.gradle</filename> file,
+            Gradle does the following:
         </para>
         <itemizedlist>
             <listitem>
-                <para>It searches for a settings.gradle in a directory called 'master' which has the same nesting level
+                <para>It searches for a <filename>settings.gradle</filename> in a directory called 'master' which has the same nesting level
                     as the current dir.
                 </para>
             </listitem>
             <listitem>
-                <para>If not settings.gradle is found, it searches the parent directories for the existence of a
-                    settings.gradle file.
+                <para>If no <filename>settings.gradle</filename> is found, it searches the parent directories for the existence of a
+                    <filename>settings.gradle</filename> file.
                 </para>
             </listitem>
             <listitem>
-                <para>If no settings.gradle file is found, the build is executed as a single project build.
+                <para>If no <filename>settings.gradle</filename> file is found, the build is executed as a single project build.
                 </para>
             </listitem>
             <listitem>
-                <para>If a settings.gradle file is found, Gradle checks if the current project is part of the
-                    multiproject hierarchy defined in the found settings.gradle file. If not, the build is executed as a
+                <para>If a <filename>settings.gradle</filename> file is found, Gradle checks if the current project is part of the
+                    multiproject hierarchy defined in the found <filename>settings.gradle</filename> file. If not, the build is executed as a
                     single project build. Otherwise a multiproject build is executed.
                 </para>
             </listitem>
@@ -165,19 +168,17 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
             dependent projects are build. But Gradle needs to create the build configuration for the whole multiproject
             build (see <xref linkend='cha:multi_project_builds'/>). Via the
             <literal>-u</literal>
-            command line option, you can tell Gradle not to look in the parent hierarchy for a settings.gradle file. The
+            command line option, you can tell Gradle not to look in the parent hierarchy for a <filename>settings.gradle</filename> file. The
             current project is then always build as a single project build. If the current project contains a
-            settings.gradle file, the
-            <literal>-u</literal>
-            option has no meaning. Such a build is always executed as:
+            <filename>settings.gradle</filename> file, the <literal>-u</literal> option has no meaning. Such a build is always executed as:
         </para>
         <itemizedlist>
             <listitem>
-                <para>a single project build, if the settings.gradle file does not define a multiproject hierarchy
+                <para>a single project build, if the <filename>settings.gradle</filename> file does not define a multiproject hierarchy
                 </para>
             </listitem>
             <listitem>
-                <para>a multiproject build, if the settings.gradle file does define a multiproject hierarchy.
+                <para>a multiproject build, if the <filename>settings.gradle</filename> file does define a multiproject hierarchy.
                 </para>
             </listitem>
         </itemizedlist>

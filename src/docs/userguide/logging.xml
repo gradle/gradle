@@ -13,14 +13,14 @@
             The
             <literal>WARN</literal>
             and
-            <emphasis>ERROR</emphasis>
-            levels are included in all the other levels, except <emphasis>QUIET</emphasis>, where only
-            <emphasis>ERROR</emphasis>
+            <literal>ERROR</literal>
+            levels are included in all the other levels, except <literal>QUIET</literal>, where only
+            <literal>ERROR</literal>
             is included. In <xref linkend='stacktraces'/> you find the command line switches for stacktrace
             logging.
         </para>
         <table id='loglevels'>
-            <title>Log Level</title>
+            <title>Log Level Command-Line Options</title>
             <thead>
                 <tr>
                     <td>Option</td>
@@ -52,7 +52,7 @@
 
         </table>
         <table id='stacktraces'>
-            <title>Stacktraces</title>
+            <title>Stacktrace Command-Line Options</title>
             <thead>
                 <tr>
                     <td>Option</td>
@@ -113,7 +113,7 @@
             <literal>disableStandardOutputCapture</literal>
             which causes the standard out to be send to the default standard out. If you need more fine grained control
             on how standard out is redirected you can use the class
-            <apilink class="org.gradle.logging.StandardOutputLoggingAdapter"/>.
+            <apilink class="org.gradle.api.logging.StandardOutputLogging"/>.
         </para>
     </section>
     <section id='sec:sending_your_own_log_messages'>

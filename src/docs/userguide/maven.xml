@@ -133,7 +133,7 @@ uploadLibs {
                 <tr>
                     <td>root</td>
                     <td>
-                        <apilink class="org.gradle.dependencies.maven.MavenDeployer"/>
+                        <apilink class="org.gradle.api.artifacts.maven.MavenDeployer"/>
                     </td>
                 </tr>
                 <tr>
@@ -227,7 +227,7 @@ uploadLibs {
     }
 }
 ]]></programlisting>
-            <para>To learn about all the customizable attributes of a pom have a look here: <apilink class="org.gradle.dependencies.maven.MavenPom"/>.
+            <para>To learn about all the customizable attributes of a pom have a look here: <apilink class="org.gradle.api.artifacts.maven.MavenPom"/>.
             </para>
             <para>To do this for the Maven Installer added by the Maven plugin (see <xref
                     linkend='sub:installing_to_the_local_repository'/>), you can do:

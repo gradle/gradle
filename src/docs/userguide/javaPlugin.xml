@@ -732,28 +732,28 @@
             </thead>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.bundling.Zip"/>
+                    <apilink class="org.gradle.api.tasks.bundling.Zip" lang="groovy"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet</td>
                 <td>AbstractArchiveTask</td>
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.bundling.Tar"/>
+                    <apilink class="org.gradle.api.tasks.bundling.Tar" lang="groovy"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet, tarFileSet</td>
                 <td>Zip</td>
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.bundling.Jar"/>
+                    <apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet</td>
                 <td>Zip</td>
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.bundling.War"/>
+                    <apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/>
                 </td>
                 <td>fileSet, fileCollection, zipFileSet</td>
                 <td>Jar</td>
@@ -772,25 +772,25 @@
             </thead>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.FileSet"/>
+                    <apilink class="org.gradle.api.tasks.util.FileSet" lang="groovy"/>
                 </td>
                 <td>A set of files defined by a common baseDir and include/exclude patterns.</td>
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.ZipFileSet"/>
+                    <apilink class="org.gradle.api.tasks.util.ZipFileSet" lang="groovy"/>
                 </td>
                 <td>Extends FileSet with additional properties known from Ants zipfileset task.</td>
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.TarFileSet"/>
+                    <apilink class="org.gradle.api.tasks.util.TarFileSet" lang="groovy"/>
                 </td>
                 <td>Extends ZipFileSet with additional properties known from Ants tarfileset task.</td>
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.FileCollection"/>
+                    <apilink class="org.gradle.api.tasks.util.FileCollection" lang="groovy"/>
                 </td>
                 <td>An arbitrary collection of files to the archive. In contrast to a FileSet they don't need to have a
                     common basedir.
@@ -798,7 +798,7 @@
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.AntDirective"/>
+                    <apilink class="org.gradle.api.tasks.util.AntDirective" lang="groovy"/>
                 </td>
                 <td>An arbitrary Ant resource declaration.</td>
             </tr>
@@ -925,8 +925,8 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
             <title>Manifest</title>
             <para>The convention object of the JavaPlugin has a
                 <literal>manifest</literal>
-                property pointing to an instance of <apilink class="org.gradle.api.bundling.GradleManifest"/>. With this
-                <literal>GradleManifest</literal> object you can define the content of the <literal>MANIFEST.MF</literal>
+                property pointing to an instance of <apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/>. With this
+                <classname>GradleManifest</classname> object you can define the content of the <literal>MANIFEST.MF</literal>
                 file of all the jar or a war archives in your project.
             </para>
             <programlisting><![CDATA[

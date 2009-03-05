@@ -30,8 +30,23 @@ class Userguide {
     static String NL = System.properties['line.separator']
 
     static void execute(File gradleHome, File samplesDir, File userguideOutputDir, File userguideInfoDir) {
-        getScriptsForSamples(userguideInfoDir).each {GradleRun run ->
-            logger.info("Test Id: $run.id dir: $run.subDir execute: $run.execute")
+        checkApiLinks(gradleHome, userguideInfoDir)
+        checkSamples(gradleHome, samplesDir, userguideOutputDir, userguideInfoDir)
+    }
+
+    private static def checkApiLinks(File gradleHome, File userguideInfoDir) {
+        Node links = new XmlParser().parse(new File(userguideInfoDir, 'links.xml'))
+        links.children().each {Node link ->
+            String classname = link.'@className'
+            String lang = link.'@lang'
+            File classDocFile = new File(gradleHome, "docs/${lang}doc/${classname.replace('.', '/')}.html")
+            Assert.assertTrue("Could not find javadoc for class '$classname' referenced in userguide.", classDocFile.isFile())
+        }
+    }
+
+    private static def checkSamples(File gradleHome, File samplesDir, File userguideOutputDir, File userguideInfoDir) {
+        return getScriptsForSamples(userguideInfoDir).each {GradleRun run ->
+            logger.info("Test Id: $run.id")
             Map result
             if (run.groovyScript) {
                 result = runGroovyScript(new File(samplesDir, "userguide/$run.subDir/$run.file"))
@@ -52,7 +67,6 @@ class Userguide {
                     throw e
                 }
             }
-
         }
     }
 

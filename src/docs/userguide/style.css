@@ -127,7 +127,8 @@ pre {
 }
 
 .navbar a {
-    color: #a2a2a2;
+    color: #444444;
+    /*color: #a2a2a2;*/
 }
 
 .navbar span {

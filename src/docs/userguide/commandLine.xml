@@ -110,7 +110,7 @@
         </varlistentry>
         <varlistentry>
             <term><literal>-u</literal>, <literal>--no-search-upwards</literal></term>
-            <listitem><para>Don't search in parent folders for a <literal>settings.gradle</literal> file.
+            <listitem><para>Don't search in parent folders for a <filename>settings.gradle</filename> file.
             </para></listitem>
         </varlistentry>
         <varlistentry>

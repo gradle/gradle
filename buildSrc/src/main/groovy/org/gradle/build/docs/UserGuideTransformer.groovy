@@ -15,12 +15,16 @@ import groovy.xml.MarkupBuilder
 public class UserGuideTransformer {
     String version
     String javadocUrl
+    String groovydocUrl
     File sourceFile
     File destFile
     FileCollection classpath;
 
     def execute() {
-        ['version', 'sourceFile', 'destFile', 'classpath', 'javadocUrl'].each {
+        // todo - fix this url
+        groovydocUrl = 'fixme'
+
+        ['version', 'sourceFile', 'destFile', 'classpath', 'javadocUrl', 'groovydocUrl'].each {
             if (getProperty(it) == null) {
                 throw new GradleException("Property not set: $it")
             }
@@ -87,9 +91,11 @@ public class UserGuideTransformer {
                 doc.documentElement.depthFirst().findAll { it.name() == 'apilink' }.each {Element element ->
                     String className = element.'@class'
                     String methodName = element.'@method'
+                    String lang = element.'@lang' ?: 'java'
 
                     Element ulinkElement = doc.createElement('ulink')
-                    String href = "$javadocUrl/${className.replace('.', '/')}.html"
+                    String baseUrl = lang == 'groovy' ? groovydocUrl : javadocUrl
+                    String href = "$baseUrl/${className.replace('.', '/')}.html"
                     ulinkElement.setAttribute('url', href)
 
                     Element classNameElement = doc.createElement('classname')
@@ -101,7 +107,7 @@ public class UserGuideTransformer {
 
                     element.parentNode.replaceChild(ulinkElement, element)
 
-                    xml.link(className: className)
+                    xml.link(className: className, lang: lang)
                 }
             }
         }

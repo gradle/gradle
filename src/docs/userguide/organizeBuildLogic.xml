@@ -23,12 +23,8 @@
             directory which has to be in the root project.
         </para>
         <para>This is probably good enough for most of the cases. If you need more flexibility, you can provide a
-            <literal>build.gradle</literal>
-            and a
-            <literal>settings.gradle</literal>
-            file in the
-            <literal>buildSrc</literal>
-            folder. If you like, you can even have a multi-project build in there.
+            <filename>build.gradle</filename> and a <filename>settings.gradle</filename> file in the
+            <filename>buildSrc</filename> folder. If you like, you can even have a multi-project build in there.
         </para>
     </section>
     <section id='sec:external_dependencies'>

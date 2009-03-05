@@ -9,15 +9,14 @@
             </footnote>
             has also been developed with the support of this IDE. IntelliJ allows you to define any filepattern to be
             interpreted as a Groovy script. In the case of Gradle you can define such a pattern for
-            <emphasis>build.gradle</emphasis>
-            and <emphasis>settings.gradle</emphasis>. This will already help very much. What is missing is the classpath
+            <filename>build.gradle</filename>
+            and <filename>settings.gradle</filename>. This will already help very much. What is missing is the classpath
             to the Gradle binaries to offer content assistance for the Gradle classes. You might add the Gradle jar
             (which you can find in your distribution) to your project's classpath. It does not really belong there, but
             if you do this you have a fantastic IDE support for developing Gradle scripts. Of course if you use
             additional libraries for your build scripts they would further pollute your project classpath.
         </para>
-        <para>We hope that in the future
-            <literal>build.gradle's</literal>
+        <para>We hope that in the future <filename>*.gradle</filename> files
             get special treatment by IntelliJ and you will be able to define a specific classpath for them.
         </para>
     </section>
