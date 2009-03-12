@@ -1,4 +1,4 @@
-<chapter id='cha:organizing_build_logic' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='organizing_build_logic' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Organizing Build Logic</title>
     <para>Gradle offers a variety of ways to organize your build logic. First of all you can put your build logic
         directly in the action closure of a task. If a couple of tasks share the same logic you can extract this logic

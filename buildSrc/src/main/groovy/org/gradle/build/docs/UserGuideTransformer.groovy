@@ -8,6 +8,7 @@ import org.w3c.dom.Document
 import groovy.xml.dom.DOMCategory
 import groovy.xml.FactorySupport
 import groovy.xml.MarkupBuilder
+import org.w3c.dom.Node
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
@@ -18,6 +19,7 @@ public class UserGuideTransformer {
     String groovydocUrl
     File sourceFile
     File destFile
+    boolean standalone
     FileCollection classpath;
 
     def execute() {
@@ -33,6 +35,9 @@ public class UserGuideTransformer {
         Element root
 
         destFile.parentFile.mkdirs()
+
+        System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
+                "org.apache.xerces.parsers.XIncludeParserConfiguration")
 
         // Set the thread context classloader to pick up the correct XML parser
         def uris = classpath.getFiles().collect {it.toURI().toURL()}
@@ -59,6 +64,7 @@ public class UserGuideTransformer {
 
         use(DOMCategory) {
             addVersionInfo(doc)
+            applyConditionalChunks(doc)
             transformSamples(doc)
             transformApiLinks(doc)
             fixProgramListings(doc)
@@ -70,7 +76,9 @@ public class UserGuideTransformer {
     private def addVersionInfo(Document doc) {
         Element releaseInfo = doc.createElement('releaseinfo')
         releaseInfo.appendChild(doc.createTextNode(version.toString()))
-        doc.documentElement.bookinfo[0].appendChild(releaseInfo)
+        if (doc.documentElement.bookinfo[0]) {
+            doc.documentElement.bookinfo[0].appendChild(releaseInfo)
+        }
     }
 
     private def fixProgramListings(Document doc) {
@@ -178,6 +186,17 @@ public class UserGuideTransformer {
                     element.parentNode.removeChild(element)
                 }
             }
+        }
+    }
+
+    private void applyConditionalChunks(Document doc) {
+        doc.documentElement.getElementsByTagName('standalonedocument').each {Element element ->
+            if (standalone) {
+                element.children().each {Node child ->
+                    element.parentNode.insertBefore(child, element)
+                }
+            }
+            element.parentNode.removeChild(element)
         }
     }
 

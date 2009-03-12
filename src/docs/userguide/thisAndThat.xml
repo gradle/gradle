@@ -1,4 +1,4 @@
-<chapter id='cha:the_this_and_that_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='tutorial_this_and_that' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - 'This and That'</title>
     <section>
         <title>Skipping Tasks</title>
@@ -44,7 +44,7 @@
         <para>You might be wondering why there is neither an import for the
             <literal>StopExecutionException</literal>
             nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports
-            to your script. These imports are customizable (see <xref linkend='cha:ide_support'/>).
+            to your script. These imports are customizable (see <xref linkend='ide_support'/>).
         </para>
         <para>Every task has also a <literal>enabled</literal>
             flag which defaults to <literal>true</literal>. Setting it to false prevents the execution of any of the

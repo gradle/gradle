@@ -1,4 +1,4 @@
-<chapter id='cha:dependency_management' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='dependency_management' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Dependency Management</title>
     <section id='sec:Introduction'>
         <title>Introduction</title>
@@ -223,7 +223,7 @@ dependencies {
 ]]></programlisting>
             <para>Have also a look at <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
             </para>
-            <para>Multi-project builds are discussed in <xref linkend='cha:multi_project_builds'/>.
+            <para>Multi-project builds are discussed in <xref linkend='multi_project_builds'/>.
             </para>
         </section>
         <section id='sub:global_excludes'>

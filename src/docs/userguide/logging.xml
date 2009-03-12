@@ -1,4 +1,4 @@
-<chapter id='cha:logging' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='logging' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Logging</title>
     <para>The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden
         by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle
@@ -33,19 +33,19 @@
             </tr>
             <tr>
                 <td>
-                    <literal>q</literal>
+                    <literal>-q</literal>
                 </td>
                 <td>QUIET</td>
             </tr>
             <tr>
                 <td>
-                    <literal>i</literal>
+                    <literal>-i</literal>
                 </td>
                 <td>INFO</td>
             </tr>
             <tr>
                 <td>
-                    <literal>d</literal>
+                    <literal>-d</literal>
                 </td>
                 <td>DEBUG</td>
             </tr>
@@ -60,31 +60,24 @@
                 </tr>
             </thead>
             <tr>
-                <td>neither
-                    <literal>s</literal>
-                    nor
-                    <literal>f</literal>
-                </td>
+                <td>No stacktrace options</td>
                 <td>No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in
-                    case of internal exceptions will stacktraces be printed. If the loglevel option
-                    <literal>d</literal>
+                    case of internal exceptions will stacktraces be printed. If the loglevel option <literal>-d</literal>
                     is chosen, truncated stacktraces are always printed.
                 </td>
             </tr>
             <tr>
                 <td>
-                    <literal>s</literal>
+                    <literal>-s</literal>
                 </td>
                 <td>Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces
                     are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not
-                    contain relevant information for what has gone wrong in
-                    <emphasis>your</emphasis>
-                    code.)
+                    contain relevant information for what has gone wrong in <emphasis>your</emphasis> code.)
                 </td>
             </tr>
             <tr>
                 <td>
-                    <literal>f</literal>
+                    <literal>-f</literal>
                 </td>
                 <td>The full stacktraces are printed out.</td>
             </tr>

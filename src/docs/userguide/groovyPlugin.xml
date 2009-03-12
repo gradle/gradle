@@ -1,4 +1,4 @@
-<chapter id='cha:the_groovy_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='groovy_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Groovy Plugin</title>
     <para>The Groovy Plugin extends the JavaPlugin. It can deal with pure Java projects
         <footnote>
@@ -164,10 +164,6 @@ dependencies {
         <para>Have a look at <apilink class='org.gradle.api.tasks.compile.GroovyCompile'/>
             to learn about the details. The compile task delegates to the Ant Groovyc task to do the compile. Via the
             compile task you can set most of the properties of Ants Groovyc task.
-        </para>
-        <para></para>
-        <para></para>
-        <para>/
         </para>
     </section>
     <section id='sec:test'>

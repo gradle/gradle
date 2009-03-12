@@ -1,4 +1,4 @@
-<appendix id='cha:command_line' xmlns:xi="http://www.w3.org/2001/XInclude">
+<appendix id='gradle_command_line' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Gradle Command Line</title>
     <para>The <command>gradle</command> command has the following usage:
         <cmdsynopsis>
@@ -52,7 +52,7 @@
         </varlistentry>
         <varlistentry>
             <term><literal>-d</literal>, <literal>--debug</literal></term>
-            <listitem><para>Log in debug mode (includes normal stacktrace). See <xref linkend="cha:logging"/>.
+            <listitem><para>Log in debug mode (includes normal stacktrace). See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -62,7 +62,7 @@
         </varlistentry>
         <varlistentry>
             <term><literal>-f</literal>, <literal>--full-stacktrace</literal></term>
-            <listitem><para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="cha:logging"/>.
+            <listitem><para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -72,7 +72,7 @@
         </varlistentry>
         <varlistentry>
             <term><literal>-i</literal>, <literal>--info</literal></term>
-            <listitem><para>Set log level to info. See <xref linkend="cha:logging"/>.
+            <listitem><para>Set log level to info. See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -92,7 +92,7 @@
         </varlistentry>
         <varlistentry>
             <term><literal>-q</literal>, <literal>--quiet</literal></term>
-            <listitem><para>Log errors only. See <xref linkend="cha:logging"/>.</para></listitem>
+            <listitem><para>Log errors only. See <xref linkend="logging"/>.</para></listitem>
         </varlistentry>
         <varlistentry>
             <term><literal>-r</literal>, <literal>--properties</literal></term>
@@ -100,7 +100,7 @@
         </varlistentry>
         <varlistentry>
             <term><literal>-s</literal>, <literal>--stacktrace</literal></term>
-            <listitem><para>Print out the stacktrace also for user exceptions (e.g. compile error). See <xref linkend="cha:logging"/>.
+            <listitem><para>Print out the stacktrace also for user exceptions (e.g. compile error). See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>

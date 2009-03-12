@@ -22,10 +22,11 @@
     <xsl:param name="root.filename">userguide</xsl:param>
     <xsl:param name="chunk.section.depth">0</xsl:param>
     <xsl:param name="chunk.quietly">1</xsl:param>
-    <!--<xsl:param name="use.id.as.filename">1</xsl:param>-->
+    <xsl:param name="use.id.as.filename">1</xsl:param>
 
     <!-- HEADERS AND FOOTERS -->
 
+    <!-- Use custom header -->
     <xsl:template name="header.navigation">
         <xsl:param name="next"/>
         <xsl:param name="prev"/>
@@ -39,6 +40,7 @@
         </xsl:if>
     </xsl:template>
 
+    <!-- Use custom footer -->
     <xsl:template name="footer.navigation">
         <xsl:param name="next"/>
         <xsl:param name="prev"/>

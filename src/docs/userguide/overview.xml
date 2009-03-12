@@ -1,4 +1,4 @@
-<chapter id='cha:overview' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='overview' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Overview</title>
     <section id='sec:special_feature_of_gradle'>
         <title>Features</title>

@@ -1,4 +1,4 @@
-<chapter id='cha:the_war_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='war_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The War Plugin</title>
     <para>The war plugin extends the JavaPlugin. It disables the default jar archive generation of the Java Plugin and
         adds a default war archive task. Have also a look at <apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/>

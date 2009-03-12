@@ -230,15 +230,12 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
         }
         logger.info('Copy and generate top level files.')
         copy(toDir: explodedDistDir) {fileset(dir: new File(srcRoot, 'toplevel'))}
-        String gettingStartedContent = new File(srcDocsDir, 'getting-started.html').text
-        new File(explodedDistDir, 'getting-started.html').text =
-            new SimpleTemplateEngine().createTemplate(new File(srcDocsDir, 'distGettingStartedSkeleton.html')).make(content: gettingStartedContent).toString()
         // Set permissions (important for running integration tests against the exploded dist)
         chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
     }
 }
 
-createTask('explodedDist', dependsOn: ['explodedDistBase', 'userguide'])
+createTask('explodedDist', dependsOn: ['explodedDistBase', 'userguide', 'distDocs'])
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
@@ -371,18 +368,15 @@ createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
 
 userguideDir = new File(buildDir, "$docsDir.name/userguide")
 userguideSrcDir = new File(srcDocsDir, 'userguide')
-userguidePdfFile = new File(explodedDistDocsDir, 'pdf/userguide.pdf')
-userguideHtmlDir = new File(explodedDistDocsDir, 'html')
-userguideSingleHtmlDir = new File(explodedDistDocsDir, 'html_single')
+userguidePdfFile = new File(explodedDistDocsDir, 'userguide.pdf')
+userguideHtmlDir = new File(explodedDistDocsDir, 'userguide')
+userguideSingleHtmlFile = new File(explodedDistDocsDir, 'userguide_single.html')
 docbookSrc = new File(project.buildDir, 'docbook/src')
 docbookDir = new File(project.buildDir, 'docbook/stylesheets')
 
 createTask('userguide', dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
 
 createTask('userguideSrc') {
-    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
-            "org.apache.xerces.parsers.XIncludeParserConfiguration")
-
     def transformer = new org.gradle.build.docs.UserGuideTransformer()
     transformer.version = "${version}"
     transformer.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
@@ -398,15 +392,12 @@ createTask('userguideStyleSheets') {
         globmapper(from: 'docbook-xsl-1.74.0/*', to: '*')
     }
     ant.copy(todir: docbookDir) {
-        fileset(dir: userguideSrcDir, includes: '*.xsl')
+        fileset(dir: new File(srcDocsDir, 'stylesheets'), includes: '*.xsl')
     }
 }
 userguideStyleSheets.skipProperties << 'skip.userguide'
 
 createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
-    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
-            "org.apache.xerces.parsers.XIncludeParserConfiguration")
-
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
@@ -423,16 +414,13 @@ createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets'])
 userguideHtml.skipProperties << 'skip.userguide'
 
 createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
-    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
-            "org.apache.xerces.parsers.XIncludeParserConfiguration")
-
-    userguideSingleHtmlDir.mkdirs()
+    userguideSingleHtmlFile.parentFile.mkdirs()
     
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(value: '-out')
-        arg(value: new File(userguideSingleHtmlDir, 'userguide.html'))
+        arg(value: userguideSingleHtmlFile)
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'userGuideSingleHtml.xsl'))
         classpath {
@@ -440,14 +428,11 @@ createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleShe
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: userguideSingleHtmlDir)
+    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: userguideSingleHtmlFile.parentFile)
 }
 userguideSingleHtml.skipProperties << 'skip.userguide'
 
 createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
-    System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration",
-            "org.apache.xerces.parsers.XIncludeParserConfiguration")
-
     File foFile = new File(docbookDir, "userguide.fo")
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
@@ -485,8 +470,65 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
     }
     ftp(action: 'send', remotedir: userguideRemoteDir) {
         fileset(dir: new File(explodedDistDocsDir, 'html'))
-        fileset(dir: new File(explodedDistDocsDir, 'pdf')) {
+        fileset(dir: explodedDistDocsDir) {
+            include(name: 'userguide/**')
             include(name: 'userguide.pdf')
+            include(name: 'userguide_single.html')
+            include(name: 'style.css')
+        }
+    }
+}
+
+createTask('distDocs', dependsOn: 'userguideStyleSheets') {
+    def transformer = new org.gradle.build.docs.UserGuideTransformer()
+    transformer.version = "${version}"
+    transformer.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    transformer.standalone = true
+    transformer.sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
+    transformer.destFile = new File(docbookSrc, 'gettingStarted.xml')
+    transformer.classpath = dependencies.userGuideTask
+    transformer.execute()
+
+    explodedDistDir.mkdirs()
+
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+        arg(value: '-in')
+        arg(value: new File(docbookSrc , 'gettingStarted.xml'))
+        arg(value: '-out')
+        arg(value: new File(explodedDistDir, 'getting-started.html'))
+        arg(value: '-xsl')
+        arg(value: new File(docbookDir, 'standaloneHtml.xsl'))
+        classpath {
+            path(path: dependencies.userGuideTask.asPath)
+            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
+        }
+    }
+    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: explodedDistDir)
+}
+
+createTask('websiteDocs', dependsOn: 'userguideStyleSheets') {
+    def transformer = new org.gradle.build.docs.UserGuideTransformer()
+    transformer.version = "${version}"
+    transformer.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    transformer.standalone = true
+    transformer.sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
+    transformer.destFile = new File(docbookSrc, 'gettingStarted.xml')
+    transformer.classpath = dependencies.userGuideTask
+    transformer.execute()
+
+    websiteDocs = new File(buildDir, 'docs')
+    websiteDocs.mkdirs()
+
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+        arg(value: '-in')
+        arg(value: new File(docbookSrc , 'gettingStarted.xml'))
+        arg(value: '-out')
+        arg(value: new File(websiteDocs, 'getting-started.html'))
+        arg(value: '-xsl')
+        arg(value: new File(docbookDir, 'docFragment.xsl'))
+        classpath {
+            path(path: dependencies.userGuideTask.asPath)
+            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
 }

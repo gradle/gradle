@@ -19,8 +19,13 @@
         <!-- Overridden to remove standard body attributes -->
     </xsl:template>
 
+    <xsl:param name="admon.style">
+        <!-- Overridden to remove style from admonitions -->
+    </xsl:param>
+    
     <!-- BOOK TITLEPAGE -->
 
+    <!-- Customise the contents of the book titlepage -->
     <xsl:template name="book.titlepage">
         <div class="titlepage">
             <div class="title">
@@ -38,8 +43,22 @@
         <h3 class='releaseinfo'>Version <xsl:value-of select="."/></h3>
     </xsl:template>
 
+    <!-- CHAPTER/APPENDIX TITLES -->
+
+    <!-- Use an <h1> instead of <h2> -->
+    <xsl:template name="component.title">
+        <h1>
+            <xsl:call-template name="anchor">
+	            <xsl:with-param name="node" select=".."/>
+	            <xsl:with-param name="conditional" select="0"/>
+            </xsl:call-template>
+            <xsl:apply-templates select=".." mode="object.title.markup"/>
+        </h1>
+    </xsl:template>
+    
     <!-- TABLES -->
 
+    <!-- Duplicated from docbook stylesheets, to fix problem where html table does not get a title -->
     <xsl:template match="table">
         <xsl:param name="class">
             <xsl:apply-templates select="." mode="class.value"/>

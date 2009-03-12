@@ -1,4 +1,4 @@
-<chapter id='cha:the_java_projects_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - Java Projects</title>
     <para>We have in-depth coverage with many examples about the Java plugin, dependency management and
         multi-project builds in later chapters. In this chapter we want to give you a first idea of how to build a

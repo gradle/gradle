@@ -1,4 +1,4 @@
-<chapter id='cha:the_build_lifecycle' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='build_lifecycle' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Build Lifecycle</title>
     <para>We said earlier, that the core of Gradle is a language for dependency based programming. In Gradle terms this
         means that you can define tasks and dependencies between tasks. Gradle guarantees that those tasks are executed
@@ -56,9 +56,9 @@
             <filename>settings.gradle</filename>
             file in the root project of the multiproject hierarchy. It is required because in the
             settings file it is defined, which projects are taking part in the multi-project build (see
-            <xref linkend='cha:multi_project_builds'/>). For a single-project build, a settings file is optional.
+            <xref linkend='multi_project_builds'/>). For a single-project build, a settings file is optional.
             You might need it for example, to add libraries to your build script classpath (see <xref
-                    linkend='cha:organizing_build_logic'/>). Let's first do some introspection with a single project
+                    linkend='organizing_build_logic'/>). Let's first do some introspection with a single project
             build:
         </para>
         <sample id="buildlifecycle" dir="userguide/buildlifecycle">
@@ -76,7 +76,7 @@
         <para>A multi-project build is a build where you build more than one project during a single execution of
             Gradle. You have to declare the projects taking part in the multiproject build in the settings file. There
             is much more to say about multi-project builds in the chapter dedicated to this topic (see <xref
-                    linkend='cha:multi_project_builds'/>).
+                    linkend='multi_project_builds'/>).
         </para>
         <section id='sub:project_locations'>
             <title>Project Locations</title>
@@ -135,7 +135,7 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
             from the directory where the settings file is, things are easy. But Gradle also allows you to execute the
             build from within any subproject taking part in the build.
             <footnote>
-                <para>Gradle supports partial multiproject builds (see <xref linkend='cha:multi_project_builds'/>)
+                <para>Gradle supports partial multiproject builds (see <xref linkend='multi_project_builds'/>)
                 </para>
             </footnote>
             . If you execute Gradle from within a project that has no <filename>settings.gradle</filename> file,
@@ -166,7 +166,7 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
         <para>What is the purpose of this behavior? Somehow Gradle has to find out, whether the project you are into, is
             a subproject of a multiproject build or not. Of course, if it is a subproject, only the subproject and its
             dependent projects are build. But Gradle needs to create the build configuration for the whole multiproject
-            build (see <xref linkend='cha:multi_project_builds'/>). Via the
+            build (see <xref linkend='multi_project_builds'/>). Via the
             <literal>-u</literal>
             command line option, you can tell Gradle not to look in the parent hierarchy for a <filename>settings.gradle</filename> file. The
             current project is then always build as a single project build. If the current project contains a
@@ -202,7 +202,7 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
             the initialization phase. Then Gradle looks for tasks with names equals to those passed as command line
             arguments. If these task names exist, they are executed as a separate build in the order you have passed
             them. The configuration and execution for multi-project builds is discussed in <xref
-                    linkend='cha:multi_project_builds'/>.
+                    linkend='multi_project_builds'/>.
         </para>
     </section>
 </chapter>

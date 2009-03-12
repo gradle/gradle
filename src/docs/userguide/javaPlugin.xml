@@ -1,4 +1,4 @@
-<chapter id='cha:the_java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Java Plugin</title>
     <para>
         <xref linkend='javalayout'/>
@@ -523,7 +523,7 @@
             is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is
             it part of a dependency descriptor if you choose to upload your library to a repository. See
             <xref linkend='sec:java_plugin_and_dependency_management'/>
-            how the JavaPlugin glues the tasks with the dependency manager and see the whole <xref linkend='cha:dependency_management'/>
+            how the JavaPlugin glues the tasks with the dependency manager and see the whole <xref linkend='dependency_management'/>
             how to use the dependency manager.
         </para>
         <para>Have a look at <apilink class="org.gradle.api.tasks.compile.Compile"/>

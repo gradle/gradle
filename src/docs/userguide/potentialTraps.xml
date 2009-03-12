@@ -1,4 +1,4 @@
-<appendix id='cha:potential_traps' xmlns:xi="http://www.w3.org/2001/XInclude">
+<appendix id='potential_traps' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Potential Traps</title>
     <section id='sec:groovy_script_variables'>
         <title>Groovy Script Variables</title>
@@ -21,7 +21,7 @@
     <section id='sec:configuration_and_execution_phase'>
         <title>Configuration and Execution Phase</title>
         <para>It is important to keep in mind that Gradle has a distinct configuration and execution phase (see 
-            <xref linkend='cha:the_build_lifecycle'/>).
+            <xref linkend='build_lifecycle'/>).
         </para>
         <sample id="mkdirTrap" dir="userguide/tutorial/mkdirTrap">
             <sourcefile file="build.gradle"/>

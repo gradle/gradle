@@ -1,8 +1,8 @@
-<chapter id='cha:the_project_and_task_api' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='project_and_task_api' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Project and Task API</title>
     <section id='sec:project_api'>
         <title>Project API</title>
-        <para>In the tutorial in <xref linkend='cha:gradle_core_tutorial'/>
+        <para>In the tutorial in <xref linkend='tutorial_using_tasks'/>
             we have called for example the method <literal>createTask</literal>. Where does this method come from? We
             said earlier that the directory containing the build script defines a project for Gradle. For Gradle this
             means, that it creates an instance of
@@ -46,7 +46,7 @@
     <section id='sec:task_api'>
         <title>Task API</title>
         <para>Many of the methods of the project object return task objects. We have already seen some ways on how to
-            use the task objects in <xref linkend='cha:gradle_core_tutorial'/>. Look here to learn more about
+            use the task objects in <xref linkend='tutorial_using_tasks'/>. Look here to learn more about
             <apilink class="org.gradle.api.Task"/>.
         </para>
     </section>
@@ -56,7 +56,7 @@
             options with this layer.
             <footnote>
                 <para>There is more to come for this layer in the other chapters, e.g. support for multi-project builds
-                    (see <xref linkend='cha:multi_project_builds'/>).
+                    (see <xref linkend='multi_project_builds'/>).
                 </para>
             </footnote>
             This core-layer constitutes a language for dependency based programming.

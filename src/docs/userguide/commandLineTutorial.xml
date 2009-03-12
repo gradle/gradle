@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter>
+<chapter id="tutorial_gradle_command_line">
     <title>Tutorial - Using the Gradle Command-Line</title>
     <para>This chapter introduces the basics of the Gradle command-line. You execute Gradle builds using the
         <command>gradle</command> command. You have already seen this in action in the previous chapter.</para>
@@ -38,5 +38,5 @@
         as executing <literal>gradle libs</literal>.
     </section>
     
-    <para>You can find out more about the <command>gradle</command> command's usage in <xref linkend="cha:command_line"/></para>
+    <para>You can find out more about the <command>gradle</command> command's usage in <xref linkend="gradle_command_line"/></para>
 </chapter>

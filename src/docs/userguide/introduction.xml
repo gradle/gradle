@@ -1,4 +1,4 @@
-<chapter xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id="introduction">
     <title>Introduction</title>
     <para>We would like to introduce Gradle to you, a build system that we think is a quantum leap for build technology
         in the Java (JVM) world. Gradle provides:
@@ -41,6 +41,6 @@
         </listitem>
     </itemizedlist>
     <para>
-        In <xref linkend='cha:overview'/> you find a detailed overview of Gradle. Now the <link linkend="cha:gradle_core_tutorial">tutorials</link> are waiting, have fun :)
+        In <xref linkend='overview'/> you find a detailed overview of Gradle. Now the <link linkend="tutorial_using_tasks">tutorials</link> are waiting, have fun :)
     </para>
 </chapter>

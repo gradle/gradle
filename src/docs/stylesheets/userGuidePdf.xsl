@@ -29,19 +29,25 @@
 
     <xsl:param name="ulink.show">0</xsl:param>
 
+    <xsl:param name="textColour">#666666</xsl:param>
+    <xsl:param name="titleColour">#6a915e</xsl:param>
+    <xsl:param name="tableBorderColour">#d0d0d0</xsl:param>
+    <xsl:param name="tableHeaderBackgroundColor">#f2f2f2</xsl:param>
+    <xsl:param name="verbatimBackgroundColour">#f2f2f2</xsl:param>
+    <xsl:param name="verbatimBorderColour">#a2a2a2</xsl:param>
+
     <xsl:attribute-set name="root.properties">
-        <xsl:attribute name="color">#666666</xsl:attribute>
-        <!--<xsl:attribute name="text-align">left</xsl:attribute>-->
+        <xsl:attribute name="color"><xsl:value-of select="$textColour"/></xsl:attribute>
     </xsl:attribute-set>
 
     <xsl:attribute-set name="component.title.properties">
-        <xsl:attribute name="color">#6a915e</xsl:attribute>
+        <xsl:attribute name="color"><xsl:value-of select="$titleColour"/></xsl:attribute>
         <xsl:attribute name="font-size">22pt</xsl:attribute>
         <xsl:attribute name="space-after">2cm</xsl:attribute>
     </xsl:attribute-set>
 
     <xsl:attribute-set name="section.title.properties">
-        <xsl:attribute name="color">#6a915e</xsl:attribute>
+        <xsl:attribute name="color"><xsl:value-of select="$titleColour"/></xsl:attribute>
     </xsl:attribute-set>
     <xsl:attribute-set name="section.title.level1.properties">
         <xsl:attribute name="space-before">1.4em</xsl:attribute>
@@ -59,7 +65,7 @@
         <xsl:attribute name="font-size">11pt</xsl:attribute>
     </xsl:attribute-set>
     <xsl:attribute-set name="table.properties">
-        <xsl:attribute name="border">thin solid #d0d0d0</xsl:attribute>
+        <xsl:attribute name="border">thin solid <xsl:value-of select="$tableBorderColour"/></xsl:attribute>
     </xsl:attribute-set>
 
     <xsl:attribute-set name="normal.para.spacing">
@@ -68,7 +74,7 @@
 
     <xsl:attribute-set name="verbatim.properties">
         <xsl:attribute name="font-size">9pt</xsl:attribute>
-        <xsl:attribute name="background-color">#f2f2f2</xsl:attribute>
+        <xsl:attribute name="background-color"><xsl:value-of select="$verbatimBackgroundColour"/></xsl:attribute>
         <xsl:attribute name="start-indent">1.7em</xsl:attribute>
         <xsl:attribute name="end-indent">1.2em</xsl:attribute>
         <xsl:attribute name="padding-start">1.2em</xsl:attribute>
@@ -79,15 +85,18 @@
         <xsl:attribute name="padding-after">1em</xsl:attribute>
         <xsl:attribute name="border-start-width">0.5em</xsl:attribute>
         <xsl:attribute name="border-start-style">solid</xsl:attribute>
-        <xsl:attribute name="border-start-color">#a2a2a2</xsl:attribute>
+        <xsl:attribute name="border-start-color"><xsl:value-of select="$verbatimBorderColour"/></xsl:attribute>
     </xsl:attribute-set>
 
+    <!-- Use custom titlepage -->
     <xsl:template name="book.titlepage.recto">
         <fo:block padding-before='6cm'>
-            <fo:block font-size='30pt' color='#6a915e' font-weight='bold' font-stretch='expanded'>
+            <fo:block font-size='30pt' font-weight='bold' font-stretch='expanded'>
+                <xsl:attribute name="color"><xsl:value-of select="$titleColour"/></xsl:attribute>
                 <xsl:value-of select="/book/bookinfo/title"/>
             </fo:block>
-            <fo:block font-size='20pt' color='#6a915e' font-weight='bold' font-stretch='expanded' space-before='0.8em'>
+            <fo:block font-size='20pt' font-weight='bold' font-stretch='expanded' space-before='0.8em'>
+                <xsl:attribute name="color"><xsl:value-of select="$titleColour"/></xsl:attribute>
                 <xsl:value-of select="/book/bookinfo/subtitle"/>
             </fo:block>
             <fo:block font-size='14pt' font-weight='bold' font-stretch='expanded' space-before='6em'>
@@ -98,7 +107,7 @@
 
     <xsl:template name="table.row.properties">
         <xsl:if test="ancestor::thead">
-            <xsl:attribute name="background-color">#f2f2f2</xsl:attribute>
+            <xsl:attribute name="background-color"><xsl:value-of select="$tableHeaderBackgroundColor"/></xsl:attribute>
             <xsl:attribute name="keep-with-next.within-column">always</xsl:attribute>
         </xsl:if>
     </xsl:template>

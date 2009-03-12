@@ -1,4 +1,4 @@
-<chapter id='cha:interacting_with_maven_repositories' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='interacting_with_maven_repositories' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Interacting with Maven Repositories</title>
     <section id='sec:introduction'>
         <title>Introduction</title>

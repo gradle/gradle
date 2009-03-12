@@ -25,7 +25,7 @@ h1, h2, h3, h4, h5 {
 }
 
 h1 {
-    font-size: 150%;
+    font-size: 180%;
 }
 
 h2 {
@@ -34,6 +34,14 @@ h2 {
 
 h3 {
     font-size: 110%;
+}
+
+.chapter h1 {
+    margin-bottom: 1.0em;
+}
+
+.appendix h1 {
+    margin-bottom: 1.0em;
 }
 
 .section h2 {
@@ -99,6 +107,18 @@ pre {
 .footnote sup {
     vertical-align: baseline;
     font-size: 100%;
+}
+
+.note {
+    margin-left: 4em;
+    margin-right: 4em;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    padding-left: 1.2em;
+    padding-right: 1.2em;
+    background: #e6e9f0;
+    border-left: solid #7e8fb9 0.4em;
+    border-right: solid #7e8fb9 0.4em;
 }
 
 /*

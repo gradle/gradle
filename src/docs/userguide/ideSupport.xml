@@ -1,4 +1,4 @@
-<appendix id='cha:ide_support' xmlns:xi="http://www.w3.org/2001/XInclude">
+<appendix id='ide_support' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Existing IDE Support and how to cope without it</title>
     <section id='sec:intellij'>
         <title>IntelliJ</title>

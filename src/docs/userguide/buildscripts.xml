@@ -1,7 +1,7 @@
-<chapter id='cha:gradle_core_tutorial' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='tutorial_using_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - Using Tasks</title>
     <para>If you execute a build, Gradle normally looks for a file called <filename>build.gradle</filename>
-        in the current directory (There are command line switches to change this behavior. See <xref linkend='cha:command_line'/>).
+        in the current directory (There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>).
         We call the <filename>build.gradle</filename> file a build script. Although strictly speaking it is
         a build configuration script, as we will see later. In Gradle the location of the build script file defines a
         project. The name of the directory containing the build script is the name of the project.
@@ -23,7 +23,7 @@
             </footnote>
             <footnote>
                 <para>The scripts are executed with the <literal>-q</literal> options which suppresses the Gradle logging.
-                    See <xref linkend="cha:logging"/> for more details.
+                    See <xref linkend="logging"/> for more details.
                 </para>
             </footnote>
         </para>
@@ -177,7 +177,7 @@
         </sample>
         <para>Later you will see that such methods can be shared among subprojects in multi-project builds. If your
             build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have
-            devoted a whole chapter to this. See <xref linkend='cha:organizing_build_logic'/>.
+            devoted a whole chapter to this. See <xref linkend='organizing_build_logic'/>.
         </para>
     </section>
     <section id='sec:default_tasks'>
@@ -195,7 +195,7 @@
     </section>
     <section>
         <title>Configure By DAG</title>
-        <para>As we describe in full detail later (See <xref linkend='cha:the_build_lifecycle'/>) Gradle has a
+        <para>As we describe in full detail later (See <xref linkend='build_lifecycle'/>) Gradle has a
             configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should
             be executed. Gradle offers you a hook to make use of this information. A usecase for this would be to check
             if the release task is part of the tasks to be executed. Depending on this you can assign different values
@@ -213,8 +213,8 @@
     <section>
         <title>Summary</title>
         <para>This is not the end of the story for tasks. So far we have worked with simple tasks. Tasks will be
-            revisited in <xref linkend='cha:more_about_tasks'/> and when we look at the Java Plugin in
-            <xref linkend='cha:the_java_plugin'/>.
+            revisited in <xref linkend='more_about_tasks'/> and when we look at the Java Plugin in
+            <xref linkend='java_plugin'/>.
         </para>
     </section>
 </chapter>

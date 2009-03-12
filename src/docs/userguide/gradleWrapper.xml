@@ -1,4 +1,4 @@
-<chapter id='cha:the_gradle_wrapper' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='gradle_wrapper' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Gradle Wrapper</title>
     <para>Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An
         example are continuous integration server where Gradle is not installed and where you have no admin rights for

@@ -1,4 +1,4 @@
-<chapter id='cha:osgi_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='osgi_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>OSGi Plugin</title>
     <para>The Gradle OSGi plugin enables the generation of an OSGi manifest. This OSGi manifest is automatically added
         to the jars produces by the Java plugin
