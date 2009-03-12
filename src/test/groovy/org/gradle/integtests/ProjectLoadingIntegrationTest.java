@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
-import org.junit.Ignore;
 
 import java.io.File;
 
@@ -51,7 +51,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canDetermineRootProjectAndCurrentProjectBasedOnCurrentDirectory() {
+    public void canDetermineRootProjectAndDefaultProjectBasedOnCurrentDirectory() {
         File rootDir = getTestDir();
         File childDir = new File(rootDir, "child");
 
@@ -59,12 +59,31 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").write("createTask('do-stuff')");
         testFile("child/build.gradle").write("createTask('do-stuff')");
 
-        inDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        inDirectory(childDir).withSearchUpwards().runTasks(":do-stuff", "do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        inDirectory(rootDir).withSearchUpwards().runTasks("do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        inDirectory(rootDir).withSearchUpwards().runTasks(":do-stuff").assertTasksExecuted(":do-stuff");
+
+        inDirectory(childDir).withSearchUpwards().runTasks("do-stuff").assertTasksExecuted(":child:do-stuff");
+        inDirectory(childDir).withSearchUpwards().runTasks(":do-stuff").assertTasksExecuted(":do-stuff");
     }
 
     @Test
-    public void canDetermineRootProjectAndCurrentProjectBasedOnBuildFileName() {
+    public void canDetermineRootProjectAndDefaultProjectBasedOnProjectDirectory() {
+        File rootDir = getTestDir();
+        File childDir = new File(rootDir, "child");
+
+        testFile("settings.gradle").write("include('child')");
+        testFile("build.gradle").write("createTask('do-stuff')");
+        testFile("child/build.gradle").write("createTask('do-stuff')");
+
+        usingProjectDir(rootDir).withSearchUpwards().runTasks("do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        usingProjectDir(rootDir).withSearchUpwards().runTasks(":do-stuff").assertTasksExecuted(":do-stuff");
+
+        usingProjectDir(childDir).withSearchUpwards().runTasks("do-stuff").assertTasksExecuted(":child:do-stuff");
+        usingProjectDir(childDir).withSearchUpwards().runTasks(":do-stuff").assertTasksExecuted(":do-stuff");
+    }
+
+    @Test
+    public void canDetermineRootProjectAndDefaultProjectBasedOnBuildFile() {
         testFile("settings.gradle").write("include('child')");
 
         TestFile rootBuildFile = testFile("build.gradle");
@@ -73,8 +92,61 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile childBuildFile = testFile("child/build.gradle");
         childBuildFile.write("createTask('do-stuff')");
 
-        usingBuildFile(rootBuildFile).withSearchUpwards().runTasks(":do-stuff", "child:do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        usingBuildFile(childBuildFile).withSearchUpwards().runTasks(":do-stuff", "do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        usingBuildFile(rootBuildFile).withSearchUpwards().runTasks("do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        usingBuildFile(rootBuildFile).withSearchUpwards().runTasks(":do-stuff").assertTasksExecuted(":do-stuff");
+
+        usingBuildFile(childBuildFile).withSearchUpwards().runTasks("do-stuff").assertTasksExecuted(":child:do-stuff");
+        usingBuildFile(childBuildFile).withSearchUpwards().runTasks(":do-stuff").assertTasksExecuted(":do-stuff");
+    }
+
+    @Test
+    public void buildFailsWhenMultipleProjectsMeetDefaultProjectCriteria() {
+        testFile("settings.gradle").writelns(
+            "include 'child'",
+            "project(':child').projectDir = rootProject.projectDir");
+        testFile("build.gradle").write("// empty");    
+
+        GradleExecutionFailure result = inTestDirectory().runTasksAndExpectFailure("test");
+        result.assertContext(startsWith("Could not select the default project for this build. Multiple projects in this build have project directory"));
+
+        result = usingProjectDir(getTestDir()).runTasksAndExpectFailure("test");
+        result.assertContext(startsWith("Could not select the default project for this build. Multiple projects in this build have project directory"));
+
+        result = usingBuildFile(testFile("build.gradle")).runTasksAndExpectFailure("test");
+        result.assertContext(startsWith("Could not select the default project for this build. Multiple projects in this build have build file"));
+    }
+
+    @Test
+    public void buildFailsWhenSpecifiedBuildFileIsNotAFile() {
+        GradleExecutionFailure result = usingBuildFile(testFile("unknown build file")).runTasksAndExpectFailure();
+        result.assertContext(startsWith("Build file"));
+        result.assertContext(endsWith("does not exist."));
+    }
+
+    @Test
+    public void buildFailsWhenSpecifiedProjectDirectoryIsNotADirectory() {
+        GradleExecutionFailure result = usingProjectDir(testFile("unknown dir")).runTasksAndExpectFailure();
+        result.assertContext(startsWith("Project directory"));
+        result.assertContext(endsWith("does not exist."));
+    }
+
+    @Test
+    public void buildFailsWhenSpecifiedSettingsFileIsNotAFile() {
+        GradleExecutionFailure result = inTestDirectory().usingSettingsFile(testFile("unknown")).runTasksAndExpectFailure();
+        result.assertDescription(startsWith("Cannot read settings file"));
+        result.assertDescription(endsWith("as it does not exist."));
+    }
+
+    @Test
+    public void buildFailsWhenSpecifiedSettingsFileDoesNotContainMatchingProject() {
+        TestFile settingsFile = testFile("settings.gradle");
+        settingsFile.write("// empty");
+
+        TestFile projectdir = testFile("project dir");
+        projectdir.asFile().mkdirs();
+
+        GradleExecutionFailure result = usingProjectDir(projectdir).usingSettingsFile(settingsFile).runTasksAndExpectFailure();
+        result.assertContext(startsWith("Could not select the default project for this build. No projects in this build have project directory"));
     }
 
     @Test
@@ -86,6 +158,22 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         buildFile.write("throw new RuntimeException()");
 
         inTestDirectory().runTasks("do-stuff");
+        usingProjectDir(getTestDir()).runTasks("do-stuff");
+    }
+
+    @Test
+    public void settingsFileInParentDirectoryTakesPrecedenceOverBuildFile() {
+        testFile("settings.gradle").writelns(
+            "include 'child'",
+            "project(':child').buildFileName = 'child.gradle'"
+        );
+
+        File subDirectory = new File(getTestDir(), "child");
+        testFile(subDirectory, "build.gradle").write("throw new RuntimeException()");
+        testFile(subDirectory, "child.gradle").write("createTask('do-stuff')");
+
+        inDirectory(subDirectory).withSearchUpwards().runTasks("do-stuff");
+        usingProjectDir(subDirectory).withSearchUpwards().runTasks("do-stuff");
     }
 
     @Test
@@ -100,8 +188,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void ignoresMultiProjectBuildInParentDirectory() {
-        testFile("settings.gradle").write("include('another')");
+    public void ignoresMultiProjectBuildInParentDirectoryWhichDoesNotMeetDefaultProjectCriteria() {
+        testFile("settings.gradle").write("include 'another'");
         testFile("gradle.properties").writelns("prop=value2", "otherProp=value");
 
         File subDirectory = new File(getTestDir(), "subdirectory");
@@ -113,6 +201,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("subdirectory/gradle.properties").write("prop=value");
 
         inDirectory(subDirectory).withSearchUpwards().runTasks("do-stuff");
+        usingProjectDir(subDirectory).withSearchUpwards().runTasks("do-stuff");
         usingBuildFile(buildFile).withSearchUpwards().runTasks("do-stuff");
     }
 
@@ -151,18 +240,16 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
 
         TestFile rootBuildFile = testFile(buildFilesDir, "build.gradle");
-        rootBuildFile.write("createTask('do-stuff')");
+        rootBuildFile.write("createTask('do-stuff', dependsOn: ':child:task')");
 
         TestFile childBuildFile = testFile("child/build.gradle");
-        childBuildFile.write("createTask('do-stuff')");
+        childBuildFile.writelns(
+            "createTask('do-stuff')",
+            "createTask('task')"
+        );
 
-        inTestDirectory().usingSettingsFile(settingsFile).runTasks("do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        usingBuildFile(rootBuildFile).runTasks("do-stuff").assertTasksExecuted(":do-stuff", ":child:do-stuff");
+        usingProjectDir(getTestDir()).usingSettingsFile(settingsFile).runTasks("do-stuff").assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");
+        usingBuildFile(rootBuildFile).runTasks("do-stuff").assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");
         usingBuildFile(childBuildFile).usingSettingsFile(settingsFile).runTasks("do-stuff").assertTasksExecuted(":child:do-stuff");
-    }
-
-    @Test @Ignore
-    public void doesSomethingUsefulWhenNoMatchingProjectFound() {
-        fail();
     }
 }

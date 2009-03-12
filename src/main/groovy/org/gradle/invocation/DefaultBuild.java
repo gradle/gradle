@@ -1,21 +1,19 @@
 package org.gradle.invocation;
 
 import org.gradle.StartParameter;
-import org.gradle.execution.Dag;
 import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.Task;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
 public class DefaultBuild implements BuildInternal {
     private ProjectInternal rootProject;
-    private ProjectInternal currentProject;
+    private ProjectInternal defaultProject;
     private TaskExecuter taskGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
@@ -53,11 +51,11 @@ public class DefaultBuild implements BuildInternal {
     }
 
     public ProjectInternal getDefaultProject() {
-        return currentProject;
+        return defaultProject;
     }
 
-    public void setCurrentProject(ProjectInternal currentProject) {
-        this.currentProject = currentProject;
+    public void setDefaultProject(ProjectInternal defaultProject) {
+        this.defaultProject = defaultProject;
     }
 
     public TaskExecuter getTaskGraph() {

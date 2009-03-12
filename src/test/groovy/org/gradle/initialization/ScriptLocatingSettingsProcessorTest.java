@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
-import static org.gradle.util.WrapUtil.*;
 import org.gradle.util.Matchers;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.SettingsInternal;
@@ -44,7 +43,6 @@ public class ScriptLocatingSettingsProcessorTest {
     private final IGradlePropertiesLoader propertiesLoader = context.mock(IGradlePropertiesLoader.class);
     private final SettingsInternal settings = context.mock(SettingsInternal.class, "settings");
     private final SettingsProcessor processor = new ScriptLocatingSettingsProcessor(delegate);
-    private final File currentDir = new File("currentDir");
     private final IProjectRegistry<ProjectIdentifier> projectRegistry = context.mock(IProjectRegistry.class);
     private final ProjectSpec defaultProjectSelector = context.mock(ProjectSpec.class);
 
@@ -70,15 +68,15 @@ public class ScriptLocatingSettingsProcessorTest {
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
-            one(projectRegistry).findAll(defaultProjectSelector);
-            will(returnValue(toSet(context.mock(ProjectDescriptor.class))));
+            one(defaultProjectSelector).containsProject(projectRegistry);
+            will(returnValue(true));
         }});
 
         assertThat(processor.process(finder, startParameter, propertiesLoader), sameInstance(settings));
     }
 
     @Test
-    public void usesCurrentDirAsSettingsDirWhenLocatedSettingsDoNotContainProjectForCurrentDir() {
+    public void usesCurrentDirAsSettingsDirWhenLocatedSettingsDoNotContainProjectForDefaultProjectCriteria() {
         final StartParameter noSearchParameter = context.mock(StartParameter.class, "noSearchParameter");
         final SettingsInternal currentDirSettings = context.mock(SettingsInternal.class, "currentDirSettings");
         final ProjectDescriptor rootProject = context.mock(ProjectDescriptor.class);
@@ -89,8 +87,11 @@ public class ScriptLocatingSettingsProcessorTest {
             one(delegate).process(finder, startParameter, propertiesLoader);
             will(returnValue(settings));
 
-            one(projectRegistry).findAll(defaultProjectSelector);
-            will(returnValue(toSet()));
+            one(defaultProjectSelector).containsProject(projectRegistry);
+            will(returnValue(false));
+
+            one(startParameter).getSettingsScriptSource();
+            will(returnValue(null));
 
             one(startParameter).newInstance();
             will(returnValue(noSearchParameter));
@@ -105,21 +106,9 @@ public class ScriptLocatingSettingsProcessorTest {
 
             allowing(noSearchParameter).getBuildFile();
             will(returnValue(null));
-            
-            allowing(noSearchParameter).getDefaultProjectSelector();
-            will(returnValue(defaultProjectSelector));
 
             allowing(currentDirSettings).getRootProject();
             will(returnValue(rootProject));
-
-            allowing(currentDirSettings).getProjectRegistry();
-            will(returnValue(projectRegistry));
-
-            allowing(rootProject).getChildren();
-            will(returnValue(toSet()));
-
-            allowing(projectRegistry).findAll(defaultProjectSelector);
-            will(returnValue(toSet(rootProject)));
         }});
 
         assertThat(processor.process(finder, startParameter, propertiesLoader), sameInstance(currentDirSettings));

@@ -32,11 +32,16 @@ public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
         settingsFinder.find(startParameter);
 
         SettingsInternal settings = processor.process(settingsFinder, startParameter, propertiesLoader);
-        if (!settings.getProjectRegistry().findAll(startParameter.getDefaultProjectSelector()).isEmpty()) {
+        if (startParameter.getDefaultProjectSelector().containsProject(settings.getProjectRegistry())) {
             return settings;
         }
 
         // The settings we found did not include the desired default project. Try again with an empty settings file.
+
+        // If explicit settings file specified, we're done
+        if (startParameter.getSettingsScriptSource() != null) {
+            return settings;
+        }
 
         StartParameter noSearchParameter = startParameter.newInstance();
         noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
@@ -47,15 +52,11 @@ public class ScriptLocatingSettingsProcessor implements SettingsProcessor {
         ProjectDescriptor rootProject = settings.getRootProject();
 
         if (noSearchParameter.getBuildFile() != null) {
-            // Haven't implemented anything else
+            // Set explicit build file, if required
             assert noSearchParameter.getBuildFile().getParentFile().equals(rootProject.getProjectDir());
             rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
         }
         
-        // Should end up with a single project in the build, and it should match the default project criteria
-        assert rootProject.getChildren().isEmpty();
-        assert !settings.getProjectRegistry().findAll(noSearchParameter.getDefaultProjectSelector()).isEmpty();
-
         return settings;
     }
 }

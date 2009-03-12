@@ -37,6 +37,7 @@ import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.GradleException
 
 /**
  * @author Hans Dockter
@@ -140,35 +141,29 @@ class BuildLoaderTest {
         ProjectSpec selector = context.mock(ProjectSpec)
         startParameter.defaultProjectSelector = selector
         context.checking {
-            one(selector).isSatisfiedBy(rootProject)
-            will(returnValue(false))
-            one(selector).isSatisfiedBy(childProject)
-            will(returnValue(true))
+            one(selector).selectProject(withParam(instanceOf(IProjectRegistry)))
+            will(returnValue(childProject))
         }
 
         BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
         assertThat(build.defaultProject, sameInstance(childProject))
     }
 
-    @Test public void failsWhenBuildHasMultipleDefaultProjects() {
+    @Test public void wrapsDefaultProjectSelectionException() {
         expectProjectsCreated()
 
         ProjectSpec selector = context.mock(ProjectSpec)
         startParameter.defaultProjectSelector = selector
         context.checking {
-            one(selector).isSatisfiedBy(rootProject)
-            will(returnValue(true))
-            one(selector).isSatisfiedBy(childProject)
-            will(returnValue(true))
-            allowing(selector).getDescription()
-            will(returnValue('[description]'))
+            one(selector).selectProject(withParam(instanceOf(IProjectRegistry)))
+            will(throwException(new InvalidUserDataException("<error>")))
         }
 
         try {
             buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
             fail()
-        } catch (InvalidUserDataException e) {
-            assertThat(e.message, equalTo('Multiple projects [description].'))
+        } catch (GradleException e) {
+            assertThat(e.message, equalTo('Could not select the default project for this build. <error>'))
         }
     }
 

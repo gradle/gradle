@@ -171,13 +171,8 @@ public class Main {
         startParameter.setSearchUpwards(!options.has(NO_SEARCH_UPWARDS));
 
         if (options.has(PROJECT_DIR)) {
-            startParameter.setCurrentDir(new File(options.argumentOf(PROJECT_DIR)));
-            if (!startParameter.getCurrentDir().isDirectory()) {
-                System.err.println("Error: Directory " + startParameter.getCurrentDir().getCanonicalFile() + " does not exist!");
-                buildCompleter.exit(new InvalidUserDataException());
-            }
+            startParameter.setProjectDir(new File(options.argumentOf(PROJECT_DIR)));
         }
-
         if (options.hasArgument(GRADLE_USER_HOME)) {
             startParameter.setGradleUserHomeDir(new File(options.argumentOf(GRADLE_USER_HOME)));
         }

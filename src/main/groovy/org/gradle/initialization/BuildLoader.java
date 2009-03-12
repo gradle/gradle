@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.invocation.DefaultBuild;
 import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.GradleException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -60,15 +60,21 @@ public class BuildLoader {
         Clock clock = new Clock();
         DefaultBuild build = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter,
                 externalProjectProperties);
-        ProjectSpec selector = startParameter.getDefaultProjectSelector();
-        Set<ProjectInternal> currentProjects = build.getRootProject().getProjectRegistry().findAll(selector);
-        if (currentProjects.size() > 1) {
-            throw new InvalidUserDataException(String.format("Multiple projects %s.", selector.getDescription()));
-        }
-        assert currentProjects.size() == 1;
-        build.setCurrentProject(currentProjects.iterator().next());
+        attachDefaultProject(startParameter, build);
         logger.debug("Timing: Loading projects took: " + clock.getTime());
         return build;
+    }
+
+    private void attachDefaultProject(StartParameter startParameter, DefaultBuild build) {
+        ProjectSpec selector = startParameter.getDefaultProjectSelector();
+        ProjectInternal defaultProject;
+        try {
+            defaultProject = selector.selectProject(build.getRootProject().getProjectRegistry());
+        } catch (InvalidUserDataException e) {
+            throw new GradleException(String.format("Could not select the default project for this build. %s",
+                    e.getMessage()), e);
+        }
+        build.setDefaultProject(defaultProject);
     }
 
     private DefaultBuild createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,

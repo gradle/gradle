@@ -69,6 +69,7 @@ public class DefaultProjectRegistryTest {
         assertEquals(expectedAllProjects, projectRegistry.getAllProjects(project.getPath()));
         assertEquals(expectedSubProjects, projectRegistry.getSubProjects(project.getPath()));
         assertSame(expectedGetProject, projectRegistry.getProject(project.getProjectDir()));
+        assertTrue(projectRegistry.getAllProjects().contains(project));
     }
 
     @Test
@@ -96,6 +97,12 @@ public class DefaultProjectRegistryTest {
     }
 
     @Test
+    public void canLocalAllProjects() {
+        assertThat(projectRegistry.getAllProjects(), equalTo(toSet((ProjectInternal) rootMock, childMock,
+                childChildMock)));
+    }
+    
+    @Test
     public void canLocateAllProjectsWhichMatchSpec() {
         Spec<Project> spec = new Spec<Project>() {
             public boolean isSatisfiedBy(Project element) {
@@ -114,6 +121,7 @@ public class DefaultProjectRegistryTest {
         assertThat(projectRegistry.getProject(childChildMock.getProjectDir()), nullValue());
         assertTrue(projectRegistry.getAllProjects(path).isEmpty());
         assertTrue(projectRegistry.getSubProjects(path).isEmpty());
+        assertFalse(projectRegistry.getAllProjects().contains(childChildMock));
         assertFalse(projectRegistry.getAllProjects(":").contains(childChildMock));
         assertFalse(projectRegistry.getSubProjects(":").contains(childChildMock));
     }

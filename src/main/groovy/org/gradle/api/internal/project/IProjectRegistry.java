@@ -30,6 +30,8 @@ public interface IProjectRegistry<T extends ProjectIdentifier> {
 
     T getProject(File projectDir);
 
+    Set<T> getAllProjects();
+    
     Set<T> getAllProjects(String path);
 
     Set<T> getSubProjects(String path);

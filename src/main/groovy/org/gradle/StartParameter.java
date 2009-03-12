@@ -25,11 +25,13 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.StrictScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.GFileUtils;
 import org.gradle.initialization.ProjectSpec;
 import org.gradle.initialization.ProjectDirectoryProjectSpec;
 import org.gradle.initialization.BuildFileProjectSpec;
+import org.gradle.initialization.DefaultProjectSpec;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -66,7 +68,6 @@ public class StartParameter {
     private ProjectSpec defaultProjectSelector;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private File buildFile;
-    private File settingsFile;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -96,7 +97,6 @@ public class StartParameter {
         startParameter.cacheUsage = cacheUsage;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
-        startParameter.settingsFile = settingsFile;
         startParameter.buildExecuter = buildExecuter;
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.logLevel = logLevel;
@@ -198,7 +198,6 @@ public class StartParameter {
      */
     public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
         this.settingsScriptSource = settingsScriptSource;
-        settingsFile = null;
     }
 
     /**
@@ -272,7 +271,8 @@ public class StartParameter {
     }
 
     /**
-     * Sets the directory to use to select the default project, and to search for the settings file.
+     * Sets the directory to use to select the default project, and to search for the settings file. Set to null to
+     * use the default current directory.
      *
      * @param currentDir The directory. Should not be null.
      */
@@ -282,7 +282,7 @@ public class StartParameter {
         } else {
             this.currentDir = new File(System.getProperty("user.dir"));
         }
-        defaultProjectSelector = new ProjectDirectoryProjectSpec(this.currentDir);
+        defaultProjectSelector = null;
     }
 
     public boolean isSearchUpwards() {
@@ -348,22 +348,12 @@ public class StartParameter {
      */
     public void setSettingsFile(File settingsFile) {
         if (settingsFile == null) {
-            this.settingsFile = null;
             settingsScriptSource = null;
         } else {
-            this.settingsFile = GFileUtils.canonicalise(settingsFile);
-            currentDir = this.settingsFile.getParentFile();
-            settingsScriptSource = new FileScriptSource("settings file", this.settingsFile);
+            File canonicalFile = GFileUtils.canonicalise(settingsFile);
+            currentDir = canonicalFile.getParentFile();
+            settingsScriptSource = new StrictScriptSource(new FileScriptSource("settings file", canonicalFile));
         }
-    }
-
-    /**
-     * Returns the settings file to use for the build. Returns null when the default settings file is to be used.
-     *
-     * @return The settings file. May return null.
-     */
-    public File getSettingsFile() {
-        return settingsFile;
     }
 
     public LogLevel getLogLevel() {
@@ -381,7 +371,7 @@ public class StartParameter {
      * @return The default project. Never returns null.
      */
     public ProjectSpec getDefaultProjectSelector() {
-        return defaultProjectSelector;
+        return defaultProjectSelector != null ? defaultProjectSelector : new DefaultProjectSpec(currentDir);
     }
 
     /**
@@ -391,5 +381,21 @@ public class StartParameter {
      */
     public void setDefaultProjectSelector(ProjectSpec defaultProjectSelector) {
         this.defaultProjectSelector = defaultProjectSelector;
+    }
+
+    /**
+     * Sets the project directory to use to select the default project. Use null to use the default criteria for
+     * selecting the default project.
+     *
+     * @param projectDir The project directory. May be null.
+     */
+    public void setProjectDir(File projectDir) {
+        if (projectDir == null) {
+            setCurrentDir(null);
+        } else {
+            File canonicalFile = GFileUtils.canonicalise(projectDir);
+            currentDir = canonicalFile;
+            defaultProjectSelector = new ProjectDirectoryProjectSpec(canonicalFile);
+        }
     }
 }

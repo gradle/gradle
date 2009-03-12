@@ -20,34 +20,103 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
+import org.gradle.util.GFileUtils;
+import static org.gradle.util.WrapUtil.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 
 @RunWith(JMock.class)
 public class BuildFileProjectSpecTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final File file = new File(HelperUtil.getTestDir(), "build");
-    BuildFileProjectSpec spec = new BuildFileProjectSpec(file);
+    private final File file = new File(HelperUtil.makeNewTestDir(), "build");
+    private final BuildFileProjectSpec spec = new BuildFileProjectSpec(file);
+    private int counter;
 
-    @Test
-    public void selectsProjectWithSameBuildFile() {
-        ProjectIdentifier project = project(file);
-
-        assertTrue(spec.isSatisfiedBy(project));
+    @Before
+    public void setUp() {
+        GFileUtils.writeStringToFile(file, "build file");
     }
 
     @Test
-    public void doesNotSelectProjectWithDifferentBuildFile() {
-        ProjectIdentifier project = project(new File("other"));
+    public void containsMatchWhenAtLeastOneProjectHasSpecifiedBuildFile() {
+        assertFalse(spec.containsProject(registry()));
+        assertFalse(spec.containsProject(registry(project(new File("other")))));
 
-        assertFalse(spec.isSatisfiedBy(project));
+        assertTrue(spec.containsProject(registry(project(file))));
+        assertTrue(spec.containsProject(registry(project(file), project(new File("other")))));
+        assertTrue(spec.containsProject(registry(project(file), project(file))));
+    }
+
+    @Test
+    public void selectsSingleProjectWhichHasSpecifiedBuildFile() {
+        ProjectIdentifier project = project(file);
+        assertThat(spec.selectProject(registry(project, project(new File("other")))), sameInstance(project));
+    }
+
+    @Test
+    public void selectProjectFailsWhenNoProjectHasSpecifiedBuildFile() {
+        try {
+            spec.selectProject(registry());
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), equalTo("No projects in this build have build file '" + file + "'."));
+        }
+    }
+
+    @Test
+    public void selectProjectFailsWhenMultipleProjectsHaveSpecifiedBuildFile() {
+        ProjectIdentifier project1 = project(file);
+        ProjectIdentifier project2 = project(file);
+        try {
+            spec.selectProject(registry(project1, project2));
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), startsWith("Multiple projects in this build have build file '" + file + "':"));
+        }
+    }
+
+    @Test
+    public void cannotSelectProjectWhenBuildFileIsNotAFile() {
+        file.delete();
+        
+        try {
+            spec.containsProject(registry());
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), equalTo("Build file '" + file + "' does not exist."));
+        }
+
+        file.mkdirs();
+
+        try {
+            spec.containsProject(registry());
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), equalTo("Build file '" + file + "' is not a file."));
+        }
+    }
+
+    private IProjectRegistry<ProjectIdentifier> registry(final ProjectIdentifier... projects) {
+        final IProjectRegistry<ProjectIdentifier> registry = context.mock(IProjectRegistry.class, String.valueOf(counter++));
+        context.checking(new Expectations(){{
+            allowing(registry).getAllProjects();
+            will(returnValue(toSet(projects)));
+        }});
+        return registry;
     }
 
     private ProjectIdentifier project(final File buildFile) {
-        final ProjectIdentifier projectIdentifier = context.mock(ProjectIdentifier.class);
+        final ProjectIdentifier projectIdentifier = context.mock(ProjectIdentifier.class, String.valueOf(counter++));
         context.checking(new Expectations(){{
             allowing(projectIdentifier).getBuildFile();
             will(returnValue(buildFile));

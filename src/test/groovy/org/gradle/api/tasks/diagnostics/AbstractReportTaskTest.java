@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.util.HelperUtil;
 import static org.gradle.util.HelperUtil.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -26,7 +25,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -47,11 +45,15 @@ public class AbstractReportTaskTest {
         task = new TestReportTask(project, "name", generator, renderer);
     }
 
-    @Test @Ignore
+    @Test
     public void completesRendererAtEndOfGeneration() throws IOException {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
+            one(renderer).startProject(project);
+            inSequence(sequence);
             one(generator).run();
+            inSequence(sequence);
+            one(renderer).completeProject(project);
             inSequence(sequence);
             one(renderer).complete();
             inSequence(sequence);
@@ -60,7 +62,7 @@ public class AbstractReportTaskTest {
         task.execute();
     }
 
-    @Test @Ignore
+    @Test
     public void setsOutputFileNameOnRendererBeforeGeneration() throws IOException {
         final File file = new File(getTestDir(), "report.txt");
 
@@ -68,7 +70,11 @@ public class AbstractReportTaskTest {
             Sequence sequence = context.sequence("sequence");
             one(renderer).setOutputFile(file);
             inSequence(sequence);
+            one(renderer).startProject(project);
+            inSequence(sequence);
             one(generator).run();
+            inSequence(sequence);
+            one(renderer).completeProject(project);
             inSequence(sequence);
             one(renderer).complete();
             inSequence(sequence);
@@ -78,7 +84,7 @@ public class AbstractReportTaskTest {
         task.execute();
     }
 
-    @Test @Ignore
+    @Test
     public void passesEachProjectToRenderer() throws IOException {
         final Project child1 = createChildProject(project, "child1");
         final Project child2 = createChildProject(project, "child2");
@@ -111,14 +117,16 @@ public class AbstractReportTaskTest {
         task.execute();
     }
 
-    @Test @Ignore
+    @Test
     public void createsMissingOutputDirectory() throws IOException {
         final File file = new File(getTestDir(), "missing/missing.txt");
         assertFalse(file.getParentFile().isDirectory());
 
         context.checking(new Expectations() {{
             one(renderer).setOutputFile(file);
+            one(renderer).startProject(project);
             one(generator).run();
+            one(renderer).completeProject(project);
             one(renderer).complete();
         }});
 

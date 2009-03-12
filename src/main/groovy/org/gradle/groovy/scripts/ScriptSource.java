@@ -32,7 +32,7 @@ public interface ScriptSource {
     String getClassName();
 
     /**
-     * Returns the source file for this script, if any. Return nulls if there is no source file for this script..
+     * Returns the source file for this script, if any. Returns null if there is no source file for this script.
      */
     File getSourceFile();
 

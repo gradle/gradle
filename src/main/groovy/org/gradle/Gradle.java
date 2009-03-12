@@ -89,7 +89,7 @@ public class Gradle {
         SettingsInternal settings = null;
         Throwable failure = null;
         try {
-            settings = init(startParameter);
+            settings = loadSettings(startParameter);
             runInternal(settings, startParameter);
         } catch (Throwable t) {
             failure = t;
@@ -129,7 +129,7 @@ public class Gradle {
         });
     }
 
-    private SettingsInternal init(StartParameter startParameter) {
+    private SettingsInternal loadSettings(StartParameter startParameter) {
         SettingsInternal settings = settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader);
         fireSettingsEvaluated(settings);
         return settings;
@@ -221,5 +221,4 @@ public class Gradle {
     public void addBuildListener(BuildListener buildListener) {
         buildListeners.add(buildListener);
     }
-
 }

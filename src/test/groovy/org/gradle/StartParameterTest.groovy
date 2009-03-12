@@ -17,25 +17,27 @@
 package org.gradle
 
 import org.gradle.CacheUsage
-import org.gradle.api.Project
+import org.gradle.Main
+import org.gradle.StartParameter
+import org.gradle.api.logging.LogLevel
 import org.gradle.execution.BuildExecuter
-import org.gradle.execution.TaskNameResolvingBuildExecuter
 import org.gradle.execution.ProjectDefaultsBuildExecuter
+import org.gradle.execution.TaskNameResolvingBuildExecuter
+import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.initialization.BuildFileProjectSpec
+import org.gradle.initialization.DefaultProjectSpec
+import org.gradle.initialization.ProjectDirectoryProjectSpec
+import org.gradle.initialization.ProjectSpec
+import org.gradle.util.HelperUtil
+import org.junit.Before
+import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
-import org.gradle.api.initialization.Settings
-import org.gradle.util.HelperUtil
-import org.gradle.api.logging.LogLevel
-import org.gradle.util.Matchers
-import org.gradle.initialization.ProjectDirectoryProjectSpec
-import org.gradle.initialization.ProjectSpec
-import org.gradle.initialization.BuildFileProjectSpec
-import org.gradle.groovy.scripts.FileScriptSource
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.StrictScriptSource
+
 
 /**
  * @author Hans Dockter
@@ -72,7 +74,6 @@ class StartParameterTest {
 
         assertThat(parameter.buildFile, nullValue())
         
-        assertThat(parameter.settingsFile, nullValue())
         assertThat(parameter.settingsScriptSource, nullValue())
 
         assertThat(parameter.logLevel, equalTo(LogLevel.LIFECYCLE))
@@ -80,7 +81,7 @@ class StartParameterTest {
         assertThat(parameter.projectProperties, notNullValue())
         assertThat(parameter.systemPropertiesArgs, notNullValue())
         assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(parameter.currentDir)))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
     }
 
     @Test public void testSetCurrentDir() {
@@ -89,7 +90,7 @@ class StartParameterTest {
         parameter.currentDir = dir
 
         assertThat(parameter.currentDir, equalTo(dir.canonicalFile))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(dir.canonicalFile)))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(dir.canonicalFile)))
     }
 
     @Test public void testSetBuildFile() {
@@ -104,11 +105,30 @@ class StartParameterTest {
 
     @Test public void testSetNullBuildFile() {
         StartParameter parameter = new StartParameter()
+        parameter.buildFile = new File('test/build file')
         parameter.buildFile = null
 
         assertThat(parameter.buildFile, nullValue())
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(parameter.currentDir)))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
+    }
+
+    @Test public void testSetProjectDir() {
+        StartParameter parameter = new StartParameter()
+        File file = new File('test/project dir')
+        parameter.projectDir = file
+
+        assertThat(parameter.currentDir, equalTo(file.canonicalFile))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(file.canonicalFile)))
+    }
+
+    @Test public void testSetNullProjectDir() {
+        StartParameter parameter = new StartParameter()
+        parameter.projectDir = new File('test/project dir')
+        parameter.projectDir = null
+
+        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
+        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
     }
 
     @Test public void testSetSettingsFile() {
@@ -116,16 +136,14 @@ class StartParameterTest {
         File file = new File('some dir/settings file')
         parameter.settingsFile = file
 
-        assertThat(parameter.settingsFile, equalTo(file.canonicalFile))
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
-        assertThat(parameter.settingsScriptSource, reflectionEquals(new FileScriptSource("settings file", file.canonicalFile)))
+        assertThat(parameter.settingsScriptSource.source, reflectionEquals(new FileScriptSource("settings file", file.canonicalFile)))
     }
     
     @Test public void testSetNullSettingsFile() {
         StartParameter parameter = new StartParameter()
         parameter.settingsFile = null
 
-        assertThat(parameter.settingsFile, nullValue())
         assertThat(parameter.settingsScriptSource, nullValue())
     }
 
@@ -138,7 +156,6 @@ class StartParameterTest {
         parameter.settingsScriptSource = scriptSource
 
         assertThat(parameter.settingsScriptSource, sameInstance(scriptSource))
-        assertThat(parameter.settingsFile, nullValue())
     }
     
     @Test public void testSetTaskNames() {
@@ -211,9 +228,8 @@ class StartParameterTest {
         assertThat(newParameter.defaultImportsFile, equalTo(parameter.defaultImportsFile));
 
         assertThat(newParameter.buildFile, nullValue())
-        assertThat(newParameter.settingsFile, nullValue())
         assertTrue(newParameter.taskNames.empty)
         assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
-        assertThat(newParameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(newParameter.currentDir)))
+        assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
     }
 }

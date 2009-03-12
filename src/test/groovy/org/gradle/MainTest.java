@@ -26,6 +26,7 @@ import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.groovy.scripts.StrictScriptSource;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -55,7 +56,6 @@ public class MainTest {
 
     private String previousGradleHome;
     private File expectedBuildFile;
-    private File expectedSettingsFile;
     private File expectedGradleUserHome;
     private File expectedGradleImportsFile;
     private File expectedPluginPropertiesFile;
@@ -93,7 +93,6 @@ public class MainTest {
         expectedProjectDir = new File("").getCanonicalFile();
         expectedProjectProperties = new HashMap();
         expectedSystemProperties = new HashMap();
-        expectedSettingsFile = null;
         expectedBuildFile = null;
         expectedCacheUsage = CacheUsage.ON;
         expectedSearchUpwards = true;
@@ -122,7 +121,6 @@ public class MainTest {
 
     private void checkStartParameter(StartParameter startParameter, boolean emptyTasks) {
         assertEquals(expectedBuildFile, startParameter.getBuildFile());
-        assertEquals(expectedSettingsFile, startParameter.getSettingsFile());
         assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
@@ -195,14 +193,9 @@ public class MainTest {
     }
 
     @Test
-    public void testMainWithSpecifiedExistingProjectDirectory() throws Throwable {
+    public void testMainWithSpecifiedProjectDirectory() throws Throwable {
         expectedProjectDir = HelperUtil.makeNewTestDir();
         checkMain("-p", expectedProjectDir.getAbsoluteFile().toString());
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testMainWithSpecifiedNonExistingProjectDirectory() throws Throwable {
-        checkMainFails("-p", new File("nonExistingDir").getAbsoluteFile().toString());
     }
 
     @Test
@@ -231,8 +224,11 @@ public class MainTest {
 
     @Test
     public void testMainWithSpecifiedSettingsFileName() throws Throwable {
-        expectedSettingsFile = new File("somesettings").getCanonicalFile();
         checkMain("-c", "somesettings");
+
+        assertThat(actualStartParameter.getSettingsScriptSource(), instanceOf(StrictScriptSource.class));
+        assertThat(actualStartParameter.getSettingsScriptSource().getSourceFile(), equalTo(new File(
+                "somesettings").getCanonicalFile()));
     }
 
     @Test

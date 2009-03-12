@@ -15,23 +15,20 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 
-public interface ProjectSpec {
-    /**
-     * Determines whether the given registry contains at least 1 project which meets this spec.
-     */
-    boolean containsProject(IProjectRegistry<?> registry);
+import java.io.File;
 
-    /**
-     * Returns the single project in the given registry which meets this spec.
-     * @return the project. Never not return null.
-     * @throws InvalidUserDataException When project cannot be selected due to some user input mismatch.
-     */
-    <T extends ProjectIdentifier> T selectProject(IProjectRegistry<? extends T> registry) throws
-            InvalidUserDataException;
+public class DefaultProjectSpec extends ProjectDirectoryProjectSpec {
+    public DefaultProjectSpec(File dir) {
+        super(dir);
+    }
 
-    String getDescription();
+    @Override
+    protected void checkPreconditions(IProjectRegistry<?> registry) {
+        // Ignore
+    }
 }

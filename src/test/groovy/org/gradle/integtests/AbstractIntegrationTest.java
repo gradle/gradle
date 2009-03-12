@@ -121,7 +121,7 @@ public class AbstractIntegrationTest {
     protected GradleExecution usingBuildFile(TestFile file) {
         return usingBuildFile(file.asFile());
     }
-    
+
     protected GradleExecution usingBuildFile(File file) {
         StartParameter parameter = startParameter();
         parameter.setBuildFile(file);
@@ -131,6 +131,16 @@ public class AbstractIntegrationTest {
     protected GradleExecution usingBuildScript(String script) {
         StartParameter parameter = startParameter();
         parameter.useEmbeddedBuildFile(script);
+        return new GradleExecution(parameter);
+    }
+
+    protected GradleExecution usingProjectDir(TestFile projectDir) {
+        return usingProjectDir(projectDir.asFile());
+    }
+
+    protected GradleExecution usingProjectDir(File projectDir) {
+        StartParameter parameter = startParameter();
+        parameter.setProjectDir(projectDir);
         return new GradleExecution(parameter);
     }
 

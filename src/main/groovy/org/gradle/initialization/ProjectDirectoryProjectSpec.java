@@ -18,10 +18,12 @@ package org.gradle.initialization;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
 
-public class ProjectDirectoryProjectSpec implements ProjectSpec {
+public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
     private final File dir;
 
     public ProjectDirectoryProjectSpec(File dir) {
@@ -32,8 +34,26 @@ public class ProjectDirectoryProjectSpec implements ProjectSpec {
         return String.format("with project directory '%s'", dir);
     }
 
-    public boolean isSatisfiedBy(ProjectIdentifier element) {
-        return dir.equals(element.getProjectDir());
+    protected String formatNoMatchesMessage() {
+        return String.format("No projects in this build have project directory '%s'.", dir);
+    }
+
+    protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
+        return String.format("Multiple projects in this build have project directory '%s': %s", dir, matches);
+    }
+
+    protected boolean select(ProjectIdentifier project) {
+        return project.getProjectDir().equals(dir);
+    }
+
+    @Override
+    protected void checkPreconditions(IProjectRegistry<?> registry) {
+        if (!dir.exists()) {
+            throw new InvalidUserDataException(String.format("Project directory '%s' does not exist.", dir));
+        }
+        if (!dir.isDirectory()) {
+            throw new InvalidUserDataException(String.format("Project directory '%s' is not a directory.", dir));
+        }
     }
 
     public boolean equals(Object obj) {

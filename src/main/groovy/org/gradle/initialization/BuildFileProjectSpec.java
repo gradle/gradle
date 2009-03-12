@@ -18,10 +18,12 @@ package org.gradle.initialization;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
 
-public class BuildFileProjectSpec implements ProjectSpec {
+public class BuildFileProjectSpec extends AbstractProjectSpec {
     private final File buildFile;
 
     public BuildFileProjectSpec(File buildFile) {
@@ -29,11 +31,29 @@ public class BuildFileProjectSpec implements ProjectSpec {
     }
 
     public String getDescription() {
-        return String.format("with build file '%s'", buildFile);
+        return String.format("project has build file '%s'", buildFile);
     }
 
-    public boolean isSatisfiedBy(ProjectIdentifier element) {
-        return buildFile.equals(element.getBuildFile());
+    protected String formatNoMatchesMessage() {
+        return String.format("No projects in this build have build file '%s'.", buildFile);
+    }
+
+    protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
+        return String.format("Multiple projects in this build have build file '%s': %s", buildFile, matches);
+    }
+
+    protected boolean select(ProjectIdentifier project) {
+        return project.getBuildFile().equals(buildFile);
+    }
+
+    @Override
+    protected void checkPreconditions(IProjectRegistry<?> registry) {
+        if (!buildFile.exists()) {
+            throw new InvalidUserDataException(String.format("Build file '%s' does not exist.", buildFile));
+        }
+        if (!buildFile.isFile()) {
+            throw new InvalidUserDataException(String.format("Build file '%s' is not a file.", buildFile));
+        }
     }
 
     public boolean equals(Object obj) {

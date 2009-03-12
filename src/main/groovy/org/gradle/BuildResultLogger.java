@@ -40,8 +40,8 @@ public class BuildResultLogger implements BuildListener {
         logger.info("Starting Build");
         logger.debug("Gradle home: " + startParameter.getGradleHomeDir());
         logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
-        logger.debug("Project dir: " + startParameter.getCurrentDir());
-        logger.debug("Settings file: " + startParameter.getSettingsFile());
+        logger.debug("Current dir: " + startParameter.getCurrentDir());
+        logger.debug("Settings file: " + startParameter.getSettingsScriptSource());
         logger.debug("Build file: " + startParameter.getBuildFile());
         logger.debug("Select default project: " + startParameter.getDefaultProjectSelector().getDescription());
         logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());

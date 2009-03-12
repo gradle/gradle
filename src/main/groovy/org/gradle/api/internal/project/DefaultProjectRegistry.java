@@ -58,6 +58,10 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements IPro
         }
     }
 
+    public Set<T> getAllProjects() {
+        return new HashSet<T>(projects.values());
+    }
+
     public T getProject(String path) {
         return projects.get(path);
     }
