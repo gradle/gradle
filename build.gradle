@@ -469,7 +469,6 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
         }
     }
     ftp(action: 'send', remotedir: userguideRemoteDir) {
-        fileset(dir: new File(explodedDistDocsDir, 'html'))
         fileset(dir: explodedDistDocsDir) {
             include(name: 'userguide/**')
             include(name: 'userguide.pdf')
