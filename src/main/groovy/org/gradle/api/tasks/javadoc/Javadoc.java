@@ -41,6 +41,8 @@ import java.util.Iterator;
 public class Javadoc extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Javadoc.class);
 
+    private JavadocExecHandleBuilder javadocExecHandleBuilder;
+
     private List<File> srcDirs;
     private File classesDir;
 
@@ -48,7 +50,7 @@ public class Javadoc extends ConventionTask {
 
     private DependencyManager dependencyManager;
 
-    private boolean failOnError = false;
+    private boolean failOnError = true;
 
     private String title;
 
@@ -70,6 +72,7 @@ public class Javadoc extends ConventionTask {
                 generate();
             }
         });
+        javadocExecHandleBuilder = new JavadocExecHandleBuilder();
     }
 
     private void generate() {
@@ -137,7 +140,7 @@ public class Javadoc extends ConventionTask {
     }
 
     private void executeExternalJavadoc() {
-        final JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder()
+        javadocExecHandleBuilder
                 .execDirectory(getProject().getRootDir())
                 .options(options)
                 .optionsFilename(optionsFilename)
@@ -158,6 +161,11 @@ public class Javadoc extends ConventionTask {
             default:
                 throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
         }
+    }
+
+    void setJavadocExecHandleBuilder(JavadocExecHandleBuilder javadocExecHandleBuilder) {
+        if ( javadocExecHandleBuilder == null ) throw new IllegalArgumentException("javadocExecHandleBuilder == null!");
+        this.javadocExecHandleBuilder = javadocExecHandleBuilder;
     }
 
     /**
@@ -273,6 +281,14 @@ public class Javadoc extends ConventionTask {
     public void setVerbose(boolean verbose) {
         if ( verbose )
             options.verbose();
+    }
+
+    public List<String> getExclude() {
+        return options.getExclude();
+    }
+
+    public void exclude(String ... exclude) {
+        options.exclude(exclude);
     }
 
     ExistingDirsFilter getExistentDirsFilter() {

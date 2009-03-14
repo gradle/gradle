@@ -156,7 +156,5 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions sourceNames(String ... sourceNames);
 
-    MinimalJavadocOptions showFromPackaged();
-
     void contributeCommandLineOptions(ExecHandleBuilder execHandleBuilder);
 }

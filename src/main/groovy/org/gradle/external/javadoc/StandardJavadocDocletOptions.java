@@ -305,13 +305,13 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         this.links.setValue(links);
     }
 
-    public StandardJavadocDocletOptions link(String ... links) {
+    public StandardJavadocDocletOptions links(String ... links) {
         this.links.getValue().addAll(Arrays.asList(links));
         return this;
     }
 
-    public StandardJavadocDocletOptions linkFile(File linkFile) {
-        return (StandardJavadocDocletOptions) optionFiles(linkFile);
+    public StandardJavadocDocletOptions linksFile(File linksFile) {
+        return (StandardJavadocDocletOptions) optionFiles(linksFile);
     }
 
     /**
@@ -688,7 +688,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions noSerialWarn() {
+    public StandardJavadocDocletOptions serialWarn() {
         return serialWarn(true);
     }
 
@@ -881,7 +881,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions noQualifier(String ... noQualifiers) {
+    public StandardJavadocDocletOptions noQualifiers(String ... noQualifiers) {
         return noQualifier(Arrays.asList(noQualifiers));
     }
 
@@ -903,7 +903,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions timestamp() {
+    public StandardJavadocDocletOptions noTimestamp() {
         return noTimestamp(true);
     }
 

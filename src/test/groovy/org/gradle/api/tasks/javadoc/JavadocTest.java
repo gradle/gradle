@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.DependencyManager;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
@@ -26,6 +27,10 @@ import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.JMockUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.exec.ExecHandle;
+import org.gradle.util.exec.ExecHandleState;
+import org.gradle.external.javadoc.JavadocExecHandleBuilder;
+import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
@@ -35,9 +40,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.After;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 
@@ -47,7 +54,8 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private final List<File> srcDirs = WrapUtil.toList(new File("srcdir"));
     private final File destDir = new File("destdir");
     private final List<File> classpath = WrapUtil.toList(new File("classpath"));
-    private AntJavadoc antJavadoc;
+    private JavadocExecHandleBuilder javadocExecHandleBuilderMock;
+    private ExecHandle execHandleMock;
     private Javadoc task;
     private ExistingDirsFilter existingDirsFilter;
     private DependencyManager dependencyManager;
@@ -58,21 +66,37 @@ public class JavadocTest extends AbstractConventionTaskTest {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
 
-        antJavadoc = context.mock(AntJavadoc.class);
+        javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);
+        execHandleMock = context.mock(ExecHandle.class);
         existingDirsFilter = context.mock(ExistingDirsFilter.class);
         dependencyManager = context.mock(DependencyManager.class);
         configurationMock = context.mock(ConfigurationResolver.class);
 
         task = new Javadoc(getProject(), AbstractTaskTest.TEST_TASK_NAME);
-//        task.setAntJavadoc(antJavadoc);
         task.setExistentDirsFilter(existingDirsFilter);
         task.setDependencyManager(dependencyManager);
         task.setResolveInstruction(new ConfigurationResolveInstructionModifier("testConf"));
         JMockUtil.configureResolve(context, task.getResolveInstruction(), dependencyManager, configurationMock, classpath);
+        task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
     }
 
     public AbstractTask getTask() {
         return task;
+    }
+
+    private void expectJavadocExecHandle() {
+        context.checking(new Expectations(){{
+            one(javadocExecHandleBuilderMock).execDirectory(getProject().getRootDir());
+            will(returnValue(javadocExecHandleBuilderMock));
+            one(javadocExecHandleBuilderMock).options(task.getOptions());
+            will(returnValue(javadocExecHandleBuilderMock));
+            one(javadocExecHandleBuilderMock).optionsFilename("javadoc.options");
+            will(returnValue(javadocExecHandleBuilderMock));
+            one(javadocExecHandleBuilderMock).destinationDirectory(destDir);
+            will(returnValue(javadocExecHandleBuilderMock));
+            one(javadocExecHandleBuilderMock).getExecHandle();
+            will(returnValue(execHandleMock));
+        }});
     }
 
     @Test
@@ -84,9 +108,13 @@ public class JavadocTest extends AbstractConventionTaskTest {
             {
                 one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
                 will(returnValue(srcDirs));
-                one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, false, getProject().getAnt());
             }
         });
+        expectJavadocExecHandle();
+        context.checking(new Expectations(){{
+            one(execHandleMock).startAndWaitForFinish();
+            will(returnValue(ExecHandleState.SUCCEEDED));
+        }});
 
         task.execute();
     }
@@ -101,9 +129,13 @@ public class JavadocTest extends AbstractConventionTaskTest {
         context.checking(new Expectations() {{
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
-
-            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, EMPTY_LIST, EMPTY_LIST, false, getProject().getAnt());
-            will(throwException(failure));
+        }});
+        expectJavadocExecHandle();
+        context.checking(new Expectations(){{
+            one(execHandleMock).startAndWaitForFinish();
+            will(returnValue(ExecHandleState.FAILED));
+            one(execHandleMock).getFailureCause();
+            will(returnValue(failure));
         }});
 
         try {
@@ -126,8 +158,11 @@ public class JavadocTest extends AbstractConventionTaskTest {
         context.checking(new Expectations() {{
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
-
-            one(antJavadoc).execute(srcDirs, destDir, classpath, "title", "max-memory", EMPTY_LIST, EMPTY_LIST, true, getProject().getAnt());
+        }});
+        expectJavadocExecHandle();
+        context.checking(new Expectations(){{
+            one(execHandleMock).startAndWaitForFinish();
+            will(returnValue(ExecHandleState.SUCCEEDED));
         }});
 
         task.execute();
@@ -138,15 +173,23 @@ public class JavadocTest extends AbstractConventionTaskTest {
         task.setDestinationDir(destDir);
         task.setSrcDirs(srcDirs);
 //        task.include("include");
-//        task.exclude("exclude");
+        task.getOptions().exclude("exclude");
 
         context.checking(new Expectations() {{
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
             will(returnValue(srcDirs));
-
-            one(antJavadoc).execute(srcDirs, destDir, classpath, null, null, WrapUtil.toList("include"), WrapUtil.toList("exclude"), false, getProject().getAnt());
+        }});
+        expectJavadocExecHandle();
+        context.checking(new Expectations(){{
+            one(execHandleMock).startAndWaitForFinish();
+            will(returnValue(ExecHandleState.SUCCEEDED));
         }});
 
         task.execute();
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        FileUtils.deleteDirectory(destDir);
     }
 }

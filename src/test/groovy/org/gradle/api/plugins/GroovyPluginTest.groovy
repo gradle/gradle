@@ -65,9 +65,9 @@ class GroovyPluginTest {
 
         task = project.tasks[JavaPlugin.JAVADOC]
         assertThat(task, instanceOf(Javadoc.class))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
-        assertThat(task.excludes, hasItem('**/*.groovy'))
+        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
+        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+        assertThat(((Javadoc)task).exclude, hasItem('**/*.groovy'))
 
         task = project.tasks[GroovyPlugin.GROOVYDOC]
         assertThat(task, instanceOf(Groovydoc.class))

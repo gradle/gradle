@@ -113,10 +113,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions showFromPackaged() {
-        return showFromPackage();
-    }
-
     public void contributeCommandLineOptions(ExecHandleBuilder execHandleBuilder) {
         execHandleBuilder
             .prependedStringArguments("-J", jFlags) // J flags can not be set in the option file
