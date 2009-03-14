@@ -20,9 +20,9 @@ import static org.hamcrest.Matchers.*
 
 public class CommandLine {
 
-    static void execute(String gradleHome, String samplesDirPath) {
-        File javaprojectDir = new File(samplesDirPath, 'javaproject')
-        Map result = Executer.execute(gradleHome, javaprojectDir.absolutePath, ['unknown'], [], '', Executer.QUIET, true)
+    static void execute(GradleDistribution dist) {
+        File javaprojectDir = new File(dist.samplesDir, 'javaproject')
+        Map result = Executer.execute(dist.gradleHomeDir.absolutePath, javaprojectDir.absolutePath, ['unknown'], [], '', Executer.QUIET, true)
         assertThat(result.error, containsString("Task 'unknown' not found "))
     }
 }

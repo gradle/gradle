@@ -27,8 +27,9 @@ import org.junit.Assert
  * @author Hans Dockter
  */
 class PomGeneration {
-    static void execute(String gradleHome, String samplesDirName) {
-        File pomProjectDir = new File(samplesDirName, 'pomGeneration')
+    static void execute(GradleDistribution dist) {
+        String gradleHome = dist.gradleHomeDir.absolutePath
+        File pomProjectDir = new File(dist.samplesDir, 'pomGeneration')
         File repoDir = new File(pomProjectDir, "pomRepo");
         FileUtils.deleteQuietly(repoDir)
         checkWithNoCustomVersion(gradleHome, pomProjectDir, repoDir);
@@ -86,10 +87,4 @@ class PomGeneration {
         XMLAssert.assertXMLEqual(diff, true);
         Assert.assertThat(actualXml, Matchers.startsWith(String.format('<?xml version="1.0" encoding="UTF-8"?>%n<!-- mylicenseheader -->')))
     }
-
-    static void main(String[] args) {
-        execute(args[0], args[1])
-    }
-
-
 }

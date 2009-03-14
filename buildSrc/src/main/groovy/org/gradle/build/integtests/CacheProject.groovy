@@ -23,15 +23,15 @@ import org.junit.Assert
  */
 class CacheProject {
     static final String TEST_FILE = "build/test.txt"
-    static void execute(String gradleHome, String samplesDirName) {
-        File cacheProjectDir = new File(samplesDirName, "cache-project")
+    static void execute(GradleDistribution dist) {
+        File cacheProjectDir = new File(dist.samplesDir, "cache-project")
         cacheProjectDir.mkdirs();
         createLargeBuildScript(cacheProjectDir)
-        testBuild(cacheProjectDir, gradleHome, "hello1", String.format("Hello 1"))
+        testBuild(cacheProjectDir, dist.gradleHomeDir, "hello1", String.format("Hello 1"))
         changeCacheVersionProperty(cacheProjectDir)
-        testBuild(cacheProjectDir, gradleHome, "hello2", String.format("Hello 2"))
+        testBuild(cacheProjectDir, dist.gradleHomeDir, "hello2", String.format("Hello 2"))
         modifyLargeBuildScript(cacheProjectDir)
-        testBuild(cacheProjectDir, gradleHome, "newTask", String.format("I am new"))
+        testBuild(cacheProjectDir, dist.gradleHomeDir, "newTask", String.format("I am new"))
     }
 
     private static def changeCacheVersionProperty(File cacheProjectDir) {
@@ -45,8 +45,8 @@ class CacheProject {
         propertiesOutputStream.close()
     }
 
-    private static def testBuild(File cacheProjectDir, String gradleHome, String taskName, String expected) {
-        Executer.execute(gradleHome, cacheProjectDir.absolutePath, [taskName], [], '', Executer.QUIET)
+    private static def testBuild(File cacheProjectDir, File gradleHome, String taskName, String expected) {
+        Executer.execute(gradleHome.absolutePath, cacheProjectDir.absolutePath, [taskName], [], '', Executer.QUIET)
         Assert.assertEquals(expected, new File(cacheProjectDir, TEST_FILE).text)
     }
 
@@ -81,9 +81,5 @@ createTask('newTask') {
 }
 """
         buildFile.write(newContent) 
-    }
-
-    static void main(String[] args) {
-        execute(args[0], args[1])
     }
 }

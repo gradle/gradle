@@ -29,9 +29,9 @@ class Userguide {
     private static Logger logger = LoggerFactory.getLogger(Userguide)
     static String NL = System.properties['line.separator']
 
-    static void execute(File gradleHome, File samplesDir, File userguideOutputDir, File userguideInfoDir) {
-        checkApiLinks(gradleHome, userguideInfoDir)
-        checkSamples(gradleHome, samplesDir, userguideOutputDir, userguideInfoDir)
+    static void execute(GradleDistribution dist) {
+        checkApiLinks(dist.gradleHomeDir, dist.userGuideInfoDir)
+        checkSamples(dist.gradleHomeDir, dist.samplesDir, dist.userGuideOutputDir, dist.userGuideInfoDir)
     }
 
     private static def checkApiLinks(File gradleHome, File userguideInfoDir) {

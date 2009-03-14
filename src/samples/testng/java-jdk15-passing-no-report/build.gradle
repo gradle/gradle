@@ -1,5 +1,3 @@
-import org.gradle.api.dependencies.Artifact
-
 usePlugin(org.gradle.api.plugins.JavaPlugin)
 
 version='0.1'
@@ -14,9 +12,12 @@ dependencies {
 	addFlatDirResolver('testng-lib',libDir).addArtifactPattern(new File(libDir.absolutePath, '[artifact](-[revision])(-[conf]).[ext]').absolutePath) 
 
 	clientModule(['testCompile'],'testng:testng:5.8:jdk15') {
-		Artifact testngArtifact = new Artifact('testng','jar','jar',null, null)
-		testngArtifact.setConfs(['jdk15'])
-		addArtifact(testngArtifact)
+	    artifact {
+	        name = 'testng'
+	        type = 'jar'
+	        extension = 'jar'
+	        confs = ['jdk15']
+        }
 	}
 }
 

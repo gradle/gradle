@@ -16,27 +16,35 @@
 
 package org.gradle.build.integtests
 
+import org.gradle.build.integtests.testng.TestNGIntegration
+
 /**
  * @author Hans Dockter
  */
 class IntegTestSuite {
     static void execute(File distDir, File samplesDir, File userguideOutputDir, File userguideDir) {
-        String distDirPath = distDir.absolutePath
-        String samplesDirPath = samplesDir.absolutePath
-        Userguide.execute(distDir, samplesDir, userguideOutputDir, userguideDir)
-        CacheProject.execute(distDirPath, samplesDirPath)
-        CommandLine.execute(distDirPath, samplesDirPath)
-        WrapperProject.execute(distDirPath, samplesDirPath)
-        JavaProject.execute(distDirPath, samplesDirPath)
-        GroovyProject.execute(distDirPath, samplesDirPath)
-        WebProject.execute(distDirPath, samplesDirPath)
-        Logging.execute(distDirPath, samplesDirPath)
-        Osgi.execute(distDirPath, samplesDirPath)
-        PomGeneration.execute(distDirPath, samplesDirPath)
-        WaterProject.execute(distDirPath, samplesDirPath)
-        org.gradle.build.integtests.Version.execute(distDirPath)
-        MavenRepo.execute(distDirPath, samplesDirPath)
-        deleteGradleDirs(samplesDirPath)
+        GradleDistribution dist = [
+                getGradleHomeDir: {-> distDir},
+                getSamplesDir: {-> samplesDir},
+                getUserGuideInfoDir: {-> userguideDir},
+                getUserGuideOutputDir: {-> userguideOutputDir}
+        ] as GradleDistribution
+
+        TestNGIntegration.execute(dist)
+        Userguide.execute(dist)
+        CacheProject.execute(dist)
+        CommandLine.execute(dist)
+        WrapperProject.execute(dist)
+        JavaProject.execute(dist)
+        GroovyProject.execute(dist)
+        WebProject.execute(dist)
+        Logging.execute(dist)
+        Osgi.execute(dist)
+        PomGeneration.execute(dist)
+        WaterProject.execute(dist)
+        Version.execute(dist)
+        MavenRepo.execute(dist)
+        deleteGradleDirs(samplesDir.absolutePath)
     }
 
     private static void deleteGradleDirs(String samplesDirPath) {

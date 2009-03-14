@@ -23,7 +23,8 @@ class GroovyProject {
     static final String GROOVY_PROJECT_NAME = 'groovyproject'
     static final String TEST_PROJECT_NAME = 'testproject'
 
-    static void execute(String gradleHome, String samplesDirName) {
+    static void execute(GradleDistribution dist) {
+        String gradleHome = dist.gradleHomeDir.absolutePath
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
 
@@ -31,7 +32,7 @@ class GroovyProject {
         List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
         List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
-        File groovyProjectDir = new File(samplesDirName, GROOVY_PROJECT_NAME)
+        File groovyProjectDir = new File(dist.samplesDir, GROOVY_PROJECT_NAME)
         File testProjectDir = new File(groovyProjectDir, TEST_PROJECT_NAME)
 
         // Build libs
@@ -59,10 +60,4 @@ class GroovyProject {
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
         assert !(new File(testProjectDir, "build").exists())
     }
-
-    static void main(String[] args) {
-        execute(args[0], args[1])
-    }
-
-
 }

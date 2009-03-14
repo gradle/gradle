@@ -22,12 +22,12 @@ import org.gradle.build.samples.WrapperProjectCreator
  * @author Hans Dockter
  */
 class WrapperProject {
-    static void execute(String gradleHome, String samplesDirName) {
+    static void execute(GradleDistribution dist) {
         String nl = System.properties['line.separator']
-        File waterDir = new File(samplesDirName, WrapperProjectCreator.WRAPPER_PROJECT_NAME)
+        File waterDir = new File(dist.samplesDir, WrapperProjectCreator.WRAPPER_PROJECT_NAME)
 
-        Executer.execute(gradleHome, waterDir.absolutePath, [WrapperProjectCreator.WRAPPER_TASK_NAME])
-        Map result = Executer.executeWrapper(gradleHome, waterDir.absolutePath,
+        Executer.execute(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, [WrapperProjectCreator.WRAPPER_TASK_NAME])
+        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, waterDir.absolutePath,
                 [WrapperProjectCreator.TEST_TASK_NAME])
         String compareValue =  result.output.substring(result.output.size() - WrapperProjectCreator.TEST_TASK_OUTPUT.size() - nl.size())
         assert  compareValue == WrapperProjectCreator.TEST_TASK_OUTPUT + nl

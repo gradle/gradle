@@ -22,9 +22,6 @@ import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import static org.junit.Assert.assertTrue
 
-
-
-
 /**
  * @author Hans Dockter
  */
@@ -36,11 +33,12 @@ class JavaProject {
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_1_PATH = "$SERVICES_NAME/$WEBAPP_1_NAME" as String
 
-    static void execute(String gradleHome, String samplesDirName) {
+    static void execute(GradleDistribution dist) {
+        String gradleHome = dist.gradleHomeDir.absolutePath
         List projects = [SHARED_NAME, API_NAME, WEBAPP_1_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
-        File javaprojectDir = new File(samplesDirName, 'javaproject')
+        File javaprojectDir = new File(dist.samplesDir, 'javaproject')
 
         // Build and test projects
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'test'], [], '', Executer.DEBUG)
@@ -84,7 +82,7 @@ class JavaProject {
 
         // This test is also important for test cleanup
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
-        projects.each {assert !(new File(samplesDirName, "$it/build").exists())}
+        projects.each {assert !(new File(dist.samplesDir, "$it/build").exists())}
 
         checkEclipse(javaprojectDir, gradleHome)
     }
@@ -153,10 +151,6 @@ class JavaProject {
             }
             throw e
         }
-    }
-
-    static void main(String[] args) {
-        execute(args[0], args[1])
     }
 
     static String fileText(File baseDir, String[] path) {

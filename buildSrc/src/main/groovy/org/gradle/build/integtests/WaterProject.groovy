@@ -35,8 +35,9 @@ class WaterProject {
     final static String KRILL_NAME = 'krill'
     final static String PHYTOPLANKTON_NAME = 'phytoplankton'
 
-    static void execute(String gradleHome, String samplesDirName) {
-        File waterDir = new File(samplesDirName, WATER_NAME)
+    static void execute(GradleDistribution dist) {
+        String gradleHome = dist.gradleHomeDir.absolutePath
+        File waterDir = new File(dist.samplesDir, WATER_NAME)
         String taskName = 'hello'
         Map result = Executer.execute(gradleHome, waterDir.absolutePath, [taskName])
         assert result.output == list2text([intro(WATER_NAME), WATER_INFO,

@@ -20,7 +20,7 @@ package org.gradle.build.integtests
  * @author Hans Dockter
  */
 class Version {
-    static void execute(String gradleHome) {
-        Executer.execute(gradleHome, System.properties['user.dir'], ['-v'])
+    static void execute(GradleDistribution dist) {
+        Executer.execute(dist.gradleHomeDir.absolutePath, System.properties['user.dir'], ['-v'])
     }
 }

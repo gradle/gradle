@@ -25,8 +25,9 @@ import org.junit.Assert
 class Logging {
     final static String PREFIX = "276hfe7qlk3sl'aspeie"
     
-    static void execute(String gradleHome, String samplesDirName) {
-        String loggingDir = new File(samplesDirName, 'logging').absolutePath
+    static void execute(GradleDistribution dist) {
+        String gradleHome = dist.gradleHomeDir.absolutePath
+        String loggingDir = new File(dist.samplesDir, 'logging').absolutePath
         List quietOuts = ['Out', 'Log', 'TaskOut', 'Project2Out']
         List lifecycleOuts = ['TaskOut']
         List infoOuts = ['Out', 'Log', 'TaskOut']
@@ -62,9 +63,5 @@ class Logging {
         outs.each { expectedOut ->
             Assert.assertEquals(prefix, shouldContain, result.contains(prefix + expectedOut))
         }
-    }
-
-    static void main(String[] args) {
-        execute(args[0], args[1])
     }
 }

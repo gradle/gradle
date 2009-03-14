@@ -24,8 +24,9 @@ import org.junit.Assert
 class WebProject {
     static final String WEB_PROJECT_NAME = 'web-project'
 
-    static void execute(String gradleHome, String samplesDirName) {
-        File webProjectDir = new File(samplesDirName, WEB_PROJECT_NAME)
+    static void execute(GradleDistribution dist) {
+        String gradleHome = dist.gradleHomeDir.absolutePath
+        File webProjectDir = new File(dist.samplesDir, WEB_PROJECT_NAME)
         Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
         String unjarPath = "$webProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()
@@ -39,10 +40,6 @@ class WebProject {
         checkJettyPlugin(gradleHome, webProjectDir)
 
         Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)
-    }
-
-    static void main(String[] args) {
-        execute(args[0], args[1])
     }
 
     static void checkJettyPlugin(String gradleHome, File webProjectDir) {

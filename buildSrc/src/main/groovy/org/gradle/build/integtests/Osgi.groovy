@@ -24,10 +24,10 @@ import static org.junit.Assert.assertTrue
  * @author Hans Dockter
  */
 class Osgi {
-    static void execute(String gradleHome, String samplesDirName) {
+    static void execute(GradleDistribution dist) {
         long start = System.currentTimeMillis()
-        File osgiProjectDir = new File(samplesDirName, 'osgi')
-        Executer.execute(gradleHome, osgiProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
+        File osgiProjectDir = new File(dist.samplesDir, 'osgi')
+        Executer.execute(dist.gradleHomeDir.absolutePath, osgiProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
         AntBuilder ant = new AntBuilder()
         ant.unjar(src: "$osgiProjectDir/build/osgi-1.0.jar", dest: "$osgiProjectDir/build")
         Manifest manifest = new Manifest(new FileInputStream("$osgiProjectDir/build/META-INF/MANIFEST.MF"))
@@ -42,9 +42,5 @@ class Osgi {
         assertTrue(start <= Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')))
         assertEquals('1.0.0', manifest.mainAttributes.getValue('Bundle-Version'))
         assertEquals('gradle.osgi', manifest.mainAttributes.getValue('Bundle-SymbolicName'))
-    }
-
-    static void main(String[] args) {
-        execute(args[0], args[1])
     }
 }

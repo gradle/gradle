@@ -4,6 +4,7 @@ package org.gradle.build.integtests.testng
  */
 import static org.gradle.build.integtests.testng.TestNGIntegrationProject.*
 import org.gradle.build.integtests.Executer;
+import org.gradle.build.integtests.GradleDistribution;
 
 public class TestNGIntegration {
     static final String GROOVY = "groovy"
@@ -54,20 +55,19 @@ public class TestNGIntegration {
         checkExists(projectDir, 'build/reports/tests/emailable-report.html')
     })
 
-    static void execute(String gradleHome, String samplesDirName) {
+    static void execute(GradleDistribution dist) {
         final List projects =
             [   SUITE_XML_BUILDER,
                 GROOVY_JDK15_FAILING, GROOVY_JDK15_PASSING,
                 JAVA_JDK14_FAILING, JAVA_JDK14_PASSING, JAVA_JDK15_FAILING, JAVA_JDK15_PASSING, JAVA_JDK15_PASSING_NO_REPORT]
 
         projects.each { it ->
-            final File projectDir = new File(new File(samplesDirName, "testng"), it.name)
+            final File projectDir = new File(new File(dist.samplesDir, "testng"), it.name)
 
-            final Map result = Executer.execute(gradleHome, projectDir.absolutePath, ['clean', 'test'], [], '', Executer.QUIET, it.expectFailure)
+            final Map result = Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['clean', 'test'], [], '', Executer.QUIET, it.expectFailure)
 
             // output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand
             it.doAssert(projectDir, result)
-            
         }
     }
 
