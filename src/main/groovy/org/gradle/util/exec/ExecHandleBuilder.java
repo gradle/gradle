@@ -13,10 +13,12 @@ public class ExecHandleBuilder {
     private File execDirectory;
     private String execCommand;
     private final List<String> arguments = new ArrayList<String>();
+    private int normalTerminationExitCode = 0;
     private Map<String, String> environment = new HashMap<String, String>();
     private long keepWaitingTimeout = 100;
     private ExecOutputHandle standardOutputHandle;
     private ExecOutputHandle errorOutputHandle;
+    private ExecHandleNotifierFactory notifierFactory;
     private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
 
     public ExecHandleBuilder() {
@@ -26,6 +28,7 @@ public class ExecHandleBuilder {
     public ExecHandleBuilder(boolean outputDirectFlush) {
         standardOutputHandle = new StreamWriterExecOutputHandle(System.out, outputDirectFlush);
         errorOutputHandle = new StreamWriterExecOutputHandle(System.err, outputDirectFlush);
+        notifierFactory = new DefaultExecHandleNotifierFactory();
     }
 
     public ExecHandleBuilder(File execDirectory) {
@@ -54,7 +57,7 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    private File getExecDirectory() {
+    public File getExecDirectory() {
         if ( execDirectory == null )
             return new File("."); // current directory
         return execDirectory;
@@ -79,6 +82,11 @@ public class ExecHandleBuilder {
     public ExecHandleBuilder arguments(String ... arguments) {
         if ( arguments == null ) throw new IllegalArgumentException("arguments == null!");
         this.arguments.addAll(Arrays.asList(arguments));
+        return this;
+    }
+
+    public ExecHandleBuilder normalTerminationExitCode(int normalTerminationExitCode) {
+        this.normalTerminationExitCode = normalTerminationExitCode;
         return this;
     }
 
@@ -161,6 +169,12 @@ public class ExecHandleBuilder {
         return this;
     }
 
+    public ExecHandleBuilder notifierFactory(ExecHandleNotifierFactory notifierFactory) {
+        if ( notifierFactory == null ) throw new IllegalArgumentException("notifierFactory == null!");
+        this.notifierFactory = notifierFactory;
+        return this;
+    }
+
     public ExecHandle getExecHandle() {
         if ( StringUtils.isEmpty(execCommand) )
             throw new IllegalStateException("execCommand == null!");
@@ -169,10 +183,12 @@ public class ExecHandleBuilder {
                 execDirectory,
                 execCommand,
                 arguments,
+                normalTerminationExitCode,
                 environment,
                 keepWaitingTimeout,
                 standardOutputHandle,
                 errorOutputHandle,
+                notifierFactory,
                 listeners);
     }
 

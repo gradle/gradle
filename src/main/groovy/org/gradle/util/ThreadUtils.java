@@ -52,7 +52,11 @@ public class ThreadUtils {
         }
     }
 
-    public static void run(Runnable runnable) {
-        new Thread(runnable).start();
+    public static Thread run(Runnable runnable) {
+        final Thread runnableThread = new Thread(runnable);
+
+        runnableThread.start();
+
+        return runnableThread;
     }
 }

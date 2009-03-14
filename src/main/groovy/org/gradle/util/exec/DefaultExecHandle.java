@@ -17,6 +17,7 @@ public class DefaultExecHandle implements ExecHandle {
     private final File directory;
     private final String command;
     private final List<String> arguments;
+    private final int normalTerminationExitCode;
     private final Map<String, String> environment;
     private final long keepWaitingTimeout;
 
@@ -34,12 +35,14 @@ public class DefaultExecHandle implements ExecHandle {
     private int exitCode;
     private Throwable failureCause;
 
+    private final ExecHandleNotifierFactory notifierFactory;
     private final List<ExecHandleListener> listeners = new CopyOnWriteArrayList<ExecHandleListener>();
 
-    DefaultExecHandle(File directory, String command, List<String> arguments, Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle, ExecOutputHandle errorOutputHandle, List<ExecHandleListener> listeners) {
+    DefaultExecHandle(File directory, String command, List<String> arguments, int normalTerminationExitCode, Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle, ExecOutputHandle errorOutputHandle, ExecHandleNotifierFactory notifierFactory, List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
         this.arguments = arguments;
+        this.normalTerminationExitCode = normalTerminationExitCode;
         this.environment = environment;
         this.keepWaitingTimeout = keepWaitingTimeout;
         this.standardOutputHandle = standardOutputHandle;
@@ -48,6 +51,7 @@ public class DefaultExecHandle implements ExecHandle {
         this.state = ExecHandleState.INIT;
         this.execHandleRunLock = new ReentrantLock();
         this.endStateInfoLock = new ReentrantLock();
+        this.notifierFactory = notifierFactory;
         if ( listeners != null && !listeners.isEmpty() )
             this.listeners.addAll(listeners);
     }
@@ -122,7 +126,7 @@ public class DefaultExecHandle implements ExecHandle {
 
     public int getExitCode() {
         if ( stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED) )
-            throw new IllegalStateException("not in finished or failed state!");
+            throw new IllegalStateException("not in succeeded or failed state!");
         endStateInfoLock.lock();
         try {
             return exitCode;
@@ -223,32 +227,32 @@ public class DefaultExecHandle implements ExecHandle {
 
     void started() {
         setState(ExecHandleState.STARTED);
-        new Thread(new StartedNotifier(this, listeners)).start();
+        ThreadUtils.run(notifierFactory.createStartedNotifier(this));
     }
 
     void finished(int exitCode) {
-        if ( exitCode != 0 ) {
-            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException("exitCode != 0!"));
+        if ( exitCode != normalTerminationExitCode ) {
+            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException("exitCode != "+normalTerminationExitCode+"!"));
             shutdownThreadPool();
-            new Thread(new FailedNotifier(this, listeners)).start();
+            ThreadUtils.run(notifierFactory.createFailedNotifier(this));
         }
         else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
             shutdownThreadPool();
-            new Thread(new FinishedNotifier(this, listeners)).start();
+            ThreadUtils.run(notifierFactory.createSucceededNotifier(this));
         }
     }
 
     void aborted() {
         setState(ExecHandleState.ABORTED);
         shutdownThreadPool();
-        new Thread(new AbortedNotifier(this, listeners)).start();
+        ThreadUtils.run(notifierFactory.createAbortedNotifier(this));
     }
 
     void failed(Throwable failureCause) {
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
         shutdownThreadPool();
-        new Thread(new FailedNotifier(this, listeners)).start();
+        ThreadUtils.run(notifierFactory.createFailedNotifier(this));
     }
 
     public void addListeners(ExecHandleListener ... listeners) {
@@ -261,77 +265,8 @@ public class DefaultExecHandle implements ExecHandle {
         this.listeners.removeAll(Arrays.asList(listeners));
     }
 
-    private abstract class Notifier implements Runnable
+    public List<ExecHandleListener> getListeners()
     {
-        private final ExecHandle execHandle;
-        private final List<ExecHandleListener> listeners;
-
-        public Notifier(final ExecHandle execHandle, final List<ExecHandleListener> currentListeners) {
-            this.execHandle = execHandle;
-            this.listeners = new ArrayList<ExecHandleListener>(currentListeners);
-        }
-
-        public void run() {
-            final Iterator<ExecHandleListener> listenersIt = listeners.iterator();
-            boolean keepNotifing = true;
-            while ( keepNotifing && listenersIt.hasNext() ) {
-                final ExecHandleListener listener = listenersIt.next();
-                try {
-                    keepNotifing = notifyListener(execHandle, listener);
-                }
-                catch ( Throwable t ) {
-                    // ignore
-                    // TODO listenerNotificationFailureHandle.listenerFailed(execHandle, listener)
-                    // TODO may be interesting for e.g. when an log writer fails remove it and add an email sender
-                    // TODO but for now ignore it
-                }
-            }
-        }
-
-        protected abstract boolean notifyListener(ExecHandle execHandle, ExecHandleListener listener);
-    }
-
-    private class StartedNotifier extends Notifier {
-        public StartedNotifier(final ExecHandle execHandle, final List<ExecHandleListener> currentListeners) {
-            super(execHandle, currentListeners);
-        }
-
-        protected boolean notifyListener(ExecHandle execHandle, ExecHandleListener listener) {
-            listener.executionStarted(execHandle);
-            return true;
-        }
-    }
-
-    private class FinishedNotifier extends Notifier {
-        public FinishedNotifier(final ExecHandle execHandle, final List<ExecHandleListener> currentListeners) {
-            super(execHandle, currentListeners);
-        }
-
-        protected boolean notifyListener(ExecHandle execHandle, ExecHandleListener listener) {
-            listener.executionFinished(execHandle);
-            return true;
-        }
-    }
-
-    private class AbortedNotifier extends Notifier {
-        public AbortedNotifier(final ExecHandle execHandle, final List<ExecHandleListener> currentListeners) {
-            super(execHandle, currentListeners);
-        }
-
-        protected boolean notifyListener(ExecHandle execHandle, ExecHandleListener listener) {
-            listener.executionAborted(execHandle);
-            return true;
-        }
-    }
-
-    private class FailedNotifier extends Notifier {
-        public FailedNotifier(final ExecHandle execHandle, final List<ExecHandleListener> currentListeners) {
-            super(execHandle, currentListeners);
-        }
-
-        protected boolean notifyListener(ExecHandle execHandle, ExecHandleListener listener) {
-            listener.executionFailed(execHandle);
-            return true;
-        }
+        return Collections.unmodifiableList(listeners);
     }
 }

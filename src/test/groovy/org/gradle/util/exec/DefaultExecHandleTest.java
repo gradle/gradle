@@ -24,11 +24,12 @@ public class DefaultExecHandleTest {
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
                 ""+System.getProperty("java.home")+"/../bin/javadoc",
-                Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"),
+                Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"), 0,
                 System.getenv(),
                 100,
                 outHandle,
                 errHandle,
+                new DefaultExecHandleNotifierFactory(),
                 null
         );
 
@@ -48,11 +49,12 @@ public class DefaultExecHandleTest {
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
                 ""+System.getProperty("java.home")+"/../bin/javadoc",
-                Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"),
+                Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"), 0,
                 System.getenv(),
                 100,
                 outHandle,
                 errHandle,
+                new DefaultExecHandleNotifierFactory(), 
                 null
         );
 
