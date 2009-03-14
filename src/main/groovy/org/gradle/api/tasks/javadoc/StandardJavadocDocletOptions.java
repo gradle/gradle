@@ -261,10 +261,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    public StandardJavadocDocletOptions footerFile(File footerFile) {
-        return (StandardJavadocDocletOptions) singleOptionFile("footer", footerFile);
-    }
-
     void writeFooter(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( footer != null ) {
             writeValueOption(FOOTER, footer, javadocOptionFileWriter);
@@ -292,10 +288,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
     public StandardJavadocDocletOptions bottom(String bottom) {
         setBottom(bottom);
         return this;
-    }
-
-    public StandardJavadocDocletOptions bottomFile(File bottomFile) {
-        return (StandardJavadocDocletOptions)singleOptionFile("bottom", bottomFile);
     }
 
     void writeBottom(BufferedWriter javadocOptionFileWriter) throws IOException {

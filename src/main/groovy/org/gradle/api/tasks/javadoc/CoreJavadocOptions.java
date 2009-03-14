@@ -1,7 +1,5 @@
 package org.gradle.api.tasks.javadoc;
 
-import org.gradle.util.GUtil;
-
 import java.io.File;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -169,16 +167,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions docletClasspathFile(File docletClasspathFile) {
-        return singleOptionFile(DOCLETPATH, docletClasspathFile);
-    }
-
     void writeDocletClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( docletClasspath != null && !docletClasspath.isEmpty() ) {
             writePathOption(DOCLETPATH, docletClasspath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-        else {
-            writeOptionValueFile(DOCLETPATH, javadocOptionFileWriter);
         }
     }
 
@@ -270,16 +261,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions sourcepathFile(File sourcepathFile) {
-        return singleOptionFile(SOURCEPATH, sourcepathFile);
-    }
-
     void writeSourcepath(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( sourcepath != null && !sourcepath.isEmpty() ) {
             writePathOption(SOURCEPATH, sourcepath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-        else {
-            writeOptionValueFile(SOURCEPATH, javadocOptionFileWriter);
         }
     }
 
@@ -327,16 +311,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions classpathFile(File classpathFile) {
-        return singleOptionFile(CLASSPATH, classpathFile);
-    }
-
     void writeClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( classpath != null && !classpath.isEmpty() ) {
             writePathOption(CLASSPATH, classpath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-        else {
-            writeOptionValueFile(CLASSPATH, javadocOptionFileWriter);
         }
     }
 
@@ -375,16 +352,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions subPackagesFile(File subPackagesFile) {
-        return singleOptionFile(SUBPACKAGES, subPackagesFile);
-    }
-
     void writeSubPackages(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( subPackages != null && !subPackages.isEmpty() ) {
             writeValuesOption(SUBPACKAGES, subPackages, ";", javadocOptionFileWriter);
-        }
-        else {
-            writeOptionValueFile(SUBPACKAGES, javadocOptionFileWriter);
         }
     }
 
@@ -417,16 +387,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions excludeFile(File excludeFile) {
-        return singleOptionFile(EXCLUDE, excludeFile);
-    }
-
     void writeExclude(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( exclude != null && !exclude.isEmpty() ) {
             writeValuesOption(EXCLUDE, exclude, ":", javadocOptionFileWriter);
-        }
-        else {
-            writeOptionValueFile(EXCLUDE, javadocOptionFileWriter);
         }
     }
 
@@ -452,16 +415,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions bootClasspathFile(File bootClasspathFile) {
-        return singleOptionFile(BOOTCLASSPATH, bootClasspathFile);
-    }
-
     void writeBootClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( bootClasspath != null && !bootClasspath.isEmpty() ) {
             writePathOption(BOOTCLASSPATH, bootClasspath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-        else {
-            writeOptionValueFile(BOOTCLASSPATH, javadocOptionFileWriter);
         }
     }
 
@@ -488,16 +444,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions extDirsFile(File extDirsOptionFile) {
-        return singleOptionFile(EXTDIRS, extDirsOptionFile);
-    }
-
     void writeExtDirs(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( extDirs != null && !extDirs.isEmpty() ) {
             writePathOption(EXTDIRS, extDirs, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-        else {
-            writeOptionValueFile(EXTDIRS, javadocOptionFileWriter);
         }
     }
 
@@ -701,21 +650,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions packageNames(File packageNamesFile) {
-        return singleOptionFile("packageNames", packageNamesFile);
-    }
-
     void writePackageNames(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( packageNames != null && !packageNames.isEmpty() ) {
             for ( String packageName : packageNames ) {
                 javadocOptionFileWriter.write(packageName);
-                javadocOptionFileWriter.newLine();
-            }
-        }
-        else {
-            if ( singleOptionFiles.containsKey("packageNames") ) {
-                javadocOptionFileWriter.write("@");
-                javadocOptionFileWriter.write(singleOptionFiles.get("packageNames").getAbsolutePath());
                 javadocOptionFileWriter.newLine();
             }
         }
@@ -736,21 +674,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    public MinimalJavadocOptions sourceNames(File sourceNamesFile) {
-        return singleOptionFile("sourceNames", sourceNamesFile);
-    }
-
     void writeSourceNames(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( sourceNames != null && !sourceNames.isEmpty() ) {
             for ( String packageName : sourceNames ) {
                 javadocOptionFileWriter.write(packageName);
-                javadocOptionFileWriter.newLine();
-            }
-        }
-        else {
-            if ( singleOptionFiles.containsKey("sourceNames") ) {
-                javadocOptionFileWriter.write("@");
-                javadocOptionFileWriter.write(singleOptionFiles.get("sourceNames").getAbsolutePath());
                 javadocOptionFileWriter.newLine();
             }
         }
@@ -778,21 +705,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
                 javadocOptionFileWriter.newLine();
             }
         }
-    }
-
-    private Map<String, File> singleOptionFiles = new HashMap<String, File>();
-
-    public Map<String, File> getSingleOptionFiles() {
-        return singleOptionFiles;
-    }
-
-    public void setSingleOptionFiles(Map<String, File> singleOptionFiles) {
-        this.singleOptionFiles = singleOptionFiles;
-    }
-
-    public MinimalJavadocOptions singleOptionFile(String optionName, File optionFile) {
-        this.singleOptionFiles.put(optionName, optionFile);
-        return this;
     }
 
     public void toOptionsFile(BufferedWriter javadocOptionFileWriter) throws IOException {
@@ -870,11 +782,5 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
     protected void writeOptionFileLink(File optionFile, BufferedWriter javadocOptionFileWriter) throws IOException {
         javadocOptionFileWriter.write("@");
         javadocOptionFileWriter.write(optionFile.getAbsolutePath());
-    }
-
-    private void writeOptionValueFile(String option, BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( singleOptionFiles.containsKey(option) ) {
-            writeValueOption(option, singleOptionFiles.get(option), javadocOptionFileWriter);
-        }
     }
 }

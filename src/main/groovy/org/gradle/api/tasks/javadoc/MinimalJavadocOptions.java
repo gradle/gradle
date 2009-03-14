@@ -42,8 +42,6 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions docletClasspath(File ... docletClasspath);
 
-    MinimalJavadocOptions docletClasspathFile(File docletClasspathFile);
-
     String getSource();
 
     void setSource(String source);
@@ -58,8 +56,6 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions sourcepath(File ... sourcepath);
 
-    MinimalJavadocOptions sourcepathFile(File sourcepathFile);
-
     List<File> getClasspath();
 
     void setClasspath(List<File> classpath);
@@ -68,15 +64,11 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions classpath(File ... classpath);
 
-    MinimalJavadocOptions classpathFile(File classpathFile);
-
     List<String> getSubPackages();
 
     void setSubPackages(List<String> subPackages);
 
     MinimalJavadocOptions subPackages(String ... subPackages);
-
-    MinimalJavadocOptions subPackagesFile(File subPackagesFile);
 
     List<String> getExclude();
 
@@ -84,23 +76,17 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions exclude(String ... exclude);
 
-    MinimalJavadocOptions excludeFile(File excludeFile);
-
     List<File> getBootClasspath();
 
     void setBootClasspath(List<File> bootClasspath);
 
     MinimalJavadocOptions bootClasspath(File ... bootClasspath);
 
-    MinimalJavadocOptions bootClasspathFile(File bootClasspathFile);
-
     List<File> getExtDirs();
 
     void setExtDirs(List<File> extDirs);
 
     MinimalJavadocOptions extDirs(File ... extDirs);
-
-    MinimalJavadocOptions extDirsFile(File extDirsOptionFile);
 
     JavadocOutputLevel getOutputLevel();
 
@@ -143,12 +129,6 @@ public interface MinimalJavadocOptions {
     void setOptionFiles(List<File> optionFiles);
 
     MinimalJavadocOptions optionFiles(File ... argumentFiles);
-
-    Map<String, File> getSingleOptionFiles();
-
-    void setSingleOptionFiles(Map<String, File> singleOptionFiles);
-
-    MinimalJavadocOptions singleOptionFile(String optionName, File optionFile);
 
     File getDirectory();
 
