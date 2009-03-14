@@ -21,11 +21,14 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.GUtil;
-
+import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.util.exec.ExecHandle;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
 
 /**
  * <p>Generates Javadoc from a number of java source directories.</p>
@@ -43,15 +46,9 @@ public class Javadoc extends ConventionTask {
 
     private String maxMemory;
 
-    private List<String> includes = new ArrayList<String>();
-
-    private List<String> excludes = new ArrayList<String>();
-
     private ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
-    private AntJavadoc antJavadoc = new AntJavadoc();
-
-    private boolean verbose = false;
+    private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
 
     private ConfigurationResolveInstructionModifier resolveInstructionModifier;
 
@@ -67,11 +64,48 @@ public class Javadoc extends ConventionTask {
     private void generate() {
         List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs());
         try {
-            antJavadoc.execute(existingSourceDirs, getDestinationDir(), getClasspath(), getTitle(), getMaxMemory(), getIncludes(), getExcludes(),
-                    verbose, getProject().getAnt());
-        } catch (BuildException e) {
-            throw new GradleException("Javadoc generation failed.", e);
+            final File javadocCommandLineFile = new File(getDestinationDir(), "javadoc.options");
+
+            storeJavadocOptions(existingSourceDirs, javadocCommandLineFile);
+
+            final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true)
+                    .execDirectory(getProject().getRootDir())
+                    .execCommand(System.getProperty("java.home")+"/bin/javadoc")
+                    .prependedArguments("-J", options.getJFlags()) // J flags can not be set in the option file
+                    .arguments("@"+javadocCommandLineFile.getAbsolutePath());
+            final ExecHandle execHandle = execHandleBuilder.getExecHandle();
+
+            switch ( execHandle.startAndWaitForFinish() ) {
+                case SUCCEEDED:
+                    // Javadoc generation successfull
+                    break;
+                case ABORTED:
+                    // TODO throw stop exception?
+                    break;
+                case FAILED:
+                    throw new GradleException("Javadoc generation failed.", execHandle.getFailureCause());
+                default:
+                    throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
+            }
+
         }
+        catch (BuildException e) {
+            throw new GradleException("Javadoc generation failed.", e);
+        } catch (IOException e) {
+            throw new GradleException("Faild to store javadoc options.", e);
+        }
+    }
+
+    private void storeJavadocOptions(List<File> existingSourceDirs, File javadocOptionsFile) throws IOException {
+        options.sourcepath(existingSourceDirs)
+                .directory(getDestinationDir())
+                .classpath(getClasspath())
+                .windowTitle(getTitle());
+
+        if ( maxMemory != null )
+            options.jFlags("-Xmx"+maxMemory);
+
+        options.toOptionsFile(new BufferedWriter(new FileWriter(javadocOptionsFile)));
     }
 
     /**
@@ -148,46 +182,6 @@ public class Javadoc extends ConventionTask {
     }
 
     /**
-     * <p>Adds include patterns to use to select the java source files to be documented.</p>
-     *
-     * @param includes A set of ant patterns.
-     * @return This task.
-     */
-    public Javadoc include(String... includes) {
-        GUtil.flatten(includes, this.includes);
-        return this;
-    }
-
-    /**
-     * <p>Adds exclude patterns to use to select the java source files to be documented.</p>
-     *
-     * @param excludes A set of ant patterns.
-     * @return This task.
-     */
-    public Javadoc exclude(String... excludes) {
-        GUtil.flatten(excludes, this.excludes);
-        return this;
-    }
-
-    /**
-     * Returns the include patterns to use to select the java source files to be documented.</p>
-     *
-     * @return The include patterns. Never returns null.
-     */
-    public List<String> getIncludes() {
-        return (List<String>) conv(includes, "includes");
-    }
-
-    /**
-     * Returns the exclude patterns to use to select the java source files to be documented.</p>
-     *
-     * @return The exclude patterns. Never returns null.
-     */
-    public List<String> getExcludes() {
-        return (List<String>) conv(excludes, "excludes");
-    }
-
-    /**
      * <p>Returns the {@link DependencyManager} which this task uses to resolve the classpath to use when generating the
      * documentation.</p>
      *
@@ -211,7 +205,7 @@ public class Javadoc extends ConventionTask {
      * @see #setVerbose(boolean) 
      */
     public boolean isVerbose() {
-        return verbose;
+        return options.isVerbose();
     }
 
     /**
@@ -221,15 +215,8 @@ public class Javadoc extends ConventionTask {
      * @param verbose Whether the output should be verbose.
      */
     public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    AntJavadoc getAntJavadoc() {
-        return antJavadoc;
-    }
-
-    void setAntJavadoc(AntJavadoc antJavadoc) {
-        this.antJavadoc = antJavadoc;
+        if ( verbose )
+            options.verbose();
     }
 
     ExistingDirsFilter getExistentDirsFilter() {
@@ -246,5 +233,13 @@ public class Javadoc extends ConventionTask {
 
     public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
         this.resolveInstructionModifier = resolveInstructionModifier;
+    }
+
+    public MinimalJavadocOptions getOptions() {
+        return options;
+    }
+
+    public void setOptions(MinimalJavadocOptions options) {
+        this.options = options;
     }
 }

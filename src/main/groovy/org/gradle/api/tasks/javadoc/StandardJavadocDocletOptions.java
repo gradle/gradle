@@ -6,7 +6,7 @@ import java.util.*;
 /**
  * @author Tom Eyckmans
  */
-public class StandardJavadocDocletOptions extends CoreJavadocOptions {
+public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements MinimalJavadocOptions {
     /**
      * -d  directory
      * Specifies the destination directory where javadoc saves the generated HTML files. (The "d" means "destination.")
@@ -14,9 +14,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions {
      * The value directory can be absolute, or relative to the current working directory.
      * As of 1.4, the destination directory is automatically created when javadoc is run.
      * For example, the following generates the documentation for the package com.mypackage and
-     * saves the results in the C:\user\doc\ directory:
+     * saves the results in the C:/user/doc/ directory:
      *
-     *   C:> javadoc -d \user\doc com.mypackage
+     *   C:> javadoc -d /user/doc com.mypackage
      */
     private File directory;
 
@@ -579,10 +579,10 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions {
     }
 
     /**
-     * -helpfile  path\filename
+     * -helpfile  path/filename
      * Specifies the path of an alternate help file path\filename that the HELP link in the top and bottom navigation bars link to. Without this option, the Javadoc tool automatically creates a help file help-doc.html that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to help-doc.html -- the Javadoc tool will adjust the links in the navigation bar accordingly. For example:
      *
-     *   C:> javadoc -helpfile C:\user\myhelp.html java.awt
+     *   C:> javadoc -helpfile C:/user/myhelp.html java.awt
      *
      */
     private File helpFile;
@@ -604,7 +604,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions {
      * -stylesheetfile  path\filename
      * Specifies the path of an alternate HTML stylesheet file. Without this option, the Javadoc tool automatically creates a stylesheet file stylesheet.css that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to stylesheet.css. For example:
      *
-     *   C:> javadoc -stylesheetfile C:\user\mystylesheet.css com.mypackage
+     *   C:> javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
      *
      */
     private File stylesheetFile;

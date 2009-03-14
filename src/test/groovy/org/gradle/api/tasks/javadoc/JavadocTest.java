@@ -64,7 +64,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
         configurationMock = context.mock(ConfigurationResolver.class);
 
         task = new Javadoc(getProject(), AbstractTaskTest.TEST_TASK_NAME);
-        task.setAntJavadoc(antJavadoc);
+//        task.setAntJavadoc(antJavadoc);
         task.setExistentDirsFilter(existingDirsFilter);
         task.setDependencyManager(dependencyManager);
         task.setResolveInstruction(new ConfigurationResolveInstructionModifier("testConf"));
@@ -137,8 +137,8 @@ public class JavadocTest extends AbstractConventionTaskTest {
     public void executionWithIncludesAndExcludes() {
         task.setDestinationDir(destDir);
         task.setSrcDirs(srcDirs);
-        task.include("include");
-        task.exclude("exclude");
+//        task.include("include");
+//        task.exclude("exclude");
 
         context.checking(new Expectations() {{
             one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);

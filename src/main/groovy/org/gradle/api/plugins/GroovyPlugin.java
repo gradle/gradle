@@ -82,7 +82,7 @@ public class GroovyPlugin implements Plugin {
 
     private void configureJavadoc(Project project) {
         Javadoc javadoc = (Javadoc) project.task(JAVADOC);
-        javadoc.exclude("**/*.groovy");
+        javadoc.getOptions().exclude("**/*.groovy");
         javadoc.conventionMapping(WrapUtil.<String, ConventionValue>toMap("srcDirs", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
                 return GUtil.addLists(
