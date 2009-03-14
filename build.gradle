@@ -15,6 +15,7 @@ import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.util.GradleVersion
 import org.apache.ivy.plugins.resolver.*
+import org.gradle.api.tasks.util.FileCollection
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -350,6 +351,7 @@ javadoc {
     include 'org/gradle/api/**'
     exclude 'org/gradle/api/internal/**'
     include 'org/gradle/*'
+    include 'org/gradle/external/**'
     // todo understand why not excluding this leads to a javadoc exception
     exclude 'org/gradle/api/plugins/DefaultConventionsToPropertiesMapping.java'
 }

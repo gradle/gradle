@@ -29,9 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * <p>Generates Javadoc from a number of java source directories.</p>
@@ -106,19 +104,23 @@ public class Javadoc extends ConventionTask {
         if (    options.getPackageNames().isEmpty() &&
                 options.getSourceNames().isEmpty() &&
                 options.getSubPackages().isEmpty() ) {
+            Set<String> subPackagesToAdd = new HashSet<String>();
             for ( File srcDir : getSrcDirs() ) {
                 if ( srcDir.exists() ) {
                     for ( File packageDir : srcDir.listFiles() ) {
                         if ( packageDir.isDirectory() ) {
                             final String packageDirName = packageDir.getName();
 
-                            options.subPackages(packageDirName);
-
-                            if ( logger.isDebugEnabled() ) {
-                                logger.debug("Added {} package to subPackages Javadoc option", packageDirName);
-                            }
+                            subPackagesToAdd.add(packageDirName);
                         }
                     }
+                }
+            }
+            for ( String subPackageToAdd : subPackagesToAdd ) {
+                options.subPackages(subPackageToAdd);
+
+                if ( logger.isDebugEnabled() ) {
+                    logger.debug("Added {} package to subPackages Javadoc option", subPackageToAdd);
                 }
             }
         }

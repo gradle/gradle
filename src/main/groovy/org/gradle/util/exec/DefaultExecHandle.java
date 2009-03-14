@@ -293,7 +293,7 @@ public class DefaultExecHandle implements ExecHandle {
 
     void finished(int exitCode) {
         if ( exitCode != normalTerminationExitCode ) {
-            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException("exitCode != "+normalTerminationExitCode+"!"));
+            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException("exitCode("+exitCode+") != "+normalTerminationExitCode+"!"));
             shutdownThreadPool();
             ThreadUtils.run(notifierFactory.createFailedNotifier(this));
         }

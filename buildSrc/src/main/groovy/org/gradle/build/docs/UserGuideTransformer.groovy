@@ -1,6 +1,7 @@
 package org.gradle.build.docs
 
 import org.gradle.api.GradleException
+import org.gradle.api.dependencies.FileCollection
 import org.w3c.dom.Element
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Document
@@ -8,7 +9,6 @@ import groovy.xml.dom.DOMCategory
 import groovy.xml.FactorySupport
 import groovy.xml.MarkupBuilder
 import org.w3c.dom.Node
-import org.gradle.api.tasks.util.FileCollection
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
