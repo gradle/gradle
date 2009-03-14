@@ -1,6 +1,7 @@
 package org.gradle.external.javadoc.optionfile;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.io.IOException;
 
 /**
@@ -8,7 +9,7 @@ import java.io.IOException;
  */
 public class StringsJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<String>> {
     protected StringsJavadocOptionFileOption(String option, String joinBy) {
-        super(option, joinBy);
+        super(option, new ArrayList<String>(), joinBy);
     }
 
     protected StringsJavadocOptionFileOption(String option, List<String> value, String joinBy) {

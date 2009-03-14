@@ -3,6 +3,7 @@ package org.gradle.external.javadoc;
 import org.gradle.external.javadoc.optionfile.JavadocOptionFileOption;
 import org.gradle.external.javadoc.optionfile.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.optionfile.LinksOfflineJavadocOptionFileOption;
+import org.gradle.external.javadoc.optionfile.JavadocOptionFile;
 
 import java.io.File;
 import java.util.*;
@@ -13,6 +14,12 @@ import java.util.*;
 public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
 
     public StandardJavadocDocletOptions() {
+        this(new JavadocOptionFile());
+    }
+
+    public StandardJavadocDocletOptions(JavadocOptionFile javadocOptionFile) {
+        super(javadocOptionFile);
+
         directory = addFileOption("d");
         use = addBooleanOption("use");
         version = addBooleanOption("version");

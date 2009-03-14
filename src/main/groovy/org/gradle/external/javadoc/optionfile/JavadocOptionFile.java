@@ -60,7 +60,7 @@ public class JavadocOptionFile {
     }
 
     public JavadocOptionFileOption<List<File>> addPathOption(String option, String joinBy) {
-        return addOption(new PathJavadocOptionFileOption(option, new ArrayList<File>(), joinBy));
+        return addOption(new PathJavadocOptionFileOption(option, joinBy));
     }
 
     public JavadocOptionFileOption<List<String>> addStringsOption(String option) {

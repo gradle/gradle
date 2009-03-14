@@ -3,17 +3,18 @@ package org.gradle.external.javadoc.optionfile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Tom Eyckmans
  */
 public class PathJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<File>> {
 
-    protected PathJavadocOptionFileOption(String option, String joinBy) {
-        super(option, joinBy);
+    public PathJavadocOptionFileOption(String option, String joinBy) {
+        super(option, new ArrayList<File>(), joinBy);
     }
 
-    protected PathJavadocOptionFileOption(String option, List<File> value, String joinBy) {
+    public PathJavadocOptionFileOption(String option, List<File> value, String joinBy) {
         super(option, value, joinBy);
     }
 

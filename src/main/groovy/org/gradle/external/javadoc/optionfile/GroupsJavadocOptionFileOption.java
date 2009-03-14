@@ -20,15 +20,22 @@ public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
             for ( final String group : value.keySet() ) {
                 final List<String> groupPackages = value.get(group);
 
-                writerContext.writeOptionHeader(option);
-                writerContext.write("\"");
-                writerContext.write(group);
-                writerContext.write("\"");
-                writerContext.write(" ");
-                writerContext.write("\"");
-                writerContext.write(GUtil.join(groupPackages, ":"));
-                writerContext.write("\"");
-                writerContext.newLine();
+                writerContext
+                    .writeOptionHeader(option)
+                    .write(
+                        new StringBuffer()
+                            .append("\"")
+                            .append(group)
+                            .append("\"")
+                            .toString())
+                    .write(" ")
+                    .write(
+                        new StringBuffer()
+                            .append("\"")
+                            .append(GUtil.join(groupPackages, ":"))
+                            .append("\"")
+                            .toString())
+                    .newLine();
             }
         }
     }

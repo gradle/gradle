@@ -16,38 +16,44 @@ public class JavadocOptionFileWriterContext {
         this.writer = writer;
     }
 
-    public void write(String string) throws IOException {
+    public JavadocOptionFileWriterContext write(String string) throws IOException {
         writer.write(string);
+        return this;
     }
 
-    public void newLine() throws IOException {
+    public JavadocOptionFileWriterContext newLine() throws IOException {
         writer.newLine();
+        return this;
     }
 
-    public void writeOptionHeader(String option) throws IOException {
+    public JavadocOptionFileWriterContext writeOptionHeader(String option) throws IOException {
         write("-");
         write(option);
         write(" ");
+        return this;
     }
 
-    public void writeOption(String option) throws IOException {
+    public JavadocOptionFileWriterContext writeOption(String option) throws IOException {
         writeOptionHeader(option);
         newLine();
+        return this;
     }
 
-    public void writeValueOption(String option, String value) throws IOException {
+    public JavadocOptionFileWriterContext writeValueOption(String option, String value) throws IOException {
         writeOptionHeader(option);
         write(value);
         newLine();
+        return this;
     }
 
-    public void writeValueOption(String option, Collection<String> values) throws IOException {
+    public JavadocOptionFileWriterContext writeValueOption(String option, Collection<String> values) throws IOException {
         for ( final String value : values ) {
             writeValueOption(option, value);
         }
+        return this;
     }
 
-    public void writeValuesOption(String option, Collection<String> values, String joinValuesBy) throws IOException {
+    public JavadocOptionFileWriterContext writeValuesOption(String option, Collection<String> values, String joinValuesBy) throws IOException {
         writeOptionHeader(option);
         final Iterator<String> valuesIt = values.iterator();
         while ( valuesIt.hasNext() ) {
@@ -56,9 +62,10 @@ public class JavadocOptionFileWriterContext {
                 write(joinValuesBy);
         }
         newLine();
+        return this;
     }
 
-    public void writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
+    public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
         writeOptionHeader(option);
         final Iterator<File> filesIt = files.iterator();
         while ( filesIt.hasNext() ) {
@@ -67,6 +74,7 @@ public class JavadocOptionFileWriterContext {
                 write(joinValuesBy);
         }
         newLine();
+        return this;
     }
 
 }

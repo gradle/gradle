@@ -19,8 +19,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 {
     private final JavadocOptionFile optionFile;
 
-    protected CoreJavadocOptions() {
-        optionFile = new JavadocOptionFile();
+    public CoreJavadocOptions() {
+        this(new JavadocOptionFile());
+    }
+
+    protected CoreJavadocOptions(JavadocOptionFile optionFile) {
+        this.optionFile = optionFile;
 
         overview = addStringOption("overview");
         memberLevel = addEnumOption("memberLevel");

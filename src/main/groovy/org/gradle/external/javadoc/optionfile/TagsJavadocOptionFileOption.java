@@ -14,7 +14,7 @@ public class TagsJavadocOptionFileOption extends AbstractJavadocOptionFileOption
     }
 
     public List<String> getValue() {
-        return Collections.unmodifiableList(value);
+        return value;
     }
 
     public void setValue(List<String> value) {
