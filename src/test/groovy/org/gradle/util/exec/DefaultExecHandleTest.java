@@ -3,6 +3,7 @@ package org.gradle.util.exec;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class DefaultExecHandleTest {
         
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
-                ""+System.getProperty("java.home")+"/../bin/javadoc",
+                JavaEnvUtils.getJdkExecutable("javadoc"),
                 Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"), 0,
                 System.getenv(),
                 100,
@@ -48,7 +49,7 @@ public class DefaultExecHandleTest {
         StreamWriterExecOutputHandle errHandle = new StreamWriterExecOutputHandle(System.err, true);
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
-                ""+System.getProperty("java.home")+"/../bin/javadoc",
+                JavaEnvUtils.getJdkExecutable("javadoc"),
                 Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"), 0,
                 System.getenv(),
                 100,
