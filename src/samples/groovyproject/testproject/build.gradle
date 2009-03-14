@@ -9,7 +9,7 @@ sourceCompatibility = 1.5
 targetCompatibility = 1.5
 
 dependencies {
-    clientModule(['groovy'], "org.codehaus.groovy:groovy-all:1.6-beta-1") {
+    clientModule(['groovy'], "org.codehaus.groovy:groovy-all:1.6.0") {
         dependency("commons-cli:commons-cli:1.0")
     }
     compile project(':groovycDetector')
