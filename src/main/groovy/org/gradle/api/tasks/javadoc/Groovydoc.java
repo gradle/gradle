@@ -76,8 +76,6 @@ public class Groovydoc extends ConventionTask {
 
     /**
      * <p>Sets the source directories containing the groovy source files to generate documentation for.</p>
-     *
-     * @return The source directories. Never returns null.
      */
     public void setSrcDirs(List srcDirs) {
         this.srcDirs = srcDirs;
@@ -110,8 +108,6 @@ public class Groovydoc extends ConventionTask {
 
     /**
      * <p>Sets the classpath to use to locate classes referenced by the documented source.</p>
-     *
-     * @return The classpath.
      */
     public void setGroovyClasspath(List groovyClasspath) {
         this.groovyClasspath = groovyClasspath;

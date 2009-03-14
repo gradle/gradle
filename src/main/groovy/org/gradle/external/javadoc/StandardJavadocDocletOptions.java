@@ -1,17 +1,53 @@
-package org.gradle.api.tasks.javadoc;
+package org.gradle.external.javadoc;
 
-import org.gradle.util.GUtil;
+import org.gradle.external.javadoc.optionfile.JavadocOptionFileOption;
+import org.gradle.external.javadoc.optionfile.GroupsJavadocOptionFileOption;
+import org.gradle.external.javadoc.optionfile.LinksOfflineJavadocOptionFileOption;
 
 import java.io.File;
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.util.*;
 
 /**
  * @author Tom Eyckmans
  */
-public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements MinimalJavadocOptions {
-    public static final String DIRECTORY = "d";
+public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
+
+    public StandardJavadocDocletOptions() {
+        directory = addFileOption("d");
+        use = addBooleanOption("use");
+        version = addBooleanOption("version");
+        author = addBooleanOption("author");
+        splitIndex = addBooleanOption("splitindex");
+        windowTitle = addStringOption("windowtitle");
+        docTitle = addStringOption("doctitle");
+        footer = addStringOption("footer");
+        bottom = addStringOption("bottom");
+        links = addStringsOption("link");
+        linksOffline = addOption(new LinksOfflineJavadocOptionFileOption("linkoffline"));
+        linkSource = addBooleanOption("linksource");
+        groups = addOption(new GroupsJavadocOptionFileOption("group"));
+        noDeprecated = addBooleanOption("nodeprecated");
+        noDeprecatedList = addBooleanOption("nodeprecatedlist");
+        noSince = addBooleanOption("nosince");
+        noTree = addBooleanOption("notree");
+        noIndex = addBooleanOption("noindex");
+        noHelp = addBooleanOption("nohelp");
+        noNavBar = addBooleanOption("nonavbar");
+        helpFile = addFileOption("helpfile");
+        stylesheetFile = addFileOption("stylesheetfile");
+        serialWarn = addBooleanOption("serialwarn");
+        charSet = addStringOption("charset");
+        docEncoding = addStringOption("docencoding");
+        keyWords = addBooleanOption("keywords");
+        tags = addStringsOption("tags");
+        tagletPath = addPathOption("tagletpath");
+        docFilesSubDirs = addBooleanOption("docfilessubdirs");
+        excludeDocFilesSubDir = addStringsOption("excludedocfilessubdir", ":");
+        noQualifiers = addStringsOption("noqualifier", ":");
+        noTimestamp = addBooleanOption("notimestamp");
+        noComment = addBooleanOption("nocomment");
+    }
+
     /**
      * -d  directory
      * Specifies the destination directory where javadoc saves the generated HTML files. (The "d" means "destination.")
@@ -23,14 +59,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      *
      *   C:> javadoc -d /user/doc com.mypackage
      */
-    private File directory;
+    private final JavadocOptionFileOption<File> directory;
 
     public File getDirectory() {
-        return directory;
+        return directory.getValue();
     }
 
     public void setDirectory(File directory) {
-        this.directory = directory;
+        this.directory.setValue(directory);
     }
 
     public StandardJavadocDocletOptions directory(File directory) {
@@ -38,13 +74,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeDirectory(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( directory != null ) {
-            super.writeValueOption(DIRECTORY, directory.getAbsolutePath(), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String USE = "use";
     /**
      * -use
      * Includes one "Use" page for each documented class and package. The page describes what packages, classes, methods,
@@ -62,14 +91,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * You can access the generated "Use" page by first going to the class or package,
      * then clicking on the "Use" link in the navigation bar.
      */
-    private boolean use;
+    private final JavadocOptionFileOption<Boolean> use;
 
     public boolean isUse() {
-        return use;
+        return use.getValue();
     }
 
     public void setUse(boolean use) {
-        this.use = use;
+        this.use.setValue(use);
     }
 
     public StandardJavadocDocletOptions use(boolean use) {
@@ -81,26 +110,19 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return use(true);
     }
 
-    void writeUse(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( use ) {
-            writeOption(USE, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String VERSION = "version";
     /**
      * -version
      * Includes the @version text in the generated docs. This text is omitted by default.
      * To tell what version of the Javadoc tool you are using, use the -J-version option.
      */
-    private boolean version;
+    private final JavadocOptionFileOption<Boolean> version;
 
     public boolean isVersion() {
-        return version;
+        return version.getValue();
     }
 
     public void setVersion(boolean version) {
-        this.version = version;
+        this.version.setValue(version);
     }
 
     public StandardJavadocDocletOptions version(boolean version) {
@@ -112,25 +134,18 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return version(true);
     }
 
-    void writeVersion(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( version ) {
-            writeOption(VERSION, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String AUTHOR = "author";
     /**
      * -author
      * Includes the @author text in the generated docs.
      */
-    private boolean author;
+    private final JavadocOptionFileOption<Boolean> author;
 
     public boolean isAuthor() {
-        return author;
+        return author.getValue();
     }
 
     public void setAuthor(boolean author) {
-        this.author = author;
+        this.author.setValue(author);
     }
 
     public StandardJavadocDocletOptions author(boolean author) {
@@ -142,26 +157,19 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return author(true);
     }
 
-    void writeAuthor(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( author ) {
-            writeOption(AUTHOR, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String SPLITINDEX = "splitindex";
     /**
      * -splitindex
      * Splits the index file into multiple files, alphabetically, one file per letter,
      * plus a file for any index entries that start with non-alphabetical characters.
      */
-    private boolean splitIndex;
+    private final JavadocOptionFileOption<Boolean> splitIndex;
 
     public boolean isSplitIndex() {
-        return splitIndex;
+        return splitIndex.getValue();
     }
 
     public void setSplitIndex(boolean splitIndex) {
-        this.splitIndex = splitIndex;
+        this.splitIndex.setValue(splitIndex);
     }
 
     public StandardJavadocDocletOptions splitIndex(boolean splitIndex) {
@@ -173,13 +181,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return splitIndex(true);
     }
 
-    void writeSplitIndex(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( splitIndex ) {
-            writeOption(SPLITINDEX, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String WINDOWTITLE = "windowtitle";
     /**
      * -windowtitle  title
      * Specifies the title to be placed in the HTML <title> tag.
@@ -189,14 +190,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * the Javadoc tool uses the value of -doctitle for this option.
      *   C:> javadoc -windowtitle "Java 2 Platform" com.mypackage
      */
-    private String windowTitle = null;
+    private final JavadocOptionFileOption<String> windowTitle;
 
     public String getWindowTitle() {
-        return windowTitle;
+        return windowTitle.getValue();
     }
 
     public void setWindowTitle(String windowTitle) {
-        this.windowTitle = windowTitle;
+        this.windowTitle.setValue(windowTitle);
     }
 
     public StandardJavadocDocletOptions windowTitle(String windowTitle) {
@@ -204,13 +205,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeWindowTitle(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( windowTitle != null ) {
-            writeValueOption(WINDOWTITLE, windowTitle, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String DOCTITLE = "doctitle";
     /**
      * -doctitle  title
      * Specifies the title to be placed near the top of the overview summary file. The title will be placed as a centered,
@@ -218,14 +212,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
      *   C:> javadoc -doctitle "Java<sup><font size=\"-2\">TM</font></sup>" com.mypackage
      */
-    private String docTitle = null;
+    private final JavadocOptionFileOption<String> docTitle;
 
     public String getDocTitle() {
-        return docTitle;
+        return docTitle.getValue();
     }
 
     public void setDocTitle(String docTitle) {
-        this.docTitle = docTitle;
+        this.docTitle.setValue(docTitle);
     }
 
     public StandardJavadocDocletOptions docTitle(String docTitle) {
@@ -233,27 +227,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeDocTitle(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( docTitle != null ) {
-            writeValueOption(DOCTITLE, docTitle, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String FOOTER = "footer";
     /**
      * -footer  footer
      * Specifies the footer text to be placed at the bottom of each output file.
      * The footer will be placed to the right of the lower navigation bar. footer may contain html tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within footer may have to be escaped.
      */
-    private String footer = null;
+    private final JavadocOptionFileOption<String> footer;
 
     public String getFooter() {
-        return footer;
+        return footer.getValue();
     }
 
     public void setFooter(String footer) {
-        this.footer = footer;
+        this.footer.setValue(footer);
     }
 
     public StandardJavadocDocletOptions footer(String footer) {
@@ -261,13 +248,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeFooter(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( footer != null ) {
-            writeValueOption(FOOTER, footer, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String BOTTOM = "bottom";
     /**
      * -bottom  text
      * Specifies the text to be placed at the bottom of each output file.
@@ -275,14 +255,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * The text may contain HTML tags and white space, though if it does, it must be enclosed in quotes.
      * Any internal quotation marks within text may have to be escaped.
      */
-    private String bottom = null;
+    private final JavadocOptionFileOption<String> bottom;
 
     public String getBottom() {
-        return bottom;
+        return bottom.getValue();
     }
 
     public void setBottom(String bottom) {
-        this.bottom = bottom;
+        this.bottom.setValue(bottom);
     }
 
     public StandardJavadocDocletOptions bottom(String bottom) {
@@ -290,13 +270,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeBottom(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( bottom != null ) {
-            writeValueOption(BOTTOM, bottom, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String LINK = "link";
     /**
      * -link  extdocURL
      * Creates links to existing javadoc-generated documentation of external referenced classes. It takes one argument:
@@ -315,18 +288,18 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * if you want to link to a file system that has no web server, you can use a file: link -- however,
      * do this only if everyone wanting to access the generated documentation shares the same file system.
      */
-    private List<String> links = new ArrayList<String>();
+    private final JavadocOptionFileOption<List<String>> links;
 
     public List<String> getLinks() {
-        return links;
+        return links.getValue();
     }
 
     public void setLinks(List<String> links) {
-        this.links = links;
+        this.links.setValue(links);
     }
 
     public StandardJavadocDocletOptions link(String ... links) {
-        this.links.addAll(Arrays.asList(links));
+        this.links.getValue().addAll(Arrays.asList(links));
         return this;
     }
 
@@ -334,13 +307,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return (StandardJavadocDocletOptions) optionFiles(linkFile);
     }
 
-    void writeLinks(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( links != null && !links.isEmpty() ) {
-            writeValueOption(LINK, links, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String LINKOFFLINE = "linkoffline";
     /**
      * -linkoffline  extdocURL  packagelistLoc
      * This option is a variation of -link; they both create links to javadoc-generated documentation
@@ -365,18 +331,18 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * This can be a URL (http: or file:) or file path, and can be absolute or relative. If relative,
      * make it relative to the current directory from where javadoc was run. Do not include the package-list filename.
      */
-    private List<JavadocOfflineLink> linksOffline = new ArrayList<JavadocOfflineLink>();
+    private final JavadocOptionFileOption<List<JavadocOfflineLink>> linksOffline;
 
     public List<JavadocOfflineLink> getLinksOffline() {
-        return linksOffline;
+        return linksOffline.getValue();
     }
 
     public void setLinksOffline(List<JavadocOfflineLink> linksOffline) {
-        this.linksOffline = linksOffline;
+        this.linksOffline.setValue(linksOffline);
     }
 
     public StandardJavadocDocletOptions linksOffline(String extDocUrl, String packageListLoc) {
-        this.linksOffline.add(new JavadocOfflineLink(extDocUrl, packageListLoc));
+        this.linksOffline.getValue().add(new JavadocOfflineLink(extDocUrl, packageListLoc));
         return this;
     }
 
@@ -384,15 +350,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return (StandardJavadocDocletOptions) optionFiles(linksOfflineFile);
     }
 
-    void writeLinksOffline(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( linksOffline != null && !linksOffline.isEmpty() ) {
-            for ( final JavadocOfflineLink offlineLink : linksOffline ) {
-                writeValueOption(LINKOFFLINE, offlineLink.toString(), javadocOptionFileWriter);
-            }
-        }
-    }
-
-    public static final String LINKSOURCE = "linksource";
     /**
      * -linksource
      * Creates an HTML version of each source file (with line numbers) and adds links to them from the standard HTML documentation. Links are created for classes, interfaces, constructors, methods and fields whose declarations are in a source file. Otherwise, links are not created, such as for default constructors and generated classes.
@@ -406,14 +363,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * and the link to the source code of the getLabel() method in the Button class would be on the word "getLabel":
      *     public String getLabel()
      */
-    private boolean linkSource;
+    private final JavadocOptionFileOption<Boolean> linkSource;
 
     public boolean isLinkSource() {
-        return linkSource;
+        return linkSource.getValue();
     }
 
     public void setLinkSource(boolean linkSource) {
-        this.linkSource = linkSource;
+        this.linkSource.setValue(linkSource);
     }
 
     public StandardJavadocDocletOptions linkSource(boolean linkSource) {
@@ -425,13 +382,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return linkSource(true);
     }
 
-    void writeLinkSource(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( linkSource ) {
-            writeOption(LINKSOURCE, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String GROUP = "group";
     /**
      * -group  groupheading  packagepattern:packagepattern:...
      * Separates packages on the overview page into whatever groups you specify, one group per table.
@@ -466,14 +416,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * Other Packages
      * java.new
      */
-    private Map<String, List<String>> groups = new HashMap<String, List<String>>();
+    private final JavadocOptionFileOption<Map<String, List<String>>> groups;
 
     public Map<String, List<String>> getGroups() {
-        return groups;
+        return groups.getValue();
     }
 
     public void setGroups(Map<String, List<String>> groups) {
-        this.groups = groups;
+        this.groups.setValue(groups);
     }
 
     public StandardJavadocDocletOptions group(Map<String, List<String>> groups) {
@@ -482,7 +432,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
     }
 
     public StandardJavadocDocletOptions group(String groupName, List<String> packagePatterns) {
-        this.groups.put(groupName, packagePatterns);
+        this.groups.getValue().put(groupName, packagePatterns);
         return this;
     }
 
@@ -494,36 +444,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return (StandardJavadocDocletOptions) optionFiles(groupsFile);
     }
 
-    void writeGroups(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( groups != null && !groups.isEmpty() ) {
-            for ( final String group : groups.keySet() ) {
-                final List<String> groupPackages = groups.get(group);
-
-                javadocOptionFileWriter.write('-');
-                javadocOptionFileWriter.write(GROUP);
-                javadocOptionFileWriter.write(' ');
-                javadocOptionFileWriter.write(group);
-                javadocOptionFileWriter.write(GUtil.join(groupPackages, ":"));
-                javadocOptionFileWriter.newLine();
-            }
-        }
-    }
-
-    public static final String NODEPRECATED = "nodeprecated";
     /**
      * -nodeprecated
      * Prevents the generation of any deprecated API at all in the documentation.
      * This does what -nodeprecatedlist does, plus it does not generate any deprecated API throughout the rest of the documentation.
      * This is useful when writing code and you don't want to be distracted by the deprecated code.
      */
-    private boolean noDeprecated = false;
+    private final JavadocOptionFileOption<Boolean> noDeprecated;
 
     public boolean isNoDeprecated() {
-        return noDeprecated;
+        return noDeprecated.getValue();
     }
 
     public void setNoDeprecated(boolean noDeprecated) {
-        this.noDeprecated = noDeprecated;
+        this.noDeprecated.setValue(noDeprecated);
     }
 
     public StandardJavadocDocletOptions noDeprecated(boolean nodeprecated) {
@@ -535,13 +469,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noDeprecated(true);
     }
 
-    void writeNoDeprecated(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noDeprecated ) {
-            writeOption(NODEPRECATED, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NODEPRECATEDLIST = "nodeprecatedlist";
     /**
      * -nodeprecatedlist
      * Prevents the generation of the file containing the list of deprecated APIs (deprecated-list.html) and
@@ -549,14 +476,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * (However, javadoc continues to generate the deprecated API throughout the rest of the document.)
      * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
      */
-    private boolean noDeprecatedList = false;
+    private final JavadocOptionFileOption<Boolean> noDeprecatedList;
 
     public boolean isNoDeprecatedList() {
-        return noDeprecatedList;
+        return noDeprecatedList.getValue();
     }
 
     public void setNoDeprecatedList(boolean noDeprecatedList) {
-        this.noDeprecatedList = noDeprecatedList;
+        this.noDeprecatedList.setValue(noDeprecatedList);
     }
 
     public StandardJavadocDocletOptions noDeprecatedList(boolean noDeprecatedList) {
@@ -568,25 +495,18 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noDeprecatedList(true);
     }
 
-    void writeNoDeprecatedList(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noDeprecatedList ) {
-            writeOption(NODEPRECATEDLIST, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NOSINCE = "nosince";
     /**
      * -nosince
      * Omits from the generated docs the "Since" sections associated with the @since tags.
      */
-    private boolean noSince = false;
+    private final JavadocOptionFileOption<Boolean> noSince;
 
     public boolean isNoSince() {
-        return noSince;
+        return noSince.getValue();
     }
 
     public void setNoSince(boolean noSince) {
-        this.noSince = noSince;
+        this.noSince.setValue(noSince);
     }
 
     public StandardJavadocDocletOptions noSince(boolean noSince) {
@@ -598,27 +518,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noSince(true);
     }
 
-    void writeNoSince(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noSince ) {
-            writeOption(NOSINCE, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NOTREE = "notree";
     /**
      * -notree
      * Omits the class/interface hierarchy pages from the generated docs.
      * These are the pages you reach using the "Tree" button in the navigation bar.
      * The hierarchy is produced by default.
      */
-    private boolean noTree = false;
+    private final JavadocOptionFileOption<Boolean> noTree;
 
     public boolean isNoTree() {
-        return noTree;
+        return noTree.getValue();
     }
 
     public void setNoTree(boolean noTree) {
-        this.noTree = noTree;
+        this.noTree.setValue(noTree);
     }
 
     public StandardJavadocDocletOptions noTree(boolean noTree) {
@@ -630,25 +543,18 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noTree(true);
     }
 
-    void writeNoTree(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noTree ) {
-            writeOption(NOTREE, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NOINDEX = "NOINDEX";
     /**
      * -noindex
      * Omits the index from the generated docs. The index is produced by default.
      */
-    private boolean noIndex = false;
+    private final JavadocOptionFileOption<Boolean> noIndex;
 
     public boolean isNoIndex() {
-        return noIndex;
+        return noIndex.getValue();
     }
 
     public void setNoIndex(boolean noIndex) {
-        this.noIndex = noIndex;
+        this.noIndex.setValue(noIndex);
     }
 
     public StandardJavadocDocletOptions noIndex(boolean noIndex) {
@@ -660,25 +566,18 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noIndex(true);
     }
 
-    void writeNoIndex(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noIndex ) {
-            writeOption(NOINDEX, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NOHELP = "nohelp";
     /**
      * -nohelp
      * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
      */
-    private boolean noHelp = false;
+    private final JavadocOptionFileOption<Boolean> noHelp;
 
     public boolean isNoHelp() {
-        return noHelp;
+        return noHelp.getValue();
     }
 
     public void setNoHelp(boolean noHelp) {
-        this.noHelp = noHelp;
+        this.noHelp.setValue(noHelp);
     }
 
     public StandardJavadocDocletOptions noHelp(boolean noHelp) {
@@ -690,13 +589,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noHelp(true);
     }
 
-    void writeNoHelp(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noHelp ) {
-            writeOption(NOHELP, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NONAVBAR = "nonavbar";
     /**
      * -nonavbar
      * Prevents the generation of the navigation bar, header and footer,
@@ -704,14 +596,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * The -nonavbar option is useful when you are interested only in the content and have no need for navigation,
      * such as converting the files to PostScript or PDF for print only.
      */
-    private boolean noNavBar = false;
+    private final JavadocOptionFileOption<Boolean> noNavBar;
 
     public boolean isNoNavBar() {
-        return noNavBar;
+        return noNavBar.getValue();
     }
 
     public void setNoNavBar(boolean noNavBar) {
-        this.noNavBar = noNavBar;
+        this.noNavBar.setValue(noNavBar);
     }
 
     public StandardJavadocDocletOptions noNavBar(boolean noNavBar) {
@@ -723,13 +615,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noNavBar(true);
     }
 
-    void writeNoNavBar(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noNavBar ) {
-            writeOption(NONAVBAR, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String HELPFILE = "helpfile";
     /**
      * -helpfile  path/filename
      * Specifies the path of an alternate help file path\filename that the HELP link in the top and bottom navigation bars link to. Without this option, the Javadoc tool automatically creates a help file help-doc.html that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to help-doc.html -- the Javadoc tool will adjust the links in the navigation bar accordingly. For example:
@@ -737,14 +622,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      *   C:> javadoc -helpfile C:/user/myhelp.html java.awt
      *
      */
-    private File helpFile;
+    private final JavadocOptionFileOption<File> helpFile;
 
     public File getHelpFile() {
-        return helpFile;
+        return helpFile.getValue();
     }
 
     public void setHelpFile(File helpFile) {
-        this.helpFile = helpFile;
+        this.helpFile.setValue(helpFile);
     }
 
     public StandardJavadocDocletOptions helpFile(File helpFile) {
@@ -752,13 +637,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeHelpFile(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( helpFile != null ) {
-            writeValueOption(HELPFILE, helpFile.getAbsolutePath(), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String STYLESHEETFILE = "stylesheetfile";
     /**
      * -stylesheetfile  path\filename
      * Specifies the path of an alternate HTML stylesheet file. Without this option, the Javadoc tool automatically creates a stylesheet file stylesheet.css that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to stylesheet.css. For example:
@@ -766,14 +644,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      *   C:> javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
      *
      */
-    private File stylesheetFile;
+    private final JavadocOptionFileOption<File> stylesheetFile;
 
     public File getStylesheetFile() {
-        return stylesheetFile;
+        return stylesheetFile.getValue();
     }
 
     public void setStylesheetFile(File stylesheetFile) {
-        this.stylesheetFile = stylesheetFile;
+        this.stylesheetFile.setValue(stylesheetFile);
     }
 
     public StandardJavadocDocletOptions stylesheetFile(File stylesheetFile) {
@@ -781,13 +659,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeStylesheetFile(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( stylesheetFile != null ) {
-            writeValueOption(STYLESHEETFILE, stylesheetFile.getAbsolutePath(), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String SERIALWARN = "serialwarn";
     /**
      * -serialwarn
      * Generates compile-time warnings for missing @serial tags.
@@ -795,14 +666,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      * (This is a reversal from earlier versions.) Use this option to display the serial warnings,
      * which helps to properly document default serializable fields and writeExternal methods.
      */
-    private boolean serialWarn = false;
+    private final JavadocOptionFileOption<Boolean> serialWarn;
 
     public boolean isSerialWarn() {
-        return serialWarn;
+        return serialWarn.getValue();
     }
 
     public void setSerialWarn(boolean serialWarn) {
-        this.serialWarn = serialWarn;
+        this.serialWarn.setValue(serialWarn);
     }
 
     public StandardJavadocDocletOptions serialWarn(boolean serialWarn) {
@@ -814,13 +685,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return serialWarn(true);
     }
 
-    void writeSerialWarn(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( serialWarn ) {
-            writeOption(SERIALWARN, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String CHARSET = "charset";
     /**
      * -charset  name
      * Specifies the HTML character set for this document. The name should be a preferred MIME name as given in the IANA Registry. For example:
@@ -835,14 +699,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      *
      * Also see -encoding and -docencoding.
      */
-    private String charSet;
+    private final JavadocOptionFileOption<String> charSet;
 
     public String getCharSet() {
-        return charSet;
+        return charSet.getValue();
     }
 
     public void setCharSet(String charSet) {
-        this.charSet = charSet;
+        this.charSet.setValue(charSet);
     }
 
     public StandardJavadocDocletOptions charSet(String charSet) {
@@ -850,13 +714,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeCharSet(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( charSet != null ) {
-            writeValueOption(CHARSET, charSet, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String DOCENCODING = "docencoding";
     /**
      * -docencoding  name
      * Specifies the encoding of the generated HTML files. The name should be a preferred MIME name as given in the IANA Registry. If you omit this option but use -encoding, then the encoding of the generated HTML files is determined by -encoding. Example:
@@ -865,14 +722,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
      *
      * Also see -encoding and -charset.
      */
-    private String docEncoding;
+    private final JavadocOptionFileOption<String> docEncoding;
 
     public String getDocEncoding() {
-        return docEncoding;
+        return docEncoding.getValue();
     }
 
     public void setDocEncoding(String docEncoding) {
-        this.docEncoding = docEncoding;
+        this.docEncoding.setValue(docEncoding);
     }
 
     public StandardJavadocDocletOptions docEncoding(String docEncoding) {
@@ -880,24 +737,17 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return this;
     }
 
-    void writeDocEncoding(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( docEncoding != null ) {
-            writeValueOption(DOCENCODING, docEncoding, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String KEYWORDS = "keywords";
     /**
      * -keywords
      */
-    private boolean keyWords = false;
+    private final JavadocOptionFileOption<Boolean> keyWords;
 
     public boolean isKeyWords() {
-        return keyWords;
+        return keyWords.getValue();
     }
 
     public void setKeyWords(boolean keyWords) {
-        this.keyWords = keyWords;
+        this.keyWords.setValue(keyWords);
     }
 
     public StandardJavadocDocletOptions keyWords(boolean keyWords) {
@@ -909,36 +759,27 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return keyWords(true);
     }
 
-    void writeKeyWords(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( keyWords ) {
-            writeOption(KEYWORDS, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String TAG = "tag";
-    public static final String TAGLET = "taglet";
     /**
      * -tag  tagname:Xaoptcmf:"taghead"
      * -taglet  class
      */
-    private List<String> tags = new ArrayList<String>();
+    private final JavadocOptionFileOption<List<String>> tags;
 
     public List<String> getTags() {
-        return tags;
+        return tags.getValue();
     }
 
     public void setTags(List<String> tags) {
-        this.tags = tags;
+        this.tags.setValue(tags);
     }
 
     public StandardJavadocDocletOptions tags(List<String> tags) {
-        this.tags.addAll(tags);
+        this.tags.getValue().addAll(tags);
         return this;
     }
 
     public StandardJavadocDocletOptions tags(String ... tags) {
-        this.tags.addAll(Arrays.asList(tags));
-        return this;
+        return tags(Arrays.asList(tags));
     }
 
     public StandardJavadocDocletOptions taglets(String ... taglets) {
@@ -949,35 +790,21 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return (StandardJavadocDocletOptions) optionFiles(tagsFile);
     }
 
-    void writeTags(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( tags != null && !tags.isEmpty() ) {
-            for ( final String tag : tags ) {
-                if ( tag.contains(":") || tag.contains("\"") ) {
-                    writeValueOption(TAG, tag, javadocOptionFileWriter);
-                }
-                else {
-                    writeValueOption(TAGLET, tag, javadocOptionFileWriter);
-                }
-            }
-        }
-    }
-
-    public static final String TAGLETPATH = "tagletpath";
     /**
      * -tagletpath  tagletpathlist
      */
-    private List<File> tagletPath = new ArrayList<File>();
+    private final JavadocOptionFileOption<List<File>> tagletPath;
 
     public List<File> getTagletPath() {
-        return tagletPath;
+        return tagletPath.getValue();
     }
 
     public void setTagletPath(List<File> tagletPath) {
-        this.tagletPath = tagletPath;
+        this.tagletPath.setValue(tagletPath);
     }
 
     public StandardJavadocDocletOptions tagletPath(List<File> tagletPath) {
-        this.tagletPath.addAll(tagletPath);
+        this.tagletPath.getValue().addAll(tagletPath);
         return this;
     }
 
@@ -985,24 +812,17 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return tagletPath(Arrays.asList(tagletPath));
     }
 
-    void writeTagletPath(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( tagletPath != null && !tagletPath.isEmpty() ) {
-            writePathOption(TAGLETPATH, tagletPath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String DOCFILESSUBDIRS = "docfilessubdirs";
     /**
      * -docfilessubdirs
      */
-    private boolean docFilesSubDirs;
+    private final JavadocOptionFileOption<Boolean> docFilesSubDirs;
 
     public boolean isDocFilesSubDirs() {
-        return docFilesSubDirs;
+        return docFilesSubDirs.getValue();
     }
 
     public void setDocFilesSubDirs(boolean docFilesSubDirs) {
-        this.docFilesSubDirs = docFilesSubDirs;
+        this.docFilesSubDirs.setValue(docFilesSubDirs);
     }
 
     public StandardJavadocDocletOptions docFilesSubDirs(boolean docFilesSubDirs) {
@@ -1014,28 +834,21 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return docFilesSubDirs(true);
     }
 
-    void writeDocFilesSubDirs(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( docFilesSubDirs ) {
-            writeOption(DOCFILESSUBDIRS, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String EXCLUDEDOCFILESSUBDIR = "excludedocfilessubdir";
     /**
      * -excludedocfilessubdir  name1:name2...
      */
-    private List<String> excludeDocFilesSubDir = new ArrayList<String>();
+    private final JavadocOptionFileOption<List<String>> excludeDocFilesSubDir;
 
     public List<String> getExcludeDocFilesSubDir() {
-        return excludeDocFilesSubDir;
+        return excludeDocFilesSubDir.getValue();
     }
 
     public void setExcludeDocFilesSubDir(List<String> excludeDocFilesSubDir) {
-        this.excludeDocFilesSubDir = excludeDocFilesSubDir;
+        this.excludeDocFilesSubDir.setValue(excludeDocFilesSubDir);
     }
 
     public StandardJavadocDocletOptions excludeDocFilesSubDir(List<String> excludeDocFilesSubDir) {
-        this.excludeDocFilesSubDir.addAll(excludeDocFilesSubDir);
+        this.excludeDocFilesSubDir.getValue().addAll(excludeDocFilesSubDir);
         return this;
     }
 
@@ -1043,28 +856,21 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return excludeDocFilesSubDir(Arrays.asList(excludeDocFilesSubDir));
     }
 
-    void writeExcludeDocFilesSubDir(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( excludeDocFilesSubDir != null && !excludeDocFilesSubDir.isEmpty() ) {
-            writeValuesOption(EXCLUDEDOCFILESSUBDIR, excludeDocFilesSubDir, ":", javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NOQUALIFIER = "noqualifier";
     /**
      * -noqualifier  all  |  packagename1:packagename2:...
      */
-    private List<String> noQualifiers = new ArrayList<String>();
+    private final JavadocOptionFileOption<List<String>> noQualifiers;
 
     public List<String> getNoQualifiers() {
-        return noQualifiers;
+        return noQualifiers.getValue();
     }
 
     public void setNoQualifiers(List<String> noQualifiers) {
-        this.noQualifiers = noQualifiers;
+        this.noQualifiers.setValue(noQualifiers);
     }
 
     public StandardJavadocDocletOptions noQualifier(List<String> noQualifiers) {
-        this.noQualifiers.addAll(noQualifiers);
+        this.noQualifiers.getValue().addAll(noQualifiers);
         return this;
     }
 
@@ -1072,24 +878,17 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noQualifier(Arrays.asList(noQualifiers));
     }
 
-    void writeNoQualifiers(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noQualifiers != null && !noQualifiers.isEmpty() ) {
-            writeValuesOption(NOQUALIFIER, noQualifiers, ":", javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NOTIMESTAMP = "notimestamp";
     /**
      * -notimestamp
      */
-    public boolean noTimestamp = false;
+    public final JavadocOptionFileOption<Boolean> noTimestamp;
 
     public boolean isNoTimestamp() {
-        return noTimestamp;
+        return noTimestamp.getValue();
     }
 
     public void setNoTimestamp(boolean noTimestamp) {
-        this.noTimestamp = noTimestamp;
+        this.noTimestamp.setValue(noTimestamp);
     }
 
     public StandardJavadocDocletOptions noTimestamp(boolean noTimestamp) {
@@ -1101,24 +900,17 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
         return noTimestamp(true);
     }
 
-    void writeNoTimestamp(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noTimestamp ) {
-            writeOption(NOTIMESTAMP, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String NOCOMMENT = "nocomment";
     /**
      * -nocomment
      */
-    private boolean noComment;
+    private final JavadocOptionFileOption<Boolean> noComment;
 
     public boolean isNoComment() {
-        return noComment;
+        return noComment.getValue();
     }
 
     public void setNoComment(boolean noComment) {
-        this.noComment = noComment;
+        this.noComment.setValue(noComment);
     }
 
     public StandardJavadocDocletOptions noComment(boolean noComment) {
@@ -1128,48 +920,5 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions  implements
 
     public StandardJavadocDocletOptions noComment() {
         return noComment(true);
-    }
-
-    void writeNoComment(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( noComment ) {
-            writeOption(NOCOMMENT, javadocOptionFileWriter);
-        }
-    }
-
-    public void toOptionsFile(BufferedWriter javadocOptionFileWriter) throws IOException {
-        super.toOptionsFile(javadocOptionFileWriter);
-        writeDirectory(javadocOptionFileWriter);
-        writeUse(javadocOptionFileWriter);
-        writeVersion(javadocOptionFileWriter);
-        writeAuthor(javadocOptionFileWriter);
-        writeSplitIndex(javadocOptionFileWriter);
-        writeWindowTitle(javadocOptionFileWriter);
-        writeDocTitle(javadocOptionFileWriter);
-        writeFooter(javadocOptionFileWriter);
-        writeBottom(javadocOptionFileWriter);
-        writeLinks(javadocOptionFileWriter);
-        writeLinksOffline(javadocOptionFileWriter);
-        writeLinkSource(javadocOptionFileWriter);
-        writeGroups(javadocOptionFileWriter);
-        writeNoDeprecated(javadocOptionFileWriter);
-        writeNoDeprecatedList(javadocOptionFileWriter);
-        writeNoSince(javadocOptionFileWriter);
-        writeNoTree(javadocOptionFileWriter);
-        writeNoIndex(javadocOptionFileWriter);
-        writeNoHelp(javadocOptionFileWriter);
-        writeNoNavBar(javadocOptionFileWriter);
-        writeHelpFile(javadocOptionFileWriter);
-        writeStylesheetFile(javadocOptionFileWriter);
-        writeSerialWarn(javadocOptionFileWriter);
-        writeCharSet(javadocOptionFileWriter);
-        writeDocEncoding(javadocOptionFileWriter);
-        writeKeyWords(javadocOptionFileWriter);
-        writeTags(javadocOptionFileWriter);
-        writeTagletPath(javadocOptionFileWriter);
-        writeDocFilesSubDirs(javadocOptionFileWriter);
-        writeExcludeDocFilesSubDir(javadocOptionFileWriter);
-        writeNoQualifiers(javadocOptionFileWriter);
-        writeNoTimestamp(javadocOptionFileWriter);
-        writeNoComment(javadocOptionFileWriter);
     }
 }

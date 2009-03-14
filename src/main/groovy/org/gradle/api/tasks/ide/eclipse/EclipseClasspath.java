@@ -163,7 +163,7 @@ public class EclipseClasspath extends ConventionTask {
     /**
      * A list of directories which contain the sources. The directories are specified by a relative path to the project root.
      *
-     * @return
+     * @return list of directories which contain the sources.
      */
     public List<Object> getSrcDirs() {
         return (List<Object>) conv(srcDirs, "srcDirs");

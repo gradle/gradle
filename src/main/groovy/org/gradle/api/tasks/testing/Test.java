@@ -282,7 +282,7 @@ public class Test extends ConventionTask {
      *
      * Be sure to call the appropriate useJUnit/useTestNG/useTestFramework function or set the default before using this function.
      * 
-     * @return
+     * @return The testframework options.
      */
     public Object getOptions() {
         return options(null);

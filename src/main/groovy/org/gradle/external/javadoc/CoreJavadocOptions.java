@@ -1,7 +1,11 @@
-package org.gradle.api.tasks.javadoc;
+package org.gradle.external.javadoc;
+
+import org.gradle.external.javadoc.optionfile.JavadocOptionFileOption;
+import org.gradle.external.javadoc.optionfile.OptionLessJavadocOptionFileOption;
+import org.gradle.external.javadoc.optionfile.JavadocOptionFile;
+import org.gradle.util.exec.ExecHandleBuilder;
 
 import java.io.File;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -13,7 +17,31 @@ import java.util.*;
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 {
-    public static final String OVERVIEW = "overview";
+    private final JavadocOptionFile optionFile;
+
+    protected CoreJavadocOptions() {
+        optionFile = new JavadocOptionFile();
+
+        overview = addStringOption("overview");
+        memberLevel = addEnumOption("memberLevel");
+        doclet = addStringOption("doclet");
+        docletClasspath = addPathOption("docletclasspath");
+        source = addStringOption("source");
+        sourcepath = addPathOption("sourcepath");
+        classpath = addPathOption("classpath");
+        subPackages = addStringsOption("subpackages", ";");
+        exclude = addStringsOption("exclude", ":");
+        bootClasspath = addPathOption("bootclasspath");
+        extDirs = addPathOption("extdirs");
+        outputLevel = addEnumOption("outputLevel", JavadocOutputLevel.QUIET);
+        breakIterator = addBooleanOption("breakiterator");
+        locale = addStringOption("locale");
+        encoding = addStringOption("encoding");
+
+        packageNames = optionFile.getPackageNames();
+        sourceNames = optionFile.getSourceNames();
+    }
+
     /**
      * -overview  path\filename
      * Specifies that javadoc should retrieve the text for the overview documentation from
@@ -33,38 +61,37 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * The title on the overview page is set by -doctitle.
      */
-    private String overview = null;
+    private final JavadocOptionFileOption<String> overview;
 
     public String getOverview() {
-        return overview;
+        return overview.getValue();
     }
 
     public void setOverview(String overview) {
-        this.overview = overview;
+        this.overview.setValue(overview);
     }
 
+    /**
+     * Fluent setter for the overview option.
+     * @param overview The new overview.
+     * @return The <code>MinimalJavadocOptions</code> object.
+     */
     public MinimalJavadocOptions overview(String overview) {
         setOverview(overview);
         return this;
     }
 
-    void writeOverview(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( overview != null ) {
-            writeValueOption(OVERVIEW, overview, javadocOptionFileWriter);
-        }
-    }
-
     /**
      * Switch to set the members that should be included in the Javadoc. (-public, -protected, -package, -private)
      */
-    private JavadocMemberLevel memberLevel = null;
+    private final JavadocOptionFileOption<JavadocMemberLevel> memberLevel;
 
     public JavadocMemberLevel getMemberLevel() {
-        return memberLevel;
+        return memberLevel.getValue();
     }
 
     public void setMemberLevel(JavadocMemberLevel memberLevel) {
-        this.memberLevel = memberLevel;
+        this.memberLevel.setValue(memberLevel);
     }
 
     public MinimalJavadocOptions showFromPublic() {
@@ -86,6 +113,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return showFromPackage();
     }
 
+    public void contributeCommandLineOptions(ExecHandleBuilder execHandleBuilder) {
+        execHandleBuilder
+            .prependedStringArguments("-J", jFlags) // J flags can not be set in the option file
+            .prependedFileArguments("@", optionFiles); // add additional option files
+    }
+
     public MinimalJavadocOptions showFromPrivate() {
         setMemberLevel(JavadocMemberLevel.PRIVATE);
         return this;
@@ -95,13 +128,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return showFromPrivate();
     }
 
-    void writeMemberLevel(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( memberLevel != null ) {
-            writeOption(memberLevel.toString().toLowerCase(), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String DOCLET = "doclet";
     /**
      * -doclet  class
      * Specifies the class file that starts the doclet used in generating the documentation. Use the fully-qualified name.
@@ -116,14 +142,14 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
-    private String doclet = null;
+    private final JavadocOptionFileOption<String> doclet;
 
     public String getDoclet() {
-        return doclet;
+        return doclet.getValue();
     }
 
     public void setDoclet(String doclet) {
-        this.doclet = doclet;
+        this.doclet.setValue(doclet);
     }
 
     public MinimalJavadocOptions doclet(String doclet) {
@@ -131,13 +157,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    void writeDoclet(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( doclet != null ) {
-            writeValueOption(DOCLET, doclet, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String DOCLETPATH = "docletpath";
     /**
      * -docletpath  classpathlist 
      * Specifies the path to the doclet starting class file (specified with the -doclet option) and any jar files it depends on.
@@ -156,28 +175,21 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
-    private List<File> docletClasspath = new ArrayList<File>();
+    private final JavadocOptionFileOption<List<File>> docletClasspath;
 
     public List<File> getDocletClasspath() {
-        return docletClasspath;
+        return docletClasspath.getValue();
     }
 
     public void setDocletClasspath(List<File> docletClasspath) {
-        this.docletClasspath = docletClasspath;
+        this.docletClasspath.setValue(docletClasspath);
     }
 
     public MinimalJavadocOptions docletClasspath(File ... docletClasspath) {
-        this.docletClasspath.addAll(Arrays.asList(docletClasspath));
+        this.docletClasspath.getValue().addAll(Arrays.asList(docletClasspath));
         return this;
     }
 
-    void writeDocletClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( docletClasspath != null && !docletClasspath.isEmpty() ) {
-            writePathOption(DOCLETPATH, docletClasspath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String SOURCE = "source";
     /**
      * -source release
      * Specifies the version of source code accepted. The following values for release are allowed:
@@ -188,14 +200,14 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * Use the value of release corresponding to that used when compiling the code with javac.
      */
-    private String source = null;// TODO bind with the sourceCompatibility property
+    private final JavadocOptionFileOption<String> source;// TODO bind with the sourceCompatibility property
 
     public String getSource() {
-        return source;
+        return source.getValue();
     }
 
     public void setSource(String source) {
-        this.source = source;
+        this.source.setValue(source);
     }
 
     public MinimalJavadocOptions source(String source) {
@@ -203,13 +215,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    void writeSource(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( source != null ) {
-            writeValueOption(SOURCE, source, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String SOURCEPATH = "sourcepath";
     /**
      * -sourcepath  sourcepathlist
      *     Specifies the search paths for finding source files (.java) when passing package names or -subpackages into the javadoc command.
@@ -245,14 +250,14 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *       C:> javadoc -sourcepath C:/user1/src;C:/user2/src com.mypackage
      *
      */
-    private List<File> sourcepath = new ArrayList<File>();// TODO bind with the srcDirs
+    private final JavadocOptionFileOption<List<File>> sourcepath;// TODO bind with the srcDirs
 
     public List<File> getSourcepath() {
-        return sourcepath;
+        return sourcepath.getValue();
     }
 
     public void setSourcepath(List<File> sourcepath) {
-        this.sourcepath = sourcepath;
+        this.sourcepath.setValue(sourcepath);
     }
 
     public MinimalJavadocOptions sourcepath(List<File> sourcepath) {
@@ -261,17 +266,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
     }
 
     public MinimalJavadocOptions sourcepath(File ... sourcepath) {
-        this.sourcepath.addAll(Arrays.asList(sourcepath));
+        this.sourcepath.getValue().addAll(Arrays.asList(sourcepath));
         return this;
     }
 
-    void writeSourcepath(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( sourcepath != null && !sourcepath.isEmpty() ) {
-            writePathOption(SOURCEPATH, sourcepath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String CLASSPATH = "classpath";
     /**
      * -classpath  classpathlist
      * Specifies the paths where javadoc will look for referenced classes (.class files)
@@ -295,33 +293,26 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      * For an in-depth description of how the Javadoc tool uses -classpath to find user classes as it relates to extension classes and
      * bootstrap classes, see How Classes Are Found.
      */
-    private List<File> classpath = new ArrayList<File>();// TODO link to runtime configuration ?
+    private final JavadocOptionFileOption<List<File>> classpath;// TODO link to runtime configuration ?
 
     public List<File> getClasspath() {
-        return classpath;
+        return classpath.getValue();
     }
 
     public void setClasspath(List<File> classpath) {
-        this.classpath = classpath;
+        this.classpath.setValue(classpath);
     }
 
     public MinimalJavadocOptions classpath(List<File> classpath) {
-        this.classpath.addAll(classpath);
+        this.classpath.getValue().addAll(classpath);
         return this;
     }
 
     public MinimalJavadocOptions classpath(File ... classpath) {
-        this.classpath.addAll(Arrays.asList(classpath));
+        this.classpath.getValue().addAll(Arrays.asList(classpath));
         return this;
     }
 
-    void writeClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( classpath != null && !classpath.isEmpty() ) {
-            writePathOption(CLASSPATH, classpath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String SUBPACKAGES = "subpackages";
     /**
      * -subpackages  package1:package2:...
      * Generates documentation from source files in the specified packages and recursively in their subpackages.
@@ -341,28 +332,21 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * You can use -subpackages in conjunction with -exclude to exclude specific packages.
      */
-    private List<String> subPackages = new ArrayList<String>();
+    private final JavadocOptionFileOption<List<String>> subPackages;
 
     public List<String> getSubPackages() {
-        return subPackages;
+        return subPackages.getValue();
     }
 
     public void setSubPackages(List<String> subPackages) {
-        this.subPackages = subPackages;
+        this.subPackages.setValue(subPackages);
     }
 
     public MinimalJavadocOptions subPackages(String ... subPackages) {
-        this.subPackages.addAll(Arrays.asList(subPackages));
+        this.subPackages.getValue().addAll(Arrays.asList(subPackages));
         return this;
     }
 
-    void writeSubPackages(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( subPackages != null && !subPackages.isEmpty() ) {
-            writeValuesOption(SUBPACKAGES, subPackages, ";", javadocOptionFileWriter);
-        }
-    }
-
-    public static final String EXCLUDE = "exclude";
     /**
      * -exclude  packagename1:packagename2:...
      * Unconditionally excludes the specified packages and their subpackages from the list formed by -subpackages.
@@ -376,56 +360,42 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      * but would exclude packages rooted at java.net and java.lang.
      * Notice this excludes java.lang.ref, a subpackage of java.lang).
      */
-    private List<String> exclude = new ArrayList<String>();
+    private final JavadocOptionFileOption<List<String>> exclude;
 
     public List<String> getExclude() {
-        return exclude;
+        return exclude.getValue();
     }
 
     public void setExclude(List<String> exclude) {
-        this.exclude = exclude;
+        this.exclude.setValue(exclude);
     }
 
     public MinimalJavadocOptions exclude(String ... exclude) {
-        this.exclude.addAll(Arrays.asList(exclude));
+        this.exclude.getValue().addAll(Arrays.asList(exclude));
         return this;
     }
 
-    void writeExclude(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( exclude != null && !exclude.isEmpty() ) {
-            writeValuesOption(EXCLUDE, exclude, ":", javadocOptionFileWriter);
-        }
-    }
-
-    public static final String BOOTCLASSPATH = "bootclasspath";
     /**
      * -bootclasspath  classpathlist
      * Specifies the paths where the boot classes reside. These are nominally the Java platform classes.
      * The bootclasspath is part of the search path the Javadoc tool will use to look up source and class files.
      * See How Classes Are Found. for more details. Separate directories in classpathlist with semicolons (;).
      */
-    private List<File> bootClasspath = new ArrayList<File>();
+    private final JavadocOptionFileOption<List<File>> bootClasspath;
 
     public List<File> getBootClasspath() {
-        return bootClasspath;
+        return bootClasspath.getValue();
     }
 
     public void setBootClasspath(List<File> bootClasspath) {
-        this.bootClasspath = bootClasspath;
+        this.bootClasspath.setValue(bootClasspath);
     }
 
     public MinimalJavadocOptions bootClasspath(File ... bootClasspath) {
-        this.bootClasspath.addAll(Arrays.asList(bootClasspath));
+        this.bootClasspath.getValue().addAll(Arrays.asList(bootClasspath));
         return this;
     }
 
-    void writeBootClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( bootClasspath != null && !bootClasspath.isEmpty() ) {
-            writePathOption(BOOTCLASSPATH, bootClasspath, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
-    }
-
-    public static final String EXTDIRS = "extdirs";
     /**
      * -extdirs  dirlist
      * Specifies the directories where extension classes reside.
@@ -433,38 +403,32 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      * The extdirs is part of the search path the Javadoc tool will use to look up source and class files.
      * See -classpath (above) for more details. Separate directories in dirlist with semicolons (;).
      */
-    private List<File> extDirs = new ArrayList<File>();
+    private final JavadocOptionFileOption<List<File>> extDirs;
 
     public List<File> getExtDirs() {
-        return extDirs;
+        return extDirs.getValue();
     }
 
     public void setExtDirs(List<File> extDirs) {
-        this.extDirs = extDirs;
+        this.extDirs.setValue(extDirs);
     }
 
     public MinimalJavadocOptions extDirs(File ... extDirs) {
-        this.extDirs.addAll(Arrays.asList(extDirs));
+        this.extDirs.getValue().addAll(Arrays.asList(extDirs));
         return this;
-    }
-
-    void writeExtDirs(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( extDirs != null && !extDirs.isEmpty() ) {
-            writePathOption(EXTDIRS, extDirs, System.getProperty("path.separator"), javadocOptionFileWriter);
-        }
     }
 
     /**
      * Control the Javadoc output level (-verbose or -quiet
      */
-    private JavadocOutputLevel outputLevel = JavadocOutputLevel.QUIET;
+    private final JavadocOptionFileOption<JavadocOutputLevel> outputLevel;
 
     public JavadocOutputLevel getOutputLevel() {
-        return outputLevel;
+        return outputLevel.getValue();
     }
 
     public void setOutputLevel(JavadocOutputLevel outputLevel) {
-        this.outputLevel = outputLevel;
+        this.outputLevel.setValue(outputLevel);
     }
 
     public MinimalJavadocOptions verbose() {
@@ -473,7 +437,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
     }
 
     public boolean isVerbose() {
-        return outputLevel == JavadocOutputLevel.VERBOSE;
+        return outputLevel.getValue() == JavadocOutputLevel.VERBOSE;
     }
 
     public MinimalJavadocOptions quiet() {
@@ -481,11 +445,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    void writeOutputLevel(BufferedWriter javadocOptionFileWriter) throws IOException {
-        writeOption(outputLevel.toString().toLowerCase(), javadocOptionFileWriter);
-    }
-
-    public static final String BREAKITERATOR = "breakiterator";
     /**
      * -breakiterator
      * Uses the internationalized sentence boundary of java.text.BreakIterator to determine the end of the first sentence
@@ -513,14 +472,14 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *           would be outweighed by the incompatible source change it would require.
      *           We regret any extra work and confusion this has caused.
      */
-    private boolean breakIterator = false;
+    private final JavadocOptionFileOption<Boolean> breakIterator;
 
     public boolean isBreakIterator() {
-        return breakIterator;
+        return breakIterator.getValue();
     }
 
     public void setBreakIterator(boolean breakIterator) {
-        this.breakIterator = breakIterator;
+        this.breakIterator.setValue(breakIterator);
     }
 
     public MinimalJavadocOptions breakIterator(boolean breakIterator) {
@@ -533,13 +492,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    void writeBreakIterator(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if (breakIterator) {
-            writeOption(BREAKITERATOR, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String LOCALE = "locale";
     /**
      * -locale  language_country_variant
      *     Important - The -locale option must be placed ahead (to the left) of any options provided by the standard doclet or
@@ -557,14 +509,14 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      * and the sentence separator to determine the end of the first sentence.
      * It does not determine the locale of the doc comment text specified in the source files of the documented classes.
      */
-    private String locale = null;
+    private final JavadocOptionFileOption<String> locale;
 
     public String getLocale() {
-        return locale;
+        return locale.getValue();
     }
 
     public void setLocale(String locale) {
-        this.locale = locale;
+        this.locale.setValue(locale);
     }
 
     public MinimalJavadocOptions locale(String locale) {
@@ -572,27 +524,20 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    void writeLocale(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( locale != null ) {
-            writeValueOption(LOCALE, locale, javadocOptionFileWriter);
-        }
-    }
-
-    public static final String ENCODING = "encoding";
     /**
      * -encoding  name
      * Specifies the encoding name of the source files, such as EUCJIS/SJIS. If this option is not specified, the platform default converter is used.
      *
      * Also see -docencoding and -charset.
      */
-    private String encoding = null;
+    private final JavadocOptionFileOption<String> encoding;
 
     public String getEncoding() {
-        return encoding;
+        return encoding.getValue();
     }
 
     public void setEncoding(String encoding) {
-        this.encoding = encoding;
+        this.encoding.setValue(encoding);
     }
 
     public MinimalJavadocOptions encoding(String encoding) {
@@ -600,10 +545,34 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    void writeEncoding(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( encoding != null ) {
-            writeValueOption(ENCODING, encoding, javadocOptionFileWriter);
-        }
+    private final OptionLessJavadocOptionFileOption<List<String>> packageNames;
+
+    public List<String> getPackageNames() {
+        return packageNames.getValue();
+    }
+
+    public void setPackageNames(List<String> packageNames) {
+        this.packageNames.setValue(packageNames);
+    }
+
+    public MinimalJavadocOptions packageNames(String ... packageNames) {
+        this.packageNames.getValue().addAll(Arrays.asList(packageNames));
+        return this;
+    }
+
+    private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
+
+    public List<String> getSourceNames() {
+        return sourceNames.getValue();
+    }
+
+    public void setSourceNames(List<String> sourceNames) {
+        this.sourceNames.setValue(sourceNames);
+    }
+
+    public MinimalJavadocOptions sourceNames(String ... sourceNames) {
+        this.sourceNames.getValue().addAll(Arrays.asList(sourceNames));
+        return this;
     }
 
     /**
@@ -639,54 +608,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    private List<String> packageNames = new ArrayList<String>();
-
-    public List<String> getPackageNames() {
-        return packageNames;
-    }
-
-    public void setPackageNames(List<String> packageNames) {
-        this.packageNames = packageNames;
-    }
-
-    public MinimalJavadocOptions packageNames(String ... packageNames) {
-        this.packageNames.addAll(Arrays.asList(packageNames));
-        return this;
-    }
-
-    void writePackageNames(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( packageNames != null && !packageNames.isEmpty() ) {
-            for ( String packageName : packageNames ) {
-                javadocOptionFileWriter.write(packageName);
-                javadocOptionFileWriter.newLine();
-            }
-        }
-    }
-
-    private List<String> sourceNames = new ArrayList<String>();
-
-    public List<String> getSourceNames() {
-        return sourceNames;
-    }
-
-    public void setSourceNames(List<String> sourceNames) {
-        this.sourceNames = sourceNames;
-    }
-
-    public MinimalJavadocOptions sourceNames(String ... sourceNames) {
-        this.sourceNames.addAll(Arrays.asList(sourceNames));
-        return this;
-    }
-
-    void writeSourceNames(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( sourceNames != null && !sourceNames.isEmpty() ) {
-            for ( String packageName : sourceNames ) {
-                javadocOptionFileWriter.write(packageName);
-                javadocOptionFileWriter.newLine();
-            }
-        }
-    }
-
     private List<File> optionFiles = new ArrayList<File>();
 
     public List<File> getOptionFiles() {
@@ -702,89 +623,59 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return this;
     }
 
-    void writeOptionFiles(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( optionFiles != null && !optionFiles.isEmpty() ) {
-            for ( File optionFile : optionFiles ) {
-                writeOptionFileLink(optionFile, javadocOptionFileWriter);
-                javadocOptionFileWriter.newLine();
-            }
-        }
+    public final void write(File outputFile) throws IOException {
+        optionFile.write(outputFile);
     }
 
-    public void toOptionsFile(BufferedWriter javadocOptionFileWriter) throws IOException {
-        writeOverview(javadocOptionFileWriter);
-        writeMemberLevel(javadocOptionFileWriter);
-        writeDoclet(javadocOptionFileWriter);
-        writeDocletClasspath(javadocOptionFileWriter);
-        writeSource(javadocOptionFileWriter);
-        writeSourcepath(javadocOptionFileWriter);
-        writeClasspath(javadocOptionFileWriter);
-        writeSubPackages(javadocOptionFileWriter);
-        writeExclude(javadocOptionFileWriter);
-        writeBootClasspath(javadocOptionFileWriter);
-        writeExtDirs(javadocOptionFileWriter);
-        writeOutputLevel(javadocOptionFileWriter);
-        writeBreakIterator(javadocOptionFileWriter);
-        writeLocale(javadocOptionFileWriter);
-        writeEncoding(javadocOptionFileWriter);
-        writeOptionFiles(javadocOptionFileWriter);
-        writePackageNames(javadocOptionFileWriter);
-        writeSourceNames(javadocOptionFileWriter);
+    public <T> JavadocOptionFileOption<T> addOption(JavadocOptionFileOption<T> option) {
+        return optionFile.addOption(option);
     }
 
-    protected void writeOptionHeader(String option, BufferedWriter javadocOptionFileWriter) throws IOException {
-        javadocOptionFileWriter.write("-");
-        javadocOptionFileWriter.write(option);
-        javadocOptionFileWriter.write(" ");
+    public JavadocOptionFileOption<String> addStringOption(String option) {
+        return optionFile.addStringOption(option);
     }
 
-    protected void writeOption(String option, BufferedWriter javadocOptionFileWriter) throws IOException {
-        writeOptionHeader(option, javadocOptionFileWriter);
-        javadocOptionFileWriter.newLine();
+    public JavadocOptionFileOption<String> addStringOption(String option, String value) {
+        return optionFile.addStringOption(option, value);
     }
 
-    protected void writeValueOption(String option, String value, BufferedWriter javadocOptionFileWriter) throws IOException {
-        writeOptionHeader(option, javadocOptionFileWriter);
-        javadocOptionFileWriter.write(value);
-        javadocOptionFileWriter.newLine();
+    public <T> JavadocOptionFileOption<T> addEnumOption(String option) {
+        return optionFile.addEnumOption(option);
     }
 
-    protected void writeValueOption(String option, File optionFile, BufferedWriter javadocOptionFileWriter) throws IOException {
-        writeOptionHeader(option, javadocOptionFileWriter);
-        writeOptionFileLink(optionFile, javadocOptionFileWriter);
-        javadocOptionFileWriter.newLine();
+    public <T> JavadocOptionFileOption<T> addEnumOption(String option, T value) {
+        return optionFile.addEnumOption(option, value);
     }
 
-    protected void writeValueOption(String option, Collection<String> values, BufferedWriter javadocOptionFileWriter) throws IOException {
-        for ( final String value : values ) {
-            writeValueOption(option, value, javadocOptionFileWriter);
-        }
+    public JavadocOptionFileOption<List<File>> addPathOption(String option) {
+        return optionFile.addPathOption(option);
     }
 
-    protected void writeValuesOption(String option, Collection<String> values, String joinValuesBy, BufferedWriter javadocOptionFileWriter) throws IOException {
-        writeOptionHeader(option, javadocOptionFileWriter);
-        final Iterator<String> valuesIt = values.iterator();
-        while ( valuesIt.hasNext() ) {
-            javadocOptionFileWriter.write(valuesIt.next());
-            if ( valuesIt.hasNext() )
-                javadocOptionFileWriter.write(joinValuesBy);
-        }
-        javadocOptionFileWriter.newLine();
+    public JavadocOptionFileOption<List<File>> addPathOption(String option, String joinBy) {
+        return optionFile.addPathOption(option, joinBy);
     }
 
-    protected void writePathOption(String option, Collection<File> files, String joinValuesBy, BufferedWriter javadocOptionFileWriter) throws IOException {
-        writeOptionHeader(option, javadocOptionFileWriter);
-        final Iterator<File> filesIt = files.iterator();
-        while ( filesIt.hasNext() ) {
-            javadocOptionFileWriter.write(filesIt.next().getAbsolutePath());
-            if ( filesIt.hasNext() )
-                javadocOptionFileWriter.write(joinValuesBy);
-        }
-        javadocOptionFileWriter.newLine();
+    public JavadocOptionFileOption<List<String>> addStringsOption(String option) {
+        return optionFile.addStringsOption(option);
     }
 
-    protected void writeOptionFileLink(File optionFile, BufferedWriter javadocOptionFileWriter) throws IOException {
-        javadocOptionFileWriter.write("@");
-        javadocOptionFileWriter.write(optionFile.getAbsolutePath());
+    public JavadocOptionFileOption<List<String>> addStringsOption(String option, String joinBy) {
+        return optionFile.addStringsOption(option, joinBy);
+    }
+
+    public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
+        return optionFile.addBooleanOption(option);
+    }
+
+    public JavadocOptionFileOption<Boolean> addBooleanOption(String option, boolean value) {
+        return optionFile.addBooleanOption(option, value);
+    }
+
+    public JavadocOptionFileOption<File> addFileOption(String option) {
+        return optionFile.addFileOption(option);
+    }
+
+    public JavadocOptionFileOption<File> addFileOption(String option, File value) {
+        return optionFile.addFileOption(option, value);
     }
 }

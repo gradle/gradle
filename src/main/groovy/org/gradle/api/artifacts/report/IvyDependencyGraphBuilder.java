@@ -52,8 +52,8 @@ public class IvyDependencyGraphBuilder
 
     /**
      * This method builds a collection of Graphs for each Ivy dependency (xml) report.
-     * @return
      * @throws Exception
+     * @return The Ivy dependency graph
      */
     public IvyDependencyGraph buildGraph(ResolveReport report, String conf)
     {

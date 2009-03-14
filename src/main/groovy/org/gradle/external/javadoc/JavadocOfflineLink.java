@@ -1,4 +1,4 @@
-package org.gradle.api.tasks.javadoc;
+package org.gradle.external.javadoc;
 
 
 /**

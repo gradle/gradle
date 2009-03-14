@@ -16,21 +16,21 @@
 
 package org.gradle.api.tasks.javadoc;
 
-import org.apache.tools.ant.util.JavaEnvUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.exec.ExecHandleBuilder;
 import org.gradle.util.exec.ExecHandle;
+import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.external.javadoc.MinimalJavadocOptions;
+import org.gradle.external.javadoc.JavadocExecHandleBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
 
 /**
  * <p>Generates Javadoc from a number of java source directories.</p>
@@ -38,6 +38,8 @@ import java.io.BufferedWriter;
  * @author Hans Dockter
  */
 public class Javadoc extends ConventionTask {
+    private static Logger logger = LoggerFactory.getLogger(Javadoc.class);
+
     private List<File> srcDirs;
 
     private File destinationDir;
@@ -52,6 +54,7 @@ public class Javadoc extends ConventionTask {
 
     private ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
+    private String optionsFilename = "javadoc.options";
     private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
 
     private ConfigurationResolveInstructionModifier resolveInstructionModifier;
@@ -67,56 +70,40 @@ public class Javadoc extends ConventionTask {
 
     private void generate() {
         List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs());
-        try {
-            final File javadocCommandLineFile = new File(getDestinationDir(), "javadoc.options");
-
-            storeJavadocOptions(existingSourceDirs, javadocCommandLineFile);
-
-            final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true)
-                    .execDirectory(getProject().getRootDir())
-                    .execCommand(JavaEnvUtils.getJdkExecutable("javadoc")) // reusing Ant knowledge here would be stupid not to
-                    .prependedArguments("-J", options.getJFlags()) // J flags can not be set in the option file
-                    .arguments("@"+javadocCommandLineFile.getAbsolutePath());
-            final ExecHandle execHandle = execHandleBuilder.getExecHandle();
-
-            switch ( execHandle.startAndWaitForFinish() ) {
-                case SUCCEEDED:
-                    break;
-                case ABORTED:
-                    throw new GradleException("Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
-                case FAILED:
-                    if ( failOnError )
-                        throw new GradleException("Javadoc generation failed.", execHandle.getFailureCause());
-                    else
-                        break;
-                default:
-                    throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
-            }
-
-        }
-        catch (IOException e) {
-            throw new GradleException("Faild to store javadoc options.", e);
-        }
-    }
-
-    private void storeJavadocOptions(List<File> existingSourceDirs, File javadocOptionsFile) throws IOException {
         options.sourcepath(existingSourceDirs)
-                .directory(getDestinationDir())
-                .classpath(getClasspath())
-                .classpath((File)getProject().getConvention().getProperty("classesDir"))
-                .windowTitle("\""+getTitle()+"\"");
+            .directory(getDestinationDir())
+            .classpath(getClasspath())
+            .classpath((File)getProject().getConvention().getProperty("classesDir"))
+            .windowTitle("\""+getTitle()+"\"")
+            .exclude("**/package.html");
 
         if ( maxMemory != null )
             options.jFlags("-Xmx"+maxMemory);
 
-        BufferedWriter optionsFileWriter = null; 
-        try {
-            optionsFileWriter = new BufferedWriter(new FileWriter(javadocOptionsFile));
+        executeExternalJavadoc();
+    }
 
-            options.toOptionsFile(optionsFileWriter);
-        }
-        finally {
-            IOUtils.closeQuietly(optionsFileWriter);
+    private void executeExternalJavadoc() {
+        final JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder()
+                .execDirectory(getProject().getRootDir())
+                .options(options)
+                .optionsFilename(optionsFilename)
+                .destinationDirectory(getDestinationDir());
+
+        final ExecHandle execHandle = javadocExecHandleBuilder.getExecHandle();
+
+        switch ( execHandle.startAndWaitForFinish() ) {
+            case SUCCEEDED:
+                break;
+            case ABORTED:
+                throw new GradleException("Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
+            case FAILED:
+                if ( failOnError )
+                    throw new GradleException("Javadoc generation failed.", execHandle.getFailureCause());
+                else
+                    break;
+            default:
+                throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
         }
     }
 
@@ -261,5 +248,14 @@ public class Javadoc extends ConventionTask {
 
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
+    }
+
+    public String getOptionsFilename() {
+        return optionsFilename;
+    }
+
+    public void setOptionsFilename(String optionsFilename) {
+        if ( StringUtils.isEmpty(optionsFilename) ) throw new IllegalArgumentException("optionsFilename can't be empty!");
+        this.optionsFilename = optionsFilename;
     }
 }

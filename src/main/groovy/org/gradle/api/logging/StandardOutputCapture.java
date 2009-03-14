@@ -38,7 +38,6 @@ public interface StandardOutputCapture {
 
     /**
      * Whether a call to {@link #start()} will trigger redirection of the output.
-     * @return
      */
     boolean isEnabled();
 

@@ -242,15 +242,14 @@ public class GroovyCompile extends Compile {
     }
 
     /**
-     * Returns the include patterns for which java files in the joint source folder should be compiled.
-     * @return
+     * Returns the exclude patterns for which java files in the joint source folder should be compiled.
      */
     public List getGroovyJavaExcludes() {
         return (List) conv(groovyJavaExcludes, "groovyJavaExcludes");
     }
 
     /**
-     * Sets include patterns for which java files in the joint source folder should be compiled
+     * Sets excludes patterns for which java files in the joint source folder should be compiled
      * @param groovyJavaExcludes The exclude pattern
      * @see #groovyJavaExclude(String[])  The exclude patterns
      */

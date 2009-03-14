@@ -219,7 +219,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * create a proxy that wraps a particular jetty version Server object
      *
-     * @return
+     * @return The Jetty Plugin Server
      */
     public abstract JettyPluginServer createServer() throws Exception;
 
@@ -433,7 +433,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * historical naming conventions if necessary.
      *
      * @param webInfDir
-     * @return
+     * @return File object to the location of the jetty-web.xml
      */
     public File findJettyWebXmlFile(File webInfDir) {
         if (webInfDir == null)

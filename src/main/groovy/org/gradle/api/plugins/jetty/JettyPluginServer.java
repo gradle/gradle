@@ -124,7 +124,7 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     }
 
     /**
-     * @see @see Jetty6PluginServer#addWebApplication
+     * @see JettyPluginServer#addWebApplication
      */
     public void addWebApplication(WebAppContext webapp) throws Exception {
         contexts.addHandler(webapp);

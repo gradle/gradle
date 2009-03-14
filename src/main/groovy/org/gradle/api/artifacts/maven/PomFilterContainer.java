@@ -49,7 +49,7 @@ public interface PomFilterContainer {
      * Null means that Gradle will use default values for generating the Maven pom. Those default values are derived from the deployable artifact
      * and from the project type (e.g. java, war, ...). If you explicitly set a pom property, Gradle will use those instead.
      *
-     * @return
+     * @return The Maven Pom
      */
     MavenPom getPom();
 

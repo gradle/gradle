@@ -1,10 +1,10 @@
-package org.gradle.api.tasks.javadoc;
+package org.gradle.external.javadoc;
+
+import org.gradle.util.exec.ExecHandleBuilder;
 
 import java.io.File;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Tom Eyckmans
@@ -142,7 +142,7 @@ public interface MinimalJavadocOptions {
 
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
-    void toOptionsFile(BufferedWriter javadocCommandLineWriter) throws IOException;
+    void write(File outputFile) throws IOException;
 
     List<String> getPackageNames();
 
@@ -157,4 +157,6 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions sourceNames(String ... sourceNames);
 
     MinimalJavadocOptions showFromPackaged();
+
+    void contributeCommandLineOptions(ExecHandleBuilder execHandleBuilder);
 }

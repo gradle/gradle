@@ -1,4 +1,4 @@
-package org.gradle.api.tasks.javadoc;
+package org.gradle.external.javadoc;
 
 /**
  * This enum maps to the -public, -protected, -package and -private options of the javadoc executable. 

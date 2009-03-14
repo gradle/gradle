@@ -90,10 +90,18 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder prependedArguments(String prefix, List<String> arguments) {
+    public ExecHandleBuilder prependedStringArguments(String prefix, List<String> arguments) {
         if ( arguments == null ) throw new IllegalArgumentException("arguments == null!");
         for ( String argument : arguments ) {
-            arguments.add(prefix + argument);
+            this.arguments.add(prefix + argument);
+        }
+        return this;
+    }
+
+    public ExecHandleBuilder prependedFileArguments(String prefix, List<File> arguments) {
+        if ( arguments == null ) throw new IllegalArgumentException("arguments == null!");
+        for ( File argument : arguments ) {
+            this.arguments.add(prefix + argument.getAbsolutePath());
         }
         return this;
     }

@@ -98,7 +98,7 @@ public interface DependencyContainer {
      *
      * @param confs
      * @param moduleDescriptor
-     * @return
+     * @return the added ClientModule
      */
     ClientModule clientModule(List<String> confs, String moduleDescriptor);
 

@@ -7,6 +7,10 @@ import static org.junit.Assert.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
+import org.gradle.external.javadoc.CoreJavadocOptions;
+import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.external.javadoc.JavadocOutputLevel;
+import org.gradle.external.javadoc.JavadocMemberLevel;
 
 import java.util.*;
 import java.io.BufferedWriter;
@@ -96,94 +100,10 @@ public class StandardJavadocDocletOptionsTest {
     }
 
     @Test
-    public void testWriteNullOverview() throws IOException {
-        expectNoWrite();
-
-        options.writeOverview(optionWriterMock);
-    }
-
-    @Test
-    public void testWriteNotNullOverview() throws IOException {
-        final String overviewValue = "overview";
-        options.setOverview(overviewValue);
-        assertEquals(overviewValue, options.getOverview());
-
-        expectWriteValueOption(CoreJavadocOptions.OVERVIEW, overviewValue);
-
-        options.writeOverview(optionWriterMock);
-    }
-
-    @Test
-    public void testShowFromPublic() throws IOException {
-        options.showFromPublic();
-        assertEquals(JavadocMemberLevel.PUBLIC, options.getMemberLevel());
-
-        expectWriteOption(JavadocMemberLevel.PUBLIC.toString().toLowerCase());
-
-        options.writeMemberLevel(optionWriterMock);
-    }
-
-    @Test
-    public void testShowFromProtected() throws IOException {
-        options.showFromProtected();
-        assertEquals(JavadocMemberLevel.PROTECTED, options.getMemberLevel());
-
-        expectWriteOption(JavadocMemberLevel.PROTECTED.toString().toLowerCase());
-
-        options.writeMemberLevel(optionWriterMock);
-    }
-
-    @Test
-    public void testShowFromPakage() throws IOException {
-        options.showFromPackage();
-        assertEquals(JavadocMemberLevel.PACKAGE, options.getMemberLevel());
-
-        expectWriteOption(JavadocMemberLevel.PACKAGE.toString().toLowerCase());
-
-        options.writeMemberLevel(optionWriterMock);
-    }
-
-    @Test
-    public void testShowFromPrivate() throws IOException {
-        options.showFromPrivate();
-        assertEquals(JavadocMemberLevel.PRIVATE, options.getMemberLevel());
-
-        expectWriteOption(JavadocMemberLevel.PRIVATE.toString().toLowerCase());
-
-        options.writeMemberLevel(optionWriterMock);
-    }
-
-    @Test
-    public void testShowAll() throws IOException {
-        options.showAll();
-        assertEquals(JavadocMemberLevel.PRIVATE, options.getMemberLevel());
-
-        expectWriteOption(JavadocMemberLevel.PRIVATE.toString().toLowerCase());
-
-        options.writeMemberLevel(optionWriterMock);
-    }
-
-    @Test
     public void testFluentDocletClass() {
         final String docletValue = "org.gradle.CustomDocletClass";
         assertEquals(options, options.doclet(docletValue));
         assertEquals(docletValue, options.getDoclet());
-    }
-
-    @Test
-    public void testWriteNullDocletClass() throws IOException {
-        expectNoWrite();
-
-        options.writeDoclet(optionWriterMock);
-    }
-
-    @Test
-    public void testWriteNotNullDocletClass() throws IOException {
-        final String docletValue = "org.gradle.CustomDocletClass";
-        options.setDoclet(docletValue);
-        assertEquals(docletValue, options.getDoclet());
-
-        expectWriteValueOption(CoreJavadocOptions.DOCLET, docletValue);
     }
 
     @Test
@@ -192,25 +112,6 @@ public class StandardJavadocDocletOptionsTest {
         assertEquals(options, options.docletClasspath(docletClasspathValue));
         assertArrayEquals(docletClasspathValue, options.getDocletClasspath().toArray());
     }
-
-    @Test
-    public void testWriteEmptyDocletClasspath() throws IOException {
-        expectNoWrite();
-
-        options.writeDocletClasspath(optionWriterMock);
-    }
-
-    @Test
-    public void testWriteNotEmptyDocletClasspath() throws IOException {
-        final List<File> docletClasspathValue = Arrays.asList(new File("doclet.jar"), new File("doclet-dep.jar"));
-        options.setDocletClasspath(docletClasspathValue);
-        assertArrayEquals(docletClasspathValue.toArray(), options.getDocletClasspath().toArray());
-
-        expectWritePathOption(CoreJavadocOptions.DOCLETPATH, System.getProperty("path.separator"), docletClasspathValue);
-
-        options.writeDocletClasspath(optionWriterMock);
-    }
-
 
     @After
     public void tearDown() {
@@ -225,52 +126,5 @@ public class StandardJavadocDocletOptionsTest {
     public static void assertEmpty(Map shouldBeEmptyMap) {
         assertNotNull(shouldBeEmptyMap);
         assertTrue(shouldBeEmptyMap.isEmpty());
-    }
-
-    private void expectNoWrite() {
-        context.checking(new Expectations() {{}});
-    }
-
-    private void expectWriteOptionHeader(final String optionName) throws IOException {
-        context.checking(new Expectations() {{
-            one(optionWriterMock).write("-");
-            one(optionWriterMock).write(optionName);
-            one(optionWriterMock).write(" ");
-        }});
-    }
-
-    private void expectWriteOption(final String optionName) throws IOException {
-        expectWriteOptionHeader(optionName);
-        context.checking(new Expectations() {{
-            one(optionWriterMock).newLine();
-        }});
-    }
-
-    private void expectWriteValueOption(final String optionName, final String value) throws IOException {
-        expectWriteOptionHeader(optionName);
-        context.checking(new Expectations() {{
-            one(optionWriterMock).write(value);
-            one(optionWriterMock).newLine();
-        }});
-    }
-
-    private void expectWritePathOption(final String optionName, final String joiner, final List<File> files) throws IOException {
-        expectWriteOptionHeader(optionName);
-        final Iterator<File> filesIt = files.iterator();
-
-        while ( filesIt.hasNext() ) {
-            final File file = filesIt.next();
-
-            context.checking(new Expectations() {{
-                one(optionWriterMock).write(file.getAbsolutePath());
-                if ( filesIt.hasNext () ) {
-                    one(optionWriterMock).write(joiner);
-                }
-            }});
-        }
-
-        context.checking(new Expectations() {{
-            one(optionWriterMock).newLine();
-        }});
     }
 }

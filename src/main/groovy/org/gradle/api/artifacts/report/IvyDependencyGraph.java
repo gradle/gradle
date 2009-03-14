@@ -52,7 +52,7 @@ public class IvyDependencyGraph
      * @param name
      * @param organisation
      * @param revision
-     * @return
+     * @return The matching dependency otherwise null
      */
     public IvyDependency findOrCreateDependeny(String name, String organisation, String revision)
     {
