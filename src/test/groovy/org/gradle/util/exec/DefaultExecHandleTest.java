@@ -21,7 +21,9 @@ public class DefaultExecHandleTest {
     public void testJavadocVersion() throws IOException {
         StreamWriterExecOutputHandle outHandle = new StreamWriterExecOutputHandle(System.out, true);
         StreamWriterExecOutputHandle errHandle = new StreamWriterExecOutputHandle(System.err, true);
-        
+
+        System.out.println("Javadoc executable = " + JavaEnvUtils.getJdkExecutable("javadoc"));
+
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
                 JavaEnvUtils.getJdkExecutable("javadoc"),
@@ -47,6 +49,9 @@ public class DefaultExecHandleTest {
     public void testAbort() throws IOException {
         StreamWriterExecOutputHandle outHandle = new StreamWriterExecOutputHandle(System.out, true);
         StreamWriterExecOutputHandle errHandle = new StreamWriterExecOutputHandle(System.err, true);
+
+        System.out.println("Javadoc executable = " + JavaEnvUtils.getJdkExecutable("javadoc"));
+
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
                 JavaEnvUtils.getJdkExecutable("javadoc"),
