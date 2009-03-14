@@ -2,6 +2,7 @@ package org.gradle.util.exec;
 
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,5 +37,34 @@ public class DefaultExecHandleTest {
         if ( endState == ExecHandleState.FAILED ) {
             execHandle.getFailureCause().printStackTrace();
         }
+
+        assertEquals(ExecHandleState.SUCCEEDED, endState);
+    }
+
+    @Test
+    public void testAbort() throws IOException {
+        StreamWriterExecOutputHandle outHandle = new StreamWriterExecOutputHandle(System.out, true);
+        StreamWriterExecOutputHandle errHandle = new StreamWriterExecOutputHandle(System.err, true);
+        execHandle = new DefaultExecHandle(
+                new File("./src/main/groovy"),
+                ""+System.getProperty("java.home")+"/../bin/javadoc",
+                Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"),
+                System.getenv(),
+                100,
+                outHandle,
+                errHandle,
+                null
+        );
+
+        execHandle.start();
+        execHandle.abort();
+
+        final ExecHandleState endState = execHandle.waitForFinish();
+
+        if ( endState == ExecHandleState.FAILED ) {
+            execHandle.getFailureCause().printStackTrace();
+        }
+
+        assertEquals(ExecHandleState.ABORTED, endState);
     }
 }

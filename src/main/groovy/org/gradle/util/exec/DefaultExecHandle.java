@@ -155,6 +155,8 @@ public class DefaultExecHandle implements ExecHandle {
 
         execHandleRunLock.lock();
         try {
+            setState(ExecHandleState.INIT);
+
             exitCode = -1;
             failureCause = null;
 
@@ -162,6 +164,10 @@ public class DefaultExecHandle implements ExecHandle {
             execHandleRunner = new ExecHandleRunner(this, threadPool);
 
             threadPool.execute(execHandleRunner);
+
+            while ( getState() == ExecHandleState.INIT ) {
+                Thread.yield();
+            }
         }
         finally {
             execHandleRunLock.unlock();
@@ -173,8 +179,6 @@ public class DefaultExecHandle implements ExecHandle {
         execHandleRunLock.lock();
         try {
             this.execHandleRunner.stopWaiting();
-
-            waitForFinish();
         }
         finally {
             execHandleRunLock.unlock();
@@ -182,10 +186,9 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     public ExecHandleState waitForFinish() {
-        if ( !stateEquals(ExecHandleState.STARTED) ) throw new IllegalStateException("not in started state!");
         execHandleRunLock.lock();
         try {
-            shutdownThreadPool();
+            ThreadUtils.awaitTermination(threadPool);
         }
         finally {
             execHandleRunLock.unlock();
@@ -195,7 +198,12 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     private void shutdownThreadPool() {
-        ThreadUtils.shutdown(threadPool);
+        ThreadUtils.run(new Runnable(){
+
+            public void run() {
+                ThreadUtils.shutdown(threadPool);
+            }
+        });
     }
 
     public ExecHandleState startAndWaitForFinish() {
@@ -204,32 +212,7 @@ public class DefaultExecHandle implements ExecHandle {
         try {
             start();
 
-            boolean proceed = false;
-            while ( !proceed ) {
-                switch ( getState() ) { // check on snapshot of state as to not block an external state poller
-                    case INIT:
-                        /*
-                        * As long as in state INIT not all the output consumtion threads are
-                        * started, so we wait.
-                        */
-                        Thread.yield();
-                        break;
-                    default :
-                        proceed = true;
-                }
-            }
-
-            // check on snapshot of state as to not block an external state poller
-            if ( getState() == ExecHandleState.STARTED ) {
-                waitForFinish();
-            }
-            else {
-                // possible that the process terminated immediately then there is no need to wait and we can shutdown the threadPool
-                // this is the cleanest way otherwise we need to introduce a possible race condition in waitForFinish:
-                // call start ( external process terminates directly ), call waitForFinish would never return now it throws an exception
-                // when the process is not started.
-                shutdownThreadPool();
-            }
+            waitForFinish();
         }
         finally {
             execHandleRunLock.unlock();
@@ -245,22 +228,26 @@ public class DefaultExecHandle implements ExecHandle {
 
     void finished(int exitCode) {
         if ( exitCode != 0 ) {
-            setEndStateInfo(ExecHandleState.SUCCEEDED, exitCode, new RuntimeException("exitCode != 0!"));
+            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException("exitCode != 0!"));
+            shutdownThreadPool();
             new Thread(new FailedNotifier(this, listeners)).start();
         }
         else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
+            shutdownThreadPool();
             new Thread(new FinishedNotifier(this, listeners)).start();
         }
     }
 
     void aborted() {
         setState(ExecHandleState.ABORTED);
+        shutdownThreadPool();
         new Thread(new AbortedNotifier(this, listeners)).start();
     }
 
     void failed(Throwable failureCause) {
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
+        shutdownThreadPool();
         new Thread(new FailedNotifier(this, listeners)).start();
     }
 
