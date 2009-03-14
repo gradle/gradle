@@ -1,7 +1,6 @@
 package org.gradle.util.exec;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrBuilder;
 
 import java.io.File;
 import java.util.*;

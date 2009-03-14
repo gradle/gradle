@@ -1,13 +1,19 @@
 package org.gradle.util.exec;
 
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Tom Eyckmans
  */
 public class ProcessBuilderFactory {
     public ProcessBuilder createProcessBuilder(ExecHandle execHandle) {
-        final ProcessBuilder processBuilder = new ProcessBuilder(execHandle.getCommand());
+        final List<String> command = new ArrayList<String>();
+        command.add(execHandle.getCommand());
+        command.addAll(execHandle.getArguments());
+        
+        final ProcessBuilder processBuilder = new ProcessBuilder(command);
 
         processBuilder.directory(execHandle.getDirectory());
         final Map<String, String> environment = processBuilder.environment();

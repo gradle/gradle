@@ -185,7 +185,7 @@ public class DefaultExecHandle implements ExecHandle {
         if ( !stateEquals(ExecHandleState.STARTED) ) throw new IllegalStateException("not in started state!");
         execHandleRunLock.lock();
         try {
-            ThreadUtils.shutdown(threadPool);
+            shutdownThreadPool();
         }
         finally {
             execHandleRunLock.unlock();
@@ -194,13 +194,42 @@ public class DefaultExecHandle implements ExecHandle {
         return getState();
     }
 
+    private void shutdownThreadPool() {
+        ThreadUtils.shutdown(threadPool);
+    }
+
     public ExecHandleState startAndWaitForFinish() {
         if ( stateEquals(ExecHandleState.STARTED) ) throw new IllegalStateException("already started!");
         execHandleRunLock.lock();
         try {
             start();
 
-            waitForFinish();
+            boolean proceed = false;
+            while ( !proceed ) {
+                switch ( getState() ) { // check on snapshot of state as to not block an external state poller
+                    case INIT:
+                        /*
+                        * As long as in state INIT not all the output consumtion threads are
+                        * started, so we wait.
+                        */
+                        Thread.yield();
+                        break;
+                    default :
+                        proceed = true;
+                }
+            }
+
+            // check on snapshot of state as to not block an external state poller
+            if ( getState() == ExecHandleState.STARTED ) {
+                waitForFinish();
+            }
+            else {
+                // possible that the process terminated immediately then there is no need to wait and we can shutdown the threadPool
+                // this is the cleanest way otherwise we need to introduce a possible race condition in waitForFinish:
+                // call start ( external process terminates directly ), call waitForFinish would never return now it throws an exception
+                // when the process is not started.
+                shutdownThreadPool();
+            }
         }
         finally {
             execHandleRunLock.unlock();

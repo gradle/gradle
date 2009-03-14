@@ -35,7 +35,8 @@ public class ThreadUtils {
         boolean stopped = false;
         while ( !stopped ) {
             try {
-                executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+                executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+                stopped = true;
             }
             catch (InterruptedException e) {
                 stopped = interuptHandler.handleIterrupt(executorService, e);

@@ -1,6 +1,8 @@
 package org.gradle.api.tasks.javadoc;
 
 /**
+ * This enum maps to the -public, -protected, -package and -private options of the javadoc executable. 
+ *
  * @author Tom Eyckmans
  */
 public enum JavadocMemberLevel {

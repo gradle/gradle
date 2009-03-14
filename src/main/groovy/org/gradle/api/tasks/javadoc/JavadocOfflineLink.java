@@ -1,8 +1,10 @@
 package org.gradle.api.tasks.javadoc;
 
-import java.util.List;
 
 /**
+ * This class is used to hold the information that can be provided to the javadoc executable via the -linkoffline
+ * option.
+ *
  * @author Tom Eyckmans
  */
 public class JavadocOfflineLink {

@@ -29,7 +29,6 @@ public class ExecHandleRunner implements Runnable {
         final ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         final long keepWaitingTimeout = execHandle.getKeepWaitingTimeout();
 
-        execHandle.started();
         try {
             final Process process = processBuilder.start();
 
@@ -38,6 +37,11 @@ public class ExecHandleRunner implements Runnable {
 
             threadPool.execute(standardOutputHandleRunner);
             threadPool.execute(errorOutputHandleRunner);
+
+            // signal started after all threads are started otherwise RejectedExecutionException may be thrown
+            // by the ExecutorService because shutdown may already be called on it
+            // especially when the startAndWaitForFinish method is used on the ExecHandle.
+            execHandle.started();
 
             boolean processFinishedNormally = false;
             while ( keepWaiting.get() && !processFinishedNormally ) {

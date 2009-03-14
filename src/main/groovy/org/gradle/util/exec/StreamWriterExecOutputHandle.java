@@ -51,4 +51,8 @@ public class StreamWriterExecOutputHandle implements ExecOutputHandle {
         t.printStackTrace();
         return true;
     }
+
+    public BufferedWriter getTarget() {
+        return target;
+    }
 }
