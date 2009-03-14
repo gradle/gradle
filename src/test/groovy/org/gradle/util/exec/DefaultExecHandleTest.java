@@ -27,7 +27,7 @@ public class DefaultExecHandleTest {
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
                 JavaEnvUtils.getJdkExecutable("javadoc"),
-                Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"), 0,
+                Arrays.asList("-verbose", "-d", new File("tmp/javadocTmpOut").getAbsolutePath(), "org.gradle"), 0,
                 System.getenv(),
                 100,
                 outHandle,
@@ -55,7 +55,7 @@ public class DefaultExecHandleTest {
         execHandle = new DefaultExecHandle(
                 new File("./src/main/groovy"),
                 JavaEnvUtils.getJdkExecutable("javadoc"),
-                Arrays.asList("-verbose", "-d", "/tmp/javadocTmpOut", "org.gradle"), 0,
+                Arrays.asList("-verbose", "-d", new File("tmp/javadocTmpOut").getAbsolutePath(), "org.gradle"), 0,
                 System.getenv(),
                 100,
                 outHandle,
