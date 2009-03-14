@@ -375,8 +375,51 @@
         <para>The
             <literal>javadoc</literal>
             task has no default association with any other task. It has no prerequisites on the actions of other tasks,
-            as it operates on the source. It does not provide a fine-grained configuration API yet. If you need this,
-            you have to use for example Ant's javadoc task directly.
+            as it operates on the source. We support the core javadoc options and the options of the standard doclet
+            described in the <ulink url='http://java.sun.com/j2se/1.5.0/docs/tooldocs/windows/javadoc.html#referenceguide'>reference documentation</ulink>
+            of the Javadoc executable.
+        </para>
+        <para>
+            For some of the Javadoc options we provide defaults these defaults are only used when they are not set explicitly.
+            Except for the sourcepath and classpath option for these options you can in addition to setting your custom values
+            also make it so that the defaults get appended to these paths with the (alwaysAppendDefaultSourcepath and
+            alwaysAppendDefaultClasspath toggles).
+        </para>
+        <thread>
+            <tr>
+                <td>Javadoc option</td>
+                <td>Default value</td>
+                <td>When is the default used</td>
+            </tr>
+        </thread>
+        <tr>
+            <td>destination directory</td>
+            <td>[javadocDir]</td>
+            <td>When the destination directory is not set explicitly</td>
+        </tr>
+        <tr>
+            <td>sourcepath</td>
+            <td>The java or groovy source directories</td>
+            <td>When the sourcepath is empty or when you set the alwaysAppendDefaultSourcepath to true</td>
+        </tr>
+        <tr>
+            <td>classpath</td>
+            <td>The dependencies from the compile configuration + the classesDir</td>
+            <td>When the classpath is empty or when you set the alwaysAppendDefaultClasspath to true</td>
+        </tr>
+        <tr>
+            <td>windowTitle</td>
+            <td>project name + version</td>
+            <td>When the window title is not set explicitly</td>
+        </tr>
+        <tr>
+            <td>subPackages</td>
+            <td>All first level sub directories in the srcDirs</td>
+            <td>When the following options are all empty: packageNames, sourceNames and subPackages</td>
+        </tr>
+        <para>
+            For a complete list of supported Javadoc options consult the API documentation of the following classes:
+            <apilink class="org.gradle.external.javadoc.CoreJavadocOptions"/> and <apilink class="org.gradle.external.javadoc.StandardJavadocDocletOptions"/>. 
         </para>
         <table>
             <title>Java Convention Object - Javadoc Properties</title>
@@ -389,6 +432,10 @@
             <tr>
                 <td>srcDirs</td>
                 <td>srcDirs</td>
+            </tr>
+            <tr>
+                <td>classesDir</td>
+                <td>classesDir</td>
             </tr>
             <tr>
                 <td>destinationDir</td>

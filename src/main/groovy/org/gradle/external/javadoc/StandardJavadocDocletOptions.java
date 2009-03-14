@@ -20,7 +20,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     public StandardJavadocDocletOptions(JavadocOptionFile javadocOptionFile) {
         super(javadocOptionFile);
 
-        directory = addFileOption("d");
+        destinationDirectory = addFileOption("d");
         use = addBooleanOption("use");
         version = addBooleanOption("version");
         author = addBooleanOption("author");
@@ -66,18 +66,18 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      *
      *   C:> javadoc -d /user/doc com.mypackage
      */
-    private final JavadocOptionFileOption<File> directory;
+    private final JavadocOptionFileOption<File> destinationDirectory;
 
-    public File getDirectory() {
-        return directory.getValue();
+    public File getDestinationDirectory() {
+        return destinationDirectory.getValue();
     }
 
-    public void setDirectory(File directory) {
-        this.directory.setValue(directory);
+    public void setDestinationDirectory(File directory) {
+        this.destinationDirectory.setValue(directory);
     }
 
-    public StandardJavadocDocletOptions directory(File directory) {
-        setDirectory(directory);
+    public StandardJavadocDocletOptions destinationDirectory(File destinationDirectory) {
+        setDestinationDirectory(destinationDirectory);
         return this;
     }
 

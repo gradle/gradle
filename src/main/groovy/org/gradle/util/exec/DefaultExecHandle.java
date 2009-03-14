@@ -11,23 +11,84 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 
 /**
+ * Default implementation for the ExecHandle interface.
+ *
+ * <h3>State flows</h3>
+ *
+ * <p>The ExecHandle has very strict state control.
+ * The following state flows are allowed:</p>
+ *
+ * Normal state flow:
+ * <ul><li>INIT -> STARTED -> SUCCEEDED</li></ul>
+ * Failure state flows:
+ * <ul>
+ * <li>INIT -> FAILED</li>
+ * <li>INIT -> STARTED -> FAILED</li>
+ * </ul>
+ * Aborted state flow:
+ * <ul><li>INIT -> STARTED -> ABORTED</li></ul>
+ *
+ * State is controlled on all control methods:
+ * <ul>
+ * <li>{@link #start()} can only be called when the state is NOT {@link ExecHandleState#STARTED}</li>
+ * <li>{@link #abort()} can only be called when the state is {@link ExecHandleState#STARTED}</li>
+ * <li>{@link #startAndWaitForFinish()} can only be called when the state is NOT {@link ExecHandleState#STARTED}</li> 
+ * </ul>
+ *
  * @author Tom Eyckmans
  */
 public class DefaultExecHandle implements ExecHandle {
+    /**
+     * The working directory of the process.
+     */
     private final File directory;
+    /**
+     * The executable to run.
+     */
     private final String command;
+    /**
+     * Arguments to pass to the executable.
+     */
     private final List<String> arguments;
+    /**
+     * The exit code of the executable when it terminates normally.
+     */
     private final int normalTerminationExitCode;
+    /**
+     * The variables to set in the environment the executable is run in.
+     */
     private final Map<String, String> environment;
+    /**
+     * Time in ms to sleep the 'main' Thread that is waiting for the external process to be terminated. Note that this
+     * timeout is only used when the {@link Process#waitFor} method is interrupted so it's use very limited.
+     */
     private final long keepWaitingTimeout;
 
+    /**
+     * The output handle to pass the standard output of the external process to.
+     */
     private final ExecOutputHandle standardOutputHandle;
+    /**
+     * The output handle to pass the error output of the external process to.
+     */
     private final ExecOutputHandle errorOutputHandle;
 
+    /**
+     * Lock to guard the state attribute.
+     */
     private final Lock stateLock;
+    /**
+     * State of this ExecHandle.
+     */
     private ExecHandleState state;
 
+    /**
+     * Lock to guard control methods calls.
+     */
     private final Lock execHandleRunLock;
+    /**
+     * When not null, the runnable that is waiting 
+     */
     private ExecHandleRunner execHandleRunner;
     private ExecutorService threadPool;
 

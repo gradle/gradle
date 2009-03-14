@@ -130,11 +130,11 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions optionFiles(File ... argumentFiles);
 
-    File getDirectory();
+    File getDestinationDirectory();
 
-    void setDirectory(File directory);
+    void setDestinationDirectory(File directory);
 
-    MinimalJavadocOptions directory(File directory);
+    MinimalJavadocOptions destinationDirectory(File directory);
 
     String getWindowTitle();
 

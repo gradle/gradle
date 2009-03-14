@@ -7,17 +7,11 @@ import static org.junit.Assert.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
-import org.gradle.external.javadoc.CoreJavadocOptions;
-import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.external.javadoc.JavadocOutputLevel;
-import org.gradle.external.javadoc.JavadocMemberLevel;
 import org.gradle.external.javadoc.optionfile.JavadocOptionFile;
 import org.gradle.external.javadoc.optionfile.LinksOfflineJavadocOptionFileOption;
 import org.gradle.external.javadoc.optionfile.GroupsJavadocOptionFileOption;
 
 import java.util.*;
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.File;
 
 /**
@@ -58,7 +52,7 @@ public class StandardJavadocDocletOptionsTest {
         assertEmpty(options.getSourceNames());
         assertEmpty(options.getOptionFiles());
         // standard doclet options
-        assertNull(options.getDirectory());
+        assertNull(options.getDestinationDirectory());
         assertFalse(options.isUse());
         assertFalse(options.isVersion());
         assertFalse(options.isAuthor());

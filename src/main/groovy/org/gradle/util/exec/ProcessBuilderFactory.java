@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
+ * Creates a {@link java.lang.ProcessBuilder} based on a {@link org.gradle.util.exec.ExecHandle}.
+ *
  * @author Tom Eyckmans
  */
 public class ProcessBuilderFactory {

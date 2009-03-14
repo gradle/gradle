@@ -46,6 +46,11 @@ public class DefaultConventionsToPropertiesMapping {
         public Object getValue(Convention convention, Task task) {
             return task.getProject().getDependencies();
         }
+    },
+            "classesDir", new ConventionValue() {
+        public Object getValue(Convention convention, Task task) {
+            return ((JavaPluginConvention) convention.getPlugins().get("java")).getClassesDir();
+        }
     });
 
     public final static Map RESOURCES = GUtil.map(

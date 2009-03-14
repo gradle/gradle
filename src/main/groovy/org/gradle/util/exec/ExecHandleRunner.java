@@ -43,13 +43,14 @@ public class ExecHandleRunner implements Runnable {
             // especially when the startAndWaitForFinish method is used on the ExecHandle.
             execHandle.started();
 
+            int exitCode = -1;
             boolean processFinishedNormally = false;
             while ( keepWaiting.get() && !processFinishedNormally ) {
                 try {
-                    process.waitFor();
+                    exitCode = process.exitValue();
                     processFinishedNormally = true;
                 }
-                catch (InterruptedException e) {
+                catch (IllegalThreadStateException e) {
                     // ignore
                 }
                 try {
@@ -65,8 +66,6 @@ public class ExecHandleRunner implements Runnable {
                 execHandle.aborted();
             }
             else {
-                final int exitCode = process.exitValue();
-
                 execHandle.finished(exitCode);
             }
         }

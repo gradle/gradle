@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 
 /**
  * <p>Generates Javadoc from a number of java source directories.</p>
@@ -41,6 +42,7 @@ public class Javadoc extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Javadoc.class);
 
     private List<File> srcDirs;
+    private File classesDir;
 
     private File destinationDir;
 
@@ -56,6 +58,8 @@ public class Javadoc extends ConventionTask {
 
     private String optionsFilename = "javadoc.options";
     private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
+    private boolean alwaysAppendDefaultSourcepath = false;
+    private boolean alwaysAppendDefaultClasspath = false;
 
     private ConfigurationResolveInstructionModifier resolveInstructionModifier;
 
@@ -70,15 +74,64 @@ public class Javadoc extends ConventionTask {
 
     private void generate() {
         List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs());
-        options.sourcepath(existingSourceDirs)
-            .directory(getDestinationDir())
-            .classpath(getClasspath())
-            .classpath((File)getProject().getConvention().getProperty("classesDir"))
-            .windowTitle("\""+getTitle()+"\"")
-            .exclude("**/package.html");
 
-        if ( maxMemory != null )
-            options.jFlags("-Xmx"+maxMemory);
+        final File destinationDir = getDestinationDir();
+
+        if ( !destinationDir.exists() ) {
+            if ( !destinationDir.mkdirs() )
+                throw new GradleException("Failed to create destination directory " + destinationDir.getAbsolutePath());
+        }
+
+        if ( options.getDestinationDirectory() == null )
+            options
+                .destinationDirectory(destinationDir);
+
+        if ( options.getSourcepath().isEmpty() || alwaysAppendDefaultSourcepath )
+            options
+                .sourcepath(existingSourceDirs);
+
+        if ( options.getClasspath().isEmpty() || alwaysAppendDefaultClasspath ) {
+            options
+                .classpath(getClasspath())
+                .classpath(getClassesDir());
+        }
+
+        if ( StringUtils.isEmpty(options.getWindowTitle()) )
+            options
+                .windowTitle("\""+getTitle()+"\"");
+
+        if (    options.getPackageNames().isEmpty() &&
+                options.getSourceNames().isEmpty() &&
+                options.getSubPackages().isEmpty() ) {
+            for ( File srcDir : getSrcDirs() ) {
+                if ( srcDir.exists() ) {
+                    for ( File packageDir : srcDir.listFiles() ) {
+                        if ( packageDir.isDirectory() ) {
+                            final String packageDirName = packageDir.getName();
+
+                            options.subPackages(packageDirName);
+
+                            if ( logger.isDebugEnabled() ) {
+                                logger.debug("Added {} package to subPackages Javadoc option", packageDirName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ( maxMemory != null ) {
+            final List<String> jFlags = options.getJFlags();
+            final Iterator<String> jFlagsIt = jFlags.iterator();
+            boolean containsXmx = false;
+            while ( !containsXmx && jFlagsIt.hasNext() ) {
+                final String jFlag = jFlagsIt.next();
+                if ( jFlag.startsWith("-Xmx") )
+                    containsXmx = true;
+            }
+            if ( !containsXmx )
+                options.jFlags("-Xmx"+maxMemory);
+        }
 
         executeExternalJavadoc();
     }
@@ -121,6 +174,10 @@ public class Javadoc extends ConventionTask {
      */
     public void setSrcDirs(List<File> srcDirs) {
         this.srcDirs = new ArrayList<File>(srcDirs);
+    }
+
+    public File getClassesDir() {
+        return (File) conv(classesDir, "classesDir");
     }
 
     /**
@@ -257,5 +314,31 @@ public class Javadoc extends ConventionTask {
     public void setOptionsFilename(String optionsFilename) {
         if ( StringUtils.isEmpty(optionsFilename) ) throw new IllegalArgumentException("optionsFilename can't be empty!");
         this.optionsFilename = optionsFilename;
+    }
+
+    public boolean isAlwaysAppendDefaultSourcepath() {
+        return alwaysAppendDefaultSourcepath;
+    }
+
+    public void setAlwaysAppendDefaultSourcepath(boolean alwaysAppendDefaultSourcepath) {
+        this.alwaysAppendDefaultSourcepath = alwaysAppendDefaultSourcepath;
+    }
+
+    public Javadoc alwaysAppendDefaultSourcepath() {
+        setAlwaysAppendDefaultSourcepath(true);
+        return this;
+    }
+
+    public boolean isAlwaysAppendDefaultClasspath() {
+        return alwaysAppendDefaultClasspath;
+    }
+
+    public void setAlwaysAppendDefaultClasspath(boolean alwaysAppendDefaultClasspath) {
+        this.alwaysAppendDefaultClasspath = alwaysAppendDefaultClasspath;
+    }
+
+    public Javadoc alwaysAppendDefaultClasspath() {
+        setAlwaysAppendDefaultClasspath(true);
+        return this;
     }
 }
