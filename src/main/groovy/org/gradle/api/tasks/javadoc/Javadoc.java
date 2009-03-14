@@ -16,7 +16,8 @@
 
 package org.gradle.api.tasks.javadoc;
 
-import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.util.JavaEnvUtils;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
@@ -41,6 +42,8 @@ public class Javadoc extends ConventionTask {
     private File destinationDir;
 
     private DependencyManager dependencyManager;
+
+    private boolean failOnError = false;
 
     private String title;
 
@@ -70,28 +73,27 @@ public class Javadoc extends ConventionTask {
 
             final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true)
                     .execDirectory(getProject().getRootDir())
-                    .execCommand(System.getProperty("java.home")+"/bin/javadoc")
+                    .execCommand(JavaEnvUtils.getJdkExecutable("javadoc")) // reusing Ant knowledge here would be stupid not to
                     .prependedArguments("-J", options.getJFlags()) // J flags can not be set in the option file
                     .arguments("@"+javadocCommandLineFile.getAbsolutePath());
             final ExecHandle execHandle = execHandleBuilder.getExecHandle();
 
             switch ( execHandle.startAndWaitForFinish() ) {
                 case SUCCEEDED:
-                    // Javadoc generation successfull
                     break;
                 case ABORTED:
-                    // TODO throw stop exception?
-                    break;
+                    throw new GradleException("Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
                 case FAILED:
-                    throw new GradleException("Javadoc generation failed.", execHandle.getFailureCause());
+                    if ( failOnError )
+                        throw new GradleException("Javadoc generation failed.", execHandle.getFailureCause());
+                    else
+                        break;
                 default:
                     throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
             }
 
         }
-        catch (BuildException e) {
-            throw new GradleException("Javadoc generation failed.", e);
-        } catch (IOException e) {
+        catch (IOException e) {
             throw new GradleException("Faild to store javadoc options.", e);
         }
     }
@@ -105,7 +107,15 @@ public class Javadoc extends ConventionTask {
         if ( maxMemory != null )
             options.jFlags("-Xmx"+maxMemory);
 
-        options.toOptionsFile(new BufferedWriter(new FileWriter(javadocOptionsFile)));
+        BufferedWriter optionsFileWriter = null; 
+        try {
+            optionsFileWriter = new BufferedWriter(new FileWriter(javadocOptionsFile));
+
+            options.toOptionsFile(optionsFileWriter);
+        }
+        finally {
+            IOUtils.closeQuietly(optionsFileWriter);
+        }
     }
 
     /**
@@ -241,5 +251,13 @@ public class Javadoc extends ConventionTask {
 
     public void setOptions(MinimalJavadocOptions options) {
         this.options = options;
+    }
+
+    public boolean isFailOnError() {
+        return failOnError;
+    }
+
+    public void setFailOnError(boolean failOnError) {
+        this.failOnError = failOnError;
     }
 }
