@@ -23,4 +23,8 @@ public class JavadocOfflineLink {
     public String getPackagelistLoc() {
         return packagelistLoc;
     }
+
+    public String toString() {
+        return extDocUrl + " " + packagelistLoc;
+    }
 }

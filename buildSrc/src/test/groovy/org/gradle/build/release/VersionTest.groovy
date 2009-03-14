@@ -16,7 +16,6 @@
 
 package org.gradle.build.release
 
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
 import org.gradle.api.internal.project.*
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.util.GradleUtil
@@ -26,6 +25,7 @@ import org.gradle.StartParameter
 import org.gradle.invocation.DefaultBuild
 import org.gradle.initialization.ISettingsFinder
 import org.gradle.CacheUsage
+import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory
 
 /**
  * @author Hans Dockter

@@ -276,7 +276,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     void writeSourcepath(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( sourcepath != null && !sourcepath.isEmpty() ) {
-            writePathOption(SOURCEPATH, sourcepath, ";", javadocOptionFileWriter);
+            writePathOption(SOURCEPATH, sourcepath, System.getProperty("path.separator"), javadocOptionFileWriter);
         }
         else {
             writeOptionValueFile(SOURCEPATH, javadocOptionFileWriter);
@@ -333,7 +333,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     void writeClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( classpath != null && !classpath.isEmpty() ) {
-            writePathOption(CLASSPATH, classpath, ";", javadocOptionFileWriter);
+            writePathOption(CLASSPATH, classpath, System.getProperty("path.separator"), javadocOptionFileWriter);
         }
         else {
             writeOptionValueFile(CLASSPATH, javadocOptionFileWriter);
@@ -458,7 +458,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     void writeBootClasspath(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( bootClasspath != null && !bootClasspath.isEmpty() ) {
-            writePathOption(BOOTCLASSPATH, bootClasspath, ";", javadocOptionFileWriter);
+            writePathOption(BOOTCLASSPATH, bootClasspath, System.getProperty("path.separator"), javadocOptionFileWriter);
         }
         else {
             writeOptionValueFile(BOOTCLASSPATH, javadocOptionFileWriter);
@@ -494,7 +494,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     void writeExtDirs(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( extDirs != null && !extDirs.isEmpty() ) {
-            writePathOption(EXTDIRS, extDirs, ";", javadocOptionFileWriter);
+            writePathOption(EXTDIRS, extDirs, System.getProperty("path.separator"), javadocOptionFileWriter);
         }
         else {
             writeOptionValueFile(EXTDIRS, javadocOptionFileWriter);
@@ -839,17 +839,30 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         javadocOptionFileWriter.newLine();
     }
 
+    protected void writeValueOption(String option, Collection<String> values, BufferedWriter javadocOptionFileWriter) throws IOException {
+        for ( final String value : values ) {
+            writeValueOption(option, value, javadocOptionFileWriter);
+        }
+    }
+
     protected void writeValuesOption(String option, Collection<String> values, String joinValuesBy, BufferedWriter javadocOptionFileWriter) throws IOException {
         writeOptionHeader(option, javadocOptionFileWriter);
-        javadocOptionFileWriter.write(GUtil.join(values, joinValuesBy));
+        final Iterator<String> valuesIt = values.iterator();
+        while ( valuesIt.hasNext() ) {
+            javadocOptionFileWriter.write(valuesIt.next());
+            if ( valuesIt.hasNext() )
+                javadocOptionFileWriter.write(joinValuesBy);
+        }
         javadocOptionFileWriter.newLine();
     }
 
     protected void writePathOption(String option, Collection<File> files, String joinValuesBy, BufferedWriter javadocOptionFileWriter) throws IOException {
         writeOptionHeader(option, javadocOptionFileWriter);
-        for ( File file : files ) {
-            javadocOptionFileWriter.write(file.getAbsolutePath());
-            javadocOptionFileWriter.write(joinValuesBy);
+        final Iterator<File> filesIt = files.iterator();
+        while ( filesIt.hasNext() ) {
+            javadocOptionFileWriter.write(filesIt.next().getAbsolutePath());
+            if ( filesIt.hasNext() )
+                javadocOptionFileWriter.write(joinValuesBy);
         }
         javadocOptionFileWriter.newLine();
     }

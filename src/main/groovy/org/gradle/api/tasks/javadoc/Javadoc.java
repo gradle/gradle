@@ -19,6 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import org.apache.tools.ant.util.JavaEnvUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.*;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -102,7 +103,8 @@ public class Javadoc extends ConventionTask {
         options.sourcepath(existingSourceDirs)
                 .directory(getDestinationDir())
                 .classpath(getClasspath())
-                .windowTitle(getTitle());
+                .classpath((File)getProject().getConvention().getProperty("classesDir"))
+                .windowTitle("\""+getTitle()+"\"");
 
         if ( maxMemory != null )
             options.jFlags("-Xmx"+maxMemory);
