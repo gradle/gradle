@@ -16,9 +16,9 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions overview(String overview);
 
-    JavadocMemberLevel getShow();
+    JavadocMemberLevel getMemberLevel();
 
-    void setShow(JavadocMemberLevel memberLevel);
+    void setMemberLevel(JavadocMemberLevel memberLevel);
 
     MinimalJavadocOptions showFromPublic();
 
@@ -30,11 +30,11 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions showAll();
 
-    String getDocletClass();
+    String getDoclet();
 
-    void setDocletClass(String docletClass);
+    void setDoclet(String docletClass);
 
-    MinimalJavadocOptions docletClass(String docletClass);
+    MinimalJavadocOptions doclet(String docletClass);
 
     List<File> getDocletClasspath();
 
@@ -143,4 +143,18 @@ public interface MinimalJavadocOptions {
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
     void toOptionsFile(BufferedWriter javadocCommandLineWriter) throws IOException;
+
+    List<String> getPackageNames();
+
+    void setPackageNames(List<String> packageNames);
+
+    MinimalJavadocOptions packageNames(String ... packageNames);
+
+    List<String> getSourceNames();
+
+    void setSourceNames(List<String> sourceNames);
+
+    MinimalJavadocOptions sourceNames(String ... sourceNames);
+
+    MinimalJavadocOptions showFromPackaged();
 }

@@ -59,31 +59,35 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      */
     private JavadocMemberLevel memberLevel = null;
 
-    public JavadocMemberLevel getShow() {
+    public JavadocMemberLevel getMemberLevel() {
         return memberLevel;
     }
 
-    public void setShow(JavadocMemberLevel memberLevel) {
+    public void setMemberLevel(JavadocMemberLevel memberLevel) {
         this.memberLevel = memberLevel;
     }
 
     public MinimalJavadocOptions showFromPublic() {
-        setShow(JavadocMemberLevel.PUBLIC);
+        setMemberLevel(JavadocMemberLevel.PUBLIC);
         return this;
     }
 
     public MinimalJavadocOptions showFromProtected() {
-        setShow(JavadocMemberLevel.PROTECTED);
+        setMemberLevel(JavadocMemberLevel.PROTECTED);
         return this;
     }
 
     public MinimalJavadocOptions showFromPackage() {
-        setShow(JavadocMemberLevel.PACKAGE);
+        setMemberLevel(JavadocMemberLevel.PACKAGE);
         return this;
     }
 
+    public MinimalJavadocOptions showFromPackaged() {
+        return showFromPackage();
+    }
+
     public MinimalJavadocOptions showFromPrivate() {
-        setShow(JavadocMemberLevel.PRIVATE);
+        setMemberLevel(JavadocMemberLevel.PRIVATE);
         return this;
     }
 
@@ -91,7 +95,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return showFromPrivate();
     }
 
-    void writeShow(BufferedWriter javadocOptionFileWriter) throws IOException {
+    void writeMemberLevel(BufferedWriter javadocOptionFileWriter) throws IOException {
         if ( memberLevel != null ) {
             writeOption(memberLevel.toString().toLowerCase(), javadocOptionFileWriter);
         }
@@ -112,24 +116,24 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
-    private String docletClass = null;
+    private String doclet = null;
 
-    public String getDocletClass() {
-        return docletClass;
+    public String getDoclet() {
+        return doclet;
     }
 
-    public void setDocletClass(String docletClass) {
-        this.docletClass = docletClass;
+    public void setDoclet(String doclet) {
+        this.doclet = doclet;
     }
 
-    public MinimalJavadocOptions docletClass(String docletClass) {
-        setDocletClass(docletClass);
+    public MinimalJavadocOptions doclet(String doclet) {
+        setDoclet(doclet);
         return this;
     }
 
-    void writeDocletClass(BufferedWriter javadocOptionFileWriter) throws IOException {
-        if ( docletClass != null ) {
-            writeValueOption(DOCLET, docletClass, javadocOptionFileWriter);
+    void writeDoclet(BufferedWriter javadocOptionFileWriter) throws IOException {
+        if ( doclet != null ) {
+            writeValueOption(DOCLET, doclet, javadocOptionFileWriter);
         }
     }
 
@@ -553,7 +557,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      * and the sentence separator to determine the end of the first sentence.
      * It does not determine the locale of the doc comment text specified in the source files of the documented classes.
      */
-    private String locale;
+    private String locale = null;
 
     public String getLocale() {
         return locale;
@@ -581,7 +585,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * Also see -docencoding and -charset.
      */
-    private String encoding;
+    private String encoding = null;
 
     public String getEncoding() {
         return encoding;
@@ -661,11 +665,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     private List<String> sourceNames = new ArrayList<String>();
 
-    public List<String> getsourceNames() {
+    public List<String> getSourceNames() {
         return sourceNames;
     }
 
-    public void setsourceNames(List<String> sourceNames) {
+    public void setSourceNames(List<String> sourceNames) {
         this.sourceNames = sourceNames;
     }
 
@@ -709,8 +713,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     public void toOptionsFile(BufferedWriter javadocOptionFileWriter) throws IOException {
         writeOverview(javadocOptionFileWriter);
-        writeShow(javadocOptionFileWriter);
-        writeDocletClass(javadocOptionFileWriter);
+        writeMemberLevel(javadocOptionFileWriter);
+        writeDoclet(javadocOptionFileWriter);
         writeDocletClasspath(javadocOptionFileWriter);
         writeSource(javadocOptionFileWriter);
         writeSourcepath(javadocOptionFileWriter);
