@@ -1,10 +1,12 @@
-package org.gradle.build.integtests.testng
+package org.gradle.integtests.testng
 /**
  * @author Tom Eyckmans
  */
-import static org.gradle.build.integtests.testng.TestNGIntegrationProject.*
-import org.gradle.build.integtests.Executer;
-import org.gradle.build.integtests.GradleDistribution;
+import static org.gradle.integtests.testng.TestNGIntegrationProject.*
+import org.gradle.integtests.Executer;
+import org.gradle.integtests.GradleDistribution
+import org.gradle.integtests.Executer
+import org.gradle.integtests.GradleDistribution
 
 public class TestNGIntegration {
     static final String GROOVY = "groovy"

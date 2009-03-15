@@ -8,7 +8,6 @@ import org.gradle.api.internal.dependencies.WebdavResolver
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.build.integtests.IntegTestSuite
 import org.gradle.build.release.Svn
 import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
@@ -124,7 +123,7 @@ dependencies {
             "junit:junit:4.4@jar"
 
     def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
-    testCompile "junit:junit:4.4@jar", FIRST_LEVEL_JMOCK
+    testCompile "junit:junit:4.4@jar", "xmlunit:xmlunit:1.2", FIRST_LEVEL_JMOCK
     clientModule(['testCompile'], "org.jmock:jmock:2.4.0") {
         dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
     }
@@ -537,7 +536,13 @@ createTask('websiteDocs', dependsOn: 'userguideStyleSheets') {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 createTask('integTest', dependsOn: ['dists', 'userguideSrc']) {
-    IntegTestSuite.execute(explodedDistDir, explodedDistSamplesDir, userguideOutputDir, docbookSrc)
+    ant.java(classname: 'org.gradle.integtests.IntegTestSuite', failonerror: true) {
+        sysproperty(key: 'integTest.gradleHomeDir', value: explodedDistDir)
+        sysproperty(key: 'integTest.samplesDir', value: explodedDistSamplesDir)
+        sysproperty(key: 'integTest.userGuideOutputDir', value: userguideOutputDir)
+        sysproperty(key: 'integTest.userGuideInfoDir', value: docbookSrc)
+        classpath(path: test.classpath.join(File.pathSeparator))
+    }
 }
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc', 'uploadUserguide'])

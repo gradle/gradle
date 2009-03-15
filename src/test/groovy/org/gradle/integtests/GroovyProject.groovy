@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.build.integtests
+package org.gradle.integtests
 
 /**
  * @author Hans Dockter

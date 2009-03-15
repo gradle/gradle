@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.integtests
+ 
+package org.gradle.integtests
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-
-public class CommandLine {
-
+/**
+ * @author Hans Dockter
+ */
+class Version {
     static void execute(GradleDistribution dist) {
-        File javaprojectDir = new File(dist.samplesDir, 'javaproject')
-        Map result = Executer.execute(dist.gradleHomeDir.absolutePath, javaprojectDir.absolutePath, ['unknown'], [], '', Executer.QUIET, true)
-        assertThat(result.error, containsString("Task 'unknown' not found "))
+        Executer.execute(dist.gradleHomeDir.absolutePath, System.properties['user.dir'], ['-v'])
     }
 }

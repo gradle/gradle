@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.build.integtests
+package org.gradle.integtests
 
-import org.gradle.build.integtests.testng.TestNGIntegration
+import org.gradle.integtests.testng.TestNGIntegration
 
 /**
  * @author Hans Dockter
  */
 class IntegTestSuite {
+    public static void main(String[] args) {
+        execute(file('integTest.gradleHomeDir'), file('integTest.samplesDir'), file('integTest.userGuideOutputDir'),
+                file('integTest.userGuideInfoDir'))
+    }
+
+    static File file(String propName) {
+        new File(System.getProperty(propName)).canonicalFile
+    }
+    
     static void execute(File distDir, File samplesDir, File userguideOutputDir, File userguideDir) {
         GradleDistribution dist = [
                 getGradleHomeDir: {-> distDir},

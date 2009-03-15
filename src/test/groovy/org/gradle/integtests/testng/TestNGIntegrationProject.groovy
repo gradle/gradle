@@ -1,4 +1,4 @@
-package org.gradle.build.integtests.testng
+package org.gradle.integtests.testng
 /**
  * @author Tom Eyckmans
  */

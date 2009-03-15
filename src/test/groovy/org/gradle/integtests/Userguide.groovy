@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.build.integtests
+package org.gradle.integtests
 
 import groovy.io.PlatformLineWriter
 import org.slf4j.Logger
@@ -140,21 +140,5 @@ class Userguide {
             String outputFile = sample.args != null ? "${id}.out" : null
             new GradleRun(id: id, subDir: dir, execute: args, outputFile: outputFile, debugLevel: Executer.LIFECYCLE, envs: sample.envs)
         }
-    }
-}
-
-class GradleRun {
-    String id
-    String execute
-    int debugLevel
-    String file
-    String subDir
-    boolean groovyScript = false
-    List envs = []
-    String outputFile
-
-    def withLoggingLevel(int debugLevel) {
-        this.debugLevel = debugLevel
-        this
     }
 }

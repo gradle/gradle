@@ -1,4 +1,4 @@
-package org.gradle.build.integtests
+package org.gradle.integtests
 
 public interface GradleDistribution {
     File getGradleHomeDir()

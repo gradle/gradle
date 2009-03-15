@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.build.integtests
-
-import org.gradle.build.samples.WrapperProjectCreator
+package org.gradle.integtests
 
 /**
  * @author Hans Dockter
@@ -24,12 +22,11 @@ import org.gradle.build.samples.WrapperProjectCreator
 class WrapperProject {
     static void execute(GradleDistribution dist) {
         String nl = System.properties['line.separator']
-        File waterDir = new File(dist.samplesDir, WrapperProjectCreator.WRAPPER_PROJECT_NAME)
+        File waterDir = new File(dist.samplesDir, 'wrapper-project')
 
-        Executer.execute(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, [WrapperProjectCreator.WRAPPER_TASK_NAME])
-        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, waterDir.absolutePath,
-                [WrapperProjectCreator.TEST_TASK_NAME])
-        String compareValue =  result.output.substring(result.output.size() - WrapperProjectCreator.TEST_TASK_OUTPUT.size() - nl.size())
-        assert  compareValue == WrapperProjectCreator.TEST_TASK_OUTPUT + nl
+        Executer.execute(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, ['wrapper'])
+        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, ['hello'])
+        String compareValue =  result.output.substring(result.output.size() - 'hello'.size() - nl.size())
+        assert compareValue == 'hello' + nl
     }
 }

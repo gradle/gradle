@@ -12,7 +12,7 @@ dependencies {
       name = 'sf_gradleRepo'
       addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
     }
-    compile "com.svnkit:svnkit:1.1.6", "com.svnkit:svnkit-javahl:1.1.6", "xmlunit:xmlunit:1.2", 'org.hamcrest:hamcrest-core:1.1', 'org.hamcrest:hamcrest-library:1.1'
+    compile "com.svnkit:svnkit:1.1.6", "com.svnkit:svnkit-javahl:1.1.6", 'org.hamcrest:hamcrest-core:1.1', 'org.hamcrest:hamcrest-library:1.1'
 }
 
 sourceCompatibility = 1.5

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.build.integtests
+package org.gradle.integtests
 
 import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
