@@ -27,9 +27,9 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class Userguide {
+class UserguideIntegrationTest {
 
-    private static Logger logger = LoggerFactory.getLogger(Userguide)
+    private static Logger logger = LoggerFactory.getLogger(UserguideIntegrationTest)
     static String NL = System.properties['line.separator']
 
     // Injected by test runner

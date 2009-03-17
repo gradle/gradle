@@ -24,7 +24,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class MavenRepo {
+class MavenRepoIntegrationTest {
     static final String PROJECT_NAME = 'mavenRepo'
     static final String TEST_PROJECT_NAME = 'testproject'
 
@@ -38,7 +38,7 @@ class MavenRepo {
 
         File projectDir = new File(dist.samplesDir, PROJECT_NAME)
         Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['retrieve'], [], '', Executer.DEBUG)
-        expectedFiles.each { JavaProject.checkExistence(projectDir, 'build', it)}
+        expectedFiles.each { JavaProjectSampleIntegrationTest.checkExistence(projectDir, 'build', it)}
         GradleUtil.deleteDir(new File(projectDir, 'build'))
     }
 }

@@ -29,7 +29,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class PomGeneration {
+class PomGenerationIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
 
@@ -85,7 +85,7 @@ class PomGeneration {
 
     private static String expectedPom(String version, String groupId) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(PomGeneration.getResourceAsStream('pomGeneration/expectedPom.txt').text).make(version: version, groupId: groupId)
+        templateEngine.createTemplate(PomGenerationIntegrationTest.getResourceAsStream('pomGeneration/expectedPom.txt').text).make(version: version, groupId: groupId)
     }
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {

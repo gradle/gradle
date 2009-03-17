@@ -25,7 +25,7 @@ import org.junit.Test
  */
 // todo To make this test stronger, we should check against the output of a file appender. Rigth now Gradle does not provided this easily but eventually will.
 @RunWith(DistributionIntegrationTestRunner.class)
-class Logging {
+class LoggingIntegrationTest {
     final static String PREFIX = "276hfe7qlk3sl'aspeie"
     
     // Injected by test runner

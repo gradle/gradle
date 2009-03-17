@@ -24,7 +24,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class WebProject {
+class WebProjectSampleIntegrationTest {
     static final String WEB_PROJECT_NAME = 'web-project'
 
     // Injected by test runner

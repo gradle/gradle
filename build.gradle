@@ -173,7 +173,9 @@ resources.doLast {
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=256m'])
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'])
+
+    exclude 'org/gradle/integtests/**/*IntegrationTest.*'
 }
 
 libs {
@@ -549,24 +551,8 @@ integTest {
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
     options.systemProperties['integTest.userGuideInfoDir'] = docbookSrc.absolutePath
 
-    [
-        'org.gradle.integtests.testng.TestNGIntegration',
-        'org.gradle.integtests.Userguide',
-        'org.gradle.integtests.CacheProject',
-        'org.gradle.integtests.CommandLine',
-        'org.gradle.integtests.WrapperProject',
-        'org.gradle.integtests.JavaProject',
-        'org.gradle.integtests.GroovyProject',
-        'org.gradle.integtests.WebProject',
-        'org.gradle.integtests.Logging',
-        'org.gradle.integtests.Osgi',
-        'org.gradle.integtests.PomGeneration',
-        'org.gradle.integtests.WaterProject',
-        'org.gradle.integtests.Version',
-        'org.gradle.integtests.MavenRepo'
-    ].each {
-        include it.replaceAll('\\.', '/') + '.*'
-    }
+    include 'org/gradle/integtests/**/*IntegrationTest.*'
+    exclude '**/Abstract*'
 }
 integTest.doFirst {
     ant {

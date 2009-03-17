@@ -28,7 +28,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class JavaProject {
+class JavaProjectSampleIntegrationTest {
     static final String JAVA_PROJECT_NAME = 'javaproject'
     static final String SHARED_NAME = 'shared'
     static final String API_NAME = 'api'
@@ -97,11 +97,11 @@ class JavaProject {
     private static def checkEclipse(File javaprojectDir, String gradleHome) {
         String cachePath = System.properties['user.home'] + '/.gradle/cache'
         Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipse'], [], '', Executer.DEBUG)
-        compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
               file(javaprojectDir, API_NAME, ".project").text)
-        compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
                 file(javaprojectDir, WEBAPP_1_PATH, ".project").text) 
-        compareXmlWithIgnoringOrder(JavaProject.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
                 file(javaprojectDir, WEBAPP_1_PATH, ".project").text)
         compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedApiClasspathFile.txt", cachePath),
                 file(javaprojectDir, API_NAME, ".classpath").text)
@@ -125,7 +125,7 @@ class JavaProject {
 
     private static String replaceWithCachePath(String resourcePath, String cachePath) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(JavaProject.getResourceAsStream(resourcePath).text).make(cachePath: new File(cachePath).canonicalPath).toString().replace('\\', '/')
+        templateEngine.createTemplate(JavaProjectSampleIntegrationTest.getResourceAsStream(resourcePath).text).make(cachePath: new File(cachePath).canonicalPath).toString().replace('\\', '/')
     }
            
     private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {

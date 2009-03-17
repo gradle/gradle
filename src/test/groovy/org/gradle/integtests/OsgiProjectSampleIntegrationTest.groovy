@@ -26,7 +26,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class Osgi {
+class OsgiProjectSampleIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
 

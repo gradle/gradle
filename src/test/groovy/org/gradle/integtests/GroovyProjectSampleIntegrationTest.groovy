@@ -23,7 +23,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class GroovyProject {
+class GroovyProjectSampleIntegrationTest {
     static final String GROOVY_PROJECT_NAME = 'groovyproject'
     static final String TEST_PROJECT_NAME = 'testproject'
 
@@ -45,13 +45,13 @@ class GroovyProject {
 
         // Build libs
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
-        mainFiles.each { JavaProject.checkExistence(testProjectDir, packagePrefix, it + ".class")}
-        excludedFiles.each { JavaProject.checkExistence(testProjectDir, false, packagePrefix, it + ".class")}
+        mainFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, packagePrefix, it + ".class")}
+        excludedFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, false, packagePrefix, it + ".class")}
 
-        testFiles.each { JavaProject.checkExistence(testProjectDir, testPackagePrefix, it + ".class") }
+        testFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, testPackagePrefix, it + ".class") }
 
         // The test produce marker files with the name of the test class
-        testFiles.each { JavaProject.checkExistence(testProjectDir, 'build', it) }
+        testFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build', it) }
 
         String unjarPath = "$testProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()
@@ -61,8 +61,8 @@ class GroovyProject {
 
         // Build docs
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'javadoc', 'groovydoc'], [], '', Executer.DEBUG)
-        JavaProject.checkExistence(testProjectDir, 'build/docs/javadoc/index.html')
-        JavaProject.checkExistence(testProjectDir, 'build/docs/groovydoc/index.html')
+        JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build/docs/javadoc/index.html')
+        JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build/docs/groovydoc/index.html')
 
         // This test is also important for test cleanup
         Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'], [], '', Executer.DEBUG)

@@ -24,7 +24,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class CacheProject {
+class CacheProjectIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
     // Injected by test runner

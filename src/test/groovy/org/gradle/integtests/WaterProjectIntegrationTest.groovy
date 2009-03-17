@@ -24,7 +24,7 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class WaterProject {
+class WaterProjectIntegrationTest {
     final static String NL = System.properties['line.separator']
 
     final static String HELLO_CLAUSE = "Hello, I'm "

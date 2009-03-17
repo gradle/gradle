@@ -10,7 +10,7 @@ import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.junit.Test
 
 @RunWith(DistributionIntegrationTestRunner.class)
-public class TestNGIntegration {
+public class TestNGIntegrationTest {
     static final String GROOVY = "groovy"
     static final String JAVA = "java"
     static final String JDK14 = "jdk14"

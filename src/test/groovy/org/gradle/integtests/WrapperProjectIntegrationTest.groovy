@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.integtests
 
 import org.junit.runner.RunWith
@@ -23,12 +23,18 @@ import org.junit.Test
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class Version {
+class WrapperProjectIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
-    
+
     @Test
-    public void canUseVersionCommandLineOption() {
-        Executer.execute(dist.gradleHomeDir.absolutePath, System.properties['user.dir'], ['-v'])
+    public void wrapperSample() {
+        String nl = System.properties['line.separator']
+        File waterDir = new File(dist.samplesDir, 'wrapper-project')
+
+        Executer.execute(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, ['wrapper'])
+        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, ['hello'])
+        String compareValue =  result.output.substring(result.output.size() - 'hello'.size() - nl.size())
+        assert compareValue == 'hello' + nl
     }
 }
