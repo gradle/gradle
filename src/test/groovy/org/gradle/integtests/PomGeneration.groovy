@@ -22,12 +22,19 @@ import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.hamcrest.Matchers
 import org.junit.Assert
+import org.junit.runner.RunWith
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class PomGeneration {
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void pomSamples() {
         String gradleHome = dist.gradleHomeDir.absolutePath
         File pomProjectDir = new File(dist.samplesDir, 'pomGeneration')
         File repoDir = new File(pomProjectDir, "pomRepo");

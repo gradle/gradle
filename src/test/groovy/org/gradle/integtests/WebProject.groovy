@@ -17,14 +17,21 @@
 package org.gradle.integtests
 
 import org.junit.Assert
+import org.junit.runner.RunWith
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class WebProject {
     static final String WEB_PROJECT_NAME = 'web-project'
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void webProjectSamples() {
         String gradleHome = dist.gradleHomeDir.absolutePath
         File webProjectDir = new File(dist.samplesDir, WEB_PROJECT_NAME)
         Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)

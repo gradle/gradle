@@ -16,10 +16,14 @@
 
 package org.gradle.integtests
 
+import org.junit.runner.RunWith
+import org.junit.Test
+
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class WaterProject {
     final static String NL = System.properties['line.separator']
 
@@ -35,7 +39,11 @@ class WaterProject {
     final static String KRILL_NAME = 'krill'
     final static String PHYTOPLANKTON_NAME = 'phytoplankton'
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void waterProject() {
         String gradleHome = dist.gradleHomeDir.absolutePath
         File waterDir = new File(dist.samplesDir, WATER_NAME)
         String taskName = 'hello'

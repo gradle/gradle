@@ -120,14 +120,14 @@ dependencies {
     runtime "org.apache.ant:ant-launcher:1.7.0@jar",
             "org.apache.ant:ant-nodeps:1.7.0@jar",
             "org.apache.ant:ant-trax:1.7.0@jar",
-            "junit:junit:4.4@jar"
+            "junit:junit:4.5"
 
     def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
-    testCompile "junit:junit:4.4@jar", "xmlunit:xmlunit:1.2", FIRST_LEVEL_JMOCK
+    testCompile "junit:junit:4.5", "xmlunit:xmlunit:1.2", FIRST_LEVEL_JMOCK
     clientModule(['testCompile'], "org.jmock:jmock:2.4.0") {
         dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
     }
-    distLib "junit:junit:4.4@jar"
+    distLib "junit:junit:4.5"
     clientModule(['testngIntegrationTesting'],'testng:testng:5.8') {
 		addArtifact(new Artifact('testng','jar','jar','jdk15', "http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk15.jar"))
 		addArtifact(new Artifact('testng','jar','jar','jdk14', "http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk14.jar"))
@@ -173,7 +173,7 @@ resources.doLast {
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx2g', '-XX:MaxPermSize=256m'])
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=256m'])
 }
 
 libs {
@@ -535,15 +535,48 @@ createTask('websiteDocs', dependsOn: 'userguideStyleSheets') {
 
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
-createTask('integTest', dependsOn: ['dists', 'userguideSrc']) {
-    ant.java(classname: 'org.gradle.integtests.IntegTestSuite', failonerror: true) {
-        sysproperty(key: 'integTest.gradleHomeDir', value: explodedDistDir)
-        sysproperty(key: 'integTest.samplesDir', value: explodedDistSamplesDir)
-        sysproperty(key: 'integTest.userGuideOutputDir', value: userguideOutputDir)
-        sysproperty(key: 'integTest.userGuideInfoDir', value: docbookSrc)
-        classpath(path: test.classpath.join(File.pathSeparator))
+integTestDistDir = new File(buildDir, 'integTest')
+createTask('integTest', type: Test, dependsOn: ['testCompile', 'dists', 'userguideSrc'])
+integTest {
+    testClassesDir = test.testClassesDir
+    testResultsDir = test.testResultsDir
+    testReportDir = test.testReportDir
+    unmanagedClasspath = testCompile.unmanagedClasspath
+    dependencyManager = test.dependencyManager
+    dependencyManager.linkConfWithTask('testRuntime', 'integTest')
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
+    options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
+    options.systemProperties['integTest.srcDir'] = file('src').absolutePath
+    options.systemProperties['integTest.userGuideInfoDir'] = docbookSrc.absolutePath
+
+    [
+        'org.gradle.integtests.testng.TestNGIntegration',
+        'org.gradle.integtests.Userguide',
+        'org.gradle.integtests.CacheProject',
+        'org.gradle.integtests.CommandLine',
+        'org.gradle.integtests.WrapperProject',
+        'org.gradle.integtests.JavaProject',
+        'org.gradle.integtests.GroovyProject',
+        'org.gradle.integtests.WebProject',
+        'org.gradle.integtests.Logging',
+        'org.gradle.integtests.Osgi',
+        'org.gradle.integtests.PomGeneration',
+        'org.gradle.integtests.WaterProject',
+        'org.gradle.integtests.Version',
+        'org.gradle.integtests.MavenRepo'
+    ].each {
+        include it.replaceAll('\\.', '/') + '.*'
     }
 }
+integTest.doFirst {
+    ant {
+        copy(todir: integTestDistDir) {
+            fileset(dir: explodedDistDir )
+        }
+        chmod(dir: "$integTestDistDir/bin", perm: "ugo+rx", includes: "**/*")
+    }
+}
+
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc', 'uploadUserguide'])
 

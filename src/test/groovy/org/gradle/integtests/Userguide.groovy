@@ -20,17 +20,28 @@ import groovy.io.PlatformLineWriter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.junit.Assert
+import org.junit.runner.RunWith
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class Userguide {
 
     private static Logger logger = LoggerFactory.getLogger(Userguide)
     static String NL = System.properties['line.separator']
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void apiLinks() {
         checkApiLinks(dist.gradleHomeDir, dist.userGuideInfoDir)
+    }
+
+    @Test
+    public void userGuideSamples() {
         checkSamples(dist.gradleHomeDir, dist.samplesDir, dist.userGuideOutputDir, dist.userGuideInfoDir)
     }
 

@@ -21,10 +21,13 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import static org.junit.Assert.assertTrue
+import org.junit.runner.RunWith
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class JavaProject {
     static final String JAVA_PROJECT_NAME = 'javaproject'
     static final String SHARED_NAME = 'shared'
@@ -33,7 +36,11 @@ class JavaProject {
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_1_PATH = "$SERVICES_NAME/$WEBAPP_1_NAME" as String
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void javaProjectSamples() {
         String gradleHome = dist.gradleHomeDir.absolutePath
         List projects = [SHARED_NAME, API_NAME, WEBAPP_1_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         String packagePrefix = 'build/classes/org/gradle'

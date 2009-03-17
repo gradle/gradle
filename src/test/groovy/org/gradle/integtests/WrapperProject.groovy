@@ -16,11 +16,19 @@
 
 package org.gradle.integtests
 
+import org.junit.runner.RunWith
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class WrapperProject {
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void wrapperSample() {
         String nl = System.properties['line.separator']
         File waterDir = new File(dist.samplesDir, 'wrapper-project')
 

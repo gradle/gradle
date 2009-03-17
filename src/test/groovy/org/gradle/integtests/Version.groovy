@@ -16,11 +16,19 @@
  
 package org.gradle.integtests
 
+import org.junit.runner.RunWith
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class Version {
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+    
+    @Test
+    public void canUseVersionCommandLineOption() {
         Executer.execute(dist.gradleHomeDir.absolutePath, System.properties['user.dir'], ['-v'])
     }
 }

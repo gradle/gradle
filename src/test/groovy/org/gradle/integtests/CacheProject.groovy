@@ -17,13 +17,21 @@
 package org.gradle.integtests
 
 import org.junit.Assert
+import org.junit.runner.RunWith
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class CacheProject {
     static final String TEST_FILE = "build/test.txt"
-    static void execute(GradleDistribution dist) {
+
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void cacheProject() {
         File cacheProjectDir = new File(dist.samplesDir, "cache-project")
         cacheProjectDir.mkdirs();
         createLargeBuildScript(cacheProjectDir)

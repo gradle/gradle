@@ -5,9 +5,11 @@ package org.gradle.integtests.testng
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*
 import org.gradle.integtests.Executer;
 import org.gradle.integtests.GradleDistribution
-import org.gradle.integtests.Executer
-import org.gradle.integtests.GradleDistribution
+import org.junit.runner.RunWith
+import org.gradle.integtests.DistributionIntegrationTestRunner
+import org.junit.Test
 
+@RunWith(DistributionIntegrationTestRunner.class)
 public class TestNGIntegration {
     static final String GROOVY = "groovy"
     static final String JAVA = "java"
@@ -57,7 +59,11 @@ public class TestNGIntegration {
         checkExists(projectDir, 'build/reports/tests/emailable-report.html')
     })
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void testNGSamples() {
         final List projects =
             [   SUITE_XML_BUILDER,
                 GROOVY_JDK15_FAILING, GROOVY_JDK15_PASSING,

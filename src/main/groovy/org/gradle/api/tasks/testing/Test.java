@@ -26,8 +26,6 @@ import org.gradle.api.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.ConfigureUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
@@ -37,13 +35,11 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Closure;
 
 /**
- * A task for executin Junit 3.8.x and Junit 4 tests.
+ * A task for executing Junit 3.8.x and Junit 4 tests.
  * 
  * @author Hans Dockter
  */
 public class Test extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Test.class);
-
     public static final String FAILURES_OR_ERRORS_PROPERTY = "org.gradle.api.tasks.testing.failuresOrErrors";
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";

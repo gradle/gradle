@@ -19,12 +19,19 @@ package org.gradle.integtests
 import java.util.jar.Manifest
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
+import org.junit.runner.RunWith
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class Osgi {
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void osgiProjectSamples() {
         long start = System.currentTimeMillis()
         File osgiProjectDir = new File(dist.samplesDir, 'osgi')
         Executer.execute(dist.gradleHomeDir.absolutePath, osgiProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)

@@ -17,10 +17,17 @@ package org.gradle.integtests
 
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.junit.runner.RunWith
+import org.junit.Test
 
+@RunWith(DistributionIntegrationTestRunner.class)
 public class CommandLine {
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void hasNonZeroExitCodeOnBuildFailure() {
         File javaprojectDir = new File(dist.samplesDir, 'javaproject')
         Map result = Executer.execute(dist.gradleHomeDir.absolutePath, javaprojectDir.absolutePath, ['unknown'], [], '', Executer.QUIET, true)
         assertThat(result.error, containsString("Task 'unknown' not found "))

@@ -16,14 +16,22 @@
 
 package org.gradle.integtests
 
+import org.junit.runner.RunWith
+import org.junit.Test
+
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class GroovyProject {
     static final String GROOVY_PROJECT_NAME = 'groovyproject'
     static final String TEST_PROJECT_NAME = 'testproject'
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void groovyProjectSamples() {
         String gradleHome = dist.gradleHomeDir.absolutePath
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'

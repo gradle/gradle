@@ -17,15 +17,22 @@
 package org.gradle.integtests
 
 import org.gradle.util.GradleUtil
+import org.junit.runner.RunWith
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
+@RunWith(DistributionIntegrationTestRunner.class)
 class MavenRepo {
     static final String PROJECT_NAME = 'mavenRepo'
     static final String TEST_PROJECT_NAME = 'testproject'
 
-    static void execute(GradleDistribution dist) {
+    // Injected by test runner
+    private GradleDistribution dist;
+
+    @Test
+    public void mavenRepoSample() {
         List expectedFiles = ['sillyexceptions-1.0.1.jar', 'repotest-1.0.jar', 'testdep-1.0.jar', 'testdep2-1.0.jar',
                 'classifier-1.0-jdk15.jar', 'classifier-dep-1.0.jar', 'jaronly-1.0.jar']
 
