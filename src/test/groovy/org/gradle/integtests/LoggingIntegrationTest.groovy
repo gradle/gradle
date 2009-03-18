@@ -44,13 +44,13 @@ class LoggingIntegrationTest {
         List allOuts = [quietOuts, warnOuts, lifecycleOuts, infoOuts, debugOuts]
         List allPrefixes = ['quiet', 'warn', 'lifecycle', 'info', 'debug']
 
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [], '', Executer.QUIET),
+        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.QUIET),
             errorOuts, allOuts, 0, allPrefixes)
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [], '', Executer.LIFECYCLE),
+        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.LIFECYCLE),
             errorOuts, allOuts, 2, allPrefixes)
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [], '', Executer.INFO),
+        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.INFO),
             errorOuts, allOuts, 3, allPrefixes)
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [], '', Executer.DEBUG),
+        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.DEBUG),
             errorOuts, allOuts, 4, allPrefixes)
     }
 

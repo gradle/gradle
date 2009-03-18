@@ -1,4 +1,3 @@
->gradle -q taskX
 lib1
 lib2
 taskX

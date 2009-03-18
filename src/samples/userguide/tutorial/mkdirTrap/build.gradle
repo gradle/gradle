@@ -5,7 +5,7 @@ createTask('clean') {
 }
 createTask('compile', dependsOn: 'clean') {
     if (!classesDir.isDirectory()) {
-        println 'The class directory does not exists. I can not operate'
+        println 'The class directory does not exist. I can not operate'
         // do something
     }
     // do something

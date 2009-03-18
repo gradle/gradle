@@ -34,7 +34,7 @@ class OsgiProjectSampleIntegrationTest {
     public void osgiProjectSamples() {
         long start = System.currentTimeMillis()
         File osgiProjectDir = new File(dist.samplesDir, 'osgi')
-        Executer.execute(dist.gradleHomeDir.absolutePath, osgiProjectDir.absolutePath, ['clean', 'libs'], [], '', Executer.DEBUG)
+        Executer.execute(dist.gradleHomeDir.absolutePath, osgiProjectDir.absolutePath, ['clean', 'libs'])
         AntBuilder ant = new AntBuilder()
         ant.unjar(src: "$osgiProjectDir/build/osgi-1.0.jar", dest: "$osgiProjectDir/build")
         Manifest manifest = new Manifest(new FileInputStream("$osgiProjectDir/build/META-INF/MANIFEST.MF"))

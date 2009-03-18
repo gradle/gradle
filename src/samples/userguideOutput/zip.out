@@ -1,2 +1,1 @@
->gradle -q init
 myArchiveName-1.0.zip

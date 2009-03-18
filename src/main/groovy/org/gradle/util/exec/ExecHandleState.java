@@ -5,6 +5,7 @@ package org.gradle.util.exec;
  */
 public enum ExecHandleState {
     INIT,
+    STARTING,
     STARTED,
     ABORTED,
     FAILED,

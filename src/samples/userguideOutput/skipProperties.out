@@ -1,1 +1,5 @@
->gradle -q -DmySkipProperty skipMe
+:skipMe SKIPPED
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

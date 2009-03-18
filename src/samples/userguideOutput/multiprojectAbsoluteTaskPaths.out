@@ -1,4 +1,3 @@
->gradle -q :hello :krill:hello hello
 I'm water
 I'm krill
 - I depend on water

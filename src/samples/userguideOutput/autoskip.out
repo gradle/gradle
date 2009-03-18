@@ -1,1 +1,5 @@
->gradle -q -Dskip.autoskip autoskip
+:autoskip SKIPPED
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

@@ -1,2 +1,1 @@
->gradle -q compile
-The class directory does not exists. I can not operate
+The class directory does not exist. I can not operate

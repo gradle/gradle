@@ -2,12 +2,12 @@ package org.gradle.integtests
 
 class GradleRun {
     String id
-    String execute
+    List execute = []
     int debugLevel
     String file
     String subDir
     boolean groovyScript = false
-    List envs = []
+    Map envs = [:]
     String outputFile
 
     def withLoggingLevel(int debugLevel) {

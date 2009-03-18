@@ -170,7 +170,6 @@ resources.doLast {
 
 [compile, testCompile]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
-
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'])
@@ -537,7 +536,7 @@ createTask('websiteDocs', dependsOn: 'userguideStyleSheets') {
 
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
-integTestDistDir = new File(buildDir, 'integTest')
+integTestDistDir = new File(buildDir, 'integ test')
 createTask('integTest', type: Test, dependsOn: ['testCompile', 'dists', 'userguideSrc'])
 integTest {
     testClassesDir = test.testClassesDir

@@ -6,7 +6,7 @@
         </para>
         <sample id="skipProperties" dir="userguide/tutorial/skipProperties">
             <sourcefile file="build.gradle"/>
-            <output args="-q -DmySkipProperty skipMe"/>
+            <output args="-DmySkipProperty skipMe"/>
         </sample>
         <para>The <option>-D</option> option of the <command>gradle</command> command has the same effect as the
             <option>-D</option> option of the <command>java</command> command. This way you can set system properties
@@ -20,14 +20,14 @@
         </para>
         <sample id="autoskip" dir="userguide/tutorial/autoskip">
             <sourcefile file="build.gradle"/>
-            <output args="-q -Dskip.autoskip autoskip"/>
+            <output args="-Dskip.autoskip autoskip"/>
         </sample>
         <para>If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via
             the skip properties
         </para>
         <sample id="autoskipDepends" dir="userguide/tutorial/autoskipDepends">
             <sourcefile file="build.gradle"/>
-            <output args="-q -Dskip.autoskip depends"/>
+            <output args="-Dskip.autoskip depends"/>
         </sample>
         <para>If the rules for skipping a task can't be expressed with a simple property, you can use the
             <apilink class="org.gradle.api.tasks.StopExecutionException"/>. If this exception is thrown by an action,
@@ -52,7 +52,7 @@
         </para>
         <sample id="disableTask" dir="userguide/tutorial/disableTask">
             <sourcefile file="build.gradle"/>
-            <output args="-q disableMe"/>
+            <output args="disableMe"/>
         </sample>
     </section>
     <section>

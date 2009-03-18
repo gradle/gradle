@@ -54,7 +54,7 @@ class CacheProjectIntegrationTest {
     }
 
     private static def testBuild(File cacheProjectDir, File gradleHome, String taskName, String expected) {
-        Executer.execute(gradleHome.absolutePath, cacheProjectDir.absolutePath, [taskName], [], '', Executer.QUIET)
+        Executer.execute(gradleHome.absolutePath, cacheProjectDir.absolutePath, [taskName], [:], '', Executer.QUIET)
         Assert.assertEquals(expected, new File(cacheProjectDir, TEST_FILE).text)
     }
 

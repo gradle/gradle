@@ -1,2 +1,1 @@
->gradle -q myTask
 I am not affected

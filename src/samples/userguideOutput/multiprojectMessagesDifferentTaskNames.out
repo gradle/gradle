@@ -1,2 +1,1 @@
->gradle -q consume
 Consuming message: null

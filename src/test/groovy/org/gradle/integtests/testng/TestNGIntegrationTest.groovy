@@ -72,7 +72,7 @@ public class TestNGIntegrationTest {
         projects.each { it ->
             final File projectDir = new File(new File(dist.samplesDir, "testng"), it.name)
 
-            final Map result = Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['clean', 'test'], [], '', Executer.QUIET, it.expectFailure)
+            final Map result = Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['clean', 'test'], [:], '', Executer.QUIET, it.expectFailure)
 
             // output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand
             it.doAssert(projectDir, result)

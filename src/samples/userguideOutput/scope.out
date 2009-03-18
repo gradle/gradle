@@ -1,4 +1,3 @@
->groovy scope.groovy
 localScope1
 localScope2
 scriptScope

@@ -62,11 +62,10 @@ class UserguideIntegrationTest {
             if (run.groovyScript) {
                 result = runGroovyScript(new File(samplesDir, "userguide/$run.subDir/$run.file"))
             } else {
-                result = Executer.execute(gradleHome.absolutePath, new File(samplesDir, run.subDir).absolutePath, run.execute ? [run.execute] : [], run.envs, run.file,
+                result = Executer.execute(gradleHome.absolutePath, new File(samplesDir, run.subDir).absolutePath, run.execute, run.envs, run.file,
                         run.debugLevel)
             }
             if (run.outputFile) {
-                result.output = ">$result.unixCommand$NL" + result.output
                 String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
                 try {
                     compareStrings(expectedResult, result.output)
@@ -75,6 +74,7 @@ class UserguideIntegrationTest {
                     println expectedResult
                     println 'Actual Result:'
                     println result.output
+                    println '---'
                     throw e
                 }
             }
@@ -92,12 +92,12 @@ class UserguideIntegrationTest {
                     expectedLine.matches('Total time: .+ secs') && actualLine.matches('Total time: .+ secs')
             if (!matches) {
                 if (expectedLine.contains(actualLine)) {
-                    Assert.fail("Missing text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}")
+                    Assert.fail("Missing text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---")
                 }
                 if (actualLine.contains(expectedLine)) {
-                    Assert.fail("Extra text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}")
+                    Assert.fail("Extra text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---")
                 }
-                Assert.fail("Unexpected value at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}")
+                Assert.fail("Unexpected value at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---")
             }
         }
         if (pos == actualLines.size() && pos < expectedLines.size()) {
@@ -138,16 +138,16 @@ class UserguideIntegrationTest {
                     return
                 }
             }
-            samplesById[id] = [id: id, dir: dir, args: args, envs: []]
+            samplesById[id] = [id: id, dir: dir, args: args, envs: [:]]
         }
 
         // Some custom values
-        samplesById['properties'].envs = ['ORG_GRADLE_PROJECT_envProjectProp=envPropertyValue']
+        samplesById['properties'].envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue'
 
         return samplesById.values().collect {sample ->
             String id = sample.id
             String dir = sample.dir
-            String args = sample.args == null ? '-t' : sample.args
+            List args = sample.args == null ? ['-t'] : sample.args.split('\\s+')
             String outputFile = sample.args != null ? "${id}.out" : null
             new GradleRun(id: id, subDir: dir, execute: args, outputFile: outputFile, debugLevel: Executer.LIFECYCLE, envs: sample.envs)
         }

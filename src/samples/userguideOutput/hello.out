@@ -1,2 +1,1 @@
->gradle -q hello
 Hello world!

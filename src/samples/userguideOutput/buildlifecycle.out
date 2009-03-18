@@ -1,4 +1,3 @@
->gradle test
 This is executed during the initialization phase.
 This is executed during the configuration phase.
 :test

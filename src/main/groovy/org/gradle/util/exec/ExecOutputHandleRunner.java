@@ -1,5 +1,8 @@
 package org.gradle.util.exec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -8,6 +11,7 @@ import java.io.InputStreamReader;
  * @author Tom Eyckmans
  */
 public class ExecOutputHandleRunner implements Runnable {
+    private final static Logger logger = LoggerFactory.getLogger(ExecOutputHandleRunner.class);
 
     private final BufferedReader inputReader;
     private final ExecOutputHandle execOutputHandle;
@@ -21,23 +25,24 @@ public class ExecOutputHandleRunner implements Runnable {
         boolean keepHandling = true;
 
         try {
-            String outputLine = null;
-            while ( keepHandling ) {
+            String outputLine;
+            while (keepHandling) {
                 try {
                     outputLine = inputReader.readLine();
-                    if ( outputLine == null )
-                        keepHandling = false;
-                    else {
-                        execOutputHandle.handleOutputLine(outputLine);
-                    }
-                }
-                catch ( Throwable t ) {
+                } catch (Throwable t) {
                     keepHandling = execOutputHandle.execOutputHandleError(t);
+                    continue;
+                }
+
+                if (outputLine == null) {
+                    keepHandling = false;
+                } else {
+                    execOutputHandle.handleOutputLine(outputLine);
                 }
             }
-        }
-        catch ( Throwable t ) {
-            t.printStackTrace();
+            execOutputHandle.endOutput();
+        } catch (Throwable t) {
+            logger.error("Could not process output from exec'd process.", t);
         }
     }
 }

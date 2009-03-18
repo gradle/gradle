@@ -1,4 +1,3 @@
->gradle -q libs test
 compiling source
 building libs
 running tests

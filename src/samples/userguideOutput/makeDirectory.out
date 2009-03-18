@@ -1,2 +1,1 @@
->gradle -q compile
 The class directory exists. I can operate

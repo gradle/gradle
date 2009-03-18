@@ -37,7 +37,7 @@ class MavenRepoIntegrationTest {
                 'classifier-1.0-jdk15.jar', 'classifier-dep-1.0.jar', 'jaronly-1.0.jar']
 
         File projectDir = new File(dist.samplesDir, PROJECT_NAME)
-        Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['retrieve'], [], '', Executer.DEBUG)
+        Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['retrieve'])
         expectedFiles.each { JavaProjectSampleIntegrationTest.checkExistence(projectDir, 'build', it)}
         GradleUtil.deleteDir(new File(projectDir, 'build'))
     }

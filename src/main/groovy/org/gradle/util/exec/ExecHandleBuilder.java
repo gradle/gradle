@@ -3,6 +3,7 @@ package org.gradle.util.exec;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -74,6 +75,10 @@ public class ExecHandleBuilder {
         return this;
     }
 
+    public String getExecCommand() {
+        return execCommand;
+    }
+
     public ExecHandleBuilder clearArguments() {
         this.arguments.clear();
         return this;
@@ -83,6 +88,10 @@ public class ExecHandleBuilder {
         if ( arguments == null ) throw new IllegalArgumentException("arguments == null!");
         this.arguments.addAll(Arrays.asList(arguments));
         return this;
+    }
+
+    public List<String> getArguments() {
+        return arguments;
     }
 
     public ExecHandleBuilder normalTerminationExitCode(int normalTerminationExitCode) {
@@ -108,6 +117,11 @@ public class ExecHandleBuilder {
 
     public ExecHandleBuilder environment(String key, String value) {
         environment.put(key, value);
+        return this;
+    }
+
+    public ExecHandleBuilder environment(Map<String, String> values) {
+        environment.putAll(values);
         return this;
     }
 
@@ -160,9 +174,21 @@ public class ExecHandleBuilder {
         return this;
     }
 
+    public ExecHandleBuilder standardOutput(OutputStream outputStream) {
+        if ( outputStream == null ) throw new IllegalArgumentException("outputStream == null!");
+        this.standardOutputHandle = new StreamWriterExecOutputHandle(outputStream);
+        return this;
+    }
+
     public ExecHandleBuilder errorOutputHandle(ExecOutputHandle errorOutputHandle) {
         if ( errorOutputHandle == null ) throw new IllegalArgumentException("errorOutputHandle == null!");
         this.errorOutputHandle = errorOutputHandle;
+        return this;
+    }
+
+    public ExecHandleBuilder errorOutput(OutputStream outputStream) {
+        if ( outputStream == null ) throw new IllegalArgumentException("outputStream == null!");
+        this.errorOutputHandle = new StreamWriterExecOutputHandle(outputStream);
         return this;
     }
 

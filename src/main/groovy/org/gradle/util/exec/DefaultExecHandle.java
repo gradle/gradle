@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -74,25 +75,23 @@ public class DefaultExecHandle implements ExecHandle {
     private final ExecOutputHandle errorOutputHandle;
 
     /**
-     * Lock to guard the state attribute.
+     * Lock to guard all mutable state
      */
-    private final Lock stateLock;
+    private final Lock lock;
+
+    private final Condition stateChange;
+
     /**
      * State of this ExecHandle.
      */
     private ExecHandleState state;
 
     /**
-     * Lock to guard control methods calls.
-     */
-    private final Lock execHandleRunLock;
-    /**
      * When not null, the runnable that is waiting 
      */
     private ExecHandleRunner execHandleRunner;
     private ExecutorService threadPool;
 
-    private final Lock endStateInfoLock;
     private int exitCode;
     private Throwable failureCause;
 
@@ -108,10 +107,9 @@ public class DefaultExecHandle implements ExecHandle {
         this.keepWaitingTimeout = keepWaitingTimeout;
         this.standardOutputHandle = standardOutputHandle;
         this.errorOutputHandle = errorOutputHandle;
-        this.stateLock = new ReentrantLock();
+        this.lock = new ReentrantLock();
+        this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
-        this.execHandleRunLock = new ReentrantLock();
-        this.endStateInfoLock = new ReentrantLock();
         this.notifierFactory = notifierFactory;
         if ( listeners != null && !listeners.isEmpty() )
             this.listeners.addAll(listeners);
@@ -146,81 +144,77 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     public ExecHandleState getState() {
-        stateLock.lock();
+        lock.lock();
         try {
             return state;
         }
         finally {
-            stateLock.unlock();
+            lock.unlock();
         }
     }
 
     private void setState(ExecHandleState state) {
-        stateLock.lock();
+        lock.lock();
         try {
             this.state = state;
+            stateChange.signalAll();
         }
         finally {
-            stateLock.unlock();
-        }
-    }
-
-    private boolean stateEquals(ExecHandleState state) {
-        stateLock.lock();
-        try {
-            return this.state.equals(state);
-        }
-        finally {
-            stateLock.unlock();
+            lock.unlock();
         }
     }
 
     private boolean stateIn(ExecHandleState ... states) {
-        stateLock.lock();
+        lock.lock();
         try {
             return Arrays.asList(states).contains(this.state);
         }
         finally {
-            stateLock.unlock();
+            lock.unlock();
         }
     }
 
     public int getExitCode() {
-        if ( stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED) )
-            throw new IllegalStateException("not in succeeded or failed state!");
-        endStateInfoLock.lock();
+        lock.lock();
         try {
+            if ( !stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED) )
+                throw new IllegalStateException("not in succeeded or failed state!");
             return exitCode;
         }
         finally {
-            endStateInfoLock.unlock();
+            lock.unlock();
         }
     }
 
     public Throwable getFailureCause() {
-        if ( !stateEquals(ExecHandleState.FAILED) )
-            throw new IllegalStateException("not in failed state!");
-        return failureCause;
+        lock.lock();
+        try {
+            if ( !stateIn(ExecHandleState.FAILED) )
+                throw new IllegalStateException("not in failed state!");
+            return failureCause;
+        }
+        finally {
+            lock.unlock();
+        }
     }
 
     private void setEndStateInfo(ExecHandleState state, int exitCode, Throwable failureCause) {
-        endStateInfoLock.lock();
+        lock.lock();
         try {
             setState(state);
             this.exitCode = exitCode;
             this.failureCause = failureCause;
         }
         finally {
-            endStateInfoLock.unlock();
+            lock.unlock();
         }
     }
 
     public void start() {
-        if ( stateEquals(ExecHandleState.STARTED) ) throw new IllegalStateException("already started!");
-
-        execHandleRunLock.lock();
+        lock.lock();
         try {
-            setState(ExecHandleState.INIT);
+            if ( !stateIn(ExecHandleState.INIT) ) throw new IllegalStateException("already started!");
+            setState(ExecHandleState.STARTING);
 
             exitCode = -1;
             failureCause = null;
@@ -230,35 +224,32 @@ public class DefaultExecHandle implements ExecHandle {
 
             threadPool.execute(execHandleRunner);
 
-            while ( getState() == ExecHandleState.INIT ) {
-                Thread.yield();
+            while ( getState() == ExecHandleState.STARTING ) {
+                try {
+                    stateChange.await();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         finally {
-            execHandleRunLock.unlock();
+            lock.unlock();
         }
     }
 
     public void abort() {
-        if ( !stateEquals(ExecHandleState.STARTED) ) throw new IllegalStateException("not in started state!");
-        execHandleRunLock.lock();
+        lock.lock();
         try {
+            if ( !stateIn(ExecHandleState.STARTED) ) throw new IllegalStateException("not in started state!");
             this.execHandleRunner.stopWaiting();
         }
         finally {
-            execHandleRunLock.unlock();
+            lock.unlock();
         }
     }
 
     public ExecHandleState waitForFinish() {
-        execHandleRunLock.lock();
-        try {
-            ThreadUtils.awaitTermination(threadPool);
-        }
-        finally {
-            execHandleRunLock.unlock();
-        }
-
+        ThreadUtils.awaitTermination(threadPool);
         return getState();
     }
 
@@ -272,17 +263,8 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     public ExecHandleState startAndWaitForFinish() {
-        if ( stateEquals(ExecHandleState.STARTED) ) throw new IllegalStateException("already started!");
-        execHandleRunLock.lock();
-        try {
-            start();
-
-            waitForFinish();
-        }
-        finally {
-            execHandleRunLock.unlock();
-        }
-
+        start();
+        waitForFinish();
         return getState();
     }
 

@@ -52,6 +52,10 @@ public class StreamWriterExecOutputHandle implements ExecOutputHandle {
         return true;
     }
 
+    public void endOutput() throws IOException {
+        target.flush();
+    }
+
     public BufferedWriter getTarget() {
         return target;
     }

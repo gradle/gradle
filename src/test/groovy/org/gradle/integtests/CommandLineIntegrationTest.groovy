@@ -29,7 +29,7 @@ public class CommandLineIntegrationTest {
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {
         File javaprojectDir = new File(dist.samplesDir, 'javaproject')
-        Map result = Executer.execute(dist.gradleHomeDir.absolutePath, javaprojectDir.absolutePath, ['unknown'], [], '', Executer.QUIET, true)
+        Map result = Executer.execute(dist.gradleHomeDir.absolutePath, javaprojectDir.absolutePath, ['unknown'], [:], '', Executer.QUIET, true)
         assertThat(result.error, containsString("Task 'unknown' not found "))
     }
     

@@ -1,3 +1,2 @@
->gradle -q action
 Producing message:
 Consuming message: Watch the order of execution.
