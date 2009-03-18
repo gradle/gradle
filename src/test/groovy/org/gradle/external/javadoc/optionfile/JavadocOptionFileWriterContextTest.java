@@ -5,6 +5,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
 import org.junit.Before;
 import org.junit.Test;
+import org.gradle.util.WrapUtil;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -45,5 +46,35 @@ public class JavadocOptionFileWriterContextTest {
         }});
 
         writerContext.newLine();
+    }
+
+    @Test
+    public void quotesAndEscapesOptionValue() throws IOException {
+        context.checking(new Expectations(){{
+            one(bufferedWriterMock).write("-");
+            one(bufferedWriterMock).write("key");
+            one(bufferedWriterMock).write(" ");
+            one(bufferedWriterMock).write("'");
+            one(bufferedWriterMock).write("1\\\\2\\\\");
+            one(bufferedWriterMock).write("'");
+            one(bufferedWriterMock).newLine();
+        }});
+
+        writerContext.writeValueOption("key", "1\\2\\");
+    }
+
+    @Test
+    public void quotesAndEscapesOptionValues() throws IOException {
+        context.checking(new Expectations(){{
+            one(bufferedWriterMock).write("-");
+            one(bufferedWriterMock).write("key");
+            one(bufferedWriterMock).write(" ");
+            one(bufferedWriterMock).write("'");
+            one(bufferedWriterMock).write("a\\\\b:c");
+            one(bufferedWriterMock).write("'");
+            one(bufferedWriterMock).newLine();
+        }});
+
+        writerContext.writeValuesOption("key", WrapUtil.toList("a\\b", "c"), ":");
     }
 }

@@ -42,7 +42,7 @@ public class JavadocOptionFileWriterContext {
     public JavadocOptionFileWriterContext writeValueOption(String option, String value) throws IOException {
         writeOptionHeader(option);
         write("\'");
-        write(value);
+        write(value.replaceAll("\\\\", "\\\\\\\\"));
         write("\'");
         newLine();
         return this;
@@ -56,32 +56,28 @@ public class JavadocOptionFileWriterContext {
     }
 
     public JavadocOptionFileWriterContext writeValuesOption(String option, Collection<String> values, String joinValuesBy) throws IOException {
-        writeOptionHeader(option);
-        write("\'");
-        final Iterator<String> valuesIt = values.iterator();
+        StringBuilder builder = new StringBuilder();
+        Iterator<String> valuesIt = values.iterator();
         while (valuesIt.hasNext()) {
-            write(valuesIt.next());
+            builder.append(valuesIt.next());
             if (valuesIt.hasNext()) {
-                write(joinValuesBy);
+                builder.append(joinValuesBy);
             }
         }
-        write("\'");
-        newLine();
+        writeValueOption(option, builder.toString());
         return this;
     }
 
     public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
-        writeOptionHeader(option);
-        write("\'");
-        final Iterator<File> filesIt = files.iterator();
+        StringBuilder builder = new StringBuilder();
+        Iterator<File> filesIt = files.iterator();
         while ( filesIt.hasNext() ) {
-            write(filesIt.next().getAbsolutePath());
+            builder.append(filesIt.next().getAbsolutePath());
             if (filesIt.hasNext()) {
-                write(joinValuesBy);
+                builder.append(joinValuesBy);
             }
         }
-        write("\'");
-        newLine();
+        writeValueOption(option, builder.toString());
         return this;
     }
 
