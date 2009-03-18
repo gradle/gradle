@@ -41,7 +41,9 @@ public class JavadocOptionFileWriterContext {
 
     public JavadocOptionFileWriterContext writeValueOption(String option, String value) throws IOException {
         writeOptionHeader(option);
+        write("\'");
         write(value);
+        write("\'");
         newLine();
         return this;
     }
@@ -55,24 +57,30 @@ public class JavadocOptionFileWriterContext {
 
     public JavadocOptionFileWriterContext writeValuesOption(String option, Collection<String> values, String joinValuesBy) throws IOException {
         writeOptionHeader(option);
+        write("\'");
         final Iterator<String> valuesIt = values.iterator();
-        while ( valuesIt.hasNext() ) {
+        while (valuesIt.hasNext()) {
             write(valuesIt.next());
-            if ( valuesIt.hasNext() )
+            if (valuesIt.hasNext()) {
                 write(joinValuesBy);
+            }
         }
+        write("\'");
         newLine();
         return this;
     }
 
     public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
         writeOptionHeader(option);
+        write("\'");
         final Iterator<File> filesIt = files.iterator();
         while ( filesIt.hasNext() ) {
             write(filesIt.next().getAbsolutePath());
-            if ( filesIt.hasNext() )
+            if (filesIt.hasNext()) {
                 write(joinValuesBy);
+            }
         }
+        write("\'");
         newLine();
         return this;
     }
