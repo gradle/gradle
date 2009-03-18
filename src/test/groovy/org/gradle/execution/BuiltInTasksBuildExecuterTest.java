@@ -62,7 +62,7 @@ public class BuiltInTasksBuildExecuterTest {
             one(taskExecuter).execute(Collections.singleton(executer.getTask()));
         }});
 
-        assertThat(executer.getDescription(), equalTo("task list"));
+        assertThat(executer.getDisplayName(), equalTo("task list"));
         executer.execute(taskExecuter);
     }
 
@@ -77,7 +77,7 @@ public class BuiltInTasksBuildExecuterTest {
             one(taskExecuter).execute(Collections.singleton(executer.getTask()));
         }});
 
-        assertThat(executer.getDescription(), equalTo("property list"));
+        assertThat(executer.getDisplayName(), equalTo("property list"));
         executer.execute(taskExecuter);
     }
 
@@ -92,7 +92,7 @@ public class BuiltInTasksBuildExecuterTest {
             one(taskExecuter).execute(Collections.singleton(executer.getTask()));
         }});
 
-        assertThat(executer.getDescription(), equalTo("dependency list"));
+        assertThat(executer.getDisplayName(), equalTo("dependency list"));
         executer.execute(taskExecuter);
     }
 }

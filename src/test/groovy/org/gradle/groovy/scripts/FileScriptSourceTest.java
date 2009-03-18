@@ -56,7 +56,7 @@ public class FileScriptSourceTest {
 
     @Test
     public void usesScriptFileNameToBuildDescription() {
-        assertThat(source.getDescription(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
+        assertThat(source.getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
     }
 
     @Test

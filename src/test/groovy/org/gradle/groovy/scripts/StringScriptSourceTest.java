@@ -47,6 +47,6 @@ public class StringScriptSourceTest {
 
     @Test
     public void usesProvidedDescription() {
-        assertThat(source.getDescription(), equalTo("<description>"));
+        assertThat(source.getDisplayName(), equalTo("<description>"));
     }
 }

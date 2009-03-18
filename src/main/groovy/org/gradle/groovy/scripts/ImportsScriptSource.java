@@ -53,7 +53,7 @@ public class ImportsScriptSource implements ScriptSource {
         return source.getSourceFile();
     }
 
-    public String getDescription() {
-        return source.getDescription();
+    public String getDisplayName() {
+        return source.getDisplayName();
     }
 }

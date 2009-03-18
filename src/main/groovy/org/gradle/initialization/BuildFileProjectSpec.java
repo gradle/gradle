@@ -30,7 +30,7 @@ public class BuildFileProjectSpec extends AbstractProjectSpec {
         this.buildFile = buildFile;
     }
 
-    public String getDescription() {
+    public String getDisplayName() {
         return String.format("project has build file '%s'", buildFile);
     }
 

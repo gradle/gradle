@@ -42,7 +42,7 @@ public class ProjectDefaultsBuildExecuter extends DelegatingBuildExecuter {
     }
 
     @Override
-    public String getDescription() {
+    public String getDisplayName() {
         return String.format("project default tasks %s", GUtil.toString(defaultTasks));
     }
 }

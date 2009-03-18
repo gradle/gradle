@@ -24,8 +24,8 @@ public class DelegatingBuildExecuter implements BuildExecuter {
         delegate.select(project);
     }
 
-    public String getDescription() {
-        return delegate.getDescription();
+    public String getDisplayName() {
+        return delegate.getDisplayName();
     }
 
     public void execute(TaskExecuter executer) {

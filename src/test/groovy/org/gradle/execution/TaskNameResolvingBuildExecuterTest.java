@@ -18,7 +18,6 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -31,7 +30,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Set;
-import java.util.TreeSet;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
 public class TaskNameResolvingBuildExecuterTest {
@@ -54,7 +52,7 @@ public class TaskNameResolvingBuildExecuterTest {
 
         TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b"));
         executer.select(project);
-        assertThat(executer.getDescription(), equalTo("primary task 'a:b'"));
+        assertThat(executer.getDisplayName(), equalTo("primary task 'a:b'"));
         assertThat(executer.getTasks(), equalTo((Iterable<Task>) toSet(task)));
     }
 
@@ -71,7 +69,7 @@ public class TaskNameResolvingBuildExecuterTest {
 
         TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name"));
         executer.select(project);
-        assertThat(executer.getDescription(), equalTo("primary task 'name'"));
+        assertThat(executer.getDisplayName(), equalTo("primary task 'name'"));
         assertThat(executer.getTasks(), equalTo((Iterable<Task>) tasks));
     }
 
@@ -120,7 +118,7 @@ public class TaskNameResolvingBuildExecuterTest {
 
         TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
         executer.select(project);
-        assertThat(executer.getDescription(), equalTo("primary tasks 'name1', 'name2'"));
+        assertThat(executer.getDisplayName(), equalTo("primary tasks 'name1', 'name2'"));
         executer.execute(taskExecuter);
     }
 

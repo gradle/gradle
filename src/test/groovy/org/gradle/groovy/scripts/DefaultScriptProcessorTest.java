@@ -78,7 +78,7 @@ public class DefaultScriptProcessorTest {
         source = context.mock(ScriptSource.class);
 
         context.checking(new Expectations(){{
-            allowing(source).getDescription();
+            allowing(source).getDisplayName();
             will(returnValue("[script source]"));
             allowing(expectedScript).setSource(source);
         }});

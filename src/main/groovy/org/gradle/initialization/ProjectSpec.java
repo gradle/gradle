@@ -33,5 +33,5 @@ public interface ProjectSpec {
     <T extends ProjectIdentifier> T selectProject(IProjectRegistry<? extends T> registry) throws
             InvalidUserDataException;
 
-    String getDescription();
+    String getDisplayName();
 }

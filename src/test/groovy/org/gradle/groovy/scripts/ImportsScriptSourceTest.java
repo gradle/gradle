@@ -74,7 +74,7 @@ public class ImportsScriptSourceTest {
             one(backingSource).getClassName();
             will(returnValue("classname"));
 
-            one(backingSource).getDescription();
+            one(backingSource).getDisplayName();
             will(returnValue("description"));
 
             one(backingSource).getSourceFile();
@@ -82,7 +82,7 @@ public class ImportsScriptSourceTest {
         }});
 
         assertThat(source.getClassName(), equalTo("classname"));
-        assertThat(source.getDescription(), equalTo("description"));
+        assertThat(source.getDisplayName(), equalTo("description"));
         assertThat(source.getSourceFile(), equalTo(new File("sourceFile")));
     }
 }

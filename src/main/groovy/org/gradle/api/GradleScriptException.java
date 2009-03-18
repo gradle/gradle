@@ -16,11 +16,7 @@
 package org.gradle.api;
 
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.GUtil;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the parsing or execution of a
@@ -74,7 +70,7 @@ public class GradleScriptException extends GradleException {
             }
         }
         String lineInfo = lineNumber != null ? String.format(" line: %s", lineNumber) : "";
-        return StringUtils.capitalize(scriptSource.getDescription()) + lineInfo;
+        return StringUtils.capitalize(scriptSource.getDisplayName()) + lineInfo;
     }
 
     public String getMessage() {

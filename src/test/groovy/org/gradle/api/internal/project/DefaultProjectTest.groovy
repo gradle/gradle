@@ -105,7 +105,7 @@ class DefaultProjectTest {
         dependencyManagerFactoryMock = [createDependencyManager: {Project project, File gradleUserHome -> dependencyManagerMock}] as DependencyManagerFactory
         script = context.mock(ScriptSource.class)
         context.checking {
-            allowing(script).getDescription(); will(returnValue('[build file]'))
+            allowing(script).getDisplayName(); will(returnValue('[build file]'))
         }
         
         testScript = new EmptyScript()

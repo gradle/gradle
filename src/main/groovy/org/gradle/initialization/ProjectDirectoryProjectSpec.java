@@ -30,7 +30,7 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
         this.dir = dir;
     }
 
-    public String getDescription() {
+    public String getDisplayName() {
         return String.format("with project directory '%s'", dir);
     }
 

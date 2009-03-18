@@ -33,10 +33,10 @@ public class StrictScriptSource implements ScriptSource {
     public String getText() {
         File sourceFile = source.getSourceFile();
         if (!sourceFile.exists()) {
-            throw new GradleException(String.format("Cannot read %s as it does not exist.", source.getDescription()));
+            throw new GradleException(String.format("Cannot read %s as it does not exist.", source.getDisplayName()));
         }
         if (!sourceFile.isFile()) {
-            throw new GradleException(String.format("Cannot read %s as it is not a file.", source.getDescription()));
+            throw new GradleException(String.format("Cannot read %s as it is not a file.", source.getDisplayName()));
         }
         return source.getText();
     }
@@ -49,7 +49,7 @@ public class StrictScriptSource implements ScriptSource {
         return source.getSourceFile();
     }
 
-    public String getDescription() {
-        return source.getDescription();
+    public String getDisplayName() {
+        return source.getDisplayName();
     }
 }

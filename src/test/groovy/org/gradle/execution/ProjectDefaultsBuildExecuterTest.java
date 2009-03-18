@@ -18,7 +18,6 @@ package org.gradle.execution;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
@@ -67,7 +66,7 @@ public class ProjectDefaultsBuildExecuterTest {
 
         BuildExecuter executer = new ProjectDefaultsBuildExecuter();
         executer.select(project);
-        assertThat(executer.getDescription(), equalTo("project default tasks 'a', 'b'"));    
+        assertThat(executer.getDisplayName(), equalTo("project default tasks 'a', 'b'"));
     }
 
     @Test public void failsWhenNoProjectDefaultTasksSpecified() {

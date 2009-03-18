@@ -71,7 +71,7 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
         task = options.createTask(project);
     }
 
-    public String getDescription() {
+    public String getDisplayName() {
         return options.toString();
     }
 

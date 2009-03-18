@@ -42,7 +42,7 @@ public class StrictScriptSourceTest {
             allowing(delegate).getSourceFile();
             will(returnValue(sourceFile));
 
-            allowing(delegate).getDescription();
+            allowing(delegate).getDisplayName();
             will(returnValue("<description>"));
         }});
     }

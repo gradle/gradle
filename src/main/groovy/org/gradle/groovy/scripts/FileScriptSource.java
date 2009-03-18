@@ -60,7 +60,7 @@ public class FileScriptSource implements ScriptSource {
         return sourceFile;
     }
 
-    public String getDescription() {
+    public String getDisplayName() {
         return String.format("%s '%s'", description, sourceFile.getAbsolutePath());
     }
 }

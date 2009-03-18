@@ -43,7 +43,7 @@ public class BuildResultLogger implements BuildListener {
         logger.debug("Current dir: " + startParameter.getCurrentDir());
         logger.debug("Settings file: " + startParameter.getSettingsScriptSource());
         logger.debug("Build file: " + startParameter.getBuildFile());
-        logger.debug("Select default project: " + startParameter.getDefaultProjectSelector().getDescription());
+        logger.debug("Select default project: " + startParameter.getDefaultProjectSelector().getDisplayName());
         logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
         logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
     }
@@ -51,13 +51,13 @@ public class BuildResultLogger implements BuildListener {
     public void settingsEvaluated(Settings settings) {
         SettingsInternal settingsInternal = (SettingsInternal) settings;
         logger.info(String.format("Settings evaluated using %s.",
-                settingsInternal.getSettingsScript().getDescription()));
+                settingsInternal.getSettingsScript().getDisplayName()));
     }
 
     public void projectsLoaded(Build build) {
         ProjectInternal projectInternal = (ProjectInternal) build.getRootProject();
         logger.info(String.format("Projects loaded. Root project using %s.",
-                projectInternal.getBuildScriptSource().getDescription()));
+                projectInternal.getBuildScriptSource().getDisplayName()));
         logger.info(String.format("Included projects: %s", projectInternal.getAllprojects()));
     }
 

@@ -77,7 +77,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         return new HashSet<Task>(GUtil.flatten(tasks));
     }
 
-    public String getDescription() {
+    public String getDisplayName() {
         return description;
     }
 

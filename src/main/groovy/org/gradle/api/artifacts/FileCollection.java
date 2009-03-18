@@ -36,4 +36,11 @@ public interface FileCollection extends Iterable<File> {
      * @return The files. Returns an empty set if this collection is empty.
      */
     Set<File> getFiles();
+
+    /**
+     * Returns the contents of this collection as a path.
+     *
+     * @return The path. Returns an empty string if this collection is empty.
+     */
+    String getAsPath();
 }

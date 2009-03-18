@@ -22,7 +22,7 @@ public class GradleScriptExceptionTest {
         context.checking(new Expectations() {{
             allowing(source).getClassName();
             will(returnValue("filename"));
-            allowing(source).getDescription();
+            allowing(source).getDisplayName();
             will(returnValue("<description>"));
         }});
     }

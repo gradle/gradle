@@ -31,7 +31,7 @@ public interface BuildExecuter {
      * Returns the description of this executer. The result is used for log and error messages. Called after {@link
      * #select(org.gradle.api.Project)}.
      */
-    String getDescription();
+    String getDisplayName();
 
     /**
      * Executes the selected tasks. Called after {@link #select(org.gradle.api.Project)}.

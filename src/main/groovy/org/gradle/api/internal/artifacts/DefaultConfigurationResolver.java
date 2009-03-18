@@ -30,15 +30,12 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultConfigurationResolver implements ConfigurationResolver {
+public class DefaultConfigurationResolver extends AbstractFileCollection implements ConfigurationResolver {
     private Configuration configuration;
     private DependencyContainerInternal dependencyContainer;
     private ArtifactContainer artifactContainer;
@@ -98,21 +95,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 dependencyContainer, artifactContainer, gradleUserHome);
     }
 
-    public File getSingleFile() throws IllegalStateException {
-        List<File> files = resolve();
-        if (files.size() != 1) {
-            throw new IllegalStateException(String.format("Configuration '%s' does not resolve to a single file.",
-                    getName()));
-        }
-        return files.get(0);
+    public String getDisplayName() {
+        return String.format("configuration '%s'", getName());
     }
 
     public Set<File> getFiles() {
-        return new HashSet(resolve());
-    }
-
-    public Iterator<File> iterator() {
-        return resolve().iterator();
+        return new LinkedHashSet<File>(resolve());
     }
 
     public TaskDependency getBuildProjectDependencies() {
