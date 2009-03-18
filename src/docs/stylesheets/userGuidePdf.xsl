@@ -29,12 +29,12 @@
 
     <xsl:param name="ulink.show">0</xsl:param>
 
-    <xsl:param name="textColour">#666666</xsl:param>
+    <xsl:param name="textColour">#555555</xsl:param>
     <xsl:param name="titleColour">#6a915e</xsl:param>
     <xsl:param name="tableBorderColour">#d0d0d0</xsl:param>
     <xsl:param name="tableHeaderBackgroundColor">#f2f2f2</xsl:param>
-    <xsl:param name="verbatimBackgroundColour">#f2f2f2</xsl:param>
-    <xsl:param name="verbatimBorderColour">#a2a2a2</xsl:param>
+    <xsl:param name="verbatimBackgroundColour">#f5f5f5</xsl:param>
+    <xsl:param name="verbatimBorderColour">#d0d0d0</xsl:param>
 
     <xsl:attribute-set name="root.properties">
         <xsl:attribute name="color"><xsl:value-of select="$textColour"/></xsl:attribute>
