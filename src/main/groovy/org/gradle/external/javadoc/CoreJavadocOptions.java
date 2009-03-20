@@ -33,7 +33,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         source = addStringOption("source");
         sourcepath = addPathOption("sourcepath");
         classpath = addPathOption("classpath");
-        subPackages = addStringsOption("subpackages", ";");
+        subPackages = addStringsOption("subpackages", ":");
         exclude = addStringsOption("exclude", ":");
         bootClasspath = addPathOption("bootclasspath");
         extDirs = addPathOption("extdirs");
