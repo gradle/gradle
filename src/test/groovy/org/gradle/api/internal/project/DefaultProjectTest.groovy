@@ -106,6 +106,7 @@ class DefaultProjectTest {
         script = context.mock(ScriptSource.class)
         context.checking {
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
+            allowing(script).getClassName(); will(returnValue('scriptClass'))
         }
         
         testScript = new EmptyScript()
@@ -287,7 +288,7 @@ class DefaultProjectTest {
         project.evaluationDependsOn('')
     }
 
-    @Test (expected = CircularReferenceException) void testEvaluationDependsOnWithCircularDependency() {
+    @Test void testEvaluationDependsOnWithCircularDependency() {
         final BuildScriptProcessor mockReader1 = [createScript: {DefaultProject project ->
             project.evaluationDependsOn(child1.path)
             testScript
@@ -298,7 +299,12 @@ class DefaultProjectTest {
         }] as BuildScriptProcessor
         project.buildScriptProcessor = mockReader1
         child1.buildScriptProcessor = mockReader2
-        project.evaluate()
+        try {
+            project.evaluate()
+            fail()
+        } catch (GradleScriptException e) {
+            assertThat(e.reportableException.cause, instanceOf(CircularReferenceException))
+        }
     }
 
     @Test void testWrapsEvaulationFailure() {
@@ -565,10 +571,7 @@ class DefaultProjectTest {
     }
 
     @Test void testGetBuildFileCacheName() {
-        context.checking {
-            one(script).getClassName(); will(returnValue('script class'))
-        }
-        assertEquals('script class', project.getBuildFileClassName())
+        assertEquals('scriptClass', project.getBuildFileClassName())
     }
 
     @Test void testGetProject() {
@@ -778,7 +781,6 @@ def scriptMethod(Closure closure) {
     @Test void testProperties() {
         context.checking {
             one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), testTask.getName()); will(returnValue(testTask))
-            one(script).getClassName(); will(returnValue('script class'))
         }
 
         project.additional = 'additional'

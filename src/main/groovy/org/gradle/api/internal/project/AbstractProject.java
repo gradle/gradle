@@ -524,13 +524,15 @@ public abstract class AbstractProject implements ProjectInternal {
         }
         Clock clock = new Clock();
         state = State.INITIALIZING;
-        setBuildScript(buildScriptProcessor.createScript(this));
         try {
+            setBuildScript(buildScriptProcessor.createScript(this));
             standardOutputRedirector.on(LogLevel.QUIET);
-            buildScript.run();
-            standardOutputRedirector.flush();
+            try {
+                buildScript.run();
+            } finally {
+                standardOutputRedirector.flush();
+            }
         } catch (Throwable t) {
-            standardOutputRedirector.flush();
             throw new GradleScriptException(String.format("A problem occurred evaluating %s.", this), t, getBuildScriptSource());
         }
         logger.debug("Timing: Running the build script took " + clock.getTime());

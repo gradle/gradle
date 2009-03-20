@@ -30,6 +30,19 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void reportsGroovyCompilationException() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+            "// a comment",
+            "import org.gradle.unknown.Unknown",
+            "new Unknown()");
+        GradleExecutionFailure failure = inTestDirectory().runTasksAndExpectFailure();
+        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
+        failure.assertHasLineNumber(2);
+        failure.assertHasContext(String.format("Could not compile build file '%s'.", buildFile));
+    }
+
+    @Test
     public void reportsNestedProjectEvaulationFailsWithRuntimeException() {
         testFile("settings.gradle").write("include 'child'");
 

@@ -101,16 +101,9 @@ public class DefaultScriptProcessorTest {
             allowing(source).getSourceFile();
             will(returnValue(testScriptFile));
 
-            allowing(source).getText();
-            will(returnValue(TEST_SCRIPT_TEXT));
-
-            allowing(source).getClassName();
-            will(returnValue(TEST_SCRIPT_NAME));
-
             one(scriptCompilationHandlerMock).createScriptOnTheFly(
-                    TEST_SCRIPT_TEXT,
+                    source,
                     testClassLoader,
-                    TEST_SCRIPT_NAME,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
         }});
@@ -125,16 +118,9 @@ public class DefaultScriptProcessorTest {
                 allowing(source).getSourceFile();
                 will(returnValue(null));
 
-                allowing(source).getText();
-                will(returnValue(TEST_SCRIPT_TEXT));
-
-                allowing(source).getClassName();
-                will(returnValue(TEST_SCRIPT_NAME));
-
                 one(scriptCompilationHandlerMock).createScriptOnTheFly(
-                        TEST_SCRIPT_TEXT,
+                        source,
                         testClassLoader,
-                        TEST_SCRIPT_NAME,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
@@ -151,24 +137,17 @@ public class DefaultScriptProcessorTest {
                 allowing(source).getSourceFile();
                 will(returnValue(testScriptFile));
 
-                allowing(source).getText();
-                will(returnValue(TEST_SCRIPT_TEXT));
-
-                allowing(source).getClassName();
-                will(returnValue(TEST_SCRIPT_NAME));
-
-                one(scriptCompilationHandlerMock).loadFromCache(TEST_SCRIPT_TEXT, testClassLoader, TEST_SCRIPT_NAME, testCacheDir, expectedScriptBaseClass);
+                one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(null));
 
                 one(scriptCompilationHandlerMock).writeToCache(
-                        TEST_SCRIPT_TEXT,
+                        source,
                         testClassLoader,
-                        TEST_SCRIPT_NAME,
                         testCacheDir,
                         expectedScriptBaseClass
                 );
 
-                one(scriptCompilationHandlerMock).loadFromCache(TEST_SCRIPT_TEXT, testClassLoader, TEST_SCRIPT_NAME, testCacheDir, expectedScriptBaseClass);
+                one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
 
             }
@@ -181,16 +160,10 @@ public class DefaultScriptProcessorTest {
         createBuildScriptFile();
         context.checking(new Expectations() {
             {
-                allowing(source).getText();
-                will(returnValue(TEST_SCRIPT_TEXT));
-                
                 allowing(source).getSourceFile();
                 will(returnValue(testScriptFile));
 
-                allowing(source).getClassName();
-                will(returnValue(TEST_SCRIPT_NAME));
-
-                one(scriptCompilationHandlerMock).loadFromCache(TEST_SCRIPT_TEXT, testClassLoader, TEST_SCRIPT_NAME, testCacheDir, expectedScriptBaseClass);
+                one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
         });
@@ -206,21 +179,14 @@ public class DefaultScriptProcessorTest {
                 allowing(source).getSourceFile();
                 will(returnValue(testScriptFile));
 
-                allowing(source).getText();
-                will(returnValue(TEST_SCRIPT_TEXT));
-
-                allowing(source).getClassName();
-                will(returnValue(TEST_SCRIPT_NAME));
-
                 one(scriptCompilationHandlerMock).writeToCache(
-                        TEST_SCRIPT_TEXT,
+                        source,
                         testClassLoader,
-                        TEST_SCRIPT_NAME,
                         testCacheDir,
                         expectedScriptBaseClass
                 );
 
-                one(scriptCompilationHandlerMock).loadFromCache(TEST_SCRIPT_TEXT, testClassLoader, TEST_SCRIPT_NAME, testCacheDir, expectedScriptBaseClass);
+                one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
         });
@@ -237,16 +203,9 @@ public class DefaultScriptProcessorTest {
                 allowing(source).getSourceFile();
                 will(returnValue(testScriptFile));
 
-                allowing(source).getText();
-                will(returnValue(TEST_SCRIPT_TEXT));
-
-                allowing(source).getClassName();
-                will(returnValue(TEST_SCRIPT_NAME));
-
                 one(scriptCompilationHandlerMock).createScriptOnTheFly(
-                        TEST_SCRIPT_TEXT,
+                        source,
                         testClassLoader,
-                        TEST_SCRIPT_NAME,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
@@ -263,16 +222,9 @@ public class DefaultScriptProcessorTest {
                 allowing(source).getSourceFile();
                 will(returnValue(testScriptFile));
 
-                allowing(source).getText();
-                will(returnValue(TEST_SCRIPT_TEXT));
-
-                allowing(source).getClassName();
-                will(returnValue(TEST_SCRIPT_NAME));
-
                 one(scriptCompilationHandlerMock).createScriptOnTheFly(
-                        TEST_SCRIPT_TEXT,
+                        source,
                         testClassLoader,
-                        TEST_SCRIPT_NAME,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }

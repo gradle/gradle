@@ -48,22 +48,21 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     }
 
     private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
-        return scriptCompilationHandler.createScriptOnTheFly(source.getText(), classLoader, source.getClassName(), scriptBaseClass);
+        return scriptCompilationHandler.createScriptOnTheFly(source, classLoader, scriptBaseClass);
     }
 
     private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
         File sourceFile = source.getSourceFile();
         File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
         File scriptCacheDir = new File(cacheDir, sourceFile.getName());
-        String scriptClassName = source.getClassName();
         if (cacheUsage == CacheUsage.ON) {
-            Script cachedScript = scriptCompilationHandler.loadFromCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
+            Script cachedScript = scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
             if (cachedScript != null) {
                 return cachedScript;
             }
         }
-        scriptCompilationHandler.writeToCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
-        return scriptCompilationHandler.loadFromCache(source.getText(), classLoader, scriptClassName, scriptCacheDir, scriptBaseClass);
+        scriptCompilationHandler.writeToCache(source, classLoader, scriptCacheDir, scriptBaseClass);
+        return scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
     }
 
     private boolean isCacheable(File sourceFile) {

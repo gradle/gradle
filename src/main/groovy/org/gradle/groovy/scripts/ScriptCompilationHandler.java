@@ -25,9 +25,9 @@ import org.codehaus.groovy.control.CompilerConfiguration;
  * @author Hans Dockter
  */
 public interface ScriptCompilationHandler {
-    Script createScriptOnTheFly(String text, ClassLoader classLoader, String className, Class<? extends Script> scriptBaseClass);
+    Script createScriptOnTheFly(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass);
     
-    void writeToCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
+    void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
 
-    Script loadFromCache(String scriptText, ClassLoader classLoader, String scriptName, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
+    Script loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Class<? extends Script> scriptBaseClass);
 }

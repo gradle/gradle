@@ -48,6 +48,13 @@ public class GradleScriptExceptionTest {
     }
 
     @Test
+    public void usesProvidedLineNumber() {
+        GradleScriptException exception = new GradleScriptException("<message>", new RuntimeException(), source, 91);
+        assertThat(exception.getLocation(), equalTo("<description> line: 91"));
+        assertThat(exception.getMessage(), equalTo(String.format("<description> line: 91%n<message>")));
+    }
+
+    @Test
     public void messageIndicatesWhenNoLineNumbersFound() {
         RuntimeException cause = new RuntimeException("<cause>");
         GradleScriptException exception = new GradleScriptException("<message>", cause, source);

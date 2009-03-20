@@ -27,9 +27,15 @@ import org.apache.commons.lang.StringUtils;
 public class GradleScriptException extends GradleException {
     private final String originalMessage;
     private final ScriptSource scriptSource;
+    private final Integer lineNumber;
 
     public GradleScriptException(String message, Throwable cause, ScriptSource scriptSource) {
+        this(message, cause, scriptSource, null);
+    }
+
+    public GradleScriptException(String message, Throwable cause, ScriptSource scriptSource, Integer lineNumber) {
         super(cause);
+        this.lineNumber = lineNumber;
         assert message != null && cause != null && scriptSource != null;
         originalMessage = message;
         this.scriptSource = scriptSource;
@@ -59,18 +65,30 @@ public class GradleScriptException extends GradleException {
      * @return The location description. Never returns null.
      */
     public String getLocation() {
+        Integer lineNumber = getLineNumber();
+        String lineInfo = lineNumber != null ? String.format(" line: %s", lineNumber) : "";
+        return StringUtils.capitalize(scriptSource.getDisplayName()) + lineInfo;
+    }
+
+    /**
+     * Returns the line in the script where this exception occurred, if known.
+     *
+     * @return The line number, or null if not known.
+     */
+    public Integer getLineNumber() {
         String scriptName = scriptSource.getClassName();
-        Integer lineNumber = null;
-        for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
-            for (StackTraceElement element : currentException.getStackTrace()) {
-                if (element.getFileName() != null && element.getFileName().equals(scriptName) && element.getLineNumber() >= 0) {
-                    lineNumber = element.getLineNumber();
-                    break;
+        Integer lineNumber = this.lineNumber;
+        if (lineNumber == null) {
+            for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
+                for (StackTraceElement element : currentException.getStackTrace()) {
+                    if (element.getFileName() != null && element.getFileName().equals(scriptName) && element.getLineNumber() >= 0) {
+                        lineNumber = element.getLineNumber();
+                        break;
+                    }
                 }
             }
         }
-        String lineInfo = lineNumber != null ? String.format(" line: %s", lineNumber) : "";
-        return StringUtils.capitalize(scriptSource.getDisplayName()) + lineInfo;
+        return lineNumber;
     }
 
     public String getMessage() {
