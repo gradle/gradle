@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.exec.ExecHandle;
+import org.gradle.util.GUtil;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
@@ -97,9 +98,9 @@ public class Javadoc extends ConventionTask {
                 .classpath(getClassesDir());
         }
 
-        if ( StringUtils.isEmpty(options.getWindowTitle()) )
-            options
-                .windowTitle("\""+getTitle()+"\"");
+        if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
+            options.windowTitle(getTitle());
+        }
 
         if (    options.getPackageNames().isEmpty() &&
                 options.getSourceNames().isEmpty() &&
