@@ -1,12 +1,9 @@
-version = 0.1
-
 usePlugin('java')
 
 dependencies {
-	File libDir = new File(rootDir, '../lib')
-	addFlatDirResolver('testng-lib',libDir).addArtifactPattern(new File(libDir.absolutePath, '[artifact](-[revision])(-[conf]).[ext]').absolutePath)
+    addMavenRepo()
 
-	clientModule(['testCompile'],'testng:testng:5.8:jdk15') {
+	clientModule(['testCompile'],'org.testng:testng:5.8:jdk15') {
 	    artifact {
 	        name = 'testng'
 	        type = 'jar'

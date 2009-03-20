@@ -1,16 +1,14 @@
 usePlugin('groovy')
 
-version='0.1'
 sourceCompatibility=1.5
 targetCompatibility=1.5
 
 dependencies { 
-	File libDir = new File(rootDir, '../lib')
-	addFlatDirResolver('testng-lib',libDir).addArtifactPattern(new File(libDir.absolutePath, '[artifact](-[revision])(-[conf]).[ext]').absolutePath) 
+    addMavenRepo()
 
 	compile "org.codehaus.groovy:groovy-all:1.5.6"
 
-	clientModule(['testCompile'],'testng:testng:5.8:jdk14') {
+	clientModule(['testCompile'],'org.testng:testng:5.8:jdk14') {
 	    artifact {
 	        name = 'testng'
 	        type = 'jar'
