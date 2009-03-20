@@ -25,7 +25,11 @@ import org.gradle.StartParameter
 import org.gradle.invocation.DefaultBuild
 import org.gradle.initialization.ISettingsFinder
 import org.gradle.CacheUsage
-import org.gradle.api.internal.dependencies.DefaultDependencyManagerFactory
+import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.api.initialization.ProjectDescriptor
+import org.gradle.initialization.IProjectDescriptorRegistry
+import org.gradle.initialization.DefaultProjectDescriptorRegistry
 
 /**
  * @author Hans Dockter
@@ -56,11 +60,11 @@ class VersionTest extends GroovyTestCase {
                 new DefaultDependencyManagerFactory(settingsFinder, CacheUsage.ON),
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
-                new StartParameter(),
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
-
-        DefaultProject project = projectFactory.createProject(rootDir.name, null, rootDir, new DefaultBuild(new StartParameter(), null))
+        IProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry()
+        ProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir, registry)
+        DefaultProject project = projectFactory.createProject(descriptor, null, new DefaultBuild(new StartParameter(), null))
         project.setBuildScript(new EmptyScript())
         return project;
     }

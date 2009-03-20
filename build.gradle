@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Task
-import org.gradle.api.internal.dependencies.WebdavResolver
+import org.gradle.api.internal.artifacts.publish.ivycomponents.WebdavResolver
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.api.tasks.wrapper.Wrapper
@@ -23,7 +23,7 @@ import org.gradle.api.tasks.util.FileCollection
  *
  * Uploading distributions to Gradle's release and snapshot repository at codehaus: codehausUserName, codehausUserPassword
  * Uploading the userguide and the javadoc to Gradle's website: websiteFtpUserName, websiteFtpUserPassword
- * Using the build to create a new distribution and install it on the local machine: gradle_installDir, gradle_installDirName
+ * Using the build to create a new distribution and install it on the local machine: gradle_installPath
  * Creating a JDK-1.4 compatible distribtution with retro-translator: gradle_retroLibsDir (This dir shoud contain rt.jar, jce.jar and jsse.jar from
  * a JDK 1.4).
  */
@@ -129,8 +129,20 @@ dependencies {
     }
     distLib "junit:junit:4.5"
     clientModule(['testngIntegrationTesting'],'testng:testng:5.8') {
-		addArtifact(new Artifact('testng','jar','jar','jdk15', "http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk15.jar"))
-		addArtifact(new Artifact('testng','jar','jar','jdk14', "http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk14.jar"))
+        artifact {
+            name = 'testng'
+            extension = 'jar'
+            type = 'jar'
+            classifier = 'jdk15'
+            url = 'http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk15.jar'
+        }
+        artifact {
+            name = 'testng'
+            extension = 'jar'
+            type = 'jar'
+            classifier = 'jdk14'
+            url = 'http://repo2.maven.org/maven2/org/testng/testng/5.8/testng-5.8-jdk14.jar'
+        }
 	}
     testngIntegrationTesting "org.codehaus.groovy:groovy-all:1.5.6"
 }
@@ -200,9 +212,8 @@ userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
     File testngIntegTestLibDir = new File(rootDir, 'src/samples/testng/lib')
     ant.mkdir(dir:testngIntegTestLibDir.absolutePath)
-    List testng = dependencies.resolve('testngIntegrationTesting')
     ant {
-        testng.each {
+        dependencies.testngIntegrationTesting.files.each {
             copy(file: it, todir: testngIntegTestLibDir)
         }
     }
@@ -348,12 +359,11 @@ groovydoc.destinationDir = explodedDistGroovydocsDir
 javadoc {
     title = "Gradle API $version"
     destinationDir = explodedDistJavadocsDir
-    include 'org/gradle/api/**'
-    exclude 'org/gradle/api/internal/**'
-    include 'org/gradle/*'
-    include 'org/gradle/external/**'
-    // todo understand why not excluding this leads to a javadoc exception
-    exclude 'org/gradle/api/plugins/DefaultConventionsToPropertiesMapping.java'
+    // todo: include only the public packages
+    options.subPackages 'org.gradle'
+    exclude 'org.gradle.api.internal'
+    // todo: make this true
+    failOnError = false
 }
 
 createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
@@ -544,7 +554,7 @@ integTest {
     testReportDir = test.testReportDir
     unmanagedClasspath = testCompile.unmanagedClasspath
     dependencyManager = test.dependencyManager
-    dependencyManager.linkConfWithTask('testRuntime', 'integTest')
+    resolveInstruction = test.resolveInstruction
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
@@ -565,25 +575,25 @@ integTest.doFirst {
 
 createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc', 'uploadUserguide'])
 
-createTask('install', dependsOn: 'integTest') {
+createTask('install', dependsOn: 'integTest', description: 'Installs the distribution into directory $gradle_installPath') {
     ant.delete(dir: installDir)
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         windowsInstall()
     } else {
         asternixInstall()
     }
-    ant.move(file: "$gradle_installDir/$zipRootFolder", tofile: installDir)
+    ant.move(file: "${installDir.parentFile}/$zipRootFolder", tofile: installDir)
 }
 
 build.taskGraph.whenReady { graph ->
     if (graph.hasTask(':install')) {
-        // Do this early to ensure that the 2 properties we need have been set, and fail early
-        installDir = new File("$gradle_installDir/$gradle_installDirName")
+        // Do this early to ensure that the properties we need have been set, and fail early
+        installDir = file("$gradle_installPath")
     }
 }
 
 void windowsInstall() {
-    ant.unzip(src: task('archive_all_zip').archivePath, dest: gradle_installDir)
+    ant.unzip(src: task('archive_all_zip').archivePath, dest: installDir.parentFile)
 }
 
 /**
@@ -593,7 +603,7 @@ void asternixInstall() {
     ant.exec(executable: "unzip") {
         arg(value: '-q')
         arg(value: '-d')
-        arg(value: gradle_installDir)
+        arg(value: installDir.parentFile)
         arg(value: "${task('archive_all_zip').archivePath}")
     }
 }
