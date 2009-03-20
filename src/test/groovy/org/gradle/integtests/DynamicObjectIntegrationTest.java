@@ -46,7 +46,7 @@ public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "}"
         );
 
-        inTestDirectory().runTasks("testTask");
+        inTestDirectory().withTasks("testTask").run();
 
         assertThat(result, equalTo("root,child,shared,convention,task ':child:testTask'"));
     }
@@ -69,7 +69,7 @@ public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "}"
         );
 
-        inTestDirectory().runTasks("testTask");
+        inTestDirectory().withTasks("testTask").run();
 
         assertThat(result, equalTo("rootMethod,childMethod,sharedMethod,conventionMethod,task ':child:testTask'"));
     }

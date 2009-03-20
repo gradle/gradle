@@ -1,5 +1,5 @@
 /*
- * Copyright 2007, 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,21 @@
  */
 package org.gradle.integtests;
 
-import org.junit.Test;
+import org.gradle.api.GradleException;
+import org.hamcrest.Matcher;
 
-public class BuildSrcIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void providesADefaultBuildForBuildSrcProject() {
-        testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
-        testFile("build.gradle").writelns("new BuildClass()");
-        inTestDirectory().withTaskList().run();
-    }
+public interface ExecutionFailure {
+    GradleException getFailure();
+
+    void assertHasLineNumber(int lineNumber);
+
+    void assertHasFileName(String filename);
+
+    void assertHasDescription(String description);
+
+    void assertDescription(Matcher<String> matcher);
+
+    void assertHasContext(String context);
+
+    void assertContext(Matcher<String> matcher);
 }

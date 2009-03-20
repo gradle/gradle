@@ -29,6 +29,7 @@ class CacheProjectIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void cacheProject() {
@@ -42,7 +43,7 @@ class CacheProjectIntegrationTest {
         testBuild(cacheProjectDir, dist.gradleHomeDir, "newTask", String.format("I am new"))
     }
 
-    private static def changeCacheVersionProperty(File cacheProjectDir) {
+    private def changeCacheVersionProperty(File cacheProjectDir) {
         Properties properties = new Properties()
         FileInputStream propertiesInputStream = new FileInputStream(new File(cacheProjectDir, ".gradle/cache/build.gradle/cache.properties"))
         properties.load(propertiesInputStream)
@@ -53,8 +54,8 @@ class CacheProjectIntegrationTest {
         propertiesOutputStream.close()
     }
 
-    private static def testBuild(File cacheProjectDir, File gradleHome, String taskName, String expected) {
-        Executer.execute(gradleHome.absolutePath, cacheProjectDir.absolutePath, [taskName], [:], '', Executer.QUIET)
+    private def testBuild(File cacheProjectDir, File gradleHome, String taskName, String expected) {
+        executer.inDirectory(cacheProjectDir).withTasks(taskName).withQuietLogging().run()
         Assert.assertEquals(expected, new File(cacheProjectDir, TEST_FILE).text)
     }
 

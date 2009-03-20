@@ -24,10 +24,8 @@ public class GroovyProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").writelns(
                 "usePlugin('groovy')",
                 // todo: should not need these
-                "version = 'dev'",
                 "sourceCompatibility = 1.5",
                 "targetCompatibility = 1.5");
-        inTestDirectory().runTasks("libs");
+        inTestDirectory().withTasks("libs").run();
     }
-
 }

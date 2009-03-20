@@ -23,10 +23,10 @@ import org.gradle.util.exec.ExecHandle
  * @author Hans Dockter
  */
 class Executer {
-    static final int QUIET = 0
-    static final int LIFECYCLE = 1
-    static final int INFO = 2
-    static final int DEBUG = 3
+    public static final int QUIET = 0
+    public static final int LIFECYCLE = 1
+    public static final int INFO = 2
+    public static final int DEBUG = 3
     
     static Map execute(String gradleHome, String currentDirName, List tasknames, Map envs = [:], String buildFileName = '', int outputType = QUIET, boolean expectFailure = false) {
         executeInternal('gradle', "${gradleHome}/bin/gradle", gradleHome, envs,

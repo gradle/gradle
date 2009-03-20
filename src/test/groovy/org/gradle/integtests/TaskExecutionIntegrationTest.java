@@ -38,7 +38,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "    TaskExecutionIntegrationTest.graphListenerNotified = true",
                 "}"
         );
-        usingBuildFile(buildFile).runTasks("a").assertTasksExecuted(":b", ":a");
+        usingBuildFile(buildFile).withTasks("a").run().assertTasksExecuted(":b", ":a");
 
         assertTrue(graphListenerNotified);
     }
@@ -57,10 +57,10 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "createTask('d', dependsOn: 'a')",
                 "createTask('e', dependsOn: ['a', 'd'])"
                 );
-        usingBuildFile(buildFile).runTasks("a", "b").assertTasksExecuted(":a", ":b");
-        usingBuildFile(buildFile).runTasks("a", "a").assertTasksExecuted(":a");
-        usingBuildFile(buildFile).runTasks("c", "a").assertTasksExecuted(":a", ":c");
-        usingBuildFile(buildFile).runTasks("c", "e").assertTasksExecuted(":a", ":c", ":d", ":e");
+        usingBuildFile(buildFile).withTasks("a", "b").run().assertTasksExecuted(":a", ":b");
+        usingBuildFile(buildFile).withTasks("a", "a").run().assertTasksExecuted(":a");
+        usingBuildFile(buildFile).withTasks("c", "a").run().assertTasksExecuted(":a", ":c");
+        usingBuildFile(buildFile).withTasks("c", "e").run().assertTasksExecuted(":a", ":c", ":d", ":e");
     }
 
     @Test
@@ -74,8 +74,8 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "    createTask('c', dependsOn: ['b', ':a'])",
                 "}"
                 );
-        usingBuildFile(buildFile).runTasks("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child2:b", ":child2:c");
-        usingBuildFile(buildFile).runTasks("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child2:b", ":a", ":child2:c");
+        usingBuildFile(buildFile).withTasks("a", "c").run().assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child2:b", ":child2:c");
+        usingBuildFile(buildFile).withTasks("b", ":child2:c").run().assertTasksExecuted(":b", ":child1:b", ":child2:b", ":a", ":child2:c");
     }
 
     @Test
@@ -90,7 +90,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "    createTask('b', dependsOn: ':a')",
                 "}"
                 );
-        usingBuildFile(buildFile).runTasks().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b");
+        usingBuildFile(buildFile).run().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b");
     }
 
     @Test @Ignore
@@ -117,9 +117,9 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         );
 
         // todo - should archive_zip depend on b:libs, as it is a dependencu of its parent libs task?
-        usingBuildFile(testFile("build.gradle")).runTasks("a:archive_zip").assertTasksExecuted(":a:compile", "b:archive_zip", "a:archive_zip");
-        
-        usingBuildFile(testFile("build.gradle")).runTasks("a:libs").assertTasksExecuted(":a:compile", "b:archive_zip", "b:libs", "a:archive_zip");
+        usingBuildFile(testFile("build.gradle")).withTasks("a:archive_zip").run().assertTasksExecuted(":a:compile", "b:archive_zip", "a:archive_zip");
+
+        usingBuildFile(testFile("build.gradle")).withTasks("a:libs").run().assertTasksExecuted(":a:compile", "b:archive_zip", "b:libs", "a:archive_zip");
     }
 
 }

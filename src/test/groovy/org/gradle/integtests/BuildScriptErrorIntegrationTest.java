@@ -22,7 +22,7 @@ import java.io.File;
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsProjectEvaulationFailsWithGroovyException() {
-        GradleExecutionFailure failure = usingBuildScript("createTakk('do-stuff')").runTasksAndExpectFailure();
+        ExecutionFailure failure = usingBuildScript("createTakk('do-stuff')").runWithFailure();
 
         failure.assertHasFileName("Embedded build file");
         failure.assertHasLineNumber(1);
@@ -36,7 +36,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
             "// a comment",
             "import org.gradle.unknown.Unknown",
             "new Unknown()");
-        GradleExecutionFailure failure = inTestDirectory().runTasksAndExpectFailure();
+        ExecutionFailure failure = inTestDirectory().runWithFailure();
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);
         failure.assertHasContext(String.format("Could not compile build file '%s'.", buildFile));
@@ -54,7 +54,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
                 "def broken = { ->",
                 "    throw new RuntimeException('failure') }",
                 "broken()");
-        GradleExecutionFailure failure = inTestDirectory().runTasksAndExpectFailure("t");
+        ExecutionFailure failure = inTestDirectory().withTasks("t").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", childBuildFile));
         failure.assertHasLineNumber(2);
@@ -66,7 +66,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     public void reportsTaskActionExecutionFailsWithError() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("createTask('do-stuff')", "{", "1/0", "}");
-        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("do-stuff");
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("do-stuff").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
@@ -78,7 +78,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     public void reportsTaskActionExecutionFailsWithRuntimeException() {
         File buildFile = getTestBuildFile("task-action-execution-failure.gradle");
 
-        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("brokenClosure");
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenClosure").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
@@ -90,7 +90,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     public void reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
         File buildFile = getTestBuildFile("task-action-execution-failure.gradle");
 
-        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("brokenJavaTask");
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasContext("Execution failed for task ':brokenJavaTask'");
@@ -102,7 +102,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("build.taskGraph.whenReady {", "throw new RuntimeException('broken closure')", "}", "createTask('a')");
 
-        GradleExecutionFailure failure = usingBuildFile(buildFile).runTasksAndExpectFailure("a");
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("a").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);

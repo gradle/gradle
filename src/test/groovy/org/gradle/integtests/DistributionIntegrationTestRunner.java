@@ -21,11 +21,6 @@ import org.junit.runners.model.Statement;
 import org.junit.runners.model.FrameworkMethod;
 import static org.junit.Assert.*;
 import org.gradle.api.UncheckedIOException;
-import org.apache.commons.io.FileUtils;
-import org.apache.tools.ant.taskdefs.Chmod;
-import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.FileList;
-import org.apache.tools.ant.BuildException;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,12 +46,17 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     }
 
     private void attachDistribution(Object target) throws Exception {
-        GradleDistribution dist = getDist();
+        GradleDistribution distribution = getDist();
+        injectValue(target, distribution, GradleDistribution.class);
+        injectValue(target, new ForkingGradleExecuter(distribution), GradleExecuter.class);
+    }
+
+    private void injectValue(Object target, Object value, Class<?> type) throws IllegalAccessException {
         for (Class<?> current = target.getClass(); current != null; current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
-                if (field.getType().equals(GradleDistribution.class)) {
+                if (field.getType().equals(type)) {
                     field.setAccessible(true);
-                    field.set(target, dist);
+                    field.set(target, value);
                 }
             }
         }
