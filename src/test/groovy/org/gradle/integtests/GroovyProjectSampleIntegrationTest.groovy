@@ -29,10 +29,10 @@ class GroovyProjectSampleIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void groovyProjectSamples() {
-        String gradleHome = dist.gradleHomeDir.absolutePath
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
 
@@ -44,7 +44,7 @@ class GroovyProjectSampleIntegrationTest {
         File testProjectDir = new File(groovyProjectDir, TEST_PROJECT_NAME)
 
         // Build libs
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'libs'])
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
         mainFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, packagePrefix, it + ".class")}
         excludedFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, false, packagePrefix, it + ".class")}
 
@@ -60,12 +60,12 @@ class GroovyProjectSampleIntegrationTest {
         assert new File("$unjarPath/META-INF/myfile").isFile()
 
         // Build docs
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean', 'javadoc', 'groovydoc'])
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
         JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build/docs/javadoc/index.html')
         JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build/docs/groovydoc/index.html')
 
         // This test is also important for test cleanup
-        Executer.execute(gradleHome, groovyProjectDir.absolutePath, ['clean'])
+        executer.inDirectory(groovyProjectDir).withTasks('clean').run()
         assert !(new File(testProjectDir, "build").exists())
     }
 }

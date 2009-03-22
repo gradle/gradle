@@ -16,9 +16,12 @@
  
 package org.gradle.integtests
 
-import org.gradle.util.GradleUtil
-import org.junit.runner.RunWith
+import org.gradle.integtests.DistributionIntegrationTestRunner
+import org.gradle.integtests.GradleDistribution
+import org.gradle.integtests.GradleExecuter
+import org.gradle.integtests.JavaProjectSampleIntegrationTest
 import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
@@ -30,6 +33,7 @@ class MavenRepoIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void mavenRepoSample() {
@@ -37,8 +41,7 @@ class MavenRepoIntegrationTest {
                 'classifier-1.0-jdk15.jar', 'classifier-dep-1.0.jar', 'jaronly-1.0.jar']
 
         File projectDir = new File(dist.samplesDir, PROJECT_NAME)
-        Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['retrieve'])
+        executer.inDirectory(projectDir).withTasks('retrieve').run()
         expectedFiles.each { JavaProjectSampleIntegrationTest.checkExistence(projectDir, 'build', it)}
-        GradleUtil.deleteDir(new File(projectDir, 'build'))
     }
 }

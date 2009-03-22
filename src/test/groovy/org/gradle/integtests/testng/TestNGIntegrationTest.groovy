@@ -1,14 +1,16 @@
 package org.gradle.integtests.testng
+
+import org.gradle.integtests.DistributionIntegrationTestRunner
+import org.gradle.integtests.GradleDistribution
+import org.gradle.integtests.GradleExecuter
+import org.gradle.integtests.testng.TestNGIntegrationProject
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.gradle.integtests.testng.TestNGIntegrationProject.*
+
 /**
  * @author Tom Eyckmans
  */
-import static org.gradle.integtests.testng.TestNGIntegrationProject.*
-import org.gradle.integtests.Executer;
-import org.gradle.integtests.GradleDistribution
-import org.junit.runner.RunWith
-import org.gradle.integtests.DistributionIntegrationTestRunner
-import org.junit.Test
-
 @RunWith(DistributionIntegrationTestRunner.class)
 public class TestNGIntegrationTest {
     static final String GROOVY = "groovy"
@@ -61,6 +63,7 @@ public class TestNGIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void testNGSamples() {
@@ -69,10 +72,17 @@ public class TestNGIntegrationTest {
                 GROOVY_JDK15_FAILING, GROOVY_JDK15_PASSING,
                 JAVA_JDK14_FAILING, JAVA_JDK14_PASSING, JAVA_JDK15_FAILING, JAVA_JDK15_PASSING, JAVA_JDK15_PASSING_NO_REPORT]
 
-        projects.each { it ->
+        projects.each {it ->
             final File projectDir = new File(new File(dist.samplesDir, "testng"), it.name)
 
-            final Map result = Executer.execute(dist.gradleHomeDir.absolutePath, projectDir.absolutePath, ['clean', 'test'], [:], '', Executer.QUIET, it.expectFailure)
+            def result
+            executer.inDirectory(projectDir).withTasks('clean', 'test')
+            if (it.expectFailure) {
+                result = executer.runWithFailure()
+            }
+            else {
+                result = executer.run()
+            }
 
             // output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand
             it.doAssert(projectDir, result)
@@ -97,9 +107,9 @@ public class TestNGIntegrationTest {
             assert shouldExists ? file.exists() : !file.exists()
         } catch (AssertionError e) {
             if (shouldExists) {
-                println("File: $file should exists, but does not!")
+                println("File: $file should exist, but does not!")
             } else {
-                println("File: $file should not exists, but does!")
+                println("File: $file should not exist, but does!")
             }
             throw e
         }

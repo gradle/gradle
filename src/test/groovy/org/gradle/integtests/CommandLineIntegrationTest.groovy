@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.junit.runner.RunWith
 import org.junit.Test
 
@@ -25,16 +23,17 @@ public class CommandLineIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {
         File javaprojectDir = new File(dist.samplesDir, 'javaproject')
-        Map result = Executer.execute(dist.gradleHomeDir.absolutePath, javaprojectDir.absolutePath, ['unknown'], [:], '', Executer.QUIET, true)
-        assertThat(result.error, containsString("Task 'unknown' not found "))
+        ExecutionFailure failure = executer.inDirectory(javaprojectDir).withTasks('unknown').runWithFailure()
+        failure.assertHasDescription("Task 'unknown' not found")
     }
     
     @Test
     public void canUseVersionCommandLineOption() {
-        Executer.execute(dist.gradleHomeDir.absolutePath, System.properties['user.dir'], ['-v'])
+        executer.withArguments('-v').run()
     }
 }

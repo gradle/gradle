@@ -90,6 +90,10 @@ public class InProcessGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withArguments(String... args) {
+        throw new UnsupportedOperationException();
+    }
+
     public ExecutionResult run() {
         Gradle gradle = Gradle.newInstance(parameter);
         gradle.addBuildListener(new ListenerImpl());

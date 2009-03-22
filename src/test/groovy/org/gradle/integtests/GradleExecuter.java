@@ -29,7 +29,9 @@ public interface GradleExecuter {
     GradleExecuter withDependencyList();
 
     GradleExecuter withQuietLogging();
-    
+
+    GradleExecuter withArguments(String... args);
+
     GradleExecuter usingSettingsFile(TestFile settingsFile);
 
     GradleExecuter usingSettingsFile(File settingsFile);

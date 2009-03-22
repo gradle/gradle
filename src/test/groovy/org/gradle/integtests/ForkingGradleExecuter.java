@@ -15,20 +15,25 @@
  */
 package org.gradle.integtests;
 
+import org.gradle.api.GradleException;
+import org.gradle.util.GUtil;
+import org.hamcrest.Matcher;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 import java.io.File;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
 public class ForkingGradleExecuter implements GradleExecuter {
     private final GradleDistribution distribution;
     private File workingDir;
     private int logLevel = Executer.LIFECYCLE;
-    private final List<String> tasks = new ArrayList<String>();
+    private List<String> tasks = new ArrayList<String>();
+    private List<String> args = new ArrayList<String>();
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
         this.distribution = distribution;
+        workingDir = distribution.getGradleHomeDir();
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -41,7 +46,7 @@ public class ForkingGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withTasks(String... names) {
-        tasks.addAll(Arrays.asList(names));
+        tasks = Arrays.asList(names);
         return this;
     }
 
@@ -65,23 +70,66 @@ public class ForkingGradleExecuter implements GradleExecuter {
         throw new UnsupportedOperationException();
     }
 
+    public GradleExecuter withArguments(String... args) {
+        this.args.addAll(Arrays.asList(args));
+        return this;
+    }
+
     public GradleExecuter withQuietLogging() {
         logLevel = Executer.QUIET;
         return this;
     }
 
     public ExecutionResult run() {
-        Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(), tasks,
-                new HashMap(), "", logLevel, false);
+        Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(),
+                GUtil.addLists(args, tasks), new HashMap(), "", logLevel, false);
         return new ForkedExecutionResult();
     }
 
     public ExecutionFailure runWithFailure() {
-        throw new UnsupportedOperationException();
+        Map result = Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(),
+                GUtil.addLists(args, tasks), new HashMap(), "", logLevel, true);
+        return new ForkedExecutionFailure(result);
     }
 
     private static class ForkedExecutionResult implements ExecutionResult {
         public void assertTasksExecuted(String... taskPaths) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class ForkedExecutionFailure implements ExecutionFailure {
+        private final Map result;
+
+        public ForkedExecutionFailure(Map result) {
+            this.result = result;
+        }
+
+        public GradleException getFailure() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void assertHasLineNumber(int lineNumber) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void assertHasFileName(String filename) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void assertHasDescription(String description) {
+            assertThat(result.get("error").toString(), containsString(description));
+        }
+
+        public void assertDescription(Matcher<String> matcher) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void assertHasContext(String context) {
+            assertThat(result.get("error").toString(), containsString(context));
+        }
+
+        public void assertContext(Matcher<String> matcher) {
             throw new UnsupportedOperationException();
         }
     }

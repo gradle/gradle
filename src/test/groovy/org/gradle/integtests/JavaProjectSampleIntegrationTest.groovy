@@ -38,17 +38,17 @@ class JavaProjectSampleIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void javaProjectSamples() {
-        String gradleHome = dist.gradleHomeDir.absolutePath
         List projects = [SHARED_NAME, API_NAME, WEBAPP_1_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
         File javaprojectDir = new File(dist.samplesDir, 'javaproject')
 
         // Build and test projects
-        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'test'])
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'test').run()
 
         // Check classes and resources
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
@@ -69,7 +69,7 @@ class JavaProjectSampleIntegrationTest {
         checkExistence(javaprojectDir, WEBAPP_1_PATH, 'build/reports/tests/index.html')
 
         // Javdoc build
-        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean', 'javadoc'])
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'javadoc').run()
         checkExistence(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
         assertTrue(fileText(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').contains("These are the shared classes."))
         checkExistence(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
@@ -77,30 +77,29 @@ class JavaProjectSampleIntegrationTest {
         checkExistence(javaprojectDir, WEBAPP_1_PATH, 'build/docs/javadoc/index.html')
 
         // Partial build using current directory
-        Executer.execute(gradleHome, new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME").absolutePath,
-                ['clean', 'libs'])
+        executer.inDirectory(new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_1_NAME")).withTasks('clean', 'libs').run()
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
 
         // Partial build using task path
-        Executer.execute(gradleHome, javaprojectDir.absolutePath,
-                ['clean', "$SHARED_NAME:compile"])
+        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:compile".toString()).run()
         checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         checkExistence(javaprojectDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
 
         // This test is also important for test cleanup
-        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['clean'])
+        executer.inDirectory(javaprojectDir).withTasks('clean').run()
         projects.each {assert !(new File(dist.samplesDir, "$it/build").exists())}
-
-        checkEclipse(javaprojectDir, gradleHome)
     }
 
-    private static def checkEclipse(File javaprojectDir, String gradleHome) {
+    @Test
+    public void javaProjectEclipseGeneration() {
+        File javaprojectDir = new File(dist.samplesDir, 'javaproject')
+        executer.inDirectory(javaprojectDir).withTasks('eclipse').run()
+
         String cachePath = System.properties['user.home'] + '/.gradle/cache'
-        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipse'])
         compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
-              file(javaprojectDir, API_NAME, ".project").text)
+                file(javaprojectDir, API_NAME, ".project").text)
         compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
-                file(javaprojectDir, WEBAPP_1_PATH, ".project").text) 
+                file(javaprojectDir, WEBAPP_1_PATH, ".project").text)
         compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
                 file(javaprojectDir, WEBAPP_1_PATH, ".project").text)
         compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedApiClasspathFile.txt", cachePath),
@@ -109,7 +108,8 @@ class JavaProjectSampleIntegrationTest {
                 file(javaprojectDir, WEBAPP_1_PATH, ".classpath").text)
         compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedWebApp1WtpFile.txt", cachePath),
                 file(javaprojectDir, WEBAPP_1_PATH, ".settings/org.eclipse.wst.common.component").text)
-        Executer.execute(gradleHome, javaprojectDir.absolutePath, ['eclipseClean'])
+
+        executer.inDirectory(javaprojectDir).withTasks('eclipseClean').run()
         checkExistence(javaprojectDir, false, API_NAME, ".project")
         checkExistence(javaprojectDir, false, WEBAPP_1_PATH, ".project")
         checkExistence(javaprojectDir, false, API_NAME, ".classpath")
@@ -152,9 +152,9 @@ class JavaProjectSampleIntegrationTest {
             assert shouldExists ? file.exists() : !file.exists()
         } catch (AssertionError e) {
             if (shouldExists) {
-                println("File: $file should exists, but does not!")
+                println("File: $file should exist, but does not!")
             } else {
-                println("File: $file should not exists, but does!")
+                println("File: $file should not exist, but does!")
             }
             throw e
         }

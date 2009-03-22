@@ -32,6 +32,7 @@ import org.junit.Test
 class PomGenerationIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void pomSamples() {
@@ -43,11 +44,11 @@ class PomGenerationIntegrationTest {
         checkWithCustomVersion(gradleHome, pomProjectDir, repoDir);
     }
 
-    private static def checkWithNoCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
+    private def checkWithNoCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
         String version = '1.0'
         String groupId = "gradle"
         long start = System.currentTimeMillis();
-        Executer.execute(gradleHome, pomProjectDir.absolutePath, ['clean', 'uploadMaster'])
+        executer.inDirectory(pomProjectDir).withTasks('clean', 'uploadMaster').run()
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
@@ -55,11 +56,11 @@ class PomGenerationIntegrationTest {
         checkInstall(start, pomProjectDir, version, groupId)
     }
 
-    private static def checkWithCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
+    private def checkWithCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
         long start = System.currentTimeMillis();
         String version = "1.0MVN"
         String groupId = "deployGroup"
-        Executer.execute(gradleHome, pomProjectDir.absolutePath, ["-PcustomVersion=${version}", "clean", 'uploadMaster'])
+        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadMaster').run()
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)

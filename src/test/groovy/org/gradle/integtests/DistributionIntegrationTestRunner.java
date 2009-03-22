@@ -19,7 +19,6 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.FrameworkMethod;
-import static org.junit.Assert.*;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
@@ -64,11 +63,11 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
 
     private static GradleDistribution getDist() throws IOException {
         if (dist == null) {
-            final File gradleHomeDir = file("integTest.gradleHomeDir");
+            final File gradleHomeDir = file("integTest.gradleHomeDir", new File("build/distributions/exploded"));
             final File samplesDir = new File(gradleHomeDir, "samples");
-            File srcDir = file("integTest.srcDir");
+            File srcDir = file("integTest.srcDir", new File("src"));
             final File userGuideOutputDir = new File(srcDir, "samples/userguideOutput");
-            final File userGuideInfoDir = file("integTest.userGuideInfoDir");
+            final File userGuideInfoDir = file("integTest.userGuideInfoDir", new File("build/docbook/src"));
 
             dist = new GradleDistribution() {
                 public File getGradleHomeDir() {
@@ -91,9 +90,8 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         return dist;
     }
 
-    private static File file(String propertyName) {
-        String path = System.getProperty(propertyName);
-        assertNotNull(String.format("Property '%s' not defined.", propertyName), path);
+    private static File file(String propertyName, File defaultFile) {
+        String path = System.getProperty(propertyName, defaultFile.getAbsolutePath());
         try {
             return new File(path).getCanonicalFile();
         } catch (IOException e) {
