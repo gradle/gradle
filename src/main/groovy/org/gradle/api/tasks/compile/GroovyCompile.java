@@ -60,13 +60,13 @@ public class GroovyCompile extends Compile {
         if (antCompile == null) throw new InvalidUserDataException("The ant compile command must be set!");
         if (getAntGroovyCompile() == null) throw new InvalidUserDataException("The ant groovy compile command must be set!");
         if (getDestinationDir() == null) throw new InvalidUserDataException("The target dir is not set, compile can't be triggered!");
+        if (getSourceCompatibility() == null || getTargetCompatibility() == null) {
+            throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
+        }
 
         List existingSourceDirs = existentDirsFilter.findExistingDirs(getSrcDirs());
         List classpath = null;
         if (existingSourceDirs.size() > 0) {
-            if (getSourceCompatibility() == null || getTargetCompatibility() == null) {
-                throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
-            }
             classpath = createClasspath();
             antCompile.execute(existingSourceDirs, getIncludes(), getExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
                     getTargetCompatibility(), getOptions(), getProject().getAnt());

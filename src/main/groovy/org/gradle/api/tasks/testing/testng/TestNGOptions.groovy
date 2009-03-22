@@ -17,9 +17,9 @@ package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
-import org.gradle.api.Project
 import org.gradle.util.GFileUtils
 import org.gradle.api.GradleException
+import org.gradle.api.JavaVersion
 
 /**
  * @author Tom Eyckmans
@@ -233,39 +233,11 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         this.projectDir = projectDir
     }
 
-    void setAnnotationsOnSourceCompatibility(String sourceCompatibilityProp) {
-        try {
-            // TODO IMPROVE This is not a very smart way of checking if the JDK used is >= 1.5
-            // this could be improved together with added the java('default:1.5') dependency notation
-            // we could have a Version and VersionFormat that are really comparable. But for now this will do.
-            int sourceCompatibilityPropLength = sourceCompatibilityProp.length()
-            if ( sourceCompatibilityPropLength >= 3 ) { // version is something like 1.5.0.12 or 1.6.0.2
-                sourceCompatibilityProp = sourceCompatibilityProp.substring(0, 3);
-
-                double sourceCompatibility = Double.parseDouble(sourceCompatibilityProp.substring(0,1)) // version is something like 5.0.2
-
-                if ( sourceCompatibility >= 5 ) {
-                    jdkAnnotations()
-                }
-                else {
-                    sourceCompatibility = Double.parseDouble(sourceCompatibilityProp);
-
-                    if ( sourceCompatibility >= 1.5 ) {
-                        jdkAnnotations()
-                    }
-                    else {
-                        javadocAnnotations()
-                    }
-                }
-            }
-            else { // version is something like 5 or 6
-                // we can asume jdk annotations because they only started to use the minor versions as major from 1.5
-                jdkAnnotations()
-            }
-        }
-        catch ( NumberFormatException e ) {
-            // In this day and age we assume jdk >= 1.5
+    void setAnnotationsOnSourceCompatibility(JavaVersion sourceCompatibilityProp) {
+        if (sourceCompatibilityProp >= JavaVersion.VERSION_1_5) {
             jdkAnnotations()
+        } else {
+            javadocAnnotations()
         }
     }
 

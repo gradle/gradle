@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.gradle.api.JavaVersion
 
 /**
  * @author Hans Dockter
@@ -41,7 +42,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         convention = new JavaPluginConvention(project, [:])
     }
 
-    @Test public void testJavaConvention() {
+    @Test public void defaultValues() {
         assert convention.archiveTypes.is(JavaPluginConvention.DEFAULT_ARCHIVE_TYPES)
         assert convention.manifest != null
         assertEquals([], convention.metaInf)
@@ -66,6 +67,8 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(['test/resources'], convention.testResourceDirNames)
         assertEquals('libs-poms', convention.uploadLibsPomDirName)
         assertEquals('dists-poms', convention.uploadDistsPomDirName)
+        assertEquals(JavaVersion.VERSION_1_5, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_5, convention.targetCompatibility)
     }
 
     @Test public void testDefaultDirs() {
@@ -138,5 +141,19 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
 
     @Test(expected = InvalidUserDataException) public void testMkdirWithEmptyArguments() {
         convention.mkdir('')
+    }
+    
+    @Test public void testTargetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
+        convention.sourceCompatibility = '1.4'
+        assertEquals(JavaVersion.VERSION_1_4, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_4, convention.targetCompatibility)
+
+        convention.targetCompatibility = '1.2'
+        assertEquals(JavaVersion.VERSION_1_4, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_2, convention.targetCompatibility)
+
+        convention.sourceCompatibility = 6
+        assertEquals(JavaVersion.VERSION_1_6, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_2, convention.targetCompatibility)
     }
 }

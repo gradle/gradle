@@ -5,6 +5,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.api.Project;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkTest;
 import org.junit.Before;
@@ -41,7 +42,7 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
     {
         setMocks();
 
-        final String sourceCompatibility = "1.5";
+        final JavaVersion sourceCompatibility = JavaVersion.VERSION_1_5;
         context.checking(new Expectations(){{
             one(projectMock).getProjectDir();will(returnValue(new File("projectDir")));
             one(projectMock).property("sourceCompatibility");will(returnValue(sourceCompatibility));

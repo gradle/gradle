@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.PluginUtil
 import org.gradle.api.tasks.bundling.*
+import org.gradle.api.JavaVersion
 
 /**
  * @author Hans Dockter
@@ -60,8 +61,8 @@ class JavaPluginConvention {
     String uploadDistsPomDirName
     String uploadLibsPomDirName
 
-    String sourceCompatibility
-    String targetCompatibility
+    private JavaVersion srcCompat
+    private JavaVersion targetCompat
     Map archiveTypes
     GradleManifest manifest
     List metaInf
@@ -165,5 +166,21 @@ class JavaPluginConvention {
 
     private File getReportsDir() {
         project.convention.plugins.reportingBase.reportsDir
+    }
+
+    JavaVersion getSourceCompatibility() {
+        srcCompat ?: JavaVersion.VERSION_1_5
+    }
+
+    void setSourceCompatibility(def value) {
+        srcCompat = JavaVersion.toVersion(value)
+    }
+
+    JavaVersion getTargetCompatibility() {
+        targetCompat ?: sourceCompatibility
+    }
+    
+    void setTargetCompatibility(def value) {
+        targetCompat = JavaVersion.toVersion(value)
     }
 }

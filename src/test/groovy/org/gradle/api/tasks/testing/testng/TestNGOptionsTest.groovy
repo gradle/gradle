@@ -4,7 +4,8 @@ import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest;
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
+import org.gradle.api.JavaVersion;
 
 /**
  * @author Tom Eyckmans
@@ -59,74 +60,29 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
         assertNull(testngOptions.testName)
     }
 
-    @Test public void jdk14MajorMinorSourceCompatibilityAnnotationsDefaulting()
+    @Test public void jdk14SourceCompatibilityAnnotationsDefaulting()
     {
         assertNull(testngOptions.annotations)
 
-        testngOptions.setAnnotationsOnSourceCompatibility("1.4")
+        testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_4)
 
         assertEquals(testngOptions.annotations, TestNGOptions.JAVADOC_ANNOTATIONS)
     }
 
-    @Test public void jdk14MajorMinorRubbleSourceCompatibilityAnnotationsDefaulting()
+    @Test public void jdk15SourceCompatibilityAnnotationsDefaulting()
     {
         assertNull(testngOptions.annotations)
 
-        testngOptions.setAnnotationsOnSourceCompatibility("1.4.2_18")
-
-        assertEquals(testngOptions.annotations, TestNGOptions.JAVADOC_ANNOTATIONS)
-    }
-
-    @Test public void jdk15MajorMinorSourceCompatibilityAnnotationsDefaulting()
-    {
-        assertNull(testngOptions.annotations)
-
-        testngOptions.setAnnotationsOnSourceCompatibility("1.5")
+        testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_5)
 
         assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
     }
 
-    @Test public void jdk15MajorMinorRubbleSourceCompatibilityAnnotationsDefaulting()
+    @Test public void jdk16SourceCompatibilityAnnotationsDefaulting()
     {
         assertNull(testngOptions.annotations)
 
-        testngOptions.setAnnotationsOnSourceCompatibility("1.5XXX")
-
-        assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
-    }
-
-    @Test public void jdk15MinorSourceCompatibilityAnnotationsDefaulting()
-    {
-        assertNull(testngOptions.annotations)
-
-        testngOptions.setAnnotationsOnSourceCompatibility("5")
-
-        assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
-    }
-
-    @Test public void jdk15MinorRubbleSourceCompatibilityAnnotationsDefaulting()
-    {
-        assertNull(testngOptions.annotations)
-
-        testngOptions.setAnnotationsOnSourceCompatibility("5XXX")
-
-        assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
-    }
-
-    @Test public void jdk16MinorSourceCompatibilityAnnotationsDefaulting()
-    {
-        assertNull(testngOptions.annotations)
-
-        testngOptions.setAnnotationsOnSourceCompatibility("6")
-
-        assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
-    }
-
-    @Test public void jdk16MajorMinorSourceCompatibilityAnnotationsDefaulting()
-    {
-        assertNull(testngOptions.annotations)
-
-        testngOptions.setAnnotationsOnSourceCompatibility("1.6")
+        testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_6)
 
         assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
     }

@@ -1,6 +1,7 @@
 package org.gradle.api.tasks.testing.testng;
 
 import org.gradle.api.Project;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.testing.Test;
 
@@ -21,7 +22,7 @@ public class TestNGTestFramework extends AbstractTestFramework {
         antTestNGExecute = new AntTestNGExecute();
         options = new TestNGOptions(this, project.getProjectDir());
 
-        options.setAnnotationsOnSourceCompatibility((String)project.property("sourceCompatibility"));
+        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(project.property("sourceCompatibility")));
     }
 
     public void execute(Project project, Test testTask) {
