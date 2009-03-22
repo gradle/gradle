@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins
+package org.gradle.api.internal.plugins
 
-import org.gradle.api.internal.project.DefaultProject
-import static org.junit.Assert.assertEquals
+import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.TestPluginConvention1
+import org.gradle.api.plugins.TestPluginConvention2
 import org.junit.Before
 import org.junit.Test
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
  */
-class ConventionTest {
+class DefaultConventionTest {
     Convention convention
 
     TestPluginConvention1 convention1
-    TestPluginConvention2 convention2 = new TestPluginConvention2()
+    TestPluginConvention2 convention2
 
     @Before public void setUp() {
-        convention = new Convention()
+        convention = new DefaultConvention()
         convention1 = new TestPluginConvention1()
         convention2 = new TestPluginConvention2()
         convention.plugins.plugin1 = convention1
@@ -86,5 +89,28 @@ class ConventionTest {
 
     @Test (expected = MissingMethodException) public void testMissingMethod() {
         convention.methUnknown()
+    }
+
+    @Test public void testCanLocateConventionObjectByType() {
+        assertSame(convention1, convention.getPlugin(TestPluginConvention1))
+        assertSame(convention2, convention.getPlugin(TestPluginConvention2))
+    }
+    
+    @Test public void testFailsWhenMultipleConventionObjectsWithCompatibleType() {
+        try {
+            convention.getPlugin(Object)
+            fail()
+        } catch (java.lang.IllegalStateException e) {
+            assertThat(e.message, equalTo('Found multiple convention objects of type Object.'))
+        }
+    }
+
+    @Test public void testFailsWhenNoConventionObjectsWithCompatibleType() {
+        try {
+            convention.getPlugin(String)
+            fail()
+        } catch (java.lang.IllegalStateException e) {
+            assertThat(e.message, equalTo('Could not find any convention object of type String.'))
+        }
     }
 }

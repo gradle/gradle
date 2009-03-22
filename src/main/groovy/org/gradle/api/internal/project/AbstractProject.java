@@ -24,6 +24,7 @@ import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.artifacts.DependencyManagerFactory;
 import org.gradle.api.internal.tasks.DefaultTaskEngine;
 import org.gradle.api.internal.tasks.TaskEngine;
@@ -127,7 +128,7 @@ public abstract class AbstractProject implements ProjectInternal {
     public AbstractProject(String name) {
         this.name = name;
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new Convention());
+        dynamicObjectHelper.setConvention(new DefaultConvention());
     }
 
     public AbstractProject(String name, ProjectInternal parent, File projectDir, File buildFile,
@@ -162,7 +163,7 @@ public abstract class AbstractProject implements ProjectInternal {
         }
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new Convention());
+        dynamicObjectHelper.setConvention(new DefaultConvention());
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }

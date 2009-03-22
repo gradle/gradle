@@ -34,12 +34,12 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map JAVADOC = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getSrcDirs();
+            return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();
         }
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getJavadocDir();
+            return convention.getPlugin(JavaPluginConvention.class).getJavadocDir();
         }
     },
             "dependencyManager", new ConventionValue() {
@@ -49,41 +49,41 @@ public class DefaultConventionsToPropertiesMapping {
     },
             "classesDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
         }
     });
 
     public final static Map RESOURCES = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getResourceDirs();
+            return convention.getPlugin(JavaPluginConvention.class).getResourceDirs();
         }
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
         }
     });
 
     public final static Map COMPILE = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getSrcDirs();
+            return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();
         }
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
         }
     },
             "sourceCompatibility", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getSourceCompatibility();
+            return convention.getPlugin(JavaPluginConvention.class).getSourceCompatibility().toString();
         }
     },
             "targetCompatibility", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTargetCompatibility();
+            return convention.getPlugin(JavaPluginConvention.class).getTargetCompatibility().toString();
         }
     },
             "dependencyManager", new ConventionValue() {
@@ -95,39 +95,39 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map TEST_RESOURCES = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestResourceDirs();
+            return convention.getPlugin(JavaPluginConvention.class).getTestResourceDirs();
         }
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getTestClassesDir();
         }
     });
 
     public final static Map TEST_COMPILE = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestSrcDirs();
+            return convention.getPlugin(JavaPluginConvention.class).getTestSrcDirs();
         }
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getTestClassesDir();
         }
     },
             "sourceCompatibility", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getSourceCompatibility();
+            return convention.getPlugin(JavaPluginConvention.class).getSourceCompatibility().toString();
         }
     },
             "targetCompatibility", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTargetCompatibility();
+            return convention.getPlugin(JavaPluginConvention.class).getTargetCompatibility().toString();
         }
     },
             "unmanagedClasspath", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return (WrapUtil.toList(((JavaPluginConvention) convention.getPlugins().get("java")).getClassesDir()));
+            return (WrapUtil.toList(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
         }
     },
             "dependencyManager", new ConventionValue() {
@@ -139,17 +139,17 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map TEST = GUtil.map(
             "testClassesDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getTestClassesDir();
         }
     },
             "testResultsDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestResultsDir();
+            return convention.getPlugin(JavaPluginConvention.class).getTestResultsDir();
         }
     },
             "testReportDir", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestReportDir();
+            return convention.getPlugin(JavaPluginConvention.class).getTestReportDir();
         }
     },
             "dependencyManager", new ConventionValue() {
@@ -161,10 +161,10 @@ public class DefaultConventionsToPropertiesMapping {
         public Object getValue(Convention convention, Task task) {
             // TODO IMPROVE I really don't like this but don't know a better way at the moment
             if ( task.getProject().getAppliedPlugins().contains(GroovyPlugin.class) ) {
-                return ((GroovyPluginConvention) convention.getPlugins().get("groovy")).getGroovyTestSrcDirs();
+                return convention.getPlugin(GroovyPluginConvention.class).getGroovyTestSrcDirs();
             }
             else {
-                return ((JavaPluginConvention) convention.getPlugins().get("java")).getTestSrcDirs();
+                return convention.getPlugin(JavaPluginConvention.class).getTestSrcDirs();
             }
         }
     });
@@ -190,16 +190,16 @@ public class DefaultConventionsToPropertiesMapping {
         JAR.putAll(GUtil.map(
                 "baseDir", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return ((JavaPluginConvention) convention.getPlugins().get("java")).getClassesDir();
+                return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
             }
         }, "manifest", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return new GradleManifest(((JavaPluginConvention) convention.getPlugins().get("java")).getManifest().getManifest());
+                return new GradleManifest(convention.getPlugin(JavaPluginConvention.class).getManifest().getManifest());
             }
         },
                 "metaInfResourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return ((JavaPluginConvention) convention.getPlugins().get("java")).getMetaInf();
+                return convention.getPlugin(JavaPluginConvention.class).getMetaInf();
             }
         }));
     }
@@ -212,11 +212,11 @@ public class DefaultConventionsToPropertiesMapping {
         WAR.putAll(GUtil.map(
                 "classesFileSets", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return WrapUtil.toList(new FileSet(((JavaPluginConvention) convention.getPlugins().get("java")).getClassesDir()));
+                return WrapUtil.toList(new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
             }
         },      "resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
-                return WrapUtil.toList(new FileSet(((JavaPluginConvention) convention.getPlugins().get("java")).getWebAppDir()));
+                return WrapUtil.toList(new FileSet(convention.getPlugin(JavaPluginConvention.class).getWebAppDir()));
             }
         },
                 "libExcludeConfigurations", new ConventionValue() {
@@ -234,14 +234,14 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map<String, ConventionValue> LIB = GUtil.map(
             "defaultArchiveTypes", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getArchiveTypes();
+            return convention.getPlugin(JavaPluginConvention.class).getArchiveTypes();
         }
     });
 
     public final static Map<String, ConventionValue> DIST = GUtil.map(
             "defaultArchiveTypes", new ConventionValue() {
         public Object getValue(Convention convention, Task task) {
-            return ((JavaPluginConvention) convention.getPlugins().get("java")).getArchiveTypes();
+            return convention.getPlugin(JavaPluginConvention.class).getArchiveTypes();
         }
     });
 

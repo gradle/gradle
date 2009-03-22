@@ -22,6 +22,7 @@ import org.gradle.api.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
@@ -67,7 +68,7 @@ public abstract class AbstractTask implements TaskInternal {
 
     protected AbstractTask() {
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new Convention());
+        dynamicObjectHelper.setConvention(new DefaultConvention());
     }
 
     public AbstractTask(Project project, String name) {
@@ -77,7 +78,7 @@ public abstract class AbstractTask implements TaskInternal {
         this.name = name;
         path = project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new Convention());
+        dynamicObjectHelper.setConvention(new DefaultConvention());
     }
 
     public AntBuilder getAnt() {

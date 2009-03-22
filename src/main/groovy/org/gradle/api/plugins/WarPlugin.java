@@ -123,7 +123,7 @@ public class WarPlugin implements Plugin {
     }
 
     private JavaPluginConvention java(Convention convention) {
-        return (JavaPluginConvention) convention.getPlugins().get("java");
+        return convention.getPlugin(JavaPluginConvention.class);
     }
 
     private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {

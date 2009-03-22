@@ -86,7 +86,7 @@ public class GroovyPlugin implements Plugin {
         javadoc.conventionMapping(WrapUtil.<String, ConventionValue>toMap("srcDirs", new ConventionValue() {
             public Object getValue(Convention convention, Task task) {
                 return GUtil.addLists(
-                        ((JavaPluginConvention) convention.getPlugins().get("java")).getSrcDirs(),
+                        convention.getPlugin(JavaPluginConvention.class).getSrcDirs(),
                         groovy(convention).getGroovySrcDirs());
             }
         }));
@@ -129,6 +129,6 @@ public class GroovyPlugin implements Plugin {
     }
 
     private GroovyPluginConvention groovy(Convention convention) {
-        return (GroovyPluginConvention) convention.getPlugins().get("groovy");
+        return convention.getPlugin(GroovyPluginConvention.class);
     }
 }

@@ -22,10 +22,10 @@ import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.artifacts.DependencyManagerFactory
+import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginTest
 import org.gradle.api.tasks.Directory
@@ -649,7 +649,6 @@ class DefaultProjectTest {
     @Test void testGetTasksByName() {
         Set tasksClean = addTestTaskToAllProjects('clean')
         addTestTaskToAllProjects('compile')
-        Set expectedMap = new HashSet()
         assertEquals(tasksClean, project.getTasksByName('clean', true))
         assertEquals([project.tasks['clean']] as Set, project.getTasksByName('clean', false))
     }
@@ -772,7 +771,7 @@ def scriptMethod(Closure closure) {
         project.convention."$propertyName" = 5
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))
-        project.convention = new Convention()
+        project.convention = new DefaultConvention()
         project."$propertyName" = 4
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))

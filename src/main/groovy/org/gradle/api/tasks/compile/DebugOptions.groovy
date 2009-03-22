@@ -26,6 +26,3 @@ class DebugOptions extends AbstractOptions {
         [debugLevel: 'debuglevel']
     }
 }
-
-
-

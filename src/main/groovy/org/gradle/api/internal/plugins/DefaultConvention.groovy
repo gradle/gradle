@@ -14,14 +14,14 @@
  * limitations under the License.
  */
  
-package org.gradle.api.plugins
+package org.gradle.api.internal.plugins
 
-import org.gradle.api.internal.DynamicObject
+import org.gradle.api.plugins.Convention
 
 /**
  * @author Hans Dockter
  */
-class Convention implements DynamicObject {
+class DefaultConvention implements Convention {
 
     Map<String, Object> plugins = [:]
 
@@ -78,5 +78,16 @@ class Convention implements DynamicObject {
             return true
         }
         return false
+    }
+
+    public <T> T getPlugin(Class type) {
+        def value = plugins.values().findAll {type.isInstance(it)}
+        if (value.empty) {
+            throw new IllegalStateException("Could not find any convention object of type ${type.simpleName}.")
+        }
+        if (value.size() > 1) {
+            throw new IllegalStateException("Found multiple convention objects of type ${type.simpleName}.")
+        }
+        return value.iterator().next()
     }
 }

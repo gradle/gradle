@@ -34,7 +34,7 @@ public class MavenPlugin implements Plugin {
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
-        configureInstall(project, (JavaPluginConvention) project.getConvention().getPlugins().get("java"));
+        configureInstall(project, project.getConvention().getPlugin(JavaPluginConvention.class));
     }
 
     private void configureInstall(Project project, JavaPluginConvention javaConvention) {

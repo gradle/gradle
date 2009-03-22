@@ -157,6 +157,6 @@ public class JettyPlugin implements Plugin {
     }
 
     public JavaPluginConvention getJavaConvention(Project project) {
-        return ((JavaPluginConvention) project.getConvention().getPlugins().get("java"));
+        return project.getConvention().getPlugin(JavaPluginConvention.class);
     }
 }

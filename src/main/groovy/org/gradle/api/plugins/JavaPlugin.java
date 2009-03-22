@@ -344,6 +344,6 @@ public class JavaPlugin implements Plugin {
     }
 
     protected JavaPluginConvention java(Convention convention) {
-        return (JavaPluginConvention) convention.getPlugins().get("java");
+        return convention.getPlugin(JavaPluginConvention.class);
     }
 }
