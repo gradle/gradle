@@ -1,7 +1,6 @@
 usePlugin('groovy')
 
 sourceCompatibility=1.4
-targetCompatibility=1.4
 
 dependencies {
     addMavenRepo()

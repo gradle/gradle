@@ -28,10 +28,10 @@
     </xsl:param>
 
     <xsl:param name="formal.title.placement">
-        figure after
-        example after
-        equation after
-        table after
-        procedure after
+        figure before
+        example before
+        equation before
+        table before
+        procedure before
     </xsl:param>
 </xsl:stylesheet>

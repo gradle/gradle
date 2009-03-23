@@ -2,8 +2,6 @@ group = 'gradle'
 version = '1.0'
 usePlugin('java')
 usePlugin('osgi')
-targetCompatibility = '1.5'
-sourceCompatibility = '1.5'
 
 dependencies {
     addFlatDirResolver('lib', "$rootDir/lib")

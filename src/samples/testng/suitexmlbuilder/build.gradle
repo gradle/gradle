@@ -13,9 +13,6 @@ dependencies {
 	}
 }
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
-
 test {
 	useTestNG() {
         suiteXmlBuilder().suite(name: 'testing-testng') {

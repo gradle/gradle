@@ -3,8 +3,6 @@ dependsOnChildren()
 
 allprojects {
     usePlugin('java')
-    sourceCompatibility = 1.5
-    targetCompatibility = 1.5
     group = 'org.gradle.sample'
     version = '1.0'
 }

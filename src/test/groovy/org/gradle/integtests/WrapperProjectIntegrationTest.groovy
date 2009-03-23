@@ -26,13 +26,14 @@ import org.junit.Test
 class WrapperProjectIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void wrapperSample() {
         String nl = System.properties['line.separator']
         File waterDir = new File(dist.samplesDir, 'wrapper-project')
 
-        Executer.execute(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, ['wrapper'])
+        executer.inDirectory(waterDir).withTasks('wrapper').run()
         Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, ['hello'])
         String compareValue =  result.output.substring(result.output.size() - 'hello'.size() - nl.size())
         assert compareValue == 'hello' + nl

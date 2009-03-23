@@ -18,7 +18,7 @@ package org.gradle.integtests;
 import org.gradle.api.GradleException;
 import org.hamcrest.Matcher;
 
-public interface ExecutionFailure {
+public interface ExecutionFailure extends ExecutionResult {
     GradleException getFailure();
 
     void assertHasLineNumber(int lineNumber);

@@ -29,6 +29,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
 import org.hamcrest.Matcher;
+import static org.junit.Assert.*;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import java.io.File;
 
 import junit.framework.AssertionFailedError;
 
+// todo: implement more of the unsupported methods
 public class InProcessGradleExecuter implements GradleExecuter {
     private final StartParameter parameter;
     private final List<String> tasks = new ArrayList<String>();
@@ -99,7 +101,7 @@ public class InProcessGradleExecuter implements GradleExecuter {
         gradle.addBuildListener(new ListenerImpl());
         BuildResult result = gradle.run();
         result.rethrowFailure();
-        return new GradleExecutionResult(tasks);
+        return new InProcessExecutionResult(tasks);
     }
 
     public ExecutionFailure runWithFailure() {
@@ -107,7 +109,7 @@ public class InProcessGradleExecuter implements GradleExecuter {
             run();
             throw new AssertionFailedError("expected build to fail.");
         } catch (GradleException e) {
-            return new GradleExecutionFailure(e);
+            return new InProcessExecutionFailure(tasks, e);
         }
     }
 
@@ -140,35 +142,44 @@ public class InProcessGradleExecuter implements GradleExecuter {
         private Task current;
 
         public void beforeExecute(Task task) {
-            org.junit.Assert.assertThat(current, org.hamcrest.Matchers.nullValue());
-            org.junit.Assert.assertTrue(planned.contains(task));
+            assertThat(current, org.hamcrest.Matchers.nullValue());
+            assertTrue(planned.contains(task));
             current = task;
         }
 
         public void afterExecute(Task task, Throwable failure) {
-            org.junit.Assert.assertThat(task, org.hamcrest.Matchers.sameInstance(current));
+            assertThat(task, org.hamcrest.Matchers.sameInstance(current));
             current = null;
             tasks.add(task.getPath());
         }
     }
 
-    public static class GradleExecutionResult implements ExecutionResult {
+    public static class InProcessExecutionResult implements ExecutionResult {
         private final List<String> plannedTasks;
 
-        public GradleExecutionResult(List<String> plannedTasks) {
+        public InProcessExecutionResult(List<String> plannedTasks) {
             this.plannedTasks = plannedTasks;
+        }
+
+        public String getOutput() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String getError() {
+            throw new UnsupportedOperationException();
         }
 
         public void assertTasksExecuted(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
-            org.junit.Assert.assertThat(plannedTasks, org.hamcrest.Matchers.equalTo(expected));
+            assertThat(plannedTasks, org.hamcrest.Matchers.equalTo(expected));
         }
     }
 
-    public static class GradleExecutionFailure implements ExecutionFailure {
+    private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private final GradleException failure;
 
-        public GradleExecutionFailure(GradleException failure) {
+        public InProcessExecutionFailure(List<String> tasks, GradleException failure) {
+            super(tasks);
             if (failure instanceof GradleScriptException) {
                 this.failure = ((GradleScriptException) failure).getReportableException();
             } else {
@@ -181,29 +192,27 @@ public class InProcessGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            org.junit.Assert.assertThat(failure.getMessage(), org.hamcrest.Matchers.containsString(String.format(
-                    " line: %d", lineNumber)));
+            assertThat(failure.getMessage(), org.hamcrest.Matchers.containsString(String.format(" line: %d", lineNumber)));
         }
 
         public void assertHasFileName(String filename) {
-            org.junit.Assert.assertThat(failure.getMessage(), org.hamcrest.Matchers.startsWith(String.format("%s",
-                    filename)));
+            assertThat(failure.getMessage(), org.hamcrest.Matchers.startsWith(String.format("%s", filename)));
         }
 
         public void assertHasDescription(String description) {
-            org.junit.Assert.assertThat(failure.getCause().getMessage(), org.hamcrest.Matchers.endsWith(description));
+            assertThat(failure.getCause().getMessage(), org.hamcrest.Matchers.endsWith(description));
         }
 
         public void assertDescription(Matcher<String> matcher) {
-            org.junit.Assert.assertThat(failure.getCause().getMessage(), matcher);
+            assertThat(failure.getCause().getMessage(), matcher);
         }
 
         public void assertHasContext(String context) {
-            org.junit.Assert.assertThat(failure.getMessage(), org.hamcrest.Matchers.containsString(context));
+            assertThat(failure.getMessage(), org.hamcrest.Matchers.containsString(context));
         }
 
         public void assertContext(Matcher<String> matcher) {
-            org.junit.Assert.assertThat(failure.getMessage(), matcher);
+            assertThat(failure.getMessage(), matcher);
         }
     }
 }

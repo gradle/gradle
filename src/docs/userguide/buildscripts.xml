@@ -34,9 +34,9 @@
             equivalent to Ant targets. But as you will see, they are much more powerful. We have used a different
             terminology to Ant as we think the word <emphasis>task</emphasis> is more expressive than the word
             <emphasis>target</emphasis> . Unfortunately this introduces a terminology clash with Ant, as Ant calls its
-            commands, such as <literal>javac</literal> or<literal>copy</literal>, tasks. So when we talk about tasks, we
-            <emphasis>always</emphasis> mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about
-            Ant tasks (Ant commands), we explicitly say <emphasis>ant</emphasis> task.
+            commands, such as <literal>javac</literal> or <literal>copy</literal>, tasks. So when we talk about tasks,
+            we <emphasis>always</emphasis> mean Gradle tasks, which are the equivalent to Ant's targets. If we talk
+            about Ant tasks (Ant commands), we explicitly say <emphasis>ant</emphasis> task.
         </para>
     </section>
     <section>

@@ -173,7 +173,7 @@ public class UserGuideTransformer {
 
                             Element screenElement = doc.createElement('screen')
                             File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${id}.out")
-                            screenElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
+                            screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
                             exampleElement.appendChild(screenElement)
 
                             element.parentNode.insertBefore(exampleElement, element)

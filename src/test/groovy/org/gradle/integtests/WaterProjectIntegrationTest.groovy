@@ -18,7 +18,7 @@ package org.gradle.integtests
 
 import org.junit.runner.RunWith
 import org.junit.Test
-
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -41,28 +41,26 @@ class WaterProjectIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void waterProject() {
-        String gradleHome = dist.gradleHomeDir.absolutePath
         File waterDir = new File(dist.samplesDir, WATER_NAME)
-        String taskName = 'hello'
-        Map result = Executer.execute(gradleHome, waterDir.absolutePath, [taskName])
-        assert result.output == list2text([intro(WATER_NAME), WATER_INFO,
+        ExecutionResult result = executer.inDirectory(waterDir).withTasks('hello').withQuietLogging().run()
+        assertEquals(result.output, list2text([intro(WATER_NAME), WATER_INFO,
                 intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO,
                 intro(KRILL_NAME), CHILDREN_TEXT, KRILL_INFO,
-                intro(BLUE_WHALE_NAME), CHILDREN_TEXT, BLUE_WHALE_INFO])
+                intro(BLUE_WHALE_NAME), CHILDREN_TEXT, BLUE_WHALE_INFO]))
 
-        result = Executer.execute(gradleHome, new File(waterDir, BLUE_WHALE_NAME).absolutePath, [taskName])
-        assert result.output == list2text([intro(WATER_NAME), WATER_INFO,
+        result = executer.inDirectory(new File(waterDir, BLUE_WHALE_NAME)).withTasks('hello').withQuietLogging().run()
+        assertEquals(result.output, list2text([intro(WATER_NAME), WATER_INFO,
                 intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO,
                 intro(KRILL_NAME), CHILDREN_TEXT, KRILL_INFO,
-                intro(BLUE_WHALE_NAME), CHILDREN_TEXT, BLUE_WHALE_INFO])
+                intro(BLUE_WHALE_NAME), CHILDREN_TEXT, BLUE_WHALE_INFO]))
 
-        result = Executer.execute(gradleHome, new File(waterDir, PHYTOPLANKTON_NAME).absolutePath,
-                [taskName])
-        assert result.output == list2text([intro(WATER_NAME), WATER_INFO,
-                intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO])
+        result = executer.inDirectory(new File(waterDir, PHYTOPLANKTON_NAME)).withTasks('hello').withQuietLogging().run()
+        assertEquals(result.output, list2text([intro(WATER_NAME), WATER_INFO,
+                intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO]))
     }
 
     static String intro(String projectName) {

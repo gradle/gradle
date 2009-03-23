@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.util.*;
 
+// todo: implement more of the unsupported methods
 public class ForkingGradleExecuter implements GradleExecuter {
     private final GradleDistribution distribution;
     private File workingDir;
@@ -71,7 +72,7 @@ public class ForkingGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withArguments(String... args) {
-        this.args.addAll(Arrays.asList(args));
+        this.args = Arrays.asList(args);
         return this;
     }
 
@@ -81,9 +82,9 @@ public class ForkingGradleExecuter implements GradleExecuter {
     }
 
     public ExecutionResult run() {
-        Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(),
+        Map result = Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(),
                 GUtil.addLists(args, tasks), new HashMap(), "", logLevel, false);
-        return new ForkedExecutionResult();
+        return new ForkedExecutionResult(result);
     }
 
     public ExecutionFailure runWithFailure() {
@@ -93,15 +94,30 @@ public class ForkingGradleExecuter implements GradleExecuter {
     }
 
     private static class ForkedExecutionResult implements ExecutionResult {
+        private final Map result;
+
+        public ForkedExecutionResult(Map result) {
+            this.result = result;
+        }
+
+        public String getOutput() {
+            return result.get("output").toString();
+        }
+
+        public String getError() {
+            return result.get("error").toString();
+        }
+
         public void assertTasksExecuted(String... taskPaths) {
             throw new UnsupportedOperationException();
         }
     }
 
-    private static class ForkedExecutionFailure implements ExecutionFailure {
+    private static class ForkedExecutionFailure extends ForkedExecutionResult implements ExecutionFailure {
         private final Map result;
 
         public ForkedExecutionFailure(Map result) {
+            super(result);
             this.result = result;
         }
 
@@ -118,7 +134,7 @@ public class ForkingGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasDescription(String description) {
-            assertThat(result.get("error").toString(), containsString(description));
+            assertThat(getError(), containsString(description));
         }
 
         public void assertDescription(Matcher<String> matcher) {
@@ -126,7 +142,7 @@ public class ForkingGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasContext(String context) {
-            assertThat(result.get("error").toString(), containsString(context));
+            assertThat(getError(), containsString(context));
         }
 
         public void assertContext(Matcher<String> matcher) {

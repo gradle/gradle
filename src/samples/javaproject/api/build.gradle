@@ -8,7 +8,7 @@ dependencies {
     addConfiguration('spi')
 }
 
-// Just a smoke test that using tjis option does not lead to any exception
+// Just a smoke test that using this option does not lead to any exception
 compile.options.compilerArgs = [[value: "-Xlint:unchecked"]]
 
 libs.jar(appendix: 'spi', confs: ['spi']) {

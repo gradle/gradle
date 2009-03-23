@@ -41,6 +41,6 @@
         </listitem>
     </itemizedlist>
     <para>
-        In <xref linkend='overview'/> you find a detailed overview of Gradle. Now the <link linkend="tutorial_using_tasks">tutorials</link> are waiting, have fun :)
+        In <xref linkend='overview'/> you find a detailed overview of Gradle. Now the <link linkend="getting_started">tutorials</link> are waiting, have fun :)
     </para>
 </chapter>

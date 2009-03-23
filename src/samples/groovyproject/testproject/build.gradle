@@ -9,17 +9,15 @@ sourceCompatibility = 1.5
 targetCompatibility = 1.5
 
 dependencies {
-    clientModule(['groovy'], "org.codehaus.groovy:groovy-all:1.6.0") {
-        dependency("commons-cli:commons-cli:1.0")
-    }
+    groovy "org.codehaus.groovy:groovy-all:1.6.0"
     compile project(':groovycDetector')
     testCompile "junit:junit:4.4"
 }
 
 compile {
-    exclude('**/Exclude.java')
-    groovyExclude('**/ExcludeGroovy.groovy')
-    groovyJavaExclude('**/ExcludeGroovyJava.java')
+    exclude '**/Exclude.java'
+    groovyExclude '**/ExcludeGroovy.groovy'
+    groovyJavaExclude '**/ExcludeGroovyJava.java'
 }
 
 manifest.mainAttributes(myprop: 'myvalue')

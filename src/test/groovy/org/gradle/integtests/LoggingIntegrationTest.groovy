@@ -30,11 +30,11 @@ class LoggingIntegrationTest {
     
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void loggingSamples() {
-        String gradleHome = dist.gradleHomeDir.absolutePath
-        String loggingDir = new File(dist.samplesDir, 'logging').absolutePath
+        File loggingDir = new File(dist.samplesDir, 'logging')
         List quietOuts = ['Out', 'Log', 'TaskOut', 'Project2Out']
         List lifecycleOuts = ['TaskOut']
         List infoOuts = ['Out', 'Log', 'TaskOut']
@@ -44,17 +44,17 @@ class LoggingIntegrationTest {
         List allOuts = [quietOuts, warnOuts, lifecycleOuts, infoOuts, debugOuts]
         List allPrefixes = ['quiet', 'warn', 'lifecycle', 'info', 'debug']
 
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.QUIET),
+        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q').run(),
             errorOuts, allOuts, 0, allPrefixes)
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.LIFECYCLE),
+        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments().run(),
             errorOuts, allOuts, 2, allPrefixes)
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.INFO),
+        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-i').run(),
             errorOuts, allOuts, 3, allPrefixes)
-        checkOutput(Executer.execute(gradleHome, loggingDir, ['log'], [:], '', Executer.DEBUG),
+        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-d').run(),
             errorOuts, allOuts, 4, allPrefixes)
     }
 
-    static void checkOutput(Map result, List errorOuts, List allOuts, includedIndex, List allPrefixes) {
+    static void checkOutput(ExecutionResult result, List errorOuts, List allOuts, includedIndex, List allPrefixes) {
         checkOuts(true, result.error, errorOuts, PREFIX + 'error')
         allOuts.eachWithIndex {outList, i ->
             boolean includes = false

@@ -5,9 +5,6 @@ version = '1.0'
 archivesBaseName = 'mywar'
 usePlugin('war')
 usePlugin('maven')
-targetCompatibility = '1.5'
-sourceCompatibility = '1.5'
-
 
 dependencies {
     addFlatDirResolver('lib', "$rootDir/lib")

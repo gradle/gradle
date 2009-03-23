@@ -16,5 +16,9 @@
 package org.gradle.integtests;
 
 public interface ExecutionResult {
+    String getOutput();
+
+    String getError();
+
     void assertTasksExecuted(String... taskPaths);
 }

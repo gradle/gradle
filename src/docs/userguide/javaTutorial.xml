@@ -37,8 +37,6 @@ subprojects {
 		compile "commons-lang:commons-lang:3.1"
 		testCompile "junit:junit:4.4"
 	}
-	sourceCompatibility = 1.5
-	targetCompatibility = 1.5
 	test {
 	    include '**/*Test.class'
 	    exclude '**/Abstract*'

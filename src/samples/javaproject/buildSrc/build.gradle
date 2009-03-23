@@ -1,14 +1,3 @@
 usePlugin('java')
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
-dependencies {
-	testCompile 'junit:junit:4.4'
-}
-compile.unmanagedClasspath(BootstrapUtil.gradleClasspath as File[])
-test {
-    // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    useJUnit().options.fork(forkMode: ForkMode.ONCE)
 
-    include '**/*Test.class'
-    exclude '**/Abstract*'
-}
+compile.unmanagedClasspath(BootstrapUtil.gradleClasspath as File[])

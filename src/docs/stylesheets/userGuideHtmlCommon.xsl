@@ -64,6 +64,7 @@
             <xsl:apply-templates select="." mode="class.value"/>
         </xsl:param>
         <div class="{$class}">
+            <xsl:call-template name="formal.object.heading"/>
             <div class="{$class}-contents">
                 <table>
                     <xsl:copy-of select="@*[not(local-name()='id')]"/>
@@ -73,7 +74,6 @@
                     <xsl:call-template name="htmlTable"/>
                 </table>
             </div>
-            <xsl:call-template name="formal.object.heading"/>
         </div>
     </xsl:template>
 

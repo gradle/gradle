@@ -7,8 +7,6 @@ group = 'gradle'
 version = '1.0'
 usePlugin('war')
 usePlugin('jetty')
-targetCompatibility = '1.5'
-sourceCompatibility = '1.5'
 
 dependencies {
     addConfiguration('moreLibs')
@@ -21,7 +19,6 @@ dependencies {
     testCompile "junit:junit:3.8.2"
     moreLibs ":otherConf:1.0"
 }
-
 
 archive_war {
     fileSet(dir: file('src/rootContent')) // adds a file-set to the root of the archive

@@ -29,12 +29,13 @@ class WebProjectSampleIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void webProjectSamples() {
         String gradleHome = dist.gradleHomeDir.absolutePath
         File webProjectDir = new File(dist.samplesDir, WEB_PROJECT_NAME)
-        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'libs'])
+        executer.inDirectory(webProjectDir).withTasks('clean', 'libs').run()
         String unjarPath = "$webProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()
         ant.unjar(src: "$webProjectDir/build/$WEB_PROJECT_NAME-1.0.war", dest: unjarPath)
@@ -45,16 +46,14 @@ class WebProjectSampleIntegrationTest {
         }
 
         checkJettyPlugin(gradleHome, webProjectDir)
-
-        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean'])
     }
 
-    static void checkJettyPlugin(String gradleHome, File webProjectDir) {
-        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runTest'])
+    void checkJettyPlugin(String gradleHome, File webProjectDir) {
+        executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
         checkServletOutput(webProjectDir)
-        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runWarTest'])
+        executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()
         checkServletOutput(webProjectDir)
-        Executer.execute(gradleHome, webProjectDir.absolutePath, ['clean', 'runExplodedTest'])
+        executer.inDirectory(webProjectDir).withTasks('clean', 'runExplodedTest').run()
         checkServletOutput(webProjectDir)
     }
 
