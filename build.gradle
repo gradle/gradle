@@ -15,6 +15,8 @@ import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.util.GradleVersion
 import org.apache.ivy.plugins.resolver.*
 import org.gradle.api.tasks.util.FileCollection
+import org.gradle.build.docs.UserGuideTransformTask
+import org.gradle.build.docs.ExtractSnippetsTask
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -211,7 +213,6 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
         logger.info('Generate and copy samples.')
         WrapperProjectCreator.createProject(explodedDistSamplesDir, task('archive_bin_zip').archivePath.parentFile,
                 version.toString())
-        copy(toDir: explodedDistSamplesDir) {fileset(dir: samplesSrcDir, excludes: 'userguideOutput/**')}
         logger.info('Copy binary sources.')
         copy(toDir: explodedDistSrcDir) {
             (srcDirs + resourceDirs + groovySrcDirs).findAll {it.isDirectory()}.each {dir -> fileset(dir: dir)}
@@ -361,17 +362,26 @@ userguideHtmlDir = new File(explodedDistDocsDir, 'userguide')
 userguideSingleHtmlFile = new File(explodedDistDocsDir, 'userguide_single.html')
 docbookSrc = new File(project.buildDir, 'docbook/src')
 docbookDir = new File(project.buildDir, 'docbook/stylesheets')
+snippetsDir = new File(project.buildDir, 'docbook/snippets')
 
 createTask('userguide', dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
 
-createTask('userguideSrc') {
-    def transformer = new org.gradle.build.docs.UserGuideTransformer()
-    transformer.version = "${version}"
-    transformer.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    transformer.sourceFile = new File(userguideSrcDir, 'userguide.xml')
-    transformer.destFile = new File(docbookSrc, 'userguide.xml')
-    transformer.classpath = dependencies.userGuideTask
-    transformer.execute()
+createTask('samples', type: ExtractSnippetsTask)
+samples {
+    sourceFiles = ant.fileset(dir: samplesSrcDir) {
+        exclude(name: 'userguideOutput/**')
+    }
+    destDir = explodedDistSamplesDir
+    snippetsDir = project.snippetsDir
+}
+
+createTask('userguideSrc', type: UserGuideTransformTask, dependsOn: 'samples')
+userguideSrc {
+    javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    sourceFile = new File(userguideSrcDir, 'userguide.xml')
+    destFile = new File(docbookSrc, 'userguide.xml')
+    snippetsDir = project.snippetsDir
+    classpath = dependencies.userGuideTask
 }
 userguideSrc.skipProperties << 'skip.userguide'
 
@@ -466,16 +476,16 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
     }
 }
 
-createTask('distDocs', dependsOn: 'userguideStyleSheets') {
-    def transformer = new org.gradle.build.docs.UserGuideTransformer()
-    transformer.version = "${version}"
-    transformer.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    transformer.standalone = true
-    transformer.sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
-    transformer.destFile = new File(docbookSrc, 'gettingStarted.xml')
-    transformer.classpath = dependencies.userGuideTask
-    transformer.execute()
-
+createTask('distDocs', type: UserGuideTransformTask, dependsOn: 'userguideStyleSheets')
+distDocs.configure {
+    javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    standalone = true
+    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
+    destFile = new File(docbookSrc, 'gettingStarted.xml')
+    snippetsDir = project.snippetsDir
+    classpath = dependencies.userGuideTask
+}
+distDocs.doLast {
     explodedDistDir.mkdirs()
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
@@ -493,17 +503,17 @@ createTask('distDocs', dependsOn: 'userguideStyleSheets') {
     ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: explodedDistDir)
 }
 
-createTask('websiteDocs', dependsOn: 'userguideStyleSheets') {
-    def transformer = new org.gradle.build.docs.UserGuideTransformer()
-    transformer.version = "${version}"
-    transformer.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    transformer.standalone = true
-    transformer.sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
-    transformer.destFile = new File(docbookSrc, 'gettingStarted.xml')
-    transformer.classpath = dependencies.userGuideTask
-    transformer.execute()
-
-    websiteDocs = new File(buildDir, 'docs')
+createTask('websiteDocs', type: UserGuideTransformTask, dependsOn: 'userguideStyleSheets')
+websiteDocs {
+    javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    standalone = true
+    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
+    destFile = new File(docbookSrc, 'gettingStarted.xml')
+    snippetsDir = project.snippetsDir
+    classpath = dependencies.userGuideTask
+}
+websiteDocs.doLast {
+    File websiteDocs = new File(buildDir, 'docs')
     websiteDocs.mkdirs()
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {

@@ -9,24 +9,33 @@ import groovy.xml.FactorySupport
 import groovy.xml.MarkupBuilder
 import org.w3c.dom.Node
 import org.gradle.api.artifacts.FileCollection
+import org.gradle.api.internal.DefaultTask
+import org.gradle.api.Project
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
  */
-public class UserGuideTransformer {
+public class UserGuideTransformTask extends DefaultTask {
     String version
     String javadocUrl
     String groovydocUrl
     File sourceFile
     File destFile
+    File snippetsDir
     boolean standalone
     FileCollection classpath;
 
-    def execute() {
+    def UserGuideTransformTask(Project project, String name) {
+        super(project, name);
+        doFirst(this.&transform)
+    }
+
+    def transform() {
         // todo - fix this url
         groovydocUrl = 'fixme'
+        version = project.version.toString()
 
-        ['version', 'sourceFile', 'destFile', 'classpath', 'javadocUrl', 'groovydocUrl'].each {
+        ['sourceFile', 'destFile', 'classpath', 'javadocUrl', 'groovydocUrl', 'snippetsDir'].each {
             if (getProperty(it) == null) {
                 throw new GradleException("Property not set: $it")
             }
@@ -148,11 +157,20 @@ public class UserGuideTransformer {
                             Element exampleElement = doc.createElement('example')
 
                             Element titleElement = doc.createElement('title')
-                            titleElement.appendChild(doc.createTextNode("$file ($srcDir)"))
+                            titleElement.appendChild(doc.createTextNode("$file "))
+                            Element filenameElement = doc.createElement('filename')
+                            filenameElement.appendChild(doc.createTextNode("$srcDir/$file"))
+                            titleElement.appendChild(filenameElement)
                             exampleElement.appendChild(titleElement)
 
                             Element programListingElement = doc.createElement('programlisting')
-                            File srcFile = new File(sourceFile.parentFile, "../../../src/samples/$srcDir/$file")
+                            File srcFile
+                            String snippet = child.'@snippet'
+                            if (snippet) {
+                                srcFile = new File(snippetsDir, "$srcDir/$file-$snippet")
+                            } else {
+                                srcFile = new File(sourceFile.parentFile, "../../../src/samples/$srcDir/$file")
+                            }
                             programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
                             exampleElement.appendChild(programListingElement)
 
@@ -168,7 +186,13 @@ public class UserGuideTransformer {
                             Element exampleElement = doc.createElement('example')
 
                             Element titleElement = doc.createElement('title')
-                            titleElement.appendChild(doc.createTextNode("gradle $args ($srcDir)"))
+                            titleElement.appendChild(doc.createTextNode("Output of "))
+                            Element commandElement = doc.createElement('userinput')
+                            commandElement.appendChild(doc.createTextNode("gradle $args"))
+                            titleElement.appendChild(commandElement)
+                            Element filenameElement = doc.createElement('filename')
+                            filenameElement.appendChild(doc.createTextNode(srcDir))
+                            titleElement.appendChild(filenameElement)
                             exampleElement.appendChild(titleElement)
 
                             Element screenElement = doc.createElement('screen')
