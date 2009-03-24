@@ -1,0 +1,11 @@
+// START SNIPPET use-plugin
+usePlugin('java')
+// END SNIPPET use-plugin
+
+// START SNIPPET dependencies
+dependencies {
+    addMavenRepo()
+    compile 'commons-collections:commons-collections:3.2'
+    testCompile 'junit:junit:4.5'
+}
+// END SNIPPET dependencies

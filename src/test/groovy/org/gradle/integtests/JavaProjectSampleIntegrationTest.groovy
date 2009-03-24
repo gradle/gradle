@@ -41,11 +41,11 @@ class JavaProjectSampleIntegrationTest {
     private GradleExecuter executer;
 
     @Test
-    public void javaProjectSamples() {
+    public void multiProjectjavaProjectSample() {
         List projects = [SHARED_NAME, API_NAME, WEBAPP_1_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
-        File javaprojectDir = new File(dist.samplesDir, 'javaproject')
+        File javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
 
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'test').run()
@@ -91,8 +91,16 @@ class JavaProjectSampleIntegrationTest {
     }
 
     @Test
+    public void quickstartJavaProject() {
+        File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
+
+        // Build and test projects
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists').run()
+    }
+    
+    @Test
     public void javaProjectEclipseGeneration() {
-        File javaprojectDir = new File(dist.samplesDir, 'javaproject')
+        File javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
         executer.inDirectory(javaprojectDir).withTasks('eclipse').run()
 
         String cachePath = System.properties['user.home'] + '/.gradle/cache'

@@ -27,7 +27,7 @@ public class CommandLineIntegrationTest {
 
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {
-        File javaprojectDir = new File(dist.samplesDir, 'javaproject')
+        File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
         ExecutionFailure failure = executer.inDirectory(javaprojectDir).withTasks('unknown').runWithFailure()
         failure.assertHasDescription("Task 'unknown' not found")
     }
