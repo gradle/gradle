@@ -52,7 +52,7 @@ project-root
             wrapper distribution at the specified place.
         </para>
         <para>All the configuration options have defaults except the version of the wrapper distribution. If you don't
-            want any download to happen when your project is build via <literal>gradlew</literal>, simply add the Gradle
+            want any download to happen when your project is build via <command>gradlew</command>, simply add the Gradle
             distribution zip to your version control at the location specified by your wrapper configuration.
         </para>
         <para>For the details on how to configure the wrapper, see <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
@@ -71,7 +71,7 @@ project-root
         <title>Environment variable</title>
         <para>Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuos
             integration server goes down during unzipping the Gradle distribution. As the distribution directory exists
-            <literal>gradlew</literal>
+            <command>gradlew</command>
             delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When
             you have no admin right on the continuous integration server to remove the corrupt files, Gradle offers a
             solution via environment variables.
@@ -87,7 +87,7 @@ project-root
             <tr>
                 <td>GRADLE_WRAPPER_ALWAYS_UNPACK</td>
                 <td>If set to <literal>true</literal>, the distribution directory gets always deleted when
-                    <literal>gradlew</literal>
+                    <command>gradlew</command>
                     is run and the distribution zip is freshly unpacked. If the zip is not there, Gradle tries to
                     download it.
                 </td>
@@ -95,8 +95,7 @@ project-root
             <tr>
                 <td>GRADLE_WRAPPER_ALWAYS_DOWNLOAD</td>
                 <td>If set to <literal>true</literal>, the distribution directory and the distribution zip gets always
-                    deleted when
-                    <literal>gradlew</literal>
+                    deleted when <command>gradlew</command>
                     is run and the distribution zip is freshly downloaded.
                 </td>
             </tr>

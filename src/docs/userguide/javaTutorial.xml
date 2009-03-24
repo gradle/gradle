@@ -1,9 +1,24 @@
 <chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - Java Projects</title>
+
+    <para><emphasis>this chapter is currently being rewritten</emphasis></para>
+    
     <para>We have in-depth coverage with many examples about the Java plugin, dependency management and
         multi-project builds in later chapters. In this chapter we want to give you a first idea of how to build a
         Java project.
     </para>
+
+    <section>
+        <title>A Basic Java Project</title>
+        <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds
+            some tasks, along with some configuration properties, to your project, to allow you to compile, test and
+            bundle your Java source code into a Jar. These are described in more detail in <xref linkend="java_plugin"/>.</para>
+        <sample id="javaQuickstart" dir="java/quickstart">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+            <sourcefile file="build.gradle" snippet="dependencies"/>
+        </sample>
+    </section>
+
     <section id='sec:examples'>
         <title>Examples</title>
         <para>Provided your build script contains the single line
@@ -11,8 +26,8 @@
         <programlisting><![CDATA[
 usePlugin('java')
 ]]></programlisting>
-        <para>Executing <literal>gradle libs</literal> will compile, test and jar your code. If you specify a remote
-            repository, executing <literal>gradle uploadLibs</literal>
+        <para>Executing <userinput>gradle libs</userinput> will compile, test and jar your code. If you specify a remote
+            repository, executing <userinput>gradle uploadLibs</userinput>
             will additionally upload your jar to a remote repository. Builds usually have more requirements.
             Let's look at a typical multi-project build.
         </para>

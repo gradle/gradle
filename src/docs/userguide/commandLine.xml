@@ -10,115 +10,115 @@
     </para>
     <variablelist>
         <varlistentry>
-            <term><literal>-?</literal>, <literal>-h</literal>, <literal>--help</literal></term>
+            <term><option>-?</option>, <option>-h</option>, <option>--help</option></term>
             <listitem><para>Shows a help message.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-C</literal>, <literal>--cache</literal></term>
+            <term><option>-C</option>, <option>--cache</option></term>
             <listitem><para>Specifies how compiled build scripts should be cached. Possible values are:
                 <literal>rebuild</literal>, <literal>off</literal>, <literal>on</literal>. Default value is
                 <literal>on</literal>. See <xref linkend="sec:caching"/> for more details.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-D</literal>, <literal>--system-prop</literal></term>
+            <term><option>-D</option>, <option>--system-prop</option></term>
             <listitem><para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-I</literal>, <literal>--no-imports</literal></term>
+            <term><option>-I</option>, <option>--no-imports</option></term>
             <listitem><para>Disable usage of default imports for build script files. See
                 <xref linkend="sec:using_gradle_without_ide_support"/> for details.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-K</literal>, <literal>--default-import-file</literal></term>
+            <term><option>-K</option>, <option>--default-import-file</option></term>
             <listitem><para>Specifies the default import file.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-P</literal>, <literal>--project-prop</literal></term>
+            <term><option>-P</option>, <option>--project-prop</option></term>
             <listitem><para>Sets a project property of the root project, for example
                 <literal>-Pmyprop=myvalue</literal>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-b</literal>, <literal>--build-file</literal></term>
+            <term><option>-b</option>, <option>--build-file</option></term>
             <listitem><para>Specifies the build file.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-c</literal>, <literal>--settings-file</literal></term>
+            <term><option>-c</option>, <option>--settings-file</option></term>
             <listitem><para>Specifies the settings file.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-d</literal>, <literal>--debug</literal></term>
+            <term><option>-d</option>, <option>--debug</option></term>
             <listitem><para>Log in debug mode (includes normal stacktrace). See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-e</literal>, <literal>--embedded</literal></term>
+            <term><option>-e</option>, <option>--embedded</option></term>
             <listitem><para>Specify an embedded build script.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-f</literal>, <literal>--full-stacktrace</literal></term>
+            <term><option>-f</option>, <option>--full-stacktrace</option></term>
             <listitem><para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-g</literal>, <literal>--gradle-user-home</literal></term>
+            <term><option>-g</option>, <option>--gradle-user-home</option></term>
             <listitem><para>Specifies the gradle user home directory.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-i</literal>, <literal>--info</literal></term>
+            <term><option>-i</option>, <option>--info</option></term>
             <listitem><para>Set log level to info. See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-l</literal>, <literal>--plugin-properties-file</literal></term>
+            <term><option>-l</option>, <option>--plugin-properties-file</option></term>
             <listitem><para>Specifies the plugin properties file.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-n</literal>, <literal>--dependencies</literal></term>
+            <term><option>-n</option>, <option>--dependencies</option></term>
             <listitem><para>Show list of all project dependencies.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-p</literal>, <literal>--project-dir</literal></term>
+            <term><option>-p</option>, <option>--project-dir</option></term>
             <listitem><para>Specifies the start directory for Gradle. Defaults to current directory.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-q</literal>, <literal>--quiet</literal></term>
+            <term><option>-q</option>, <option>--quiet</option></term>
             <listitem><para>Log errors only. See <xref linkend="logging"/>.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-r</literal>, <literal>--properties</literal></term>
+            <term><option>-r</option>, <option>--properties</option></term>
             <listitem><para>Show list of all available project properties.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-s</literal>, <literal>--stacktrace</literal></term>
+            <term><option>-s</option>, <option>--stacktrace</option></term>
             <listitem><para>Print out the stacktrace also for user exceptions (e.g. compile error). See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-t</literal>, <literal>--tasks</literal></term>
+            <term><option>-t</option>, <option>--tasks</option></term>
             <listitem><para>Show list of all available tasks and their dependencies.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-u</literal>, <literal>--no-search-upwards</literal></term>
+            <term><option>-u</option>, <option>--no-search-upwards</option></term>
             <listitem><para>Don't search in parent folders for a <filename>settings.gradle</filename> file.
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>-v</literal>, <literal>--version</literal></term>
+            <term><option>-v</option>, <option>--version</option></term>
             <listitem><para>Prints version info.
             </para></listitem>
         </varlistentry>
     </variablelist>
     
-    <para>The same information is printed to the console when you execute <literal>gradle -h</literal>.</para>
+    <para>The same information is printed to the console when you execute <userinput>gradle -h</userinput>.</para>
 </appendix>

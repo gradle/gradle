@@ -1,20 +1,22 @@
 <chapter id='tutorial_using_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - Using Tasks</title>
-    <para>If you execute a build, Gradle normally looks for a file called <filename>build.gradle</filename>
-        in the current directory (There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>).
-        We call the <filename>build.gradle</filename> file a build script. Although strictly speaking it is
+    <para>You execute a build by running the <command>gradle</command> command. When run, <command>gradle</command>
+        normally looks for a file called <filename>build.gradle</filename> in the current directory.
+        <footnote><para>There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>)</para></footnote>
+        We call this <filename>build.gradle</filename> file a <firstterm>build script</firstterm>, although strictly speaking it is
         a build configuration script, as we will see later. In Gradle the location of the build script file defines a
-        project. The name of the directory containing the build script is the name of the project.
+        project. The name of the directory containing the build script is used as the name of the project.
     </para>
     <section>
         <title>Hello World</title>
-        <para>In Gradle everything revolves around tasks. The tasks for your build are defined in the build script. To
-            try this out, create the following build script named <filename>build.gradle</filename>.
+        <para>In Gradle the most basic building block is the <firstterm>task</firstterm>. The tasks for your build are
+            defined in the build script. To try this out, create the following build script named <filename>build.gradle</filename>.
         </para>
         <sample id="hello" dir="userguide/tutorial/hello">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>Enter with your shell into the containing directory and execute the build script:
+        <para>In a command-line shell, enter into the containing directory and execute the build script by running
+            <userinput>gradle -q hello</userinput>:
             <footnote>
                 <para>Every code sample in this chapter can be found in the <filename>samples</filename>
                     dir of your Gradle distribution. The output box always denotes the directory name relative to the
@@ -22,7 +24,7 @@
                 </para>
             </footnote>
             <footnote>
-                <para>The scripts are executed with the <literal>-q</literal> options which suppresses the Gradle logging.
+                <para>The scripts are executed with the <option>-q</option> option which suppresses the Gradle logging.
                     See <xref linkend="logging"/> for more details.
                 </para>
             </footnote>
@@ -138,7 +140,7 @@
             <literal>copy</literal>
             or <literal>jar</literal>. For this layer Gradle provides excellent integration simply by relying on Groovy.
             Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks from Gradle is as
-            convenient and more powerful than using Ant tasks from a <literal>build.xml</literal> file.
+            convenient and more powerful than using Ant tasks from a <filename>build.xml</filename> file.
             Let's look at an example:
         </para>
         <sample id="antChecksum" dir="userguide/tutorial/antChecksum">
@@ -188,7 +190,7 @@
             <sourcefile file="build.gradle"/>
             <output args="-q"/>
         </sample>
-        <para>This is equivalent to running <literal>gradle clean run</literal>. In a multi-project build every
+        <para>This is equivalent to running <userinput>gradle clean run</userinput>. In a multi-project build every
             subproject can have its own specific default tasks. If a subproject does not specify default tasks, the
             default tasks of the parent project are used (if defined).
         </para>

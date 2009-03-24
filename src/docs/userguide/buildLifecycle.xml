@@ -166,11 +166,10 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
         <para>What is the purpose of this behavior? Somehow Gradle has to find out, whether the project you are into, is
             a subproject of a multiproject build or not. Of course, if it is a subproject, only the subproject and its
             dependent projects are build. But Gradle needs to create the build configuration for the whole multiproject
-            build (see <xref linkend='multi_project_builds'/>). Via the
-            <literal>-u</literal>
+            build (see <xref linkend='multi_project_builds'/>). Via the <option>-u</option>
             command line option, you can tell Gradle not to look in the parent hierarchy for a <filename>settings.gradle</filename> file. The
             current project is then always build as a single project build. If the current project contains a
-            <filename>settings.gradle</filename> file, the <literal>-u</literal> option has no meaning. Such a build is always executed as:
+            <filename>settings.gradle</filename> file, the <option>-u</option> option has no meaning. Such a build is always executed as:
         </para>
         <itemizedlist>
             <listitem>

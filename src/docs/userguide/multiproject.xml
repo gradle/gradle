@@ -590,7 +590,7 @@ D- java
             adds the jar with the classes of the other project to the classpath. It also add the dependencies of the
             other project to the classpath. So you can enter the
             <literal>api</literal>
-            folder and trigger a <literal>gradle compile</literal>. First
+            folder and trigger a <userinput>gradle compile</userinput>. First
             <literal>shared</literal>
             is build and then
             <literal>api</literal>

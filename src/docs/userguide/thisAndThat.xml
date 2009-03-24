@@ -64,8 +64,7 @@
             <literal>project-reports</literal>
             plugin, which adds tasks to generate reports about your build.
         </para>
-        <para>Running
-            <literal>gradle --tasks</literal>
+        <para>Running <userinput>gradle --tasks</userinput>
             gives you a list of the tasks which make up the build, broken down by project. This report shows the default
             tasks, if any, of each project, and the description and dependencies of each task. Below is an example of
             this report:
@@ -73,8 +72,7 @@
         <sample id="taskListReport" dir="userguide/tutorial/projectReports">
             <output args="-q --tasks"/>
         </sample>
-        <para>Running
-            <literal>gradle --dependencies</literal>
+        <para>Running <userinput>gradle --dependencies</userinput>
             gives you a list of the dependencies of the build, broken down by project. This report shows the
             configurations of each project. For each configuration, the direct and transitive dependencies of that
             configuration are shown. Below is an example of this report:
@@ -83,7 +81,7 @@
             <output args="-q --dependencies"/>
         </sample>
         <para>Running
-            <literal>gradle --properties</literal>
+            <userinput>gradle --properties</userinput>
             gives you a list of the properties of each project in the build.
         </para>
         <!--<sample id="propertyListReport" dir="userguide/tutorial/projectReports">-->
@@ -133,24 +131,22 @@
             command line option you can pass a system property to the JVM which runs Gradle.
         </para>
         <para>There is also the possibility to directly add properties to your project objects. You can place a
-            <literal>gradle.properties</literal>
+            <filename>gradle.properties</filename>
             file either in the Gradle user home dir (defaults to
-            <literal><emphasis>USER_HOME</emphasis>/.gradle</literal>
+            <filename><replaceable>USER_HOME</replaceable>/.gradle</filename>
             ) or in your project dir. For multiproject builds you can place
-            <literal>gradle.properties</literal>
+            <filename>gradle.properties</filename>
             files in any subproject. The properties of the
-            <literal>gradle.properties</literal>
+            <filename>gradle.properties</filename>
             can be accessed via the project object. The properties file in the the user's home directory has precedence
             over property files in the project directories.
         </para>
-        <para>You can also add properties directly to your project object via the
-            <literal>-P</literal>
-            command line option. For more exotic use cases you can even pass properties
-            <emphasis>directly</emphasis>
+        <para>You can also add properties directly to your project object via the <option>-P</option>
+            command line option. For more exotic use cases you can even pass properties <emphasis>directly</emphasis>
             to the project object via system and environment properties. For example if you run a build on a continuous
             integration server where you have no admin rights for the <emphasis>machine</emphasis>. Your build script
             needs properties which values should not be seen by others. Therefore you can't use the
-            <literal>-P</literal>
+            <option>-P</option>
             option. In this case you can add an environment property in the project adminstration section (invisible to
             normal users).
             <footnote>
@@ -168,7 +164,7 @@
             difference is the prefix, which is <literal>org.gradle.project.</literal>.
         </para>
         <para>With the
-            <literal>gradle.properties</literal>
+            <filename>gradle.properties</filename>
             files you can also set system properties. If a property in such a file has the prefix
             <literal>systemProp.</literal>
             the property and its value are added to the system properties (without the prefix).

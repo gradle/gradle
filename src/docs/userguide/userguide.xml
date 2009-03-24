@@ -22,12 +22,12 @@
         </author>
     </bookinfo>
     <xi:include href='introduction.xml'/>
+    <xi:include href='overview.xml'/>
     <xi:include href='gettingStarted.xml'/>
     <xi:include href='buildscripts.xml'/>
     <xi:include href='commandLineTutorial.xml'/>
     <xi:include href='javaTutorial.xml'/>
     <xi:include href='thisAndThat.xml'/>
-    <xi:include href='overview.xml'/>
     <xi:include href='projectTaskApi.xml'/>
     <xi:include href='tasks.xml'/>
     <xi:include href='logging.xml'/>
