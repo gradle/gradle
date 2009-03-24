@@ -31,7 +31,7 @@ public class ExtractSnippetsTask extends DefaultTask {
             destFile.parentFile.mkdirs()
 
             if (!name.endsWith('.gradle')) {
-                destFile.write(srcFile.text)
+                destFile.withOutputStream { it.write(srcFile.readBytes()) }
                 return
             }
             
