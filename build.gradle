@@ -427,10 +427,11 @@ createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleShe
 }
 userguideSingleHtml.skipProperties << 'skip.userguide'
 
-createTask('userguidePdf', dependsOn: ['userguideStyleSheets']) {
+createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
     File pdfSourceHtml = new File(docbookSrc, 'userguidePdf.html')
 
     pdfSourceHtml.parentFile.mkdirs()
+    userguidePdfFile.parentFile.mkdirs()
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
@@ -450,7 +451,7 @@ createTask('userguidePdf', dependsOn: ['userguideStyleSheets']) {
     def uris = dependencies.userGuideTask.files.collect {it.toURI().toURL()}
     def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
     def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
-    renderer.document = pdfSourceHtml.toURI().toURL().toString()
+    renderer.setDocument(pdfSourceHtml)
     renderer.layout()
 
     userguidePdfFile.withOutputStream {
