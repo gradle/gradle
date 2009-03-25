@@ -1,0 +1,47 @@
+
+@page {
+    size: A4;
+}
+
+.toc {
+    page-break-before: always;
+}
+
+.toc * {
+    line-height: 120%;
+}
+
+.chapter {
+    page-break-before: always;
+}
+
+.appendix {
+    page-break-before: always;
+}
+
+.section .titlepage {
+    page-break-after: avoid;
+}
+
+p {
+    text-align: justify;
+}
+
+.example .title {
+    text-align: left;
+    white-space: nowrap;
+}
+
+.example {
+    page-break-inside: avoid;
+}
+
+.programlisting {
+    page-break-inside: avoid;
+    font-size: 90%;
+}
+
+.screen {
+    page-break-inside: avoid;
+    font-size: 90%;
+}

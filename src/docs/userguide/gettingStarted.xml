@@ -62,7 +62,7 @@ some zip front ends for Mac OS X don't restore the file permissions properly.
 <command>gradle -v</command> and you should get an output like:
 </para>
 
-<programlisting>
+<screen>
 ----------------------------------------
 Gradle 0.5.2
 ----------------------------------------
@@ -75,7 +75,7 @@ Java: 1.5.0_16
 JVM: 1.5.0_16-133
 JVM Vendor: Apple Inc.
 OS Name: Mac OS X
-</programlisting>
+</screen>
 
 </section>
 

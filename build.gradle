@@ -74,15 +74,11 @@ dependencies {
             'backport-util-concurrent:backport-util-concurrent:3.1@jar'
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
-    clientModule(['userGuideTask'], 'fop:fop:0.95') {
-        dependency 'avalon-framework:avalon-framework:4.2.0@jar'
-        dependency 'batik:batik:1.7@jar'
-        dependency 'commons-io:commons-io:1.3.1@jar'
-        dependency 'commons-logging:commons-logging:1.1@jar'
-        dependency 'xmlgraphics-commons:xmlgraphics-commons:1.3.1@jar'
+    clientModule(['userGuideTask'], 'xhtmlrenderer:xhtmlrenderer:R8rc1') {
+        dependency 'itext:itext:2.0.8@jar'
     }
     
-    userGuideStyleSheets 'docbook:docbook-xsl:1.74.0@zip'
+    userGuideStyleSheets 'docbook:docbook-xsl:1.74.3@zip'
 
     clientModule(['groovy'], "org.codehaus.groovy:groovy-all:1.5.6") {
         clientModule("org.apache.ant:ant:1.7.0") {
@@ -357,9 +353,9 @@ createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
 
 userguideDir = new File(buildDir, "$docsDir.name/userguide")
 userguideSrcDir = new File(srcDocsDir, 'userguide')
-userguidePdfFile = new File(explodedDistDocsDir, 'userguide.pdf')
 userguideHtmlDir = new File(explodedDistDocsDir, 'userguide')
-userguideSingleHtmlFile = new File(explodedDistDocsDir, 'userguide_single.html')
+userguidePdfFile = new File(userguideHtmlDir, 'userguide.pdf')
+userguideSingleHtmlFile = new File(userguideHtmlDir, 'userguide_single.html')
 docbookSrc = new File(project.buildDir, 'docbook/src')
 docbookDir = new File(project.buildDir, 'docbook/stylesheets')
 snippetsDir = new File(project.buildDir, 'docbook/snippets')
@@ -387,7 +383,7 @@ userguideSrc.skipProperties << 'skip.userguide'
 
 createTask('userguideStyleSheets') {
     ant.unzip(src: dependencies.userGuideStyleSheets.singleFile, dest: docbookDir) {
-        globmapper(from: 'docbook-xsl-1.74.0/*', to: '*')
+        globmapper(from: 'docbook-xsl-1.74.3/*', to: '*')
     }
     ant.copy(todir: docbookDir) {
         fileset(dir: new File(srcDocsDir, 'stylesheets'), includes: '*.xsl')
@@ -427,34 +423,38 @@ createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleShe
         }
     }
     ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: userguideSingleHtmlFile.parentFile)
+    ant.copy(file: new File(userguideSrcDir, 'print.css'), todir: userguideSingleHtmlFile.parentFile)
 }
 userguideSingleHtml.skipProperties << 'skip.userguide'
 
-createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
-    File foFile = new File(docbookDir, "userguide.fo")
+createTask('userguidePdf', dependsOn: ['userguideStyleSheets']) {
+    File pdfSourceHtml = new File(docbookSrc, 'userguidePdf.html')
+
+    pdfSourceHtml.parentFile.mkdirs()
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
+        arg(value: '-out')
+        arg(value: pdfSourceHtml)
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'userGuidePdf.xsl'))
-        arg(value: '-out')
-        arg(value: foFile)
         classpath {
             path(path: dependencies.userGuideTask.asPath)
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
+    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: pdfSourceHtml.parentFile)
+    ant.copy(file: new File(userguideSrcDir, 'print.css'), todir: pdfSourceHtml.parentFile)
 
-    userguidePdfFile.parentFile.mkdirs()
-    ant.java(classname: 'org.apache.fop.cli.Main', failonerror: true, fork: true) {
-        arg(value: '-fo')
-        arg(value: foFile)
-        arg(value: '-pdf')
-        arg(value: userguidePdfFile)
-        classpath {
-            path(path: dependencies.userGuideTask.asPath)
-        }
+    def uris = dependencies.userGuideTask.files.collect {it.toURI().toURL()}
+    def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
+    def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
+    renderer.document = pdfSourceHtml.toURI().toURL().toString()
+    renderer.layout()
+
+    userguidePdfFile.withOutputStream {
+        renderer.createPDF(it)
     }
 }
 userguidePdf.skipProperties << 'skip.userguide'
@@ -469,9 +469,6 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
     ftp(action: 'send', remotedir: userguideRemoteDir) {
         fileset(dir: explodedDistDocsDir) {
             include(name: 'userguide/**')
-            include(name: 'userguide.pdf')
-            include(name: 'userguide_single.html')
-            include(name: 'style.css')
         }
     }
 }
