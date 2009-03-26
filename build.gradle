@@ -465,12 +465,11 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
     ftp(action: 'delete', remotedir: userguideRemoteDir) {
         fileset() {
             include(name: '*.html')
+            include(name: '*.pdf')
         }
     }
     ftp(action: 'send', remotedir: userguideRemoteDir) {
-        fileset(dir: explodedDistDocsDir) {
-            include(name: 'userguide/**')
-        }
+        fileset(dir: userguideHtmlDir)
     }
 }
 
