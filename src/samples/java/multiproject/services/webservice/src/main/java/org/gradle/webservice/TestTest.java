@@ -1,12 +1,5 @@
-package org.gradle.webapp1;
+package org.gradle.webservice;
 
-/**
- * Created by IntelliJ IDEA.
- * User: hans
- * Date: Oct 23, 2007
- * Time: 5:40:28 PM
- * To change this template use File | Settings | File Templates.
- */
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.collections.list.GrowthList;

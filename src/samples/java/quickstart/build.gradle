@@ -2,10 +2,29 @@
 usePlugin('java')
 // END SNIPPET use-plugin
 
+// START SNIPPET customisation
+sourceCompatibility = 1.5
+version = '1.0'
+manifest.mainAttributes(
+    'Implementation-Title': 'Gradle Quickstart',
+    'Implementation-Version': version
+)
+// END SNIPPET customisation
+
+// START SNIPPET task-customisation
+test {
+    options.systemProperties['property'] = 'value'
+}
+// END SNIPPET task-customisation
+
+// START SNIPPET repo
 // START SNIPPET dependencies
 dependencies {
     addMavenRepo()
+// END SNIPPET repo
     compile 'commons-collections:commons-collections:3.2'
-    testCompile 'junit:junit:4.5'
+    testCompile 'junit:junit:4.+'
+// START SNIPPET repo
 }
+// END SNIPPET repo
 // END SNIPPET dependencies

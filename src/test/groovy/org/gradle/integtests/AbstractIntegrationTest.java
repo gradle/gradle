@@ -76,7 +76,10 @@ public class AbstractIntegrationTest {
         testFile("gradle-home/gradle-imports").writelns("import org.gradle.api.*", "import static org.junit.Assert.*",
                 "import static org.hamcrest.Matchers.*");
 
-        testFile("gradle-home/plugin.properties").writelns("groovy=org.gradle.api.plugins.GroovyPlugin");
+        testFile("gradle-home/plugin.properties").writelns(
+                "java=org.gradle.api.plugins.JavaPlugin",
+                "groovy=org.gradle.api.plugins.GroovyPlugin"
+        );
 
         parameter.setGradleUserHomeDir(testFile("user-home").asFile());
 

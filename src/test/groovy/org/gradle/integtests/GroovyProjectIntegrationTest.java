@@ -19,13 +19,19 @@ import org.junit.Test;
 
 public class GroovyProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
+    public void handlesEmptyProject() {
+        testFile("build.gradle").writelns(
+                "usePlugin('groovy')"
+        );
+        inTestDirectory().withTasks("libs").run();
+    }
+
+    @Test
     public void handlesJavaSourceOnly() {
         testFile("src/main/java/somepackage/SomeClass.java").writelns("public class SomeClass { }");
         testFile("build.gradle").writelns(
-                "usePlugin('groovy')",
-                // todo: should not need these
-                "sourceCompatibility = 1.5",
-                "targetCompatibility = 1.5");
+                "usePlugin('groovy')"
+        );
         inTestDirectory().withTasks("libs").run();
     }
 }

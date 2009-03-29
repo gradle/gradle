@@ -1,84 +1,132 @@
 <chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - Java Projects</title>
 
-    <para><emphasis>this chapter is currently being rewritten</emphasis></para>
-    
-    <para>We have in-depth coverage with many examples about the Java plugin, dependency management and
-        multi-project builds in later chapters. In this chapter we want to give you a first idea of how to build a
+    <para>
+        <emphasis>this chapter is currently being rewritten</emphasis>
+    </para>
+
+    <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds some tasks to your
+        project, along with some configuration properties, to allow you to compile, test and bundle your Java source code
+        into a Jar. We have in-depth coverage with many examples about the Java plugin, dependency management and
+        multi-project builds in later chapters. In this chapter we want to give you an initial idea of how to build a
         Java project.
     </para>
 
     <section>
         <title>A Basic Java Project</title>
-        <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds
-            some tasks, along with some configuration properties, to your project, to allow you to compile, test and
-            bundle your Java source code into a Jar. These are described in more detail in <xref linkend="java_plugin"/>.</para>
+        <para>To use the Java plugin in your project, add the following to your build file:</para>
         <sample id="javaQuickstart" dir="java/quickstart">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
-            <sourcefile file="build.gradle" snippet="dependencies"/>
+        </sample>
+        <para>This is all you need to define a Java project. This will add a number of tasks to your project.
+            <footnote><para>You can use <userinput>gradle -t</userinput> to list the tasks of a project.</para></footnote>
+            Executing <userinput>gradle libs</userinput>
+            will compile, test and jar your code. Gradle looks for your Java source code under
+            <filename>src/main/java</filename> and your test source code under <filename>src/test/java</filename>. In
+            addition, any files under <filename>src/main/resources</filename> will be included in the JAR file as
+            resources, and any files under <filename>src/test/resources</filename> will be included in the classpath
+            used to run the tests.
+        </para>
+        <para>You can find out more about the Java plugin in <xref linkend="java_plugin"/>.</para>
+
+        <section>
+            <title>External Dependencies</title>
+
+            <para>Usually, a project will have some dependencies on external libraries. In order to include external
+                libraries, you need to tell Gradle where to find them. In Gradle, artifacts such as Jar files, are located
+                in a <firstterm>repository</firstterm>. For this example, we will use the public Maven repository:</para>
+            <sample id="javaQuickstart" dir="java/quickstart">
+                <sourcefile file="build.gradle" snippet="repo"/>
+            </sample>
+
+            <para>Now let's add some dependencies. Here, we will declare that our production classes have a compile-time
+                dependency on commons collections, and that our test classes have a compile-time dependency on junit:</para>
+            <sample id="javaQuickstart" dir="java/quickstart">
+                <sourcefile file="build.gradle" snippet="dependencies"/>
+            </sample>
+            <para>You can find out more in <xref linkend="dependency_management"/>.</para>
+        </section>
+
+        <section>
+            <title>Customising the Project</title>
+            <para>The Java plugin adds a number of properties to your project.
+                <footnote><para>You can use <userinput>gradle -r</userinput> to list the properties of a project.</para></footnote>
+                These properties have default values which are usually sufficient to get started. Let's look at customising
+                some of these values:
+            </para>
+            <sample id="javaQuickstart" dir="java/quickstart">
+                <sourcefile file="build.gradle" snippet="customisation"/>
+            </sample>
+            <para>You can also customise the properties of individual tasks. Here we configure the <literal>test</literal>
+                task, which is of type <apilink class="org.gradle.api.tasks.testing.Test"/>, to add a system
+                property when the tests are executed:</para>
+            <sample id="javaQuickstart" dir="java/quickstart">
+                <sourcefile file="build.gradle" snippet="task-customisation"/>
+            </sample>
+        </section>
+
+        <section>
+            <title>Publishing the Jar file</title>
+            <para>TODO</para>
+        </section>
+
+        <para>Here's our complete build file:</para>
+        <sample id="javaQuickstart" dir="java/quickstart">
+            <sourcefile file="build.gradle"/>
         </sample>
     </section>
 
     <section id='sec:examples'>
-        <title>Examples</title>
-        <para>Provided your build script contains the single line
-        </para>
-        <programlisting><![CDATA[
-usePlugin('java')
-]]></programlisting>
-        <para>Executing <userinput>gradle libs</userinput> will compile, test and jar your code. If you specify a remote
-            repository, executing <userinput>gradle uploadLibs</userinput>
-            will additionally upload your jar to a remote repository. Builds usually have more requirements.
-            Let's look at a typical multi-project build.
+        <title>Multi-project Java Build</title>
+        <para>Let's look at a typical multi-project build. Below is the layout for the project:
         </para>
         <programlisting><![CDATA[
 D- ultimateApp
   D- api
-  D- webservice
+  D- services
+    D- webservice
   D- shared
 ]]></programlisting>
         <para>We have three projects. Project <literal>api</literal> produces a JAR file which is shipped to the client to
-            provide them a Java client for your XML webservice. Project <literal>webservice</literal> is a webapp which returns XML.
-            Project <literal>shared</literal> contains code used both by <literal>api</literal>
-            and <literal>webservice</literal>. Let's look at the Gradle build scripts of these projects.
+            provide them a Java client for your XML webservice. Project <literal>webservice</literal> is a webapp which
+            returns XML. Project <literal>shared</literal> contains code used both by <literal>api</literal>
+            and <literal>webservice</literal>.
         </para>
-        <programlisting><![CDATA[
-subprojects {
-    manifest.mainAttributes([
-	    'Implementation-Title': 'Gradle',
-		'Implementation-Version': '0.1'
-	])
-	dependencies {
-		compile "commons-lang:commons-lang:3.1"
-		testCompile "junit:junit:4.4"
-	}
-	test {
-	    include '**/*Test.class'
-	    exclude '**/Abstract*'
-	}
-}
-]]></programlisting>
+        <para>To define a multi-project build, you need to use a <firstterm>settings file</firstterm>. The settings file
+            lives in the root directory of the source tree, and specifies which projects to include in the build. For
+            this example, we are using a simple hierarchical layout, so our settings file is correspondingly simple:
+        </para>
+        <sample id="javaMultiProject" dir="java/multiproject">
+            <sourcefile file="settings.gradle" snippet="include-projects"/>
+        </sample>
+        <para>Common stuff in root project:</para>
+        <sample id="javaMultiProject" dir="java/multiproject">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>API project depends on shared:</para>
+        <sample id="javaMultiProject" dir="java/multiproject">
+            <sourcefile file="api/build.gradle" snippet="dependencies"/>
+        </sample>
+        <para>API dist:</para>
+        <sample id="javaMultiProject" dir="java/multiproject">
+            <sourcefile file="api/build.gradle" snippet="dists"/>
+        </sample>
+        
         <para>The common stuff for each of the projects we define in the root project. Not by inheritance but via
             <emphasis>Configuration Injection</emphasis>. The root project is like a container and
             <literal>subprojects</literal> iterates over the elements of this container - the projects in this instance -
             and injects the specified configuration. This way we can easily define the manifest content for all archives.
         </para>
-        <programlisting><![CDATA[
-dependencies {
-	compile "commons-httpclient:commons-httpclient:3.1", project(":shared")
-}
 
-dists {
-	zip() {
-		files(dependencies.resolve("runtime")) // add dependencies to zip
-		fileset(dir: "path/distributionFiles")
-	}
-}
-]]></programlisting>
         <para>In the <literal>api</literal> build script we add further dependencies. One dependency is on the jars
             produced by the <literal>shared</literal> project. Due to this dependency, Gradle will ensure that
             project <literal>shared</literal> always gets built before project <literal>api</literal>.
             We also add a distribution, that gets shipped to the client.
         </para>
+    </section>
+
+    <section>
+        <title>Summary</title>
+        <para>TODO</para>
     </section>
 </chapter>

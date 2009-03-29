@@ -1,12 +1,13 @@
 
-group = 'org.gradle'
-version = '1.0'
+subprojects {
+    group = 'org.gradle'
+    version = '1.0'
 
-allprojects {
     usePlugin('java')
+
     dependencies {
         addMavenRepo()
-        testCompile('junit:junit:4.4')
+        testCompile 'junit:junit:4.4'
     }
     manifest.mainAttributes(provider: 'gradle')
 }

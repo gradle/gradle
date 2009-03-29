@@ -1,6 +1,6 @@
 addMavenRepo()
 dependencies("commons-math:commons-math:1.1@jar")
 
-include "shared", "api", "services:webapp1"
-
-
+// START SNIPPET include-projects
+include "shared", "api", "services:webservice"
+// END SNIPPET include-projects

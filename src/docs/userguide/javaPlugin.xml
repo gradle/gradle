@@ -861,20 +861,22 @@
                 <td>
                     <apilink class="org.gradle.api.tasks.util.ZipFileSet" lang="groovy"/>
                 </td>
-                <td>Extends FileSet with additional properties known from Ants zipfileset task.</td>
+                <td>Extends FileSet with additional properties known from Ant's zipfileset task.</td>
             </tr>
             <tr>
                 <td>
                     <apilink class="org.gradle.api.tasks.util.TarFileSet" lang="groovy"/>
                 </td>
-                <td>Extends ZipFileSet with additional properties known from Ants tarfileset task.</td>
+                <td>Extends ZipFileSet with additional properties known from Ant's tarfileset task.</td>
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.FileCollection" lang="groovy"/>
+                    <apilink class="org.gradle.api.artifacts.FileCollection"/>
                 </td>
-                <td>An arbitrary collection of files to the archive. In contrast to a FileSet they don't need to have a
-                    common basedir.
+                <td>An arbitrary collection of files to include in the archive. In contrast to a
+                    <literal>FileSet</literal> they don't need to have a common basedir. There are a number of ways
+                    of creating a <literal>FileCollection</literal>. For example, the <literal>Configuration</literal>
+                    objects of a project implement <literal>FileCollection</literal>.
                 </td>
             </tr>
             <tr>
@@ -891,39 +893,28 @@
         <section id='sub:common_properties'>
             <title>Common Properties</title>
             <para>The name of the generated archive is assembled from the task properties <literal>baseName</literal>,
-                <literal>classifier</literal>
-                and
-                <literal>extension</literal>
-                to: <literal>baseName-project.version-classifier.extension</literal>.
+                <literal>classifier</literal> and <literal>extension</literal> to:
+                <literal>baseName-project.version-classifier.extension</literal>.
                 <footnote>
-                    <para>If the classifier is empty the trailing
-                        <literal>-</literal>
-                        is not added to the name. The same is true for the
-                        <literal>project.version</literal>
-                        property
+                    <para>If the classifier is empty the trailing <literal>-</literal> is not added to the name. The
+                        same is true for the <literal>project.version</literal> property.
                     </para>
                 </footnote>
-                . The assembled name is accessible via the
-                <literal>archiveName</literal>
-                property. The
-                <literal>name</literal>
-                property denotes the name of the task, not the generated archive. An archive task has also a
-                <literal>customName</literal>
-                property. If this property is set, the
-                <literal>archiveName</literal>
-                property returns its value instead of assembling a name out of the properties mentioned above.
+                The assembled name is accessible via the <literal>archiveName</literal> property. The
+                <literal>name</literal> property denotes the name of the task, not the generated archive. An archive
+                task has also a <literal>customName</literal> property. If this property is set, the
+                <literal>archiveName</literal> property returns its value instead of assembling a name out of the
+                properties mentioned above.
             </para>
-            <para>Archives have a
-                <literal>destinationDir</literal>
-                property to specify where the generated archive should be placed. It has also an
-                <literal>archivePath</literal>
-                property, which returns a File object with the absolute path of the generated archive.
+            <para>Archives have a <literal>destinationDir</literal> property to specify where the generated archive
+                should be placed. It has also an <literal>archivePath</literal> property, which returns a File object
+                with the absolute path of the generated archive.
             </para>
         </section>
         <section id='sub:adding_content'>
             <title>Adding Content</title>
             <para>To add content to an archive you must add file container to an archive (see <xref
-                    linkend='filecontainer'/>). You can add as many file container as you like. They behave pretty much
+                    linkend='filecontainer'/>). You can add as many file containers as you like. They behave pretty much
                 the same as the Ant resources with similar names.
             </para>
             <programlisting><![CDATA[

@@ -31,7 +31,6 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultDependencyConfigurationMappingContainer
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.EmptyScript
