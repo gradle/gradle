@@ -330,13 +330,16 @@ dists {
 groovydoc.destinationDir = explodedDistGroovydocsDir
 
 javadoc {
-    title = "Gradle API $version"
     destinationDir = explodedDistJavadocsDir
     // todo: include only the public packages
     options.subPackages 'org.gradle'
     exclude 'org.gradle.api.internal'
     // todo: make this true
     failOnError = false
+}
+javadoc.doFirst {
+    javadoc.title = "Gradle API $version"
+    javadoc.options.docTitle = javadoc.title
 }
 
 createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
@@ -373,11 +376,13 @@ samples {
 
 createTask('userguideSrc', type: UserGuideTransformTask, dependsOn: 'samples')
 userguideSrc {
-    javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     snippetsDir = project.snippetsDir
     classpath = dependencies.userGuideTask
+}
+userguideSrc.doFirst {
+    userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
 }
 userguideSrc.skipProperties << 'skip.userguide'
 
@@ -464,8 +469,7 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
     ftp(action: 'mkdir', remotedir: userguideRemoteDir)
     ftp(action: 'delete', remotedir: userguideRemoteDir) {
         fileset() {
-            include(name: '*.html')
-            include(name: '*.pdf')
+            include(name: '**/*')
         }
     }
     ftp(action: 'send', remotedir: userguideRemoteDir) {

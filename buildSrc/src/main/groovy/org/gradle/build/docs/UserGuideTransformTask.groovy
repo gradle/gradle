@@ -169,7 +169,7 @@ public class UserGuideTransformTask extends DefaultTask {
                             if (snippet) {
                                 srcFile = new File(snippetsDir, "$srcDir/$file-$snippet")
                             } else {
-                                srcFile = new File(sourceFile.parentFile, "../../../src/samples/$srcDir/$file")
+                                srcFile = new File(snippetsDir, "$srcDir/$file")
                             }
                             programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
                             exampleElement.appendChild(programListingElement)
@@ -201,7 +201,6 @@ public class UserGuideTransformTask extends DefaultTask {
                             exampleElement.appendChild(screenElement)
 
                             element.parentNode.insertBefore(exampleElement, element)
-
                         } else {
                             throw new RuntimeException("Unrecognised sample type ${child.name()} found.")
                         }

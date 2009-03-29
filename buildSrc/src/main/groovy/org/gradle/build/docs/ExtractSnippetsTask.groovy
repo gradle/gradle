@@ -30,12 +30,15 @@ public class ExtractSnippetsTask extends DefaultTask {
 
             destFile.parentFile.mkdirs()
 
-            if (!name.endsWith('.gradle')) {
+            if (['.jar', '.zip'].find{ name.endsWith(it) }) {
                 destFile.withOutputStream { it.write(srcFile.readBytes()) }
                 return
             }
             
-            Map writers = ['full': new PrintWriter(new FileWriter(destFile), false)]
+            Map writers = [
+                    0: new SnippetWriter(destFile).open(),
+                    1: new SnippetWriter(new File(snippetsDir, name)).open()
+            ]
             Pattern startSnippetPattern = Pattern.compile('\\s*//\\s*START\\s+SNIPPET\\s+(\\S+)\\s*')
             Pattern endSnippetPattern = Pattern.compile('\\s*//\\s*END\\s+SNIPPET\\s+(\\S+)\\s*')
 
@@ -47,27 +50,60 @@ public class ExtractSnippetsTask extends DefaultTask {
                         Matcher m = startSnippetPattern.matcher(line)
                         if (m.matches()) {
                             String snippetName = m.group(1)
-                            File snippetFile = new File(snippetsDir, "$name-$snippetName")
-                            snippetFile.parentFile.mkdirs()
-                            writers.put(snippetName, new PrintWriter(new FileWriter(snippetFile)))
+                            if (!writers[snippetName]) {
+                                File snippetFile = new File(snippetsDir, "$name-$snippetName")
+                                writers.put(snippetName, new SnippetWriter(snippetFile))
+                            }
+                            writers[snippetName].open()
                             return
                         }
                         m = endSnippetPattern.matcher(line)
                         if (m.matches()) {
                             String snippetName = m.group(1)
-                            writers.remove(snippetName).close()
+                            writers[snippetName].close()
                             return
                         }
-                        writers.values().each {PrintWriter w ->
+                        writers.values().each {SnippetWriter w ->
                             w.println(line)
                         }
                     }
                 }
             } finally {
-                writers.values().each {Writer w ->
+                writers.values().each {SnippetWriter w ->
                     w.close()
                 }
             }
         }
+    }
+}
+
+private class SnippetWriter {
+
+    private final File dest
+    private boolean appendToFile
+    private PrintWriter writer
+
+    def SnippetWriter(File dest) {
+        this.dest = dest
+    }
+
+    def open() {
+        dest.parentFile.mkdirs()
+        writer = new PrintWriter(dest.newWriter(appendToFile), false)
+        appendToFile = true
+        this
+    }
+
+    def println(String line) {
+        if (writer) {
+            writer.println(line)
+        }
+    }
+
+    def close() {
+        if (writer) {
+            writer.close()
+        }
+        writer = null
     }
 }
