@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.FileCollection
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test;

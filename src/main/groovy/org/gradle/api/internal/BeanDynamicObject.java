@@ -97,7 +97,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             throw propertyMissingException(name);
         }
 
-        MetaProperty property = getMetaClass().hasProperty(bean, name);
+        MetaClass metaClass = getMetaClass();
+        MetaProperty property = metaClass.hasProperty(bean, name);
         if (property == null) {
             throw propertyMissingException(name);
         }
@@ -112,7 +113,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             };
         }
         try {
-            property.setProperty(bean, value);
+            metaClass.setProperty(bean, name, value);
         } catch (InvokerInvocationException e) {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();

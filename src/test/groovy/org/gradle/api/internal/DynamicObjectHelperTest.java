@@ -88,6 +88,14 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
+    public void canSetPropertyWhenGetterAndSetterHaveDifferentTypes() {
+        Bean bean = new Bean();
+
+        bean.setProperty("differentTypesProperty", "91");
+        assertThat(bean.getProperty("differentTypesProperty"), equalTo((Object) 91));
+    }
+
+    @Test
     public void groovyObjectHasPropertiesDefinedByClassMetaInfo() {
         GroovyBean bean = new GroovyBean();
         assertTrue(bean.hasProperty("groovyProperty"));
@@ -708,6 +716,7 @@ public class DynamicObjectHelperTest {
         private String readWriteProperty;
         private String readOnlyProperty;
         private String writeOnlyProperty;
+        private Integer differentTypesProperty;
         final DynamicObjectHelper helper;
 
         public Bean() {
@@ -749,6 +758,14 @@ public class DynamicObjectHelperTest {
 
         public void setReadWriteProperty(String property) {
             this.readWriteProperty = property;
+        }
+
+        public Integer getDifferentTypesProperty() {
+            return differentTypesProperty;
+        }
+
+        public void setDifferentTypesProperty(Object differentTypesProperty) {
+            this.differentTypesProperty = Integer.parseInt(differentTypesProperty.toString());
         }
 
         public String javaMethod(String a, String b) {

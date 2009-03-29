@@ -20,12 +20,14 @@ import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.artifacts.DependencyManagerFactory;
+import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskEngine;
 import org.gradle.api.internal.tasks.TaskEngine;
 import org.gradle.api.invocation.Build;
@@ -752,6 +754,10 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public File file(Object path, PathValidation validation) {
         return GFileUtils.canonicalise(baseDirConverter.baseDir(path.toString(), getProjectDir(), validation));
+    }
+
+    public FileCollection files(Object... paths) {
+        return new PathResolvingFileCollection(this, paths);
     }
 
     public File relativePath(Object path) {

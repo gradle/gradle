@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
 
 /**

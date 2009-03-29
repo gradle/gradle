@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.artifacts.FileCollection;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -722,7 +723,7 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Resolves a file path relative to the project directory of this project.</p>
      *
-     * @param path An object which toString method value is interpreted as a relative path to the project directory.
+     * @param path An object whose toString() method value is interpreted as a relative path to the project directory.
      * @return The resolved file. Never returns null.
      */
     File file(Object path);
@@ -747,6 +748,22 @@ public interface Project extends Comparable<Project> {
      * @return A file with a relative path to the project dir, or null if the given path is outside the project dir.
      */
     File relativePath(Object path);
+
+    /**
+     * Returns a {@link FileCollection} containing the given files. You can pass any of the following types to this
+     * method:
+     *
+     * <ul>
+     *
+     * <li>A String. Interpreted relative to the project directory.</li>
+     * <li>A Collection. Flattened and recursively converted to files.</li>
+     * <li>A Closure. Should return an Object or Collection, which are then converted to files.</li>
+     * <li>An Object. Its toString() value is treated the same way as a String.<li>
+     *
+     * @param paths The paths to the files. May be empty.
+     * @return The file collection.
+     */
+    FileCollection files(Object... paths);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>

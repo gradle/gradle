@@ -16,15 +16,17 @@
 
 package org.gradle.api.tasks.bundling
 
+import java.util.jar.Manifest
+import org.gradle.api.tasks.bundling.Compression
+import org.gradle.api.tasks.bundling.GradleManifest
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.FileCollection
-import org.gradle.util.HelperUtil
-import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.api.tasks.util.TarFileSet
+import org.gradle.api.tasks.util.ZipFileSet
+import org.gradle.util.HelperUtil
+import org.junit.After
 import org.junit.Before
 import static org.junit.Assert.*
-import org.junit.After;
 
 /**
 * @author Hans Dockter
@@ -37,7 +39,6 @@ abstract class AbstractAntArchiveTest {
     File jpgFile
     File xmlFile
     File groovyFile
-    File gradleFile
     File unzipDir
     String archiveName
     FileSet fileSet
@@ -46,7 +47,6 @@ abstract class AbstractAntArchiveTest {
     FileSet mergeZipFileSet
     FileSet mergeTarFileSet
     List mergeFileSets
-    FileCollection fileCollection
     List resourceCollections
 
     File mergeZipFile
@@ -89,15 +89,13 @@ abstract class AbstractAntArchiveTest {
         fileSet.exclude('**/*.jpg')
         createTestFiles()
         createMetaData()
-        fileCollection = new FileCollection()
-        fileCollection.files = [gradleFile]
         AntDirective antDirective = new AntDirective()
         antDirective.directive = {
             files(includes: groovyFile.absolutePath) {
 
             }
         }
-        resourceCollections = [fileSet, fileCollection, antDirective]
+        resourceCollections = [fileSet, antDirective]
     }
     
     private void createMetaData() {
@@ -117,7 +115,6 @@ abstract class AbstractAntArchiveTest {
 
     void checkResourceFiles() {
         assertTrue(new File(unzipDir, txtFile.name).exists())
-        assertTrue(new File(unzipDir, gradleFile.name).exists())
         assertTrue(new File(unzipDir, groovyFile.name).exists())
         assertTrue(new File(unzipDir, zipContentFile.name).exists())
         assertTrue(new File(unzipDir, zipGroupContentFile.name).exists())
@@ -152,7 +149,6 @@ abstract class AbstractAntArchiveTest {
         (txtFile = new File(testDir, 'test.txt')).createNewFile()
         (jpgFile = new File(testDir, 'test.jpg')).createNewFile()
         (xmlFile = new File(testDir, 'test.xml')).createNewFile()
-        (gradleFile = new File(testDir, 'test.gradle')).createNewFile()
         (groovyFile = new File(testDir, 'test.groovy')).createNewFile()
         (manifestFile = new File(testDir, 'MANIFEST.MF')).write("$manifestFileKey: $manifestFileValue")
         createArchiveFiles()

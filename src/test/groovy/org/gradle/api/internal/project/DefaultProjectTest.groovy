@@ -43,6 +43,8 @@ import org.junit.runner.RunWith
 import org.gradle.api.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.artifacts.FileCollection
+import org.gradle.api.internal.artifacts.PathResolvingFileCollection
 
 /**
  * @author Hans Dockter
@@ -853,6 +855,11 @@ def scriptMethod(Closure closure) {
         assertTrue(converterCalled)
     }
 
+    @Test public void testFiles() {
+        FileCollection collection = project.files('a', 'b')
+        assertThat(collection, instanceOf(PathResolvingFileCollection))
+    }
+    
     @Test public void testDir() {
         Task dirTask1 = new Directory(project, 'dir1')
         Task dirTask12 = new Directory(project, 'dir1/dir2')

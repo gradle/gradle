@@ -41,7 +41,7 @@ class DefaultConventionTest {
         convention.plugins.plugin2 = convention2
     }
 
-    @Test public void testGetProperties() {
+    @Test public void testGetProperty() {
         assertEquals(convention1.a, convention.plugins.plugin1.a)
         assertEquals(convention1.a, convention.a)
     }
@@ -49,11 +49,11 @@ class DefaultConventionTest {
     @Test public void testGetPropertiesWithAmbiguity() {
         assertEquals(convention1.a, convention.plugins.plugin1.a)
         assertEquals(convention2.a, convention.plugins.plugin2.a)
-        assert convention.a == convention1.a || convention.a == convention2.a
+        assertEquals(convention1.a, convention.a)
     }
 
     @Test public void testGetAllProperties() {
-        assertEquals(convention.a, convention.properties.a)
+        assertEquals(convention1.a, convention.properties.a)
         assertEquals(convention1.b, convention.properties.b)
         assertEquals(convention1.c, convention.properties.c)
     }
@@ -65,7 +65,7 @@ class DefaultConventionTest {
 
     @Test public void testSetPropertiesWithAmbiguity() {
         convention.a = 'newvalue'
-        assert convention1.a == 'newvalue' || convention2.a == 'newvalue'
+        assertEquals('newvalue', convention1.a)
     }
 
     @Test (expected = MissingPropertyException) public void testMissingPropertiesWithGet() {
@@ -84,7 +84,7 @@ class DefaultConventionTest {
     @Test public void testMethodsWithAmbiguity() {
         assertEquals(convention1.meth(), convention.plugins.plugin1.meth())
         assertEquals(convention2.meth(), convention.plugins.plugin2.meth())
-        assert convention.meth() == convention1.meth() || convention.meth() == convention2.meth()
+        assertEquals(convention.meth(), convention1.meth())
     }
 
     @Test (expected = MissingMethodException) public void testMissingMethod() {

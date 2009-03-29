@@ -21,13 +21,15 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.util.AntDirective
-import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.artifacts.FileCollection
+import org.gradle.api.internal.artifacts.DefaultFileCollection
+import org.gradle.api.tasks.util.AntFileCollectionBuilder
 
 /**
  * @author Hans Dockter
@@ -175,12 +177,18 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     /**
-     * An arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
+     * Adds an arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
      * basedir.
      */
-    public FileCollection files(File[] files) {
-        FileCollection fileCollection = new FileCollection(files as Set)
-        resourceCollections(fileCollection)
+    public FileCollection files(File... files) {
+        files(new DefaultFileCollection(files))
+    }
+
+    /**
+     * Adds an arbitrary collection of files to this archive.
+     */
+    public FileCollection files(FileCollection fileCollection) {
+        resourceCollections(new AntFileCollectionBuilder(fileCollection))
         fileCollection
     }
 

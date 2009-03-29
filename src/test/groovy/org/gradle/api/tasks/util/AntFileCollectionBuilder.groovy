@@ -16,27 +16,18 @@
  
 package org.gradle.api.tasks.util
 
-import org.junit.Before
+import org.gradle.api.internal.artifacts.DefaultFileCollection
+import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.api.tasks.util.AntFileCollectionBuilder
 import org.junit.Test
-import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-class FileCollectionTest {
-    FileCollection fileCollection
-    Set testFiles
+class AntFileCollectionBuilderTest {
 
-    @Before public void setUp()  {
-        testFiles = [new File('/file1'), new File('/file2')]
-        fileCollection = new FileCollection(testFiles)
-    }
-
-    @Test public void testInit() {
-        assertEquals(testFiles, fileCollection.files)
-    }
-    
     @Test public void testAddToAntBuilder() {
+        AntBuilderAware fileCollection = new AntFileCollectionBuilder(new DefaultFileCollection(new File('/file1'), new File('/file2')))
         fileCollection.addToAntBuilder(new AntBuilder())
     }
 }

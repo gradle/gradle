@@ -26,13 +26,16 @@ import org.gradle.api.tasks.bundling.AntArchiveParameter
 import org.gradle.api.tasks.bundling.AntMetaArchiveParameter
 import org.gradle.api.tasks.bundling.ArchiveDetector
 import org.gradle.api.tasks.util.AntDirective
-import org.gradle.api.tasks.util.FileCollection
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
+import org.gradle.api.artifacts.FileCollection
+import org.gradle.api.tasks.util.AntFileCollectionBuilder
 
 /**
  * @author Hans Dockter
@@ -144,10 +147,16 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testFiles() {
-        Set files = ['a' as File, 'b' as File]
+        List files = ['a' as File, 'b' as File]
         FileCollection fileCollection = archiveTask.files(files as File[])
-        assertTrue(archiveTask.resourceCollections.contains(fileCollection))
-        assertEquals(files, fileCollection.files)
+        assertThat(archiveTask.resourceCollections, hasItem(reflectionEquals(new AntFileCollectionBuilder(fileCollection))))
+        assertEquals(files.collect(new LinkedHashSet()) {it.canonicalFile}, fileCollection.files)
+    }
+
+    @Test public void testIncludeFileCollection() {
+        FileCollection fileCollection = [:] as FileCollection
+        assertSame(fileCollection, archiveTask.files(fileCollection))
+        assertThat(archiveTask.resourceCollections, hasItem(reflectionEquals(new AntFileCollectionBuilder(fileCollection))))
     }
 
     @Test public void testAntDirective() {

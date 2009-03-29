@@ -17,23 +17,23 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.api.artifacts.FileCollection
 
 /**
  * @author Hans Dockter
  */
-class FileCollection implements AntBuilderAware {
-    Set files
+class AntFileCollectionBuilder implements AntBuilderAware {
+    private final FileCollection files
 
-    FileCollection(Set files) {
+    AntFileCollectionBuilder(FileCollection files) {
         this.files = files
     }
 
     def addToAntBuilder(node, String childNodeName = null) {
-        files.each { File file ->
-            node."${childNodeName ?: 'resources'}"() {
+        node."${childNodeName ?: 'resources'}"() {
+            files.each { File file ->
                 delegate.file(file: file.absolutePath)   
             }
         }
     }
-    
 }
