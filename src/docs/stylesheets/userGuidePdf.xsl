@@ -41,4 +41,18 @@
         </bookmark>
     </xsl:template>
 
+    <!-- Use custom chapter headings -->
+    <xsl:template name="component.title">
+        <h2>
+            <xsl:call-template name="anchor">
+                <xsl:with-param name="node" select=".."/>
+                <xsl:with-param name="conditional" select="0"/>
+            </xsl:call-template>
+            <xsl:apply-templates select=".." mode="label.markup"/>
+        </h2>
+        <h1>
+            <xsl:apply-templates select=".." mode="title.markup"/>
+        </h1>
+    </xsl:template>
+
 </xsl:stylesheet>

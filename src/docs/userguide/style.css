@@ -93,6 +93,7 @@ pre {
 .table table {
     border-collapse: collapse;
     font-size: 100%;
+    min-width: 50%;
     border: solid #d0d0d0 1px;
 }
 
@@ -115,16 +116,22 @@ pre {
     font-size: 100%;
 }
 
-.note {
-    margin-left: 4em;
-    margin-right: 4em;
+.note, .tip {
     padding-top: 0.4em;
     padding-bottom: 0.4em;
     padding-left: 1.2em;
     padding-right: 1.2em;
-    background: #ebf4f7; /*#f0f8fb;*/
+    background: #ebf4f7;
+    border: solid #c3d9e6 1px;
     border-left: solid #c3d9e6 0.5em;
-    border-right: solid #c3d9e6 0.5em;
+}
+
+.tip {
+    float: right;
+    margin-left: 2em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    max-width: 25%;
 }
 
 /*
@@ -154,7 +161,6 @@ pre {
 
 .navbar a {
     color: #444444;
-    /*color: #a2a2a2;*/
 }
 
 .navbar span {
@@ -204,6 +210,10 @@ pre {
 .toc dl {
     margin-top: 0;
     margin-bottom: 0;
+}
+
+.toc > dl > dt {
+    margin-top: 0.6em;
 }
 
 /*

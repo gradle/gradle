@@ -3,6 +3,19 @@
     size: A4;
 }
 
+body {
+    font-size: 10pt;
+}
+
+.titlepage h1.title {
+    font-size: 360%;
+}
+
+.book > .titlepage div.title {
+    padding-top: 12em;
+    padding-bottom: 12em;
+}
+
 .toc {
     page-break-before: always;
 }
@@ -17,6 +30,34 @@
 
 .appendix {
     page-break-before: always;
+}
+
+.chapter > .titlepage h1 {
+    font-size: 240%;
+    text-align: right;
+}
+
+.chapter > .titlepage h2 {
+    font-size: 400%;
+    text-align: right;
+}
+
+.chapter > .titlepage {
+    margin-bottom: 4em;
+}
+
+.appendix > .titlepage h1 {
+    font-size: 240%;
+    text-align: right;
+}
+
+.appendix > .titlepage h2 {
+    font-size: 400%;
+    text-align: right;
+}
+
+.appendix > .titlepage {
+    margin-bottom: 4em;
 }
 
 .section .titlepage {
