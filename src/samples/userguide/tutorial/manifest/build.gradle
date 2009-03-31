@@ -1,0 +1,10 @@
+usePlugin 'java'
+createTask 'myZipTask'
+
+// START SNIPPET main-attributes
+// START SNIPPET custom-manifest
+manifest.mainAttributes("Implementation-Title": "Gradle", "Implementation-Version": version)
+// END SNIPPET main-attributes
+myZipTask.manifest = new GradleManifest(manifest.createManifest())
+myZipTask.manifest.mainAttributes(mykey: "myvalue")
+// END SNIPPET custom-manifest

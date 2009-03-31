@@ -997,37 +997,30 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
             <title>Manifest</title>
             <para>The convention object of the JavaPlugin has a
                 <literal>manifest</literal>
-                property pointing to an instance of <apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/>. With this
-                <classname>GradleManifest</classname> object you can define the content of the <literal>MANIFEST.MF</literal>
-                file of all the jar or a war archives in your project.
+                property pointing to an instance of <apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/>.
+                With this <classname>GradleManifest</classname> object you can define the content of the
+                <filename>MANIFEST.MF</filename> file of all the jar or a war archives in your project.
             </para>
-            <programlisting><![CDATA[
-manifest.mainAttributes("Implementation-Title": "Gradle", "Implementation-Version": version)
-]]></programlisting>
+            <sample id="manifest" dir="userguide/tutorial/manifest">
+                <sourcefile file="build.gradle" snippet="main-attributes"/>
+            </sample>
             <para>You can also define sections of a manifest file.
             </para>
-            <para>If a particular archive needs unique entries in its manifest you have to create an own
-                <literal>GradleManifest</literal>
-                object for it.
+            <para>If a particular archive needs unique entries in its manifest you have to create your own
+                <classname>GradleManifest</classname> instance for it.
             </para>
-            <programlisting><![CDATA[
-manifest.mainAttributes("Implementation-Title": "Gradle", "Implementation-Version": version)
-myZipTask.manifest = new GradleManifest(manifest)
-myZipTask.manifest.mainAttributes(mykey: "myvalue")
-]]></programlisting>
-            <para>Passing the common manifest object to the constructor of
-                <literal>GradleManifest</literal>
+            <sample id="manifest" dir="userguide/tutorial/manifest">
+                <sourcefile file="build.gradle" snippet="custom-manifest"/>
+            </sample>
+            <para>Passing the common manifest object to the constructor of <classname>GradleManifest</classname>
                 add the common manifest values to the task specific manifest instance.
             </para>
         </section>
         <section id='sub:metainf'>
             <title>MetaInf</title>
-            <para>The convention object of the JavaPlugin has a
-                <literal>metaInf</literal>
-                property pointing to a list of
-                <literal>FileSet</literal>
-                objects. With this file sets you can define which files should be in the META-INF directory of a jar or
-                a war archive.
+            <para>The convention object of the JavaPlugin has a <literal>metaInf</literal> property pointing to a list of
+                <classname>FileSet</classname> objects. With this file sets you can define which files should be in the
+                <filename>META-INF</filename> directory of a jar or a war archive.
             </para>
             <programlisting><![CDATA[
 metaInf << new FileSet(someDir)
