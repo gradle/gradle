@@ -1,6 +1,6 @@
 import org.gradle.api.tasks.util.FileSet
 
-usePlugin('groovy')
+usePlugin 'groovy'
 
 group = 'org.gradle'
 version = '1.0'

@@ -24,7 +24,6 @@ import org.junit.Test
  */
 @RunWith(DistributionIntegrationTestRunner.class)
 class GroovyProjectSampleIntegrationTest {
-    static final String GROOVY_PROJECT_NAME = 'groovyproject'
     static final String TEST_PROJECT_NAME = 'testproject'
 
     // Injected by test runner
@@ -40,7 +39,7 @@ class GroovyProjectSampleIntegrationTest {
         List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
         List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
-        File groovyProjectDir = new File(dist.samplesDir, GROOVY_PROJECT_NAME)
+        File groovyProjectDir = new File(dist.samplesDir, 'groovy/multiproject')
         File testProjectDir = new File(groovyProjectDir, TEST_PROJECT_NAME)
 
         // Build libs
@@ -67,5 +66,17 @@ class GroovyProjectSampleIntegrationTest {
         // This test is also important for test cleanup
         executer.inDirectory(groovyProjectDir).withTasks('clean').run()
         assert !(new File(testProjectDir, "build").exists())
+    }
+
+    @Test
+    public void groovyProjectQuickstartSample() {
+        File groovyProjectDir = new File(dist.samplesDir, 'groovy/quickstart')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
+    }
+
+    @Test
+    public void groovy1_5_6Sample() {
+        File groovyProjectDir = new File(dist.samplesDir, 'groovy/groovy-1.5.6')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
     }
 }

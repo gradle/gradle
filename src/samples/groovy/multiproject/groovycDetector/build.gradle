@@ -1,4 +1,4 @@
-usePlugin('java')
+usePlugin 'java'
 
 version = 'SNAPSHOT'
 
