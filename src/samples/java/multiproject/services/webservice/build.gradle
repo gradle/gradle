@@ -1,6 +1,6 @@
 dependsOn(':shared')
 
-usePlugin('war')
+usePlugin 'war'
 
 version = '2.5'
 

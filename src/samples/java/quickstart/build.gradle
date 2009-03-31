@@ -1,5 +1,5 @@
 // START SNIPPET use-plugin
-usePlugin('java')
+usePlugin 'java'
 // END SNIPPET use-plugin
 
 // START SNIPPET customisation
@@ -28,3 +28,9 @@ dependencies {
 }
 // END SNIPPET repo
 // END SNIPPET dependencies
+
+// START SNIPPET upload
+uploadMaster {
+    uploadResolvers.add(uploadResolvers.createFlatDirResolver('upload', file('repos')))
+}
+// END SNIPPET upload

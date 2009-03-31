@@ -1,15 +1,11 @@
 <chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - Java Projects</title>
 
-    <para>
-        <emphasis>this chapter is currently being rewritten</emphasis>
-    </para>
-
     <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds some tasks to your
-        project, along with some configuration properties, to allow you to compile, test and bundle your Java source code
-        into a Jar. We have in-depth coverage with many examples about the Java plugin, dependency management and
-        multi-project builds in later chapters. In this chapter we want to give you an initial idea of how to build a
-        Java project.
+        project, along with some configuration properties, to allow you to compile and test your Java source code, and
+        bundle it into a JAR file. We have in-depth coverage with many examples about the Java plugin, dependency
+        management and multi-project builds in later chapters. In this chapter we want to give you an initial idea of
+        how to build a Java project.
     </para>
 
     <section>
@@ -18,23 +14,30 @@
         <sample id="javaQuickstart" dir="java/quickstart">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>This is all you need to define a Java project. This will add a number of tasks to your project.
-            <footnote><para>You can use <userinput>gradle -t</userinput> to list the tasks of a project.</para></footnote>
-            Executing <userinput>gradle libs</userinput>
-            will compile, test and jar your code. Gradle looks for your Java source code under
-            <filename>src/main/java</filename> and your test source code under <filename>src/test/java</filename>. In
-            addition, any files under <filename>src/main/resources</filename> will be included in the JAR file as
-            resources, and any files under <filename>src/test/resources</filename> will be included in the classpath
-            used to run the tests.
+        <para>This is all you need to define a Java project. This will apply the Java plugin to your project, which adds
+            a number of tasks to your project.</para>
+        <tip>
+            <title>Viewing Project Tasks</title>
+            <para>You can use <userinput>gradle -t</userinput> to list the tasks of a project. This will let you see
+            the tasks added by the Java plugin.
+        </para></tip>
+        <para>Executing
+            <userinput>gradle libs</userinput> will compile, test and jar your code. Gradle looks for your
+            Java source code under <filename>src/main/java</filename> and your test source code under
+            <filename>src/test/java</filename>. In addition, any files under <filename>src/main/resources</filename>
+            will be included in the JAR file as resources, and any files under <filename>src/test/resources</filename>
+            will be included in the classpath used to run the tests.
         </para>
         <para>You can find out more about the Java plugin in <xref linkend="java_plugin"/>.</para>
 
         <section>
             <title>External Dependencies</title>
 
-            <para>Usually, a project will have some dependencies on external libraries. In order to include external
-                libraries, you need to tell Gradle where to find them. In Gradle, artifacts such as Jar files, are located
-                in a <firstterm>repository</firstterm>. For this example, we will use the public Maven repository:</para>
+            <para>Usually, a project will have some dependencies on external libraries. To reference external
+                libraries in the project, you need to tell Gradle where to find them. In Gradle, artifacts such as Jar
+                files, are located in a <firstterm>repository</firstterm>. A repository can be used for fetching the
+                dependencies of a project, or for publishing the artifacts of a project, or both. For this example,
+                we will use the public Maven repository:</para>
             <sample id="javaQuickstart" dir="java/quickstart">
                 <sourcefile file="build.gradle" snippet="repo"/>
             </sample>
@@ -49,25 +52,37 @@
 
         <section>
             <title>Customising the Project</title>
-            <para>The Java plugin adds a number of properties to your project.
-                <footnote><para>You can use <userinput>gradle -r</userinput> to list the properties of a project.</para></footnote>
-                These properties have default values which are usually sufficient to get started. Let's look at customising
-                some of these values:
+            <para>The Java plugin adds a number of properties to your project. These properties have default values
+                which are usually sufficient to get started. Let's look at customising some of these values:
             </para>
             <sample id="javaQuickstart" dir="java/quickstart">
                 <sourcefile file="build.gradle" snippet="customisation"/>
             </sample>
-            <para>You can also customise the properties of individual tasks. Here we configure the <literal>test</literal>
-                task, which is of type <apilink class="org.gradle.api.tasks.testing.Test"/>, to add a system
-                property when the tests are executed:</para>
+            <tip>
+                <title>Viewing Project Properties</title>
+                <para>You can use <userinput>gradle -r</userinput> to list the properties of a project. This will allow
+                you to see the properties added by the Java plugin, and their default values.</para></tip>
+            <para>The Java plugin adds and configures tasks exactly as described in previous chapters. This
+                means you can use any of the mechanisms shown there to customise these tasks. For example, you can
+                customise the properties of a task, add behaviour or dependencies to a task, or replace a task
+                entirely. In our sample, we will configure the <literal>test</literal> task, which is of type
+                <apilink class="org.gradle.api.tasks.testing.Test"/>, to add a system property when the tests are
+                executed:</para>
             <sample id="javaQuickstart" dir="java/quickstart">
                 <sourcefile file="build.gradle" snippet="task-customisation"/>
             </sample>
         </section>
 
         <section>
-            <title>Publishing the Jar file</title>
-            <para>TODO</para>
+            <title>Publishing the JAR File</title>
+            <para>For the JAR file to be used outside the project, it needs to be published somewhere. In order for
+                Gradle to publish a JAR file, you need to tell it where to publish artifacts to. Artifacts such as JAR
+                files are published to repositories. In our sample, we will publish to the <filename>repos</filename>
+                directory.</para>
+            <sample id="javaQuickstart" dir="java/quickstart">
+                <sourcefile file="build.gradle" snippet="upload"/>
+            </sample>
+            <para>To publish the JAR file, run <userinput>gradle uploadMaster</userinput>.</para>
         </section>
 
         <para>Here's our complete build file:</para>
@@ -92,41 +107,71 @@ D- ultimateApp
             returns XML. Project <literal>shared</literal> contains code used both by <literal>api</literal>
             and <literal>webservice</literal>.
         </para>
-        <para>To define a multi-project build, you need to use a <firstterm>settings file</firstterm>. The settings file
-            lives in the root directory of the source tree, and specifies which projects to include in the build. For
-            this example, we are using a simple hierarchical layout, so our settings file is correspondingly simple:
-        </para>
-        <sample id="javaMultiProject" dir="java/multiproject">
-            <sourcefile file="settings.gradle" snippet="include-projects"/>
-        </sample>
-        <para>Common stuff in root project:</para>
-        <sample id="javaMultiProject" dir="java/multiproject">
-            <sourcefile file="build.gradle"/>
-        </sample>
-        <para>API project depends on shared:</para>
-        <sample id="javaMultiProject" dir="java/multiproject">
-            <sourcefile file="api/build.gradle" snippet="dependencies"/>
-        </sample>
-        <para>API dist:</para>
-        <sample id="javaMultiProject" dir="java/multiproject">
-            <sourcefile file="api/build.gradle" snippet="dists"/>
-        </sample>
-        
-        <para>The common stuff for each of the projects we define in the root project. Not by inheritance but via
-            <emphasis>Configuration Injection</emphasis>. The root project is like a container and
-            <literal>subprojects</literal> iterates over the elements of this container - the projects in this instance -
-            and injects the specified configuration. This way we can easily define the manifest content for all archives.
-        </para>
 
-        <para>In the <literal>api</literal> build script we add further dependencies. One dependency is on the jars
-            produced by the <literal>shared</literal> project. Due to this dependency, Gradle will ensure that
-            project <literal>shared</literal> always gets built before project <literal>api</literal>.
-            We also add a distribution, that gets shipped to the client.
-        </para>
+        <section>
+            <title>Defining a Multi-Project Build</title>
+            <para>To define a multi-project build, you need to create a <firstterm>settings file</firstterm>. The settings
+                file lives in the root directory of the source tree, and specifies which projects to include in the
+                build. It must be called <filename>settings.gradle</filename>. For this example, we are using a simple
+                hierarchical layout. Here is the corresponding settings file:
+            </para>
+            <sample id="javaMultiProject" dir="java/multiproject">
+                <sourcefile file="settings.gradle" snippet="include-projects"/>
+            </sample>
+            <para>You can find out more in <xref linkend="multi_project_builds"/>.</para>
+        </section>
+
+        <section>
+            <title>Common Configuration</title>
+            <para>For most builds, there is some configuration which is common to all projects. In our sample, we will
+                define the common configuration in the root project, using a technique called
+                <firstterm>configuration injection</firstterm>. Here, the root project is like a container and the
+                <literal>subprojects</literal> method iterates over the elements of this container - the projects in
+                this instance - and injects the specified configuration. This way we can easily define the manifest
+                content for all archives, and some common dependencies:
+            </para>
+            <sample id="javaMultiProject" dir="java/multiproject">
+                <sourcefile file="build.gradle"/>
+            </sample>
+        </section>
+
+        <section>
+            <title>Building the Projects</title>
+            <para>Notice that our sample applies the Java plugin to each subproject. This means the tasks and
+                configuration properties we have seen in the previous section is applied to each subproject.
+                So, you can compile, test, and JAR all the projects by running <userinput>gradle libs</userinput> from
+                the root project directory.</para>
+        </section>
+
+        <section>
+            <title>Dependencies Between Projects</title>
+            <para>You can add dependencies between projects in the same build, so that the JAR file of one project is
+                used to compile another project. In the <literal>api</literal> build file we will add a dependency
+                on the jars produced by the <literal>shared</literal> project. Due to this dependency, Gradle will
+                ensure that project <literal>shared</literal> always gets built before project <literal>api</literal>.
+            </para>
+            <sample id="javaMultiProject" dir="java/multiproject">
+                <sourcefile file="api/build.gradle" snippet="dependencies"/>
+            </sample>
+        </section>
+
+        <section>
+            <title>Creating a Distribution</title>
+            <para>
+                We also add a distribution, that gets shipped to the client:
+            </para>
+            <sample id="javaMultiProject" dir="java/multiproject">
+                <sourcefile file="api/build.gradle" snippet="dists"/>
+            </sample>
+        </section>
     </section>
 
     <section>
         <title>Summary</title>
-        <para>TODO</para>
+        <para>In this chapter, you have learnt how to do some of the common things to build a Java based project.
+            This chapter is not exhaustive, and there are many other things you can do. These are dealt with in later
+            chapters. Also, a lot of the behaviour described in this chapter is changable. For example, you can change
+            where Gradle looks Java source files, or add extra tasks, or you can change what any task actually does.
+        </para>
     </section>
 </chapter>

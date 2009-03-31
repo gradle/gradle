@@ -3,7 +3,7 @@ subprojects {
     group = 'org.gradle'
     version = '1.0'
 
-    usePlugin('java')
+    usePlugin 'java'
 
     dependencies {
         addMavenRepo()

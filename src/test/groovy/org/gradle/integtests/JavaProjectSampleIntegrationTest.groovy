@@ -104,7 +104,7 @@ class JavaProjectSampleIntegrationTest {
         File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
 
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists').run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists', 'uploadMaster').run()
 
         // Check tests have run
         checkExistence(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
@@ -112,6 +112,9 @@ class JavaProjectSampleIntegrationTest {
 
         // Check jar exists
         checkExistence(javaprojectDir, "build/quickstart-1.0.jar")
+
+        // Check jar uploaded
+        checkExistence(javaprojectDir, 'repos/quickstart-1.0.jar')
     }
     
     @Test
