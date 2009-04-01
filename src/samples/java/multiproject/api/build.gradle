@@ -1,23 +1,23 @@
-dependsOn(':shared')
+dependsOn ':shared'
 
 // START SNIPPET dependencies
 dependencies {
     compile project(':shared')
 // END SNIPPET dependencies
-    clientModule(['compile'], "commons-lang:commons-lang:2.4") {
-        dependency("commons-io:commons-io:1.2")
+    clientModule(['compile'], 'commons-lang:commons-lang:2.4') {
+        dependency('commons-io:commons-io:1.2')
     }
-    addConfiguration('spi')
+    addConfiguration 'spi'
 // START SNIPPET dependencies
 }
 // END SNIPPET dependencies
 
 // Just a smoke test that using this option does not lead to any exception
-compile.options.compilerArgs = [[value: "-Xlint:unchecked"]]
+compile.options.compilerArgs = [[value: '-Xlint:unchecked']]
 
 libs.jar(appendix: 'spi', confs: ['spi']) {
     fileSet() {
-        include('org/gradle/api/')
+        include 'org/gradle/api/**'
     }
 }
  
@@ -25,7 +25,7 @@ libs.jar(appendix: 'spi', confs: ['spi']) {
 dists {
 	zip() {
 		files(dependencies.runtime)
-		fileSet(dir: "src/dist")
+		fileSet(dir: 'src/dist')
 	}
 }
 // END SNIPPET dists

@@ -1,4 +1,4 @@
-dependsOn(':shared')
+dependsOn ':shared'
 
 usePlugin 'war'
 
