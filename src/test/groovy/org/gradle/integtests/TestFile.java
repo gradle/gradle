@@ -17,25 +17,32 @@ package org.gradle.integtests;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.util.GFileUtils;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 
 public class TestFile {
     private final File file;
 
-    public TestFile(File file) {
-        this.file = file.getAbsoluteFile();
+    public TestFile(File file, Object... path) {
+        File current = GFileUtils.canonicalise(file);
+        for (Object p : path) {
+            current = GFileUtils.canonicalise(new File(current, p.toString()));
+        }
+        this.file = current;
     }
 
+    public TestFile file(Object... path) {
+        return new TestFile(file, path);
+    }
+    
     public TestFile writelns(String... lines) {
-        Formatter formatter = new Formatter();
-        for (String line : lines) {
-            formatter.format("%s%n", line);
-        }
-        return write(formatter);
+        return writelns(Arrays.asList(lines));
     }
 
     public TestFile write(Object content) {
@@ -70,5 +77,13 @@ public class TestFile {
             formatter.format("%s%n", line);
         }
         return write(formatter);
+    }
+
+    public void assertExists() {
+        assertTrue(String.format("%s does not exist", file), file.exists());
+    }
+
+    public void assertDoesNotExist() {
+        assertFalse(String.format("%s should not exist", file), file.exists());
     }
 }

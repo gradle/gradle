@@ -42,6 +42,6 @@ class MavenRepoIntegrationTest {
 
         File projectDir = new File(dist.samplesDir, PROJECT_NAME)
         executer.inDirectory(projectDir).withTasks('retrieve').run()
-        expectedFiles.each { JavaProjectSampleIntegrationTest.checkExistence(projectDir, 'build', it)}
+        expectedFiles.each { new TestFile(projectDir, 'build', it).assertExists() }
     }
 }

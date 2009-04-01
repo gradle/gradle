@@ -5,13 +5,10 @@ usePlugin 'groovy'
 group = 'org.gradle'
 version = '1.0'
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
-
 dependencies {
-    groovy "org.codehaus.groovy:groovy-all:1.6.0"
+    groovy 'org.codehaus.groovy:groovy-all:1.6.0'
     compile project(':groovycDetector')
-    testCompile "junit:junit:4.4"
+    testCompile 'junit:junit:4.4'
 }
 
 compile {

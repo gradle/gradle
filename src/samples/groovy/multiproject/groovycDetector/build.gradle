@@ -2,9 +2,6 @@ usePlugin 'java'
 
 version = 'SNAPSHOT'
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
-
 dependencies {
-    compile "org.codehaus.groovy:groovy-all:1.6.0"
+    compile 'org.codehaus.groovy:groovy-all:1.6.0'
 }

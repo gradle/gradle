@@ -7,6 +7,7 @@ import org.gradle.integtests.testng.TestNGIntegrationProject
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*
+import org.gradle.integtests.TestFile
 
 /**
  * @author Tom Eyckmans
@@ -66,27 +67,42 @@ public class TestNGIntegrationTest {
     private GradleExecuter executer;
 
     @Test
-    public void testNGSamples() {
-        final List projects =
-            [   SUITE_XML_BUILDER,
-                GROOVY_JDK15_FAILING, GROOVY_JDK15_PASSING,
-                JAVA_JDK14_FAILING, JAVA_JDK14_PASSING, JAVA_JDK15_FAILING, JAVA_JDK15_PASSING, JAVA_JDK15_PASSING_NO_REPORT]
+    public void suiteXmlBuilder() {
+        checkProject(SUITE_XML_BUILDER)
+    }
 
-        projects.each {it ->
-            final File projectDir = new File(new File(dist.samplesDir, "testng"), it.name)
+    @Test
+    public void groovyJdk15() {
+        checkProject(GROOVY_JDK15_PASSING)
+        checkProject(GROOVY_JDK15_FAILING)
+    }
 
-            def result
-            executer.inDirectory(projectDir).withTasks('clean', 'test')
-            if (it.expectFailure) {
-                result = executer.runWithFailure()
-            }
-            else {
-                result = executer.run()
-            }
+    @Test
+    public void javaJdk14() {
+        checkProject(GROOVY_JDK15_PASSING)
+        checkProject(GROOVY_JDK15_FAILING)
+    }
 
-            // output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand
-            it.doAssert(projectDir, result)
+    @Test
+    public void javaJdk15() {
+        checkProject(JAVA_JDK15_PASSING)
+        checkProject(JAVA_JDK15_FAILING)
+        checkProject(JAVA_JDK15_PASSING_NO_REPORT)
+    }
+
+    private def checkProject(project) {
+        final File projectDir = new File(new File(dist.samplesDir, "testng"), project.name)
+
+        def result
+        executer.inDirectory(projectDir).withTasks('clean', 'test')
+        if (project.expectFailure) {
+            result = executer.runWithFailure()
+        } else {
+            result = executer.run()
         }
+
+        // output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand
+        project.doAssert(projectDir, result)
     }
 
     static File file(File baseDir, String[] path) {
@@ -94,25 +110,10 @@ public class TestNGIntegrationTest {
     }
 
     static void checkExists(File baseDir, String[] path) {
-        checkExistence(baseDir, true, path)
+        new TestFile(baseDir, path).assertExists()
     }
 
     static void checkDoesNotExists(File baseDir, String[] path) {
-        checkExistence(baseDir, false, path)
+        new TestFile(baseDir, path).assertDoesNotExist()
     }
-
-    static void checkExistence(File baseDir, boolean shouldExists, String[] path) {
-        File file = file(baseDir, path)
-        try {
-            assert shouldExists ? file.exists() : !file.exists()
-        } catch (AssertionError e) {
-            if (shouldExists) {
-                println("File: $file should exist, but does not!")
-            } else {
-                println("File: $file should not exist, but does!")
-            }
-            throw e
-        }
-    }
-
 }

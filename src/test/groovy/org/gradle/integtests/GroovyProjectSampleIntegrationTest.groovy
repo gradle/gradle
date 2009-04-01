@@ -44,13 +44,13 @@ class GroovyProjectSampleIntegrationTest {
 
         // Build libs
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
-        mainFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, packagePrefix, it + ".class")}
-        excludedFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, false, packagePrefix, it + ".class")}
+        mainFiles.each { new TestFile(testProjectDir, packagePrefix, it + ".class").assertExists() }
+        excludedFiles.each { new TestFile(testProjectDir, false, packagePrefix, it + ".class").assertDoesNotExist() }
 
-        testFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, testPackagePrefix, it + ".class") }
+        testFiles.each { new TestFile(testProjectDir, testPackagePrefix, it + ".class").assertExists() }
 
         // The test produce marker files with the name of the test class
-        testFiles.each { JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build', it) }
+        testFiles.each { new TestFile(testProjectDir, 'build', it).assertExists() }
 
         String unjarPath = "$testProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()
@@ -60,23 +60,37 @@ class GroovyProjectSampleIntegrationTest {
 
         // Build docs
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
-        JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build/docs/javadoc/index.html')
-        JavaProjectSampleIntegrationTest.checkExistence(testProjectDir, 'build/docs/groovydoc/index.html')
+        new TestFile(testProjectDir, 'build/docs/javadoc/index.html').assertExists()
+        new TestFile(testProjectDir, 'build/docs/groovydoc/index.html').assertExists()
 
         // This test is also important for test cleanup
         executer.inDirectory(groovyProjectDir).withTasks('clean').run()
-        assert !(new File(testProjectDir, "build").exists())
+        new TestFile(testProjectDir, "build").assertDoesNotExist()
     }
 
     @Test
     public void groovyProjectQuickstartSample() {
         File groovyProjectDir = new File(dist.samplesDir, 'groovy/quickstart')
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
+
+        // Check tests have run
+        new TestFile(groovyProjectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml').assertExists()
+        new TestFile(groovyProjectDir, 'build/test-results/TESTS-TestSuites.xml').assertExists()
+
+        // Check jar exists
+        new TestFile(groovyProjectDir, "build/quickstart-unspecified.jar").assertExists()
     }
 
     @Test
     public void groovy1_5_6Sample() {
         File groovyProjectDir = new File(dist.samplesDir, 'groovy/groovy-1.5.6')
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
+        
+        // Check tests have run
+        new TestFile(groovyProjectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml').assertExists()
+        new TestFile(groovyProjectDir, 'build/test-results/TESTS-TestSuites.xml').assertExists()
+
+        // Check jar exists
+        new TestFile(groovyProjectDir, "build/groovy-1.5.6-unspecified.jar").assertExists()
     }
 }

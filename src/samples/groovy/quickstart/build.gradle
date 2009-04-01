@@ -1,1 +1,13 @@
+// START SNIPPET use-plugin
 usePlugin 'groovy'
+// END SNIPPET use-plugin
+
+// START SNIPPET groovy-dependency
+dependencies {
+// END SNIPPET groovy-dependency
+    addMavenRepo()
+    testCompile 'junit:junit:4.+'
+// START SNIPPET groovy-dependency
+    groovy 'org.codehaus.groovy:groovy-all:1.6.0'
+}
+// END SNIPPET groovy-dependency

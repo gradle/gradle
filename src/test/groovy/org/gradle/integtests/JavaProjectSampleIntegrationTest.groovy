@@ -29,6 +29,7 @@ import org.junit.Test
  */
 @RunWith(DistributionIntegrationTestRunner.class)
 class JavaProjectSampleIntegrationTest {
+
     static final String JAVA_PROJECT_NAME = 'javaproject'
     static final String SHARED_NAME = 'shared'
     static final String API_NAME = 'api'
@@ -51,39 +52,39 @@ class JavaProjectSampleIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'dists').run()
 
         // Check classes and resources
-        checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
-        checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
+        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
+        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
 
         // Check test classes and resources
-        checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
-        checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
-        checkExistence(javaprojectDir, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
-        checkExistence(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
+        assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
+        assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
+        assertExists(javaprojectDir, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
+        assertExists(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
 
         // Check test results and report
-        checkExistence(javaprojectDir, SHARED_NAME, 'build/test-results/TEST-org.gradle.shared.PersonTest.xml')
-        checkExistence(javaprojectDir, SHARED_NAME, 'build/test-results/TESTS-TestSuites.xml')
-        checkExistence(javaprojectDir, SHARED_NAME, 'build/reports/tests/index.html')
-        checkExistence(javaprojectDir, WEBAPP_PATH, 'build/test-results/TEST-org.gradle.webservice.TestTestTest.xml')
-        checkExistence(javaprojectDir, WEBAPP_PATH, 'build/test-results/TESTS-TestSuites.xml')
-        checkExistence(javaprojectDir, WEBAPP_PATH, 'build/reports/tests/index.html')
+        assertExists(javaprojectDir, SHARED_NAME, 'build/test-results/TEST-org.gradle.shared.PersonTest.xml')
+        assertExists(javaprojectDir, SHARED_NAME, 'build/test-results/TESTS-TestSuites.xml')
+        assertExists(javaprojectDir, SHARED_NAME, 'build/reports/tests/index.html')
+        assertExists(javaprojectDir, WEBAPP_PATH, 'build/test-results/TEST-org.gradle.webservice.TestTestTest.xml')
+        assertExists(javaprojectDir, WEBAPP_PATH, 'build/test-results/TESTS-TestSuites.xml')
+        assertExists(javaprojectDir, WEBAPP_PATH, 'build/reports/tests/index.html')
 
         // Check jar exists
-        checkExistence(javaprojectDir, SHARED_NAME, "build/$SHARED_NAME-1.0.jar".toString())
-        checkExistence(javaprojectDir, API_NAME, "build/$API_NAME-1.0.jar".toString())
-        checkExistence(javaprojectDir, API_NAME, "build/$API_NAME-spi-1.0.jar".toString())
-        checkExistence(javaprojectDir, WEBAPP_PATH, "build/$WEBAPP_NAME-2.5.war".toString())
+        assertExists(javaprojectDir, SHARED_NAME, "build/$SHARED_NAME-1.0.jar".toString())
+        assertExists(javaprojectDir, API_NAME, "build/$API_NAME-1.0.jar".toString())
+        assertExists(javaprojectDir, API_NAME, "build/$API_NAME-spi-1.0.jar".toString())
+        assertExists(javaprojectDir, WEBAPP_PATH, "build/$WEBAPP_NAME-2.5.war".toString())
 
         // Check dist zip exists
-        checkExistence(javaprojectDir, API_NAME, "build/distributions/$API_NAME-1.0.zip".toString())
+        assertExists(javaprojectDir, API_NAME, "build/distributions/$API_NAME-1.0.zip".toString())
 
         // Javdoc build
         executer.inDirectory(javaprojectDir).withTasks('clean', 'javadoc').run()
-        checkExistence(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
+        assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
         assertTrue(fileText(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').contains("These are the shared classes."))
-        checkExistence(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
+        assertExists(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
         assertTrue(fileText(javaprojectDir, API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').contains("These are the API classes"))
-        checkExistence(javaprojectDir, WEBAPP_PATH, 'build/docs/javadoc/index.html')
+        assertExists(javaprojectDir, WEBAPP_PATH, 'build/docs/javadoc/index.html')
 
         // Partial build using current directory
         executer.inDirectory(new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME")).withTasks('clean', 'libs').run()
@@ -91,8 +92,8 @@ class JavaProjectSampleIntegrationTest {
 
         // Partial build using task path
         executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:compile".toString()).run()
-        checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
-        checkExistence(javaprojectDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
+        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
+        assertDoesNotExist(javaprojectDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
 
         // This test is also important for test cleanup
         executer.inDirectory(javaprojectDir).withTasks('clean').run()
@@ -107,14 +108,14 @@ class JavaProjectSampleIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'dists', 'uploadMaster').run()
 
         // Check tests have run
-        checkExistence(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        checkExistence(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
+        assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
+        assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
 
         // Check jar exists
-        checkExistence(javaprojectDir, "build/quickstart-1.0.jar")
+        assertExists(javaprojectDir, "build/quickstart-1.0.jar")
 
         // Check jar uploaded
-        checkExistence(javaprojectDir, 'repos/quickstart-1.0.jar')
+        assertExists(javaprojectDir, 'repos/quickstart-1.0.jar')
     }
     
     @Test
@@ -137,11 +138,11 @@ class JavaProjectSampleIntegrationTest {
                 file(javaprojectDir, WEBAPP_PATH, ".settings/org.eclipse.wst.common.component").text)
 
         executer.inDirectory(javaprojectDir).withTasks('eclipseClean').run()
-        checkExistence(javaprojectDir, false, API_NAME, ".project")
-        checkExistence(javaprojectDir, false, WEBAPP_PATH, ".project")
-        checkExistence(javaprojectDir, false, API_NAME, ".classpath")
-        checkExistence(javaprojectDir, false, WEBAPP_PATH, ".project")
-        checkExistence(javaprojectDir, false, WEBAPP_PATH, ".settings/org.eclipse.wst.common.component")
+        assertDoesNotExist(javaprojectDir, false, API_NAME, ".project")
+        assertDoesNotExist(javaprojectDir, false, WEBAPP_PATH, ".project")
+        assertDoesNotExist(javaprojectDir, false, API_NAME, ".classpath")
+        assertDoesNotExist(javaprojectDir, false, WEBAPP_PATH, ".project")
+        assertDoesNotExist(javaprojectDir, false, WEBAPP_PATH, ".settings/org.eclipse.wst.common.component")
     }
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
@@ -156,38 +157,28 @@ class JavaProjectSampleIntegrationTest {
     }
            
     private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {
-        checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
-        checkExistence(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
-        checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
-        checkExistence(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
-        checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, packagePrefix, WEBAPP_NAME, 'TestTest.class')
-        checkExistence(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'webservice-2.5.war')
-        checkExistence(javaprojectDir, false, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'webservice-2.5.jar')
+        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
+        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
+        assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
+        assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
+        assertExists(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, packagePrefix, WEBAPP_NAME, 'TestTest.class')
+        assertExists(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'webservice-2.5.war')
+        assertDoesNotExist(javaprojectDir, false, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'webservice-2.5.jar')
     }
 
-    static void checkExistence(File baseDir, String[] path) {
-        checkExistence(baseDir, true, path)
+    private static void assertExists(File baseDir, String[] path) {
+        new TestFile(baseDir).file(path).assertExists()
     }
 
     static File file(File baseDir, String[] path) {
         new File(baseDir, path.join('/'));    
     }
 
-    static void checkExistence(File baseDir, boolean shouldExists, String[] path) {
-        File file = file(baseDir, path)
-        try {
-            assert shouldExists ? file.exists() : !file.exists()
-        } catch (AssertionError e) {
-            if (shouldExists) {
-                println("File: $file should exist, but does not!")
-            } else {
-                println("File: $file should not exist, but does!")
-            }
-            throw e
-        }
+    static void assertDoesNotExist(File baseDir, boolean shouldExists, String[] path) {
+        new TestFile(baseDir).file(path).assertDoesNotExist()
     }
 
     static String fileText(File baseDir, String[] path) {
-        new File(baseDir, path.join('/')).text
+        file(baseDir, path).text
     }
 }
