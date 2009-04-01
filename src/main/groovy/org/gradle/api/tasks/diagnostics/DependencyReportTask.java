@@ -67,7 +67,7 @@ public class DependencyReportTask extends AbstractReportTask {
             // todo - move the following to Configuration, so that a IvyDependencyGraph can be obtained directly
             ResolveInstructionModifier resolveInstructionModifier = new ResolveInstructionModifier() {
                 public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
-                    return new ResolveInstruction(resolveInstruction).setFailOnResolveError(false);
+                    return new ResolveInstruction(resolveInstruction).setFailOnResolveError(true);
                 }
             };
             IvyDependencyGraph graph = graphBuilder.buildGraph(configuration.resolveAsReport(resolveInstructionModifier), configuration.getName());

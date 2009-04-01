@@ -32,19 +32,22 @@ public class IvyDependencyGraphBuilder
 
     private IvyDependency processNode(IvyNode node, IvyDependencyGraph graph, String conf)
     {
+        if (!node.isLoaded()) {
+            return null;
+        }
+
         String name = node.getResolvedId().getName();
         String group = node.getResolvedId().getOrganisation();
         String revision = node.getResolvedId().getRevision();
-
-        IvyDependency ivyDependency = graph.findOrCreateDependeny(name, group, revision);
+        IvyDependency ivyDependency = graph.findOrCreateDependency(name, group, revision);
 
         Collection<IvyNode> dependencies = node.getDependencies(conf, new String[] { conf });
-
         for(IvyNode dependency : dependencies)
         {
             IvyDependency retDep = processNode(dependency, graph, conf);
-            
-            ivyDependency.addDependency(retDep);
+            if (retDep != null) {
+                ivyDependency.addDependency(retDep);
+            }
         }
 
         return ivyDependency;
@@ -62,13 +65,16 @@ public class IvyDependencyGraphBuilder
         List<IvyNode> dependencies = report.getDependencies();
 
         ModuleRevisionId revisionId = report.getModuleDescriptor().getModuleRevisionId();
-        IvyDependency root = graph.findOrCreateDependeny(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
+        IvyDependency root = graph.findOrCreateDependency(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
 
         graph.setRoot(root);
 
         for(IvyNode dependency : dependencies)
         {
-            root.addDependency(processNode(dependency, graph, conf));
+            IvyDependency dep = processNode(dependency, graph, conf);
+            if (dep != null) {
+                root.addDependency(dep);
+            }
         }
 
         return graph;

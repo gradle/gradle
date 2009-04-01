@@ -54,7 +54,7 @@ public class IvyDependencyGraph
      * @param revision
      * @return The matching dependency otherwise null
      */
-    public IvyDependency findOrCreateDependeny(String name, String organisation, String revision)
+    public IvyDependency findOrCreateDependency(String name, String organisation, String revision)
     {
         String id = buildId(name, organisation, revision);
 

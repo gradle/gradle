@@ -71,7 +71,7 @@ public class DependencyReportTaskTest {
 
         final Spec<ResolveInstruction> resolveInstructionMatcher = new Spec<ResolveInstruction>() {
             public boolean isSatisfiedBy(ResolveInstruction element) {
-                return element.isFailOnResolveError() == false;
+                return element.isFailOnResolveError() == true;
             }
         };
 

@@ -1,0 +1,11 @@
+
+dependencies {
+    addConfiguration('compile')
+    classpathResolvers.add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+        name = 'resolver'
+        addArtifactPattern(projectDir.absolutePath + '/[module]-[revision].jar')
+        addIvyPattern(projectDir.absolutePath + '/[module]-[revision]-ivy.xml')
+    }
+    compile 'test:projectA:1.2'
+    compile 'test:projectB:2.1.5'
+}
