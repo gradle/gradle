@@ -30,7 +30,7 @@ public class ExtractSnippetsTask extends DefaultTask {
 
             destFile.parentFile.mkdirs()
 
-            if (['.jar', '.zip', '.html'].find{ name.endsWith(it) }) {
+            if (['.jar', '.zip'].find{ name.endsWith(it) }) {
                 destFile.withOutputStream { it.write(srcFile.readBytes()) }
                 return
             }

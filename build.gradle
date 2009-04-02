@@ -369,9 +369,17 @@ createTask('samples', type: ExtractSnippetsTask)
 samples {
     sourceFiles = ant.fileset(dir: samplesSrcDir) {
         exclude(name: 'userguideOutput/**')
+        exclude(name: 'userguide/tutorial/antChecksumFiles/**')
     }
     destDir = explodedDistSamplesDir
     snippetsDir = project.snippetsDir
+}
+samples.doLast {
+    ant.copy(todir: explodedDistSamplesDir) {
+        fileset(dir: samplesSrcDir) {
+            include(name: 'userguide/tutorial/antChecksumFiles/**')
+        }
+    }
 }
 
 createTask('userguideSrc', type: UserGuideTransformTask, dependsOn: 'samples')
