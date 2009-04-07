@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     compile("group1:compile:1.0") {
-        exclude('org': 'excludeGroup', module: 'excludeArtifact')
+        exclude(group: 'excludeGroup', module: 'excludeArtifact')
     }
     providedCompile "group2:providedCompile:1.0@jar"
     runtime "group3:runtime:1.0"
