@@ -360,7 +360,7 @@ public class DefaultConfigurationTest {
 ////            allowing(taskDependencyMock).getDependencies(with(any(Task.class)));
 ////            will(returnValue(WrapUtil.toSet(taskMock)));
 ////        }});
-////        assertThat((Set<Task>) configurationResolver.getBuildArtifactDependencies().getDependencies(taskMock),
+////        assertThat((Set<Task>) configurationResolver.getBuildArtifacts().getDependencies(taskMock),
 ////                equalTo(WrapUtil.toSet(taskMock)));
 ////    }
 //
@@ -381,7 +381,7 @@ public class DefaultConfigurationTest {
 //            allowing(taskDependencyMock).getDependencies(with(any(Task.class)));
 //            will(returnValue(WrapUtil.toSet(taskMock)));
 //        }});
-//        assertThat((Set<Task>) configurationResolver.getBuildArtifactDependencies().getDependencies(taskMock),
+//        assertThat((Set<Task>) configurationResolver.getBuildArtifacts().getDependencies(taskMock),
 //                equalTo(WrapUtil.toSet(taskMock)));
 //    }
 

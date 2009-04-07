@@ -130,12 +130,12 @@ public interface Configuration extends FileCollection{
     String getUploadTaskName();
 
     /**
-     * Returns a task dependencies object containing all required dependencies to build the project dependencies
-     * belonging to this configuration or to one of its super configurations.
+     * Returns a task dependencies object containing all required dependencies to build the internal dependencies
+     * (e.g. project dependencies) belonging to this configuration or to one of its super configurations.
      *
      * @return a task dependency object
      */
-    TaskDependency getBuildProjectDependencies();
+    TaskDependency getBuildDependencies();
 
     /**
      * Returns a task dependencies object containing all required dependencies to build the artifacts
@@ -143,7 +143,7 @@ public interface Configuration extends FileCollection{
      *
      * @return a task dependency object
      */
-    TaskDependency getBuildArtifactDependencies();
+    TaskDependency getBuildArtifacts();
 
     void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction);
 

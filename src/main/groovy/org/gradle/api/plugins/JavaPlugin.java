@@ -36,7 +36,6 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
@@ -238,7 +237,7 @@ public class JavaPlugin implements Plugin {
         publishInstruction.setIvyFileParentDir(project.getBuildDir());
         upload.setConfiguration(configuration);
         upload.setPublishInstruction(publishInstruction);
-        upload.dependsOn(configuration.getBuildArtifactDependencies());
+        upload.dependsOn(configuration.getBuildArtifacts());
         return upload;
     }
 
@@ -320,7 +319,7 @@ public class JavaPlugin implements Plugin {
     private void addDependsOnProjectDependencies(final Task task, String configurationName) {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().get(configurationName);
-        task.dependsOn(configuration.getBuildProjectDependencies());
+        task.dependsOn(configuration.getBuildDependencies());
     }
 
     protected JavaPluginConvention java(Convention convention) {

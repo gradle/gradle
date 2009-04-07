@@ -53,7 +53,7 @@ public class OsgiPlugin implements Plugin {
                 if (archiveTask instanceof Jar) {
                     archiveTask.getProject().addAfterEvaluateListener(new AfterEvaluateListener() {
                         public void afterEvaluate(Project project) {
-                            archiveTask.dependsOn(project.getConfigurations().get(JavaPlugin.RUNTIME).getBuildProjectDependencies());
+                            archiveTask.dependsOn(project.getConfigurations().get(JavaPlugin.RUNTIME).getBuildDependencies());
                         }
                     });
                     archiveTask.defineProperty("osgi", createDefaultOsgiManifest(archiveTask.getProject()));

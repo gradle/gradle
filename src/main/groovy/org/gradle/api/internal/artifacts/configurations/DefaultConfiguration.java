@@ -1,6 +1,5 @@
 package org.gradle.api.internal.artifacts.configurations;
 
-import groovy.lang.Closure;
 import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -189,12 +188,12 @@ public class DefaultConfiguration implements Configuration {
         return resolve().iterator();
     }
 
-    public TaskDependency getBuildProjectDependencies() {
+    public TaskDependency getBuildDependencies() {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
                 for (Configuration configuration : getExtendsFrom()) {
-                    taskDependency.add(configuration.getBuildProjectDependencies());
+                    taskDependency.add(configuration.getBuildDependencies());
                 }
                 for (ProjectDependency projectDependency : getProjectDependencies()) {
                     Configuration configuration = projectDependency.getDependencyProject().getConfigurations().get(
@@ -207,12 +206,12 @@ public class DefaultConfiguration implements Configuration {
         };
     }
 
-    public TaskDependency getBuildArtifactDependencies() {
+    public TaskDependency getBuildArtifacts() {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
                 for (Configuration configuration : getExtendsFrom()) {
-                    taskDependency.add(configuration.getBuildArtifactDependencies());
+                    taskDependency.add(configuration.getBuildArtifacts());
                 }
                 for (PublishArtifact publishArtifact : getArtifacts()) {
                     taskDependency.add(publishArtifact.getTaskDependency());
