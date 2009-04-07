@@ -34,7 +34,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -225,7 +224,7 @@ public class DefaultConfigurationTest {
     public void getAsPath() {
         File file1 = new File("somePath1");
         File file2 = new File("somePath2");
-        final Set<File> fileSet = WrapUtil.toSet(file1, file2);
+        final Set<File> fileSet = WrapUtil.toLinkedSet(file1, file2);
         makeResolveReturnFileSet(fileSet);
         assertThat(configuration.getAsPath(), equalTo(file1.getAbsolutePath() + ":" + file2.getAbsolutePath()));
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
