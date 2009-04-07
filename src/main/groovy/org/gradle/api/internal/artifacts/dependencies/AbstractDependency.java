@@ -17,17 +17,19 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import groovy.lang.Closure;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ExcludeRuleContainer;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
-import org.gradle.api.internal.artifacts.ExcludeRuleContainer;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
 * @author Hans Dockter

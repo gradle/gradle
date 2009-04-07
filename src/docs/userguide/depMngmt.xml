@@ -149,7 +149,7 @@ dependencies {
 dependencies {
 	compile("org.codehaus.groovy:groovy-all:1.5.4") {
 	        exclude(module: 'jline')
-	        exclude(org: 'junit', module: 'junit')
+	        exclude(group: 'junit', module: 'junit')
 	}
 }
 ]]></programlisting>
@@ -232,24 +232,11 @@ dependencies {
             </para>
             <programlisting><![CDATA[
 dependencies {
-    excludeRules.add(org: 'junit', module: 'junit')
+    excludeRules.add(group: 'junit', module: 'junit')
 }
 ]]></programlisting>
-            <para>You can either specify only the organization (group) or only the module name. Gradle delegates to
-                Ivy's exclude handling for this. Ivy has a very powerful exclude handling including regex patterns. To
-                make full use of this you can create an Ivy exclude rule by your self and add it to the exclude rules.
-            </para>
-            <programlisting><![CDATA[
-dependencies {
-    excludeRules.getNativeRules().add(new DefaultExcludeRule(new ArtifactId(
-          new ModuleId('someorg', 'somemodule'), 
-		  PatternMatcher.ANY_EXPRESSION,
-          PatternMatcher.ANY_EXPRESSION,
-          PatternMatcher.ANY_EXPRESSION),
-          ExactPatternMatcher.INSTANCE, null));
-}
-]]></programlisting>
-            <para>Have also a look at <apilink class="org.gradle.api.internal.artifacts.ExcludeRuleContainer"/>
+            <para>You can either specify only the organization (group) or only the module name.
+                Have also a look at <apilink class="org.gradle.api.artifacts.ExcludeRuleContainer"/>
             </para>
         </section>
         <section id='sub:ivy_dependencies'>

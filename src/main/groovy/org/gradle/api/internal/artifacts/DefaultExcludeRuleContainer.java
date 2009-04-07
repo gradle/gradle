@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ExcludeRuleContainer;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;

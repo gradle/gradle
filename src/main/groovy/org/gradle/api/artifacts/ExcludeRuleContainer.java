@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
-
-import org.gradle.api.artifacts.ExcludeRule;
+package org.gradle.api.artifacts;
 
 import java.util.Map;
 import java.util.Set;

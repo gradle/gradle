@@ -24,13 +24,13 @@ import org.gradle.api.artifacts.ExcludeRule;
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public DefaultMavenExclude convert(ExcludeRule excludeRule) {
         if (isConvertable(excludeRule)) {
-            return new DefaultMavenExclude(excludeRule.getExcludeArgs().get(ExcludeRule.ORG_KEY),
+            return new DefaultMavenExclude(excludeRule.getExcludeArgs().get(ExcludeRule.GROUP_KEY),
                     excludeRule.getExcludeArgs().get(ExcludeRule.MODULE_KEY));
         }
         return null;
     }
 
     private boolean isConvertable(ExcludeRule excludeRule) {
-        return excludeRule.getExcludeArgs().containsKey(ExcludeRule.ORG_KEY) && excludeRule.getExcludeArgs().containsKey(ExcludeRule.MODULE_KEY);
+        return excludeRule.getExcludeArgs().containsKey(ExcludeRule.GROUP_KEY) && excludeRule.getExcludeArgs().containsKey(ExcludeRule.MODULE_KEY);
     }
 }

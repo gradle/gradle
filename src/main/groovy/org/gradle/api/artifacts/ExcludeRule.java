@@ -21,7 +21,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface ExcludeRule {
-    String ORG_KEY = "org";
+    String GROUP_KEY = "group";
     String MODULE_KEY = "module";
 
     Map<String, String> getExcludeArgs();

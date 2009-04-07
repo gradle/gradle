@@ -28,7 +28,7 @@ import org.gradle.util.GUtil;
  */
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public DefaultExcludeRule createExcludeRule(ExcludeRule excludeRule) {
-        String org = GUtil.elvis(excludeRule.getExcludeArgs().get(ExcludeRule.ORG_KEY), PatternMatcher.ANY_EXPRESSION);
+        String org = GUtil.elvis(excludeRule.getExcludeArgs().get(ExcludeRule.GROUP_KEY), PatternMatcher.ANY_EXPRESSION);
         String module = GUtil.elvis(excludeRule.getExcludeArgs().get(ExcludeRule.MODULE_KEY), PatternMatcher.ANY_EXPRESSION);
         DefaultExcludeRule ivyExcludeRule = new DefaultExcludeRule(new ArtifactId(
                 new ModuleId(org, module), PatternMatcher.ANY_EXPRESSION,

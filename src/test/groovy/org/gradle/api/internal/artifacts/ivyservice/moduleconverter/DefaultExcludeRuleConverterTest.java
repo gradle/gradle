@@ -33,11 +33,11 @@ public class DefaultExcludeRuleConverterTest {
 
     @Test
     public void testCreateExcludeRule() {
-        Map excludeRuleArgs = GUtil.map(ExcludeRule.ORG_KEY, "someOrg", ExcludeRule.MODULE_KEY, "someModule");
+        Map excludeRuleArgs = GUtil.map(ExcludeRule.GROUP_KEY, "someOrg", ExcludeRule.MODULE_KEY, "someModule");
         org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule =
                 new DefaultExcludeRuleConverter().createExcludeRule(new DefaultExcludeRule(excludeRuleArgs));
         assertThat(ivyExcludeRule.getId().getModuleId().getOrganisation(),
-                Matchers.equalTo(excludeRuleArgs.get(ExcludeRule.ORG_KEY)));
+                Matchers.equalTo(excludeRuleArgs.get(ExcludeRule.GROUP_KEY)));
         assertThat(ivyExcludeRule.getId().getName(),
                 Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
         assertThat(ivyExcludeRule.getId().getExt(),

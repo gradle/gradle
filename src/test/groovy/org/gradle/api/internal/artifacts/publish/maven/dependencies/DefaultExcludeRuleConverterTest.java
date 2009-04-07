@@ -40,7 +40,7 @@ public class DefaultExcludeRuleConverterTest {
     
     @Test
     public void convertableRule() {
-        DefaultExcludeRule excludeRule = new DefaultExcludeRule(GUtil.map(ExcludeRule.ORG_KEY, TEST_ORG, ExcludeRule.MODULE_KEY, TEST_MODULE));
+        DefaultExcludeRule excludeRule = new DefaultExcludeRule(GUtil.map(ExcludeRule.GROUP_KEY, TEST_ORG, ExcludeRule.MODULE_KEY, TEST_MODULE));
         MavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);
         assertEquals(TEST_ORG, mavenExclude.getGroupId());
         assertEquals(TEST_MODULE, mavenExclude.getArtifactId());
@@ -48,7 +48,7 @@ public class DefaultExcludeRuleConverterTest {
     
     @Test
     public void unconvertableRules() {
-        checkForNull(new DefaultExcludeRule(WrapUtil.toMap(ExcludeRule.ORG_KEY, TEST_ORG)));
+        checkForNull(new DefaultExcludeRule(WrapUtil.toMap(ExcludeRule.GROUP_KEY, TEST_ORG)));
         checkForNull(new DefaultExcludeRule(WrapUtil.toMap(ExcludeRule.MODULE_KEY, TEST_MODULE)));
     }
 
