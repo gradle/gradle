@@ -264,8 +264,7 @@ dependencies {
             <para>In the examples above we have already configured the dependency manager. How does this work? The
                 <literal>project</literal>
                 object offers a property called
-                <literal>dependencies</literal>
-                which points to an instance of <apilink class="org.gradle.api.DependencyManager"/>. If you call
+                <literal>dependencies</literal>. If you call
                 <literal>dependencies</literal>
                 with a closure, all statements within the closure are delegated first to the dependency manager. This is
                 the same mechanism which is used for configuring tasks.
@@ -674,7 +673,7 @@ project-root
                 <literal>uploadResolvers</literal>
                 property. You can assign one resolver to multiple hooks.
             </para>
-            <para>All of those hooks are instances of <apilink class="org.gradle.api.internal.artifacts.DefaultResolverContainer"/>.
+            <para>All of those hooks are instances of <apilink class="org.gradle.api.artifacts.ResolverContainer"/>.
                 This class provided methods for adding new resolvers at a particular position in the resolve chain.
                 <footnote>
                     <para>Ivy power users can set <literal>dependencies.chainConfigurer = { // some statements }</literal>.
