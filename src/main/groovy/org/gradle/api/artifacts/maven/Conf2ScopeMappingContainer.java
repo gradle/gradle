@@ -48,11 +48,12 @@ public interface Conf2ScopeMappingContainer {
      * Returns a scope that corresponds to the given configurations. Dependencies can belong to more than one
      * configuration. But it can only belong to one Maven scope, due to the nature of a Maven pom.
      *
-     * <p>Which scope is returned depends on the existing mappings. See {@link #addMapping(int, String, String)}. If only one configuration is mapped, this mapping is used to choose the
-     * scope. If more than one configuraton of a dependency is mapped, and those mappings all map to the same
-     * scope, this scope is used. If more than one configuration is mapped and the mappings map to different
-     * scopes, the mapping with the highest priority is used. If there is more than one mapping with the
-     * highest priority and those mappings map to different scopes, an exception is thrown.</p>
+     * <p>Which scope is returned depends on the existing mappings. See {@link #addMapping(int, String, String)}. If
+     * only one configuration is mapped, this mapping is used to choose the scope. If more than one configuraton of a
+     * dependency is mapped, and those mappings all map to the same scope, this scope is used. If more than one
+     * configuration is mapped and the mappings map to different scopes, the mapping with the highest priority is used.
+     * If there is more than one mapping with the highest priority and those mappings map to different scopes, an
+     * exception is thrown.</p>
      *
      * @param configurations The configuration names 
      * @return The scope corresponding to the given configurations. Returns null if no such scope can be found.

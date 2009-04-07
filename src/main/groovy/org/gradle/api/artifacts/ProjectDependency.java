@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 
 /**
  * <p>A {@code ProjectDependency} is a {@link Dependency} on another project in the current project hierarchy.</p>
@@ -25,10 +24,4 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
  */
 public interface ProjectDependency extends Dependency {
     Project getDependencyProject();
-
-    Project getProject();
-
-    boolean isTransitive();
-
-    DefaultProjectDependency setTransitive(boolean transitive);
 }

@@ -20,11 +20,13 @@ import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.resolver.*;
-import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.artifacts.DependencyManagerInternal;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.publish.maven.*;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
@@ -35,18 +37,13 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroo
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyPomFilterContainer;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultResolverFactory implements ResolverFactory {
-    private File tmpIvyCache;
-
-    public DefaultResolverFactory(File tmpIvyCache) {
-        this.tmpIvyCache = tmpIvyCache;
-    }
-
     public DependencyResolver createResolver(Object userDescription) {
         DependencyResolver result;
         if (userDescription instanceof String) {
@@ -66,7 +63,7 @@ public class DefaultResolverFactory implements ResolverFactory {
         FileSystemResolver resolver = new FileSystemResolver();
         resolver.setName(name);
         for (File root : roots) {
-            String pattern = root.getAbsolutePath() + "/" + DependencyManager.FLAT_DIR_RESOLVER_PATTERN;
+            String pattern = root.getAbsolutePath() + "/" + ResolverContainer.FLAT_DIR_RESOLVER_PATTERN;
             resolver.addArtifactPattern(pattern);
         }
         resolver.setValidate(false);
@@ -75,47 +72,74 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     private RepositoryCacheManager createUseOriginCacheManager(String name) {
+        File tmpIvyCache = createTmpDir();
         DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager();
         cacheManager.setBasedir(tmpIvyCache);
         cacheManager.setName(name);
         cacheManager.setUseOrigin(true);
         cacheManager.setLockStrategy(new NoLockStrategy());
-        cacheManager.setIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
-        cacheManager.setArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN);
+        cacheManager.setIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
+        cacheManager.setArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         return cacheManager;
     }
 
+    private File createTmpDir() {
+        File tmpFile = null;
+        try {
+            tmpFile = File.createTempFile("gradle_ivy_cache", "");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        tmpFile.delete();
+        tmpFile.mkdir();
+        return tmpFile;
+    }
+
     public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
-        IBiblioResolver iBiblioResolver = new IBiblioResolver();
-        iBiblioResolver.setUsepoms(true);
-        iBiblioResolver.setName(name);
-        iBiblioResolver.setRoot(root);
-        iBiblioResolver.setPattern(DependencyManager.MAVEN_REPO_PATTERN);
-        iBiblioResolver.setM2compatible(true);
-        iBiblioResolver.setUseMavenMetadata(true);
+        IBiblioResolver iBiblioResolver = createIBiblioResolver(name, root);
         if (jarRepoUrls.length == 0) {
             iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
             return iBiblioResolver;
         }
         iBiblioResolver.setName(iBiblioResolver.getName() + "_poms");
-        DualResolver dualResolver = new DualResolver();
-        dualResolver.setName(name);
-        dualResolver.setIvyResolver(iBiblioResolver);
+        URLResolver urlResolver = createUrlResolver(name, root, jarRepoUrls);
+        return createDualResolver(name, iBiblioResolver, urlResolver);
+    }
+
+    private IBiblioResolver createIBiblioResolver(String name, String root) {
+        IBiblioResolver iBiblioResolver = new IBiblioResolver();
+        iBiblioResolver.setUsepoms(true);
+        iBiblioResolver.setName(name);
+        iBiblioResolver.setRoot(root);
+        iBiblioResolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
+        iBiblioResolver.setM2compatible(true);
+        iBiblioResolver.setUseMavenMetadata(true);
+        return iBiblioResolver;
+    }
+
+    private URLResolver createUrlResolver(String name, String root, String... jarRepoUrls) {
         URLResolver urlResolver = new URLResolver();
         urlResolver.setName(name + "_jars");
         urlResolver.setM2compatible(true);
-        urlResolver.addArtifactPattern(root + '/' + DependencyManager.MAVEN_REPO_PATTERN);
+        urlResolver.addArtifactPattern(root + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
         for (String jarRepoUrl : jarRepoUrls) {
-            urlResolver.addArtifactPattern(jarRepoUrl + '/' + DependencyManager.MAVEN_REPO_PATTERN);
+            urlResolver.addArtifactPattern(jarRepoUrl + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
         }
+        return urlResolver;
+    }
+
+    private DualResolver createDualResolver(String name, IBiblioResolver iBiblioResolver, URLResolver urlResolver) {
+        DualResolver dualResolver = new DualResolver();
+        dualResolver.setName(name);
+        dualResolver.setIvyResolver(iBiblioResolver);
         dualResolver.setArtifactResolver(urlResolver);
         dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
         return dualResolver;
     }
 
-    public GroovyMavenDeployer createMavenDeployer(String name, File pomDir, DependencyManagerInternal dependencyManager) {
+    public GroovyMavenDeployer createMavenDeployer(String name, File pomDir, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping) {
         DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
-                new DefaultMavenPomFactory(dependencyManager.getDefaultMavenScopeMapping()));
+                new DefaultMavenPomFactory(scopeMapping));
         return new DefaultGroovyMavenDeployer(name,
                 pomFilterContainer,
                 new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
@@ -130,13 +154,13 @@ public class DefaultResolverFactory implements ResolverFactory {
                                         )
                                 )),
                         new DefaultArtifactPomFactory()),
-                dependencyManager
+                configurationContainer
         );
     }
 
-    public MavenResolver createMavenInstaller(String name, File pomDir, DependencyManagerInternal dependencyManager) {
+    public MavenResolver createMavenInstaller(String name, File pomDir, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping) {
         DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
-                new DefaultMavenPomFactory(dependencyManager.getDefaultMavenScopeMapping()));
+                new DefaultMavenPomFactory(scopeMapping));
         return new BaseMavenInstaller(name,
                 pomFilterContainer,
                 new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
@@ -151,15 +175,7 @@ public class DefaultResolverFactory implements ResolverFactory {
                                         )
                                 )),
                         new DefaultArtifactPomFactory()),
-                dependencyManager
+                configurationContainer
         );
-    }
-
-    public File getTmpIvyCache() {
-        return tmpIvyCache;
-    }
-
-    public void setTmpIvyCache(File tmpIvyCache) {
-        this.tmpIvyCache = tmpIvyCache;
     }
 }

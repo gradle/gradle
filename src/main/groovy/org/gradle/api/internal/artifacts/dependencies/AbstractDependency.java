@@ -17,68 +17,51 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
+import org.gradle.api.internal.artifacts.ExcludeRuleContainer;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.WrapUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 
 /**
 * @author Hans Dockter
 */
 public abstract class AbstractDependency implements Dependency {
+    private State state = State.UNRESOLVED;
+    private List<File> resolvedFiles;
 
-    private ChainingTransformer<DependencyDescriptor> transformer
-            = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
+    private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
 
-    private ExcludeRuleContainer excludeRules = new DefaultExcludeRuleContainer();
-
-    private DependencyConfigurationMappingContainer dependencyConfigurationMappings;
-    private List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
+    private String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION;
+    private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
 
     protected AbstractDependency() {
     }
 
-    protected AbstractDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings) {
-        this.dependencyConfigurationMappings = dependencyConfigurationMappings;
-    }
-
     public Dependency exclude(Map<String, String> excludeProperties) {
-        excludeRules.add(excludeProperties);
+        excludeRuleContainer.add(excludeProperties);
         return this;
     }
 
-    public Dependency exclude(Map<String, String> excludeProperties, List<String> confs) {
-        excludeRules.add(excludeProperties, confs);
-        return this;
+    public Set<ExcludeRule> getExcludeRules() {
+        return excludeRuleContainer.getRules();
     }
 
-    public ExcludeRuleContainer getExcludeRules() {
-        return excludeRules;
+    public void setExcludeRuleContainer(ExcludeRuleContainer excludeRuleContainer) {
+        this.excludeRuleContainer = excludeRuleContainer;
     }
 
-    public void setExcludeRules(ExcludeRuleContainer excludeRules) {
-        this.excludeRules = excludeRules;
-    }
-
-    public DependencyConfigurationMappingContainer getDependencyConfigurationMappings() {
-        return dependencyConfigurationMappings;
-    }
-
-    public void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings) {
-        this.dependencyConfigurationMappings = dependencyConfigurationMappings;
-    }
-
-    public List<DependencyArtifact> getArtifacts() {
+    public Set<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
 
-    public void setArtifacts(List<DependencyArtifact> artifacts) {
+    public void setArtifacts(Set<DependencyArtifact> artifacts) {
         this.artifacts = artifacts;
     }
 
@@ -86,54 +69,52 @@ public abstract class AbstractDependency implements Dependency {
         artifacts.add(artifact);
         return this;
     }
-
+    
     public DependencyArtifact artifact(Closure configureClosure) {
         DependencyArtifact artifact =  (DependencyArtifact) ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
         artifacts.add(artifact);
         return artifact;
     }
 
-    public void addIvyTransformer(Transformer<DependencyDescriptor> transformer) {
-        this.transformer.add(transformer);
+    public String getDependencyConfiguration() {
+        return dependencyConfiguration;
     }
 
-    public void addIvyTransformer(Closure transformer) {
-        this.transformer.add(transformer);
-    }
-
-    public Transformer<DependencyDescriptor> getTransformer() {
-        return transformer;
-    }
-
-    public void addDependencyConfiguration(String... dependencyConfigurations) {
-        dependencyConfigurationMappings.add(dependencyConfigurations);
-    }
-
-    public void addConfigurationMapping(Map<Configuration, List<String>> dependencyConfigurations) {
-        dependencyConfigurationMappings.add(dependencyConfigurations);
-    }
-
-    public Map<Configuration, List<String>> getConfigurationMappings() {
-        return dependencyConfigurationMappings.getMappings();
-    }
-
-    public List<String> getDependencyConfigurations(String configuration) {
-        return dependencyConfigurationMappings.getDependencyConfigurations(configuration);
-    }
-
-    public void addConfiguration(Configuration... masterConfigurations) {
-        dependencyConfigurationMappings.addMasters(masterConfigurations);
-    }
-
-    public Set<Configuration> getConfigurations() {
-        return dependencyConfigurationMappings.getMasterConfigurations();
-    }
-
-    public void setDependencyConfigurations(String... confs) {
-        for (Configuration configuration : getConfigurations()) {
-            dependencyConfigurationMappings.setDependencyConfigurations(confs);
+    public AbstractDependency setDependencyConfiguration(String dependencyConfiguration) {
+        if (dependencyConfiguration == null || dependencyConfiguration.length() == 0) {
+            throw new InvalidUserDataException("The dependency configuration can't be empty or null!");
         }
+        this.dependencyConfiguration = dependencyConfiguration;
+        return this;
     }
 
+    @Override
+    public int hashCode() {
+        int result = getGroup() != null ? getGroup().hashCode() : 0;
+        result = 31 * result + getName().hashCode();
+        result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
+        return result;
+    }
 
+//    public void setResolveData(List<File> resolvedFiles) {
+//        assert state != State.UNRESOLVED;
+//
+//        if (resolvedFiles == null) {
+//            state = State.UNRESOLVABLE;
+//        } else {
+//            state = State.RESOLVED;
+//            this.resolvedFiles = resolvedFiles;
+//        }
+//    }
+//
+//    public State getState() {
+//        return state;
+//    }
+//
+//    public List<File> getFiles() {
+//        if (state == State.UNRESOLVABLE || state == State.RESOLVED) {
+//            throw new InvalidUserDataException("Files can't be accessed from an unresolved or unresolvable dependency. State=" + state);
+//        }
+//        return resolvedFiles;
+//    }
 }

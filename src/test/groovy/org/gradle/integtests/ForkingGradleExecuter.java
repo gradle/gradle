@@ -28,13 +28,22 @@ import java.util.*;
 public class ForkingGradleExecuter implements GradleExecuter {
     private final GradleDistribution distribution;
     private File workingDir;
-    private int logLevel = Executer.LIFECYCLE;
-    private List<String> tasks = new ArrayList<String>();
-    private List<String> args = new ArrayList<String>();
+    private int logLevel;
+    private List<String> tasks;
+    private List<String> args;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
+        reset();
         this.distribution = distribution;
         workingDir = distribution.getGradleHomeDir();
+    }
+
+    public GradleExecuter reset() {
+        workingDir = null;
+        logLevel = Executer.LIFECYCLE;
+        tasks = new ArrayList<String>();
+        args = new ArrayList<String>();
+        return this;
     }
 
     public GradleExecuter inDirectory(File directory) {

@@ -16,26 +16,18 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.artifacts.DependencyContainerInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ClientModuleDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultClientModuleDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyDescriptorFactory;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultClientModule extends AbstractDependency implements ClientModule {
-
-    private String id;
 
     private String group;
 
@@ -47,74 +39,27 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
 
     private boolean transitive = true;
 
-    private ChainingTransformer<DependencyDescriptor> transformer
-            = new ChainingTransformer<DependencyDescriptor>(DependencyDescriptor.class);
+    private Set<Dependency> dependencies = new HashSet<Dependency>();
 
-    private DependencyContainerInternal dependencyContainer;
-
-    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
-
-    private ClientModuleDescriptorFactory clientModuleDescriptorFactory = new DefaultClientModuleDescriptorFactory();
-
-    public DefaultClientModule() {
-    }
-
-    public DefaultClientModule(DependencyConfigurationMappingContainer dependencyConfigurationMappings,
-                        String id, DependencyContainerInternal dependencyContainer) {
-        super(dependencyConfigurationMappings);
-        if (id == null) {
-            throw new InvalidUserDataException("Client module notation must not be null.");
+    public DefaultClientModule(String group, String name, String version) {
+        if (name == null) {
+            throw new InvalidUserDataException("Name must not be null!");
         }
-        this.id = id;
-        this.dependencyContainer = dependencyContainer;
-        initFromUserDescription(id);
+        this.group = group;
+        this.name = name;
+        this.version = version;
     }
 
-    private void initFromUserDescription(String userDescription) {
-        String[] moduleDescriptionParts = userDescription.split(":");
-        throwExceptionIfInvalidDescription(moduleDescriptionParts, userDescription);
-        setModulePropertiesFromParsedDescription(moduleDescriptionParts);
-        boolean hasClassifier = moduleDescriptionParts.length == 4;
-        if (hasClassifier) {
-            String classifier = moduleDescriptionParts[3];
-            getArtifacts().add(new DefaultDependencyArtifact(name, DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, classifier, null));
-        }
+    private String emptyStringIfNull(String value) {
+        return value == null ? "" : value;
     }
 
-    private void throwExceptionIfInvalidDescription(String[] moduleDescriptionParts, String userDescription) {
-        int length = moduleDescriptionParts.length;
-        if (length < 3 || length > 4) {
-            throw new InvalidUserDataException("Client module notation is invalid: " + userDescription);
-        }
-    }
-
-    private void setModulePropertiesFromParsedDescription(String[] dependencyParts) {
-        group = dependencyParts[0];
-        name = dependencyParts[1];
-        version = dependencyParts[2];
-    }
-
-    public void addIvyTransformer(Transformer<DependencyDescriptor> dependencyDescriptorTransformer) {
-        this.transformer.add(dependencyDescriptorTransformer);
-    }
-
-    public void addIvyTransformer(Closure transformer) {
-        this.transformer.add(transformer);
-    }
-
-    public DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent) {
-        DependencyDescriptor dd = dependencyDescriptorFactory.createFromClientModule(parent, this);
-        ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(dd.getDependencyRevisionId(), dependencyContainer);
-        dependencyContainer.getClientModuleRegistry().put(id, moduleDescriptor);
-        return transformer.transform(dd);
+    public Set<Dependency> getDependencies() {
+        return dependencies;
     }
 
     public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+        return emptyStringIfNull(group) + ":" + emptyStringIfNull(name) + ":" + emptyStringIfNull(version);
     }
 
     public String getGroup() {
@@ -162,47 +107,36 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
         return this;
     }
 
-    public void dependencies(Object... dependencies) {
-        dependencyContainer.dependencies(WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION), dependencies);
+    public void addDependency(Dependency dependency) {
+        this.dependencies.add(dependency);
     }
 
-    public ClientModule clientModule(String artifact) {
-        return clientModule(artifact, null);
+    public Dependency copy() {
+        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion());
+        Dependencies.copyExternal(this, copiedClientModule);
+        for (Dependency dependency : dependencies) {
+            copiedClientModule.addDependency(dependency.copy());
+        }
+        return copiedClientModule;
     }
 
-    public ClientModule clientModule(String artifact, Closure configureClosure) {
-        return dependencyContainer.clientModule(WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION), artifact, configureClosure);
+    public boolean contentEquals(Dependency dependency) {
+        if (this == dependency) return true;
+        if (dependency == null || getClass() != dependency.getClass()) return false;
+
+        ClientModule that = (ClientModule) dependency;
+        if (!Dependencies.isContentEqualsForExternal(this, that)) return false;
+        
+        return dependencies.equals(that.getDependencies());
     }
 
-    public Dependency dependency(String id) {
-        return dependency(id, null);
-    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-    public Dependency dependency(String id, Closure configureClosure) {
-        return dependencyContainer.dependency(WrapUtil.toList(Dependency.DEFAULT_CONFIGURATION), id, configureClosure);
-    }
+        ClientModule that = (ClientModule) o;
 
-    public DependencyContainer getDependencyContainer() {
-        return dependencyContainer;
-    }
-
-    public void setDependencyContainer(DependencyContainerInternal dependencyContainer) {
-        this.dependencyContainer = dependencyContainer;
-    }
-
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
-    }
-
-    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-    }
-
-    public ClientModuleDescriptorFactory getClientModuleDescriptorFactory() {
-        return clientModuleDescriptorFactory;
-    }
-
-    public void setClientModuleDescriptorFactory(ClientModuleDescriptorFactory clientModuleDescriptorFactory) {
-        this.clientModuleDescriptorFactory = clientModuleDescriptorFactory;
+        return Dependencies.isKeyEquals(this, that);
     }
 }

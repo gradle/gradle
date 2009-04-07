@@ -16,57 +16,27 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.DependencyConfigurationMappingContainer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.WrapUtil;
 
 /**
 * @author Hans Dockter
 */
-public class DefaultProjectDependency extends AbstractDescriptorDependency implements ProjectDependency {
-    private Project project;
-
+public class DefaultProjectDependency extends AbstractDependency implements ProjectDependency {
     private Project dependencyProject;
 
     private boolean transitive = true;
-    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
 
-    public DefaultProjectDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object dependencyProject, Project project) {
-        super(dependencyConfigurationMappings, dependencyProject);
-        this.project = project;
-        this.dependencyProject = (Project) dependencyProject;
-        this.dependencyProject = (Project) dependencyProject;
-    }
-
-    public boolean isValidDescription(Object userDependencyDescription) {
-        return true;
-    }
-
-    public Class[] userDepencencyDescriptionType() {
-        return WrapUtil.toArray(Project.class);
-    }
-
-    public DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent) {
-        return getTransformer().transform(getDependencyDescriptorFactory().createFromProjectDependency(parent, this));
+    public DefaultProjectDependency(Project dependencyProject) {
+        this.dependencyProject = dependencyProject;
     }
 
     public Project getDependencyProject() {
         return dependencyProject;
     }
     
-    public Project getProject() {
-        return project;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
     public boolean isTransitive() {
         return transitive;
     }
@@ -87,12 +57,38 @@ public class DefaultProjectDependency extends AbstractDescriptorDependency imple
     public String getVersion() {
         return dependencyProject.getVersion().toString();
     }
-   
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
+
+    public Dependency copy() {
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject);
+        Dependencies.copy(this, copiedProjectDependency);
+        return copiedProjectDependency;
     }
 
-    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    public boolean contentEquals(Dependency dependency) {
+        if (this == dependency) return true;
+        if (dependency == null || getClass() != dependency.getClass()) return false;
+
+        ProjectDependency that = (ProjectDependency) dependency;
+        if (!Dependencies.isCommonContentEquals(this, that)) return false;
+
+        return dependencyProject.equals(that.getDependencyProject());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProjectDependency that = (ProjectDependency) o;
+
+        return Dependencies.isKeyEquals(this, that);
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultProjectDependency{" +
+                "dependencyProject='" + dependencyProject + '\'' +
+                ", dependencyConfiguration" + getDependencyConfiguration() + '\'' +
+                '}';
     }
 }

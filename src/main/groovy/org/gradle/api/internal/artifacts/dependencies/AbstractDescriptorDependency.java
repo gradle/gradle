@@ -15,29 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDependencyNotation;
-import org.gradle.api.artifacts.DependencyConfigurationMappingContainer;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyDescriptorFactory;
 
 /**
  * @author Hans Dockter
  */
 abstract public class AbstractDescriptorDependency extends AbstractDependency {
     private Object userDependencyDescription;
-    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
 
     protected AbstractDescriptorDependency() {
     }
 
-    public AbstractDescriptorDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDependencyDescription) {
-        super(dependencyConfigurationMappings);
+    public AbstractDescriptorDependency(Object userDependencyDescription) {
+        super();
         if (!(isValidType(userDependencyDescription)) || !isValidDescription(userDependencyDescription)) {
             throw new UnknownDependencyNotation("Description " + userDependencyDescription + " not valid!");
-        }
-        if (dependencyConfigurationMappings == null) {
-            throw new InvalidUserDataException("Configuration mapping must not be null.");
         }
         this.userDependencyDescription = userDependencyDescription;
     }
@@ -61,13 +53,5 @@ abstract public class AbstractDescriptorDependency extends AbstractDependency {
 
     public void setUserDependencyDescription(Object userDependencyDescription) {
         this.userDependencyDescription = userDependencyDescription;
-    }
-
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
-    }
-
-    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 }

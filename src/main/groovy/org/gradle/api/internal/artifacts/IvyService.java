@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.api.artifacts.ResolveInstruction;
-import org.gradle.api.internal.artifacts.ivyservice.BuildResolverHandler;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
@@ -36,28 +34,22 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface IvyService {
-    Ivy ivy(List<DependencyResolver> dependencyResolvers, List<DependencyResolver> publishResolvers, File gradleUserHome, Map<String, ModuleDescriptor> clientModuleRegistry);
-
     SettingsConverter getSettingsConverter();
 
     ModuleDescriptorConverter getModuleDescriptorConverter();
 
     IvyFactory getIvyFactory();
-
-    BuildResolverHandler getBuildResolverHandler();
     
     ResolveReport getLastResolveReport();
 
-    List<File> resolve(String conf, Set<? extends Configuration> configurations, DependencyContainerInternal dependencyContainer, List<DependencyResolver> dependencyResolvers,
-                              ResolveInstruction resolveInstruction, File gradleUserHome);
+    Set<File> resolve(Configuration configuration, Module module, File cacheParentDir, Map clientModuleRegistry);
 
-    ResolveReport resolveAsReport(String conf, Set<? extends Configuration> configurations, DependencyContainerInternal dependencyContainer, List<DependencyResolver> dependencyResolvers,
-                              ResolveInstruction resolveInstruction, File gradleUserHome);
+    ResolveReport resolveAsReport(Configuration configurationResolver, Module module, File cacheParentDir, Map clientModuleRegistry);
 
-    void publish(String configuration, PublishInstruction publishInstruction,
-                        List<DependencyResolver> publishResolvers, ConfigurationContainer configurationContainer,
-                        DependencyContainerInternal dependencyContainer,
-                        ArtifactContainer artifactContainer, File gradleUserHome);
+    void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
+                         List<DependencyResolver> publishResolvers, Module module, File cacheParentDir);
 
-    List<File> resolveFromReport(String conf, ResolveReport resolveReport);
+    Set<File> resolveFromReport(Configuration configurationResolver, ResolveReport resolveReport);
+
+    InternalRepository getInternalRepository();
 }

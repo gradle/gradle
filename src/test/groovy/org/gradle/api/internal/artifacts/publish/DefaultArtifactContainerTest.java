@@ -16,15 +16,12 @@
 package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,22 +32,10 @@ import java.util.Set;
  */
 @RunWith(JMock.class)
 public class DefaultArtifactContainerTest {
-    private DefaultArtifactContainer artifactContainer;
-    
-    private ConfigurationContainer configurationContainerMock;
-
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    @Before
-    public void setUp() {
-        artifactContainer = new DefaultArtifactContainer(configurationContainerMock);
-    }
+    private DefaultArtifactContainer artifactContainer = new DefaultArtifactContainer();
 
-    @Test
-    public void init() {
-        assertThat(artifactContainer.getConfigurationContainer(), sameInstance(configurationContainerMock));
-    }
-    
     @Test
     public void addGetArtifactsWithArtifactInstance() {
         PublishArtifact publishArtifact1 = context.mock(PublishArtifact.class, "artifact1");

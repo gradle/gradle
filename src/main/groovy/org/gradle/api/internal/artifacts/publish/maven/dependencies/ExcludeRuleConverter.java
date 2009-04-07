@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.gradle.api.artifacts.ExcludeRule;
+
 
 /**
  * @author Hans Dockter

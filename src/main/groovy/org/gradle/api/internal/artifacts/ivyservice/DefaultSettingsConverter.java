@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import groovy.lang.Closure;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
@@ -26,9 +25,7 @@ import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.util.WrapUtil;
@@ -36,9 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -77,39 +72,46 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
     }
 
-
     private IvySettings ivySettings;
 
-    private ChainingTransformer<IvySettings> transformer = new ChainingTransformer<IvySettings>(IvySettings.class);
-
-    public void addIvyTransformer(Transformer<IvySettings> transformer) {
-        this.transformer.add(transformer);
-    }
-
-    public void addIvyTransformer(Closure tranformer) {
-        this.transformer.add(tranformer);
-    }
-
-    public IvySettings convert(List<DependencyResolver> classpathResolvers, List<DependencyResolver> otherResolvers, File gradleUserHome, RepositoryResolver buildResolver,
-                               Map clientModuleRegistry) {
+    public IvySettings convertForPublish(List<DependencyResolver> publishResolvers, File gradleUserHome, DependencyResolver internalRepository) {
         if (ivySettings != null) {
             return ivySettings;
         }
-        ChainResolver userResolverChain = createUserResolverChain(classpathResolvers, buildResolver);
+        ChainResolver userResolverChain = createUserResolverChain(Collections.<DependencyResolver>emptyList(), internalRepository);
+        ClientModuleResolver clientModuleResolver = createClientModuleResolver(new HashMap(), userResolverChain);
+        ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
+
+        IvySettings ivySettings = createIvySettings(gradleUserHome);
+        initializeResolvers(ivySettings, getAllResolvers(Collections.<DependencyResolver>emptyList(), publishResolvers, internalRepository, userResolverChain, clientModuleResolver, outerChain));
+        ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
+
+        return ivySettings;
+    }
+
+    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers,
+                               File gradleUserHome, DependencyResolver internalRepository, Map clientModuleRegistry) {
+        if (ivySettings != null) {
+            return ivySettings;
+        }
+        ChainResolver userResolverChain = createUserResolverChain(dependencyResolvers, internalRepository);
         ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
         ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
 
         IvySettings ivySettings = createIvySettings(gradleUserHome);
-        initializeResolvers(ivySettings, getAllResolvers(classpathResolvers, otherResolvers, buildResolver, userResolverChain, clientModuleResolver, outerChain));
+        initializeResolvers(ivySettings, getAllResolvers(dependencyResolvers, Collections.<DependencyResolver>emptyList(), internalRepository, userResolverChain, clientModuleResolver, outerChain));
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
         
         return ivySettings;
     }
 
-    private List<DependencyResolver> getAllResolvers(List<DependencyResolver> classpathResolvers, List<DependencyResolver> otherResolvers, RepositoryResolver buildResolver, ChainResolver userResolverChain, ClientModuleResolver clientModuleResolver, ChainResolver outerChain) {
+    private List<DependencyResolver> getAllResolvers(List<DependencyResolver> classpathResolvers,
+                                                     List<DependencyResolver> otherResolvers, DependencyResolver internalRepository, 
+                                                     ChainResolver userResolverChain, ClientModuleResolver clientModuleResolver,
+                                                     ChainResolver outerChain) {
         List<DependencyResolver> allResolvers = new ArrayList(otherResolvers);
         allResolvers.addAll(classpathResolvers);
-        allResolvers.addAll(WrapUtil.toList(buildResolver, outerChain, clientModuleResolver, userResolverChain));
+        allResolvers.addAll(WrapUtil.toList(internalRepository, outerChain, clientModuleResolver, userResolverChain));
         return allResolvers;
     }
 
@@ -127,10 +129,10 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return clientModuleResolver;
     }
 
-    private ChainResolver createUserResolverChain(List<DependencyResolver> classpathResolvers, RepositoryResolver buildResolver) {
+    private ChainResolver createUserResolverChain(List<DependencyResolver> classpathResolvers, DependencyResolver internalRepository) {
         ChainResolver chainResolver = new ChainResolver();
         chainResolver.setName(CHAIN_RESOLVER_NAME);
-        chainResolver.add(buildResolver);
+        chainResolver.add(internalRepository);
         // todo Figure out why Ivy thinks this is necessary. The IBiblio resolver has already this pattern which should be good enough. By doing this we let Maven semantics seep into our whole system.
         chainResolver.setChangingPattern(".*-SNAPSHOT");
         chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
@@ -143,9 +145,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     private IvySettings createIvySettings(File gradleUserHome) {
         IvySettings ivySettings = new IvySettings();
-        ivySettings.setDefaultCache(new File(gradleUserHome, DependencyManager.DEFAULT_CACHE_DIR_NAME));
-        ivySettings.setDefaultCacheIvyPattern(DependencyManager.DEFAULT_CACHE_IVY_PATTERN);
-        ivySettings.setDefaultCacheArtifactPattern(DependencyManager.DEFAULT_CACHE_ARTIFACT_PATTERN);
+        ivySettings.setDefaultCache(new File(gradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME));
+        ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
+        ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
         return ivySettings;
     }

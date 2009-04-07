@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,78 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.specs.Spec;
+import org.apache.ivy.core.module.descriptor.Artifact;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class Configurations {
-    public static Set<String> getNames(Collection<? extends Configuration> configurations) {
-        Set<String> result = new LinkedHashSet<String>();
-        for (Configuration configuration : configurations) {
-            result.add(configuration.getName());
+    public static Set<String> getNames(Collection<Configuration> configurations, boolean includeExtended) {
+        Set<Configuration> allConfigurations = new HashSet<Configuration>(configurations);
+        if (includeExtended) {
+            allConfigurations = createAllConfigurations(configurations);
         }
-        return result;
+        Set<String> names = new HashSet<String>();
+        for (Configuration configuration : allConfigurations) {
+            names.add(configuration.getName());
+        }
+        return names;
+    }
+
+    public static Set<String> getNames(Collection<Configuration> configurations) {
+        return getNames(configurations, false);
+    }
+
+    private static Set<Configuration> createAllConfigurations(Collection<Configuration> configurations) {
+        Set<Configuration> allConfigurations = new HashSet<Configuration>();
+        for (Configuration configuration : configurations) {
+            allConfigurations.addAll(configuration.getHierarchy());
+        }
+        return allConfigurations;
+    }
+
+    public static String uploadInternalTaskName(String configurationName) {
+        return String.format("upload%sInternal", getCapitalName(configurationName));
+    }
+
+    public static String uploadTaskName(String configurationName) {
+        return String.format("upload%s", getCapitalName(configurationName));
+    }
+
+
+    private static String getCapitalName(String configurationName) {
+        return configurationName.substring(0, 1).toUpperCase() + configurationName.substring(1);
+    }
+
+    public static Set<Dependency> getDependencies(List<Configuration> configurations, Spec<Dependency> dependencySpec) {
+        Set<Dependency> dependencies = new HashSet<Dependency>();
+        for (Configuration configuration : configurations) {
+            for (Dependency dependency : configuration.getDependencies()) {
+                if (dependencySpec.isSatisfiedBy(dependency)) {
+                    dependencies.add(dependency);
+                }
+            }
+        }
+        return dependencies;
+    }
+
+    public static Set<PublishArtifact> getArtifacts(List<Configuration> configurations, Spec<PublishArtifact> artifactSpec) {
+        Set<PublishArtifact> artifacts = new HashSet<PublishArtifact>();
+        for (Configuration configuration : configurations) {
+            for (PublishArtifact artifact : configuration.getArtifacts()) {
+                if (artifactSpec.isSatisfiedBy(artifact)) {
+                    artifacts.add(artifact);
+                }
+            }
+        }
+        return artifacts;
     }
 }

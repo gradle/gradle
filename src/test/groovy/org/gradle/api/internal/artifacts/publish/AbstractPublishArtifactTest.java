@@ -15,28 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.WrapUtil;
-import org.hamcrest.Matchers;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.util.Date;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -47,6 +35,7 @@ public abstract class AbstractPublishArtifactTest {
     private static final String TEST_EXT = "ext";
     private static final String TEST_TYPE = "type";
     private static final String TEST_CLASSIFIER = "classifier";
+    private static final Date TEST_DATE = new Date();
     private static final ModuleRevisionId TEST_MODULE_REVISION_ID = new ModuleRevisionId(new ModuleId("group", "name"), "version");
 
     protected File getTestFile() {
@@ -73,72 +62,23 @@ public abstract class AbstractPublishArtifactTest {
         return TEST_MODULE_REVISION_ID;
     }
 
+    protected Date getDate() {
+        return TEST_DATE;
+    }
+
     protected JUnit4Mockery context = new JUnit4GroovyMockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    protected final Set<Configuration> testConfs = WrapUtil.toSet(context.mock(Configuration.class));
-
-    @Test
-    public void init() {
-        assertThat(createPublishArtifact(null).getConfigurations(), Matchers.equalTo(testConfs));
-    }
-    
-    @Test
-    public void testCreateIvyArtifact() {
-        PublishArtifact publishArtifact = createPublishArtifact(null);
-        Artifact artifact = publishArtifact.createIvyArtifact(getTestModuleRevisionId());
-        checkCommonProperties(artifact, false);
-    }
 
     abstract PublishArtifact createPublishArtifact(String classifier);
 
-    @Test public void testCreateIvyArtifactWithEmptyClassifier() {
-        PublishArtifact publishArtifact = createPublishArtifact("");
-        Artifact artifact = publishArtifact.createIvyArtifact(getTestModuleRevisionId());
-        checkCommonProperties(artifact, false);
-    }
-
-    @Test public void testCreateIvyArtifactWithClassifier() {
-        PublishArtifact publishArtifact = createPublishArtifact(getTestClassifier());
-        ModuleRevisionId moduleRevisionId = new ModuleRevisionId(new ModuleId("group", "name"), "version");
-        Artifact artifact = publishArtifact.createIvyArtifact(moduleRevisionId);
-        checkCommonProperties(artifact, true);
-    }
-
-    @Test public void testCanTransformIvyArtifact() {
-        PublishArtifact publishArtifact = createPublishArtifact(null);
-        final Artifact transformed = new DefaultArtifact(getTestModuleRevisionId(), new Date(), "name", "type", "ext");
-
-        final Transformer<Artifact> transformer = context.mock(Transformer.class);
-
-        context.checking(new Expectations() {{
-            one(transformer).transform(with(Matchers.notNullValue(Artifact.class)));
-            will(returnValue(transformed));
-        }});
-        publishArtifact.addIvyTransformer(transformer);
-
-        assertSame(transformed, publishArtifact.createIvyArtifact(getTestModuleRevisionId()));
-    }
-
-    @Test public void testCanTransformIvyArtifactUsingClosure() {
-        PublishArtifact publishArtifact = createPublishArtifact(null);
-        Artifact transformed = new DefaultArtifact(getTestModuleRevisionId(), new Date(), "name", "type", "ext");
-
-        publishArtifact.addIvyTransformer(HelperUtil.returns(transformed));
-
-        assertSame(transformed, publishArtifact.createIvyArtifact(getTestModuleRevisionId()));
-    }
-
-    private void checkCommonProperties(Artifact artifact, boolean shouldHaveClassifier) {
+    protected void assertCommonPropertiesAreSet(PublishArtifact artifact, boolean shouldHaveClassifier) {
         assertEquals(getTestName(), artifact.getName());
-        assertEquals(getTestModuleRevisionId(), artifact.getModuleRevisionId());
         assertEquals(getTestType(), artifact.getType());
-        assertEquals(getTestExt(), artifact.getExt());
-        assertEquals(getTestFile().getAbsolutePath(),
-                artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE));
+        assertEquals(getTestExt(), artifact.getExtension());
+        assertEquals(getTestFile(), artifact.getFile());
         if (shouldHaveClassifier) {
-            assertEquals(getTestClassifier(),
-                artifact.getExtraAttribute(DependencyManager.CLASSIFIER));
+            assertEquals(getTestClassifier(), artifact.getClassifier());
         }
     }
 }

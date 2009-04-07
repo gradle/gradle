@@ -16,16 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-
-import java.util.Date;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultModuleDescriptorFactory implements ModuleDescriptorFactory {
-    public DefaultModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, String status, Date date) {
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, status, date);
+    public DefaultModuleDescriptor createModuleDescriptor(Module module) {
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module),
+                module.getStatus(), null);
         return moduleDescriptor;
     }
 }

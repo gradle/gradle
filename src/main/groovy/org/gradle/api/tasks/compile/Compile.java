@@ -16,8 +16,11 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.*;
-import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.TaskAction;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.GUtil;
@@ -52,7 +55,7 @@ public class Compile extends ConventionTask {
      */
     private String targetCompatibility;
 
-    private ConfigurationResolveInstructionModifier resolveInstructionModifier;
+    private Configuration configuration;
 
     /**
      * This property is used internally by Gradle. It is usually not used by build scripts.
@@ -77,8 +80,6 @@ public class Compile extends ConventionTask {
      * Exclude pattern for which files should be compiled (e.g. '**&#2F;org/gradle/package2/A*.java').
      */
     private List excludes = new ArrayList();
-
-    private DependencyManager dependencyManager;
 
     protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
@@ -113,7 +114,7 @@ public class Compile extends ConventionTask {
 
     public List getClasspath() {
         List classpath = GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
-                getDependencyManager().configuration(resolveInstructionModifier.getConfiguration()).resolve(resolveInstructionModifier));
+                new ArrayList(configuration.resolve()));
         return classpath;
     }
 
@@ -206,20 +207,12 @@ public class Compile extends ConventionTask {
     public void setExcludes(List excludes) {
         this.excludes = excludes;
     }
-
-    public DependencyManager getDependencyManager() {
-        return (DependencyManager) conv(dependencyManager, "dependencyManager");
+    
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
-    public void setDependencyManager(DependencyManager dependencyManager) {
-        this.dependencyManager = dependencyManager;
-    }
-
-    public ConfigurationResolveInstructionModifier getResolveInstruction() {
-        return resolveInstructionModifier;
-    }
-
-    public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
-        this.resolveInstructionModifier = resolveInstructionModifier;
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
 }

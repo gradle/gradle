@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.PrintWriter;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -42,5 +42,5 @@ public interface PomWriter {
     String DEFAULT_PACKAGING = "jar";
     int DEFAULT_INDENT = 2;
 
-    void convert(MavenPom pom, List<DependencyDescriptor> dependencies, PrintWriter printWriter);
+    void convert(MavenPom pom, Set<Configuration> configurations, PrintWriter printWriter);
 }

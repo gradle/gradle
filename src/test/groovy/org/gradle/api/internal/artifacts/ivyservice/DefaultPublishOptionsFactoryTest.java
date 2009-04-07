@@ -41,7 +41,7 @@ public class DefaultPublishOptionsFactoryTest {
     public void testCreatePublishOptionsWithUploadModuleDescriptorTrue() {
         File testIvyFile = new File("testFile");
         PublishInstruction publishInstruction = new PublishInstruction();
-        publishInstruction.getModuleDescriptor().setPublish(true);
+        publishInstruction.setIvyFileParentDir(new File("someParentDir"));
         PublishOptions publishOptions = publishOptionsFactory.createPublishOptions(WrapUtil.toSet(TEST_CONF), publishInstruction, testIvyFile);
         assertThat(publishOptions.getSrcIvyPattern(), equalTo(testIvyFile.getAbsolutePath()));
         checkCommonValues(publishOptions);
@@ -50,7 +50,6 @@ public class DefaultPublishOptionsFactoryTest {
     @Test
     public void testCreatePublishOptionsWithUploadModuleDescriptorFalse() {
         PublishInstruction publishInstruction = new PublishInstruction();
-        publishInstruction.getModuleDescriptor().setPublish(false);
         PublishOptions publishOptions = publishOptionsFactory.createPublishOptions(WrapUtil.toSet(TEST_CONF), publishInstruction, null);
         assertThat(publishOptions.getSrcIvyPattern(), equalTo(null));
         checkCommonValues(publishOptions);

@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.File;
@@ -85,7 +85,7 @@ public class DefaultArtifactPom implements ArtifactPom {
             pom.setPackaging(artifact.getType());
         }
         if (pom.getClassifier() == null) {
-            pom.setClassifier(artifact.getExtraAttribute(DependencyManager.CLASSIFIER));
+            pom.setClassifier(artifact.getExtraAttribute(Dependency.CLASSIFIER));
         }
     }
 

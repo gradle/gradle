@@ -17,9 +17,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.InvalidUserDataException
-import static org.junit.Assert.assertEquals
+import org.gradle.api.plugins.AbstractPluginConventionTest
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.ReportingBasePluginConvention
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import static org.junit.Assert.assertEquals
 import org.gradle.api.JavaVersion
 
 /**
@@ -65,8 +69,6 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(['test/java'], convention.testSrcDirNames)
         assertEquals(['main/resources'], convention.resourceDirNames)
         assertEquals(['test/resources'], convention.testResourceDirNames)
-        assertEquals('libs-poms', convention.uploadLibsPomDirName)
-        assertEquals('dists-poms', convention.uploadDistsPomDirName)
         assertEquals(JavaVersion.VERSION_1_5, convention.sourceCompatibility)
         assertEquals(JavaVersion.VERSION_1_5, convention.targetCompatibility)
     }
@@ -101,8 +103,6 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(project.buildDir, convention.reportsDirName), convention.reportsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
-        assertEquals(new File(project.buildDir, convention.uploadLibsPomDirName), convention.uploadLibsPomDir)
-        assertEquals(new File(project.buildDir, convention.uploadDistsPomDirName), convention.uploadDistsPomDir)
     }
 
     @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {
@@ -122,7 +122,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
 
         assertEquals(new File(project.buildDir, 'other-docs-dir/other-javadoc-dir'), convention.javadocDir)
     }
-    
+
     @Test public void testMkdir() {
         String expectedDirName = 'somedir'
         File dir = convention.mkdir(expectedDirName)
@@ -142,7 +142,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
     @Test(expected = InvalidUserDataException) public void testMkdirWithEmptyArguments() {
         convention.mkdir('')
     }
-    
+
     @Test public void testTargetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
         convention.sourceCompatibility = '1.4'
         assertEquals(JavaVersion.VERSION_1_4, convention.sourceCompatibility)

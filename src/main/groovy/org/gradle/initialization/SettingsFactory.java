@@ -17,8 +17,11 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DependencyManagerFactory;
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
@@ -29,19 +32,32 @@ import java.util.Map;
  */
 public class SettingsFactory {
     private IProjectDescriptorRegistry projectDescriptorRegistry;
-    private DependencyManagerFactory dependencyManagerFactory;
+    private DependencyFactory dependencyFactory;
+    private ResolverContainer resolverContainer;
+    private ConfigurationContainerFactory configurationContainerFactory;
+    private InternalRepository internalRepository;
     private BuildSourceBuilder buildSourceBuilder;
 
     public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry,
-                           DependencyManagerFactory dependencyManagerFactory, BuildSourceBuilder buildSourceBuilder) {
+                           DependencyFactory dependencyFactory,
+                           ResolverContainer resolverContainer,
+                           ConfigurationContainerFactory configurationContainerFactory,
+                           InternalRepository internalRepository,
+                           BuildSourceBuilder buildSourceBuilder) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
-        this.dependencyManagerFactory = dependencyManagerFactory;
+        this.dependencyFactory = dependencyFactory;
+        this.resolverContainer = resolverContainer;
+        this.configurationContainerFactory = configurationContainerFactory;
+        this.internalRepository = internalRepository;
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
     public SettingsInternal createSettings(File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter) {
-        DefaultSettings settings = new DefaultSettings(dependencyManagerFactory, projectDescriptorRegistry,
+        DefaultSettings settings = new DefaultSettings(dependencyFactory,
+                resolverContainer, 
+                configurationContainerFactory,
+                internalRepository, projectDescriptorRegistry,
                 buildSourceBuilder, settingsDir, settingsScript, startParameter);
         settings.getAdditionalProperties().putAll(gradleProperties);
         return settings;

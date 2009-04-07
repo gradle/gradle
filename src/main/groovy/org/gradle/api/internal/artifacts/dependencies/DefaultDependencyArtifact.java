@@ -17,19 +17,12 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class DefaultDependencyArtifact implements DependencyArtifact {
-
     private String name;
     private String type;
     private String extension;
     private String classifier;
     private String url;
-
-    private List<String> confs = new ArrayList<String>();
-
 
     public DefaultDependencyArtifact() {
     }
@@ -46,47 +39,45 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getExtension() {
         return extension;
     }
 
-    public void setExtension(String extension) {
-        this.extension = extension;
-    }
-
     public String getClassifier() {
         return classifier;
-    }
-
-    public void setClassifier(String classifier) {
-        this.classifier = classifier;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DefaultDependencyArtifact that = (DefaultDependencyArtifact) o;
+
+        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) return false;
+        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
+        if (!name.equals(that.name)) return false;
+        if (!type.equals(that.type)) return false;
+        if (url != null ? !url.equals(that.url) : that.url != null) return false;
+
+        return true;
     }
 
-    public List<String> getConfs() {
-        return confs;
-    }
-
-    public void setConfs(List<String> confs) {
-        this.confs = confs;
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + (extension != null ? extension.hashCode() : 0);
+        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
+        result = 31 * result + (url != null ? url.hashCode() : 0);
+        return result;
     }
 }

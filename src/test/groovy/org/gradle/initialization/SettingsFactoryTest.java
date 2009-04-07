@@ -16,9 +16,14 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.DependencyManagerFactory;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -44,29 +49,35 @@ public class SettingsFactoryTest {
 
     @Test
     public void createSettings() {
-        final DependencyManagerFactory dependencyManagerFactoryMock = context.mock(DependencyManagerFactory.class);
-        final DependencyManager dependencyManagerMock = context.mock(DependencyManager.class);
+        final ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
+        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
+        final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
+        final Configuration configuration = context.mock(Configuration.class);
+        final InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
         final File expectedSettingsDir = new File("settingsDir");
+        final ResolverContainer resolverContainerMock = context.mock(ResolverContainer.class);
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         context.checking(new Expectations() {{
-            allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)), with(any(File.class)));
-            will(returnValue(dependencyManagerMock));
-            allowing(dependencyManagerMock).addConfiguration(with(any(String.class)));
+            one(configurationContainerFactory).createConfigurationContainer(
+                    with(any(ResolverProvider.class)),
+                    with(any(DependencyMetaDataProvider.class)));
+            will(returnValue(configurationContainer));
+            one(configurationContainer).add(with(any(String.class)));
+            will(returnValue(configuration));
         }});
-
         BuildSourceBuilder expectedBuildSourceBuilder = context.mock(BuildSourceBuilder.class);
-
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
+        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, dependencyFactory,
+                resolverContainerMock,
+                configurationContainerFactory, internalRepositoryDummy, expectedBuildSourceBuilder);
 
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry,
-                dependencyManagerFactoryMock, expectedBuildSourceBuilder);
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,
                 expectedScriptSource, expectedGradleProperties, expectedStartParameter);
 
+        assertSame(dependencyFactory, settings.getDependencyFactory());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
-        assertSame(dependencyManagerMock, settings.getDependencyManager());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());
         assertEquals(expectedGradleProperties, settings.getAdditionalProperties());
         assertSame(expectedSettingsDir, settings.getSettingsDir());

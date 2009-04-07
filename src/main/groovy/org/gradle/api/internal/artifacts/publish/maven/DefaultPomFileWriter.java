@@ -17,11 +17,11 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.*;
-import java.util.List;
+import java.util.Set;
 
 public final class DefaultPomFileWriter implements PomFileWriter {
     PomWriter pomWriter;
@@ -30,7 +30,7 @@ public final class DefaultPomFileWriter implements PomFileWriter {
         this.pomWriter = pomWriter;
     }
 
-    public void write(MavenPom pom, List<DependencyDescriptor> dependencies, File output) {
+    public void write(MavenPom pom, Set<Configuration> configurations, File output) {
         if (output.getParentFile() != null) {
             output.getParentFile().mkdirs();
         }
@@ -38,7 +38,7 @@ public final class DefaultPomFileWriter implements PomFileWriter {
         try {
             out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output),
                     "UTF-8"));
-            pomWriter.convert(pom, dependencies, out);
+            pomWriter.convert(pom, configurations, out);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         } catch (FileNotFoundException e) {

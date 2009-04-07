@@ -17,11 +17,15 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.specs.DependencyTypeSpec;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishInstruction;
+import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
@@ -38,9 +42,7 @@ import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -70,10 +72,6 @@ public class JavaPlugin implements Plugin {
     public static final String ECLIPSE_PROJECT = "eclipseProject";
     public static final String ECLIPSE_CP = "eclipseCp";
     public static final String ECLIPSE_WTP_MODULE = "eclipseWtpModule";
-    public static final int COMPILE_PRIORITY = 300;
-    public static final int RUNTIME_PRIORITY = 200;
-    public static final int TEST_COMPILE_PRIORITY = 150;
-    public static final int TEST_RUNTIME_PRIORITY = 100;
 
     public void apply(Project project, PluginRegistry pluginRegistry) {
         apply(project, pluginRegistry, new HashMap<String, Object>());
@@ -86,7 +84,7 @@ public class JavaPlugin implements Plugin {
         Convention convention = project.getConvention();
         convention.getPlugins().put("java", javaConvention);
 
-        configureDependencyManager(project, javaConvention);
+        configureConfigurations(project, javaConvention);
         configureUploadRules(project);
 
         project.createTask(INIT);
@@ -94,7 +92,7 @@ public class JavaPlugin implements Plugin {
         ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
                 conventionMapping(GUtil.map(
                         "dir", new ConventionValue() {
-                            public Object getValue(Convention convention, Task task) {
+                            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                                 return project.getBuildDir();
                             }
                         }));
@@ -105,12 +103,13 @@ public class JavaPlugin implements Plugin {
                 conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
 
         configureCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", RESOURCES),
-                COMPILE), DefaultConventionsToPropertiesMapping.COMPILE);
+                COMPILE), DefaultConventionsToPropertiesMapping.COMPILE, project.getConfigurations());
 
         configureTestResources(project);
 
         configureTestCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", TEST_RESOURCES),
-                TEST_COMPILE), (Compile) project.task(COMPILE), DefaultConventionsToPropertiesMapping.TEST_COMPILE);
+                TEST_COMPILE), (Compile) project.task(COMPILE), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
+                project.getConfigurations());
 
         configureTest(project);
 
@@ -127,7 +126,7 @@ public class JavaPlugin implements Plugin {
     private void configureJavaDoc(Project project) {
         Javadoc javadoc = (Javadoc) project.createTask(GUtil.map("type", Javadoc.class), JAVADOC);
         javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
-        javadoc.setResolveInstruction(new ConfigurationResolveInstructionModifier(COMPILE));
+        javadoc.setConfiguration(project.getConfigurations().get(COMPILE));
     }
 
     private void configureEclipse(Project project) {
@@ -151,7 +150,7 @@ public class JavaPlugin implements Plugin {
 
         eclipseWtpModule.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
                     }
                 }));
@@ -161,44 +160,34 @@ public class JavaPlugin implements Plugin {
         EclipseClasspath eclipseClasspath = (EclipseClasspath) project.createTask(GUtil.map("type", EclipseClasspath.class), ECLIPSE_CP);
         eclipseClasspath.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
                     }
                 },
                 "testSrcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return GUtil.addLists(java(convention).getTestSrcDirs(), java(convention).getTestResourceDirs());
                     }
                 },
                 "outputDirectory", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return java(convention).getClassesDir();
                     }
                 },
                 "testOutputDirectory", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return java(convention).getTestClassesDir();
                     }
                 },
                 "classpathLibs", new ConventionValue() {
-                    public Object getValue(Convention convention, final Task task) {
-                        return task.getProject().getDependencies().configuration(TEST_RUNTIME).resolve(new ResolveInstructionModifier() {
-                            public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
-                                return new ResolveInstruction(resolveInstruction).
-                                        setDependencySpec(new DependencyTypeSpec(Type.EXTERNAL)).
-                                        setFailOnResolveError(((EclipseClasspath) task).getFailForMissingDependencies());
-                            }
-                        });
+                    public Object getValue(Convention convention, final IConventionAware conventionAwareObject) {
+                        ConfigurationContainer configurationContainer = ((Task) conventionAwareObject).getProject().getConfigurations();
+                        return new ArrayList(configurationContainer.get(TEST_RUNTIME).copyRecursive(DependencySpecs.type(Type.EXTERNAL)).resolve());
                     }
                 },
                 "projectDependencies", new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
-                        /*
-                        * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
-                        * request the project dependencies not via a resolve. We would have to filter the project dependencies
-                        * ourselfes. This is not completely trivial due to configuration inheritance.
-                        */
-                        return task.getProject().getDependencies().getDependencies(new DependencyTypeSpec(Type.PROJECT));
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return new ArrayList(((Task) conventionAwareObject).getProject().getConfigurations().get(TEST_RUNTIME).getAllProjectDependencies());
                     }
                 }));
         return eclipseClasspath;
@@ -217,12 +206,11 @@ public class JavaPlugin implements Plugin {
             }
 
             public void apply(String taskName) {
-                List<ConfigurationResolver> configurations = project.getDependencies().getConfigurations();
-                for (ConfigurationResolver configuration : configurations) {
+                Set<Configuration> configurations = project.getConfigurations().getAll();
+                for (Configuration configuration : configurations) {
                     if (taskName.equals(configuration.getUploadInternalTaskName())) {
                         Upload uploadInternal = createUploadTask(configuration.getUploadInternalTaskName(), configuration, project);
-                        uploadInternal.getPublishInstruction().getModuleDescriptor().setPublish(true);
-                        uploadInternal.getUploadResolvers().add(project.getDependencies().getBuildResolver(), null);
+                        uploadInternal.getRepositories().add(project.getInternalRepository());
                     }
                 }
             }
@@ -234,8 +222,8 @@ public class JavaPlugin implements Plugin {
             }
 
             public void apply(String taskName) {
-                List<ConfigurationResolver> configurations = project.getDependencies().getConfigurations();
-                for (ConfigurationResolver configuration : configurations) {
+                Set<Configuration> configurations = project.getConfigurations().getAll();
+                for (Configuration configuration : configurations) {
                     if (taskName.equals(configuration.getUploadTaskName())) {
                         createUploadTask(configuration.getUploadTaskName(), configuration, project);
                     }
@@ -244,10 +232,11 @@ public class JavaPlugin implements Plugin {
         });
     }
 
-    private Upload createUploadTask(String name, final ConfigurationResolver configuration, Project project) {
+    private Upload createUploadTask(String name, final Configuration configuration, Project project) {
         final Upload upload = (Upload) project.createTask(GUtil.map("type", Upload.class), name);
-        ConfigurationPublishInstruction publishInstruction = new ConfigurationPublishInstruction(configuration.getName());
-        publishInstruction.getModuleDescriptor().setIvyFileParentDir(project.getBuildDir());
+        PublishInstruction publishInstruction = new PublishInstruction();
+        publishInstruction.setIvyFileParentDir(project.getBuildDir());
+        upload.setConfiguration(configuration);
         upload.setPublishInstruction(publishInstruction);
         upload.dependsOn(configuration.getBuildArtifactDependencies());
         return upload;
@@ -261,10 +250,11 @@ public class JavaPlugin implements Plugin {
         Jar jar = libsBundle.jar();
         jar.conventionMapping(WrapUtil.<String, ConventionValue>toMap("resourceCollections",
                 new ConventionValue() {
-                    public Object getValue(Convention convention, Task task) {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return WrapUtil.toList(new FileSet(javaConvention.getClassesDir()));
                     }
                 }));
+        project.getConfigurations().get(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 
     private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
@@ -277,7 +267,7 @@ public class JavaPlugin implements Plugin {
     private void configureTest(Project project) {
         final Test test = (Test) project.createTask(GUtil.map("type", Test.class, "dependsOn", TEST_COMPILE), TEST);
         test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
-        test.setResolveInstruction(new ConfigurationResolveInstructionModifier(TEST_RUNTIME));
+        test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
         addDependsOnProjectDependencies(test, TEST_RUNTIME);
         test.doFirst(new TaskAction() {
             public void execute(Task task) {
@@ -288,31 +278,22 @@ public class JavaPlugin implements Plugin {
         });
     }
 
-    void configureDependencyManager(Project project, JavaPluginConvention javaPluginConvention) {
+    void configureConfigurations(Project project, JavaPluginConvention javaPluginConvention) {
         project.setProperty("status", "integration");
-        DependencyManager dependencies = project.getDependencies();
-        dependencies.addConfiguration(COMPILE).setVisible(false).setTransitive(false);
-        dependencies.addConfiguration(RUNTIME).setVisible(false).extendsFrom(COMPILE);
-        dependencies.addConfiguration(TEST_COMPILE).setVisible(false).extendsFrom(COMPILE).setTransitive(false);
-        dependencies.addConfiguration(TEST_RUNTIME).setVisible(false).extendsFrom(RUNTIME, TEST_COMPILE);
-        dependencies.addConfiguration(Dependency.MASTER_CONFIGURATION);
-        dependencies.addConfiguration(Dependency.DEFAULT_CONFIGURATION).extendsFrom(RUNTIME, Dependency.MASTER_CONFIGURATION);
-        dependencies.addConfiguration(DISTS);
-
-        configureMavenScopeMappings(dependencies);
+        ConfigurationContainer configurations = project.getConfigurations();
+        Configuration compileConfiguration = configurations.add(COMPILE).setVisible(false).setTransitive(false);
+        Configuration runtimeConfiguration = configurations.add(RUNTIME).setVisible(false).extendsFrom(compileConfiguration);
+        Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE).setVisible(false).extendsFrom(compileConfiguration).setTransitive(false);
+        Configuration runTestsConfiguration = configurations.add(TEST_RUNTIME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
+        Configuration masterConfiguration = configurations.add(Dependency.MASTER_CONFIGURATION);
+        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, masterConfiguration);
+        configurations.add(DISTS);
     }
 
-    private void configureMavenScopeMappings(DependencyManager dependencyManager) {
-        dependencyManager.getDefaultMavenScopeMapping().addMapping(COMPILE_PRIORITY, COMPILE, Conf2ScopeMappingContainer.COMPILE);
-        dependencyManager.getDefaultMavenScopeMapping().addMapping(RUNTIME_PRIORITY, RUNTIME, Conf2ScopeMappingContainer.RUNTIME);
-        dependencyManager.getDefaultMavenScopeMapping().addMapping(TEST_COMPILE_PRIORITY, TEST_COMPILE, Conf2ScopeMappingContainer.TEST);
-        dependencyManager.getDefaultMavenScopeMapping().addMapping(TEST_RUNTIME_PRIORITY, TEST_RUNTIME, Conf2ScopeMappingContainer.TEST);
-    }
-
-    protected Compile configureTestCompile(Compile testCompile, final Compile compile, Map propertyMapping) {
+    protected Compile configureTestCompile(Compile testCompile, final Compile compile, Map propertyMapping, ConfigurationContainer configurations) {
         testCompile.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
         configureCompileInternal(testCompile, propertyMapping);
-        testCompile.setResolveInstruction(new ConfigurationResolveInstructionModifier(TEST_COMPILE));
+        testCompile.setConfiguration(configurations.get(TEST_COMPILE));
         addDependsOnProjectDependencies(testCompile, TEST_COMPILE);
         return (Compile) testCompile.doFirst(new TaskAction() {
             public void execute(Task task) {
@@ -324,8 +305,8 @@ public class JavaPlugin implements Plugin {
         });
     }
 
-    protected Compile configureCompile(Compile compile, Map propertyMapping) {
-        compile.setResolveInstruction(new ConfigurationResolveInstructionModifier(COMPILE));
+    protected Compile configureCompile(Compile compile, Map propertyMapping, ConfigurationContainer configurations) {
+        compile.setConfiguration(configurations.get(COMPILE));
         addDependsOnProjectDependencies(compile, COMPILE);
         configureCompileInternal(compile, propertyMapping);
         return compile;
@@ -338,9 +319,8 @@ public class JavaPlugin implements Plugin {
 
     private void addDependsOnProjectDependencies(final Task task, String configurationName) {
         Project project = task.getProject();
-        DependencyManager dependencyManager = project.getDependencies();
-        final ConfigurationResolver configurationResolver = dependencyManager.configuration(configurationName);
-        task.dependsOn(configurationResolver.getBuildProjectDependencies());
+        final Configuration configuration = project.getConfigurations().get(configurationName);
+        task.dependsOn(configuration.getBuildProjectDependencies());
     }
 
     protected JavaPluginConvention java(Convention convention) {

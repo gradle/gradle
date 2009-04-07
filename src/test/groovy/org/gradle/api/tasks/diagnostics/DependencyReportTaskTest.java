@@ -20,13 +20,10 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationResolver;
-import org.gradle.api.artifacts.ResolveInstruction;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.report.IvyDependencyGraph;
-import org.gradle.api.internal.artifacts.DependencyManagerInternal;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.Matchers;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -64,23 +61,17 @@ public class DependencyReportTaskTest {
 
     @Test
     public void passesEachProjectConfigurationToRenderer() throws IOException {
-        final DependencyManagerInternal dependencyManager = context.mock(DependencyManagerInternal.class);
-        final ConfigurationResolver configuration1 = context.mock(ConfigurationResolver.class, "Configuration1");
-        final ConfigurationResolver configuration2 = context.mock(ConfigurationResolver.class, "Configuration2");
+        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
+        final Configuration configuration1 = context.mock(Configuration.class, "Configuration1");
+        final Configuration configuration2 = context.mock(Configuration.class, "Configuration2");
         final ResolveReport report = new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org", "mod"), "rev"), "status", null));
 
-        final Spec<ResolveInstruction> resolveInstructionMatcher = new Spec<ResolveInstruction>() {
-            public boolean isSatisfiedBy(ResolveInstruction element) {
-                return element.isFailOnResolveError() == true;
-            }
-        };
-
         context.checking(new Expectations() {{
-            allowing(project).getDependencies();
-            will(returnValue(dependencyManager));
+            allowing(project).getConfigurations();
+            will(returnValue(configurationContainer));
 
-            allowing(dependencyManager).getConfigurations();
-            will(returnValue(WrapUtil.toList(configuration2, configuration1)));
+            allowing(configurationContainer).getAll();
+            will(returnValue(WrapUtil.toSet(configuration2, configuration1)));
 
             allowing(configuration1).getName();
             will(returnValue("config1"));
@@ -91,7 +82,7 @@ public class DependencyReportTaskTest {
             Sequence resolve = context.sequence("resolve");
             Sequence render = context.sequence("render");
 
-            one(configuration1).resolveAsReport(with(Matchers.modifierMatcher(resolveInstructionMatcher)));
+            one(configuration1).resolveAsReport();
             inSequence(resolve);
             will(returnValue(report));
 
@@ -104,7 +95,7 @@ public class DependencyReportTaskTest {
             one(renderer).completeConfiguration(configuration1);
             inSequence(render);
 
-            one(configuration2).resolveAsReport(with(Matchers.modifierMatcher(resolveInstructionMatcher)));
+            one(configuration2).resolveAsReport();
             inSequence(resolve);
             will(returnValue(report));
 

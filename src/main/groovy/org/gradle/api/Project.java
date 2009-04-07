@@ -18,11 +18,18 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.artifacts.ArtifactContainer;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.plugins.Convention;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -182,6 +189,8 @@ public interface Project extends Comparable<Project> {
 
     public static final String DEFAULT_VERSION = "unspecified";
 
+    public static final String DEFAULT_STATUS = "release";
+
     /**
      * <p>Returns the root project for the hierarchy that this project belongs to.  In the case of a single-project
      * build, this method returns this project.</p>
@@ -276,7 +285,7 @@ public interface Project extends Comparable<Project> {
      *
      * <p>You can access this property in your build file using <code>group</code></p>
      *
-     * @return The group of this project. Defaults to {@link #DEFAULT_GROUP } 
+     * @return The group of this project. Defaults to {@link #DEFAULT_GROUP }
      */
     Object getGroup();
 
@@ -288,6 +297,8 @@ public interface Project extends Comparable<Project> {
      * @return The version of this project. Defaults to {@link #DEFAULT_VERSION }
      */
     Object getVersion();
+
+    Object getStatus();
 
     /**
      * <p>Returns the direct children of this project.</p>
@@ -723,7 +734,7 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Resolves a file path relative to the project directory of this project.</p>
      *
-     * @param path An object whose toString() method value is interpreted as a relative path to the project directory.
+     * @param path An object which toString method value is interpreted as a relative path to the project directory.
      * @return The resolved file. Never returns null.
      */
     File file(Object path);
@@ -748,22 +759,6 @@ public interface Project extends Comparable<Project> {
      * @return A file with a relative path to the project dir, or null if the given path is outside the project dir.
      */
     File relativePath(Object path);
-
-    /**
-     * Returns a {@link FileCollection} containing the given files. You can pass any of the following types to this
-     * method:
-     *
-     * <ul>
-     *
-     * <li>A String. Interpreted relative to the project directory.</li>
-     * <li>A Collection. Flattened and recursively converted to files.</li>
-     * <li>A Closure. Should return an Object or Collection, which are then converted to files.</li>
-     * <li>An Object. Its toString() value is treated the same way as a String.<li>
-     *
-     * @param paths The paths to the files. May be empty.
-     * @return The file collection.
-     */
-    FileCollection files(Object... paths);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
@@ -804,25 +799,11 @@ public interface Project extends Comparable<Project> {
      */
     AntBuilder ant(Closure configureClosure);
 
-    /**
-     * <p>Return the {@link DependencyManager} for this project.</p>
-     *
-     * <p>You can access this property in your build file using <code>dependencies</code></p>
-     *
-     * @return The <code>DependencyManager</code>. Never returns null.
-     */
-    DependencyManager getDependencies();
+    ConfigurationContainer getConfigurations();
 
-    /**
-     * <p>Executes the given closure against the {@link DependencyManager} for this project.</p>
-     *
-     * <p>You can call this method in your build file using <code>dependencies</code> followed by a code block.</p>
-     *
-     * @param configureClosure The closure to execute against the {@link DependencyManager}. The closure receives no
-     * parameters.
-     * @return The <code>DependencyManager</code>. Never returns null.
-     */
-    DependencyManager dependencies(Closure configureClosure);
+    ArtifactHandler getArtifacts();
+
+    InternalRepository getInternalRepository();
 
     /**
      * <p>Return the {@link Convention} for this project.</p>
@@ -1046,4 +1027,12 @@ public interface Project extends Comparable<Project> {
     Rule addRule(Rule rule);
 
     List<Rule> getRules();
+
+    DependencyFactory getDependencyFactory();
+
+    RepositoryHandler createRepositoryHandler();
+
+    RepositoryHandler getRepositories();
+
+    RepositoryHandlerFactory getRepositoryHandlerFactory();
 }

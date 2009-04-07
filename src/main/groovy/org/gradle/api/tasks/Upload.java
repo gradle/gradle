@@ -16,13 +16,15 @@
 
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.artifacts.ConfigurationPublishInstruction;
-import org.gradle.api.artifacts.ConfigurationResolver;
-import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandler;
+import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,16 +37,18 @@ import org.slf4j.LoggerFactory;
 public class Upload extends DefaultTask {
     private static Logger logger = LoggerFactory.getLogger(Upload.class);
 
-    private ConfigurationPublishInstruction publishInstruction;
+    private PublishInstruction publishInstruction;
+
+    private Configuration configuration;
 
     /**
      * The resolvers to delegate the uploads to. Usually a resolver corresponds to a repository.
      */
-    private ResolverContainer uploadResolvers;
+    private RepositoryHandler repositories;
 
     public Upload(Project project, String name) {
         super(project, name);
-        uploadResolvers = project.getDependencies().createResolverContainer();
+        repositories = project.createRepositoryHandler();
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 upload(task);
@@ -53,24 +57,35 @@ public class Upload extends DefaultTask {
     }
 
     private void upload(Task task) {
-        logger.info("Publishing configurations: " + publishInstruction.getConfiguration());
-        ConfigurationResolver configuration = getProject().getDependencies().configuration(publishInstruction.getConfiguration());
-        configuration.publish(uploadResolvers, publishInstruction);
+        logger.info("Publishing configurations: " + configuration);
+        configuration.publish(repositories.getResolverList(), publishInstruction);
     }
 
-    public ConfigurationPublishInstruction getPublishInstruction() {
+    public PublishInstruction getPublishInstruction() {
         return publishInstruction;
     }
 
-    public void setPublishInstruction(ConfigurationPublishInstruction publishInstruction) {
+    public void setPublishInstruction(PublishInstruction publishInstruction) {
         this.publishInstruction = publishInstruction;
     }
 
-    public ResolverContainer getUploadResolvers() {
-        return uploadResolvers;
+    public RepositoryHandler getRepositories() {
+        return repositories;
     }
 
-    public void setUploadResolvers(ResolverContainer uploadResolvers) {
-        this.uploadResolvers = uploadResolvers;
+    public void setRepositories(RepositoryHandler repositories) {
+        this.repositories = repositories;
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
+    public RepositoryHandler repositories(Closure configureClosure) {
+        return (RepositoryHandler) ConfigureUtil.configure(configureClosure, repositories);
     }
 }

@@ -2,15 +2,17 @@ usePlugin('java')
 
 sourceCompatibility=1.4
 
-dependencies { 
+repositories {
     addMavenRepo()
+}
 
-	clientModule(['testCompile'],'org.testng:testng:5.8:jdk14') {
+dependencies {
+	testCompile module('org.testng:testng:5.8') {
 	    artifact {
 	        name = 'testng'
 	        type = 'jar'
 	        extension = 'jar'
-	        confs = ['jdk14']
+	        classifier = 'jdk14'
         }
 	}
 }

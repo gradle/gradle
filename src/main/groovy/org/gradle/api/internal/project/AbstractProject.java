@@ -19,15 +19,24 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.apache.commons.lang.StringUtils;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
-import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.artifacts.DependencyManagerFactory;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.dsl.*;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskEngine;
 import org.gradle.api.internal.tasks.TaskEngine;
 import org.gradle.api.invocation.Build;
@@ -37,9 +46,9 @@ import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.Clock;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.PathHelper;
-import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +63,7 @@ public abstract class AbstractProject implements ProjectInternal {
     private static Logger buildLogger = LoggerFactory.getLogger(Project.class);
 
     public enum State {
-        CREATED, INITIALIZING, INITIALIZED
+        CREATED, INITIALIZING, INITIALIZED;
     }
 
     private Project rootProject;
@@ -83,6 +92,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Object version = DEFAULT_VERSION;
 
+    private Object status = DEFAULT_STATUS;
+
     private Map<String, Project> childProjects = new HashMap<String, Project>();
 
     private List<String> defaultTasks = new ArrayList<String>();
@@ -98,8 +109,6 @@ public abstract class AbstractProject implements ProjectInternal {
     private AntBuilderFactory antBuilderFactory;
 
     private AntBuilder ant = null;
-
-    private DependencyManager dependencies;
 
     private String archivesTaskBaseName;
 
@@ -119,13 +128,29 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private IProjectRegistry<ProjectInternal> projectRegistry;
 
-    private DependencyManagerFactory dependencyManagerFactory;
+    private InternalRepository internalRepository;
+
+    private ConfigurationContainerFactory configurationContainerFactory;
+
+    private DependencyHandler dependencyHandler;
+
+    private ConfigurationContainer configurationContainer;
+
+    private DependencyFactory dependencyFactory;
+
+    private PublishArtifactFactory publishArtifactFactory;
+
+    private ArtifactHandler artifactHandler;
+
+    private RepositoryHandlerFactory repositoryHandlerFactory;
+
+    private RepositoryHandler repositoryHandler;
 
     private List<AfterEvaluateListener> afterEvaluateListeners = new ArrayList<AfterEvaluateListener>();
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
-
     private DynamicObjectHelper dynamicObjectHelper;
+
 
     public AbstractProject(String name) {
         this.name = name;
@@ -135,9 +160,15 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public AbstractProject(String name, ProjectInternal parent, File projectDir, File buildFile,
                            ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
-                           DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory,
-                           BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
-                           IProjectRegistry<ProjectInternal> projectRegistry, BuildInternal build) {
+                           ConfigurationContainerFactory configurationContainerFactory,
+                           DependencyFactory dependencyFactory,
+                           RepositoryHandlerFactory repositoryHandlerFactory,
+                           PublishArtifactFactory publishArtifactFactory,
+                           InternalRepository internalRepository,
+                           AntBuilderFactory antBuilderFactory,
+                           BuildScriptProcessor buildScriptProcessor,
+                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
+                           BuildInternal build, Convention convention) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -146,8 +177,16 @@ public abstract class AbstractProject implements ProjectInternal {
         this.buildFile = buildFile;
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.taskFactory = taskFactory;
-        this.dependencyManagerFactory = dependencyManagerFactory;
-        this.dependencies = dependencyManagerFactory.createDependencyManager(this, build.getGradleUserHomeDir());
+        this.internalRepository = internalRepository;
+        this.configurationContainerFactory = configurationContainerFactory;
+        this.configurationContainer = configurationContainerFactory.createConfigurationContainer(createResolverProvider(), createArtifactsProvider());
+        this.dependencyFactory = dependencyFactory;
+        this.repositoryHandlerFactory = repositoryHandlerFactory;
+        this.repositoryHandlerFactory.setConvention(convention);
+        this.repositoryHandler = repositoryHandlerFactory.createRepositoryHandler();
+        this.dependencyHandler = new DependencyHandler(configurationContainer, dependencyFactory);
+        this.publishArtifactFactory = publishArtifactFactory;
+        this.artifactHandler = new ArtifactHandler(configurationContainer, publishArtifactFactory);
         this.antBuilderFactory = antBuilderFactory;
         this.buildScriptProcessor = buildScriptProcessor;
         this.pluginRegistry = pluginRegistry;
@@ -165,7 +204,7 @@ public abstract class AbstractProject implements ProjectInternal {
         }
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new DefaultConvention());
+        dynamicObjectHelper.setConvention(convention);
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
@@ -176,6 +215,54 @@ public abstract class AbstractProject implements ProjectInternal {
         }
 
         projectRegistry.addProject(this);
+    }
+
+    private ResolverProvider createResolverProvider() {
+        return new ResolverProvider() {
+            public List<DependencyResolver> getResolvers() {
+                return repositoryHandler.getResolverList();
+            }
+        };
+    }
+
+    private DependencyMetaDataProvider createArtifactsProvider() {
+        return new DependencyMetaDataProvider() {
+            public InternalRepository getInternalRepository() {
+                return internalRepository;
+            }
+
+            public File getGradleUserHomeDir() {
+                return build.getGradleUserHomeDir();
+            }
+
+            public Map getClientModuleRegistry() {
+                return new HashMap();
+            }
+
+            public Module getModule() {
+                return new Module() {
+                    public String getGroup() {
+                        return group.toString();
+                    }
+
+                    public String getName() {
+                        return name;
+                    }
+
+                    public String getVersion() {
+                        return version.toString();
+                    }
+
+                    public String getStatus() {
+                        return status.toString();
+                    }
+                };
+            }
+        };
+    }
+
+    public RepositoryHandler createRepositoryHandler() {
+        return repositoryHandlerFactory.createRepositoryHandler();
     }
 
     public Project getRootProject() {
@@ -292,6 +379,14 @@ public abstract class AbstractProject implements ProjectInternal {
         this.version = version;
     }
 
+    public Object getStatus() {
+        return status;
+    }
+
+    public void setStatus(Object status) {
+        this.status = status;
+    }
+
     public Map<String, Project> getChildProjects() {
         return childProjects;
     }
@@ -352,12 +447,44 @@ public abstract class AbstractProject implements ProjectInternal {
         this.ant = ant;
     }
 
-    public DependencyManager getDependencies() {
-        return dependencies;
+    public ArtifactHandler getArtifacts() {
+        return artifactHandler;
     }
 
-    public void setDependencies(DependencyManager dependencies) {
-        this.dependencies = dependencies;
+    public void setArtifactHandler(ArtifactHandler artifactHandler) {
+        this.artifactHandler = artifactHandler;
+    }
+
+    public RepositoryHandler getRepositories() {
+        return repositoryHandler;
+    }
+
+    public void setRepositoryHandler(RepositoryHandler repositoryHandlerFactory) {
+        this.repositoryHandler = repositoryHandlerFactory;
+    }
+
+    public RepositoryHandlerFactory getRepositoryHandlerFactory() {
+        return repositoryHandlerFactory;
+    }
+
+    public void setRepositoryHandlerFactory(RepositoryHandlerFactory repositoryHandlerFactory) {
+        this.repositoryHandlerFactory = repositoryHandlerFactory;
+    }
+
+    public ConfigurationContainer getConfigurations() {
+        return configurationContainer;
+    }
+
+    public InternalRepository getInternalRepository() {
+        return internalRepository;
+    }
+
+    public void setInternalRepository(InternalRepository internalRepository) {
+        this.internalRepository = internalRepository;
+    }
+
+    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
+        this.configurationContainer = configurationContainer;
     }
 
     public String getArchivesTaskBaseName() {
@@ -819,12 +946,36 @@ public abstract class AbstractProject implements ProjectInternal {
         this.antBuilderFactory = antBuilderFactory;
     }
 
-    public DependencyManagerFactory getDependencyManagerFactory() {
-        return dependencyManagerFactory;
+    public DependencyHandler getDependencies() {
+        return dependencyHandler;
     }
 
-    public void setDependencyManagerFactory(DependencyManagerFactory dependencyManagerFactory) {
-        this.dependencyManagerFactory = dependencyManagerFactory;
+    public void setDependencyHandler(DependencyHandler dependencyHandler) {
+        this.dependencyHandler = dependencyHandler;
+    }
+
+    public DependencyFactory getDependencyFactory() {
+        return dependencyFactory;
+    }
+
+    public void setDependencyFactory(DependencyFactory dependencyFactory) {
+        this.dependencyFactory = dependencyFactory;
+    }
+
+    public ConfigurationContainerFactory getConfigurationContainerFactory() {
+        return configurationContainerFactory;
+    }
+
+    public void setConfigurationContainerFactory(ConfigurationContainerFactory configurationContainerFactory) {
+        this.configurationContainerFactory = configurationContainerFactory;
+    }
+
+    public PublishArtifactFactory getPublishArtifactFactory() {
+        return publishArtifactFactory;
+    }
+
+    public void setPublishArtifactFactory(PublishArtifactFactory publishArtifactFactory) {
+        this.publishArtifactFactory = publishArtifactFactory;
     }
 
     public List<AfterEvaluateListener> getAfterEvaluateListeners() {

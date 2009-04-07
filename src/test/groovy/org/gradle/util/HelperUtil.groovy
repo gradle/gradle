@@ -16,6 +16,7 @@
 
 package org.gradle.util
 
+import java.rmi.server.UID
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
@@ -28,16 +29,22 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.CacheUsage
 import org.gradle.StartParameter
-import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.repositories.InternalRepository
+import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
-import org.gradle.api.internal.artifacts.configurations.DefaultDependencyConfigurationMappingContainer
+import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.plugins.Convention
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.ScriptWithSource
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.initialization.ISettingsFinder
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
@@ -45,18 +52,25 @@ import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
+import org.gradle.api.internal.plugins.DefaultConvention
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory
 
 /**
  * @author Hans Dockter
  * todo: deleteTestDir throws an exception if dir does not exists. failonerror attribute seems not to work. Check this out.
  */
 class HelperUtil {
-    public static final Closure TEST_CLOSURE = {}
+
+  public static final Closure TEST_CLOSURE = {}
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
     public static final Spec TEST_SEPC  = new AndSpec()
 
     static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
-        return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [
+      Convention convention = new DefaultConvention()
+      return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [
                 projectName,
                 parent,
                 new File("projectDir"),
@@ -64,13 +78,17 @@ class HelperUtil {
                 new StringScriptSource("test build file", null),
                 null,
                 new TaskFactory(),
-                new DefaultDependencyManagerFactory(new File('root')),
+                new DefaultConfigurationContainerFactory(new File('root')),
+                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
+                new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), convention),
+                new DefaultPublishArtifactFactory(),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()),
                 null,
                 null,
                 parent.projectRegistry,
                 null,
-                null] as Object[])
+                null,
+                convention] as Object[])
     }
 
     static DefaultProject createRootProject() {
@@ -78,10 +96,14 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
-        IProjectFactory projectFactory = new ProjectFactory(
+      Convention convention = new DefaultConvention()
+      IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
-                new DefaultDependencyManagerFactory(settingsFinder, CacheUsage.ON),
+                new DefaultConfigurationContainerFactory(),
+                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
+                new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
+                new DefaultPublishArtifactFactory(),
+                [:] as InternalRepository,
                 new BuildScriptProcessor(),
                 new PluginRegistry(),
                 new StringScriptSource("embedded build file", "embedded"),
@@ -96,6 +118,7 @@ class HelperUtil {
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name) {
+        Convention convention = new DefaultConvention()
         DefaultProject project = new DefaultProject(
                 name,
                 parentProject,
@@ -104,13 +127,18 @@ class HelperUtil {
                 new StringScriptSource("test build file", null),
                 parentProject.buildScriptClassLoader,
                 parentProject.taskFactory,
-                parentProject.dependencyManagerFactory,
+                parentProject.configurationContainerFactory,
+                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
+                new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
+                new DefaultPublishArtifactFactory(),
+                parentProject.internalRepository,
                 parentProject.getAntBuilderFactory(),
                 parentProject.buildScriptProcessor,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
-                parentProject.build)
-        parentProject.addChildProject project 
+                parentProject.build,
+                convention)
+        parentProject.addChildProject project
         return project
     }
 
@@ -154,14 +182,22 @@ class HelperUtil {
         new DefaultDependencyDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), false)
     }
 
-    static DefaultModuleDescriptor getTestModuleDescriptor(Set confs) {
+    static DefaultModuleDescriptor createModuleDescriptor(Set confs) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), "status", null)
         confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
         return moduleDescriptor;
     }
 
+    static Dependency createDependency(String group, String name, String version) {
+      new DefaultModuleDependency(group, name, version)
+    }
+
+    static PublishArtifact createPublishArtifact(String name, String extension, String type, String classifier) {
+      new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(""))
+    }
+
     static Script createTestScript() {
-        new MyScript()        
+        new MyScript()
     }
 
     static Script createScript(String code) {
@@ -190,12 +226,6 @@ class HelperUtil {
         return { value }
     }
 
-    static DefaultDependencyConfigurationMappingContainer getConfMappings(def confsCollection) {
-        DefaultDependencyConfigurationMappingContainer testConfigurationMappings = new DefaultDependencyConfigurationMappingContainer()
-        testConfigurationMappings.addMasters(confsCollection.collect { new DefaultConfiguration(it, null) } as org.gradle.api.artifacts.Configuration[])
-        testConfigurationMappings
-    }
-
     static Closure createSetterClosure(String name, String value) {
         return {
             "set$name"(value)
@@ -206,6 +236,10 @@ class HelperUtil {
         return WrapUtil.toSet(
                 new DefaultConfiguration(confName1, null),
                 new DefaultConfiguration(confName2, null));
+    }
+
+    static String createUniqueId() {
+        return new UID().toString();
     }
 }
 

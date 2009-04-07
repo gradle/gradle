@@ -19,21 +19,24 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.ConfigurationResolvers;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DependencyManagerFactory;
-import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.DefaultModule;
+import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.invocation.DefaultBuild;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
@@ -41,8 +44,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -53,7 +58,7 @@ public class BaseSettings implements SettingsInternal {
     public static final String BUILD_CONFIGURATION = "build";
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
 
-    private DependencyManager dependencyManager;
+    private Configuration buildConfiguration;
 
     private BuildSourceBuilder buildSourceBuilder;
 
@@ -69,32 +74,72 @@ public class BaseSettings implements SettingsInternal {
 
     private DynamicObjectHelper dynamicObjectHelper;
 
+    private DependencyFactory dependencyFactory;
+
+    private ResolverContainer resolverContainer;
+
+    private InternalRepository internalRepository;
+
     IProjectDescriptorRegistry projectDescriptorRegistry;
 
     protected BaseSettings() {
     }
-    
-    public BaseSettings(DependencyManagerFactory dependencyManagerFactory,
+
+    public BaseSettings(DependencyFactory dependencyFactory,
+                        ResolverContainer resolverContainer,
+                        ConfigurationContainerFactory configurationContainerFactory,
+                        InternalRepository internalRepository,
                         IProjectDescriptorRegistry projectDescriptorRegistry,
                         BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
+        this.dependencyFactory = dependencyFactory;
+        this.resolverContainer = resolverContainer;
+        this.internalRepository = internalRepository;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
-        this.dependencyManager = dependencyManagerFactory.createDependencyManager(createBuildDependenciesProject(),
-                startParameter.getGradleUserHomeDir());
         this.buildSourceBuilder = buildSourceBuilder;
-        dependencyManager.addConfiguration(BUILD_CONFIGURATION);
+        this.buildConfiguration = createBuildConfiguration(configurationContainerFactory, startParameter);
         assignBuildSrcStartParameter(startParameter);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         dynamicObjectHelper = new DynamicObjectHelper(this);
     }
 
+    private Configuration createBuildConfiguration(ConfigurationContainerFactory configurationContainerFactory, final StartParameter startParameter) {
+        DependencyMetaDataProvider metaDataProvider = new DependencyMetaDataProvider() {
+            public Map getClientModuleRegistry() {
+                return new HashMap();
+            }
+
+            public File getGradleUserHomeDir() {
+                return startParameter.getGradleUserHomeDir();
+            }
+
+            public InternalRepository getInternalRepository() {
+                return internalRepository;
+            }
+
+            public Module getModule() {
+                return new DefaultModule(
+                        BUILD_DEPENDENCIES_GROUP,
+                        BUILD_DEPENDENCIES_NAME,
+                        BUILD_DEPENDENCIES_VERSION
+                );
+            }
+        };
+        ResolverProvider resolverProvider = new ResolverProvider() {
+            public List<DependencyResolver> getResolvers() {
+                return resolverContainer.getResolverList();
+            }
+        };
+        return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider).add(BUILD_CONFIGURATION);
+    }
+
     private void assignBuildSrcStartParameter(StartParameter startParameter) {
         buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN,
-                ConfigurationResolvers.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)));
+                Configurations.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)));
         buildSrcStartParameter.setSearchUpwards(true);
     }
 
@@ -163,31 +208,35 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public void dependencies(Object[] dependencies) {
-        dependencyManager.dependencies(WrapUtil.toList(BUILD_CONFIGURATION), dependencies);
+        for (Object dependency : dependencies) {
+            buildConfiguration.addDependency(dependencyFactory.createDependency(dependency));
+        }
     }
-    
-    public Dependency dependency(Object dependency, Closure configureClosure) {
-        return dependencyManager.dependency(WrapUtil.toList(BUILD_CONFIGURATION), dependency, configureClosure);
+
+    public Dependency dependency(Object dependencyNotation, Closure configureClosure) {
+        Dependency dependency = dependencyFactory.createDependency(dependencyNotation, configureClosure);
+        buildConfiguration.addDependency(dependency);
+        return dependency;
     }
 
     public void clientModule(String id, Closure configureClosure) {
-        dependencyManager.clientModule(WrapUtil.toList(BUILD_CONFIGURATION), id, configureClosure);
-    }
-
-    public ResolverContainer getResolvers() {
-        return dependencyManager.getClasspathResolvers();
+        buildConfiguration.addDependency(dependencyFactory.createModule(id, configureClosure));
     }
 
     public FileSystemResolver addFlatDirResolver(String name, Object[] dirs) {
-        return dependencyManager.addFlatDirResolver(name, dirs);
+        return resolverContainer.addFlatDirResolver(name, dirs);
     }
 
     public DependencyResolver addMavenRepo(String[] jarRepoUrls) {
-        return dependencyManager.addMavenRepo(jarRepoUrls);
+        return resolverContainer.addMavenRepo(jarRepoUrls);
     }
 
     public DependencyResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls) {
-        return dependencyManager.addMavenStyleRepo(name, root, jarRepoUrls);
+        return resolverContainer.addMavenStyleRepo(name, root, jarRepoUrls);
+    }
+
+    public List<DependencyResolver> getResolvers() {
+        return resolverContainer.getResolverList();
     }
 
     // todo We don't have command query separation here. This si a temporary thing. If our new classloader handling works out, which
@@ -196,8 +245,8 @@ public class BaseSettings implements SettingsInternal {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         StartParameter startParameter = buildSrcStartParameter.newInstance();
         startParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
-        List<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(startParameter);
-        additionalClasspath.addAll(dependencyManager.configuration(BUILD_CONFIGURATION).getFiles());
+        Set<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(startParameter);
+        additionalClasspath.addAll(buildConfiguration.getFiles());
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
             additionalClasspath.add(toolsJar);
@@ -205,14 +254,6 @@ public class BaseSettings implements SettingsInternal {
         logger.debug("Adding to classpath: {}", additionalClasspath);
         ClasspathUtil.addUrl(classLoader, additionalClasspath);
         return classLoader;
-    }
-
-    private Project createBuildDependenciesProject() {
-        DefaultProject dummyProjectForDepencencyManager = new DefaultProject(BUILD_DEPENDENCIES_PROJECT_NAME);
-        dummyProjectForDepencencyManager.setProperty(DependencyManager.GROUP, BUILD_DEPENDENCIES_PROJECT_GROUP);
-        dummyProjectForDepencencyManager.setProperty(DependencyManager.VERSION, BUILD_DEPENDENCIES_PROJECT_VERSION);
-        dummyProjectForDepencencyManager.setBuild(new DefaultBuild(startParameter, null));
-        return dummyProjectForDepencencyManager;
     }
 
     public ProjectDescriptor getRootProject() {
@@ -225,14 +266,6 @@ public class BaseSettings implements SettingsInternal {
 
     public File getRootDir() {
         return rootProjectDescriptor.getProjectDir();
-    }
-
-    public DependencyManager getDependencyManager() {
-        return dependencyManager;
-    }
-
-    public void setDependencyManager(DependencyManager dependencyManager) {
-        this.dependencyManager = dependencyManager;
     }
 
     public BuildSourceBuilder getBuildSourceBuilder() {
@@ -289,6 +322,26 @@ public class BaseSettings implements SettingsInternal {
 
     protected DynamicObjectHelper getDynamicObjectHelper() {
         return dynamicObjectHelper;
+    }
+
+    public Configuration getBuildConfiguration() {
+        return buildConfiguration;
+    }
+
+    public ResolverContainer getResolverContainer() {
+        return resolverContainer;
+    }
+
+    public void setResolverContainer(ResolverContainer resolverContainer) {
+        this.resolverContainer = resolverContainer;
+    }
+
+    public DependencyFactory getDependencyFactory() {
+        return dependencyFactory;
+    }
+
+    public void setDependencyFactory(DependencyFactory dependencyFactory) {
+        this.dependencyFactory = dependencyFactory;
     }
 
     public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {

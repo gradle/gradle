@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ReflectionUtil;
@@ -27,23 +26,23 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * I would love to have this as a mixin. But Groovy does not support them yet.
- *
  * @author Hans Dockter
  */
 public class ConventionAwareHelper {
     private Convention convention;
 
-    private Task source;
+    private IConventionAware source;
 
     private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
     private Map<String, Object> conventionMappingCache = new HashMap<String, Object>();
 
-    public ConventionAwareHelper(Task source) {
+    // todo Why not passing the convention object as an argument?
+    public ConventionAwareHelper(IConventionAware source) {
         this.source = source;
     }
 
-    public Task convention(Convention convention, Map<String, ConventionValue> conventionMapping) {
+    // todo Why do we need this method?
+    public Object convention(Convention convention, Map<String, ConventionValue> conventionMapping) {
         this.convention = convention;
         this.conventionMapping = conventionMapping;
         return source;
@@ -86,11 +85,11 @@ public class ConventionAwareHelper {
         this.convention = convention;
     }
 
-    public Task getSource() {
+    public IConventionAware getSource() {
         return source;
     }
 
-    public void setSource(Task source) {
+    public void setSource(IConventionAware source) {
         this.source = source;
     }
 

@@ -2,17 +2,19 @@ usePlugin('groovy')
 
 sourceCompatibility=1.4
 
-dependencies { 
+repositories {
     addMavenRepo()
+}
 
+dependencies {
 	compile "org.codehaus.groovy:groovy-all:1.5.6"
 
-	clientModule(['testCompile'],'org.testng:testng:5.8:jdk14') {
+	testCompile module('org.testng:testng:5.8') {
 	    artifact {
 	        name = 'testng'
 	        type = 'jar'
 	        extension = 'jar'
-	        confs = ['jdk14']
+	        classifier = 'jdk14'
         }
 	}
 }

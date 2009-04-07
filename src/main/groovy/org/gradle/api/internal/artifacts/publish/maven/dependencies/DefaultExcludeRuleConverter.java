@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.gradle.api.artifacts.ExcludeRule;
+
 
 /**
  * @author Hans Dockter
@@ -25,25 +24,13 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public DefaultMavenExclude convert(ExcludeRule excludeRule) {
         if (isConvertable(excludeRule)) {
-            return new DefaultMavenExclude(excludeRule.getId().getModuleId().getOrganisation(),
-                    excludeRule.getId().getModuleId().getName());
+            return new DefaultMavenExclude(excludeRule.getExcludeArgs().get(ExcludeRule.ORG_KEY),
+                    excludeRule.getExcludeArgs().get(ExcludeRule.MODULE_KEY));
         }
         return null;
     }
 
     private boolean isConvertable(ExcludeRule excludeRule) {
-        if (excludeRule.getMatcher() != ExactPatternMatcher.INSTANCE) {
-            return false;
-        }
-        String any = PatternMatcher.ANY_EXPRESSION;
-        String org = excludeRule.getId().getModuleId().getOrganisation();
-        String name = excludeRule.getId().getModuleId().getName();
-        if (org == null || name == null) {
-            return false;
-        }
-        if (org.equals(any) || name.equals(any)) {
-            return false;
-        }
-        return true;
+        return excludeRule.getExcludeArgs().containsKey(ExcludeRule.ORG_KEY) && excludeRule.getExcludeArgs().containsKey(ExcludeRule.MODULE_KEY);
     }
 }

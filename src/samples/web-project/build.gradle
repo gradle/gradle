@@ -8,10 +8,16 @@ version = '1.0'
 usePlugin('war')
 usePlugin('jetty')
 
+configurations {
+   moreLibs
+}
+
+repositories {
+   addFlatDirResolver('lib', "$rootDir/lib")
+   addMavenRepo()
+}
+
 dependencies {
-    addConfiguration('moreLibs')
-    addFlatDirResolver('lib', "$rootDir/lib")
-    addMavenRepo()
     compile ":compile:1.0"
     providedCompile ":providedCompile:1.0@jar", "javax.servlet:servlet-api:2.5"
     runtime ":runtime:1.0"

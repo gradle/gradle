@@ -17,18 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
-import org.gradle.util.GUtil;
+import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.*;
+import java.util.Collections;
 
 /**
  * @author Hans Dockter
@@ -36,50 +36,58 @@ import java.util.*;
 @RunWith(JMock.class)
 public class DefaultConfigurationsToModuleDescriptorConverterTest {
     private DefaultConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter = new DefaultConfigurationsToModuleDescriptorConverter();
-    private ConfigurationContainer configurationContainerMock;
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
     public void testAddConfigurations() {
-        String confName1 = "conf1";
-        String confName2 = "conf2";
-        String confName3 = "conf3";
-        String confName4 = "conf4";
-        org.apache.ivy.core.module.descriptor.Configuration ivyConf1 = new org.apache.ivy.core.module.descriptor.Configuration(confName1);
-        org.apache.ivy.core.module.descriptor.Configuration ivyConf2 = new org.apache.ivy.core.module.descriptor.Configuration(confName2);
-        org.apache.ivy.core.module.descriptor.Configuration ivyConf3 = new org.apache.ivy.core.module.descriptor.Configuration(confName3);
-        org.apache.ivy.core.module.descriptor.Configuration ivyConf4 = new org.apache.ivy.core.module.descriptor.Configuration(confName4);
-        final Set<Configuration> testConfs = WrapUtil.toSet(
-                createMockConf(confName1, ivyConf1, false, true),
-                createMockConf(confName2, ivyConf2, true, false),
-                createMockConf(confName3, ivyConf3, true, true),
-                createMockConf(confName4, ivyConf4, false, false));
-        configurationContainerMock = context.mock(ConfigurationContainer.class);
-        final DefaultModuleDescriptor moduleDescriptor = HelperUtil.getTestModuleDescriptor(Collections.EMPTY_SET);
-        context.checking(new Expectations() {{
-            allowing(configurationContainerMock).get(HelperUtil.TEST_SEPC);
-            will(returnValue(testConfs));
-        }});
-        Map<String, Boolean> transitiveOverride = GUtil.map(confName1, true, confName2, false);
-        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurationContainerMock, HelperUtil.TEST_SEPC, transitiveOverride);
-        assertEquals(WrapUtil.toSet(ivyConf1, ivyConf2, ivyConf3, ivyConf4),
-                new HashSet(Arrays.asList(moduleDescriptor.getConfigurations())));
+        Configuration configurationStub1 = createNamesAndExtendedConfigurationStub("conf1");
+        Configuration configurationStub2 = createNamesAndExtendedConfigurationStub("conf2", configurationStub1);
+        final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(Collections.EMPTY_SET);
+
+        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, WrapUtil.toSet(configurationStub1, configurationStub2));
+
+        assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub1.getName()),
+                expectedIvyConfiguration(configurationStub1));
+        assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub2.getName()),
+                expectedIvyConfiguration(configurationStub2));
+        assertThat(moduleDescriptor.getConfigurations().length, equalTo(2));
     }
 
-    private Configuration createMockConf(final String confName, final org.apache.ivy.core.module.descriptor.Configuration ivyConf,
-                                         final boolean defaultTransitive, final boolean actualTransitive) {
-        final Configuration configurationMock = context.mock(Configuration.class, confName);
+    private void assertIvyConfigurationIsCorrect(org.apache.ivy.core.module.descriptor.Configuration actualConfiguration,
+                                                 org.apache.ivy.core.module.descriptor.Configuration expectedConfiguration) {
+        assertThat(actualConfiguration.getDescription(), equalTo(expectedConfiguration.getDescription()));
+        assertThat(actualConfiguration.isTransitive(), equalTo(expectedConfiguration.isTransitive()));
+        assertThat(actualConfiguration.getVisibility(), equalTo(expectedConfiguration.getVisibility()));
+        assertThat(actualConfiguration.getName(), equalTo(expectedConfiguration.getName()));
+        assertThat(actualConfiguration.getExtends(), equalTo(expectedConfiguration.getExtends()));
+    }
+
+    private org.apache.ivy.core.module.descriptor.Configuration expectedIvyConfiguration(Configuration configuration) {
+        return new org.apache.ivy.core.module.descriptor.Configuration(
+                configuration.getName(),
+                configuration.isVisible() ? org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC : org.apache.ivy.core.module.descriptor.Configuration.Visibility.PRIVATE,
+                configuration.getDescription(),
+                Configurations.getNames(configuration.getExtendsFrom(), false).toArray(new String[configuration.getExtendsFrom().size()]),
+                configuration.isTransitive(),
+                null);
+    }
+
+    private Configuration createNamesAndExtendedConfigurationStub(final String name, final Configuration... extendsFromConfigurations) {
+        final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(name, context);
         context.checking(new Expectations() {{
-            allowing(configurationMock).getName();
-            will(returnValue(confName));
+            allowing(configurationStub).isTransitive();
+            will(returnValue(true));
 
-            allowing(configurationMock).isTransitive();
-            will(returnValue(defaultTransitive));
+            allowing(configurationStub).getDescription();
+            will(returnValue(HelperUtil.createUniqueId()));
 
-            allowing(configurationMock).getIvyConfiguration(actualTransitive);
-            will(returnValue(ivyConf));
+            allowing(configurationStub).isVisible();
+            will(returnValue(true));
+
+            allowing(configurationStub).getExtendsFrom();
+            will(returnValue(WrapUtil.toSet(extendsFromConfigurations)));
         }});
-        return configurationMock;
+        return configurationStub;
     }
 }

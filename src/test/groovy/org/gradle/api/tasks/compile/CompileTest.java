@@ -16,18 +16,14 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.util.GUtil;
-import org.jmock.Mockery;
 import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
 
 
 /**

@@ -18,8 +18,8 @@ package org.gradle.integtests
 import groovy.text.SimpleTemplateEngine
 import org.apache.commons.io.FileUtils
 import org.custommonkey.xmlunit.Diff
-import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.runner.RunWith
@@ -91,7 +91,7 @@ class PomGenerationIntegrationTest {
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
         Diff diff = new Diff(expectedXml, actualXml)
-        diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
+        diff.overrideElementQualifier(new RecursiveElementNameAndTextQualifier())
         XMLAssert.assertXMLEqual(diff, true);
         Assert.assertThat(actualXml, Matchers.startsWith(String.format('<?xml version="1.0" encoding="UTF-8"?>%n<!-- mylicenseheader -->')))
     }

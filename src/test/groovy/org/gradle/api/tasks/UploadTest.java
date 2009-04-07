@@ -16,32 +16,27 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.DependencyManager;
-import org.gradle.api.artifacts.ConfigurationPublishInstruction;
-import org.gradle.api.artifacts.ConfigurationResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class UploadTest extends AbstractTaskTest {
-    private static final String RESOLVER_NAME_1 = "resolver1";
-    private static final String RESOLVER_NAME_2 = "resolver2";
-
     private Upload upload;
     private File projectRootDir;
 
@@ -59,24 +54,24 @@ public class UploadTest extends AbstractTaskTest {
 
     @Test public void testUpload() {
         assertNull(upload.getPublishInstruction());
-        assertNotNull(upload.getUploadResolvers());
+        assertNotNull(upload.getRepositories());
     }
 
     @Test public void testUploading() {
-        final DependencyManager dependencyManagerMock = context.mock(DependencyManager.class);
-        final ConfigurationResolver configurationMock = context.mock(ConfigurationResolver.class);
-        Map resolver1 = WrapUtil.toMap("name", RESOLVER_NAME_1);
-        resolver1.put("url", "http://www.url1.com");
-        Map resolver2 = WrapUtil.toMap("name", RESOLVER_NAME_2);
-        resolver2.put("url", "http://www.url2.com");
-        final ConfigurationPublishInstruction publishInstruction = new ConfigurationPublishInstruction("conf1");
+        final Configuration configurationMock = context.mock(Configuration.class);
+        final PublishInstruction publishInstruction = new PublishInstruction();
         upload.setPublishInstruction(publishInstruction);
+        upload.setConfiguration(configurationMock);
         upload.setProject(HelperUtil.createRootProject(projectRootDir));
-        ((AbstractProject) upload.getProject()).setDependencies(dependencyManagerMock);
+        final DependencyResolver repository = upload.getRepositories().addMavenRepo();
         context.checking(new Expectations() {{
-            one(dependencyManagerMock).configuration(publishInstruction.getConfiguration()); will(returnValue(configurationMock));
-            one(configurationMock).publish(upload.getUploadResolvers(), publishInstruction);
+            one(configurationMock).publish(WrapUtil.toList(repository), publishInstruction);
         }});
         upload.execute();
+    }
+
+    @Test public void testRepositories() {
+        final DependencyResolver repository = upload.repositories(HelperUtil.toClosure("{ addMavenRepo() }")).getResolverList().get(0);
+        assertThat(upload.getRepositories().getResolverList(), Matchers.equalTo(WrapUtil.toList(repository)));
     }
 }

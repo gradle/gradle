@@ -15,70 +15,23 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-
 import java.io.File;
 
 /**
  * @author Hans Dockter
  */
 public class PublishInstruction {
-    private ModuleDescriptorInstruction moduleDescriptor = new ModuleDescriptorInstruction();
+    private File ivyFileParentDir = null;
 
-    private Spec<PublishArtifact> artifactSpec = Specs.satisfyAll();
-
-    public ModuleDescriptorInstruction getModuleDescriptor() {
-        return moduleDescriptor;
+    public boolean isUploadModuleDescriptor() {
+        return ivyFileParentDir != null;
     }
 
-    public Spec<PublishArtifact> getArtifactSpec() {
-        return artifactSpec;
+    public File getIvyFileParentDir() {
+        return ivyFileParentDir;
     }
 
-    public void setArtifactSpec(Spec<PublishArtifact> artifactSpec) {
-        this.artifactSpec = artifactSpec;
-    }
-
-    public static class ModuleDescriptorInstruction {
-        private boolean publish = true;
-
-        private Spec<Configuration> configurationSpec = Specs.satisfyAll();
-
-        private Spec<Dependency> dependencySpec = Specs.satisfyAll();
-
-        private File ivyFileParentDir = null;
-
-        public boolean isPublish() {
-            return publish;
-        }
-
-        public void setPublish(boolean publish) {
-            this.publish = publish;
-        }
-
-        public Spec<Configuration> getConfigurationSpec() {
-            return configurationSpec;
-        }
-
-        public void setConfigurationSpec(Spec<Configuration> configurationSpec) {
-            this.configurationSpec = configurationSpec;
-        }
-
-        public Spec<Dependency> getDependencySpec() {
-            return dependencySpec;
-        }
-
-        public void setDependencySpec(Spec<Dependency> dependencySpec) {
-            this.dependencySpec = dependencySpec;
-        }
-
-        public File getIvyFileParentDir() {
-            return ivyFileParentDir;
-        }
-
-        public void setIvyFileParentDir(File ivyFileParentDir) {
-            this.ivyFileParentDir = ivyFileParentDir;
-        }
+    public void setIvyFileParentDir(File ivyFileParentDir) {
+        this.ivyFileParentDir = ivyFileParentDir;
     }
 }

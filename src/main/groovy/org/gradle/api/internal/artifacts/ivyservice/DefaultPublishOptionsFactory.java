@@ -27,7 +27,7 @@ import java.util.Set;
 public class DefaultPublishOptionsFactory implements PublishOptionsFactory {
     public PublishOptions createPublishOptions(Set<String> configurations, PublishInstruction publishInstruction, File ivyFile) {
         PublishOptions publishOptions = createPublishOptions(publishInstruction, configurations);
-        if (publishInstruction.getModuleDescriptor().isPublish()) {
+        if (publishInstruction.isUploadModuleDescriptor()) {
             publishOptions.setSrcIvyPattern(ivyFile.getAbsolutePath());
         }
         return publishOptions;

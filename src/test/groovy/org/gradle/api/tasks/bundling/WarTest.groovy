@@ -17,15 +17,15 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.DependencyManager
 import org.gradle.api.GradleScriptException
-import org.gradle.api.artifacts.ConfigurationResolver
-import org.gradle.api.artifacts.ResolveInstruction
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.specs.DependencyTypeSpec
 import org.gradle.api.artifacts.specs.Type
+import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.util.ConfigureUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Assert
@@ -40,12 +40,13 @@ import static org.junit.Assert.assertEquals
  */
 @RunWith (org.jmock.integration.junit4.JMock)
 class WarTest extends AbstractArchiveTaskTest {
-    static final List TEST_LIB_CONFIGURATIONS = ['testLibConf1', 'testLibConf2']
+
+  static final List TEST_LIB_CONFIGURATIONS = ['testLibConf1', 'testLibConf2']
     static final List TEST_LIB_EXCLUDE_CONFIGURATIONS = ['testLibConf3', 'testLibConf4']
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    DependencyManager dependencyManager = context.mock(DependencyManager)
+    ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer)
   
     War war
 
@@ -55,7 +56,7 @@ class WarTest extends AbstractArchiveTaskTest {
 
     @Before public void setUp() {
         super.setUp()
-        getProject().setDependencies(dependencyManager)
+        getProject().setConfigurationContainer(configurationContainer)
         war = new War(project, AbstractTaskTest.TEST_TASK_NAME)
         configure(war)
         war.manifest = new GradleManifest()
@@ -75,32 +76,36 @@ class WarTest extends AbstractArchiveTaskTest {
         ]
     }
 
-    private void prepareDependencyManagerMock(boolean failForMissingDependency, boolean includeProjectDependencies) {
+    private void prepareConfigurationContainerMock(boolean failForMissingDependency, boolean includeProjectDependencies) {
         context.checking {
-            allowing(dependencyManager).configuration(TEST_LIB_CONFIGURATIONS[0]); will(returnValue(
+            allowing(configurationContainer).get(TEST_LIB_CONFIGURATIONS[0]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[0]])
             ))
-            allowing(dependencyManager).configuration(TEST_LIB_CONFIGURATIONS[1]); will(returnValue(
+            allowing(configurationContainer).get(TEST_LIB_CONFIGURATIONS[1]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[1]])
             ))
-            allowing(dependencyManager).configuration(TEST_LIB_EXCLUDE_CONFIGURATIONS[0]); will(returnValue(
+            allowing(configurationContainer).get(TEST_LIB_EXCLUDE_CONFIGURATIONS[0]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[0]])
             ))
-            allowing(dependencyManager).configuration(TEST_LIB_EXCLUDE_CONFIGURATIONS[1]); will(returnValue(
+            allowing(configurationContainer).get(TEST_LIB_EXCLUDE_CONFIGURATIONS[1]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[1]])
             ))
         }
     }
 
-    private ConfigurationResolver createConfigurationMock(boolean failForMissingDependency, boolean includeProjectDependencies, List returnValue) {
-        [resolve: { Closure modifier ->
-            ResolveInstruction resolveInstruction = ConfigureUtil.configure(modifier, new ResolveInstruction())
-            assertEquals(failForMissingDependency, resolveInstruction.isFailOnResolveError())
-            if (!includeProjectDependencies) {
-                assertEquals(new DependencyTypeSpec(Type.EXTERNAL), resolveInstruction.dependencySpec)
+    private Configuration createConfigurationMock(boolean failForMissingDependency, boolean includeProjectDependencies, List returnValue) {
+        Configuration copiedConfiguration = [
+                resolve: { -> returnValue as Set }
+        ] as Configuration
+
+        [copyRecursive: { Spec spec ->
+            if (includeProjectDependencies) {
+                assertEquals(Specs.SATISFIES_ALL, spec)
+            } else {
+                assertEquals(new DependencyTypeSpec(Type.EXTERNAL), spec)
             }
-            returnValue
-        }] as ConfigurationResolver
+            copiedConfiguration
+        }] as Configuration
     }
 
     AbstractArchiveTask getArchiveTask() {
@@ -129,25 +134,25 @@ class WarTest extends AbstractArchiveTaskTest {
 
     @Override @Test
     public void testExecuteWithEmptyClassifier() {
-        prepareDependencyManagerMock(true, true)
+        prepareConfigurationContainerMock(true, true)
         super.testExecuteWithEmptyClassifier();
     }
 
     @Override @Test
     public void testExecuteWithEmptyAppendix() {
-        prepareDependencyManagerMock(true, true)
+        prepareConfigurationContainerMock(true, true)
         super.testExecuteWithEmptyAppendix();
     }
 
     @Override @Test
     public void testExecute() {
-        prepareDependencyManagerMock(true, true)
+        prepareConfigurationContainerMock(true, true)
         super.testExecute();
     }
 
     @Override @Test(expected = GradleScriptException)
     public void testExecuteWithNullDestinationDir() {
-        prepareDependencyManagerMock(true, true)
+        prepareConfigurationContainerMock(true, true)
         super.testExecuteWithNullDestinationDir();
     }
 
@@ -157,7 +162,7 @@ class WarTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testDependencies() {
-        prepareDependencyManagerMock(false, false)
+        prepareConfigurationContainerMock(false, false)
         assertEquals(['/file1' as File, '/file2' as File], war.dependencies(false, false))
     }
 

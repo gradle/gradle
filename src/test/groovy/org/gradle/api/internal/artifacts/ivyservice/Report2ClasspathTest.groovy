@@ -23,17 +23,6 @@ import org.junit.Test
  */
 class Report2ClasspathTest {
     @Test public void testGetClasspath() {
-        String conf1 = 'conf1'
-        String conf2 = 'conf2'
-//        StubFor resolveReportMocker = new StubFor(ResolveReport)
-//        resolveReportMocker.demand.getConfigurationReport {
-//
-//        }
-//        resolveReportMocker.use {
-//            ResolveReport resolveReport = new ResolveReport(null, null)
-//
-//        }
-        
-
+      // todo implement 
     }
 }

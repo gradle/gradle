@@ -19,8 +19,8 @@ package org.gradle.initialization;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.*;
-import org.gradle.api.DependencyManager;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Build;
@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -49,7 +51,7 @@ public class BuildSourceBuilder {
 
     private GradleFactory gradleFactory;
     private CacheInvalidationStrategy cacheInvalidationStrategy;
-    
+
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
     public BuildSourceBuilder(GradleFactory gradleFactory, CacheInvalidationStrategy cacheInvalidationStrategy) {
@@ -57,17 +59,17 @@ public class BuildSourceBuilder {
         this.cacheInvalidationStrategy = cacheInvalidationStrategy;
     }
 
-    public List<File> createBuildSourceClasspath(StartParameter startParameter) {
+    public Set<File> createBuildSourceClasspath(StartParameter startParameter) {
         assert startParameter.getCurrentDir() != null && startParameter.getBuildFile() == null;
 
         logger.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
             logger.debug("Build source dir does not exists!. We leave.");
-            return new ArrayList<File>();
+            return new HashSet<File>();
         }
         if (!GUtil.isTrue(startParameter.getTaskNames())) {
             logger.debug("No task names specified. We leave..");
-            return new ArrayList<File>();
+            return new HashSet<File>();
         }
         logger.info("================================================" + " Start building buildSrc");
         try {
@@ -78,7 +80,7 @@ public class BuildSourceBuilder {
             // the build is executed, the Gradle class should offer distinct methods for gettting an evaluated
             // project tree and running a build against such a tree. In the case of a valid cache, this would also
             // save the time to build the dag.
-            File buildResolverDir = new File(startParameter.getCurrentDir(), Project.TMP_DIR_NAME + "/" + DependencyManager.BUILD_RESOLVER_NAME);
+            File buildResolverDir = new File(startParameter.getCurrentDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.BUILD_RESOLVER_NAME);
 
             StartParameter startParameterArg = startParameter.newInstance();
             startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
@@ -96,13 +98,12 @@ public class BuildSourceBuilder {
             BuildSourceBuildListener buildListener = new BuildSourceBuildListener();
             gradle.addBuildListener(buildListener);
             gradle.run().rethrowFailure();
-            DependencyManager dependencyManager = buildListener.getRootProject().getDependencies();
-            File artifactFile = buildArtifactFile(dependencyManager.getBuildResolverDir());
+            File artifactFile = buildArtifactFile(buildResolverDir);
             if (!artifactFile.exists()) {
                 logger.info("Building buildSrc has not produced any artifact!");
-                return new ArrayList<File>();
+                return new HashSet<File>();
             }
-            List<File> buildSourceClasspath = dependencyManager.configuration(JavaPlugin.RUNTIME).resolve();
+            Set<File> buildSourceClasspath = buildListener.getRootProject().getConfigurations().get(JavaPlugin.RUNTIME).resolve();
             buildSourceClasspath.add(artifactFile);
             logger.debug("Build source classpath is: {}", buildSourceClasspath);
             logger.info("================================================" + " Finished building buildSrc");
@@ -122,7 +123,7 @@ public class BuildSourceBuilder {
     }
 
     public File buildArtifactFile(File buildResolverDir) {
-        String path = IvyPatternHelper.substitute(buildResolverDir.getAbsolutePath() + "/" + DependencyManager.BUILD_RESOLVER_PATTERN,
+        String path = IvyPatternHelper.substitute(buildResolverDir.getAbsolutePath() + "/" + ResolverContainer.BUILD_RESOLVER_PATTERN,
                 BUILD_SRC_ORG, BUILD_SRC_MODULE, BUILD_SRC_REVISION, BUILD_SRC_MODULE, BUILD_SRC_TYPE, BUILD_SRC_TYPE);
         return new File(path);
     }

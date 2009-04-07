@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ArtifactContainer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
@@ -31,16 +30,9 @@ import java.util.Set;
 public class DefaultArtifactContainer implements ArtifactContainer {
     private Set<PublishArtifact> artifacts = new HashSet<PublishArtifact>();
 
-    private ConfigurationContainer configurationContainer;
-
-    public DefaultArtifactContainer(ConfigurationContainer configurationContainer) {
-        this.configurationContainer = configurationContainer;
+    public DefaultArtifactContainer() {
     }
-
-    public ConfigurationContainer getConfigurationContainer() {
-        return configurationContainer;
-    }
-
+    
     public void addArtifacts(PublishArtifact... publishArtifacts) {
         artifacts.addAll(Arrays.asList(publishArtifacts));
     }
@@ -52,63 +44,4 @@ public class DefaultArtifactContainer implements ArtifactContainer {
     public Set<PublishArtifact> getArtifacts(Spec<PublishArtifact> spec) {
         return new HashSet<PublishArtifact>(Specs.filterIterable(getArtifacts(), spec));
     }
-
-    //    private Map<String, List<PublishArtifact>> artifacts = new HashMap<String, List<PublishArtifact>>();
-//
-//    private Map<String, List<Artifact>> descriptors = new HashMap<String, List<Artifact>>();
-//
-//    private List<String> absolutePatterns = new ArrayList<String>();
-//
-//    private Set<File> parentDirs = new HashSet<File>();
-//
-//    private String defaultPattern = DependencyManager.DEFAULT_ARTIFACT_PATTERN;
-//
-//    public void addArtifacts(String configurationName, PublishArtifact... artifacts) {
-//        if (this.artifacts.get(configurationName) == null) {
-//            this.artifacts.put(configurationName, new ArrayList<PublishArtifact>());
-//        }
-//        for (PublishArtifact artifact : artifacts) {
-//            this.artifacts.get(configurationName).add(artifact);
-//        }
-//    }
-//
-//    public Map<String, List<PublishArtifact>> getArtifacts() {
-//        return artifacts;
-//    }
-//
-//    public void setArtifacts(Map<String, List<PublishArtifact>> artifacts) {
-//        this.artifacts = artifacts;
-//    }
-//
-//    public Map<String, List<Artifact>> getDescriptors() {
-//        return descriptors;
-//    }
-//
-//    public void setDescriptors(Map<String, List<Artifact>> descriptors) {
-//        this.descriptors = descriptors;
-//    }
-//
-//    public List<String> getAbsolutePatterns() {
-//        return absolutePatterns;
-//    }
-//
-//    public void setAbsolutePatterns(List<String> absolutePatterns) {
-//        this.absolutePatterns = absolutePatterns;
-//    }
-//
-//    public Set<File> getParentDirs() {
-//        return parentDirs;
-//    }
-//
-//    public void setParentDirs(Set<File> parentDirs) {
-//        this.parentDirs = parentDirs;
-//    }
-//
-//    public String getDefaultPattern() {
-//        return defaultPattern;
-//    }
-//
-//    public void setDefaultPattern(String defaultPattern) {
-//        this.defaultPattern = defaultPattern;
-//    }
 }

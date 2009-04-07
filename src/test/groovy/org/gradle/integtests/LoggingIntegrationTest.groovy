@@ -46,11 +46,11 @@ class LoggingIntegrationTest {
 
         checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q').run(),
             errorOuts, allOuts, 0, allPrefixes)
-        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments().run(),
+        checkOutput(executer.reset().inDirectory(loggingDir).withTasks('log').withArguments().run(),
             errorOuts, allOuts, 2, allPrefixes)
-        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-i').run(),
+        checkOutput(executer.reset().inDirectory(loggingDir).withTasks('log').withArguments('-i').run(),
             errorOuts, allOuts, 3, allPrefixes)
-        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-d').run(),
+        checkOutput(executer.reset().inDirectory(loggingDir).withTasks('log').withArguments('-d').run(),
             errorOuts, allOuts, 4, allPrefixes)
     }
 

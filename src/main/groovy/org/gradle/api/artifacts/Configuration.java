@@ -15,15 +15,23 @@
  */
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-import org.gradle.api.Transformer;
+import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 
+import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 /**
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
  */
-public interface Configuration {
+public interface Configuration extends FileCollection{
+    State getState();
+
+    enum State { UNRESOLVED, RESOLVED, RESOLVED_WITH_FAILURES }
+    
     /**
      * Returns the name of this configuration.
      *
@@ -54,7 +62,7 @@ public interface Configuration {
      *
      * @return The super configurations. Returns an empty set when this configuration does not extend any others.
      */
-    Set<? extends Configuration> getExtendsFrom();
+    Set<Configuration> getExtendsFrom();
 
     /**
      * Sets the configurations which this configuration extends from.
@@ -62,7 +70,7 @@ public interface Configuration {
      * @param superConfigs The super configuration. Should not be null.
      * @return this configuration
      */
-    Configuration setExtendsFrom(Set<String> superConfigs);
+    Configuration setExtendsFrom(Set<Configuration> superConfigs);
 
     /**
      * Adds the given configurations to the set of configuration which this configuration extends from.
@@ -70,7 +78,7 @@ public interface Configuration {
      * @param superConfigs The super configurations.
      * @return this configuration
      */
-    Configuration extendsFrom(String... superConfigs);
+    Configuration extendsFrom(Configuration... superConfigs);
 
     /**
      * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its
@@ -105,13 +113,67 @@ public interface Configuration {
      */
     Configuration setDescription(String description);
 
-    Set<? extends Configuration> getChain();
+    List<Configuration> getHierarchy();
 
-    org.apache.ivy.core.module.descriptor.Configuration getIvyConfiguration(boolean transitive);
+    /**
+     * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
+     * the resulting list of files.
+     *
+     * @return The files of this configuration.
+     */
+    Set<File> resolve();
 
-    void addIvyTransformer(Transformer<org.apache.ivy.core.module.descriptor.Configuration> transformer);
+    ResolveReport resolveAsReport();
 
-    void addIvyTransformer(Closure transformer);
+    String getUploadInternalTaskName();
 
-    ResolveInstruction getResolveInstruction();
+    String getUploadTaskName();
+
+    /**
+     * Returns a task dependencies object containing all required dependencies to build the project dependencies
+     * belonging to this configuration or to one of its super configurations.
+     *
+     * @return a task dependency object
+     */
+    TaskDependency getBuildProjectDependencies();
+
+    /**
+     * Returns a task dependencies object containing all required dependencies to build the artifacts
+     * belonging to this configuration or to one of its super configurations.
+     *
+     * @return a task dependency object
+     */
+    TaskDependency getBuildArtifactDependencies();
+
+    void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction);
+
+    Set<Dependency> getDependencies();
+
+    Set<Dependency> getAllDependencies();
+
+    Set<ProjectDependency> getProjectDependencies();
+
+    Set<ProjectDependency> getAllProjectDependencies();
+
+    void addDependency(Dependency dependency);
+
+    Set<PublishArtifact> getArtifacts();
+
+    Set<PublishArtifact> getAllArtifacts();
+    
+    List<DependencyResolver> getDependencyResolvers();
+
+    Set<ExcludeRule> getExcludeRules();
+    
+    Set<Configuration> getAll();
+
+    Configuration addArtifact(PublishArtifact artifact);
+
+    Configuration copy();
+
+    Configuration copyRecursive();
+
+    Configuration copy(Spec<Dependency> dependencySpec);
+
+    Configuration copyRecursive(Spec<Dependency> dependencySpec);
 }

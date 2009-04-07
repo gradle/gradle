@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
@@ -35,9 +35,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -59,7 +59,7 @@ public class DefaultArtifactPomContainerTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private List<DependencyDescriptor> testDependencies;
+    private Set<Configuration> testConfigurations;
     private File expectedFile;
     private File expectedPomFile;
     private Artifact expectedArtifact;
@@ -67,7 +67,7 @@ public class DefaultArtifactPomContainerTest {
 
     @Before
     public void setUp() {
-        testDependencies = new ArrayList<DependencyDescriptor>();
+        testConfigurations = new HashSet<Configuration>();
         expectedPomFile = new File(TEST_POM_DIR, "pom-" + POMFILTER_NAME + ".xml");
         expectedFile = new File("somePath");
         expectedArtifact = createTestArtifact("someName");
@@ -100,10 +100,10 @@ public class DefaultArtifactPomContainerTest {
 
             allowing(artifactPomMock).getPom(); will(returnValue(mavenPomMock));
             allowing(artifactPomMock).getArtifactFile(); will(returnValue(expectedFile));
-            one(pomFileWriterMock).write(with(same(mavenPomMock)), with(same(testDependencies)), with(equal(expectedPomFile)));
+            one(pomFileWriterMock).write(with(same(mavenPomMock)), with(same(testConfigurations)), with(equal(expectedPomFile)));
         }});
         artifactPomContainer.addArtifact(expectedArtifact, expectedFile);
-        Map<File, File> files = artifactPomContainer.createDeployableUnits(testDependencies);
+        Map<File, File> files = artifactPomContainer.createDeployableUnits(testConfigurations);
         assertEquals(1, files.size());
         assertEquals(expectedFile, files.get(expectedPomFile));
     }
@@ -185,7 +185,7 @@ public class DefaultArtifactPomContainerTest {
 //
 //    @Test
 //    public void createDeployableUnitsWithNoArtifacts() {
-//        assertEquals(0, artifactPomContainer.createDeployableUnits(testDependencies).size());
+//        assertEquals(0, artifactPomContainer.createDeployableUnits(testConfigurations).size());
 //    }
 //
 //    @Test
@@ -193,7 +193,7 @@ public class DefaultArtifactPomContainerTest {
 //        Map<File, File> expectedDeployableUnits = new HashMap<File, File>();
 //        addPomArtifactFile(expectedDeployableUnits, true, "customPom1", "customPom2");
 //        addPomArtifactFile(expectedDeployableUnits, false, "customPom3");
-//        assertEquals(expectedDeployableUnits, artifactPomContainer.createDeployableUnits(testDependencies));
+//        assertEquals(expectedDeployableUnits, artifactPomContainer.createDeployableUnits(testConfigurations));
 //    }
 //
 //    private void addPomArtifactFile(Map<File, File> deployableUnits, final boolean addArtifactFile, String... names) {
@@ -211,7 +211,7 @@ public class DefaultArtifactPomContainerTest {
 //                allowing(artifactPomMock).getArtifactFile(); will(returnValue(artifactFile));
 //                allowing(artifactPomMock).getName(); will(returnValue(artifactFile == null ? pomFile.getName() : artifactFile.getName()));
 //                if (artifactFile != null) {
-//                    one(artifactPomMock).toPomFile(pomFile, testDependencies);
+//                    one(artifactPomMock).toPomFile(pomFile, testConfigurations);
 //                }
 //            }});
 //            artifactPomContainer.addArtifactPom(artifactPomMock);

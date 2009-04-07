@@ -16,16 +16,14 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationResolver;
-import org.gradle.api.artifacts.ResolveInstruction;
-import org.gradle.api.artifacts.ResolveInstructionModifier;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.report.IvyDependencyGraph;
 import org.gradle.api.artifacts.report.IvyDependencyGraphBuilder;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * The {@code DependencyReportTask} displays the dependency tree for a project. Can be configured to output to a file,
@@ -54,23 +52,19 @@ public class DependencyReportTask extends AbstractReportTask {
     }
 
     public void generate(Project project) throws IOException {
-        List<ConfigurationResolver> sortedConfigurations = project.getDependencies().getConfigurations();
-        Collections.sort(sortedConfigurations,
-                new Comparator<ConfigurationResolver>() {
-                    public int compare(ConfigurationResolver conf1, ConfigurationResolver conf2) {
+        SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(
+                new Comparator<Configuration>() {
+                    public int compare(Configuration conf1, Configuration conf2) {
                         return conf1.getName().compareTo(conf2.getName());
                     }
                 });
-        for (ConfigurationResolver configuration : sortedConfigurations) {
+        sortedConfigurations.addAll(project.getConfigurations().getAll());
+        for (Configuration configuration : sortedConfigurations) {
             IvyDependencyGraphBuilder graphBuilder = new IvyDependencyGraphBuilder();
 
             // todo - move the following to Configuration, so that a IvyDependencyGraph can be obtained directly
-            ResolveInstructionModifier resolveInstructionModifier = new ResolveInstructionModifier() {
-                public ResolveInstruction modify(ResolveInstruction resolveInstruction) {
-                    return new ResolveInstruction(resolveInstruction).setFailOnResolveError(true);
-                }
-            };
-            IvyDependencyGraph graph = graphBuilder.buildGraph(configuration.resolveAsReport(resolveInstructionModifier), configuration.getName());
+            // todo - failOnResolve should lead to exception
+            IvyDependencyGraph graph = graphBuilder.buildGraph(configuration.resolveAsReport(), configuration.getName());
 
             renderer.startConfiguration(configuration);
             renderer.render(graph);

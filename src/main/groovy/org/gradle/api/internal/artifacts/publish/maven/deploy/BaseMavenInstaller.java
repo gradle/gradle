@@ -19,7 +19,7 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.artifacts.DependencyManagerInternal;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
 
 /**
  * @author Hans Dockter
@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.DependencyManagerInternal;
 public class BaseMavenInstaller extends AbstractMavenResolver {
     private InstallTaskFactory installTaskFactory = new DefaultInstallTaskFactory();
 
-    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManagerInternal dependencyManager) {
-        super(name, pomFilterContainer, artifactPomContainer, dependencyManager);
+    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, ConfigurationContainer configurationContainer) {
+        super(name, pomFilterContainer, artifactPomContainer, configurationContainer);
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {

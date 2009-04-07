@@ -1,13 +1,16 @@
 dependsOn ':shared'
 
+configurations {
+   spi
+}
+
 // START SNIPPET dependencies
 dependencies {
     compile project(':shared')
 // END SNIPPET dependencies
-    clientModule(['compile'], 'commons-lang:commons-lang:2.4') {
-        dependency('commons-io:commons-io:1.2')
+    compile module("commons-lang:commons-lang:2.4") {
+        dependency("commons-io:commons-io:1.2")
     }
-    addConfiguration 'spi'
 // START SNIPPET dependencies
 }
 // END SNIPPET dependencies
@@ -15,21 +18,28 @@ dependencies {
 // Just a smoke test that using this option does not lead to any exception
 compile.options.compilerArgs = [[value: '-Xlint:unchecked']]
 
-libs.jar(appendix: 'spi', confs: ['spi']) {
+spiJar = libs.jar(appendix: 'spi') {
     fileSet() {
-        include 'org/gradle/api/**'
+        include('org/gradle/api/')
     }
+    dependsOn test
 }
- 
+
+artifacts {
+  spi spiJar
+}
+
 // START SNIPPET dists
 dists {
-	zip() {
-		files(dependencies.runtime)
-		fileSet(dir: 'src/dist')
-	}
+        zip() {
+            dependsOn configurations.runtime.buildProjectDependencies
+                fileSet(dir: 'src/dist')
+        }.doFirst { task ->
+            task.files(configurations.compile.resolve() as File[])
+        }
 }
 // END SNIPPET dists
 
 // We want to test if commons-math was properly added to the build script classpath
 org.apache.commons.math.fraction.Fraction lhs = new org.apache.commons.math.fraction.Fraction(1, 3);
-org.gradle.buildsrc.BuildSrcClass bsc = new org.gradle.buildsrc.BuildSrcClass() 
+org.gradle.buildsrc.BuildSrcClass bsc = new org.gradle.buildsrc.BuildSrcClass()

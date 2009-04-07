@@ -17,12 +17,15 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
@@ -35,16 +38,21 @@ public class DefaultConfigurationContainerTest {
     private static final String TEST_DESCRIPTION = "testDescription";
     private static final Closure TEST_CLOSURE = HelperUtil.createSetterClosure("Description", TEST_DESCRIPTION);
     private static final String TEST_NAME = "testName";
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer();
+
+    private JUnit4Mockery context = new JUnit4Mockery();
+
+    IvyService ivyServiceDummy = context.mock(IvyService.class);
+    ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
+    DependencyMetaDataProvider dependencyMetaDataProviderDummy = context.mock(DependencyMetaDataProvider.class);
+
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
+            ivyServiceDummy, resolverProviderDummy, dependencyMetaDataProviderDummy);
 
     @Test
     public void init() {
-        Configuration configuration1 = configurationContainer.add(TEST_NAME);
-        Configuration configuration2 = configurationContainer.add(TEST_NAME + "delta");
-        Set<Configuration> configurationSet = WrapUtil.toSet(configuration1,
-                configuration2);
-        ConfigurationContainer configurationContainer = new DefaultConfigurationContainer(configurationSet);
-        assertThat(configurationContainer.get(), equalTo(configurationSet));
+        assertThat(configurationContainer.getIvyService(), sameInstance(ivyServiceDummy));
+        assertThat(configurationContainer.getResolverProvider(), sameInstance(resolverProviderDummy));
+        assertThat(configurationContainer.getDependencyMetaDataProvider(), sameInstance(dependencyMetaDataProviderDummy));
     }
 
     @Test
@@ -107,18 +115,48 @@ public class DefaultConfigurationContainerTest {
     public void testGetAll() {
         Configuration configuration1 = configurationContainer.add(TEST_NAME);
         Configuration configuration2 = configurationContainer.add(TEST_NAME + "delta");
-        assertThat(configurationContainer.get(), equalTo(WrapUtil.toSet(configuration1, configuration2)));
+        assertThat(configurationContainer.getAll(), equalTo(WrapUtil.toSet(configuration1, configuration2)));
     }
 
     @Test
     public void testEqualsAndHashCode() {
-        Configuration configuration1 = configurationContainer.add(TEST_NAME);
-        Configuration configuration2 = configurationContainer.add(TEST_NAME + "delta");
-        ConfigurationContainer otherConfigurationContainer = new DefaultConfigurationContainer(WrapUtil.toSet(configuration1,
-                configuration2));
+        configurationContainer.add(TEST_NAME);
+        configurationContainer.add(TEST_NAME + "delta");
+        ConfigurationContainer otherConfigurationContainer = new DefaultConfigurationContainer(ivyServiceDummy,
+                resolverProviderDummy, dependencyMetaDataProviderDummy);
+        otherConfigurationContainer.add(TEST_NAME);
+        otherConfigurationContainer.add(TEST_NAME + "delta");
         assertThat(configurationContainer, equalTo(otherConfigurationContainer));
         assertThat(configurationContainer.hashCode(), equalTo(otherConfigurationContainer.hashCode()));
         otherConfigurationContainer.add(TEST_NAME + "delta2");
         assertThat(configurationContainer, not(equalTo(otherConfigurationContainer)));
+    }
+    
+    @Test
+    public void testCreateDetached() {
+        Dependency dependency1 = HelperUtil.createDependency("group1", "name1", "version1");
+        Dependency dependency2 = HelperUtil.createDependency("group2", "name2", "version2");
+
+        Configuration detachedConf = configurationContainer.detachedConfiguration(dependency1, dependency2);
+
+        assertThat(detachedConf.getAll(), equalTo(WrapUtil.toSet(detachedConf)));
+        assertThat(detachedConf.getHierarchy(), equalTo(WrapUtil.<Configuration>toList(detachedConf)));
+        assertThat(detachedConf.getDependencies(), equalTo(WrapUtil.toSet(dependency1, dependency2)));
+        assertNotSameInstances(detachedConf.getDependencies(), WrapUtil.toSet(dependency1, dependency2));
+    }
+
+    private void assertNotSameInstances(Set<Dependency> dependencies, Set<Dependency> otherDependencies) {
+        for (Dependency dependency : dependencies) {
+            assertHasEqualButNotSameInstance(dependency, otherDependencies);
+        }
+    }
+
+    private void assertHasEqualButNotSameInstance(Dependency dependency, Set<Dependency> otherDependencies) {
+        assertThat(otherDependencies, hasItem(dependency));
+        for (Dependency otherDependency : otherDependencies) {
+            if (otherDependency.equals(dependency)) {
+                assertThat(otherDependency, not(sameInstance(dependency)));
+            }
+        }
     }
 }

@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Set;
+import java.util.Date;
 
 /**
  * @author Hans Dockter
@@ -28,8 +27,8 @@ import java.util.Set;
 public class ArchivePublishArtifact extends AbstractPublishArtifact {
     private AbstractArchiveTask archiveTask;
 
-    public ArchivePublishArtifact(Set<Configuration> configurations, AbstractArchiveTask archiveTask) {
-        super(configurations, archiveTask);
+    public ArchivePublishArtifact(AbstractArchiveTask archiveTask) {
+        super(archiveTask);
         this.archiveTask = archiveTask;
     }
 
@@ -53,7 +52,15 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
         return archiveTask.getArchivePath();
     }
 
+    public Date getDate() {
+        return new Date(archiveTask.getArchivePath().lastModified());
+    }
+
     public String toString() {
         return String.format("ArchivePublishArtifact $s:%s:%s:%s", getName(), getType(), getExtension(), getClassifier());
+    }
+
+    public AbstractArchiveTask getArchiveTask() {
+        return archiveTask;
     }
 }

@@ -17,15 +17,12 @@ package org.gradle.api.tasks.javadoc;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.DependencyManager;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
-import org.gradle.api.artifacts.ConfigurationResolver;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.JMockUtil;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleState;
@@ -47,37 +44,32 @@ import java.io.File;
 import java.io.IOException;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
+import java.util.Set;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class JavadocTest extends AbstractConventionTaskTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private final List<File> srcDirs = WrapUtil.toList(new File("srcdir"));
     private final File destDir = new File("destdir");
-    private final List<File> classpath = WrapUtil.toList(new File("classpath"));
-    private JavadocExecHandleBuilder javadocExecHandleBuilderMock;
-    private ExecHandle execHandleMock;
+    private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));
+    private JavadocExecHandleBuilder javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);;
+    private ExecHandle execHandleMock = context.mock(ExecHandle.class);
     private Javadoc task;
-    private ExistingDirsFilter existingDirsFilter;
-    private DependencyManager dependencyManager;
-    private ConfigurationResolver configurationMock;
+    private ExistingDirsFilter existingDirsFilter = context.mock(ExistingDirsFilter.class);
+    private Configuration configurationMock = context.mock(Configuration.class);
 
     @Before
     public void setUp() {
         super.setUp();
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-
-        javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);
-        execHandleMock = context.mock(ExecHandle.class);
-        existingDirsFilter = context.mock(ExistingDirsFilter.class);
-        dependencyManager = context.mock(DependencyManager.class);
-        configurationMock = context.mock(ConfigurationResolver.class);
-
         task = new Javadoc(getProject(), AbstractTaskTest.TEST_TASK_NAME);
         task.setExistentDirsFilter(existingDirsFilter);
-        task.setDependencyManager(dependencyManager);
-        task.setResolveInstruction(new ConfigurationResolveInstructionModifier("testConf"));
-        JMockUtil.configureResolve(context, task.getResolveInstruction(), dependencyManager, configurationMock, classpath);
+        task.setConfiguration(configurationMock);
         task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
+        context.checking(new Expectations() {{
+            allowing(configurationMock).resolve(); will(returnValue(classpath));
+        }});
     }
 
     public AbstractTask getTask() {

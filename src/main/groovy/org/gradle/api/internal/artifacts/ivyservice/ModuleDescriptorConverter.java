@@ -17,22 +17,21 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.IvyObjectBuilder;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.ArtifactContainer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.DependencyContainerInternal;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.artifacts.Module;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface ModuleDescriptorConverter extends IvyObjectBuilder<DefaultModuleDescriptor> {
-    ModuleDescriptor convert(Map<String, Boolean> transitiveOverride, ConfigurationContainer configurationContainer, Spec<Configuration> configurationSpec,
-                             DependencyContainerInternal dependencyContainer, Spec<Dependency> dependencySpec,
-                             ArtifactContainer artifactContainer, Spec<PublishArtifact> artifactSpec);
+    void addIvyTransformer(Transformer<DefaultModuleDescriptor> defaultModuleDescriptorTransformer);
+
+    ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module);
+
+    ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry);
 }

@@ -15,17 +15,15 @@
  */
 package org.gradle.api.tasks.testing.junit;
 
-import org.gradle.api.Project;
 import org.gradle.api.Plugin;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.tasks.testing.*;
-import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.api.Project;
 import org.gradle.api.plugins.GroovyPlugin;
-import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.tasks.testing.AbstractTestFramework;
+import org.gradle.api.tasks.testing.ForkMode;
+import org.gradle.api.tasks.testing.JunitForkOptions;
+import org.gradle.api.tasks.testing.Test;
 
-import java.util.List;
 import java.util.Set;
-import java.util.Arrays;
 
 /**
  * @author Tom Eyckmans

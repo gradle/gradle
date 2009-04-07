@@ -15,8 +15,8 @@
  */
 package org.gradle.api.specs;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -32,8 +32,8 @@ public class Specs {
         return (Spec<T>) SATISFIES_ALL;
     }
 
-    public static <T> List<T> filterIterable(Iterable<T> iterable, Spec<T> spec) {
-        List<T> result = new ArrayList<T>();
+    public static <T> Set<T> filterIterable(Iterable<T> iterable, Spec<T> spec) {
+        Set<T> result = new LinkedHashSet<T>();
         for (T t : iterable) {
             if (spec.isSatisfiedBy(t)) {
                 result.add(t);

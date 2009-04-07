@@ -16,28 +16,38 @@
 
 package org.gradle.initialization
 
+import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.StartParameter
-import org.gradle.api.DependencyManager
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
-import org.gradle.api.artifacts.ConfigurationResolver
-import org.gradle.api.artifacts.ConfigurationResolvers
+import org.gradle.api.artifacts.ClientModule
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.internal.artifacts.DependencyManagerFactory
+import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.DefaultResolverContainer
+import org.gradle.api.internal.artifacts.configurations.Configurations
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.BuildSourceBuilder
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.DefaultProjectDescriptorRegistry
+import org.gradle.initialization.DefaultSettings
 import org.gradle.util.JUnit4GroovyMockery
-import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.initialization.*
 import static org.junit.Assert.*
 
 /**
@@ -48,42 +58,47 @@ class DefaultSettingsTest {
     File settingsDir
     StartParameter startParameter
     Map gradleProperties
-    DependencyManager dependencyManagerMock
     BuildSourceBuilder buildSourceBuilderMock
     ScriptSource scriptSourceMock
     DefaultSettings settings
-    DependencyManagerFactory dependencyManagerFactoryMock
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     DefaultProjectDescriptorRegistry projectDescriptorRegistry;
+
+    ConfigurationContainerFactory configurationContainerFactoryStub = context.mock(ConfigurationContainerFactory.class);
+    ConfigurationContainer configurationContainerStub = context.mock(ConfigurationContainer.class);
+    Configuration configurationStub = context.mock(Configuration.class);
+    InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
+    DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
+    ResolverContainer resolverContainerMock = context.mock(ResolverContainer.class);
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
-        dependencyManagerMock = context.mock(DependencyManager)
         buildSourceBuilderMock = context.mock(BuildSourceBuilder)
-        dependencyManagerFactoryMock = context.mock(DependencyManagerFactory)
         scriptSourceMock = context.mock(ScriptSource)
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
         context.checking {
-            one(dependencyManagerFactoryMock).createDependencyManager(withParam(BuildDependenciesProjectMatcher.equalsBuildProject(startParameter)),
-                withParam(Matchers.equalTo(startParameter.gradleUserHomeDir)))
-            will(returnValue(dependencyManagerMock))
-            one(dependencyManagerMock).addConfiguration("build")
+            one(configurationContainerFactoryStub).createConfigurationContainer(withParam(any(ResolverProvider)), withParam(any(DependencyMetaDataProvider)))
+            will(returnValue(configurationContainerStub))
+            one(configurationContainerStub).add("build")
+            will(returnValue(configurationStub))
         }
-        settings = new DefaultSettings(dependencyManagerFactoryMock, projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
+        settings = new DefaultSettings(dependencyFactoryStub, resolverContainerMock,
+                configurationContainerFactoryStub, internalRepositoryDummy,
+                projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
     }
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
         assertEquals(settingsDir, settings.getSettingsDir())
-        assert settings.dependencyManager.is(dependencyManagerMock)
+        assert settings.buildConfiguration.is(configurationStub)
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertNull(settings.buildSrcStartParameter.buildFile)
-        assertEquals([JavaPlugin.CLEAN, ConfigurationResolvers.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
+        assertEquals([JavaPlugin.CLEAN, Configurations.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
                 settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
         assertNull(settings.getRootProject().getParent())
@@ -169,36 +184,47 @@ class DefaultSettingsTest {
 
 
     @Test public void testDependencies() {
-        String[] expectedDependencies = ["dep1", "dep2"]
+        String[] dependencyNotations = ["dep1", "dep2"]
+        Dependency dependencyDummy1 = [:] as Dependency
+        Dependency dependencyDummy2 = [:] as Dependency
         context.checking {
-            one(dependencyManagerMock).dependencies([DefaultSettings.BUILD_CONFIGURATION], expectedDependencies as Object[])
+            allowing(dependencyFactoryStub).createDependency(dependencyNotations[0]); will(returnValue(dependencyDummy1))
+            allowing(dependencyFactoryStub).createDependency(dependencyNotations[1]); will(returnValue(dependencyDummy2))
+            one(configurationStub).addDependency(dependencyDummy1)
+            one(configurationStub).addDependency(dependencyDummy2)
         }
-        settings.dependencies(expectedDependencies)
+        settings.dependencies(dependencyNotations)
     }
 
-    @Test public void testDependency() {
-        String expectedId = "dep1"
-        Closure expectedConfigureClosure
+    @Test public void testDependencyWithClosure() {
+        String dependencyNotation = "dep1"
+        Dependency dependencyDummy = [:] as Dependency
+        Closure configureClosure = {}
         context.checking {
-            one(dependencyManagerMock).dependency([DefaultSettings.BUILD_CONFIGURATION], expectedId, expectedConfigureClosure)
+            allowing(dependencyFactoryStub).createDependency(dependencyNotation, configureClosure); will(returnValue(dependencyDummy))
+            one(configurationStub).addDependency(dependencyDummy)
         }
-        settings.dependency(expectedId, expectedConfigureClosure)
+
+        settings.dependency(dependencyNotation, configureClosure)
     }
 
     @Test public void testClientModule() {
-        String expectedId = "dep1"
-        Closure expectedConfigureClosure
+        String id = "dep1"
+        ClientModule clientModuleDummy = [:] as ClientModule
+        Closure configureClosure = {}
         context.checking {
-            one(dependencyManagerMock).clientModule([DefaultSettings.BUILD_CONFIGURATION], expectedId, expectedConfigureClosure)
+            allowing(dependencyFactoryStub).createModule(id, configureClosure); will(returnValue(clientModuleDummy))
+            one(configurationStub).addDependency(clientModuleDummy)
         }
-        settings.clientModule(expectedId, expectedConfigureClosure)
+        settings.clientModule(id, configureClosure)
     }
 
     @Test public void testAddMavenRepo() {
+        settings.setResolverContainer(resolverContainerMock)
         DualResolver expectedResolver = new DualResolver()
         String[] expectedJarRepoUrls = ['http://www.repo.org']
         context.checking {
-            one(dependencyManagerMock).addMavenRepo(expectedJarRepoUrls); will(returnValue(expectedResolver))
+            one(resolverContainerMock).addMavenRepo(expectedJarRepoUrls); will(returnValue(expectedResolver))
         }
         assert settings.addMavenRepo(expectedJarRepoUrls).is(expectedResolver)
     }
@@ -209,7 +235,7 @@ class DefaultSettingsTest {
         String expectedRoot = 'http://www.root.org'
         String[] expectedJarRepoUrls = ['http://www.repo.org']
         context.checking {
-            one(dependencyManagerMock).addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls);
+            one(resolverContainerMock).addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls);
             will(returnValue(expectedResolver))
         }
         assert settings.addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls).is(expectedResolver)
@@ -220,41 +246,34 @@ class DefaultSettingsTest {
         String expectedName = 'name'
         File[] expectedDirs = ['a' as File]
         context.checking {
-            one(dependencyManagerMock).addFlatDirResolver(expectedName, expectedDirs);
+            one(resolverContainerMock).addFlatDirResolver(expectedName, expectedDirs);
             will(returnValue(expectedResolver))
         }
         assert settings.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
     }
 
     @Test public void testResolver() {
-        ResolverContainer expectedResolverContainer = new ResolverContainer()
-        context.checking {
-            allowing(dependencyManagerMock).getClasspathResolvers();
-            will(returnValue(expectedResolverContainer))
-        }
-        assert settings.resolvers.is(expectedResolverContainer)
+        settings.setResolverContainer(new DefaultResolverContainer(new DefaultResolverFactory(), null))
+        DependencyResolver resolver = settings.addMavenRepo();
+        assertEquals([resolver], settings.resolvers)
     }
 
     @Test public void testCreateClassLoaderWithNonExistingBuildSource() {
-        checkCreateClassLoader([])
+        checkCreateClassLoader([] as Set)
     }
 
     @Test public void testCreateClassLoaderWithExistingBuildSource() {
-        List testBuildSourceDependencies = ['dep1' as File]
+        Set testBuildSourceDependencies = ['dep1' as File]
         checkCreateClassLoader(testBuildSourceDependencies)
     }
 
-    private checkCreateClassLoader(List expectedTestDependencies) {
+    private checkCreateClassLoader(Set expectedTestDependencies) {
         Set testFiles = [new File('/root/f1'), new File('/root/f2')] as Set
         File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
         StartParameter expectedStartParameter = settings.buildSrcStartParameter.newInstance();
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-        ConfigurationResolver configuration = context.mock(ConfigurationResolver.class)
         context.checking {
-            allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(expectedBuildResolverDir))
-            allowing(dependencyManagerMock).configuration(DefaultSettings.BUILD_CONFIGURATION)
-            will(returnValue(configuration))
-            allowing(configuration).getFiles()
+            allowing(configurationStub).getFiles()
             will(returnValue(testFiles))
         }
         URLClassLoader createdClassLoader = null

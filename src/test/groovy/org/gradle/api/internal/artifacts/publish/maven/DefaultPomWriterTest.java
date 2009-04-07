@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesWriter;
@@ -29,8 +29,8 @@ import org.junit.runner.RunWith;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -46,11 +46,11 @@ public class DefaultPomWriterTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private List<DependencyDescriptor> testDependencies;
+    private Set<Configuration> testConfigurations;
 
     @Before
     public void setUp() {
-        testDependencies = new ArrayList<DependencyDescriptor>();
+        testConfigurations = new HashSet<Configuration>();
         headerWriterMock = context.mock(PomHeaderWriter.class);
         moduleIdWriterMock = context.mock(PomModuleIdWriter.class);
         conf2ScopeMappingContainerMock = context.mock(Conf2ScopeMappingContainer.class);
@@ -77,11 +77,11 @@ public class DefaultPomWriterTest {
                 allowing(pomMock).getLicenseHeader(); will(returnValue(testLicenseText));
                 one(headerWriterMock).convert(testLicenseText, testPrintWriter);
                 one(moduleIdWriterMock).convert(pomMock, testPrintWriter);
-                one(dependenciesWriterMock).convert(with(same(pomMock)), with(same(testDependencies)),
+                one(dependenciesWriterMock).convert(with(same(pomMock)), with(same(testConfigurations)),
                         with(same(testPrintWriter)));
             }
         });
-        pomModuleDescriptorWriter.convert(pomMock, testDependencies, testPrintWriter);
+        pomModuleDescriptorWriter.convert(pomMock, testConfigurations, testPrintWriter);
         assertEquals(String.format("</" + PomWriter.ROOT_ELEMENT_NAME + ">%n"), stringWriter.toString());
     }
 }

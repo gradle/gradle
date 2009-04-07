@@ -23,6 +23,8 @@ import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.util.HelperUtil
+import org.gradle.util.WrapUtil
+import org.hamcrest.Matchers
 import org.junit.Test
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.equalTo
@@ -42,37 +44,37 @@ class JavaPluginTest {
 
         assertTrue(project.appliedPlugins.contains(ReportingBasePlugin))
         
-        def configuration = project.dependencies.configuration(JavaPlugin.COMPILE)
+        def configuration = project.configurations.get(JavaPlugin.COMPILE)
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.dependencies.configuration(JavaPlugin.RUNTIME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE)))
+        configuration = project.configurations.get(JavaPlugin.RUNTIME)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.COMPILE)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configuration(JavaPlugin.TEST_COMPILE)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE)))
+        configuration = project.configurations.get(JavaPlugin.TEST_COMPILE)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.COMPILE)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.dependencies.configuration(JavaPlugin.TEST_RUNTIME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.TEST_COMPILE, JavaPlugin.RUNTIME)))
+        configuration = project.configurations.get(JavaPlugin.TEST_RUNTIME)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.TEST_COMPILE, JavaPlugin.RUNTIME)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configuration(Dependency.DEFAULT_CONFIGURATION)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(Dependency.MASTER_CONFIGURATION, JavaPlugin.RUNTIME)))
+        configuration = project.configurations.get(Dependency.DEFAULT_CONFIGURATION)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(Dependency.MASTER_CONFIGURATION, JavaPlugin.RUNTIME)))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configuration(Dependency.MASTER_CONFIGURATION)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
+        configuration = project.configurations.get(Dependency.MASTER_CONFIGURATION)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configuration(JavaPlugin.DISTS)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
+        configuration = project.configurations.get(JavaPlugin.DISTS)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
     }

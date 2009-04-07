@@ -15,52 +15,32 @@
  */
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A {@code Dependency} represents a dependency on the artifacts from a particular source.</p>
  *
  * @author Hans Dockter
  */
-public interface Dependency extends ConfigurationHolder, IvyObjectBuilder<DependencyDescriptor> {
-    public static final String DEFAULT_CONFIGURATION = "default";
-    public static final String MASTER_CONFIGURATION = "master";
+public interface Dependency {
+    enum State { UNRESOLVED, RESOLVED, UNRESOLVABLE }
 
-    DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent);
+    String DEFAULT_CONFIGURATION = "default";
+    String MASTER_CONFIGURATION = "master";
+    String CLASSIFIER = "classifier";
 
     /**
      * Adds an exclude rule to exclude transitive dependencies of this dependency.
      *
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
-     * @see org.gradle.api.artifacts.ExcludeRuleContainer#add(java.util.Map)
-     * @see #exclude(java.util.Map, java.util.List)
      */
     Dependency exclude(Map<String, String> excludeProperties);
 
-    /**
-     * Adds an exclude rule to exclude transitive dependencies of this dependency.
-     *
-     * @param excludeProperties the properties to define the exclude rule.
-     * @param confs The confs against which the exclude rule should be applied.
-     * @return this
-     * @see org.gradle.api.artifacts.ExcludeRuleContainer#add(java.util.Map, java.util.List)
-     * @see #exclude(java.util.Map)
-     */
-    Dependency exclude(Map<String, String> excludeProperties, List<String> confs);
+    Set<ExcludeRule> getExcludeRules();
 
-    /**
-     * Returns the container with all the added exclude rules.
-     */
-    ExcludeRuleContainer getExcludeRules();
-
-    void setExcludeRules(ExcludeRuleContainer excludeRules);
-    
     String getGroup();
 
     String getName();
@@ -71,21 +51,19 @@ public interface Dependency extends ConfigurationHolder, IvyObjectBuilder<Depend
 
     Dependency setTransitive(boolean transitive);
 
-    List<DependencyArtifact> getArtifacts();
+    Set<DependencyArtifact> getArtifacts();
 
     Dependency addArtifact(DependencyArtifact artifact);
 
-    DependencyArtifact artifact(Closure configureClosure);
+    String getDependencyConfiguration();
 
-    void addDependencyConfiguration(String... dependencyConfigurations);
+    Dependency setDependencyConfiguration(String dependencyConfiguration);
 
-    List<String> getDependencyConfigurations(String configuration);
+    boolean contentEquals(Dependency dependency);
 
-    void addConfigurationMapping(Map<Configuration, List<String>> dependencyConfigurations);
+    Dependency copy();
 
-    Map<Configuration, List<String>> getConfigurationMappings();
-
-    void addConfiguration(Configuration... masterConfigurations);
-
-    void setDependencyConfigurationMappings(DependencyConfigurationMappingContainer dependencyConfigurationMappings);
+//    State getState();
+//
+//    List<File> getFiles();
 }

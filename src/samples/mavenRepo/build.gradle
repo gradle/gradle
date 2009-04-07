@@ -1,5 +1,5 @@
 import org.gradle.util.GradleUtil
-import org.gradle.api.DependencyManager
+import org.gradle.api.artifacts.ResolverContainer
 
 sillyexceptions = 'sillyexceptions'
 repotest = 'repotest'
@@ -61,22 +61,28 @@ repotest = 'repotest'
  * testdep -> testdep2
  */
 
-dependencies {
-    addConfiguration('test')
+configurations {
+    test
+}
+
+repositories {
     addMavenStyleRepo('gradle_sourceforge', 'http://gradle.sourceforge.net/repository/', 'http://gradle.sourceforge.net/otherrepo/').allownomd = false
     addMavenStyleRepo('gradle_sourceforge2', 'http://gradle.sourceforge.net/otherrepo/')
     addMavenRepo()
+}
+
+dependencies {
     test "$sillyexceptions:$sillyexceptions:1.0.1@jar", "$repotest:$repotest:1.0", "$repotest:classifier:1.0:jdk15", "jaronly:jaronly:1.0"
 }
 
 createTask('retrieve') {
     GradleUtil.deleteDir(buildDir)
-    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$DependencyManager.DEFAULT_CACHE_DIR_NAME/$sillyexceptions"))
-    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$DependencyManager.DEFAULT_CACHE_DIR_NAME/$repotest"))
-    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$DependencyManager.DEFAULT_CACHE_DIR_NAME/testdep"))
-    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$DependencyManager.DEFAULT_CACHE_DIR_NAME/testdep2"))
-    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$DependencyManager.DEFAULT_CACHE_DIR_NAME/jaronly"))
-    List files = dependencies.test.resolve()
+    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/$sillyexceptions"))
+    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/$repotest"))
+    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/testdep"))
+    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/testdep2"))
+    GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/jaronly"))
+    Set files = configurations.test.resolve()
     ant {
         files.each {
             copy(file: it, todir: buildDir)

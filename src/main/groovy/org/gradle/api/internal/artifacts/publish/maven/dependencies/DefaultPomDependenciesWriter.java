@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.PomWriter;
 import org.gradle.api.internal.artifacts.publish.maven.XmlHelper;
 
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -33,8 +34,8 @@ public class DefaultPomDependenciesWriter implements PomDependenciesWriter {
         this.dependenciesConverter = dependenciesConverter;
     }
 
-    public void convert(MavenPom pom, List<DependencyDescriptor> dependencies, PrintWriter printWriter) {
-        List<MavenDependency> mavenDependencies = dependenciesConverter.convert(pom, dependencies);
+    public void convert(MavenPom pom, Set<Configuration> configurations, PrintWriter printWriter) {
+        List<MavenDependency> mavenDependencies = dependenciesConverter.convert(pom, configurations);
         if (mavenDependencies.size() == 0) {
             return;
         }

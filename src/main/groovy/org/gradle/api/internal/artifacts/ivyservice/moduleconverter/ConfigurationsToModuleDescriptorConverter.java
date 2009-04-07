@@ -17,15 +17,12 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
-import org.gradle.api.specs.Spec;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface ConfigurationsToModuleDescriptorConverter {
-    void addConfigurations(DefaultModuleDescriptor moduleDescriptor, ConfigurationContainer configurationContainer,
-                           Spec<Configuration> configurationSpec, Map<String, Boolean> transitiveOverride);
+    void addConfigurations(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations);
 }

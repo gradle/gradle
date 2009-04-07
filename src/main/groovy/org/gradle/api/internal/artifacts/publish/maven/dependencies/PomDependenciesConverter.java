@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface PomDependenciesConverter {
-    public List<MavenDependency> convert(MavenPom pom, List<DependencyDescriptor> dependencies);
+    public List<MavenDependency> convert(MavenPom pom, Set<Configuration> configurations);
 }

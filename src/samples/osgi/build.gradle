@@ -3,8 +3,11 @@ version = '1.0'
 usePlugin('java')
 usePlugin('osgi')
 
-dependencies {
+repositories {
     addFlatDirResolver('lib', "$rootDir/lib")
+}
+
+dependencies {
     compile ":somestuff:1.0@tar.gz"
 }
 

@@ -33,16 +33,16 @@ import java.util.Set;
 @RunWith(JMock.class)
 public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
     protected PublishArtifact createPublishArtifact(String classifier) {
-        return new DefaultPublishArtifact(testConfs, getTestName(), getTestExt(), getTestType(), classifier, getTestFile());
+        return new DefaultPublishArtifact(getTestName(), getTestExt(), getTestType(), classifier, getDate(), getTestFile());
     }
 
-    @Override @Test
+    @Test
     public void init() {
-        super.init();
         Task task1 = context.mock(Task.class, "task1");
         Task task2 = context.mock(Task.class, "task2");
-        DefaultPublishArtifact publishArtifact = new DefaultPublishArtifact(testConfs, getTestName(), getTestExt(), getTestType(),
-                getTestClassifier(), getTestFile(), task1, task2);
+        DefaultPublishArtifact publishArtifact = new DefaultPublishArtifact(getTestName(), getTestExt(), getTestType(),
+                getTestClassifier(), getDate(), getTestFile(), task1, task2);
         assertThat((Set<Task>) publishArtifact.getTaskDependency().getDependencies(null), Matchers.equalTo(WrapUtil.toSet(task1, task2)));
+        assertCommonPropertiesAreSet(publishArtifact, true);
     }
 }

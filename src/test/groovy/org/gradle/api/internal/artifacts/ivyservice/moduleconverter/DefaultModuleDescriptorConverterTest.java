@@ -17,22 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Project;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.specs.ConfigurationSpec;
-import org.gradle.api.internal.artifacts.ArtifactContainer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.DependencyContainerInternal;
-import org.gradle.api.specs.AndSpec;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.HelperUtil;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.util.WrapUtil;
-import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -42,7 +33,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -50,104 +44,122 @@ import java.util.Map;
  */
 @RunWith(JMock.class)
 public class DefaultModuleDescriptorConverterTest {
-    private static final Spec<Dependency> TEST_DEPENDENCY_SPEC = new ConfigurationSpec<Dependency>(true, "conf1");
-    private static final Spec<PublishArtifact> TEST_PUBLISH_SPEC = new AndSpec<PublishArtifact>();
-    private static final Spec<Configuration> TEST_CONFIGURATION_SPEC = new AndSpec<Configuration>();
-
-    private static final String TEST_STATUS = "testStatus";
-
-    private DefaultModuleDescriptorConverter defaultModuleDescriptorConverter;
-    private ModuleDescriptorFactory moduleDescriptorFactoryMock;
-    private ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
-    private DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverterMock;
-    private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverterMock;
-
-    private DependencyContainerInternal dependencyContainerInternalMock;
-
-    private ConfigurationContainer configurationContainerMock;
-    private ArtifactContainer artifactContainerMock;
-    private ModuleRevisionId expectedModuleRevisionId;
-    private Project testProject;
-    private DefaultModuleDescriptor expectedModuleDescriptor;
-
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
 
+    // Dummies
+    private Set<Configuration> configurationsDummy = WrapUtil.toSet(context.mock(Configuration.class, "conf1"),
+            context.mock(Configuration.class, "conf2"));
+    private Module moduleDummy = context.mock(Module.class);
+    private DefaultModuleDescriptor moduleDescriptorDummy = context.mock(DefaultModuleDescriptor.class);
+
+    // SUT
+    private DefaultModuleDescriptorConverter moduleDescriptorConverter;
+
     @Before
     public void setUp() {
-        createFixture();
-        defaultModuleDescriptorConverter = new DefaultModuleDescriptorConverter(moduleDescriptorFactoryMock,
-                configurationsToModuleDescriptorConverter,
-                dependenciesToModuleDescriptorConverterMock,
-                artifactsToModuleDescriptorConverterMock);
+        ModuleDescriptorFactory moduleDescriptorFactoryStub = context.mock(ModuleDescriptorFactory.class);
+        ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverterMock = context.mock(ConfigurationsToModuleDescriptorConverter.class);
+        DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverterMock = context.mock(DependenciesToModuleDescriptorConverter.class);
+
+        moduleDescriptorConverter = new DefaultModuleDescriptorConverter();
+        moduleDescriptorConverter.setConfigurationsToModuleDescriptorConverter(configurationsToModuleDescriptorConverterMock);
+        moduleDescriptorConverter.setDependenciesToModuleDescriptorConverter(dependenciesToModuleDescriptorConverterMock);
+        moduleDescriptorConverter.setModuleDescriptorFactory(moduleDescriptorFactoryStub);
     }
 
-    private void createFixture() {
-        createMocks();
-        testProject = HelperUtil.createRootProject();
-        expectedModuleDescriptor = context.mock(DefaultModuleDescriptor.class);
+    @Test
+    public void convertForPublishWithoutDescriptor() {
+        convertForPublishInternal(configurationsDummy, false);
+    }
+
+    @Test
+    public void convertForPublishWithDescriptor() {
         context.checking(new Expectations() {{
-            allowing(dependencyContainerInternalMock).getProject();
-            will(returnValue(testProject));
+            allowing(configurationsDummy.iterator().next()).getAll();
+            will(returnValue(configurationsDummy));
         }});
-        expectedModuleRevisionId = ModuleRevisionId.newInstance(testProject.getGroup().toString(), testProject.getName(), testProject.getVersion().toString());
-    }
-
-    private void createMocks() {
-        configurationContainerMock = context.mock(ConfigurationContainer.class);
-        dependencyContainerInternalMock = context.mock(DependencyContainerInternal.class);
-        artifactContainerMock = context.mock(ArtifactContainer.class);
-        moduleDescriptorFactoryMock = context.mock(ModuleDescriptorFactory.class);
-        configurationsToModuleDescriptorConverter = context.mock(ConfigurationsToModuleDescriptorConverter.class);
-        artifactsToModuleDescriptorConverterMock = context.mock(ArtifactsToModuleDescriptorConverter.class);
-        dependenciesToModuleDescriptorConverterMock = context.mock(DependenciesToModuleDescriptorConverter.class);
+        convertForPublishInternal(configurationsDummy, true);
     }
 
     @Test
-    public void convert() {
-        testProject.setProperty("status", TEST_STATUS);
-        checkConversion(TEST_STATUS, null);
+    public void convertForPublishWithTransformer() {
+        createIvyTransformerExpectations();
+        convertForPublishInternal(configurationsDummy, false);
     }
 
-    @Test
-    public void convertWithDefaultStatus() {
-        checkConversion(DependencyManager.DEFAULT_STATUS, null);
-    }
+    private void convertForPublishInternal(final Set<Configuration> configurations, boolean publishDescriptor) {
+        commonSetUp();
+        moduleDescriptorConverter.setArtifactsToModuleDescriptorConverter(context.mock(ArtifactsToModuleDescriptorConverter.class));
 
-    @Test
-    public void convertWithTransform() {
-        final boolean[] called = new boolean[]{false};
-        checkConversion(DependencyManager.DEFAULT_STATUS, new Transformer<DefaultModuleDescriptor>() {
-            public DefaultModuleDescriptor transform(DefaultModuleDescriptor original) {
-                called[0] = true;
-                return original;
-            }
-        });
-        assertThat(called[0], Matchers.equalTo(true));
-    }
-
-    private DefaultModuleDescriptor checkConversion(final String status, Transformer<DefaultModuleDescriptor> transformer) {
-        final Map<String,Boolean> testTransitiveOverride = WrapUtil.toMap("somename", true);
+        defineCommonExpectations(configurations, new HashMap());
         context.checking(new Expectations() {{
-            allowing(moduleDescriptorFactoryMock).createModuleDescriptor(expectedModuleRevisionId, status, null);
-            will(returnValue(expectedModuleDescriptor));
-
-            one(configurationsToModuleDescriptorConverter).addConfigurations(expectedModuleDescriptor, configurationContainerMock,
-                    TEST_CONFIGURATION_SPEC, testTransitiveOverride);
-            one(artifactsToModuleDescriptorConverterMock).addArtifacts(expectedModuleDescriptor, artifactContainerMock, TEST_PUBLISH_SPEC);
-            one(dependenciesToModuleDescriptorConverterMock).addDependencyDescriptors(expectedModuleDescriptor, dependencyContainerInternalMock,
-                    TEST_DEPENDENCY_SPEC);
+            one(moduleDescriptorConverter.getArtifactsToModuleDescriptorConverter()).
+                    addArtifacts(moduleDescriptorDummy, configurations);
         }});
 
-        if (transformer != null) {
-            defaultModuleDescriptorConverter.addIvyTransformer(transformer);
-        }
-        DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor) defaultModuleDescriptorConverter.convert(
-                testTransitiveOverride, configurationContainerMock, TEST_CONFIGURATION_SPEC,
-                dependencyContainerInternalMock, TEST_DEPENDENCY_SPEC,
-                artifactContainerMock, TEST_PUBLISH_SPEC);
-        assertThat(actualModuleDescriptor, Matchers.equalTo(expectedModuleDescriptor));
-        return actualModuleDescriptor;
+        DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor)
+                moduleDescriptorConverter.convertForPublish(configurations, publishDescriptor, moduleDummy);
+
+        assertThat(actualModuleDescriptor, equalTo(moduleDescriptorDummy));
+    }
+
+    @Test
+    public void convertForResolve() {
+        convertForResolveInternal();
+    }
+
+    @Test
+    public void convertForResolveWithTransformer() {
+        createIvyTransformerExpectations();
+        convertForResolveInternal();
+    }
+
+    private void convertForResolveInternal() {
+        final Configuration configurationStub = context.mock(Configuration.class, "conf");
+        Map moduleRegistryDummy = WrapUtil.toMap("key", context.mock(ModuleDescriptor.class));
+        context.checking(new Expectations() {{
+            allowing(configurationStub).getHierarchy();
+            will(returnValue(new ArrayList(configurationsDummy)));
+        }});
+        commonSetUp();
+
+        defineCommonExpectations(configurationsDummy, moduleRegistryDummy);
+
+        DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor)
+                moduleDescriptorConverter.convertForResolve(configurationStub, moduleDummy, moduleRegistryDummy);
+
+        assertThat(actualModuleDescriptor, equalTo(moduleDescriptorDummy));
+    }
+
+    private void commonSetUp() {
+        context.checking(new Expectations() {{
+            allowing(moduleDescriptorConverter.getModuleDescriptorFactory()).createModuleDescriptor(moduleDummy);
+            will(returnValue(moduleDescriptorDummy));
+        }});
+    }
+
+    private void defineCommonExpectations(final Set<Configuration> configurationsDummy, final Map clientModuleRegistry) {
+        context.checking(new Expectations() {{
+            one(moduleDescriptorConverter.getConfigurationsToModuleDescriptorConverter()).
+                    addConfigurations(moduleDescriptorDummy, configurationsDummy);
+
+            one(moduleDescriptorConverter.getDependenciesToModuleDescriptorConverter()).
+                    addDependencyDescriptors(moduleDescriptorDummy, configurationsDummy, clientModuleRegistry);
+        }});
+    }
+
+    private void createIvyTransformerExpectations() {
+        moduleDescriptorConverter.addIvyTransformer(createTransformerMock());
+    }
+
+    private Transformer createTransformerMock() {
+        final Transformer transformer = context.mock(Transformer.class);
+        context.checking(new Expectations() {{
+            one(transformer).transform(moduleDescriptorDummy);
+            will(returnValue(moduleDescriptorDummy));
+        }});
+        return transformer;
     }
 }

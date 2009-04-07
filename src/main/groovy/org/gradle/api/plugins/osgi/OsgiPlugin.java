@@ -25,10 +25,11 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.Jar;
 
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project JARs.</p> 
@@ -52,7 +53,7 @@ public class OsgiPlugin implements Plugin {
                 if (archiveTask instanceof Jar) {
                     archiveTask.getProject().addAfterEvaluateListener(new AfterEvaluateListener() {
                         public void afterEvaluate(Project project) {
-                            archiveTask.dependsOn(project.getDependencies().configuration(JavaPlugin.RUNTIME).getBuildProjectDependencies());
+                            archiveTask.dependsOn(project.getConfigurations().get(JavaPlugin.RUNTIME).getBuildProjectDependencies());
                         }
                     });
                     archiveTask.defineProperty("osgi", createDefaultOsgiManifest(archiveTask.getProject()));
@@ -62,7 +63,7 @@ public class OsgiPlugin implements Plugin {
                             OsgiManifest osgiManifest = (OsgiManifest) jarTask.getAdditionalProperties().get("osgi");
                             osgiManifest.setClasspath(getDependencies(
                                     osgiManifest,
-                                    jarTask.getProject().getDependencies().configuration(JavaPlugin.RUNTIME).resolve())
+                                    jarTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME).resolve())
                             );
                             osgiManifest.overwrite(jarTask.getManifest());
                         }
@@ -72,7 +73,7 @@ public class OsgiPlugin implements Plugin {
         };
     }
 
-    private List<File> getDependencies(OsgiManifest osgiManifest, List<File> dependencies) {
+    private List<File> getDependencies(OsgiManifest osgiManifest, Set<File> dependencies) {
         ArrayList<File> classpathDependencies = new ArrayList<File>();
         for (File dependency : dependencies) {
             if (isClasspathType(osgiManifest, dependency)) {

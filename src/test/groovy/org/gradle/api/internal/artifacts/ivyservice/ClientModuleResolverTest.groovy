@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.junit.Test
  */
 class ClientModuleResolverTest {
     @Test public void testGetDependency() {
+      // todo implement
 //        ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
 //        clientModuleResolver.moduleRegistry = [:]
 //        clientModuleResolver.mainResolver = [:] as DependencyResolver
@@ -31,6 +32,6 @@ class ClientModuleResolverTest {
 //                createModuleRevisionId([(CLIENT_MODULE_KEY): id]), false, true, true)
 //        ResolveData resolveData = new ResolveData(new ResolveEngine(), new ResolveOptions())
 //        ModuleDescriptor = clientModuleResolver.getDependency(dd, resolveData)
-//        
+
     }
 }

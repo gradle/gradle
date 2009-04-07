@@ -16,21 +16,24 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Plugin;
-import static org.gradle.api.plugins.JavaPlugin.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
+import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.Javadoc;
+import org.gradle.api.tasks.testing.ForkMode;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -56,26 +59,27 @@ public class GroovyPlugin implements Plugin {
 
         configureGroovydoc(project);
 
-        project.getDependencies().addConfiguration(GROOVY).setVisible(false).setTransitive(false);
-        project.getDependencies().configuration(COMPILE).extendsFrom(GROOVY);
+        Configuration groovyConfiguration = project.getConfigurations().add(GROOVY).setVisible(false).setTransitive(false);
+        project.getConfigurations().get(COMPILE).extendsFrom(groovyConfiguration);
     }
 
-    private void configureGroovydoc(Project project) {
+    private void configureGroovydoc(final Project project) {
         Groovydoc groovydoc = (Groovydoc) project.createTask(GUtil.map("type", Groovydoc.class), GROOVYDOC);
         groovydoc.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return groovy(convention).getGroovySrcDirs();
             }
         },
                 "destinationDir", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return groovy(convention).getGroovydocDir();
             }
         },
                 "groovyClasspath", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return task.getProject().getDependencies().configuration("groovy").resolve();
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                // todo refactor to make ArrayList creation unnecessary
+                return new ArrayList(project.getConfigurations().get("groovy").resolve());
             }
         }));
     }
@@ -84,7 +88,7 @@ public class GroovyPlugin implements Plugin {
         Javadoc javadoc = (Javadoc) project.task(JAVADOC);
         javadoc.exclude("**/*.groovy");
         javadoc.conventionMapping(WrapUtil.<String, ConventionValue>toMap("srcDirs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return GUtil.addLists(
                         convention.getPlugin(JavaPluginConvention.class).getSrcDirs(),
                         groovy(convention).getGroovySrcDirs());
@@ -97,16 +101,18 @@ public class GroovyPlugin implements Plugin {
                 (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn",
                         TEST_RESOURCES, "overwrite", true), TEST_COMPILE),
                 (Compile) project.task(COMPILE),
-                DefaultConventionsToPropertiesMapping.TEST_COMPILE);
+                DefaultConventionsToPropertiesMapping.TEST_COMPILE,
+                project.getConfigurations());
         testCompile.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return groovy(convention).getGroovyTestSrcDirs();
             }
         },
                 "groovyClasspath", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return task.getProject().getDependencies().configuration("groovy").resolve();
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                // todo refactor to make ArrayList creation unnecessary
+                return new ArrayList(((Task) conventionAwareObject).getProject().getConfigurations().get("groovy").resolve());
             }
         }));
     }
@@ -114,16 +120,18 @@ public class GroovyPlugin implements Plugin {
     private void configureCompile(JavaPlugin javaPlugin, Project project) {
         Compile compile = javaPlugin.configureCompile(
                 (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn", RESOURCES, "overwrite", true), COMPILE),
-                DefaultConventionsToPropertiesMapping.COMPILE);
+                DefaultConventionsToPropertiesMapping.COMPILE,
+                project.getConfigurations());
         compile.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return groovy(convention).getGroovySrcDirs();
             }
         },
                 "groovyClasspath", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
-                return task.getProject().getDependencies().configuration("groovy").resolve();
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                // todo refactor to make ArrayList creation unnecessary
+                return new ArrayList(((Task) conventionAwareObject).getProject().getConfigurations().get("groovy").resolve());
             }
         }));
     }

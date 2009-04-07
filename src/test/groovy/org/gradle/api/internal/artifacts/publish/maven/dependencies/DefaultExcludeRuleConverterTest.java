@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.GlobPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Before;
@@ -42,11 +40,7 @@ public class DefaultExcludeRuleConverterTest {
     
     @Test
     public void convertableRule() {
-        DefaultExcludeRule excludeRule = new DefaultExcludeRule(new ArtifactId(
-                new ModuleId(TEST_ORG, TEST_MODULE), PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
-                ExactPatternMatcher.INSTANCE, null);
+        DefaultExcludeRule excludeRule = new DefaultExcludeRule(GUtil.map(ExcludeRule.ORG_KEY, TEST_ORG, ExcludeRule.MODULE_KEY, TEST_MODULE));
         MavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);
         assertEquals(TEST_ORG, mavenExclude.getGroupId());
         assertEquals(TEST_MODULE, mavenExclude.getArtifactId());
@@ -54,21 +48,8 @@ public class DefaultExcludeRuleConverterTest {
     
     @Test
     public void unconvertableRules() {
-        checkForNull(new DefaultExcludeRule(new ArtifactId(
-                new ModuleId(PatternMatcher.ANY_EXPRESSION, TEST_MODULE), PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
-                ExactPatternMatcher.INSTANCE, null));
-        checkForNull(new DefaultExcludeRule(new ArtifactId(
-                new ModuleId(TEST_ORG, PatternMatcher.ANY_EXPRESSION), PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
-                ExactPatternMatcher.INSTANCE, null));
-        checkForNull(new DefaultExcludeRule(new ArtifactId(
-                new ModuleId(TEST_ORG, TEST_MODULE), PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
-                GlobPatternMatcher.INSTANCE, null));
+        checkForNull(new DefaultExcludeRule(WrapUtil.toMap(ExcludeRule.ORG_KEY, TEST_ORG)));
+        checkForNull(new DefaultExcludeRule(WrapUtil.toMap(ExcludeRule.MODULE_KEY, TEST_MODULE)));
     }
 
     private void checkForNull(DefaultExcludeRule excludeRule) {

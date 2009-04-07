@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 
 /**
@@ -29,7 +29,7 @@ public interface ConventionValue {
      * Returns some object.
      * 
      * @param convention The convention object belonging to the task's project
-     * @param task The convention aware task  
+     * @param conventionAwareObject The convention aware object  
      */
-    Object getValue(Convention convention, Task task);
+    Object getValue(Convention convention, IConventionAware conventionAwareObject);
 }

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import java.util.List;
-
 /**
  * <p>An {@code Artifact} represents an artifact included in a {@link org.gradle.api.artifacts.Dependency}.</p>
  *
@@ -27,25 +25,11 @@ public interface DependencyArtifact {
 
     String getName();
 
-    void setName(String name);
-
     String getType();
-
-    void setType(String type);
 
     String getExtension();
 
-    void setExtension(String extension);
-
     String getClassifier();
 
-    void setClassifier(String classifier);
-
     String getUrl();
-
-    void setUrl(String url);
-
-    List<String> getConfs();
-
-    void setConfs(List<String> confs);
 }

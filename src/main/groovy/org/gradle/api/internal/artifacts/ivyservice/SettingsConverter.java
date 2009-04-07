@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.artifacts.IvyObjectBuilder;
 
 import java.io.File;
 import java.util.List;
@@ -27,11 +25,13 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public interface SettingsConverter extends IvyObjectBuilder<IvySettings> {
+public interface SettingsConverter {
     String CHAIN_RESOLVER_NAME = "chain";
     String CLIENT_MODULE_CHAIN_NAME = "clientModuleChain";
     String CLIENT_MODULE_NAME = "clientModule";
 
-    IvySettings convert(List<DependencyResolver> classpathResolvers, List<DependencyResolver> otherResolvers, File gradleUserHome, RepositoryResolver buildResolver,
+    IvySettings convertForPublish(List<DependencyResolver> publishResolvers, File gradleUserHome, DependencyResolver internalRepository);
+
+    IvySettings convertForResolve(List<DependencyResolver> classpathResolvers, File gradleUserHome, DependencyResolver internalRepository,
                         Map clientModuleRegistry);
 }

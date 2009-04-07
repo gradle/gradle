@@ -20,9 +20,17 @@ import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
+import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.artifacts.DependencyManagerFactory
 import org.gradle.api.internal.plugins.DefaultConvention
+import org.gradle.api.plugins.Convention
+import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
+import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
@@ -45,6 +53,10 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.artifacts.FileCollection
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
+import org.gradle.api.internal.artifacts.dsl.ArtifactHandler
+import org.junit.Ignore
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
 
 /**
  * @author Hans Dockter
@@ -52,6 +64,8 @@ import org.gradle.api.internal.artifacts.PathResolvingFileCollection
  */
 @RunWith (org.jmock.integration.junit4.JMock.class)
 class DefaultProjectTest {
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     static final String TEST_PROJECT_NAME = 'testproject'
 
     static final String TEST_BUILD_FILE_NAME = 'build.gradle'
@@ -79,19 +93,25 @@ class DefaultProjectTest {
     AntBuilderFactory antBuilderFactoryMock;
     AntBuilder testAntBuilder
 
-    DependencyManagerFactory dependencyManagerFactoryMock;
-    DependencyManager dependencyManagerMock;
+    ConfigurationContainerFactory configurationContainerFactoryMock;
+    ConfigurationContainer configurationContainerMock;
+    InternalRepository internalRepositoryDummy = context.mock(InternalRepository)
+    ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
+    RepositoryHandlerFactory repositoryHandlerFactoryMock = context.mock(RepositoryHandlerFactory.class);
+    RepositoryHandler repositoryHandlerMock
+    DependencyFactory dependencyFactoryMock
+    PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
     Build build;
+    Convention convention = new DefaultConvention();
 
     StandardOutputRedirector outputRedirectorMock;
     StandardOutputRedirector outputRedirectorOtherProjectsMock;
-
-    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
 
     @Before
     void setUp() {
         context.imposteriser = ClassImposteriser.INSTANCE
+        dependencyFactoryMock = context.mock(DependencyFactory)
         outputRedirectorMock = context.mock(StandardOutputRedirector.class)
         outputRedirectorOtherProjectsMock = context.mock(StandardOutputRedirector.class, "otherProjects")
         taskFactoryMock = context.mock(ITaskFactory.class);
@@ -103,14 +123,20 @@ class DefaultProjectTest {
             allowing(outputRedirectorOtherProjectsMock).on(withParam(any(LogLevel)));
             allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
         }
-        dependencyManagerMock = context.mock(DependencyManager)
-        dependencyManagerFactoryMock = [createDependencyManager: {Project project, File gradleUserHome -> dependencyManagerMock}] as DependencyManagerFactory
+        configurationContainerMock = context.mock(ConfigurationContainer)
+        configurationContainerFactoryMock = [createConfigurationContainer: {
+          resolverProvider, dependencyMetaDataProvider -> configurationContainerMock}] as ConfigurationContainerFactory
+        repositoryHandlerMock =  context.mock(RepositoryHandler.class);
+        context.checking {
+          allowing(repositoryHandlerFactoryMock).setConvention(withParam(any(Convention)))
+          allowing(repositoryHandlerFactoryMock).createRepositoryHandler(); will(returnValue(repositoryHandlerMock))
+        }
         script = context.mock(ScriptSource.class)
         context.checking {
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
             allowing(script).getClassName(); will(returnValue('scriptClass'))
         }
-        
+
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
         build = new DefaultBuild(new StartParameter(), buildScriptClassLoader)
@@ -120,19 +146,23 @@ class DefaultProjectTest {
         projectRegistry = build.projectRegistry
         buildScriptProcessor = new BuildScriptProcessor()
         project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
-                build);
+                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
+                build, convention);
         child1 = new DefaultProject("child1", project, new File("child1"), null, script, buildScriptClassLoader,
-                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
-                pluginRegistry, projectRegistry, build)
+                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor,
+                pluginRegistry, projectRegistry, build, convention)
         project.addChildProject(child1)
         childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script, buildScriptClassLoader,
-                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
-                pluginRegistry, projectRegistry, build)
+                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor,
+                pluginRegistry, projectRegistry, build, convention)
         child1.addChildProject(childchild)
         child2 = new DefaultProject("child2", project, new File("child2"), null, script, buildScriptClassLoader,
-                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor,
-                pluginRegistry, projectRegistry, build)
+                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor,
+                pluginRegistry, projectRegistry, build, convention)
         project.addChildProject(child2)
         testTask = new DefaultTask(project, TEST_TASK_NAME)
         project.standardOutputRedirector = outputRedirectorMock
@@ -140,21 +170,60 @@ class DefaultProjectTest {
         StandardOutputLogging.off()
     }
 
+  @Test void testRepositories() {
+        assertThat(project.createRepositoryHandler(), sameInstance(repositoryHandlerMock))
+  }
+
+  @Ignore void testArtifacts() {
+        boolean called = false;
+        ArtifactHandler artifactHandlerMock = [testMethod: { called = true }] as ArtifactHandler
+        project.artifacts {
+            testMethod()
+        }
+        assertTrue(called)
+  }
+
+  @Test void testDependencies() {
+        DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
+        context.checking {
+          one(dependencyHandlerMock).module("test")
+        }
+        project.dependencyHandler = dependencyHandlerMock
+        project.dependencies {
+          module("test")
+        }
+  }
+
+
+  @Test void testConfigurations() {
+        context.checking {
+          one(configurationContainerMock).add("name")
+        }
+        project.configurationContainer = configurationContainerMock
+        project.configurations {
+          add("name")
+        }
+    }
+
     @Test void testProject() {
         assertSame project, child1.parent
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
+
         assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                taskFactoryMock, dependencyManagerFactoryMock, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, new DefaultProjectRegistry(),
-                build).standardOutputRedirector)
+                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock,
+                internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, new DefaultProjectRegistry(),
+                build, convention).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
-    private void checkProject(Project project, Project parent, String name, File projectDir) {
+    private void checkProject(DefaultProject project, Project parent, String name, File projectDir) {
         assertSame parent, project.parent
         assertEquals name, project.name
         assertEquals Project.DEFAULT_GROUP, project.group
         assertEquals Project.DEFAULT_VERSION, project.version
+        assertEquals Project.DEFAULT_STATUS, project.status
         assertSame(rootDir, project.rootDir)
         assertSame(projectDir, project.projectDir)
         assertSame this.project, project.rootProject
@@ -167,8 +236,11 @@ class DefaultProjectTest {
         assertNotNull(project.convention)
         assertEquals([], project.getDefaultTasks())
         assert project.getTaskFactory().is(taskFactoryMock);
-        assert project.dependencyManagerFactory.is(dependencyManagerFactoryMock)
-        assert project.dependencies.is(dependencyManagerMock)
+        assert project.configurationContainerFactory.is(configurationContainerFactoryMock)
+        assert project.configurations.is(configurationContainerMock)
+        assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
+        assert project.repositories.is(repositoryHandlerMock)
+        assert project.internalRepository.is(internalRepositoryDummy)
         assert pluginRegistry.is(project.pluginRegistry)
         assert projectRegistry.is(project.projectRegistry)
         assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
@@ -544,29 +616,6 @@ class DefaultProjectTest {
 
     }
 
-    //
-    //    @Test public void testTaskWithNonDefaultTypeAndTypeInitializer() {
-    //        Closure initClosure = {}
-    //        project.task(TEST_TASK_NAME, (DefaultProject.TASK_TYPE): TestTask, (DefaultProject.TASK_TYPE_INITIALIZER): initClosure)
-    //        assertNotNull(project.tasks[TEST_TASK_NAME])
-    //        assertEquals(TestTask, project.tasks[TEST_TASK_NAME].class)
-    //        assertSame initClosure, project.tasks[TEST_TASK_NAME].initalizeClosure
-    //    }
-
-
-    @Test void testDependenciesWithConfigureClosure() {
-        Closure testConfigureClosure = {
-            getBuildResolverDir()
-        }
-
-        context.checking {
-            one(dependencyManagerMock).getBuildResolverDir(); will(returnValue(null))
-        }
-
-        assert dependencyManagerMock.is(project.dependencies(testConfigureClosure))
-    }
-
-
     @Test void testPath() {
         assertEquals(Project.PATH_SEPARATOR + "child1", child1.path)
         assertEquals(Project.PATH_SEPARATOR, project.path)
@@ -859,7 +908,7 @@ def scriptMethod(Closure closure) {
         FileCollection collection = project.files('a', 'b')
         assertThat(collection, instanceOf(PathResolvingFileCollection))
     }
-    
+
     @Test public void testDir() {
         Task dirTask1 = new Directory(project, 'dir1')
         Task dirTask12 = new Directory(project, 'dir1/dir2')

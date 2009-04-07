@@ -24,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -34,8 +34,8 @@ import java.util.List;
 public class Report2Classpath {
     private static Logger logger = LoggerFactory.getLogger(Report2Classpath.class);
 
-    public List getClasspath(String configuration, ResolveReport resolveReport) {
-        List<File> classpath = new ArrayList<File>();
+    public Set getClasspath(String configuration, ResolveReport resolveReport) {
+        Set<File> classpath = new LinkedHashSet<File>();
         for (ArtifactDownloadReport artifactDownloadReport : getAllArtifactReports(resolveReport, configuration)) {
             classpath.add(artifactDownloadReport.getLocalFile());
         }

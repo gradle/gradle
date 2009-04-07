@@ -17,11 +17,8 @@
 package org.gradle.api.tasks.compile
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.DependencyManager
 import org.gradle.api.GradleScriptException
-import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier
-import org.gradle.api.artifacts.ConfigurationResolver
-import org.gradle.api.artifacts.ResolveInstructionModifier
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.compile.Compile
@@ -63,7 +60,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         assertNull(compile.destinationDir)
         assertNull(compile.sourceCompatibility)
         assertNull(compile.targetCompatibility)
-        assertNull(compile.dependencyManager)
         assertNull(compile.srcDirs)
         assertNull(compile.unmanagedClasspath)
     }
@@ -103,7 +99,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     }
 
     protected void setUpMocksAndAttributes(Compile compile) {
-        compile.resolveInstruction = new ConfigurationResolveInstructionModifier("someConf")
         compile.srcDirs = ['sourceDir1' as File, 'sourceDir2' as File]
         compile.includes = TEST_INCLUDES
         compile.excludes = TEST_EXCLUDES
@@ -117,18 +112,9 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.targetCompatibility = '1.5'
         compile.destinationDir = AbstractCompileTest.TEST_TARGET_DIR
 
-        ConfigurationResolver configurationResolver = [
-            resolve: {ResolveInstructionModifier resolveInstructionModifier ->
-                    assertSame(compile.getResolveInstruction(), resolveInstructionModifier)
-                    AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH
-                }
-        ] as ConfigurationResolver
-        compile.dependencyManager = [
-                configuration: {String confName ->
-                    assertEquals(confName, compile.getResolveInstruction().getConfiguration())
-                    configurationResolver
-                }
-        ] as DependencyManager
+        compile.configuration = [
+            resolve: { -> AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH as Set}
+        ] as Configuration
 
         compile.classpathConverter = [createFileClasspath: {File baseDir, List pathElements ->
             assertEquals(AbstractCompileTest.TEST_ROOT_DIR, baseDir)

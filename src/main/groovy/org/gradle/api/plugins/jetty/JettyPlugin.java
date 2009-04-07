@@ -17,7 +17,7 @@ package org.gradle.api.plugins.jetty;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaPlugin;
@@ -68,7 +68,7 @@ public class JettyPlugin implements Plugin {
 
         configureAbstractJettyTask(project, jettyConvention, jettyRunWar);
         jettyRunWar.getConventionMapping().put("webApp", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return ((War) project.task("archive_war")).getArchivePath();
             }
         });
@@ -77,12 +77,12 @@ public class JettyPlugin implements Plugin {
     private void configureJettyStop(Project project, final JettyPluginConvention jettyConvention) {
         JettyStop jettyStop = (JettyStop) project.createTask(GUtil.map("type", JettyStop.class), JETTY_STOP);
         jettyStop.getConventionMapping().put("stopPort", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return jettyConvention.getStopPort();
             }
         });
         jettyStop.getConventionMapping().put("stopKey", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return jettyConvention.getStopKey();
             }
         });
@@ -98,22 +98,22 @@ public class JettyPlugin implements Plugin {
         jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME);
         jettyRun.setUseTestClasspath(false);
         jettyRun.getConventionMapping().put("webXml", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return getWebXml(project);
             }
         });
         jettyRun.getConventionMapping().put("classesDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return getJavaConvention(project).getClassesDir();
             }
         });
         jettyRun.getConventionMapping().put("testClassesDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return getJavaConvention(project).getTestClassesDir();
             }
         });
         jettyRun.getConventionMapping().put("webAppSourceDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return getJavaConvention(project).getWebAppDir();
             }
         });
@@ -135,22 +135,22 @@ public class JettyPlugin implements Plugin {
         jettyTask.setReload(RELOAD_AUTOMATIC);
         jettyTask.setScanIntervalSeconds(0);
         jettyTask.getConventionMapping().put("contextPath", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return ((War) project.task("archive_war")).getBaseName();
             }
         });
         jettyTask.getConventionMapping().put("tmpDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return new File(project.getBuildDir(), "jetty");
             }
         });
         jettyTask.getConventionMapping().put("stopPort", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return jettyConvention.getStopPort();
             }
         });
         jettyTask.getConventionMapping().put("stopKey", new ConventionValue() {
-            public Object getValue(Convention convention, Task task) {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return jettyConvention.getStopKey();
             }
         });

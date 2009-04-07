@@ -17,14 +17,10 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import groovy.lang.GString;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.DependencyConfigurationMappingContainer;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyDescriptorFactory;
 import org.gradle.util.WrapUtil;
 
 import java.util.regex.Matcher;
@@ -33,9 +29,7 @@ import java.util.regex.Pattern;
 /**
  * @author Hans Dockter
  */
-public class DefaultModuleDependency extends AbstractDescriptorDependency implements ModuleDependency {
-    private static final Pattern extensionSplitter = Pattern.compile("^(.+)\\@([^:]+$)");
-
+public class DefaultModuleDependency extends AbstractDependency implements ModuleDependency {
     private String group;
     private String name;
     private String version;
@@ -43,62 +37,14 @@ public class DefaultModuleDependency extends AbstractDescriptorDependency implem
     private boolean force = false;
     private boolean changing = false;
     private boolean transitive = true;
-    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
 
-    public DefaultModuleDependency() {
-        super();
-    }
-
-    public DefaultModuleDependency(DependencyConfigurationMappingContainer dependencyConfigurationMappings, Object userDescription) {
-        super(dependencyConfigurationMappings, userDescription);
-        initFromUserDescription(userDescription.toString());
-    }
-
-    private void initFromUserDescription(String userDescription) {
-        Matcher matcher = extensionSplitter.matcher(userDescription);
-        String moduleDescription = userDescription;
-        String artifactType = null;
-        String classifier = null;
-        transitive = true;
-        if (matcher.matches()) {
-            if (matcher.groupCount() != 2) {
-                throw new InvalidUserDataException("The description " + userDescription + " is invalid");
-            }
-            moduleDescription = matcher.group(1);
-            artifactType = matcher.group(2);
-            transitive = false;
+    public DefaultModuleDependency(String group, String name, String version) {
+        if (name == null) {
+            throw new InvalidUserDataException("Name must not be null!");
         }
-        String[] moduleDescriptionParts = moduleDescription.split(":");
-        setModulePropertiesFromParsedDescription(moduleDescriptionParts);
-        if (moduleDescriptionParts.length == 4) {
-            classifier = moduleDescriptionParts[3];
-            if (artifactType == null) {
-                artifactType = DependencyArtifact.DEFAULT_TYPE;
-            }
-        }
-        if (artifactType != null) {
-            addArtifact(new DefaultDependencyArtifact(name, artifactType, artifactType, classifier, null));
-        }
-    }
-
-    private void setModulePropertiesFromParsedDescription(String[] dependencyParts) {
-        group = dependencyParts[0];
-        name = dependencyParts[1];
-        version = dependencyParts[2];
-    }
-
-    public boolean isValidDescription(Object userDependencyDescription) {
-        int elementCount = (userDependencyDescription.toString()).split(":").length;
-        return (elementCount == 3 || elementCount == 4);
-    }
-
-    public Class[] userDepencencyDescriptionType() {
-        return WrapUtil.toArray(String.class, GString.class);
-    }
-
-    public DependencyDescriptor createDependencyDescriptor(ModuleDescriptor parent) {
-        DependencyDescriptor descriptor = getDependencyDescriptorFactory().createFromModuleDependency(parent, this);
-        return getTransformer().transform(descriptor);
+        this.group = group;
+        this.name = name;
+        this.version = version;
     }
 
     public DefaultModuleDependency force(boolean force) {
@@ -110,27 +56,12 @@ public class DefaultModuleDependency extends AbstractDescriptorDependency implem
         return group;
     }
 
-    public DefaultModuleDependency setGroup(String group) {
-        this.group = group;
-        return this;
-    }
-
     public String getName() {
         return name;
     }
 
-    public DefaultModuleDependency setName(String name) {
-        this.name = name;
-        return this;
-    }
-
     public String getVersion() {
         return version;
-    }
-
-    public DefaultModuleDependency setVersion(String version) {
-        this.version = version;
-        return this;
     }
 
     public boolean isTransitive() {
@@ -160,11 +91,40 @@ public class DefaultModuleDependency extends AbstractDescriptorDependency implem
         return this;
     }
 
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
+    public DefaultModuleDependency copy() {
+        DefaultModuleDependency copiedModuleDependency = new DefaultModuleDependency(getGroup(), getName(), getVersion());
+        Dependencies.copyExternal(this, copiedModuleDependency);
+        copiedModuleDependency.setChanging(isChanging());
+        return copiedModuleDependency;
     }
 
-    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    public boolean contentEquals(Dependency dependency) {
+        if (this == dependency) return true;
+        if (dependency == null || getClass() != dependency.getClass()) return false;
+
+        DefaultModuleDependency that = (DefaultModuleDependency) dependency;
+        if (!Dependencies.isContentEqualsForExternal(this, that)) return false;
+
+        return changing == that.isChanging();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DefaultModuleDependency that = (DefaultModuleDependency) o;
+
+        return Dependencies.isKeyEquals(this, that);
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultModuleDependency{" +
+                "group='" + group + '\'' +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", dependencyConfiguration" + getDependencyConfiguration() + '\'' +
+                '}';
     }
 }

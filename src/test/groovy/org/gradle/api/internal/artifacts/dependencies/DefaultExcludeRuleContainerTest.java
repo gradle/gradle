@@ -15,104 +15,57 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExcludeRuleContainer;
-import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.util.WrapUtil;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultExcludeRuleContainerTest {
-    private DefaultExcludeRuleContainer excludeRuleContainer;
-    private String expectedOrg;
-    private String expectedModule;
-    private String expectedOrg2;
-    private String expectedModule2;
-    private static final List<String> TEST_CONF_SET = WrapUtil.toList("conf1", "conf2");
-
-    @Before
-    public void setUp() {
-        excludeRuleContainer = new DefaultExcludeRuleContainer();
-        expectedOrg = "org";
-        expectedModule = "module";
-        expectedOrg2 = "org2";
-        expectedModule2 = "module2";
+    @Test
+    public void testInit() {
+        assertThat(new DefaultExcludeRuleContainer().getRules().size(), equalTo(0));
     }
 
     @Test
-    public void testInit() {
-        assertEquals(0, excludeRuleContainer.createRules(TEST_CONF_SET).size());
+    public void testInitWithRules() {
+        Set<ExcludeRule> sourceExcludeRules = new HashSet<ExcludeRule>();
+        sourceExcludeRules.add(new DefaultExcludeRule(WrapUtil.toMap("key", "value")));
+        DefaultExcludeRuleContainer defaultExcludeRuleContainer = new DefaultExcludeRuleContainer(sourceExcludeRules);
+        assertThat(defaultExcludeRuleContainer.getRules(), equalTo(sourceExcludeRules));
+        assertThat(defaultExcludeRuleContainer.getRules(), not(sameInstance(sourceExcludeRules)));
     }
 
     @Test
     public void testAdd() {
-        excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule));
-        excludeRuleContainer.add(GUtil.map("org", expectedOrg2, "module", expectedModule2));
-        List<ExcludeRule> excludeRules = excludeRuleContainer.createRules(TEST_CONF_SET);
-        assertEquals(2, excludeRules.size());
-        checkContainsRule(excludeRules, expectedOrg, expectedModule);
+        DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
+        Map excludeRuleArgs1 = WrapUtil.toMap("key1", "value1");
+        Map excludeRuleArgs2 = WrapUtil.toMap("key2", "value2");
+        excludeRuleContainer.add(excludeRuleArgs1);
+        excludeRuleContainer.add(excludeRuleArgs2);
+        assertThat(excludeRuleContainer.getRules().size(), equalTo(2));
+        assertExcludeRuleContainerHasCorrectExcludeRules(excludeRuleContainer.getRules(), excludeRuleArgs1, excludeRuleArgs2);
     }
 
-    private void checkContainsRule(List<ExcludeRule> excludeRules, String org, String module) {
-        boolean ruleFound = false;
+    private void assertExcludeRuleContainerHasCorrectExcludeRules(Set<ExcludeRule> excludeRules, Map... excludeRuleArgs) {
+        Set<Map> foundRules = new HashSet<Map>();
         for (ExcludeRule excludeRule : excludeRules) {
-            if (checkRule(excludeRule, expectedOrg, expectedModule)) {
-                ruleFound = true;
+            for (Map excludeRuleArg : excludeRuleArgs) {
+                if (excludeRule.getExcludeArgs().equals(excludeRuleArg)) {
+                    foundRules.add(excludeRuleArg);
+                    continue;
+                }
             }
         }
-        assertTrue(ruleFound);
-    }
-
-    @Test
-    public void testAddWithConfigurations() {
-        List<String> confs = WrapUtil.toList("conf3");
-        excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule), confs);
-        List<ExcludeRule> excludeRules = excludeRuleContainer.createRules(TEST_CONF_SET);
-        assertEquals(1, excludeRules.size());
-        assertTrue(checkRule(excludeRuleContainer.createRules(TEST_CONF_SET).get(0), expectedOrg, expectedModule));
-        assertEquals(confs, Arrays.asList(excludeRuleContainer.createRules(TEST_CONF_SET).get(0).getConfigurations()));
-    }
-
-    @Test
-    public void testAddWithNativeRule() {
-        excludeRuleContainer.add(GUtil.map("org", expectedOrg, "module", expectedModule));
-        ExcludeRule nativeRule = HelperUtil.getTestExcludeRule();
-        excludeRuleContainer.getNativeRules().add(nativeRule);
-        List<ExcludeRule> excludeRules = excludeRuleContainer.createRules(TEST_CONF_SET);
-        assertEquals(2, excludeRules.size());
-        checkContainsRule(excludeRules, expectedOrg, expectedModule);
-        assertTrue(excludeRules.contains(nativeRule));
-    }
-
-    private boolean checkRule(ExcludeRule excludeRule, String group, String name) {
-        if (!excludeRule.getAttribute(IvyPatternHelper.ORGANISATION_KEY).equals(group)) {
-            return false;
-        };
-        if (!excludeRule.getAttribute(IvyPatternHelper.MODULE_KEY).equals(name)) {
-            return false;
-        };
-        return true;
-    }
-
-    @Test(expected= InvalidUserDataException.class)
-    public void confListNull() {
-        excludeRuleContainer.add(WrapUtil.<String, String>toMap("org", "jdjd"), null);
-    }
-
-    @Test(expected= InvalidUserDataException.class)
-    public void confListElementNull() {
-        excludeRuleContainer.add(WrapUtil.<String, String>toMap("org", "someValue"), WrapUtil.toList("conf", null));
     }
 
 

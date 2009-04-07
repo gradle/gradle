@@ -2,34 +2,64 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
 import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolveInstruction;
-import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.specs.DependencySpecs;
+import org.gradle.api.artifacts.specs.Type;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.WrapUtil;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 
 public class DefaultConfiguration implements Configuration {
     private final String name;
-    private final ChainingTransformer<org.apache.ivy.core.module.descriptor.Configuration> transformer
-            = new ChainingTransformer<org.apache.ivy.core.module.descriptor.Configuration>(org.apache.ivy.core.module.descriptor.Configuration.class);
+
     private Visibility visibility = Visibility.PUBLIC;
+    private boolean transitive = true;
     private Set<Configuration> extendsFrom = new HashSet<Configuration>();
     private String description;
-    private ConfigurationContainer configurationContainer;
-    private ResolveInstruction resolveInstruction = new ResolveInstruction();
+    private ConfigurationsProvider configurationsProvider;
 
-    public DefaultConfiguration(String name, ConfigurationContainer configurationContainer) {
+    private IvyService ivyService;
+
+    private DependencyMetaDataProvider dependencyMetaDataProvider;
+
+    private Set<Dependency> dependencies = new HashSet<Dependency>();
+
+    private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
+
+    private ResolverProvider resolverProvider;
+
+    private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
+
+    private State state = State.UNRESOLVED;
+
+    private ResolveReport cachedResolveReport = null;
+
+    public DefaultConfiguration(String name, ConfigurationsProvider configurationsProvider, IvyService ivyService,
+                                ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
         this.name = name;
-        this.configurationContainer = configurationContainer;
+        this.configurationsProvider = configurationsProvider;
+        this.ivyService = ivyService;
+        this.resolverProvider = resolverProvider;
+        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
     public String getName() {
         return name;
+    }
+
+    public State getState() {
+        return state;
     }
 
     public boolean isVisible() {
@@ -37,6 +67,7 @@ public class DefaultConfiguration implements Configuration {
     }
 
     public Configuration setVisible(boolean visible) {
+        throwExceptionIfNotInUnresolvedState();
         this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
         return this;
     }
@@ -45,29 +76,34 @@ public class DefaultConfiguration implements Configuration {
         return extendsFrom;
     }
 
-    public Configuration setExtendsFrom(Set<String> superConfigs) {
-        for (String superConfig : superConfigs) {
-            extendsFrom.add(configurationContainer.get(superConfig));
+    public Configuration setExtendsFrom(Set<Configuration> extendsFrom) {
+        throwExceptionIfNotInUnresolvedState();
+        this.extendsFrom = new HashSet<Configuration>();
+        for (Configuration configuration : extendsFrom) {
+            extendsFrom(configuration);
         }
         return this;
     }
 
-    public Configuration extendsFrom(String... superConfigs) {
-        setExtendsFrom(new HashSet(Arrays.asList(superConfigs)));
+    public Configuration extendsFrom(Configuration... extendsFrom) {
+        throwExceptionIfNotInUnresolvedState();
+        for (Configuration configuration : extendsFrom) {
+            if (configuration.getHierarchy().contains(this)) {
+                throw new InvalidUserDataException(String.format("Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this, configuration, configuration.getHierarchy()));
+            }
+            this.extendsFrom.add(configuration);
+        }
         return this;
     }
 
     public boolean isTransitive() {
-        return resolveInstruction.isTransitive();
+        return transitive;
     }
 
-    public Configuration setTransitive(boolean t) {
-        this.resolveInstruction.setTransitive(t);
+    public Configuration setTransitive(boolean transitive) {
+        throwExceptionIfNotInUnresolvedState();
+        this.transitive = transitive;
         return this;
-    }
-
-    public ResolveInstruction getResolveInstruction() {
-        return resolveInstruction;
     }
 
     public String getDescription() {
@@ -75,38 +111,196 @@ public class DefaultConfiguration implements Configuration {
     }
 
     public Configuration setDescription(String description) {
+        throwExceptionIfNotInUnresolvedState();
         this.description = description;
         return this;
     }
 
-    public org.apache.ivy.core.module.descriptor.Configuration getIvyConfiguration(boolean transitive) {
-        String[] superConfigs = Configurations.getNames(extendsFrom).toArray(new String[extendsFrom.size()]);
-        Arrays.sort(superConfigs);
-        org.apache.ivy.core.module.descriptor.Configuration configuration = new org.apache.ivy.core.module.descriptor.Configuration(
-                name, visibility, description, superConfigs, transitive, null);
-        return transformer.transform(configuration);
-    }
-
-    public void addIvyTransformer(Transformer<org.apache.ivy.core.module.descriptor.Configuration> transformer) {
-        this.transformer.add(transformer);
-    }
-
-    public void addIvyTransformer(Closure transformer) {
-        this.transformer.add(transformer);
-    }
-
-    public Set<Configuration> getChain() {
-        Set<Configuration> result = WrapUtil.<Configuration>toSet(this);
+    public List<Configuration> getHierarchy() {
+        List<Configuration> result = WrapUtil.<Configuration>toList(this);
         collectSuperConfigs(this, result);
         return result;
     }
 
-    private void collectSuperConfigs(Configuration configuration, Set<Configuration> superConfigs) {
+    private void collectSuperConfigs(Configuration configuration, List<Configuration> result) {
         for (Configuration superConfig : configuration.getExtendsFrom()) {
-            superConfigs.add(superConfig);
-            collectSuperConfigs(superConfig, superConfigs);
+            if (result.contains(superConfig)) {
+                result.remove(superConfig);
+            }
+            result.add(superConfig);
+            collectSuperConfigs(superConfig, result);
         }
     }
+
+    public Set<Configuration> getAll() {
+        return configurationsProvider.getAll();
+    }
+
+    public Set<File> resolve() {
+        ResolveReport report = resolveAsReport();
+        if (state == State.RESOLVED_WITH_FAILURES) {
+            throw new InvalidUserDataException("Not all dependencies could be resolved!");
+        }
+        return ivyService.resolveFromReport(this, report);
+    }
+
+    public String getAsPath() {
+        String path = "";
+        for (File pathElementFile : resolve()) {
+            path += pathElementFile.getAbsolutePath() + ":";
+        }
+        return path.length() > 0 ? path.substring(0, path.length() - 1) : path;
+    }
+
+    public ResolveReport resolveAsReport() {
+        if (state == State.UNRESOLVED) {
+            cachedResolveReport = ivyService.resolveAsReport(this, dependencyMetaDataProvider.getModule(), dependencyMetaDataProvider.getGradleUserHomeDir(), dependencyMetaDataProvider.getClientModuleRegistry());
+            if (cachedResolveReport.hasError()) {
+                state = State.RESOLVED_WITH_FAILURES;
+            } else {
+                state = State.RESOLVED;
+            }
+        }
+        return cachedResolveReport;
+    }
+
+    public void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction) {
+        ivyService.publish(new HashSet(getHierarchy()),
+                publishInstruction,
+                publishResolvers,
+                dependencyMetaDataProvider.getModule(),
+                dependencyMetaDataProvider.getGradleUserHomeDir());
+    }
+
+    public File getSingleFile() throws IllegalStateException {
+        Set<File> files = resolve();
+        if (files.size() != 1) {
+            throw new IllegalStateException(String.format("Configuration '%s' does not resolve to a single file.",
+                    getName()));
+        }
+        return files.iterator().next();
+    }
+
+    public Set<File> getFiles() {
+        return new HashSet(resolve());
+    }
+
+    public Iterator<File> iterator() {
+        return resolve().iterator();
+    }
+
+    public TaskDependency getBuildProjectDependencies() {
+        return new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+                for (Configuration configuration : getExtendsFrom()) {
+                    taskDependency.add(configuration.getBuildProjectDependencies());
+                }
+                for (ProjectDependency projectDependency : getProjectDependencies()) {
+                    Configuration configuration = projectDependency.getDependencyProject().getConfigurations().get(
+                            projectDependency.getDependencyConfiguration()
+                    );
+                    taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
+                }
+                return taskDependency.getDependencies(task);
+            }
+        };
+    }
+
+    public TaskDependency getBuildArtifactDependencies() {
+        return new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+                for (Configuration configuration : getExtendsFrom()) {
+                    taskDependency.add(configuration.getBuildArtifactDependencies());
+                }
+                for (PublishArtifact publishArtifact : getArtifacts()) {
+                    taskDependency.add(publishArtifact.getTaskDependency());
+                }
+                return taskDependency.getDependencies(task);
+            }
+        };
+    }
+
+    public Set<Dependency> getDependencies() {
+        return dependencies;
+    }
+
+    public Set<Dependency> getAllDependencies() {
+        return Configurations.getDependencies(this.getHierarchy(), Specs.SATISFIES_ALL);
+    }
+
+    public Set<ProjectDependency> getProjectDependencies() {
+        Set<Dependency> dependencies = Configurations.getDependencies(WrapUtil.<Configuration>toList(this), DependencySpecs.type(Type.PROJECT));
+        Set<ProjectDependency> result = createSetWithGenericProjectDependencyType(dependencies);
+        return result;
+    }
+
+    public Set<ProjectDependency> getAllProjectDependencies() {
+        Set<Dependency> dependencies = Specs.filterIterable(getAllDependencies(), DependencySpecs.type(Type.PROJECT));
+        Set<ProjectDependency> result = createSetWithGenericProjectDependencyType(dependencies);
+        return result;
+    }
+
+    private Set<ProjectDependency> createSetWithGenericProjectDependencyType(Set<Dependency> dependencies) {
+        // todo There must be a nicer way of doing this
+        Set<ProjectDependency> result = new HashSet<ProjectDependency>();
+        for (Dependency dependency : dependencies) {
+            result.add((ProjectDependency) dependency);
+        }
+        return result;
+    }
+
+    public void addDependency(Dependency dependency) {
+        throwExceptionIfNotInUnresolvedState();
+        dependencies.add(dependency);
+    }
+
+    public Configuration addArtifact(PublishArtifact artifact) {
+        throwExceptionIfNotInUnresolvedState();
+        artifacts.add(artifact);
+        return this;
+    }
+
+    public Set<PublishArtifact> getArtifacts() {
+        return artifacts;
+    }
+
+    public Set<PublishArtifact> getAllArtifacts() {
+        return Configurations.getArtifacts(this.getHierarchy(), Specs.SATISFIES_ALL);
+    }
+
+    public DependencyMetaDataProvider getArtifactsProvider() {
+        return dependencyMetaDataProvider;
+    }
+
+    public List<DependencyResolver> getDependencyResolvers() {
+        return resolverProvider.getResolvers();
+    }
+
+    public Set<ExcludeRule> getExcludeRules() {
+        return excludeRules;
+    }
+
+    public void setExcludeRules(Set<ExcludeRule> excludeRules) {
+        throwExceptionIfNotInUnresolvedState();
+        this.excludeRules = excludeRules;
+    }
+
+    public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
+        throwExceptionIfNotInUnresolvedState();
+        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs));
+        return this;
+    }
+
+    public String getUploadInternalTaskName() {
+        return Configurations.uploadInternalTaskName(getName());
+    }
+
+    public String getUploadTaskName() {
+        return Configurations.uploadTaskName(getName());
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -134,5 +328,47 @@ public class DefaultConfiguration implements Configuration {
                 ", description='" + description + '\'' +
                 ", visibility=" + visibility +
                 '}';
+    }
+
+    public Configuration getConfiguration(Dependency dependency) {
+        for (Configuration configuration : getHierarchy()) {
+            if (configuration.getDependencies().contains(dependency)) {
+                return configuration;
+            }
+        }
+        return null;
+    }
+
+    public Configuration copy() {
+        return createCopy(getDependencies());
+    }
+
+    public Configuration copyRecursive() {
+        return createCopy(getAllDependencies());
+    }
+
+    public Configuration copy(Spec<Dependency> dependencySpec) {
+        return createCopy(Specs.filterIterable(getDependencies(), dependencySpec));
+    }
+
+    public Configuration copyRecursive(Spec<Dependency> dependencySpec) {
+        return createCopy(Specs.filterIterable(getAllDependencies(), dependencySpec));
+    }
+
+    private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
+        DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
+        DefaultConfiguration copiedConfiguration = new DefaultConfiguration("copyOf" + getName(),
+                configurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider);
+        configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
+        for (Dependency dependency : dependencies) {
+            copiedConfiguration.addDependency(dependency.copy());
+        }
+        return copiedConfiguration;
+    }
+
+    private void throwExceptionIfNotInUnresolvedState() {
+        if (state != State.UNRESOLVED) {
+            throw new InvalidUserDataException("You can't change a configuration which is not in unresolved state!");
+        }
     }
 }

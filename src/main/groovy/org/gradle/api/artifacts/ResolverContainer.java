@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,228 +13,107 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.artifacts.DependencyManagerInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
+import org.gradle.api.internal.IConventionAware;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public class ResolverContainer {
-    private ResolverFactory resolverFactory;
+public interface ResolverContainer extends IConventionAware {
+    String DEFAULT_MAVEN_REPO_NAME = "MavenRepo";
+    String MAVEN_REPO_URL = "http://repo1.maven.org/maven2/";
+    String MAVEN_REPO_PATTERN
+            = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
+    String FLAT_DIR_RESOLVER_PATTERN = "[artifact](-[revision])(-[classifier]).[ext]";
+    String DEFAULT_CACHE_ARTIFACT_PATTERN
+            = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
+    String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
+    String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
+    String DEFAULT_CACHE_NAME = "default-gradle-cache";
+    String BUILD_RESOLVER_NAME = "build-resolver";
+    String DEFAULT_CACHE_DIR_NAME = "cache";
+    String TMP_CACHE_DIR_NAME = Project.TMP_DIR_NAME + "/tmpIvyCache";
 
-    private List<String> resolverNames = new ArrayList<String>();
+    DependencyResolver add(Object userDescription);
 
-    private Map<String, DependencyResolver> resolvers = new HashMap<String, DependencyResolver>();
+    DependencyResolver add(Object userDescription, Closure configureClosure);
 
-    private File mavenPomDir;
+    DependencyResolver resolver(String name);
 
-    private DependencyManagerInternal dependencyManager;
+    List<DependencyResolver> getResolverList();
 
-    public ResolverContainer() {
-    }
+    FileSystemResolver createFlatDirResolver(String name, Object... dirs);
 
-    public ResolverContainer(ResolverFactory resolverFactory) {
-        this.resolverFactory = resolverFactory;
-    }
+    AbstractResolver createMavenRepoResolver(String name, String root, String[] jarRepoUrls);
 
-    public DependencyResolver add(Object userDescription) {
-        return add(userDescription, null);
-    }
+    List<String> getResolverNames();
 
-    public DependencyResolver add(Object userDescription, Closure configureClosure) {
-        return addInternal(userDescription, configureClosure, new OrderAction() {
-            public void apply(String resolverName) {
-                resolverNames.add(resolverName);
-            }
-        });
-    }
+    Map<String, DependencyResolver> getResolvers();
 
-    public DependencyResolver addBefore(Object userDescription, final String afterResolverName) {
-        return addBefore(userDescription, afterResolverName, null);
-    }
+    GroovyMavenDeployer addMavenDeployer(String name);
 
-    public DependencyResolver addBefore(Object userDescription, final String afterResolverName, Closure configureClosure) {
-        if (!GUtil.isTrue(afterResolverName)) {
-            throw new InvalidUserDataException(
-                    "You must specify userDescription and afterResolverName");
-        }
-        if (!GUtil.isTrue(resolvers.get(afterResolverName))) {
-            throw new InvalidUserDataException(
-                    "Resolver $afterResolverName does not exists!");
-        }
-        return addInternal(userDescription, configureClosure, new OrderAction() {
-            public void apply(String resolverName) {
-                resolverNames.add(resolverNames.indexOf(afterResolverName), resolverName);
-            }
-        });
-    }
+    GroovyMavenDeployer addMavenDeployer(String name, Closure configureClosure);
 
-    public DependencyResolver addAfter(Object userDescription, final String beforeResolverName) {
-        return addAfter(userDescription, beforeResolverName, null);
-    }
+    MavenResolver addMavenInstaller(String name);
 
-    public DependencyResolver addAfter(Object userDescription, final String beforeResolverName, Closure configureClosure) {
-        if (!GUtil.isTrue(beforeResolverName)) {
-            throw new InvalidUserDataException(
-                    "You must specify userDescription and beforeResolverName");
-        }
-        if (!GUtil.isTrue(resolvers.get(beforeResolverName))) {
-            throw new InvalidUserDataException(
-                    "Resolver $beforeResolverName does not exists!");
-        }
-        return addInternal(userDescription, configureClosure, new OrderAction() {
-            public void apply(String resolverName) {
-                int insertPos = resolverNames.indexOf(beforeResolverName) + 1;
-                if (insertPos == resolverNames.size()) {
-                    resolverNames.add(resolverName);
-                } else {
-                    resolverNames.add(insertPos, resolverName);
-                }
-            }
-        });
-    }
+    MavenResolver addMavenInstaller(String name, Closure configureClosure);
 
-    public DependencyResolver addFirst(Object userDescription) {
-        return addFirst(userDescription, null);
-    }
+/**
+     * Adds a resolver that look in a list of directories for artifacts. The artifacts are expected to be located in the
+     * root of the specified directories. The resolver ignores any group/organization information specified in the
+     * dependency section of your build script. If you only use this kind of resolver you might specify your
+     * dependencies like <code>":junit:4.4"</code> instead of <code>"junit:junit:4.4"</code>
+     *
+     * @param name The name of the resolver
+     * @param dirs The directories to look for artifacts.
+     * @return the added resolver
+     */
+    FileSystemResolver addFlatDirResolver(String name, Object... dirs);
 
-    public DependencyResolver addFirst(Object userDescription, Closure configureClosure) {
-        if (!GUtil.isTrue(userDescription)) {
-            throw new InvalidUserDataException("You must specify userDescription");
-        }
-        return addInternal(userDescription, configureClosure, new OrderAction() {
-            public void apply(String resolverName) {
-                if (resolverNames.size() == 0) {
-                    resolverNames.add(resolverName);
-                } else {
-                    resolverNames.add(0, resolverName);
-                }
-            }
-        });
-    }
+    /**
+     * Adds a resolver which look in the official Maven Repo for dependencies. The URL of the official Repo is {@link
+     * #MAVEN_REPO_URL}. The name is {@link #DEFAULT_MAVEN_REPO_NAME}. The behavior of this resolver is otherwise the
+     * same as the ones added by {@link #addMavenStyleRepo(String, String, String[])}.
+     *
+     * @param jarRepoUrls A list of urls of repositories to look for artifacts only.
+     * @return the added resolver
+     * @see #addMavenStyleRepo(String, String, String[])
+     */
+    DependencyResolver addMavenRepo(String... jarRepoUrls);
 
-    private DependencyResolver addInternal(Object userDescription, Closure configureClosure, OrderAction orderAction) {
-        if (!GUtil.isTrue(userDescription)) {
-            throw new InvalidUserDataException("You must specify userDescription");
-        }
-        DependencyResolver resolver = resolverFactory.createResolver(userDescription);
-        ConfigureUtil.configure(configureClosure, resolver);
-        resolvers.put(resolver.getName(), resolver);
-        orderAction.apply(resolver.getName());
-        return resolver;
-    }
+    /**
+     * Adds a resolver that uses Maven pom.xml descriptor files for resolving dependencies. By default the resolver
+     * accepts to resolve artifacts without a pom. The resolver always looks first in the root location for the pom and
+     * the artifact. Sometimes the artifact is supposed to live in a different repository as the pom. In such a case you
+     * can specify further locations to look for an artifact. But be aware that the pom is only looked for in the root
+     * location.
+     *
+     * For Ivy related reasons, Maven Snapshot dependencies are only properly resolved if no additional jar locations
+     * are specified. This is unfortunate and we hope to improve this in our next release.
+     *
+     * @param name The name of the resolver
+     * @param root A URL to look for artifacts and pom's
+     * @param jarRepoUrls A list of urls of repositories to look for artifacts only.
+     * @return the added resolver
+     */
+    DependencyResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls);
 
+    void setMavenPomDir(File mavenPomDir);
 
-    public DependencyResolver get(String name) {
-        return resolvers.get(name);
-    }
+    Conf2ScopeMappingContainer getMavenScopeMappings();
 
-    public List<DependencyResolver> getResolverList() {
-        List<DependencyResolver> returnedResolvers = new ArrayList<DependencyResolver>();
-        for (String resolverName : resolverNames) {
-            returnedResolvers.add(resolvers.get(resolverName));
-        }
-        return returnedResolvers;
-    }
-
-    public FileSystemResolver createFlatDirResolver(String name, Object... dirs) {
-        List<File> dirFiles = new ArrayList<File>();
-        for (Object dir : dirs) {
-            dirFiles.add(new File(dir.toString()));
-        }
-        return resolverFactory.createFlatDirResolver(name, dirFiles.toArray(new File[dirFiles.size()]));
-    }
-
-    public AbstractResolver createMavenRepoResolver(String name, String root, String[] jarRepoUrls) {
-        return resolverFactory.createMavenRepoResolver(name, root, jarRepoUrls);
-    }
-
-    private static interface OrderAction {
-        void apply(String resolverName);
-    }
-
-    public ResolverFactory getResolverFactory() {
-        return resolverFactory;
-    }
-
-    public void setResolverFactory(ResolverFactory resolverFactory) {
-        this.resolverFactory = resolverFactory;
-    }
-
-    public List<String> getResolverNames() {
-        return resolverNames;
-    }
-
-    public void setResolverNames(List<String> resolverNames) {
-        this.resolverNames = resolverNames;
-    }
-
-    public Map<String, DependencyResolver> getResolvers() {
-        return resolvers;
-    }
-
-    public void setResolvers(Map<String, DependencyResolver> resolvers) {
-        this.resolvers = resolvers;
-    }
-
-    public File getMavenPomDir() {
-        return mavenPomDir;
-    }
-
-    public void setMavenPomDir(File mavenPomDir) {
-        this.mavenPomDir = mavenPomDir;
-    }
-
-    public DependencyManager getDependencyManager() {
-        return dependencyManager;
-    }
-
-    public void setDependencyManager(DependencyManagerInternal dependencyManager) {
-        this.dependencyManager = dependencyManager;
-    }
-
-    public GroovyMavenDeployer createMavenDeployer(String name) {
-        return resolverFactory.createMavenDeployer(name, mavenPomDir, dependencyManager);
-    }
-
-    public GroovyMavenDeployer addMavenDeployer(String name) {
-        return (GroovyMavenDeployer) add(createMavenDeployer(name));
-    }
-
-    public GroovyMavenDeployer addMavenDeployer(String name, Closure configureClosure) {
-        return (GroovyMavenDeployer) add(createMavenDeployer(name), configureClosure);
-    }
-
-    public MavenResolver createMavenInstaller(String name) {
-        return resolverFactory.createMavenInstaller(name, mavenPomDir, dependencyManager);
-    }
-
-    public MavenResolver addMavenInstaller(String name) {
-        return (MavenResolver) add(createMavenInstaller(name));
-    }
-
-    public MavenResolver addMavenInstaller(String name, Closure configureClosure) {
-        return (MavenResolver) add(createMavenInstaller(name), configureClosure);
-    }
-
-
+    File getMavenPomDir();
 }

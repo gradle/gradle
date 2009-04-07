@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.*;
-import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.compile.ClasspathConverter;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -28,6 +28,7 @@ import org.gradle.util.WrapUtil;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,7 +37,7 @@ import groovy.lang.Closure;
 
 /**
  * A task for executing Junit 3.8.x and Junit 4 tests.
- * 
+ *
  * @author Hans Dockter
  */
 public class Test extends ConventionTask {
@@ -60,9 +61,7 @@ public class Test extends ConventionTask {
 
     private List unmanagedClasspath = null;
 
-    private DependencyManager dependencyManager = null;
-
-    private ConfigurationResolveInstructionModifier resolveInstructionModifier;
+    private Configuration configuration;
 
     protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
 
@@ -105,13 +104,13 @@ public class Test extends ConventionTask {
     public List getClasspath() {
         List classpath = classpathConverter.createFileClasspath(getProject().getRootDir(),
                 GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getUnmanagedClasspath(),
-                        getDependencyManager().configuration(resolveInstructionModifier.getConfiguration()).resolve(resolveInstructionModifier)));
+                        new ArrayList(configuration.resolve())));
         return classpath;
     }
 
     /**
      * Adds include patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
-     * @see #setIncludes(java.util.List) 
+     * @see #setIncludes(java.util.List)
      */
     public Test include(String... includes) {
         this.includes = GUtil.chooseCollection(this.includes, getExcludes());
@@ -144,7 +143,7 @@ public class Test extends ConventionTask {
     }
 
     /**
-     * Returns the root folder for the compiled test sources. 
+     * Returns the root folder for the compiled test sources.
      */
     public File getTestClassesDir() {
         return (File) conv(testClassesDir, "testClassesDir");
@@ -152,7 +151,7 @@ public class Test extends ConventionTask {
 
     /**
      * Sets the root folder for the compiled test sources.
-     * 
+     *
      * @param testClassesDir The root folder
      */
     public void setTestClassesDir(File testClassesDir) {
@@ -168,7 +167,7 @@ public class Test extends ConventionTask {
 
     /**
      * Sets the root folder for the test results.
-     * 
+     *
      * @param testResultsDir The root folder
      */
     public void setTestResultsDir(File testResultsDir) {
@@ -193,7 +192,7 @@ public class Test extends ConventionTask {
 
     /**
      * Returns the include patterns for test execution.
-     * 
+     *
      * @see #include(String[])
      */
     public List getIncludes() {
@@ -246,7 +245,7 @@ public class Test extends ConventionTask {
     /**
      * Returns the unmanaged classpath.
      *
-     * @see #unmanagedClasspath(Object[])  
+     * @see #unmanagedClasspath(Object[])
      */
     public List getUnmanagedClasspath() {
         return (List) conv(unmanagedClasspath, "unmanagedClasspath");
@@ -277,7 +276,7 @@ public class Test extends ConventionTask {
      * Backwards compatible access to the TestFramework options.
      *
      * Be sure to call the appropriate useJUnit/useTestNG/useTestFramework function or set the default before using this function.
-     * 
+     *
      * @return The testframework options.
      */
     public Object getOptions() {
@@ -356,29 +355,13 @@ public class Test extends ConventionTask {
         }
     }
 
-    /**
-     * Returns the dependency manager used by this task for resolving dependencies.
-     */
-    public DependencyManager getDependencyManager() {
-        return (DependencyManager) conv(dependencyManager, "dependencyManager");
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
-    /**
-     * Sets the dependency manager used by this task for resolving dependencies.
-     * 
-     * @param dependencyManager The new dependency manager
-     */
-    public void setDependencyManager(DependencyManager dependencyManager) {
-        this.dependencyManager = dependencyManager;
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
-
-    public ConfigurationResolveInstructionModifier getResolveInstruction() {
-        return resolveInstructionModifier;
-    }
-
-    public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
-        this.resolveInstructionModifier = resolveInstructionModifier;
-	}
 
     public boolean isTestReport() {
         return testReport;

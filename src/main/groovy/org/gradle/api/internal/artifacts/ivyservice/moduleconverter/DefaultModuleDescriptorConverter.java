@@ -19,24 +19,20 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.artifacts.ArtifactContainer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.DependencyContainerInternal;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -47,43 +43,43 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
     private ChainingTransformer<DefaultModuleDescriptor> transformer
             = new ChainingTransformer<DefaultModuleDescriptor>(DefaultModuleDescriptor.class);
 
-    private ModuleDescriptorFactory moduleDescriptorFactory;
+    private ModuleDescriptorFactory moduleDescriptorFactory = new DefaultModuleDescriptorFactory();
 
-    private ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
-    private DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
-    private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter;
+    private ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter = new DefaultConfigurationsToModuleDescriptorConverter();
+    private DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter = new DefaultDependenciesToModuleDescriptorConverter();
+    private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter = new DefaultArtifactsToModuleDescriptorConverter();
 
-    public DefaultModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
-                                            ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                            DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
-                                            ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter) {
-        this.moduleDescriptorFactory = moduleDescriptorFactory;
-        this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
-        this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
-        this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
+    public ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry) {
+        return createResolveModuleDescriptor(module, new LinkedHashSet(configuration.getHierarchy()), clientModuleRegistry);
     }
 
-    public ModuleDescriptor convert(Map<String, Boolean> transitiveOverride, ConfigurationContainer configurationContainer, Spec<Configuration> configurationSpec,
-                                    DependencyContainerInternal dependencyContainer, Spec<Dependency> dependencySpec,                                
-                                    ArtifactContainer artifactContainer, Spec<PublishArtifact> artifactSpec) {
-        String status = getStatus(dependencyContainer.getProject());
-        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(dependencyContainer.getProject());
-        DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(
-                moduleRevisionId,
-                status,
-                null);
-        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurationContainer, configurationSpec, transitiveOverride);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, dependencyContainer, dependencySpec);
-        artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, artifactContainer, artifactSpec);
+    public ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module) {
+        assert configurations.size() > 0;
+        Set<Configuration> descriptorConfigurations = publishDescriptor ? setWithAllConfs(configurations) : configurations;
+        ModuleDescriptor moduleDescriptor = createPublishModuleDescriptor(module, descriptorConfigurations);
+        artifactsToModuleDescriptorConverter.addArtifacts((DefaultModuleDescriptor) moduleDescriptor, descriptorConfigurations);
+        return moduleDescriptor;
+    }
+
+    private Set<Configuration> setWithAllConfs(Set<Configuration> configurations) {
+        return configurations.iterator().next().getAll();
+    }
+
+    private ModuleDescriptor createResolveModuleDescriptor(Module module, Set<Configuration> configurations, Map clientModuleRegistry) {
+        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, clientModuleRegistry);
         return transformer.transform(moduleDescriptor);
     }
 
-    private String getStatus(Project project) {
-        String status = DependencyManager.DEFAULT_STATUS;
-        if (project.hasProperty("status")) {
-            status = (String) project.property("status");
-        }
-        return status;
+    private ModuleDescriptor createPublishModuleDescriptor(Module module, Set<Configuration> configurations) {
+        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, new HashMap());
+        return transformer.transform(moduleDescriptor);
+    }
+
+    private DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<Configuration> configurations, Map clientModuleRegistry) {
+        DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
+        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, clientModuleRegistry);
+        return moduleDescriptor;
     }
 
     public void addIvyTransformer(Transformer<DefaultModuleDescriptor> transformer) {
@@ -92,5 +88,37 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
 
     public void addIvyTransformer(Closure tranformer) {
         this.transformer.add(tranformer);
+    }
+
+    public ModuleDescriptorFactory getModuleDescriptorFactory() {
+        return moduleDescriptorFactory;
+    }
+
+    public void setModuleDescriptorFactory(ModuleDescriptorFactory moduleDescriptorFactory) {
+        this.moduleDescriptorFactory = moduleDescriptorFactory;
+    }
+
+    public ConfigurationsToModuleDescriptorConverter getConfigurationsToModuleDescriptorConverter() {
+        return configurationsToModuleDescriptorConverter;
+    }
+
+    public void setConfigurationsToModuleDescriptorConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter) {
+        this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
+    }
+
+    public DependenciesToModuleDescriptorConverter getDependenciesToModuleDescriptorConverter() {
+        return dependenciesToModuleDescriptorConverter;
+    }
+
+    public void setDependenciesToModuleDescriptorConverter(DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter) {
+        this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
+    }
+
+    public ArtifactsToModuleDescriptorConverter getArtifactsToModuleDescriptorConverter() {
+        return artifactsToModuleDescriptorConverter;
+    }
+
+    public void setArtifactsToModuleDescriptorConverter(ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter) {
+        this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
     }
 }

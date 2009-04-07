@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 import static org.gradle.api.internal.artifacts.publish.maven.PomWriter.NL;
 import org.gradle.api.internal.artifacts.publish.maven.XmlHelper;
@@ -33,7 +32,8 @@ import org.junit.runner.RunWith;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -43,18 +43,16 @@ public class DefaultPomDependenciesWriterTest {
     DefaultPomDependenciesWriter dependenciesWriter;
     private StringWriter testStringWriter;
     private PomDependenciesConverter dependenciesConverterMock;
-    private Conf2ScopeMappingContainer conf2ScopeMappingContainerMock;
     private MavenPom pomMock;
     private PrintWriter testPrintWriter;
-    private List<DependencyDescriptor> testDependencies;
+    private Set<Configuration> testConfigurations;
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Before
     public void setUp() {
-        testDependencies = new ArrayList<DependencyDescriptor>();
+        testConfigurations = new HashSet<Configuration>();
         dependenciesConverterMock = context.mock(PomDependenciesConverter.class);
-        conf2ScopeMappingContainerMock = context.mock(Conf2ScopeMappingContainer.class);
         dependenciesWriter = new DefaultPomDependenciesWriter(dependenciesConverterMock);
         testStringWriter = new StringWriter();
         testPrintWriter = new PrintWriter(testStringWriter);
@@ -72,11 +70,11 @@ public class DefaultPomDependenciesWriterTest {
         context.checking(new Expectations() {
             {
                 one(testMavenDependency).write(testPrintWriter);
-                one(dependenciesConverterMock).convert(pomMock, testDependencies);
+                one(dependenciesConverterMock).convert(pomMock, testConfigurations);
                 will(returnValue(WrapUtil.toList(testMavenDependency)));
             }
         });
-        dependenciesWriter.convert(pomMock, testDependencies, testPrintWriter);
+        dependenciesWriter.convert(pomMock, testConfigurations, testPrintWriter);
         assertEquals(XmlHelper.openTag(2, PomDependenciesWriter.DEPENDENCIES) + NL +
                 XmlHelper.closeTag(2, PomDependenciesWriter.DEPENDENCIES) + NL, testStringWriter.toString());
     }
@@ -85,11 +83,11 @@ public class DefaultPomDependenciesWriterTest {
     public void convertWithNoDependencies() {
         context.checking(new Expectations() {
             {
-                one(dependenciesConverterMock).convert(pomMock, testDependencies);
+                one(dependenciesConverterMock).convert(pomMock, testConfigurations);
                 will(returnValue(new ArrayList()));
             }
         });
-        dependenciesWriter.convert(pomMock, testDependencies, testPrintWriter);
+        dependenciesWriter.convert(pomMock, testConfigurations, testPrintWriter);
         assertEquals("", testStringWriter.toString());
     }
 }

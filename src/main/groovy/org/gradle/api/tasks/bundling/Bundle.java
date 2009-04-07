@@ -19,10 +19,7 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -73,7 +70,6 @@ public class Bundle extends ConventionTask {
         setTaskDependsOn(archiveTask, getChildrenDependOn());
         this.dependsOn(taskName);
         archiveTasks.add(archiveTask);
-        publish(defaultConfigurations, archiveTask, (List<String>) args.get(CONFIGURATIONS_KEY));
         applyConfigureActions(archiveTask);
         applyConfigureClosure(configureClosure, archiveTask);
         return archiveTask;
@@ -103,21 +99,6 @@ public class Bundle extends ConventionTask {
     private void applyConfigureActions(AbstractArchiveTask archiveTask) {
         for (ConfigureAction configureAction : configureActions) {
             configureAction.configure(archiveTask);
-        }
-    }
-
-    private void publish(List<String> defaultConfigurationNames, AbstractArchiveTask archiveTask, List<String> customConfigurationNames) {
-        List<String> configurationNames = defaultConfigurationNames;
-        if (customConfigurationNames != null) {
-            configurationNames = customConfigurationNames;
-        }
-        Set<Configuration> configurations = new HashSet<Configuration>();
-        for (String configurationName : configurationNames) {
-            ConfigurationResolver configuration = getProject().getDependencies().configuration(configurationName);
-            configurations.add(configuration);
-        }
-        if (configurations.size() > 0) {
-            getProject().getDependencies().addArtifacts(new ArchivePublishArtifact(configurations, archiveTask));
         }
     }
 

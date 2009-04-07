@@ -49,7 +49,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     private RemoteRepository testSnapshotRepository;
 
     protected BaseMavenDeployer createMavenDeployer() {
-        return new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, dependencyManagerMock);
+        return new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, configurationContainerMock);
     }
 
     protected MavenResolver getMavenResolver() {
@@ -99,7 +99,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     @Test
     public void init() {
-        mavenDeployer = new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, dependencyManagerMock);
+        mavenDeployer = new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, configurationContainerMock);
         assertTrue(mavenDeployer.isUniqueVersion());
     }
 

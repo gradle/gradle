@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.hamcrest.Matchers;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.DefaultModule;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
-
-import java.util.Date;
 
 /**
  * @author Hans Dockter
@@ -29,15 +28,12 @@ import java.util.Date;
 public class DefaultModuleDescriptorFactoryTest {
     @Test
     public void testCreateModuleDescriptor() {
-        ModuleRevisionId testModuleRevisionId = ModuleRevisionId.newInstance("org", "name", "version");
-        String testStatus = "testStatus";
-        Date testDate = new Date();
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptorFactory().createModuleDescriptor(
-                testModuleRevisionId,
-                testStatus,
-                testDate);
-        assertThat(moduleDescriptor.getModuleRevisionId(), Matchers.equalTo(testModuleRevisionId));
-        assertThat(moduleDescriptor.getStatus(), Matchers.equalTo(testStatus));
-        assertThat(moduleDescriptor.getPublicationDate(), Matchers.equalTo(testDate));
+        Module module = new DefaultModule("org", "name", "version", "status");
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptorFactory().createModuleDescriptor(module);
+        assertThat(moduleDescriptor.getModuleRevisionId().getOrganisation(), equalTo(module.getGroup()));
+        assertThat(moduleDescriptor.getModuleRevisionId().getName(), equalTo(module.getName()));
+        assertThat(moduleDescriptor.getModuleRevisionId().getRevision(), equalTo(module.getVersion()));
+        assertThat(moduleDescriptor.getStatus(), equalTo(module.getStatus()));
+        assertThat(moduleDescriptor.getPublicationDate(), equalTo(null));
     }
 }

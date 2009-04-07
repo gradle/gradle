@@ -15,53 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
-import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public abstract class AbstractPublishArtifact implements PublishArtifact {
-    private final ChainingTransformer<Artifact> transformer = new ChainingTransformer<Artifact>(Artifact.class);
-
-    private Set<Configuration> configurations;
     private DefaultTaskDependency taskDependency = new DefaultTaskDependency();
 
-    public AbstractPublishArtifact(Set<Configuration> configurations, Object... tasks) {
-        this.configurations = configurations;
+    public AbstractPublishArtifact(Object... tasks) {
         taskDependency.add(tasks);
-    }
-
-    public Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId) {
-        Map extraAttributes = WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, getFile().getAbsolutePath());
-        if (GUtil.isTrue(getClassifier())) {
-            extraAttributes.put(DependencyManager.CLASSIFIER, getClassifier());
-        }
-        DefaultArtifact artifact = new DefaultArtifact(moduleRevisionId, null, getName(), getType(), getExtension(), extraAttributes);
-        return transformer.transform(artifact);
-    }
-
-    public Set<Configuration> getConfigurations() {
-        return configurations;
-    }
-
-    public void setConfigurations(Set<Configuration> configurations) {
-        this.configurations = configurations;
     }
 
     public TaskDependency getTaskDependency() {
@@ -96,13 +61,5 @@ public abstract class AbstractPublishArtifact implements PublishArtifact {
         result = 31 * result + (getType() != null ? getType().hashCode() : 0);
         result = 31 * result + (getClassifier() != null ? getClassifier().hashCode() : 0);
         return result;
-    }
-
-    public void addIvyTransformer(Transformer<Artifact> transformer) {
-        this.transformer.add(transformer);
-    }
-
-    public void addIvyTransformer(Closure transformer) {
-        this.transformer.add(transformer);
     }
 }

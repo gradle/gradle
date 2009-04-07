@@ -17,20 +17,18 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainerException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.internal.artifacts.DependencyManagerInternal;
-import org.gradle.api.specs.Specs;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -43,10 +41,10 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -59,8 +57,8 @@ public abstract class AbstractMavenResolverTest {
     private static final Artifact TEST_ARTIFACT = new DefaultArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null, TEST_NAME, "jar", "jar");
     protected ArtifactPomContainer artifactPomContainerMock;
     protected PomFilterContainer pomFilterContainerMock;
-    protected DependencyManagerInternal dependencyManagerMock;
-    private List<DependencyDescriptor> testDependencies;
+    protected ConfigurationContainer configurationContainerMock;
+    private Set<Configuration> testConfigurations;
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {
         {
             setImposteriser(ClassImposteriser.INSTANCE);
@@ -78,18 +76,16 @@ public abstract class AbstractMavenResolverTest {
 
     @Before
     public void setUp() {
-        testDependencies = new ArrayList<DependencyDescriptor>();
-        dependencyManagerMock = context.mock(DependencyManagerInternal.class);
+        testConfigurations = new HashSet<Configuration>();
+        configurationContainerMock = context.mock(ConfigurationContainer.class);
         pomFilterContainerMock = createPomFilterContainerMock();
         artifactPomContainerMock = context.mock(ArtifactPomContainer.class);
         pomMock = context.mock(MavenPom.class);
         mavenSettingsMock = context.mock(Settings.class);
 
-        final ModuleDescriptor moduleDescriptorMock = context.mock(ModuleDescriptor.class);
         context.checking(new Expectations() {
             {
-                allowing(dependencyManagerMock).createModuleDescriptor(Specs.SATISFIES_ALL, Specs.SATISFIES_ALL, Specs.SATISFIES_ALL); will(returnValue(moduleDescriptorMock));
-                allowing(moduleDescriptorMock).getDependencies(); will(returnValue(testDependencies.toArray(new DependencyDescriptor[testDependencies.size()])));
+                allowing(configurationContainerMock).getAll(); will(returnValue(testConfigurations));
             }
         });
     }
@@ -106,7 +102,7 @@ public abstract class AbstractMavenResolverTest {
             {
                 allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getSettings(); will(returnValue(mavenSettingsMock));
                 one(artifactPomContainerMock).addArtifact(TEST_ARTIFACT, TEST_JAR_FILE);
-                allowing(artifactPomContainerMock).createDeployableUnits(testDependencies); will(returnValue(testDeployableUnits));
+                allowing(artifactPomContainerMock).createDeployableUnits(testConfigurations); will(returnValue(testDeployableUnits));
             }
         });
         getMavenResolver().publish(TEST_IVY_ARTIFACT, TEST_IVY_FILE, true);

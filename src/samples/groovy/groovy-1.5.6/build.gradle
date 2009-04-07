@@ -1,7 +1,10 @@
 usePlugin 'groovy'
 
-dependencies {
+repositories {
     addMavenRepo()
+}
+
+dependencies {
     groovy 'org.codehaus.groovy:groovy-all:1.5.6'
     testCompile 'junit:junit:4.+'
 }

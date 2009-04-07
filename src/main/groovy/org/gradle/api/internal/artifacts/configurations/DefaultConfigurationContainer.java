@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.configurations;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
@@ -32,16 +34,23 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DefaultConfigurationContainer implements ConfigurationContainer {
+public class DefaultConfigurationContainer implements ConfigurationContainer, ConfigurationsProvider {
+    public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
+    
     private Map<String, Configuration> configurations = new HashMap<String, Configuration>();
 
-    public DefaultConfigurationContainer() {
-    }
+    private IvyService ivyService;
 
-    public DefaultConfigurationContainer(Set<? extends Configuration> configurations) {
-        for (Configuration configuration : configurations) {
-            this.configurations.put(configuration.getName(), configuration);
-        }
+    private ResolverProvider resolverProvider;
+
+    private DependencyMetaDataProvider dependencyMetaDataProvider;
+
+    private int detachedConfigurationDefaultNameCounter = 1;
+
+    public DefaultConfigurationContainer(IvyService ivyService, ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
+        this.ivyService = ivyService;
+        this.resolverProvider = resolverProvider;
+        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
     public Configuration add(String name, Closure configureClosure) {
@@ -49,7 +58,7 @@ public class DefaultConfigurationContainer implements ConfigurationContainer {
             throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
                     name));
         }
-        DefaultConfiguration configuration = new DefaultConfiguration(name, this);
+        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService, resolverProvider, dependencyMetaDataProvider);
         configurations.put(name, configuration);
         ConfigureUtil.configure(configureClosure, configuration);
         return configuration;
@@ -76,7 +85,7 @@ public class DefaultConfigurationContainer implements ConfigurationContainer {
         return get(name, null);
     }
 
-    public Set<Configuration> get() {
+    public Set<Configuration> getAll() {
         return new HashSet<Configuration>(configurations.values());
     }
 
@@ -112,4 +121,40 @@ public class DefaultConfigurationContainer implements ConfigurationContainer {
                 "configurations=" + configurations +
                 '}';
     }
+
+    public IvyService getIvyService() {
+        return ivyService;
+    }
+
+    public void setIvyService(IvyService ivyService) {
+        this.ivyService = ivyService;
+    }
+
+    public DependencyMetaDataProvider getDependencyMetaDataProvider() {
+        return dependencyMetaDataProvider;
+    }
+
+    public void setDependencyMetaDataProvider(DependencyMetaDataProvider dependencyMetaDataProvider) {
+        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+    }
+
+    public ResolverProvider getResolverProvider() {
+        return resolverProvider;
+    }
+
+    public void setResolverProvider(ResolverProvider resolverProvider) {
+        this.resolverProvider = resolverProvider;
+    }
+
+    public Configuration detachedConfiguration(Dependency... dependencies) {
+        DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
+        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++,
+                detachedConfigurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider);
+        for (Dependency dependency : dependencies) {
+            detachedConfiguration.addDependency(dependency.copy());
+        }
+        detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
+        return detachedConfiguration;
+    }
+
 }

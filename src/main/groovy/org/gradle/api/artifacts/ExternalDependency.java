@@ -24,10 +24,4 @@ public interface ExternalDependency extends Dependency {
     boolean isForce();
 
     ExternalDependency setForce(boolean force);
-
-    ExternalDependency setGroup(String group);
-
-    ExternalDependency setName(String name);
-
-    ExternalDependency setVersion(String version);
 }

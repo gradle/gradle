@@ -19,14 +19,6 @@ package org.gradle.api.artifacts.specs;
  * @author Hans Dockter
  */
 public class DependencySpecs {
-    public static ConfigurationSpec confs(String... confs) {
-        return new ConfigurationSpec(true, confs);
-    }
-
-    public static ConfigurationSpec confsWithoutExtensions(String... confs) {
-        return new ConfigurationSpec(false, confs);
-    }
-
     public static DependencyTypeSpec type(Type type) {
         return new DependencyTypeSpec(type);
     }

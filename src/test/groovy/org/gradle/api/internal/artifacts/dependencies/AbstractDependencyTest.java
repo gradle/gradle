@@ -15,98 +15,163 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration;
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
-import org.gradle.api.internal.artifacts.configurations.DefaultDependencyConfigurationMappingContainer;
-import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
-import org.gradle.api.internal.project.DefaultProject;
+import groovy.lang.Closure;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import static org.hamcrest.Matchers.sameInstance;
-import org.jmock.Expectations;
+import org.gradle.util.WrapUtil;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
-import org.junit.Before;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
 abstract public class AbstractDependencyTest {
-    protected static final String TEST_CONF = "conf";
     
-    public static final DefaultDependencyConfigurationMappingContainer TEST_CONF_MAPPING =
-        new DefaultDependencyConfigurationMappingContainer() {{
-            addMasters(new DefaultConfiguration(TEST_CONF, new DefaultConfigurationContainer()));
-    }};
-
-    protected static final DefaultProject TEST_PROJECT = new DefaultProject("someName");
-
     protected abstract AbstractDependency getDependency();
-    protected abstract void expectDescriptorBuilt(DependencyDescriptor descriptor);
 
-    private ModuleDescriptor parentModuleDescriptorMock;
+    protected abstract AbstractDependency createDependency(String group, String name, String version);
+
+    protected abstract AbstractDependency createDependency(String group, String name, String version, String dependencyConfiguration);
 
     protected JUnit4Mockery context = new JUnit4GroovyMockery();
 
-    @Before
-    public void setUp() {
-        parentModuleDescriptorMock = context.mock(ModuleDescriptor.class);
-    }
-
     @Test
     public void testGenericInit() {
-        assertEquals(TEST_CONF_MAPPING, getDependency().getDependencyConfigurationMappings());
+        assertTrue(getDependency().getArtifacts().isEmpty());
+        assertTrue(getDependency().getExcludeRules().isEmpty());
+        assertThat(getDependency().getDependencyConfiguration(), equalTo(Dependency.DEFAULT_CONFIGURATION));
+//        assertThat(getDependency().getState(), equalTo(Dependency.State.UNRESOLVED));
+    }
+    
+    @Test(expected = InvalidUserDataException.class)
+    public void setDependencyConfigurationWithEmptyString_shouldThrowInvalidUserDataEx() {
+        getDependency().setDependencyConfiguration("");
     }
 
-    @Test public void testCreateDependencyDescriptor() {
-        DependencyDescriptor expectedDependencyDescriptor = context.mock(DependencyDescriptor.class);
-        expectDescriptorBuilt(expectedDependencyDescriptor);
-        assertSame(expectedDependencyDescriptor, getDependency().createDependencyDescriptor(parentModuleDescriptorMock));
-    }
-
-    @Test
-    public void testTransformerCanModifyIvyDescriptor() {
-        final DependencyDescriptor original = context.mock(DependencyDescriptor.class, "original");
-        final DependencyDescriptor transformed = context.mock(DependencyDescriptor.class, "transformed");
-        final Transformer<DependencyDescriptor> transformer = context.mock(Transformer.class);
-
-        context.checking(new Expectations() {{
-            one(transformer).transform(with(sameInstance(original)));
-            will(returnValue(transformed));
-        }});
-        expectDescriptorBuilt(original);
-
-        getDependency().addIvyTransformer(transformer);
-
-        DependencyDescriptor descriptor = getDependency().createDependencyDescriptor(parentModuleDescriptorMock);
-        assertThat(descriptor, sameInstance(transformed));
+    @Test(expected = InvalidUserDataException.class)
+    public void setDependencyConfigurationWithNull_shouldThrowInvalidUserDataEx() {
+        getDependency().setDependencyConfiguration(null); 
     }
 
     @Test
-    public void testTransformationClosureCanModifyIvyDescriptor() {
-        final DependencyDescriptor original = context.mock(DependencyDescriptor.class, "original");
-        final DependencyDescriptor transformed = context.mock(DependencyDescriptor.class, "transformed");
+    public void exclude() {
+        Map<String,String> excludeArgs1 = WrapUtil.toMap("key", "value");
+        Map<String,String> excludeArgs2 = WrapUtil.toMap("key2", "value2");
 
-        getDependency().addIvyTransformer(HelperUtil.returns(transformed));
+        getDependency().exclude(excludeArgs1);
+        getDependency().exclude(excludeArgs2);
 
-        expectDescriptorBuilt(original);
-
-        DependencyDescriptor descriptor = getDependency().createDependencyDescriptor(parentModuleDescriptorMock);
-        assertThat(descriptor, sameInstance(transformed));
+        assertThat(getDependency().getExcludeRules().size(), equalTo(2));
+        assertThat(getDependency().getExcludeRules(), Matchers.<ExcludeRule>hasItem(new DefaultExcludeRule(excludeArgs1)));
+        assertThat(getDependency().getExcludeRules(), Matchers.<ExcludeRule>hasItem(new DefaultExcludeRule(excludeArgs2)));
     }
 
-    protected ModuleDescriptor getParentModuleDescriptorMock() {
-        return parentModuleDescriptorMock;
+    @Test
+    public void addArtifact() {
+        DependencyArtifact artifact1 = createAnonymousArtifact();
+        DependencyArtifact artifact2 = createAnonymousArtifact();
+
+        getDependency().addArtifact(artifact1);
+        getDependency().addArtifact(artifact2);
+
+        assertThat(getDependency().getArtifacts().size(), equalTo(2));
+        assertThat(getDependency().getArtifacts(), hasItem(artifact1));
+        assertThat(getDependency().getArtifacts(), hasItem(artifact2));
     }
 
-    protected void setParentModuleDescriptorMock(ModuleDescriptor parentModuleDescriptorMock) {
-        this.parentModuleDescriptorMock = parentModuleDescriptorMock;
+    private DependencyArtifact createAnonymousArtifact() {
+        return new DefaultDependencyArtifact(HelperUtil.createUniqueId(), "type", "org", "classifier", "url");
     }
+
+    private Closure createClosureThatSetsArtifactName(String artifactName) {
+        return HelperUtil.toClosure(String.format("{ name='%s' }", artifactName));
+    }
+
+    private void assertDependencyHasNamedArtifacts(String... names) {
+        assertThat(getDependency().getArtifacts().size(), equalTo(names.length));
+        Set<String> foundNames = new HashSet<String>();
+        for (DependencyArtifact artifact : getDependency().getArtifacts()) {
+            for (String name : names) {
+                if (artifact.getName().equals(name)) {
+                    foundNames.add(name);
+                }
+                continue;
+            }
+        }
+        assertThat(foundNames.size(), equalTo(names.length));
+    }
+
+    @Test
+    public void equality() {
+        assertThat(createDependency("group1", "name1", "version1"), equalTo(createDependency("group1", "name1", "version1")));
+        assertThat(createDependency("group1", "name1", "version1").hashCode(), equalTo(createDependency("group1", "name1", "version1").hashCode()));
+        assertThat(createDependency("group1", "name1", "version1"), not(equalTo(createDependency("group1", "name1", "version2"))));
+        assertThat(createDependency("group1", "name1", "version1"), not(equalTo(createDependency("group1", "name2", "version1"))));
+        assertThat(createDependency("group1", "name1", "version1"), not(equalTo(createDependency("group2", "name1", "version1"))));
+        assertThat(createDependency("group1", "name1", "version1"), not(equalTo(createDependency("group2", "name1", "version1"))));
+        assertThat(createDependency("group1", "name1", "version1", "depConf1"), not(equalTo(createDependency("group1", "name1", "version1", "depConf2"))));
+    }
+
+    protected void assertDeepCopy(Dependency dependency, Dependency copiedDependency) {
+        assertThat(dependency.contentEquals(copiedDependency), equalTo(true));
+        assertThat(copiedDependency, not(sameInstance(dependency)));
+        assertThat(copiedDependency.getArtifacts(), not(sameInstance(dependency.getArtifacts())));
+        assertThat(copiedDependency.getExcludeRules(), not(sameInstance(dependency.getExcludeRules())));
+        assertThat(copiedDependency.getDependencyConfiguration(), equalTo(dependency.getDependencyConfiguration()));
+    }
+
+//    @Test(expected = InvalidUserDataException.class)
+//    public void getFilesWithStateUnresolved() {
+//        getDependency().getFiles();
+//    }
+//
+//    @Test(expected = InvalidUserDataException.class)
+//    public void getFilesWithStateUnresolvable() {
+//        getDependency().setResolveData(null);
+//        getDependency().getFiles();
+//    }
+//
+//    @Test
+//    public void setResolveDataWithFiles() {
+//        List<File> resolvedFiles = WrapUtil.toList(new File("somePath"));
+//        getDependency().setResolveData(resolvedFiles);
+//
+//        assertThat(getDependency().getState(), equalTo(Dependency.State.RESOLVED));
+//        assertThat(getDependency().getFiles(), equalTo(resolvedFiles));
+//        assertThatStateCantBeChangedAnymore();
+//    }
+//
+//    @Test
+//    public void setResolveDataWithNull() {
+//        getDependency().setResolveData(null);
+//
+//        assertThat(getDependency().getState(), equalTo(Dependency.State.UNRESOLVABLE));
+//        assertThat(getDependency().getFiles().size(), equalTo(0));
+//        assertThatStateCantBeChangedAnymore();
+//    }
+//
+//    private void assertThatStateCantBeChangedAnymore() {
+//        try {
+//            getDependency().setTransitive(true);
+//            fail();
+//        } catch (InvalidUserDataException e) {
+//            // ignore
+//        }
+//    }
 }

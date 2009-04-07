@@ -249,7 +249,7 @@ dependencies {
           ExactPatternMatcher.INSTANCE, null));
 }
 ]]></programlisting>
-            <para>Have also a look at <apilink class="org.gradle.api.artifacts.ExcludeRuleContainer"/>
+            <para>Have also a look at <apilink class="org.gradle.api.internal.artifacts.ExcludeRuleContainer"/>
             </para>
         </section>
         <section id='sub:ivy_dependencies'>
@@ -687,7 +687,7 @@ project-root
                 <literal>uploadResolvers</literal>
                 property. You can assign one resolver to multiple hooks.
             </para>
-            <para>All of those hooks are instances of <apilink class="org.gradle.api.artifacts.ResolverContainer"/>.
+            <para>All of those hooks are instances of <apilink class="org.gradle.api.internal.artifacts.DefaultResolverContainer"/>.
                 This class provided methods for adding new resolvers at a particular position in the resolve chain.
                 <footnote>
                     <para>Ivy power users can set <literal>dependencies.chainConfigurer = { // some statements }</literal>.

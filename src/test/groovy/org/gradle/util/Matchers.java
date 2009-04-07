@@ -15,10 +15,6 @@
  */
 package org.gradle.util;
 
-import groovy.lang.Closure;
-import org.gradle.api.artifacts.ResolveInstruction;
-import org.gradle.api.artifacts.ResolveInstructionModifier;
-import org.gradle.api.specs.Spec;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
@@ -41,34 +37,6 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("contains line ").appendValue(line);
-            }
-        };
-    }
-
-    @Factory
-    public static Matcher<ResolveInstructionModifier> modifierMatcher(final Spec<ResolveInstruction> acceptanceFilter) {
-        return new BaseMatcher<ResolveInstructionModifier>() {
-            public void describeTo(Description description) {
-                description.appendText("matching resolve instruction modifier");
-            }
-
-            public boolean matches(Object actual) {
-                ResolveInstructionModifier modifier = (ResolveInstructionModifier) actual;
-                return acceptanceFilter.isSatisfiedBy(modifier.modify(new ResolveInstruction()));
-            }
-        };
-    }
-
-    @Factory
-    public static Matcher<Closure> modifierClosureMatcher(final Spec<ResolveInstruction> acceptanceFilter) {
-        return new BaseMatcher<Closure>() {
-            public void describeTo(Description description) {
-                description.appendText("matching closure modifier");
-            }
-
-            public boolean matches(Object actual) {
-                Closure modifier = (Closure) actual;
-                return acceptanceFilter.isSatisfiedBy((ResolveInstruction) ConfigureUtil.configure(modifier, new ResolveInstruction()));
             }
         };
     }

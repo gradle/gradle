@@ -41,4 +41,6 @@ public interface GradleExecuter {
     ExecutionResult run();
 
     ExecutionFailure runWithFailure();
+
+    GradleExecuter reset();
 }

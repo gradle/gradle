@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.maven.MavenPom;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -35,74 +33,75 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    public List<MavenDependency> convert(MavenPom pom, List<DependencyDescriptor> dependencies) {
+    public List<MavenDependency> convert(MavenPom pom, Set<Configuration> configurations) {
+        Map<Dependency, Set<String>> dependenciesMap = createDependenciesMap(configurations);
         List<MavenDependency> mavenDependencies = new ArrayList<MavenDependency>();
-        for (DependencyDescriptor dependencyDescriptor : dependencies) {
-            if (dependencyDescriptor.getAllDependencyArtifacts().length == 0) {
-                addFromDependencyDescriptor(mavenDependencies, pom, dependencyDescriptor);
+        for (Dependency dependency : dependenciesMap.keySet()) {
+            if (dependency.getArtifacts().size() == 0) {
+                addFromDependencyDescriptor(mavenDependencies, pom, dependency, dependenciesMap.get(dependency));
             } else {
-                addFromArtifactDescriptor(mavenDependencies, pom, dependencyDescriptor);
+                addFromArtifactDescriptor(mavenDependencies, pom, dependency, dependenciesMap.get(dependency));
             }
         }
         return mavenDependencies;
     }
 
-    private void addFromArtifactDescriptor(List<MavenDependency> mavenDependencies, MavenPom pom, DependencyDescriptor dependencyDescriptor) {
-        for (DependencyArtifactDescriptor artifactDescriptor : dependencyDescriptor.getAllDependencyArtifacts()) {
-            String scope = pom.getScopeMappings().getScope(getArtifactConfigurations(dependencyDescriptor, artifactDescriptor));
+    private Map<Dependency, Set<String>> createDependenciesMap(Set<Configuration> configurations) {
+        Map<Dependency, Set<String>> dependencySetMap = new HashMap<Dependency, Set<String>>();
+        for (Configuration configuration : configurations) {
+            for (Dependency dependency : configuration.getDependencies()) {
+                if (dependencySetMap.get(dependency) == null) {
+                    dependencySetMap.put(dependency, new HashSet<String>());
+                }
+                dependencySetMap.get(dependency).add(configuration.getName());
+            }
+        }
+        return dependencySetMap;
+    }
+
+    private void addFromArtifactDescriptor(List<MavenDependency> mavenDependencies, MavenPom pom, Dependency dependency, Set<String> configurations) {
+        for (DependencyArtifact artifact : dependency.getArtifacts()) {
+            String scope = pom.getScopeMappings().getScope(configurations.toArray(new String[configurations.size()]));
             if (useScope(pom, scope)) {
                 return;
             }
-            mavenDependencies.add(createMavenDependencyFromArtifactDescriptor(dependencyDescriptor, artifactDescriptor, scope));
+            mavenDependencies.add(createMavenDependencyFromArtifactDescriptor(dependency, artifact, scope));
         }
     }
 
-    private String[] getArtifactConfigurations(DependencyDescriptor dependencyDescriptor, DependencyArtifactDescriptor artifactDescriptor) {
-        List<String> configurations = new ArrayList<String>();
-        for (String configuration : dependencyDescriptor.getModuleConfigurations()) {
-            if (Arrays.asList(dependencyDescriptor.getDependencyArtifacts(configuration)).contains(artifactDescriptor)) {
-                configurations.add(configuration);
-            }
-        }
-        return configurations.toArray(new String[configurations.size()]);
-    }
-
-    private void addFromDependencyDescriptor(List<MavenDependency> mavenDependencies, MavenPom pom, DependencyDescriptor dependencyDescriptor) {
-        String scope = pom.getScopeMappings().getScope(dependencyDescriptor.getModuleConfigurations());
+    private void addFromDependencyDescriptor(List<MavenDependency> mavenDependencies, MavenPom pom, Dependency dependency, Set<String> configurations) {
+        String scope = pom.getScopeMappings().getScope(configurations.toArray(new String[configurations.size()]));
         if (useScope(pom, scope)) {
             return;
         }
-        mavenDependencies.add(createMavenDependencyFromDependencyDescriptor(dependencyDescriptor, scope));
+        mavenDependencies.add(createMavenDependencyFromDependencyDescriptor(dependency, scope));
     }
 
     private boolean useScope(MavenPom pom, String scope) {
         return scope == null && pom.getScopeMappings().isSkipUnmappedConfs();
     }
 
-    private MavenDependency addExclude(DependencyDescriptor dependencyDescriptor, MavenDependency mavenDependency) {
-        if (dependencyDescriptor.canExclude()) {
-            for (ExcludeRule excludeRule : dependencyDescriptor.getExcludeRules(dependencyDescriptor.getModuleConfigurations())) {
-                DefaultMavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);
-                if (mavenExclude != null) {
-                    mavenDependency.getMavenExcludes().add(mavenExclude);
-                }
-            }
-        }
+    private MavenDependency createMavenDependencyFromArtifactDescriptor(Dependency dependency, DependencyArtifact artifact, String scope) {
+        return createMavenDependency(dependency, artifact.getName(), artifact.getType(), scope);
+    }
+
+    private MavenDependency createMavenDependencyFromDependencyDescriptor(Dependency dependency, String scope) {
+        return createMavenDependency(dependency, dependency.getName(), null, scope);
+    }
+
+    private MavenDependency createMavenDependency(Dependency dependency, String name, String type, String scope) {
+        DefaultMavenDependency mavenDependency = DefaultMavenDependency.newInstance(dependency.getGroup(), name, dependency.getVersion(), type, scope);
+        addExclude(dependency, mavenDependency);
         return mavenDependency;
     }
 
-    private MavenDependency createMavenDependencyFromArtifactDescriptor(DependencyDescriptor dependencyDescriptor, DependencyArtifactDescriptor artifactDescriptor, String scope) {
-        return createMavenDependency(dependencyDescriptor, artifactDescriptor.getName(), artifactDescriptor.getType(), scope);
-    }
-
-    private MavenDependency createMavenDependencyFromDependencyDescriptor(DependencyDescriptor dependencyDescriptor, String scope) {
-        ModuleRevisionId mrid = dependencyDescriptor.getDependencyRevisionId();
-        return createMavenDependency(dependencyDescriptor, mrid.getName(), null, scope);
-    }
-
-    private MavenDependency createMavenDependency(DependencyDescriptor dependencyDescriptor, String name, String type, String scope) {
-        ModuleRevisionId mrid = dependencyDescriptor.getDependencyRevisionId();
-        return addExclude(dependencyDescriptor, DefaultMavenDependency.newInstance(mrid.getOrganisation(), name, mrid.getRevision(), type, scope));
+    private void addExclude(Dependency dependency, MavenDependency mavenDependency) {
+        for (ExcludeRule excludeRule : dependency.getExcludeRules()) {
+            DefaultMavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);
+            if (mavenExclude != null) {
+                mavenDependency.getMavenExcludes().add(mavenExclude);
+            }
+        }
     }
 
     public ExcludeRuleConverter getExcludeRuleConverter() {

@@ -15,11 +15,12 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.specs.Specs;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -38,10 +39,15 @@ public class PublishInstructionTest {
 
     @Test
     public void init() {
-        assertThat(getInstruction().getModuleDescriptor().isPublish(), equalTo(true));
-        assertThat(getInstruction().getModuleDescriptor().getIvyFileParentDir(), equalTo(null));
-        assertThat(getInstruction().getModuleDescriptor().getConfigurationSpec(), equalTo(Specs.SATISFIES_ALL));
-        assertThat(getInstruction().getModuleDescriptor().getDependencySpec(), equalTo(Specs.SATISFIES_ALL));
-        assertThat(getInstruction().getArtifactSpec(), equalTo(Specs.SATISFIES_ALL));
+        assertThat(getInstruction().isUploadModuleDescriptor(), equalTo(false));
+        assertThat(getInstruction().getIvyFileParentDir(), equalTo(null));
+    }
+
+    @Test
+    public void isUploadModuleDescriptor() {
+        File parentDir = new File("someParentDir");
+        getInstruction().setIvyFileParentDir(parentDir);
+        assertThat(getInstruction().isUploadModuleDescriptor(), equalTo(true));
+        assertThat(getInstruction().getIvyFileParentDir(), equalTo(parentDir));
     }
 }

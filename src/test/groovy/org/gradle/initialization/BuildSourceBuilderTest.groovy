@@ -16,9 +16,10 @@
 
 package org.gradle.initialization
 
-import org.gradle.api.DependencyManager
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ConfigurationResolver
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.internal.artifacts.ConfigurationContainer
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.initialization.BuildListenerAction
 import org.gradle.initialization.BuildSourceBuilder
@@ -44,13 +45,13 @@ class BuildSourceBuilderTest {
     GradleFactory gradleFactoryMock
     Gradle gradleMock
     Project rootProjectMock
-    ConfigurationResolver configurationMock
-    DependencyManager dependencyManagerMock
+    Configuration configurationMock
+    ConfigurationContainer configurationContainerStub
     CacheInvalidationStrategy cacheInvalidationStrategyMock
     File rootDir
     File testBuildSrcDir
     File testBuildResolverDir
-    List testDependencies
+    Set testDependencies
     StartParameter expectedStartParameter
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     String expectedArtifactPath
@@ -60,12 +61,12 @@ class BuildSourceBuilderTest {
         File testDir = HelperUtil.makeNewTestDir()
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
-        (testBuildResolverDir = new File(testBuildSrcDir, Project.TMP_DIR_NAME + '/' + DependencyManager.BUILD_RESOLVER_NAME)).mkdir()
+        (testBuildResolverDir = new File(testBuildSrcDir, Project.TMP_DIR_NAME + '/' + ResolverContainer.BUILD_RESOLVER_NAME)).mkdir()
         gradleFactoryMock = context.mock(GradleFactory)
         gradleMock = context.mock(Gradle)
         rootProjectMock = context.mock(Project)
-        dependencyManagerMock = context.mock(DependencyManager)
-        configurationMock = context.mock(ConfigurationResolver)
+        configurationContainerStub = context.mock(ConfigurationContainer)
+        configurationMock = context.mock(Configuration)
         cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
         buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock)
         expectedStartParameter = new StartParameter(
@@ -79,9 +80,8 @@ class BuildSourceBuilderTest {
         expectedArtifactPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
                 "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
         context.checking {
-            allowing(rootProjectMock).getDependencies(); will(returnValue(dependencyManagerMock))
-            allowing(dependencyManagerMock).getBuildResolverDir(); will(returnValue(testBuildResolverDir))
-            allowing(dependencyManagerMock).configuration(JavaPlugin.RUNTIME); will(returnValue(configurationMock))
+            allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationContainerStub))
+            allowing(configurationContainerStub).get(JavaPlugin.RUNTIME); will(returnValue(configurationMock))
         }
     }
 
@@ -168,7 +168,7 @@ class BuildSourceBuilderTest {
     @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
-        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
+        assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
@@ -181,14 +181,14 @@ class BuildSourceBuilderTest {
             one(gradleMock).run()
         }
         createBuildFile()
-        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
+        assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     @Test public void testCreateDependencyWithEmptyTaskList() {
         createBuildFile()
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setTaskNames([])
-        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
+        assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     private createBuildFile() {

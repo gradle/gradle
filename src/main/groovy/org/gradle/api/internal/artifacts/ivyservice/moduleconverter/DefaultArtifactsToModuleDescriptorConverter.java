@@ -16,22 +16,44 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.ArtifactContainer;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
+import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
-    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, ArtifactContainer artifactContainer, Spec<PublishArtifact> artifactSpec) {
-        for (PublishArtifact publishArtifact : artifactContainer.getArtifacts(artifactSpec)) {
-            Artifact ivyArtifact = publishArtifact.createIvyArtifact(moduleDescriptor.getModuleRevisionId());
-            for (Configuration configuration : publishArtifact.getConfigurations()) {
+    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
+        for (Configuration configuration : configurations) {
+            for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
+                Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());
                 moduleDescriptor.addArtifact(configuration.getName(), ivyArtifact);
             }
         }
+    }
+
+    public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
+        Map extraAttributes = WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
+        if (GUtil.isTrue(publishArtifact.getClassifier())) {
+            extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
+        }
+        DefaultArtifact artifact = new DefaultArtifact(
+                moduleRevisionId,
+                publishArtifact.getDate(),
+                publishArtifact.getName(),
+                publishArtifact.getType(),
+                publishArtifact.getExtension(),
+                extraAttributes);
+        return artifact;
     }
 }

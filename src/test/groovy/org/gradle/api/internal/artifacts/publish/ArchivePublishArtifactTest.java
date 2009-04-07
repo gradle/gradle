@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
@@ -34,7 +35,7 @@ public class ArchivePublishArtifactTest extends AbstractPublishArtifactTest {
     @Override
     protected PublishArtifact createPublishArtifact(final String classifier) {
         prepareMocks(classifier, "");
-        return new ArchivePublishArtifact(testConfs, archiveTask);
+        return new ArchivePublishArtifact(archiveTask);
     }
 
     private void prepareMocks(final String classifier, final String appendix) {
@@ -61,18 +62,18 @@ public class ArchivePublishArtifactTest extends AbstractPublishArtifactTest {
         return getTestExt();
     }
 
-    @Override
     public void init() {
-        super.init();
-        PublishArtifact publishArtifact = createPublishArtifact(getTestClassifier());
+        ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) createPublishArtifact(getTestClassifier());
         assertThat((Set<AbstractArchiveTask>) publishArtifact.getTaskDependency().getDependencies(null), equalTo(WrapUtil.toSet(archiveTask)));
+        assertCommonPropertiesAreSet(publishArtifact, true);
+        assertThat(publishArtifact.getArchiveTask(), sameInstance(archiveTask));
     }
     
     @Test
     public void nameWithAppendix() {
         String testAppendix = "appendix";
         prepareMocks(getTestClassifier(), testAppendix);
-        PublishArtifact publishArtifact = new ArchivePublishArtifact(testConfs, archiveTask);
+        PublishArtifact publishArtifact = new ArchivePublishArtifact(archiveTask);
         assertThat(publishArtifact.getName(), equalTo(getTestName() + "-" + testAppendix));
     }
 }

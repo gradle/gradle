@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
@@ -53,7 +53,7 @@ public class DefaultArtifactPomTest {
         assertEquals(expectedArtifact, artifactPom.getArtifact());
         assertEquals(expectedFile, artifactPom.getArtifactFile());
         checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
-                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision(), expectedArtifact.getExtraAttribute(DependencyManager.CLASSIFIER));
+                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision(), expectedArtifact.getExtraAttribute(Dependency.CLASSIFIER));
     }
 
     @Test
@@ -62,7 +62,7 @@ public class DefaultArtifactPomTest {
         testPom.setGroupId(expectedArtifact.getModuleRevisionId().getOrganisation() + "X");
         testPom.setVersion(expectedArtifact.getModuleRevisionId().getRevision() + "X");
         testPom.setPackaging(expectedArtifact.getType() + "X");
-        testPom.setClassifier(expectedArtifact.getExtraAttribute(DependencyManager.CLASSIFIER) + "X");
+        testPom.setClassifier(expectedArtifact.getExtraAttribute(Dependency.CLASSIFIER) + "X");
         artifactPom = new DefaultArtifactPom(testPom, expectedArtifact, expectedFile);
         assertEquals(expectedArtifact, artifactPom.getArtifact());
         assertEquals(expectedFile, artifactPom.getArtifactFile());

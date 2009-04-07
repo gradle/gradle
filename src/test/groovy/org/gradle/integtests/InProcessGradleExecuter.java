@@ -48,6 +48,10 @@ public class InProcessGradleExecuter implements GradleExecuter {
         this.parameter = parameter;
     }
 
+    public GradleExecuter reset() {
+        throw new UnsupportedOperationException();
+    }
+
     public GradleExecuter inDirectory(File directory) {
         parameter.setCurrentDir(directory);
         return this;

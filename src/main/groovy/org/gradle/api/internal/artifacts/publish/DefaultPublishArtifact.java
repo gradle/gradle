@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.publish;
 
-import org.gradle.api.artifacts.Configuration;
-
 import java.io.File;
-import java.util.Set;
+import java.util.Date;
 
 /**
  * @author Hans Dockter
@@ -29,14 +27,16 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact {
     private String extension;
     private String type;
     private String classifier;
+    private Date date;
     private File file;
 
-    public DefaultPublishArtifact(Set<Configuration> configurations, String name, String extension, String type,
-                                  String classifier, File file, Object... tasks) {
-        super(configurations, tasks);
+    public DefaultPublishArtifact(String name, String extension, String type,
+                                  String classifier, Date date, File file, Object... tasks) {
+        super(tasks);
         this.name = name;
         this.extension = extension;
         this.type = type;
+        this.date = date;
         this.classifier = classifier;
         this.file = file;
     }
@@ -63,5 +63,9 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact {
 
     public File getFile() {
         return file;
+    }
+
+    public Date getDate() {
+        return date;
     }
 }

@@ -20,13 +20,14 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ResolveInstruction;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.Clock;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -34,28 +35,34 @@ import java.util.List;
 public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
 
-    private ResolveOptionsFactory resolveOptionsFactory;
     private Report2Classpath report2Classpath;
 
     private ResolveReport lastResolveReport = null;
 
-    public DefaultIvyDependencyResolver(ResolveOptionsFactory resolveOptionsFactory, Report2Classpath report2Classpath) {
-        this.resolveOptionsFactory = resolveOptionsFactory;
+    public DefaultIvyDependencyResolver(Report2Classpath report2Classpath) {
         this.report2Classpath = report2Classpath;
     }
 
-    public List<File> resolve(String conf, ResolveInstruction resolveInstruction, Ivy ivy, ModuleDescriptor moduleDescriptor) {
-        ResolveReport resolveReport = resolveAsReport(conf, resolveInstruction, ivy, moduleDescriptor);
-        return report2Classpath.getClasspath(conf, resolveReport);
+    public Set<File> resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {
+        ResolveReport resolveReport = resolveAsReport(configuration, ivy, moduleDescriptor, true);
+        return report2Classpath.getClasspath(configuration.getName(), resolveReport);
     }
 
-    public List<File> resolveFromReport(String conf, ResolveReport resolveReport) {
-       return report2Classpath.getClasspath(conf, resolveReport);
+    public Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport) {
+        throwExIfResolveReportHasError(resolveReport);
+        return report2Classpath.getClasspath(configuration.getName(), resolveReport);
     }
 
-    public ResolveReport resolveAsReport(String conf, ResolveInstruction resolveInstruction, Ivy ivy, ModuleDescriptor moduleDescriptor) {
+    private void throwExIfResolveReportHasError(ResolveReport resolveReport) {
+        if (resolveReport.hasError()) {
+            throw new GradleException("Not all dependencies could be resolved!");
+        }
+    }
+
+    public ResolveReport resolveAsReport(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor,
+                                         boolean isFailOnError) {
         Clock clock = new Clock();
-        ResolveOptions resolveOptions = resolveOptionsFactory.createResolveOptions(conf, resolveInstruction);
+        ResolveOptions resolveOptions = createResolveOptions(configuration);
         ResolveReport resolveReport = null;
         try {
             resolveReport = ivy.resolve(
@@ -65,11 +72,17 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             throw new RuntimeException(e);
         }
         logger.debug("Timing: Ivy resolve took {}", clock.getTime());
-        if (resolveReport.hasError() && resolveInstruction.isFailOnResolveError()) {
-            throw new GradleException("Not all dependencies could be resolved!");
+        if (isFailOnError) {
+            throwExIfResolveReportHasError(resolveReport);
         }
         logger.debug("Timing: Complete resolve took {}", clock.getTime());
         return resolveReport;
+    }
+
+    private ResolveOptions createResolveOptions(Configuration configuration) {
+        ResolveOptions resolveOptions = new ResolveOptions();
+        resolveOptions.setConfs(WrapUtil.toArray(configuration.getName()));
+        return resolveOptions;
     }
 
     public ResolveReport getLastResolveReport() {

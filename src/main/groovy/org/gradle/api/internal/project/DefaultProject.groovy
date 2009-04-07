@@ -17,14 +17,18 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.AfterEvaluateListener
-import org.gradle.api.DependencyManager
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.BuildInternal
-import org.gradle.api.internal.artifacts.DependencyManagerFactory
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
+import org.gradle.api.plugins.Convention
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.project.*
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 
 /**
  * @author Hans Dockter
@@ -34,14 +38,21 @@ class DefaultProject extends AbstractProject {
         super(name);
     }
 
-    public DefaultProject(String name, ProjectInternal parent, File projectDir, File buildFileName, ScriptSource scriptSource,
-                          ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
-                          DependencyManagerFactory dependencyManagerFactory, AntBuilderFactory antBuilderFactory, 
-                          BuildScriptProcessor buildScriptProcessor,
-                          PluginRegistry pluginRegistry, IProjectRegistry<ProjectInternal> projectRegistry,
-                          BuildInternal build) {
-        super(name, parent, projectDir, buildFileName, scriptSource, buildScriptClassLoader, taskFactory, dependencyManagerFactory,
-                antBuilderFactory, buildScriptProcessor, pluginRegistry, projectRegistry, build);
+    public DefaultProject(String name, ProjectInternal parent, File projectDir, File buildFile,
+                           ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
+                           ConfigurationContainerFactory configurationContainerFactory,
+                           DependencyFactory dependencyFactory,
+                           RepositoryHandlerFactory repositoryHandlerFactory,
+                           PublishArtifactFactory publishArtifactFactory,
+                           InternalRepository internalRepository,
+                           AntBuilderFactory antBuilderFactory,
+                           BuildScriptProcessor buildScriptProcessor,
+                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
+                           BuildInternal build, Convention convention) {
+        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader, taskFactory, configurationContainerFactory,
+                dependencyFactory, repositoryHandlerFactory, publishArtifactFactory,
+                internalRepository, antBuilderFactory, buildScriptProcessor, pluginRegistry,
+                projectRegistry, build, convention);
     }
 
     def propertyMissing(String name) {
@@ -66,10 +77,6 @@ class DefaultProject extends AbstractProject {
 
     public AntBuilder ant(Closure configureClosure) {
         return (AntBuilder) ConfigureUtil.configure(configureClosure, getAnt(), Closure.OWNER_FIRST);
-    }
-
-    public DependencyManager dependencies(Closure configureClosure) {
-        return (DependencyManager) ConfigureUtil.configure(configureClosure, dependencies);
     }
 
     public void subprojects(Closure configureClosure) {
@@ -106,5 +113,19 @@ class DefaultProject extends AbstractProject {
         ConfigureUtil.configure(configureClosure, object)
     }
 
+    public void configurations(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getConfigurations())
+    }
 
+    public void repositories(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getRepositories())
+    }
+
+    public void dependencies(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getDependencies())
+    }
+
+    public void artifacts(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getArtifacts())
+    }
 }

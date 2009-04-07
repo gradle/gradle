@@ -17,34 +17,97 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationPublishInstruction;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.DependencyManagerInternal;
+import org.gradle.api.artifacts.PublishInstruction;
+import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class MavenPlugin implements Plugin {
+    public static final int COMPILE_PRIORITY = 300;
+    public static final int RUNTIME_PRIORITY = 200;
+    public static final int TEST_COMPILE_PRIORITY = 150;
+    public static final int TEST_RUNTIME_PRIORITY = 100;
+
+    public static final int PROVIDED_COMPILE_PRIORITY = COMPILE_PRIORITY + 100;
+    public static final int PROVIDED_RUNTIME_PRIORITY = COMPILE_PRIORITY + 150;
+
     public static final String INSTALL = "install";
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(JavaPlugin.class, project, customValues);
-        configureInstall(project, project.getConvention().getPlugin(JavaPluginConvention.class));
+        setConventionMapping(project);
+        addConventionObject(project, customValues);
+        if (isJavaPluginApplied(project)) {
+            configureJavaScopeMappings(project.getRepositories());
+            configureInstall(project, project.getConvention().getPlugin(JavaPluginConvention.class));
+        }
+        if (isWarPluginApplied(project)) {
+            configureWarScopeMappings(project.getRepositories());
+        }
+    }
+
+    private void setConventionMapping(final Project project) {
+        Map mapping = GUtil.map(
+                "mavenPomDir", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return ((MavenPluginConvention) convention.getPlugins().get("maven")).getPomDir();
+                    }
+                },
+                "configurationContainer", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return project.getConfigurations();
+                    }
+                },
+                "mavenScopeMappings", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return ((MavenPluginConvention) convention.getPlugins().get("maven")).getConf2ScopeMappings();
+                    }
+                });
+        project.getRepositoryHandlerFactory().getConventionMapping().putAll(mapping);
+    }
+
+    private void addConventionObject(Project project, Map<String, ?> customValues) {
+        MavenPluginConvention mavenConvention = new MavenPluginConvention(project, customValues);
+        Convention convention = project.getConvention();
+        convention.getPlugins().put("maven", mavenConvention);
+    }
+
+    private boolean isJavaPluginApplied(Project project) {
+        return true;
+    }
+
+    private boolean isWarPluginApplied(Project project) {
+        return true;
+    }
+
+    private void configureJavaScopeMappings(ResolverContainer resolverFactory) {
+        resolverFactory.getMavenScopeMappings().addMapping(COMPILE_PRIORITY, JavaPlugin.COMPILE, Conf2ScopeMappingContainer.COMPILE);
+        resolverFactory.getMavenScopeMappings().addMapping(RUNTIME_PRIORITY, JavaPlugin.RUNTIME, Conf2ScopeMappingContainer.RUNTIME);
+        resolverFactory.getMavenScopeMappings().addMapping(TEST_COMPILE_PRIORITY, JavaPlugin.TEST_COMPILE, Conf2ScopeMappingContainer.TEST);
+        resolverFactory.getMavenScopeMappings().addMapping(TEST_RUNTIME_PRIORITY, JavaPlugin.TEST_RUNTIME, Conf2ScopeMappingContainer.TEST);
+    }
+
+    private void configureWarScopeMappings(ResolverContainer resolverContainer) {
+        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, WarPlugin.PROVIDED_COMPILE, Conf2ScopeMappingContainer.PROVIDED);
+        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, WarPlugin.PROVIDED_RUNTIME, Conf2ScopeMappingContainer.PROVIDED);
     }
 
     private void configureInstall(Project project, JavaPluginConvention javaConvention) {
         Upload installUpload = (Upload) project.createTask(GUtil.map("type", Upload.class), INSTALL);
-        ConfigurationPublishInstruction publishInstruction = new ConfigurationPublishInstruction(Dependency.MASTER_CONFIGURATION);
-        publishInstruction.getModuleDescriptor().setPublish(true);
+        installUpload.setConfiguration(project.getConfigurations().get(Dependency.MASTER_CONFIGURATION));
+        PublishInstruction publishInstruction = new PublishInstruction();
+        publishInstruction.setIvyFileParentDir(new File("nonNullDummy"));
         installUpload.setPublishInstruction(publishInstruction);
-        installUpload.getUploadResolvers().setDependencyManager((DependencyManagerInternal) project.getDependencies());
-        installUpload.getUploadResolvers().setMavenPomDir(javaConvention.getUploadLibsPomDir());
-        installUpload.getUploadResolvers().addMavenInstaller("maven-installer");
+        installUpload.getRepositories().addMavenInstaller("maven-installer");
     }
-
 }

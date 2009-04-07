@@ -16,11 +16,8 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.util.WrapUtil;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-
-import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -39,9 +36,5 @@ public class DefaultDependencyArtifactTest {
         assertEquals(testExtension, artifact.getExtension());
         assertEquals(testClassifier, artifact.getClassifier());
         assertEquals(testUrl, artifact.getUrl());
-        assertTrue(artifact.getConfs().isEmpty());
-        List<String> testConfs = WrapUtil.toList("a");
-        artifact.setConfs(testConfs);
-        assertSame(testConfs, artifact.getConfs());
     }
 }

@@ -20,7 +20,14 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
-import org.gradle.api.internal.artifacts.DependencyManagerFactory;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.repositories.InternalRepository;import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.plugins.Convention;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -45,32 +52,37 @@ import java.net.URLClassLoader;
  */
 @RunWith(JMock.class)
 public class ProjectFactoryTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private final ClassLoader buildScriptClassLoader = new URLClassLoader(new URL[0]);
     private final File rootDir = HelperUtil.makeNewTestDir();
     private final File projectDir = new File(rootDir, "project");
-    private DependencyManagerFactory dependencyManagerFactoryMock;
-    private ITaskFactory taskFactoryMock;
-    private BuildScriptProcessor buildScriptProcessor;
-    private PluginRegistry pluginRegistry;
-    private IProjectRegistry projectRegistry;
-    private BuildInternal build;
+    private ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
+    private DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory.class);
+    private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
+    private RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
+    private PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory.class);
+    private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
+    private ITaskFactory taskFactoryMock = context.mock(ITaskFactory.class);
+    private BuildScriptProcessor buildScriptProcessor = context.mock(BuildScriptProcessor.class);
+    private PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
+    private IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
+    private BuildInternal build = context.mock(BuildInternal.class);
+    private AntBuilderFactory antBuilderFactory = context.mock(AntBuilderFactory.class);
+
     private ProjectFactory projectFactory;
-    private AntBuilderFactory antBuilderFactory;
 
     @Before
     public void setUp() throws Exception {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        dependencyManagerFactoryMock = context.mock(DependencyManagerFactory.class);
-        taskFactoryMock = context.mock(ITaskFactory.class);
-        buildScriptProcessor = context.mock(BuildScriptProcessor.class);
-        pluginRegistry = context.mock(PluginRegistry.class);
-        build = context.mock(BuildInternal.class);
-        projectRegistry = context.mock(IProjectRegistry.class);
-        antBuilderFactory = context.mock(AntBuilderFactory.class);
-
         context.checking(new Expectations() {{
-            allowing(dependencyManagerFactoryMock).createDependencyManager(with(any(Project.class)), with(any(File.class)));
+            allowing(repositoryHandlerFactory).createRepositoryHandler();
+            will(returnValue(repositoryHandler));
+            allowing(repositoryHandlerFactory).setConvention(with(any(Convention.class)));
+        }});
+        context.checking(new Expectations() {{
+            allowing(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),
+                    with(any(DependencyMetaDataProvider.class)));
             allowing(projectRegistry).addProject(with(any(ProjectInternal.class)));
             allowing(build).getProjectRegistry();
             will(returnValue(projectRegistry));
@@ -80,7 +92,9 @@ public class ProjectFactoryTest {
             will(returnValue(new File("gradleUserHomeDir")));
         }});
 
-        projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
+        projectFactory = new ProjectFactory(taskFactoryMock, configurationContainerFactory,
+                dependencyFactoryMock, repositoryHandlerFactory, publishArtifactFactoryMock,
+                internalRepositoryDummy, buildScriptProcessor, pluginRegistry,
                 null, antBuilderFactory);
     }
 
@@ -145,7 +159,12 @@ public class ProjectFactoryTest {
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
 
-        ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, dependencyManagerFactoryMock, buildScriptProcessor, pluginRegistry,
+        ProjectFactory projectFactory = new ProjectFactory(taskFactoryMock, configurationContainerFactory,
+                dependencyFactoryMock,
+                repositoryHandlerFactory,
+                publishArtifactFactoryMock,
+                internalRepositoryDummy,
+                buildScriptProcessor, pluginRegistry,
                 expectedScriptSource, antBuilderFactory);
 
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, build);
@@ -156,6 +175,7 @@ public class ProjectFactoryTest {
         assertSame(rootDir, project.getProjectDir());
         assertNull(project.getParent());
         assertSame(project, project.getRootProject());
+        assertNotNull(project.getConvention());
         checkProjectResources(project);
         assertSame(project.getBuildScriptSource(), expectedScriptSource);
     }
@@ -187,11 +207,13 @@ public class ProjectFactoryTest {
     private void checkProjectResources(DefaultProject project) {
         assertSame(taskFactoryMock, project.getTaskFactory());
         assertSame(buildScriptClassLoader, project.getBuildScriptClassLoader());
-        assertSame(dependencyManagerFactoryMock, project.getDependencyManagerFactory());
+        assertSame(configurationContainerFactory, project.getConfigurationContainerFactory());
         assertSame(buildScriptProcessor, project.getBuildScriptProcessor());
         assertSame(pluginRegistry, project.getPluginRegistry());
         assertSame(projectRegistry, project.getProjectRegistry());
         assertSame(antBuilderFactory, project.getAntBuilderFactory());
+        assertSame(repositoryHandler, project.getRepositories());
+        assertSame(publishArtifactFactoryMock, project.getPublishArtifactFactory());
         assertSame(build, project.getBuild());
     }
 }

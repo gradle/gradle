@@ -20,14 +20,13 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
-import org.gradle.api.DependencyManager;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolverContainer;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
@@ -81,9 +80,9 @@ public interface Settings {
      */
     String DEFAULT_SETTINGS_FILE = "settings.gradle";
 
-    String BUILD_DEPENDENCIES_PROJECT_GROUP = "org.gradle";
-    String BUILD_DEPENDENCIES_PROJECT_VERSION = "SNAPSHOT";
-    String BUILD_DEPENDENCIES_PROJECT_NAME = "build";
+    String BUILD_DEPENDENCIES_GROUP = "org.gradle";
+    String BUILD_DEPENDENCIES_VERSION = "SNAPSHOT";
+    String BUILD_DEPENDENCIES_NAME = "build";
 
     /**
      * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to
@@ -113,15 +112,7 @@ public interface Settings {
      * @param projectNames the projects to add.
      */
     void includeFlat(String[] projectNames);
-
-    /**
-     * <p>Returns the {@link DependencyManager} which manages the classpath to use for the build scripts.</p>
-     *
-     * @return the dependency manager instance responsible for managing the dependencies for the users build script
-     *         classpath.
-     */
-    DependencyManager getDependencyManager();
-
+    
     /**
      * <p>Adds dependencies to the build script classpath. See {@link DependencyManager#dependencies(java.util.List,
      * Object[])} for more details.</p>
@@ -146,7 +137,7 @@ public interface Settings {
      *
      * @return the resolvers. Never returns null.
      */
-    ResolverContainer getResolvers();
+    List<DependencyResolver> getResolvers();
 
     FileSystemResolver addFlatDirResolver(String name, Object[] dirs);
 

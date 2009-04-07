@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -23,44 +23,9 @@ import groovy.lang.Closure;
 public interface ClientModule extends ExternalDependency {
     String CLIENT_MODULE_KEY = "org.gradle.clientModule";
 
-    ClientModule clientModule(String moduleName);
-
-    /**
-     * Adds a client module to the default confs. The configureClosure configures this client module.
-     * See {@link org.gradle.api.internal.artifacts.dependencies.DefaultClientModule} for the API that can be used.
-     *
-     * @param moduleName
-     * @param configureClosure
-     * @return the added ModuleDependency
-     */
-    ClientModule clientModule(String moduleName, Closure configureClosure);
-
-    /**
-     * Adds a dependency.
-     *
-     * @param userDependencyDescription
-     * @return The added dependency.
-     * @deprecated Since Gradle 0.5, use <code>compile("org:junit:4.4")</code> instead.
-     */
-    Dependency dependency(String userDependencyDescription);
-
-    /**
-     * Adds a dependency. 
-     * The configureClosure configures this dependency.
-     *
-     * @param userDependencyDescription
-     * @param configureClosure
-     * @return The added Dependency
-     * @deprecated Since Gradle 0.5, use <code>compile("org:junit:4.4") {}</code> instead.
-     */
-    Dependency dependency(String userDependencyDescription, Closure configureClosure);
-
-    /**
-     * Adds dependencies to the defaultConfs
-     *
-     * @param dependencies
-     */
-    void dependencies(Object... dependencies);
+    void addDependency(Dependency dependency);
 
     String getId();
+
+    Set<Dependency> getDependencies();
 }

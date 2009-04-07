@@ -15,27 +15,25 @@
 
 package org.gradle.api.plugins.jetty;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
-import org.mortbay.resource.Resource;
-import org.mortbay.resource.ResourceCollection;
-import org.mortbay.util.Scanner;
+import org.mortbay.jetty.Handler;
+import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
+import org.mortbay.resource.Resource;
+import org.mortbay.resource.ResourceCollection;
+import org.mortbay.util.Scanner;
 import org.mortbay.xml.XmlConfiguration;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
 import hidden.org.codehaus.plexus.util.FileUtils;
 
 /**
@@ -348,14 +346,14 @@ public class JettyRun extends AbstractJettyRunTask {
         logger.info("Restart completed at " + new Date().toString());
     }
 
-    private List getDependencyFiles() {
+    private Set getDependencyFiles() {
         List overlays = new ArrayList();
 
-        List<File> dependencies;
+        Set<File> dependencies;
         if (useTestClasspath) {
-            dependencies = getProject().getDependencies().configuration(testConfiguration).resolve();
+            dependencies = getProject().getConfigurations().get(testConfiguration).resolve();
         } else {
-            dependencies = getProject().getDependencies().configuration(configuration).resolve();
+            dependencies = getProject().getConfigurations().get(configuration).resolve();
         }
         logger.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
 

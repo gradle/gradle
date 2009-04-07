@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.publish.maven;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -32,8 +32,8 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -44,23 +44,23 @@ public class DefaultPomFileWriterTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private List<DependencyDescriptor> testDependencies;
+    private Set<Configuration> testConfigurations;
 
     @Test
     public void testOptional() throws Exception {
-        testDependencies = new ArrayList<DependencyDescriptor>();
+        testConfigurations = new HashSet<Configuration>();
         final PomWriter writerMock = context.mock(PomWriter.class);
         
         final MavenPom testPom = context.mock(MavenPom.class);
         final String expectedPomText = "somePomXml";
         context.checking(new Expectations() {
             {
-                one(writerMock).convert(with(same(testPom)), with(same(testDependencies)), with(any(PrintWriter.class)));
+                one(writerMock).convert(with(same(testPom)), with(same(testConfigurations)), with(any(PrintWriter.class)));
                 will(new WriteAction(expectedPomText));
             }
         });
 
-        new DefaultPomFileWriter(writerMock).write(testPom, testDependencies, _dest);
+        new DefaultPomFileWriter(writerMock).write(testPom, testConfigurations, _dest);
         assertTrue(_dest.exists());
 
         String wrote = FileUtils.readFileToString(_dest);

@@ -20,56 +20,51 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.api.artifacts.ResolveInstruction;
-import org.gradle.api.internal.artifacts.ArtifactContainer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.DependencyContainerInternal;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
-import org.gradle.api.specs.Specs;
-import org.gradle.util.WrapUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
 
 import java.io.File;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultIvyService implements IvyService {
-    private static Logger logger = LoggerFactory.getLogger(DefaultIvyService.class);
+    private SettingsConverter settingsConverter = new DefaultSettingsConverter();
+    private ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter();
+    private IvyFactory ivyFactory = new DefaultIvyFactory();
+    private InternalRepository internalRepository;
+    private IvyDependencyResolver dependencyResolver = new DefaultIvyDependencyResolver(new Report2Classpath());
+    private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory());
 
-    private SettingsConverter settingsConverter;
-    private ModuleDescriptorConverter moduleDescriptorConverter;
-    private IvyFactory ivyFactory;
-    private BuildResolverHandler buildResolverHandler;
-    private IvyDependencyResolver dependencyResolver;
-    private IvyDependencyPublisher dependencyPublisher;
-
-    public DefaultIvyService(SettingsConverter settingsConverter, ModuleDescriptorConverter moduleDescriptorConverter,
-                             IvyFactory ivyFactory, BuildResolverHandler buildResolverHandler, IvyDependencyResolver dependencyResolver,
-                             IvyDependencyPublisher dependencyPublisher) {
-        this.settingsConverter = settingsConverter;
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
-        this.ivyFactory = ivyFactory;
-        this.buildResolverHandler = buildResolverHandler;
-        this.dependencyResolver = dependencyResolver;
-        this.dependencyPublisher = dependencyPublisher;
+    public DefaultIvyService(InternalRepository internalRepository) {
+        this.internalRepository = internalRepository;
     }
 
-    public Ivy ivy(List<DependencyResolver> dependencyResolvers, List<DependencyResolver> publishResolvers, File gradleUserHome,
+    private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers, File cacheParentDir,
                    Map<String, ModuleDescriptor> clientModuleRegistry) {
         return ivyFactory.createIvy(
-                settingsConverter.convert(
+                settingsConverter.convertForResolve(
                         dependencyResolvers,
-                        publishResolvers,
-                        gradleUserHome,
-                        buildResolverHandler.getBuildResolver(),
+                        cacheParentDir,
+                        internalRepository,
                         clientModuleRegistry
+                )
+        );
+    }
+
+    private Ivy ivyForPublish(List<DependencyResolver> publishResolvers, File cacheParentDir) {
+        return ivyFactory.createIvy(
+                settingsConverter.convertForPublish(
+                        publishResolvers,
+                        cacheParentDir,
+                        internalRepository
                 )
         );
     }
@@ -86,8 +81,8 @@ public class DefaultIvyService implements IvyService {
         return ivyFactory;
     }
 
-    public BuildResolverHandler getBuildResolverHandler() {
-        return buildResolverHandler;
+    public InternalRepository getInternalRepository() {
+        return internalRepository;
     }
 
     public IvyDependencyResolver getDependencyResolver() {
@@ -102,46 +97,99 @@ public class DefaultIvyService implements IvyService {
         return dependencyResolver.getLastResolveReport();
     }
 
-    public List<File> resolve(String conf, Set<? extends Configuration> configurations, DependencyContainerInternal dependencyContainer,
-                                         List<DependencyResolver> dependencyResolvers, ResolveInstruction resolveInstruction, File gradleUserHome) {
-        ResolveReport resolveReport = resolveAsReport(conf, configurations, dependencyContainer, dependencyResolvers, resolveInstruction, gradleUserHome);
-        return dependencyResolver.resolveFromReport(conf, resolveReport);
+    public Set<File> resolve(Configuration configuration, Module module, File cacheParentDir, Map clientModuleRegistry) {
+        ResolveReport resolveReport = resolveAsReportInternal(configuration, true, module, cacheParentDir, clientModuleRegistry);
+//        addResolveData(resolveReport, configuration);
+        return dependencyResolver.resolveFromReport(configuration, resolveReport);
     }
 
-    public List<File> resolveFromReport(String conf, ResolveReport resolveReport) {
-        return dependencyResolver.resolveFromReport(conf, resolveReport);
+//    private void addResolveData(ResolveReport resolveReport, Configuration configuration) {
+//        List<IvyNode> ivyDependencies = resolveReport.getDependencies();
+//        Set<Dependency> dependencies = configuration.getAllDependencies();
+//        for (IvyNode ivyDependency : ivyDependencies) {
+//            Dependency dependency = findDependency(ivyDependency, dependencies);
+//            if (dependency  != null) {
+//                addArtifacts(dependency, ivyDependency, resolveReport);
+//            }
+//        }
+//    }
+//
+//    private Dependency findDependency(IvyNode ivyDependency, Set<Dependency> dependencies) {
+//        return ;
+//    }
+//
+//    private void addArtifacts(Dependency dependency, IvyNode ivyDependency, ResolveReport resolveReport) {
+//        List<File> dependencyFiles = new ArrayList<File>();
+//        for (Artifact artifact : ivyDependency.getAllArtifacts()) {
+//            findReport(resolveReport.getArtifactsReports(artifact.getModuleRevisionId()));
+//
+//            dependencyFiles.add()
+//        }
+//    }
+//
+//    private ArtifactDownloadReport findReport(ArtifactDownloadReport[] artifactReports) {
+//        for (ArtifactDownloadReport artifactReport : artifactReports) {
+//            if (artifactReport.isDownloaded()) {
+//                return artifactReport;
+//            }
+//        }
+//        throw new GradleException("Can't find report with downloaded artifact!");
+//    }
+
+
+    public Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport) {
+        return dependencyResolver.resolveFromReport(configuration, resolveReport);
     }
 
-    public ResolveReport resolveAsReport(String conf, Set<? extends Configuration> configurations, DependencyContainerInternal dependencyContainer,
-                                         List<DependencyResolver> dependencyResolvers,
-                                         ResolveInstruction resolveInstruction, File gradleUserHome) {
-        Ivy ivy = ivy(dependencyResolvers,
-                    new ArrayList<DependencyResolver>(),
-                    gradleUserHome,
-                    dependencyContainer.getClientModuleRegistry());
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(WrapUtil.toMap(conf, resolveInstruction.isTransitive()), new DefaultConfigurationContainer(configurations), Specs.<Configuration>satisfyAll(),
-                dependencyContainer, resolveInstruction.getDependencySpec(), ArtifactContainer.EMPTY_CONTAINER, Specs.<PublishArtifact>satisfyAll());
-        return dependencyResolver.resolveAsReport(conf, resolveInstruction, ivy, moduleDescriptor);
+    public ResolveReport resolveAsReport(Configuration configuration, Module module, File cacheParentDir, Map clientModuleRegistry) {
+        return resolveAsReportInternal(configuration, false, module, cacheParentDir, clientModuleRegistry);
     }
 
+    private ResolveReport resolveAsReportInternal(Configuration configuration, boolean failOnError,
+                                                  Module module, File cacheParentDir, Map clientModuleRegistry) {
+        Ivy ivy = ivyForResolve(configuration.getDependencyResolvers(),
+                cacheParentDir,
+                clientModuleRegistry);
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForResolve(configuration,
+                module, clientModuleRegistry);
+        return dependencyResolver.resolveAsReport(configuration, ivy, moduleDescriptor, failOnError);
+    }
 
-
-    public void publish(String configuration, PublishInstruction publishInstruction,
-                        List<DependencyResolver> publishResolvers, ConfigurationContainer configurationContainer,
-                        DependencyContainerInternal dependencyContainer,
-                        ArtifactContainer artifactContainer, File gradleUserHome) {
-        Ivy ivy = ivy(new ArrayList<DependencyResolver>(),
-                publishResolvers,
-                gradleUserHome,
-                new HashMap());
-        Set<String> confs = Configurations.getNames(configurationContainer.get(configuration).getChain());
+    public void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
+                        List<DependencyResolver> publishResolvers, Module module, File cacheParentDir) {
+        assert configurationsToPublish.size() > 0;
+        Ivy ivy = ivyForPublish(publishResolvers, cacheParentDir);
+        Set<String> confs = Configurations.getNames(configurationsToPublish, false);
         dependencyPublisher.publish(
                 confs,
                 publishInstruction,
                 publishResolvers,
-                moduleDescriptorConverter.convert(new HashMap<String, Boolean>(), configurationContainer, publishInstruction.getModuleDescriptor().getConfigurationSpec(),
-                        dependencyContainer, publishInstruction.getModuleDescriptor().getDependencySpec(),
-                        artifactContainer, publishInstruction.getArtifactSpec()),
+                moduleDescriptorConverter.convertForPublish(
+                        configurationsToPublish, publishInstruction.isUploadModuleDescriptor(), module),
                 ivy.getPublishEngine());
+    }
+
+    public void setSettingsConverter(SettingsConverter settingsConverter) {
+        this.settingsConverter = settingsConverter;
+    }
+
+    public void setModuleDescriptorConverter(ModuleDescriptorConverter moduleDescriptorConverter) {
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+    }
+
+    public void setIvyFactory(IvyFactory ivyFactory) {
+        this.ivyFactory = ivyFactory;
+    }
+
+    public void setInternalRepository(InternalRepository internalRepository) {
+        this.internalRepository = internalRepository;
+    }
+
+    public void setDependencyResolver(IvyDependencyResolver dependencyResolver) {
+        this.dependencyResolver = dependencyResolver;
+    }
+
+    public void setDependencyPublisher(IvyDependencyPublisher dependencyPublisher) {
+        this.dependencyPublisher = dependencyPublisher;
     }
 }

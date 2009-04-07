@@ -18,20 +18,20 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
-import org.gradle.api.artifacts.ResolveInstruction;
+import org.gradle.api.artifacts.Configuration;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface IvyDependencyResolver {
-    ResolveReport resolveAsReport(String conf, ResolveInstruction resolveInstruction, Ivy ivy, ModuleDescriptor moduleDescriptor);
+    ResolveReport resolveAsReport(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor, boolean isFailOnError);
 
     ResolveReport getLastResolveReport();
 
-    List<File> resolve(String conf, ResolveInstruction resolveInstruction, Ivy ivy, ModuleDescriptor moduleDescriptor);
+    Set<File> resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor);
 
-    List<File> resolveFromReport(String conf, ResolveReport resolveReport);
+    Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport);
 }

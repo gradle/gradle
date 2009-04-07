@@ -22,6 +22,8 @@ import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.util.HelperUtil
+import org.gradle.util.WrapUtil
+import org.hamcrest.Matchers
 import org.junit.Test
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.equalTo
@@ -39,22 +41,22 @@ class WarPluginTest {
 
         assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
 
-        def configuration = project.dependencies.configuration(JavaPlugin.COMPILE)
+        def configuration = project.configurations.get(JavaPlugin.COMPILE)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.dependencies.configuration(JavaPlugin.RUNTIME)
+        configuration = project.configurations.get(JavaPlugin.RUNTIME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE, WarPlugin.PROVIDED_RUNTIME)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configuration(WarPlugin.PROVIDED_COMPILE)
+        configuration = project.configurations.get(WarPlugin.PROVIDED_COMPILE)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.dependencies.configuration(WarPlugin.PROVIDED_RUNTIME)
+        configuration = project.configurations.get(WarPlugin.PROVIDED_RUNTIME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)

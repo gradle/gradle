@@ -16,12 +16,9 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.DependencyManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ConfigurationResolver
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ITaskFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -218,7 +215,6 @@ class BundleTest extends AbstractConventionTaskTest {
             one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip2_zip")
             will(returnValue(Zip.newInstance(getProject(), "zip2_zip")))
         }
-        prepareDependencies(projectMock, args)
     }
 
     private void prepateProjectMock(ArchiveType archiveType, Map args = [:]) {
@@ -233,20 +229,6 @@ class BundleTest extends AbstractConventionTaskTest {
             allowing(projectMock).getArchivesTaskBaseName(); will(returnValue(Project.DEFAULT_ARCHIVES_TASK_BASE_NAME))
             one(projectMock).createTask([(Task.TASK_TYPE): archiveType.getTaskClass()], taskName)
             will(returnValue(createTask(archiveType.getTaskClass(), getProject(), taskName)))
-        }
-      prepareDependencies(projectMock, args) 
-    }
-
-    private void prepareDependencies(Project projectMock, Map args = [:]) {
-        List confs = args.confs != null ? testCustomConfigurations : testDefaultConfigurations
-        List configurationResolvers = confs.collect { context.mock(ConfigurationResolver, it) }
-        DependencyManager dependencyManagerMock = context.mock(DependencyManager)
-        context.checking {
-            allowing(projectMock).getDependencies(); will(returnValue(dependencyManagerMock))
-            confs.eachWithIndex { name, i ->
-               allowing(dependencyManagerMock).configuration(name); will(returnValue(configurationResolvers[i]))
-            }
-            allowing(dependencyManagerMock).addArtifacts(withParam(any(PublishArtifact)))
         }
     }
 

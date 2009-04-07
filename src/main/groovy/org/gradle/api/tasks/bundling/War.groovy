@@ -19,6 +19,7 @@ package org.gradle.api.tasks.bundling
 import org.gradle.api.Project
 import org.gradle.api.artifacts.specs.DependencyTypeSpec
 import org.gradle.api.artifacts.specs.Type
+import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.bundling.AntMetaArchiveParameter
 import org.gradle.api.tasks.bundling.AntWar
 import org.gradle.api.tasks.bundling.Jar
@@ -65,24 +66,23 @@ class War extends Jar {
 
     public List dependencies(boolean failForMissingDependencies, boolean includeProjectDependencies) {
         List files = []
-        Closure resolveInstructionClosure = {
-            setFailOnResolveError(failForMissingDependencies)
-            if (!includeProjectDependencies) {
-                setDependencySpec(new DependencyTypeSpec(Type.EXTERNAL))
-            }
+        getLibConfigurations().each {String configurationName ->
+            files.addAll(filteredDependencies(configurationName, getProject(), includeProjectDependencies))
         }
-        getLibConfigurations().each {String configuration ->
-            files.addAll(getProject().getDependencies().configuration(configuration).resolve(resolveInstructionClosure))
-        }
-        getLibExcludeConfigurations().each {String configuration ->
-            files.removeAll(getProject().getDependencies().configuration(configuration).resolve(resolveInstructionClosure))
+        getLibExcludeConfigurations().each {String configurationName ->
+            files.removeAll(filteredDependencies(configurationName, getProject(), includeProjectDependencies))
         }
         files
     }
 
+    private List filteredDependencies(String configurationName, Project project, boolean includeProjectDependencies) {
+      project.configurations.get(configurationName).copyRecursive(
+              includeProjectDependencies ? Specs.SATISFIES_ALL : new DependencyTypeSpec(Type.EXTERNAL)).resolve() as List
+    }
+
     /**
      * Adds a fileset to the list of webinf fileset's.
-     * @param args key-value pairs for setting field values of the created fileset. 
+     * @param args key-value pairs for setting field values of the created fileset.
      * @param configureClosure (optional) closure which is applied against the newly created fileset.
      */
     FileSet webInf(Map args, Closure configureClosure = null) {

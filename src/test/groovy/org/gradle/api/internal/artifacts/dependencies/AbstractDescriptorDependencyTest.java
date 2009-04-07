@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.internal.artifacts.dependencies.AbstractDescriptorDependency;
 import static org.junit.Assert.assertEquals;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -28,14 +26,9 @@ public abstract class AbstractDescriptorDependencyTest extends AbstractDependenc
 
     protected abstract AbstractDescriptorDependency getDependency();
 
-    @Before
-    @Override
-    public void setUp() {
-        super.setUp();
-    }
-
     @Test
     public void testGenericInit() {
+        super.testGenericInit();
         assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
     }
 }

@@ -11,10 +11,13 @@ manifest.mainAttributes(
 )
 // END SNIPPET customisation
 
+repositories {
+    addMavenRepo()
+}
+
 // START SNIPPET repo
 // START SNIPPET dependencies
 dependencies {
-    addMavenRepo()
 // END SNIPPET repo
     compile 'commons-collections:commons-collections:3.2'
     testCompile 'junit:junit:4.+'
@@ -31,6 +34,8 @@ test {
 
 // START SNIPPET upload
 uploadMaster {
-    uploadResolvers.add(uploadResolvers.createFlatDirResolver('upload', file('repos')))
+    repositories {
+       addFlatDirResolver('upload', file('repos'))
+    }
 }
 // END SNIPPET upload

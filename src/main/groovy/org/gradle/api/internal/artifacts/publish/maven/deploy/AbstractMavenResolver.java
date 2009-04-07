@@ -36,25 +36,19 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
-import org.gradle.api.DependencyManager;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.internal.artifacts.DependencyManagerInternal;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.specs.Specs;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -67,15 +61,15 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     private PomFilterContainer pomFilterContainer;
 
-    private DependencyManagerInternal dependencyManager;
+    private ConfigurationContainer configurationContainer;
 
     private Settings settings;
 
-    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, DependencyManagerInternal dependencyManager) {
+    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, ConfigurationContainer configurationContainer) {
         this.name = name;
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
-        this.dependencyManager = dependencyManager;
+        this.configurationContainer = configurationContainer;
     }
 
     protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
@@ -88,12 +82,12 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         this.name = name;
     }
 
-    public DependencyManager getDependencyManager() {
-        return dependencyManager;
+    public ConfigurationContainer getConfigurationContainer() {
+        return configurationContainer;
     }
 
-    public void setDependencyManager(DependencyManagerInternal dependencyManager) {
-        this.dependencyManager = dependencyManager;
+    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
+        this.configurationContainer = configurationContainer;
     }
     
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
@@ -178,9 +172,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
-        Map<File, File> deployableUnits = getArtifactPomContainer().createDeployableUnits(
-                Arrays.asList(dependencyManager.createModuleDescriptor(Specs.<Configuration>satisfyAll(), Specs.<Dependency>satisfyAll(),
-                        Specs.<PublishArtifact>satisfyAll()).getDependencies()));
+        Map<File, File> deployableUnits = getArtifactPomContainer().createDeployableUnits(configurationContainer.getAll());
         for (File pomFile : deployableUnits.keySet()) {
             addPomAndArtifact(installDeployTaskSupport, pomFile, deployableUnits.get(pomFile));
             execute(installDeployTaskSupport);

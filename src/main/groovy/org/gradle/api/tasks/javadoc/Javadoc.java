@@ -18,7 +18,7 @@ package org.gradle.api.tasks.javadoc;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.ConfigurationResolveInstructionModifier;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.exec.ExecHandle;
@@ -43,11 +43,10 @@ public class Javadoc extends ConventionTask {
     private JavadocExecHandleBuilder javadocExecHandleBuilder;
 
     private List<File> srcDirs;
+
     private File classesDir;
 
     private File destinationDir;
-
-    private DependencyManager dependencyManager;
 
     private boolean failOnError = true;
 
@@ -62,7 +61,7 @@ public class Javadoc extends ConventionTask {
     private boolean alwaysAppendDefaultSourcepath = false;
     private boolean alwaysAppendDefaultClasspath = false;
 
-    private ConfigurationResolveInstructionModifier resolveInstructionModifier;
+    private Configuration configuration;
 
     public Javadoc(Project project, String name) {
         super(project, name);
@@ -92,9 +91,10 @@ public class Javadoc extends ConventionTask {
             options
                 .sourcepath(existingSourceDirs);
 
+        // todo LIST or SET
         if ( options.getClasspath().isEmpty() || alwaysAppendDefaultClasspath ) {
             options
-                .classpath(getClasspath())
+                .classpath(new ArrayList(getClasspath()))
                 .classpath(getClassesDir());
         }
 
@@ -212,8 +212,8 @@ public class Javadoc extends ConventionTask {
      *
      * @return The classpath.
      */
-    public List<File> getClasspath() {
-        return getDependencyManager().configuration(resolveInstructionModifier.getConfiguration()).resolve(resolveInstructionModifier);
+    public Set<File> getClasspath() {
+        return configuration.resolve();
     }
 
     /**
@@ -249,27 +249,9 @@ public class Javadoc extends ConventionTask {
     }
 
     /**
-     * <p>Returns the {@link DependencyManager} which this task uses to resolve the classpath to use when generating the
-     * documentation.</p>
-     *
-     * @return The dependency manager.
-     */
-    public DependencyManager getDependencyManager() {
-        return (DependencyManager) conv(dependencyManager, "dependencyManager");
-    }
-
-    /**
-     * <p>Sets the {@link DependencyManager} which this task uses to resolve the classpath to use when generating the
-     * documentation.</p>
-     */
-    public void setDependencyManager(DependencyManager dependencyManager) {
-        this.dependencyManager = dependencyManager;
-    }
-
-    /**
      * Returns whether javadoc generation is accompanied by verbose output.
      *
-     * @see #setVerbose(boolean) 
+     * @see #setVerbose(boolean)
      */
     public boolean isVerbose() {
         return options.isVerbose();
@@ -302,12 +284,12 @@ public class Javadoc extends ConventionTask {
         this.existentDirsFilter = existentDirsFilter;
     }
 
-    public ConfigurationResolveInstructionModifier getResolveInstruction() {
-        return resolveInstructionModifier;
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
-    public void setResolveInstruction(ConfigurationResolveInstructionModifier resolveInstructionModifier) {
-        this.resolveInstructionModifier = resolveInstructionModifier;
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     public MinimalJavadocOptions getOptions() {

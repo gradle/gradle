@@ -53,8 +53,8 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                         PublishEngine publishEngine) {
         try {
             File ivyFile = null;
-            if (publishInstruction.getModuleDescriptor().isPublish()) {
-                ivyFile = new File(publishInstruction.getModuleDescriptor().getIvyFileParentDir(), IVY_FILE_NAME);
+            if (publishInstruction.isUploadModuleDescriptor()) {
+                ivyFile = new File(publishInstruction.getIvyFileParentDir(), IVY_FILE_NAME);
                 moduleDescriptor.toIvyFile(ivyFile);
             }
             for (DependencyResolver resolver : publishResolvers) {

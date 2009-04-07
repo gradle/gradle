@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.specs.Spec;
 
@@ -27,7 +28,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ConfigurationContainer {
-    Set<Configuration> get();
+    Set<Configuration> getAll();
 
     Set<Configuration> get(Spec<Configuration> spec);
 
@@ -40,4 +41,6 @@ public interface ConfigurationContainer {
     Configuration add(String name);
 
     Configuration get(String name) throws UnknownConfigurationException;
+
+    Configuration detachedConfiguration(Dependency... dependencies);
 }

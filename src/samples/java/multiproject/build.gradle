@@ -5,8 +5,11 @@ subprojects {
 
     usePlugin 'java'
 
+    repositories {
+       addMavenRepo()
+    }
+
     dependencies {
-        addMavenRepo()
         testCompile 'junit:junit:4.4'
     }
     manifest.mainAttributes(provider: 'gradle')

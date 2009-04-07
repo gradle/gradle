@@ -16,99 +16,93 @@
 
 package org.gradle.api.internal
 
-import org.gradle.api.internal.DefaultTask
-import org.gradle.api.tasks.AbstractTaskTest
-import static org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
-import org.gradle.util.WrapUtil
-
+//import org.gradle.api.tasks.AbstractTaskTest
 /**
  * @author Hans Dockter
  */
-class DefaultTaskTest extends AbstractTaskTest {
-    DefaultTask defaultTask
-
-    Object testCustomPropValue;
-
-    @Before public void setUp()  {
-        super.setUp()
-        testCustomPropValue = new Object()
-        defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME)
-    }
-
-    AbstractTask getTask() {
-        defaultTask
-    }
-
-    @Test public void testDefaultTask() {
-        assertEquals new TreeSet(), defaultTask.dependsOn
-        assertEquals([], defaultTask.actions)
-    }
-
-    @Test public void testHasUsefulToString() {
-        assertEquals('task \':taskname\'', task.toString())
-    }
-    
-    @Test public void testDoFirstWithClosureDelegatesToProject() {
-        Closure testAction = {}
-        defaultTask.doFirst(testAction)
-        assertSame(getProject(), testAction.delegate)
-        assertEquals(Closure.OWNER_FIRST, testAction.getResolveStrategy())
-    }
-
-    @Test public void testDoFirstWithClosure() {
-        List<Integer> executed = new ArrayList<Integer>();
-        Closure testAction1 = { executed.add(1) }
-        Closure testAction2 = { -> executed.add(2) }
-        Closure testAction3 = { task -> executed.add(3) }
-        defaultTask.doFirst(testAction1)
-        defaultTask.doFirst(testAction2)
-        defaultTask.doFirst(testAction3)
-        defaultTask.execute()
-        assertEquals(executed, WrapUtil.toList(3, 2, 1))
-    }
-
-    @Test
-    void getAdditonalProperties() {
-        defaultTask.additionalProperties.customProp = testCustomPropValue
-        assertSame(testCustomPropValue, defaultTask."customProp")
-    }
-
-    @Test
-    void setAdditonalProperties() {
-        defaultTask."customProp" = testCustomPropValue
-        assertSame(testCustomPropValue, defaultTask.additionalProperties.customProp)
-    }
-
-    @Test
-    void getAndSetConventionProperties() {
-        TestConvention convention = new TestConvention()
-        defaultTask.convention.plugins.test = convention
-        assertTrue(defaultTask.hasProperty('conventionProperty'))
-        defaultTask.conventionProperty = 'value'
-        assertEquals(defaultTask.conventionProperty, 'value')
-        assertEquals(convention.conventionProperty, 'value')
-    }
-
-    @Test
-    void canCallConventionMethods() {
-        defaultTask.convention.plugins.test = new TestConvention()
-        assertEquals(defaultTask.conventionMethod('a', 'b').toString(), "a.b")
-    }
-
-    @Test
-    void getProperty() {
-        defaultTask.additionalProperties.customProp = testCustomPropValue
-        assertSame(testCustomPropValue, defaultTask.property("customProp"))
-        assertSame(AbstractTaskTest.TEST_TASK_NAME, defaultTask.property("name"))
-    }
-
-    @Test(expected = MissingPropertyException)
-    void accessNonExistingProperty() {
-        defaultTask."unknownProp"
-    }
-}
+//class DefaultTaskTest extends AbstractTaskTest {
+//    DefaultTask defaultTask
+//
+//    Object testCustomPropValue;
+//
+//    @Before public void setUp()  {
+//        super.setUp()
+//        testCustomPropValue = new Object()
+//        defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME)
+//    }
+//
+//    AbstractTask getTask() {
+//        defaultTask
+//    }
+//
+//    @Test public void testDefaultTask() {
+//        assertEquals new TreeSet(), defaultTask.dependsOn
+//        assertEquals([], defaultTask.actions)
+//    }
+//
+//    @Test public void testHasUsefulToString() {
+//        assertEquals('task \':taskname\'', task.toString())
+//    }
+//
+//    @Test public void testDoFirstWithClosureDelegatesToProject() {
+//        Closure testAction = {}
+//        defaultTask.doFirst(testAction)
+//        assertSame(getProject(), testAction.delegate)
+//        assertEquals(Closure.OWNER_FIRST, testAction.getResolveStrategy())
+//    }
+//
+//    @Test public void testDoFirstWithClosure() {
+//        List<Integer> executed = new ArrayList<Integer>();
+//        Closure testAction1 = { executed.add(1) }
+//        Closure testAction2 = { -> executed.add(2) }
+//        Closure testAction3 = { task -> executed.add(3) }
+//        defaultTask.doFirst(testAction1)
+//        defaultTask.doFirst(testAction2)
+//        defaultTask.doFirst(testAction3)
+//        defaultTask.execute()
+//        assertEquals(executed, WrapUtil.toList(3, 2, 1))
+//    }
+//
+//    @Test
+//    void getAdditonalProperties() {
+//        defaultTask.additionalProperties.customProp = testCustomPropValue
+//        assertSame(testCustomPropValue, defaultTask."customProp")
+//    }
+//
+//    @Test
+//    void setAdditonalProperties() {
+//        defaultTask."customProp" = testCustomPropValue
+//        assertSame(testCustomPropValue, defaultTask.additionalProperties.customProp)
+//    }
+//
+//    @Test
+//    void getAndSetConventionProperties() {
+//        TestConvention convention = new TestConvention()
+//        defaultTask.convention.plugins.test = convention
+//        assertTrue(defaultTask.hasProperty('conventionProperty'))
+//        defaultTask.conventionProperty = 'value'
+//        assertEquals(defaultTask.conventionProperty, 'value')
+//        assertEquals(convention.conventionProperty, 'value')
+//    }
+//
+//    @Test
+//    void canCallConventionMethods() {
+//        defaultTask.convention.plugins.test = new TestConvention()
+//        assertEquals(defaultTask.conventionMethod('a', 'b').toString(), "a.b")
+//    }
+//
+//    @Test
+//    void getProperty() {
+//        defaultTask.additionalProperties.customProp = testCustomPropValue
+//        assertSame(testCustomPropValue, defaultTask.property("customProp"))
+//        assertSame(AbstractTaskTest.TEST_TASK_NAME, defaultTask.property("name"))
+//    }
+//
+//    @Test(expected = MissingPropertyException)
+//    void accessNonExistingProperty() {
+//        defaultTask."unknownProp"
+//    }
+//}
 
 class TestConvention {
     def conventionProperty

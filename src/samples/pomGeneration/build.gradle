@@ -6,8 +6,11 @@ archivesBaseName = 'mywar'
 usePlugin('war')
 usePlugin('maven')
 
-dependencies {
+repositories {
     addFlatDirResolver('lib', "$rootDir/lib")
+}
+
+dependencies {
     compile("group1:compile:1.0") {
         exclude('org': 'excludeGroup', module: 'excludeArtifact')
     }
@@ -23,7 +26,7 @@ dependencies {
     testRuntime "group6:testRuntime:1.0"
 }
 
-mavenInstaller = install.uploadResolvers.get("maven-installer")
+mavenInstaller = install.repositories.resolver("maven-installer")
 
 install.doLast {install ->
     Settings settings = mavenInstaller.settings
@@ -34,12 +37,14 @@ install.doLast {install ->
 uploadMaster.dependsOn install
 
 uploadMaster {
-    uploadResolvers.addMavenDeployer('maven-deployer') {
+    repositories {
+      addMavenDeployer('maven-deployer') {
         repository(url: "file://localhost/$projectDir/pomRepo/")
+      }
     }
 }
 
-mavenDeployer = uploadMaster.uploadResolvers.get("maven-deployer")
+mavenDeployer = uploadMaster.repositories.resolver("maven-deployer")
 
 [mavenInstaller, mavenDeployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
 if (hasProperty('customVersion')) {

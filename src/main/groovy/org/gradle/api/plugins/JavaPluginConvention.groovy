@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.PluginUtil
+import org.gradle.api.plugins.DefaultConventionsToPropertiesMapping
 import org.gradle.api.tasks.bundling.*
 import org.gradle.api.JavaVersion
 
@@ -58,9 +59,6 @@ class JavaPluginConvention {
     List floatingResourceDirs = []
     List floatingTestResourceDirs = []
 
-    String uploadDistsPomDirName
-    String uploadLibsPomDirName
-
     private JavaVersion srcCompat
     private JavaVersion targetCompat
     Map archiveTypes
@@ -80,8 +78,6 @@ class JavaPluginConvention {
         docsDirName = 'docs'
         javadocDirName = 'javadoc'
         reportsDirName = 'reports'
-        uploadLibsPomDirName = 'libs-poms'
-        uploadDistsPomDirName = 'dists-poms'
         testResultsDirName = 'test-results'
         testReportDirName = 'tests'
         srcDirNames << 'main/java'
@@ -136,14 +132,6 @@ class JavaPluginConvention {
         new File(project.buildDir, testClassesDirName)
     }
 
-    File getUploadLibsPomDir() {
-        new File(project.buildDir, uploadLibsPomDirName)
-    }
-
-    File getUploadDistsPomDir() {
-        new File(project.buildDir, uploadDistsPomDirName)
-    }
-
     File getDistsDir() {
         new File(project.buildDir, distsDirName)
     }
@@ -179,7 +167,7 @@ class JavaPluginConvention {
     JavaVersion getTargetCompatibility() {
         targetCompat ?: sourceCompatibility
     }
-    
+
     void setTargetCompatibility(def value) {
         targetCompat = JavaVersion.toVersion(value)
     }
