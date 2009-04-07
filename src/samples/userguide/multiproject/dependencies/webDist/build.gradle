@@ -1,6 +1,5 @@
 dependsOnChildren()
 
-
 allprojects {
     usePlugin('java')
     group = 'org.gradle.sample'
@@ -9,8 +8,10 @@ allprojects {
 
 subprojects {
     usePlugin('war')
-    dependencies {
+    repositories {
         addMavenRepo()
+    }
+    dependencies {
         compile "javax.servlet:servlet-api:2.5"
     }
 }

@@ -5,8 +5,10 @@ subprojects {
 }
 
 project(':api') {
+    configurations {
+        spi
+    }
     dependencies {
-        addConfiguration('spi')
         compile project(':shared')
     }
     libs.jar(baseName: 'api-spi', confs: ['spi']) {
@@ -19,8 +21,8 @@ project(':api') {
 project(':services:personService') {
     dependencies {
         compile project(':shared')
-        dependency(['compile'], project(':api')) {
-            addDependencyConfiguration 'spi'
+        compile project(':api') {
+            dependencyConfiguration = 'spi'
         }
         testCompile "junit:junit:3.8.2", project(':api')
     }
