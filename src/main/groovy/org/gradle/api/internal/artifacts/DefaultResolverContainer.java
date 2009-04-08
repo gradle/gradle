@@ -175,8 +175,8 @@ public class DefaultResolverContainer implements ResolverContainer {
     }
 
     public DependencyResolver mavenCentral(String... jarRepoUrls) {
-        return add(createMavenRepoResolver(DEFAULT_MAVEN_REPO_NAME,
-                MAVEN_REPO_URL, jarRepoUrls));
+        return add(createMavenRepoResolver(DEFAULT_MAVEN_CENTRAL_REPO_NAME,
+                MAVEN_CENTRAL_URL, jarRepoUrls));
     }
 
     public DependencyResolver mavenRepo(String name, String root, String... jarRepoUrls) {

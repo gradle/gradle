@@ -176,7 +176,7 @@ class DefaultResolverContainerTest {
       }
     }
 
-  @Test public void testFlatDirWithoutName() {
+    @Test public void testFlatDirWithoutName() {
         Object[] expectedDirs = createFlatDirTestDirs()
         String expectedName = HashUtil.createHash(expectedDirs.join(''))
         prepareFlatDirResolverCreation(expectedName, expectedDirs)
@@ -195,7 +195,7 @@ class DefaultResolverContainerTest {
     @Test
     public void testMavenCentral() {
         String testUrl2 = 'http://www.gradle2.org'
-        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_REPO_NAME, ResolverContainer.MAVEN_REPO_URL, testUrl2) 
+        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2) 
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert resolverContainer.mavenCentral([testUrl2] as String[]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)

@@ -33,8 +33,8 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface ResolverContainer extends IConventionAware {
-    String DEFAULT_MAVEN_REPO_NAME = "MavenRepo";
-    String MAVEN_REPO_URL = "http://repo1.maven.org/maven2/";
+    String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
+    String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
     String MAVEN_REPO_PATTERN
             = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
     String FLAT_DIR_RESOLVER_PATTERN = "[artifact](-[revision])(-[classifier]).[ext]";
@@ -85,7 +85,7 @@ public interface ResolverContainer extends IConventionAware {
 
     /**
      * Adds a resolver which look in the official Maven Repo for dependencies. The URL of the official Repo is {@link
-     * #MAVEN_REPO_URL}. The name is {@link #DEFAULT_MAVEN_REPO_NAME}. The behavior of this resolver is otherwise the
+     * #MAVEN_CENTRAL_URL}. The name is {@link #DEFAULT_MAVEN_CENTRAL_REPO_NAME}. The behavior of this resolver is otherwise the
      * same as the ones added by {@link #mavenRepo(String, String, String[])}.
      *
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only.
