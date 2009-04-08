@@ -63,7 +63,7 @@ public class UploadTest extends AbstractTaskTest {
         upload.setPublishInstruction(publishInstruction);
         upload.setConfiguration(configurationMock);
         upload.setProject(HelperUtil.createRootProject(projectRootDir));
-        final DependencyResolver repository = upload.getRepositories().addMavenRepo();
+        final DependencyResolver repository = upload.getRepositories().mavenCentral();
         context.checking(new Expectations() {{
             one(configurationMock).publish(WrapUtil.toList(repository), publishInstruction);
         }});
@@ -71,7 +71,7 @@ public class UploadTest extends AbstractTaskTest {
     }
 
     @Test public void testRepositories() {
-        final DependencyResolver repository = upload.repositories(HelperUtil.toClosure("{ addMavenRepo() }")).getResolverList().get(0);
+        final DependencyResolver repository = upload.repositories(HelperUtil.toClosure("{ mavenCentral() }")).getResolverList().get(0);
         assertThat(upload.getRepositories().getResolverList(), Matchers.equalTo(WrapUtil.toList(repository)));
     }
 }

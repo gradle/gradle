@@ -219,42 +219,63 @@ class DefaultSettingsTest {
         settings.clientModule(id, configureClosure)
     }
 
-    @Test public void testAddMavenRepo() {
+    @Test public void testMavenCentral() {
         settings.setResolverContainer(resolverContainerMock)
         DualResolver expectedResolver = new DualResolver()
         String[] expectedJarRepoUrls = ['http://www.repo.org']
         context.checking {
-            one(resolverContainerMock).addMavenRepo(expectedJarRepoUrls); will(returnValue(expectedResolver))
+            one(resolverContainerMock).mavenCentral(expectedJarRepoUrls); will(returnValue(expectedResolver))
         }
-        assert settings.addMavenRepo(expectedJarRepoUrls).is(expectedResolver)
+        assert settings.mavenCentral(expectedJarRepoUrls).is(expectedResolver)
     }
 
-    @Test public void testAddMavenStyleRepo() {
+    @Test public void testMavenRepo() {
         DualResolver expectedResolver = new DualResolver()
         String expectedName = 'somename'
         String expectedRoot = 'http://www.root.org'
         String[] expectedJarRepoUrls = ['http://www.repo.org']
         context.checking {
-            one(resolverContainerMock).addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls);
+            one(resolverContainerMock).mavenRepo(expectedName, expectedRoot, expectedJarRepoUrls);
             will(returnValue(expectedResolver))
         }
-        assert settings.addMavenStyleRepo(expectedName, expectedRoot, expectedJarRepoUrls).is(expectedResolver)
+        assert settings.mavenRepo(expectedName, expectedRoot, expectedJarRepoUrls).is(expectedResolver)
     }
 
-    @Test public void testAddFlatFileResolver() {
+    @Test public void testMavenRepoWithoutName() {
+        DualResolver expectedResolver = new DualResolver()
+        String expectedRoot = 'http://www.root.org'
+        String[] expectedJarRepoUrls = ['http://www.repo.org']
+        context.checking {
+            one(resolverContainerMock).mavenRepo(expectedRoot, expectedJarRepoUrls);
+            will(returnValue(expectedResolver))
+        }
+        assert settings.mavenRepo(expectedRoot, expectedJarRepoUrls).is(expectedResolver)
+    }
+
+    @Test public void testFlatDir() {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         String expectedName = 'name'
         File[] expectedDirs = ['a' as File]
         context.checking {
-            one(resolverContainerMock).addFlatDirResolver(expectedName, expectedDirs);
+            one(resolverContainerMock).flatDir(expectedName, expectedDirs);
             will(returnValue(expectedResolver))
         }
-        assert settings.addFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+        assert settings.flatDir(expectedName, expectedDirs).is(expectedResolver)
+    }
+
+    @Test public void testFlatDirWithoutName() {
+        FileSystemResolver expectedResolver = new FileSystemResolver()
+        File[] expectedDirs = ['a' as File]
+        context.checking {
+            one(resolverContainerMock).flatDir(expectedDirs);
+            will(returnValue(expectedResolver))
+        }
+        assert settings.flatDir(expectedDirs).is(expectedResolver)
     }
 
     @Test public void testResolver() {
         settings.setResolverContainer(new DefaultResolverContainer(new DefaultResolverFactory(), null))
-        DependencyResolver resolver = settings.addMavenRepo();
+        DependencyResolver resolver = settings.mavenCentral();
         assertEquals([resolver], settings.resolvers)
     }
 

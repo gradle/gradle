@@ -3,7 +3,7 @@ usePlugin 'groovy'
 // END SNIPPET use-plugin
 
 repositories {
-  addMavenRepo()
+  mavenCentral()
 }
 
 // START SNIPPET groovy-dependency

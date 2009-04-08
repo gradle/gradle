@@ -21,6 +21,7 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
@@ -28,20 +29,21 @@ import org.gradle.api.internal.ConventionTestHelper
 import org.gradle.api.internal.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
-import org.gradle.api.plugins.Convention
+import org.gradle.api.internal.plugins.DefaultConvention
+import org.gradle.util.HashUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertSame
-import org.gradle.api.internal.plugins.DefaultConvention
 
 /**
  * @author Hans Dockter
  */
 class DefaultResolverContainerTest {
-    static final String TEST_REPO_NAME = 'reponame'
+
+  static final String TEST_REPO_NAME = 'reponame'
     static final String TEST_REPO_URL = 'http://www.gradle.org'
     DefaultResolverContainer resolverContainer
 
@@ -142,22 +144,89 @@ class DefaultResolverContainerTest {
     }
 
     @Test public void testCreateFlatDirResolver() {
-        Object[] expectedDirs = ['a', 'b' as File]
-        String expectedName = 'libs'
+        prepareFlatDirResolverCreation('libs', createFlatDirTestDirs())
+        assert resolverContainer.createFlatDirResolver("libs", createFlatDirTestDirsArgs()).is(expectedResolver)
+    }
+
+    private def prepareFlatDirResolverCreation(String expectedName, File[] expectedDirs) {
         context.checking {
-            one(resolverFactoryMock).createFlatDirResolver(expectedName, ['a' as File, 'b' as File] as File[]); will(returnValue(expectedResolver))
+          one(resolverFactoryMock).createFlatDirResolver(expectedName, expectedDirs); will(returnValue(expectedResolver))
         }
-        assert resolverContainer.createFlatDirResolver(expectedName, expectedDirs).is(expectedResolver)
+    }
+  
+    private Object[] createFlatDirTestDirsArgs() {
+        return ['a', 'b' as File] as Object[]
+    }
+
+    private File[] createFlatDirTestDirs() {
+        return ['a' as File, 'b' as File] as File[]
+    }
+
+    @Test public void testFlatDirWithName() {
+        String resolverName = 'libs'
+        prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.flatDir(resolverName, createFlatDirTestDirsArgs()).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    private def prepareResolverFactoryToTakeAndReturnExpectedResolver() {
+      context.checking {
+        one(resolverFactoryMock).createResolver(expectedResolver); will(returnValue(expectedResolver))
+      }
+    }
+
+  @Test public void testFlatDirWithoutName() {
+        Object[] expectedDirs = createFlatDirTestDirs()
+        String expectedName = HashUtil.createHash(expectedDirs.join(''))
+        prepareFlatDirResolverCreation(expectedName, expectedDirs)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.flatDir(createFlatDirTestDirsArgs()).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
     @Test
     public void testCreateMavenRepo() {
         String testUrl2 = 'http://www.gradle2.org'
+        prepareCreateMavenRepo(TEST_REPO_NAME, TEST_REPO_URL, testUrl2)
+        assert resolverContainer.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, [testUrl2] as String[]).is(expectedResolver)
+    }
+
+    @Test
+    public void testMavenCentral() {
+        String testUrl2 = 'http://www.gradle2.org'
+        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_REPO_NAME, ResolverContainer.MAVEN_REPO_URL, testUrl2) 
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.mavenCentral([testUrl2] as String[]).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test
+    public void testMavenRepoWithName() {
+        String testUrl2 = 'http://www.gradle2.org'
+        String repoRoot = 'http://www.reporoot.org'
+        String repoName = 'mavenRepoName'
+        prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.mavenRepo(repoName, repoRoot, [testUrl2] as String[]).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test
+    public void testMavenRepoWithoutName() {
+        String testUrl2 = 'http://www.gradle2.org'
+        String repoRoot = 'http://www.reporoot.org'
+        prepareCreateMavenRepo(repoRoot, repoRoot, testUrl2)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.mavenRepo(repoRoot, [testUrl2] as String[]).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    private prepareCreateMavenRepo(String name, String mavenUrl, String[] jarUrls) {
         context.checking {
-            one(resolverFactoryMock).createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, [testUrl2] as String[]);
+            one(resolverFactoryMock).createMavenRepoResolver(name, mavenUrl, jarUrls);
             will(returnValue(expectedResolver))
         }
-        assert resolverContainer.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, [testUrl2] as String[]).is(expectedResolver)
     }
 
     @Test

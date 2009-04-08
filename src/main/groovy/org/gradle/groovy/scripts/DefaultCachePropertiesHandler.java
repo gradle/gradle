@@ -15,17 +15,12 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.util.GradleVersion;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.HashUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.FileOutputStream;
 import java.util.Properties;
-import java.security.NoSuchAlgorithmException;
-import java.security.MessageDigest;
-import java.math.BigInteger;
 
 /**
  * @author Hans Dockter
@@ -33,7 +28,7 @@ import java.math.BigInteger;
 public class DefaultCachePropertiesHandler implements CachePropertiesHandler {
     public void writeProperties(String scriptText, File scriptCacheDir, boolean emptyScript) {
         Properties properties = new Properties();
-        properties.put(CachePropertiesHandler.HASH_KEY, createHash(scriptText));
+        properties.put(CachePropertiesHandler.HASH_KEY, HashUtil.createHash(scriptText));
         properties.put(CachePropertiesHandler.VERSION_KEY, new GradleVersion().getVersion());
         if (emptyScript) {
             properties.put(CachePropertiesHandler.EMPTY_SCRIPT, Boolean.TRUE.toString());
@@ -53,18 +48,7 @@ public class DefaultCachePropertiesHandler implements CachePropertiesHandler {
         if (!properties.get(CachePropertiesHandler.VERSION_KEY).equals(new GradleVersion().getVersion())) {
             return CacheState.INVALID;
         }
-        return createHash(scriptText).equals(properties.get(CachePropertiesHandler.HASH_KEY)) ?
+        return HashUtil.createHash(scriptText).equals(properties.get(CachePropertiesHandler.HASH_KEY)) ?
                 CacheState.VALID : CacheState.INVALID;
-    }
-
-    private String createHash(String scriptText) {
-        MessageDigest messageDigest = null;
-        try {
-            messageDigest = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        messageDigest.update(scriptText.getBytes());
-        return new BigInteger(1, messageDigest.digest()).toString(16);
     }
 }

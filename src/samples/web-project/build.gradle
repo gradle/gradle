@@ -13,8 +13,8 @@ configurations {
 }
 
 repositories {
-   addFlatDirResolver('lib', "$rootDir/lib")
-   addMavenRepo()
+   flatDir("$rootDir/lib")
+   mavenCentral()
 }
 
 dependencies {

@@ -6,7 +6,7 @@ subprojects {
     usePlugin 'java'
 
     repositories {
-       addMavenRepo()
+       mavenCentral()
     }
 
     dependencies {

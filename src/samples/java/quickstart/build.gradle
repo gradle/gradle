@@ -12,7 +12,7 @@ manifest.mainAttributes(
 // END SNIPPET customisation
 
 repositories {
-    addMavenRepo()
+    mavenCentral()
 }
 
 // START SNIPPET repo
@@ -35,7 +35,7 @@ test {
 // START SNIPPET upload
 uploadMaster {
     repositories {
-       addFlatDirResolver('upload', file('repos'))
+       flatDir(file('repos'))
     }
 }
 // END SNIPPET upload

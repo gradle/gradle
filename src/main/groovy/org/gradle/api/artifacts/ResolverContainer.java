@@ -81,18 +81,18 @@ public interface ResolverContainer extends IConventionAware {
      * @param dirs The directories to look for artifacts.
      * @return the added resolver
      */
-    FileSystemResolver addFlatDirResolver(String name, Object... dirs);
+    FileSystemResolver flatDir(String name, Object... dirs);
 
     /**
      * Adds a resolver which look in the official Maven Repo for dependencies. The URL of the official Repo is {@link
      * #MAVEN_REPO_URL}. The name is {@link #DEFAULT_MAVEN_REPO_NAME}. The behavior of this resolver is otherwise the
-     * same as the ones added by {@link #addMavenStyleRepo(String, String, String[])}.
+     * same as the ones added by {@link #mavenRepo(String, String, String[])}.
      *
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only.
      * @return the added resolver
-     * @see #addMavenStyleRepo(String, String, String[])
+     * @see #mavenRepo (String, String, String[])
      */
-    DependencyResolver addMavenRepo(String... jarRepoUrls);
+    DependencyResolver mavenCentral(String... jarRepoUrls);
 
     /**
      * Adds a resolver that uses Maven pom.xml descriptor files for resolving dependencies. By default the resolver
@@ -109,11 +109,15 @@ public interface ResolverContainer extends IConventionAware {
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only.
      * @return the added resolver
      */
-    DependencyResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls);
+    DependencyResolver mavenRepo(String name, String root, String... jarRepoUrls);
 
     void setMavenPomDir(File mavenPomDir);
 
     Conf2ScopeMappingContainer getMavenScopeMappings();
 
     File getMavenPomDir();
+
+    FileSystemResolver flatDir(Object... dirs);
+
+    DependencyResolver mavenRepo(String root, String... jarRepoUrls);
 }

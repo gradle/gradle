@@ -1,5 +1,5 @@
 subprojects {
     repositories {
-        addMavenRepo()
+        mavenCentral()
     }
 }

@@ -4,7 +4,7 @@ usePlugin('java')
 usePlugin('osgi')
 
 repositories {
-    addFlatDirResolver('lib', "$rootDir/lib")
+    flatDir("$rootDir/lib")
 }
 
 dependencies {

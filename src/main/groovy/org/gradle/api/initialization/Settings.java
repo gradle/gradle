@@ -139,7 +139,9 @@ public interface Settings {
      */
     List<DependencyResolver> getResolvers();
 
-    FileSystemResolver addFlatDirResolver(String name, Object[] dirs);
+    FileSystemResolver flatDir(String name, Object[] dirs);
+
+    FileSystemResolver flatDir(Object[] dirs);
 
     /**
      * <p>Returns the settings directory of the build. The settings directory is the directory containing the settings
@@ -159,9 +161,11 @@ public interface Settings {
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed if only the pom is
      */
-    DependencyResolver addMavenRepo(String[] jarRepoUrls);
+    DependencyResolver mavenCentral(String[] jarRepoUrls);
 
-    DependencyResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls);
+    DependencyResolver mavenRepo(String name, String root, String[] jarRepoUrls);
+
+    DependencyResolver mavenRepo(String root, String[] jarRepoUrls);
 
     /**
      * <p>Returns the root project of the build.</p>

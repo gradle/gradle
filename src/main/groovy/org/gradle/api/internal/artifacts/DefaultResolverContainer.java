@@ -32,6 +32,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
+import org.gradle.util.HashUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -163,18 +164,27 @@ public class DefaultResolverContainer implements ResolverContainer {
         return returnedResolvers;
     }
 
-    public FileSystemResolver addFlatDirResolver(String name, Object... dirs) {
+    public FileSystemResolver flatDir(String name, Object... dirs) {
         FileSystemResolver resolver = createFlatDirResolver(name, dirs);
         return (FileSystemResolver) add(resolver);
     }
 
-    public DependencyResolver addMavenRepo(String... jarRepoUrls) {
+    public FileSystemResolver flatDir(Object... dirs) {
+        String name = HashUtil.createHash(GUtil.join(dirs, ""));
+        return flatDir(name, dirs);
+    }
+
+    public DependencyResolver mavenCentral(String... jarRepoUrls) {
         return add(createMavenRepoResolver(DEFAULT_MAVEN_REPO_NAME,
                 MAVEN_REPO_URL, jarRepoUrls));
     }
 
-    public DependencyResolver addMavenStyleRepo(String name, String root, String... jarRepoUrls) {
+    public DependencyResolver mavenRepo(String name, String root, String... jarRepoUrls) {
         return add(createMavenRepoResolver(name, root, jarRepoUrls));
+    }
+
+    public DependencyResolver mavenRepo(String root, String... jarRepoUrls) {
+        return add(createMavenRepoResolver(root, root, jarRepoUrls));
     }
 
     public FileSystemResolver createFlatDirResolver(String name, Object... dirs) {

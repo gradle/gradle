@@ -66,9 +66,9 @@ configurations {
 }
 
 repositories {
-    addMavenStyleRepo('gradle_sourceforge', 'http://gradle.sourceforge.net/repository/', 'http://gradle.sourceforge.net/otherrepo/').allownomd = false
-    addMavenStyleRepo('gradle_sourceforge2', 'http://gradle.sourceforge.net/otherrepo/')
-    addMavenRepo()
+    mavenRepo('http://gradle.sourceforge.net/repository/', 'http://gradle.sourceforge.net/otherrepo/').allownomd = false
+    mavenRepo('http://gradle.sourceforge.net/otherrepo/')
+    mavenCentral()
 }
 
 dependencies {

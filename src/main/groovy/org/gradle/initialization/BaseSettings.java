@@ -223,16 +223,24 @@ public class BaseSettings implements SettingsInternal {
         buildConfiguration.addDependency(dependencyFactory.createModule(id, configureClosure));
     }
 
-    public FileSystemResolver addFlatDirResolver(String name, Object[] dirs) {
-        return resolverContainer.addFlatDirResolver(name, dirs);
+    public FileSystemResolver flatDir(String name, Object[] dirs) {
+        return resolverContainer.flatDir(name, dirs);
     }
 
-    public DependencyResolver addMavenRepo(String[] jarRepoUrls) {
-        return resolverContainer.addMavenRepo(jarRepoUrls);
+    public FileSystemResolver flatDir(Object[] dirs) {
+        return resolverContainer.flatDir(dirs);
     }
 
-    public DependencyResolver addMavenStyleRepo(String name, String root, String[] jarRepoUrls) {
-        return resolverContainer.addMavenStyleRepo(name, root, jarRepoUrls);
+    public DependencyResolver mavenCentral(String[] jarRepoUrls) {
+        return resolverContainer.mavenCentral(jarRepoUrls);
+    }
+
+    public DependencyResolver mavenRepo(String name, String root, String[] jarRepoUrls) {
+        return resolverContainer.mavenRepo(name, root, jarRepoUrls);
+    }
+
+    public DependencyResolver mavenRepo(String root, String[] jarRepoUrls) {
+        return resolverContainer.mavenRepo(root, jarRepoUrls);
     }
 
     public List<DependencyResolver> getResolvers() {

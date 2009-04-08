@@ -3,7 +3,7 @@ usePlugin('java')
 sourceCompatibility=1.5
 
 repositories {
-    addMavenRepo()
+    mavenCentral()
 }
 
 dependencies {

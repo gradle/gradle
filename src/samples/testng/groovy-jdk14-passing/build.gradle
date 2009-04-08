@@ -3,7 +3,7 @@ usePlugin('groovy')
 sourceCompatibility=1.4
 
 repositories {
-    addMavenRepo()
+    mavenCentral()
 }
 
 dependencies {

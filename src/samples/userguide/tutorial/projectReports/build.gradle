@@ -9,7 +9,7 @@ subprojects {
         compile
     }
     repositories {
-        addMavenRepo()
+        mavenCentral()
     }
     dependencies {
         compile "commons-io:commons-io:1.2"
