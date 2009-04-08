@@ -33,12 +33,10 @@ import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.HashUtil;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -164,27 +162,62 @@ public class DefaultResolverContainer implements ResolverContainer {
         return returnedResolvers;
     }
 
-    public FileSystemResolver flatDir(String name, Object... dirs) {
-        FileSystemResolver resolver = createFlatDirResolver(name, dirs);
+    public FileSystemResolver flatDir(Map args) {
+        Object[] rootDirs = getFlatDirRootDirs(args);
+        FileSystemResolver resolver = createFlatDirResolver(
+                getNameFromMap(args, HashUtil.createHash(GUtil.join(rootDirs, ""))),
+                rootDirs);
         return (FileSystemResolver) add(resolver);
     }
 
-    public FileSystemResolver flatDir(Object... dirs) {
-        String name = HashUtil.createHash(GUtil.join(dirs, ""));
-        return flatDir(name, dirs);
+    private String getNameFromMap(Map args, String defaultName) {
+        return GUtil.isTrue(args.get("name")) ? args.get("name").toString() : defaultName;
     }
 
-    public DependencyResolver mavenCentral(String... jarRepoUrls) {
-        return add(createMavenRepoResolver(DEFAULT_MAVEN_CENTRAL_REPO_NAME,
-                MAVEN_CENTRAL_URL, jarRepoUrls));
+    private Object[] getFlatDirRootDirs(Map args) {
+        Object rootDir = args.get("rootDir");
+        List rootDirs = (List) args.get("rootDirs");
+        if (rootDir != null) {
+            if (rootDirs != null) {
+                throw new InvalidUserDataException("You can't specify both rootDir and rootDirs for a flat dir repository.");
+            }
+            return WrapUtil.toArray(rootDir);
+        } else if (rootDirs != null){
+            return rootDirs.toArray();
+        } else {
+            throw new InvalidUserDataException("You must specify either the rootDir or the rootDirs for a flat dir repository.");
+        }
     }
 
-    public DependencyResolver mavenRepo(String name, String root, String... jarRepoUrls) {
-        return add(createMavenRepoResolver(name, root, jarRepoUrls));
+    public DependencyResolver mavenCentral() {
+        return mavenCentral(Collections.emptyMap());
     }
 
-    public DependencyResolver mavenRepo(String root, String... jarRepoUrls) {
-        return add(createMavenRepoResolver(root, root, jarRepoUrls));
+    public DependencyResolver mavenCentral(Map args) {
+        return add(createMavenRepoResolver(
+                getNameFromMap(args, DEFAULT_MAVEN_CENTRAL_REPO_NAME),
+                MAVEN_CENTRAL_URL,
+                getJarOnlyReposFromMap(args)));
+    }
+
+    private String[] getJarOnlyReposFromMap(Map args) {
+        List jarOnlyRepos = GUtil.isTrue(args.get("jarOnlyRepos")) ? (List) args.get("jarOnlyRepos") : new ArrayList();
+        String[] jarOnlyRepoStrings = new String[jarOnlyRepos.size()];
+        for (int i = 0; i < jarOnlyRepoStrings.length; i++) {
+            jarOnlyRepoStrings[i] = jarOnlyRepos.get(i).toString();
+        }
+        return jarOnlyRepoStrings;
+    }
+
+    public DependencyResolver mavenRepo(Map args) {
+        if (!GUtil.isTrue(args.get("rootRepo"))) {
+            throw new InvalidUserDataException("You must specify a root repo for a Maven repo.");
+        }
+        Object rootRepo = args.get("rootRepo");
+        return add(createMavenRepoResolver(
+                getNameFromMap(args, rootRepo.toString()),
+                rootRepo.toString(),
+                getJarOnlyReposFromMap(args)));
     }
 
     public FileSystemResolver createFlatDirResolver(String name, Object... dirs) {

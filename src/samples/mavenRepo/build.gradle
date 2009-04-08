@@ -66,8 +66,8 @@ configurations {
 }
 
 repositories {
-    mavenRepo('http://gradle.sourceforge.net/repository/', 'http://gradle.sourceforge.net/otherrepo/').allownomd = false
-    mavenRepo('http://gradle.sourceforge.net/otherrepo/')
+    mavenRepo(rootRepo: 'http://gradle.sourceforge.net/repository/', jarOnlyRepos: ['http://gradle.sourceforge.net/otherrepo/']).allownomd = false
+    mavenRepo(rootRepo: 'http://gradle.sourceforge.net/otherrepo/')
     mavenCentral()
 }
 

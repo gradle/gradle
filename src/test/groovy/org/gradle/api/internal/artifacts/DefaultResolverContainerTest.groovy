@@ -145,7 +145,7 @@ class DefaultResolverContainerTest {
 
     @Test public void testCreateFlatDirResolver() {
         prepareFlatDirResolverCreation('libs', createFlatDirTestDirs())
-        assert resolverContainer.createFlatDirResolver("libs", createFlatDirTestDirsArgs()).is(expectedResolver)
+        assert resolverContainer.createFlatDirResolver("libs", createFlatDirTestDirsArgs() as Object[]).is(expectedResolver)
     }
 
     private def prepareFlatDirResolverCreation(String expectedName, File[] expectedDirs) {
@@ -154,20 +154,12 @@ class DefaultResolverContainerTest {
         }
     }
   
-    private Object[] createFlatDirTestDirsArgs() {
-        return ['a', 'b' as File] as Object[]
+    private List createFlatDirTestDirsArgs() {
+        return ['a', 'b' as File]
     }
 
     private File[] createFlatDirTestDirs() {
         return ['a' as File, 'b' as File] as File[]
-    }
-
-    @Test public void testFlatDirWithName() {
-        String resolverName = 'libs'
-        prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir(resolverName, createFlatDirTestDirsArgs()).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
     private def prepareResolverFactoryToTakeAndReturnExpectedResolver() {
@@ -176,13 +168,39 @@ class DefaultResolverContainerTest {
       }
     }
 
-    @Test public void testFlatDirWithoutName() {
+    @Test public void testFlatDirWithNameAndRootDirs() {
+        String resolverName = 'libs'
+        prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.flatDir([name: resolverName] + [rootDirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test public void testFlatDirWithNameAndRootDir() {
+        String resolverName = 'libs'
+        prepareFlatDirResolverCreation(resolverName, ['a' as File] as File[])
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.flatDir([name: resolverName] + [rootDir: 'a']).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test public void testFlatDirWithoutNameAndRootDirs() {
         Object[] expectedDirs = createFlatDirTestDirs()
         String expectedName = HashUtil.createHash(expectedDirs.join(''))
         prepareFlatDirResolverCreation(expectedName, expectedDirs)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir(createFlatDirTestDirsArgs()).is(expectedResolver)
+        assert resolverContainer.flatDir([rootDirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test(expected = InvalidUserDataException)
+    public void testFlatDirWithRootDirAndRootDirsSet() {
+        resolverContainer.flatDir([rootDir: 'a', rootDirs: ['b', 'c']])
+    }
+
+    @Test(expected = InvalidUserDataException)
+    public void testFlatDirWithMissingRootDirAndMissingRootDirs() {
+        resolverContainer.flatDir([name: 'someName'])
     }
 
     @Test
@@ -193,12 +211,35 @@ class DefaultResolverContainerTest {
     }
 
     @Test
+    public void testMavenCentralWithNoArgs() {
+        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.mavenCentral().is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test
     public void testMavenCentral() {
         String testUrl2 = 'http://www.gradle2.org'
         prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2) 
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenCentral([testUrl2] as String[]).is(expectedResolver)
+        assert resolverContainer.mavenCentral(jarOnlyRepos: [testUrl2]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test
+    public void testMavenCentralWithName() {
+        String testUrl2 = 'http://www.gradle2.org'
+        String name = 'customName'
+        prepareCreateMavenRepo(name, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.mavenCentral(name: name, jarOnlyRepos: [testUrl2]).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test(expected = InvalidUserDataException)
+    public void testMavenRepoWithMissingRootRepo() {
+        resolverContainer.mavenRepo([name: 'someName'])
     }
 
     @Test
@@ -208,7 +249,7 @@ class DefaultResolverContainerTest {
         String repoName = 'mavenRepoName'
         prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenRepo(repoName, repoRoot, [testUrl2] as String[]).is(expectedResolver)
+        assert resolverContainer.mavenRepo([name: repoName, rootRepo: repoRoot, jarOnlyRepos: [testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
@@ -218,7 +259,7 @@ class DefaultResolverContainerTest {
         String repoRoot = 'http://www.reporoot.org'
         prepareCreateMavenRepo(repoRoot, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenRepo(repoRoot, [testUrl2] as String[]).is(expectedResolver)
+        assert resolverContainer.mavenRepo([rootRepo: repoRoot, jarOnlyRepos: [testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 

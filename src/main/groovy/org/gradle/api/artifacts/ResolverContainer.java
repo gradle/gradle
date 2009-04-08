@@ -77,22 +77,23 @@ public interface ResolverContainer extends IConventionAware {
      * dependency section of your build script. If you only use this kind of resolver you might specify your
      * dependencies like <code>":junit:4.4"</code> instead of <code>"junit:junit:4.4"</code>
      *
-     * @param name The name of the resolver
-     * @param dirs The directories to look for artifacts.
+     * @param args 
      * @return the added resolver
      */
-    FileSystemResolver flatDir(String name, Object... dirs);
+    FileSystemResolver flatDir(Map args);
 
     /**
      * Adds a resolver which look in the official Maven Repo for dependencies. The URL of the official Repo is {@link
      * #MAVEN_CENTRAL_URL}. The name is {@link #DEFAULT_MAVEN_CENTRAL_REPO_NAME}. The behavior of this resolver is otherwise the
      * same as the ones added by {@link #mavenRepo(String, String, String[])}.
      *
-     * @param jarRepoUrls A list of urls of repositories to look for artifacts only.
+     * @param args A list of urls of repositories to look for artifacts only.
      * @return the added resolver
      * @see #mavenRepo (String, String, String[])
      */
-    DependencyResolver mavenCentral(String... jarRepoUrls);
+    DependencyResolver mavenCentral(Map args);
+
+    DependencyResolver mavenCentral();
 
     /**
      * Adds a resolver that uses Maven pom.xml descriptor files for resolving dependencies. By default the resolver
@@ -109,15 +110,11 @@ public interface ResolverContainer extends IConventionAware {
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only.
      * @return the added resolver
      */
-    DependencyResolver mavenRepo(String name, String root, String... jarRepoUrls);
+    DependencyResolver mavenRepo(Map args);
 
     void setMavenPomDir(File mavenPomDir);
 
     Conf2ScopeMappingContainer getMavenScopeMappings();
 
     File getMavenPomDir();
-
-    FileSystemResolver flatDir(Object... dirs);
-
-    DependencyResolver mavenRepo(String root, String... jarRepoUrls);
 }

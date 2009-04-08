@@ -7,7 +7,7 @@ usePlugin('war')
 usePlugin('maven')
 
 repositories {
-    flatDir("$rootDir/lib")
+    flatDir(rootDir: "$rootDir/lib")
 }
 
 dependencies {

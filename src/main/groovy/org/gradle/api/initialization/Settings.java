@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.Dependency;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
@@ -139,9 +140,7 @@ public interface Settings {
      */
     List<DependencyResolver> getResolvers();
 
-    FileSystemResolver flatDir(String name, Object[] dirs);
-
-    FileSystemResolver flatDir(Object[] dirs);
+    FileSystemResolver flatDir(Map args);
 
     /**
      * <p>Returns the settings directory of the build. The settings directory is the directory containing the settings
@@ -161,11 +160,11 @@ public interface Settings {
     /**
      * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed if only the pom is
      */
-    DependencyResolver mavenCentral(String[] jarRepoUrls);
+    DependencyResolver mavenCentral(Map args);
 
-    DependencyResolver mavenRepo(String name, String root, String[] jarRepoUrls);
+    DependencyResolver mavenCentral();
 
-    DependencyResolver mavenRepo(String root, String[] jarRepoUrls);
+    DependencyResolver mavenRepo(Map args);
 
     /**
      * <p>Returns the root project of the build.</p>
