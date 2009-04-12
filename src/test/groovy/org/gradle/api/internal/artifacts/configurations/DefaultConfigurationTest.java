@@ -226,7 +226,7 @@ public class DefaultConfigurationTest {
         File file2 = new File("somePath2");
         final Set<File> fileSet = WrapUtil.toLinkedSet(file1, file2);
         makeResolveReturnFileSet(fileSet);
-        assertThat(configuration.getAsPath(), equalTo(file1.getAbsolutePath() + ":" + file2.getAbsolutePath()));
+        assertThat(configuration.getAsPath(), equalTo(file1.getAbsolutePath() + System.getProperty("path.separator") + file2.getAbsolutePath()));
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 

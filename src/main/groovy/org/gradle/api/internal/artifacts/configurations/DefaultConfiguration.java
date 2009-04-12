@@ -146,7 +146,7 @@ public class DefaultConfiguration implements Configuration {
     public String getAsPath() {
         String path = "";
         for (File pathElementFile : resolve()) {
-            path += pathElementFile.getAbsolutePath() + ":";
+            path += pathElementFile.getAbsolutePath() + System.getProperty("path.separator");
         }
         return path.length() > 0 ? path.substring(0, path.length() - 1) : path;
     }
