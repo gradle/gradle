@@ -1,50 +1,35 @@
 <chapter id='groovy_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Groovy Plugin</title>
-    <para>The Groovy Plugin extends the JavaPlugin. It can deal with pure Java projects
+    <para>The Groovy Plugin extends the JavaPlugin. It can deal with pure Java projects,
         <footnote>
-            <para>We don't recommend this, as the Groovy plugin uses the
-                <emphasis>Groovyc</emphasis>
-                Ant task to compile the sources. For pure Java projects you might rather stick with pure <literal>
-                    javac</literal>. In particular as you would have to supply a groovy jar for doing this.
+            <para>We don't recommend this, as the Groovy plugin uses the <emphasis>Groovyc</emphasis>
+                Ant task to compile the sources. For pure Java projects you might rather stick with pure
+                <literal>javac</literal>. In particular as you would have to supply a groovy jar for doing this.
             </para>
         </footnote>
-        , with mixed Java and Groovy projects and with pure Groovy projects. The Groovy plugin does not add any tasks.
-        It modifies some of the tasks of the JavaPlugin and adds to the
-        <emphasis>Convention</emphasis>
-        object. See <xref linkend='groovylayout'/>, <xref linkend='groovyconvention'/>
-        and <xref linkend='groovyconventionFloatingDir'/>. It also add a new dependency configuration <literal>groovy</literal>.
+        with mixed Java and Groovy projects, and with pure Groovy projects. The Groovy plugin does not add any tasks.
+        It modifies some of the tasks of the JavaPlugin and adds to the <emphasis>Convention</emphasis> object.
+        See <xref linkend='groovylayout'/>, <xref linkend='groovyconvention'/>
+        and <xref linkend='groovyconventionFloatingDir'/>. It also add a new dependency configuration
+        <literal>groovy</literal>.
     </para>
     <para>Gradle is written in Groovy and offers you to write your build scripts in Groovy. But this is an internal
         aspect of Gradle which is strictly separated from building Groovy projects. You are free to choose the Groovy
         version your project should be build with. This Groovy version is not just used for compiling your code and
-        running your tests. The
-        <literal>groovyc</literal>
-        compiler and the the
-        <literal>groovydoc</literal>
+        running your tests. The <literal>groovyc</literal> compiler and the the <literal>groovydoc</literal>
         tool are also taken from the Groovy version you provide. As usual, with freedom comes responsibility ;). You are
         not just free to choose a Groovy version, you have to provide one. Gradle expects that the groovy libraries are
-        assigned to the
-        <literal>groovy</literal>
-        dependency configuration. Here are some examples how this works (the notation depends on your resolvers):
+        assigned to the <literal>groovy</literal> dependency configuration. Here is an example using the public Maven
+        repository:
     </para>
-    <programlisting><![CDATA[
-dependencies {
-    addMavenRepo()
-    groovy "org.codehaus.groovy:groovy-all:1.6-beta-1"
-    // further declarations
-}	
-]]></programlisting>
-    <programlisting><![CDATA[
-dependencies {
-    addFlatDirResolver('lib', new File(rootDir, 'lib'))
-    clientModule(['groovy'], ":groovy-all:1.5.5") {
-	        dependency(":commons-cli:1.0")
-	        clientModule(":ant:1.7.0") {
-	            dependencies(":ant-junit:1.7.0:jar", ":ant-launcher:1.7.0")
-	        }
-    }
-}	
-]]></programlisting>
+    <sample id="quickstartGroovyDependency" dir="groovy/quickstart">
+        <sourcefile file="build.gradle" snippet="groovy-dependency"/>
+    </sample>
+    <para>And here is an example using the Groovy JARs checked into the <filename>lib</filename> directory of the source
+        tree:</para>
+    <sample id="flatDirGroovyDependency" dir="userguide/tutorial/groovyWithFlatDir">
+        <sourcefile file="build.gradle" snippet="groovy-dependency"/>
+    </sample>
     <table id='groovylayout'>
         <title>Default Directory Layout (additional to the Java layout)</title>
         <thead>

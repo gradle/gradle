@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <chapter id="tutorial_groovy_projects">
-    <title>Tutorial - Groovy Projects</title>
+    <title>Groovy Quickstart</title>
 
     <note>
         <para>
@@ -22,11 +22,29 @@
         </para>
     </note>
 
-    <para>TODO: use the Groovy Plugin.</para>
-    <para>TODO: extends the Java plugin. Go and read<xref linkend="tutorial_java_projects"/>.</para>
-    <para>adds <filename>src/main/groovy</filename> and <filename>src/test/groovy</filename> source directories.
-        Uses joint compilation for these directories, so can include java and groovy source files in these directories.
+    <para>To build a Groovy project, you use the <firstterm>Groovy Plugin</firstterm>. This plugin extends the Java
+        plugin, adding Groovy compilation capabilties to your project. See <xref linkend="tutorial_java_projects"/>.
+        To use the Groovy plugin, add the following to your build file:</para>
+    <sample id="groovyQuickstart" dir="groovy/quickstart">
+        <sourcefile file="build.gradle" snippet="use-plugin"/>
+    </sample>
+    <para>This will also apply the Java plugin to the project.</para>
+    <para>The Groovy plugin extends the <literal>compile</literal> task to include <filename>src/main/groovy</filename>
+        and <filename>src/test/groovy</filename> source directories. Joint compilation is used for these directories,
+        so they can contain both java and groovy source files.
     </para>
-    <para>TODO: must declare Groovy version in the <literal>groovy</literal> configuration:</para>
+    <para>You must declare the Groovy version to use, and where to find it. You do this by adding a dependency to the
+        <literal>groovy</literal> configuration. For our sample, we will use Groovy 1.6.0 from the Maven repository:</para>
+    <sample id="groovyQuickstart" dir="groovy/quickstart">
+        <sourcefile file="build.gradle" snippet="groovy-dependency"/>
+    </sample>
+
+    <section>
+        <title>Summary</title>
+        <para>Here is our completed build file:</para>
+        <sample id="groovyQuickstart" dir="groovy/quickstart">
+            <sourcefile file="build.gradle"/>
+        </sample>
+    </section>
 
 </chapter>
