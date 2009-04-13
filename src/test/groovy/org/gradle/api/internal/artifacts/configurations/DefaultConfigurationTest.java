@@ -220,22 +220,6 @@ public class DefaultConfigurationTest {
         assertThat(Configurations.getNames(configuration.getAll()), equalTo(WrapUtil.toSet(CONF_NAME, testConf1, testConf2)));
     }
     
-    @Test
-    public void getAsPath() {
-        File file1 = new File("somePath1");
-        File file2 = new File("somePath2");
-        final Set<File> fileSet = WrapUtil.toLinkedSet(file1, file2);
-        makeResolveReturnFileSet(fileSet);
-        assertThat(configuration.getAsPath(), equalTo(file1.getAbsolutePath() + System.getProperty("path.separator") + file2.getAbsolutePath()));
-        assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
-    }
-
-    @Test
-    public void getAsPathWithEmptyPath() {
-        makeResolveReturnFileSet(new HashSet());
-        assertThat(configuration.getAsPath(), equalTo(""));
-    }
-
     @Test(expected = InvalidUserDataException.class)
     public void getAsPathWithFailure_shouldThrowInvalidUserDataEx() {
         prepareForResolveWithErrors();

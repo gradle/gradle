@@ -11,19 +11,17 @@ manifest.mainAttributes(
 )
 // END SNIPPET customisation
 
+// START SNIPPET repo
 repositories {
     mavenCentral()
 }
+// END SNIPPET repo
 
-// START SNIPPET repo
 // START SNIPPET dependencies
 dependencies {
-// END SNIPPET repo
     compile 'commons-collections:commons-collections:3.2'
     testCompile 'junit:junit:4.+'
-// START SNIPPET repo
 }
-// END SNIPPET repo
 // END SNIPPET dependencies
 
 // START SNIPPET task-customisation

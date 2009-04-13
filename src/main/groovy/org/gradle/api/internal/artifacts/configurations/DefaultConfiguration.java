@@ -10,6 +10,7 @@ import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -19,7 +20,7 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.*;
 
-public class DefaultConfiguration implements Configuration {
+public class DefaultConfiguration extends AbstractFileCollection implements Configuration {
     private final String name;
 
     private Visibility visibility = Visibility.PUBLIC;
@@ -143,14 +144,6 @@ public class DefaultConfiguration implements Configuration {
         return ivyService.resolveFromReport(this, report);
     }
 
-    public String getAsPath() {
-        String path = "";
-        for (File pathElementFile : resolve()) {
-            path += pathElementFile.getAbsolutePath() + System.getProperty("path.separator");
-        }
-        return path.length() > 0 ? path.substring(0, path.length() - 1) : path;
-    }
-
     public ResolveReport resolveAsReport() {
         if (state == State.UNRESOLVED) {
             cachedResolveReport = ivyService.resolveAsReport(this, dependencyMetaDataProvider.getModule(), dependencyMetaDataProvider.getGradleUserHomeDir(), dependencyMetaDataProvider.getClientModuleRegistry());
@@ -171,21 +164,8 @@ public class DefaultConfiguration implements Configuration {
                 dependencyMetaDataProvider.getGradleUserHomeDir());
     }
 
-    public File getSingleFile() throws IllegalStateException {
-        Set<File> files = resolve();
-        if (files.size() != 1) {
-            throw new IllegalStateException(String.format("Configuration '%s' does not resolve to a single file.",
-                    getName()));
-        }
-        return files.iterator().next();
-    }
-
     public Set<File> getFiles() {
-        return new HashSet(resolve());
-    }
-
-    public Iterator<File> iterator() {
-        return resolve().iterator();
+        return new LinkedHashSet<File>(resolve());
     }
 
     public TaskDependency getBuildDependencies() {
@@ -327,6 +307,10 @@ public class DefaultConfiguration implements Configuration {
                 ", description='" + description + '\'' +
                 ", visibility=" + visibility +
                 '}';
+    }
+
+    public String getDisplayName() {
+        return String.format("configuration '%s'", name);
     }
 
     public Configuration getConfiguration(Dependency dependency) {

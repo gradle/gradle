@@ -23,6 +23,11 @@ import java.util.Collection;
 import java.util.Iterator;
 
 public abstract class AbstractFileCollection implements FileCollection {
+    /**
+     * Returns the display name of this file collection. Used in log and error messages.
+     *
+     * @return the display name
+     */
     public abstract String getDisplayName();
 
     public File getSingleFile() throws IllegalStateException {

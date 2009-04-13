@@ -31,12 +31,11 @@ artifacts {
 
 // START SNIPPET dists
 dists {
-        zip() {
-            dependsOn configurations.runtime.buildDependencies
-                fileSet(dir: 'src/dist')
-        }.doFirst { task ->
-            task.files(configurations.compile.resolve() as File[])
-        }
+    zip() {
+        dependsOn configurations.runtime.buildDependencies
+        files configurations.runtime
+        fileSet dir: 'src/dist'
+    }
 }
 // END SNIPPET dists
 
