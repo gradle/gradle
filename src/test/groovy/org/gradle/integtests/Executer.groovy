@@ -76,6 +76,12 @@ class Executer {
         String output = outStream
         String error = errStream
         boolean failed = exitValue != 0
+
+        println "OUTPUT:"
+        println output
+        println "ERROR:"
+        println error
+
         if (failed != expectFailure) {
             throw new RuntimeException("Integrationtests failed with: $output $error")
         }
