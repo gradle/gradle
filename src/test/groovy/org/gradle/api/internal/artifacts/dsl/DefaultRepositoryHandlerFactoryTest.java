@@ -52,7 +52,7 @@ public class DefaultRepositoryHandlerFactoryTest {
                 new DefaultRepositoryHandlerFactory(repositoryFactoryMock);
         repositoryHandlerFactory.setConvention(convention);
         repositoryHandlerFactory.setConventionMapping(mavenConventionMapping);
-        RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler();
+        DefaultRepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler();
         assertThat(repositoryHandler.getResolverFactory(), Matchers.sameInstance(repositoryFactoryMock));
         assertThat(repositoryHandler.getConventionMapping(), Matchers.equalTo(mavenConventionMapping));
         assertThat(repositoryHandler.getConventionAwareHelper().getConvention(),

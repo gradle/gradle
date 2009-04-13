@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.internal.artifacts.DefaultResolverContainer;
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.artifacts.ResolverContainer;
 
 /**
  * @author Hans Dockter
  */
-public class RepositoryHandler extends DefaultResolverContainer {
-    public RepositoryHandler(ResolverFactory resolverFactory, Convention convention) {
-        super(resolverFactory, convention);
-    }
+public interface RepositoryHandler extends ResolverContainer {
 }

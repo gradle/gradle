@@ -17,14 +17,13 @@
 package org.gradle.api.internal.project;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.plugins.Convention;
@@ -61,7 +60,7 @@ public class ProjectFactoryTest {
     private ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
     private DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory.class);
     private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
-    private RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
+    private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory.class);
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private ITaskFactory taskFactoryMock = context.mock(ITaskFactory.class);

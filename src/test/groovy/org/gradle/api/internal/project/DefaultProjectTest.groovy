@@ -28,7 +28,6 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.internal.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.invocation.Build
@@ -58,6 +57,7 @@ import org.gradle.api.internal.artifacts.dsl.ArtifactHandler
 import org.junit.Ignore
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
 import org.gradle.util.TestClosure
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 /**
  * @author Hans Dockter

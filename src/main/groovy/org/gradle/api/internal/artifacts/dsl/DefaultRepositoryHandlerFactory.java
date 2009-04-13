@@ -34,8 +34,8 @@ public class DefaultRepositoryHandlerFactory implements RepositoryHandlerFactory
         this.repositoryFactory = repositoryFactory;
     }
 
-    public RepositoryHandler createRepositoryHandler() {
-        RepositoryHandler repositoryHandler = new RepositoryHandler(repositoryFactory, convention);
+    public DefaultRepositoryHandler createRepositoryHandler() {
+        DefaultRepositoryHandler repositoryHandler = new DefaultRepositoryHandler(repositoryFactory, convention);
         repositoryHandler.setConventionMapping(conventionMapping);
         return repositoryHandler;
     }

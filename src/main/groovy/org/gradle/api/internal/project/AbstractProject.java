@@ -25,6 +25,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
@@ -36,8 +37,8 @@ import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler;
 import org.gradle.api.internal.plugins.DefaultConvention;
@@ -464,7 +465,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return repositoryHandler;
     }
 
-    public void setRepositoryHandler(RepositoryHandler repositoryHandlerFactory) {
+    public void setRepositoryHandler(DefaultRepositoryHandler repositoryHandlerFactory) {
         this.repositoryHandler = repositoryHandlerFactory;
     }
 
