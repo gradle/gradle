@@ -18,6 +18,8 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.GradleScriptException;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -25,10 +27,14 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
+import static org.junit.Assert.assertThat;
 import org.junit.runner.RunWith;
+import org.hamcrest.Matchers;
 
 import java.io.File;
 import java.util.List;
+import java.util.Collections;
 
 /**
  * @author Hans Dockter
@@ -66,12 +72,9 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     @Test
     public void testExecute() {
-        setUpMocksAndAttributes(testObj);
+        setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations() {
             {
-                one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(), testObj.getDestinationDir(),
-                        GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
-                        testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getOptions(), testObj.getProject().getAnt());
                 one(antGroovycCompileMock).execute(testObj.getProject().getAnt(), testObj.getGroovySourceDirs(), testObj.getGroovyIncludes(), testObj.getGroovyExcludes(),
                         testObj.getGroovyJavaIncludes(), testObj.getGroovyJavaExcludes(), testObj.getDestinationDir(),
                         GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
@@ -82,11 +85,30 @@ public class GroovyCompileTest extends AbstractCompileTest {
         testObj.execute();
     }
 
-    void setUpMocksAndAttributes(GroovyCompile compile) {
+    @Test
+    public void testExecuteWithEmptyGroovyClasspath() {
+        setUpMocksAndAttributes(testObj, Collections.emptyList());
+        try {
+            testObj.execute();
+        } catch (GradleScriptException e) {
+            assertThat(e.getCause(), Matchers.is(InvalidUserDataException.class));
+            return;
+        }
+        Assert.fail();
+    }
+
+    void setUpMocksAndAttributes(GroovyCompile compile, List groovyClasspath) {
         super.setUpMocksAndAttributes((Compile) compile);
-        compile.setGroovyClasspath(TEST_GROOVY_CLASSPATH);
+        compile.setGroovyClasspath(groovyClasspath);
         compile.setGroovySourceDirs(WrapUtil.toList(new File("groovySourceDir1"), new File("groovySourceDir2")));
         compile.existentDirsFilter = getGroovyCompileExistingDirsFilterMock();
+        context.checking(new Expectations() {
+            {
+                one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(), testObj.getDestinationDir(),
+                        GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
+                        testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getOptions(), testObj.getProject().getAnt());
+            }
+        });
     }
 
     @Test

@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-	compile "org.codehaus.groovy:groovy-all:1.5.6"
+	groovy "org.codehaus.groovy:groovy-all:1.5.6"
 
 	testCompile module('org.testng:testng:5.8') {
 	    artifact {

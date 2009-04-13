@@ -19,6 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.BootstrapUtil;
@@ -61,8 +62,15 @@ public class Groovydoc extends ConventionTask {
     private void generate(Task task) {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 getDestinationDir(), getSrcDirs());
-        List taskClasspath = GUtil.addLists(BootstrapUtil.getAntJarFiles(), getGroovyClasspath());
+        List taskClasspath = getGroovyClasspath();
+        throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         antGroovydoc.execute(existingSourceDirs, getDestinationDir(), getProject().getAnt(), taskClasspath);
+    }
+
+    private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {
+        if (taskClasspath.size() == 0) {
+            throw new InvalidUserDataException("You must assign a Groovy library to the groovy configuration!");
+        }
     }
 
     /**
