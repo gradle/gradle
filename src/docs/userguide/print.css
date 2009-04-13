@@ -7,6 +7,25 @@ body {
     font-size: 10pt;
 }
 
+/*
+ * Override colour -> black and white
+ */
+/*body {*/
+    /*color: black;*/
+/*}*/
+
+/*h1, h2, h3, h4, h5 {*/
+    /*color: black;*/
+/*}*/
+
+/*a {*/
+    /*color: black;*/
+/*}*/
+
+/*
+ * Book title page
+ */
+
 .titlepage h1.title {
     font-size: 360%;
 }
@@ -23,6 +42,10 @@ body {
 .toc * {
     line-height: 120%;
 }
+
+/**
+ * Chapter and Appendix title page
+ */
 
 .chapter {
     page-break-before: always;
@@ -67,6 +90,10 @@ body {
 p {
     text-align: justify;
 }
+
+/**
+ * Examples
+ */
 
 .example .title {
     text-align: left;

@@ -1,11 +1,11 @@
 <chapter id='more_about_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>More about Tasks</title>
     <para>In the introductory tutorial (<xref linkend='tutorial_using_tasks'/>) you have learned how to
-        create simple task. You have also learned how to add additional behavior to those tasks later on. And you have
+        create simple tasks. You have also learned how to add additional behavior to these tasks later on. And you have
         learned how to create dependencies between tasks. This was all about simple tasks. But Gradle takes the concept
-        of tasks further. Gradle supports enhanced tasks. Tasks which have there own properties and methods. This is
-        really different to what you are used from Ant targets. Such enhanced tasks are either provided by you or are
-        provided by Gradle.
+        of tasks further. Gradle supports <firstterm>enhanced tasks</firstterm>, that is, tasks which have their own
+        properties and methods. This is really different to what you are used from Ant targets. Such enhanced tasks are
+        either provided by you or are provided by Gradle.
     </para>
     <section id='sec:configuring_tasks'>
         <title>Configuring Tasks</title>

@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <chapter id="tutorial_gradle_command_line">
-    <title>Tutorial - Using the Gradle Command-Line</title>
+    <title>Using the Gradle Command-Line</title>
     <para>This chapter introduces the basics of the Gradle command-line. You execute Gradle builds using the
-        <command>gradle</command> command. You have already seen this in action in the previous chapter.</para>
+        <command>gradle</command> command. You have already seen this in action in previous chapters.</para>
     <section>
         <title>Executing multiple tasks</title>
         <para>You can execute multiple tasks in a single build by listing each of the tasks on the command-line. For example,

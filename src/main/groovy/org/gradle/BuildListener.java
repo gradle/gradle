@@ -38,23 +38,23 @@ public interface BuildListener {
      * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is
      * ready to use to load the build projects.</p>
      *
-     * @param settings The settings.
+     * @param settings The settings. Never null.
      */
     void settingsEvaluated(Settings settings);
 
     /**
-     * <p>Called when the projects for the build have been loaded. The projects have been loaded from the associated
-     * build files, however, none of the projects have yet been evaluated.</p>
+     * <p>Called when the projects for the build have been created from the settings. None of the projects have been
+     * evaluated.</p>
      *
-     * @param build The build which has been loaded.
+     * @param build The build which has been loaded. Never null.
      */
     void projectsLoaded(Build build);
 
     /**
-     * <p>Called when the projects for the build have been evaluated. The project objects are fully configured and are
-     * ready to use to prepare the task graph.</p>
+     * <p>Called when all projects for the build have been evaluated. The project objects are fully configured and are
+     * ready to use to populate the task graph.</p>
      *
-     * @param build The build which has been evaluated.
+     * @param build The build which has been evaluated. Never null.
      */
     void projectsEvaluated(Build build);
 
@@ -62,14 +62,14 @@ public interface BuildListener {
      * <p>Called when the task graph for the build has been populated. The task graph is fully configured and is ready
      * to use to execute the tasks which make up the build.</p>
      *
-     * @param graph The task graph
+     * @param graph The task graph. Never null.
      */
     void taskGraphPopulated(TaskExecutionGraph graph);
 
     /**
      * <p>Called when the build is completed. All selected tasks have been executed.</p>
      *
-     * @param result The result of the build.
+     * @param result The result of the build. Never null.
      */
     void buildFinished(BuildResult result);
 }

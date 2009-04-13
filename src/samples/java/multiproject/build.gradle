@@ -1,8 +1,5 @@
 
 subprojects {
-    group = 'org.gradle'
-    version = '1.0'
-
     usePlugin 'java'
 
     repositories {
@@ -12,6 +9,9 @@ subprojects {
     dependencies {
         testCompile 'junit:junit:4.4'
     }
+
+    group = 'org.gradle'
+    version = '1.0'
     manifest.mainAttributes(provider: 'gradle')
 }
 

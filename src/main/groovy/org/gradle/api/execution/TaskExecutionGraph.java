@@ -71,16 +71,17 @@ public interface TaskExecutionGraph {
     void whenReady(Closure closure);
 
     /**
-     * <p>Adds a closure to be called immediately before a task is executed by this graph. The task is passed to the
-     * closure as a parameter.
+     * <p>Adds a closure to be called immediately before a task is executed. The task is passed to the closure as a
+     * parameter.</p>
      *
      * @param closure The closure to execute when a task is about to be executed.
      */
     void beforeTask(Closure closure);
 
     /**
-     * <p>Adds a closure to be called immediately after a task is executed by this graph. The task is passed to the
-     * closure as a parameter.
+     * <p>Adds a closure to be called immediately after a task is executed. The task is passed to the closure as the
+     * first parameter. The task execution exception, if any, is passed as the second parameter. Both parameters are
+     * optional.</p>
      *
      * @param closure The closure to execute when a task has been executed
      */
@@ -89,7 +90,7 @@ public interface TaskExecutionGraph {
     /**
      * <p>Determines whether the given task is included in the execution plan.</p>
      *
-     * @param path the <em>absolute</em> path of the task
+     * @param path the <em>absolute</em> path of the task.
      * @return true if a task with the given path is included in the execution plan.
      * @throws IllegalStateException When this graph has not been populated.
      */

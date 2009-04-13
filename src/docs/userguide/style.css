@@ -1,6 +1,6 @@
 
 body {
-    font-family: 'Lucida Grande','Lucida Sans Unicode','Geneva','Verdana',sans-serif;
+    font-family: 'Lucida Grande','Lucida Sans Unicode','Lucida Sans','Geneva','Verdana',sans-serif;
     color: #555555;
     font-size: 11pt;
     line-height: 150%;
@@ -22,6 +22,7 @@ a:visited {
 
 h1, h2, h3, h4, h5 {
     color: #6a915e;
+    line-height: 150%;
 }
 
 h1 {
@@ -79,6 +80,11 @@ pre {
 .screen {
     border-left: solid #d0d0d0 0.5em;
     overflow-x: auto;
+}
+
+.example .title {
+    white-space: nowrap;
+    overflow-x: hidden;
 }
 
 .example-break, .figure-break {

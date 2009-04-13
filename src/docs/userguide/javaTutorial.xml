@@ -1,5 +1,5 @@
 <chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Tutorial - Java Projects</title>
+    <title>Java Quickstart</title>
 
     <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds some tasks to your
         project, along with some configuration properties, to allow you to compile and test your Java source code, and
@@ -17,9 +17,9 @@
         <para>This is all you need to define a Java project. This will apply the Java plugin to your project, which adds
             a number of tasks to your project.</para>
         <tip>
-            <title>What Tasks Can I Use?</title>
+            <title>What Tasks Are Available?</title>
             <para>You can use <userinput>gradle -t</userinput> to list the tasks of a project. This will let you see
-            the tasks in your project, including those added by the Java plugin.
+            the tasks that the Java plugin has added to your project.
         </para></tip>
         <para>Executing
             <userinput>gradle libs</userinput> will compile, test and jar your code. Gradle looks for your
@@ -55,7 +55,7 @@
             <title>Customising the Project</title>
             <para>The Java plugin adds a number of properties to your project. These properties have default values
                 which are usually sufficient to get started. It's easy to change these values if they don't suit. Let's
-                look at customising some of these values. Here we will specify the version of our Java project, along
+                look at this for our sample. Here we will specify the version number for our Java project, along
                 with the Java version our source is written in. We also add some attributes to the JAR manifest.
             </para>
             <sample id="javaQuickstart" dir="java/quickstart">
@@ -65,12 +65,12 @@
                 <title>What properties are available?</title>
                 <para>You can use <userinput>gradle -r</userinput> to list the properties of a project. This will allow
                 you to see the properties added by the Java plugin, and their default values.</para></tip>
-            <para>The Java plugin adds and configures tasks exactly as described in previous chapters. This
-                means you can use any of the mechanisms shown there to customise these tasks. For example, you can
-                customise the properties of a task, add behaviour or dependencies to a task, or replace a task
-                entirely. In our sample, we will configure the <literal>test</literal> task, which is of type
-                <apilink class="org.gradle.api.tasks.testing.Test"/>, to add a system property when the tests are
-                executed:</para>
+            <para>The tasks which the Java plugin adds are regular tasks, exactly the same as if they were declared in
+                the build file. This means you can use any of the mechanisms shown in earlier chapters to customise
+                these tasks. For example, you can set the properties of a task, add behaviour to a task, change the
+                dependencies of a task, or replace a task entirely. In our sample, we will configure the
+                <literal>test</literal> task, which is of type<apilink class="org.gradle.api.tasks.testing.Test"/>, to
+                add a system property when the tests are executed: </para>
             <sample id="javaQuickstart" dir="java/quickstart">
                 <sourcefile file="build.gradle" snippet="task-customisation"/>
             </sample>
@@ -78,9 +78,10 @@
 
         <section>
             <title>Publishing the JAR File</title>
-            <para>For the JAR file to be useful, it needs to be published somewhere. To do this, you need to tell
-                Gradle where to publish the JAR file. In Gradle, artifacts such as JAR files are published to
-                repositories. In our sample, we will publish locally, to the <filename>repos</filename> directory.
+            <para>Usually the JAR file needs to be published somewhere. To do this, you need to tell Gradle where to
+                publish the JAR file. In Gradle, artifacts such as JAR files are published to repositories. In our
+                sample, we will publish to a local directory. You can also publish to a remote location, or multiple
+                location.
             </para>
             <sample id="javaQuickstart" dir="java/quickstart">
                 <sourcefile file="build.gradle" snippet="upload"/>
@@ -171,11 +172,12 @@ D- ultimateApp
 
     <section>
         <title>Summary</title>
-        <para>In this chapter, you have learnt how to do some of the common things you need to do in order to build a
-            Java based project.
+        <para>In this chapter, you have learnt how to do some of the things you commonly need to build a Java based
+            project.
             This chapter is not exhaustive, and there are many other things you can do. These are dealt with in later
-            chapters. Also, a lot of the behaviour you have seen in this chapter is changable. For example, you can change
-            where Gradle looks Java source files, or add extra tasks, or you can change what any task actually does.
+            chapters. Also, a lot of the behaviour you have seen in this chapter is configurable. For example, you can
+            change where Gradle looks Java source files, or add extra tasks, or you can change what any task actually
+            does.
         </para>
     </section>
 </chapter>
