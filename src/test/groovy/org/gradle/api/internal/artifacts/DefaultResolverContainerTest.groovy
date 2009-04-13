@@ -143,6 +143,12 @@ class DefaultResolverContainerTest {
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolverList)
     }
 
+    @Test(expected =  InvalidUserDataException)
+    public void testAddWithUnnamedResolver() {
+        expectedResolver.name = null
+        resolverContainer.add(expectedUserDescription).is(expectedResolver)
+    }
+
     @Test public void testCreateFlatDirResolver() {
         prepareFlatDirResolverCreation('libs', createFlatDirTestDirs())
         assert resolverContainer.createFlatDirResolver("libs", createFlatDirTestDirsArgs() as Object[]).is(expectedResolver)

@@ -144,6 +144,9 @@ public class DefaultResolverContainer implements ResolverContainer {
         }
         DependencyResolver resolver = resolverFactory.createResolver(userDescription);
         ConfigureUtil.configure(configureClosure, resolver);
+        if (!GUtil.isTrue(resolver.getName())) {
+            throw new InvalidUserDataException("You must specify a name for the resolver. Resolver=" + userDescription);
+        }
         resolvers.put(resolver.getName(), resolver);
         orderAction.apply(resolver.getName());
         return resolver;
