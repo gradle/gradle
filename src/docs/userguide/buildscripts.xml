@@ -1,6 +1,6 @@
 <chapter id='tutorial_using_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Tutorial - Using Tasks</title>
-    <para>You execute a build by running the <command>gradle</command> command. When run, <command>gradle</command>
+    <title>Build Script Basics</title>
+    <para>You run a build using the <command>gradle</command> command. When run, <command>gradle</command>
         normally looks for a file called <filename>build.gradle</filename> in the current directory.
         <footnote><para>There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>)</para></footnote>
         We call this <filename>build.gradle</filename> file a <firstterm>build script</firstterm>, although strictly speaking it is
@@ -195,7 +195,7 @@
             default tasks of the parent project are used (if defined).
         </para>
     </section>
-    <section>
+    <section id="configure-by-dag">
         <title>Configure By DAG</title>
         <para>As we describe in full detail later (See <xref linkend='build_lifecycle'/>) Gradle has a
             configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should

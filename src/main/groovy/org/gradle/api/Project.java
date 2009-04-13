@@ -18,17 +18,16 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.artifacts.ArtifactContainer;
 import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.plugins.Convention;
 import org.slf4j.Logger;
 
@@ -239,8 +238,8 @@ public interface Project extends Comparable<Project> {
     void setBuildDirName(String buildDirName);
 
     /**
-     * <p>Returns the build file Gradle will evaulate against this project object. The default is <code>
-     * {@value #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null.
+     * <p>Returns the build file Gradle will evaulate against this project object. The default is <code> {@value
+     * #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null.
      *
      * <p>You can access this property in your build file using <code>buildFile</code></p>
      *
@@ -761,6 +760,25 @@ public interface Project extends Comparable<Project> {
     File relativePath(Object path);
 
     /**
+     * Returns a {@link FileCollection} containing the given files. You can pass any of the following types to this
+     * method:
+     *
+     * <ul>
+     *
+     * <li>A String. Interpreted relative to the project directory.</li>
+     *
+     * <li>A Collection. Flattened and recursively converted to files.</li>
+     *
+     * <li>A Closure. Should return an Object or Collection, which are then converted to files.</li>
+     *
+     * <li>An Object. Its toString() value is treated the same way as a String.<li>
+     *
+     * @param paths The paths to the files. May be empty.
+     * @return The file collection.
+     */
+    FileCollection files(Object... paths);
+
+    /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
      *
      * @param path The path to convert.
@@ -887,32 +905,49 @@ public interface Project extends Comparable<Project> {
     void applyActions(Set<Project> projects, ProjectAction action);
 
     /**
-     * <p>Adds an {@link AfterEvaluateListener} to this project. Such a listener gets notified when the build file
+     * <p>Adds an {@link ProjectEvaluationListener} to this project. Such a listener gets notified when the build file
      * belonging to this project has been executed. A parent project may for example add such a listener to its child
      * project. Such a listener can futher configure those child projects based on the state of the child projects after
-     * there build files have been run.</p>
+     * their build files have been run.</p>
      *
-     * @param afterEvaluateListener The listener (never null) to be added.
+     * @param projectEvaluationListener The listener (never null) to be added.
      * @return The added afterEvaluateListener
-     * @see org.gradle.api.AfterEvaluateListener
+     * @see ProjectEvaluationListener
      */
-    AfterEvaluateListener addAfterEvaluateListener(AfterEvaluateListener afterEvaluateListener);
+    ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener projectEvaluationListener);
 
     /**
-     * <p>Adds the given closure as an {@link AfterEvaluateListener}. See {@link #addAfterEvaluateListener(AfterEvaluateListener)}
-     * for more details.</p>
+     * <p>Adds a closure to be notified when this project has been evaluated. See {@link
+     * #addProjectEvaluationListener(ProjectEvaluationListener)} for more details.</p>
      *
      * @param afterEvaluateListener The listener to be added.
      */
-    void addAfterEvaluateListener(Closure afterEvaluateListener);
+    void afterEvaluate(Closure afterEvaluateListener);
 
     /**
-     * <p>Returns all {@link AfterEvaluateListener}s of this project.</p>
+     * <p>Adds a {@link TaskLifecycleListener} to this project. This listener is notified when tasks are added to this
+     * project.</p>
      *
-     * @see #addAfterEvaluateListener(AfterEvaluateListener)
-     * @see org.gradle.api.AfterEvaluateListener
+     * @param listener The listener to add. Must not be null. Does nothing if this listener has already been added to
+     * this project
+     * @return The added listener
      */
-    List<AfterEvaluateListener> getAfterEvaluateListeners();
+    TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener listener);
+
+    /**
+     * Removes the given listener from this project.
+     *
+     * @param listener The listener to remove. Does nothing when the listener has not been added to this project.
+     */
+    void removeTaskLifecycleListener(TaskLifecycleListener listener);
+
+    /**
+     * Adds a closure to be notified when a task is added to this project. The task is passed to the closure as the
+     * parameter.
+     *
+     * @param taskAddedListener The closure
+     */
+    void whenTaskAdded(Closure taskAddedListener);
 
     /**
      * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
@@ -34,7 +35,10 @@ import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.*;
+import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskEngine;
@@ -45,10 +49,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.Clock;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
-import org.gradle.util.PathHelper;
+import org.gradle.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +147,11 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private RepositoryHandler repositoryHandler;
 
-    private List<AfterEvaluateListener> afterEvaluateListeners = new ArrayList<AfterEvaluateListener>();
+    private ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListeners
+            = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+
+    private ListenerBroadcast<TaskLifecycleListener> taskLifecycleListeners
+            = new ListenerBroadcast<TaskLifecycleListener>(TaskLifecycleListener.class);
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
     private DynamicObjectHelper dynamicObjectHelper;
@@ -653,6 +658,7 @@ public abstract class AbstractProject implements ProjectInternal {
             return this;
         }
         Clock clock = new Clock();
+        projectEvaluationListeners.getSource().beforeEvaluate(this);
         state = State.INITIALIZING;
         try {
             setBuildScript(buildScriptProcessor.createScript(this));
@@ -667,16 +673,10 @@ public abstract class AbstractProject implements ProjectInternal {
         }
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = State.INITIALIZED;
-        notifyAfterEvaluateListener();
+        projectEvaluationListeners.getSource().afterEvaluate(this);
         logger.info(String.format("Project %s evaluated using %s.", path, getBuildScriptSource().getDisplayName()));
         logger.debug("Timing: Project evaluation took " + clock.getTime());
         return this;
-    }
-
-    private void notifyAfterEvaluateListener() {
-        for (AfterEvaluateListener afterEvaluateListener : afterEvaluateListeners) {
-            afterEvaluateListener.afterEvaluate(this);
-        }
     }
 
     public Project usePlugin(String pluginName) {
@@ -769,6 +769,7 @@ public abstract class AbstractProject implements ProjectInternal {
         if (action != null) {
             task.doFirst(action);
         }
+        taskLifecycleListeners.getSource().taskAdded(task);
         return task;
     }
 
@@ -978,13 +979,26 @@ public abstract class AbstractProject implements ProjectInternal {
         this.publishArtifactFactory = publishArtifactFactory;
     }
 
-    public List<AfterEvaluateListener> getAfterEvaluateListeners() {
-        return afterEvaluateListeners;
+    public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener projectEvaluationListener) {
+        projectEvaluationListeners.add(projectEvaluationListener);
+        return projectEvaluationListener;
     }
 
-    public AfterEvaluateListener addAfterEvaluateListener(AfterEvaluateListener afterEvaluateListener) {
-        afterEvaluateListeners.add(afterEvaluateListener);
-        return afterEvaluateListener;
+    public void afterEvaluate(Closure afterEvaluateListener) {
+        projectEvaluationListeners.add("afterEvaluate", afterEvaluateListener);
+    }
+
+    public TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener listener) {
+        taskLifecycleListeners.add(listener);
+        return listener;
+    }
+
+    public void removeTaskLifecycleListener(TaskLifecycleListener listener) {
+        taskLifecycleListeners.remove(listener);
+    }
+
+    public void whenTaskAdded(Closure taskAddedListener) {
+        taskLifecycleListeners.add("taskAdded", taskAddedListener);
     }
 
     public Logger getLogger() {

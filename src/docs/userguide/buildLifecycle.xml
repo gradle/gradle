@@ -1,16 +1,15 @@
 <chapter id='build_lifecycle' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Build Lifecycle</title>
     <para>We said earlier, that the core of Gradle is a language for dependency based programming. In Gradle terms this
-        means that you can define tasks and dependencies between tasks. Gradle guarantees that those tasks are executed
-        in the order of their dependencies and are executed only once. Those tasks form an <ulink
-                url='http://en.wikipedia.org/wiki/Directed_acyclic_graph'>Directed Acyclic Graph</ulink>. There are
-        build tools that build up such a DAG as they execute there tasks. Gradle builds the complete DAG
-        <emphasis>before</emphasis>
-        any task is executed. This lies at the heart of Gradle and makes many things possible which would not be
-        possible otherwise.
+        means that you can define tasks and dependencies between tasks. Gradle guarantees that these tasks are executed
+        in the order of their dependencies, and that each task is executed only once. Those tasks form a
+        <ulink url='http://en.wikipedia.org/wiki/Directed_acyclic_graph'>Directed Acyclic Graph</ulink>. There are
+        build tools that build up such a dependency graph as they execute their tasks. Gradle builds the complete
+        dependency graph <emphasis>before</emphasis> any task is executed. This lies at the heart of Gradle and makes
+        many things possible which would not be possible otherwise.
     </para>
-    <para>Your build scripts configure this DAG. Therefore they are strictly speaking <emphasis>build configuration
-        scripts</emphasis>.
+    <para>Your build scripts configure this dependency graph. Therefore they are strictly speaking <emphasis>build
+        configuration scripts</emphasis>.
     </para>
     <section id='sec:build_phases'>
         <title>Build Phases</title>
@@ -21,26 +20,26 @@
                 <term>Initialization</term>
                 <listitem>
                     <para>Gradle supports single and multi-project builds. During the initialization phase, Gradle
-                        determines which project(s) are going to take part in the build. Also during this phase, Gradle
-                        creates Project objects for every project taking part in the build.
+                        determines which projects are going to take part in the build, and creates a
+                        <apilink class="org.gradle.api.Project"/> instance for each of these projects.
                     </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term>Configuration</term>
                 <listitem>
-                    <para>The build scripts of
-                        <emphasis>all</emphasis>
-                        projects which are part of the build are executed. This configures the project objects.
+                    <para>The build scripts of <emphasis>all</emphasis> projects which are part of the build are
+                        executed. This configures the project objects.
                     </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term>Execution</term>
                 <listitem>
-                    <para>A subset of the tasks, created and configured during the configuration phase, is executed. The
-                        subset is determined by the task name arguments passed to the <command>gradle</command>
-                        command and the current directory.
+                    <para>Gradle determines the subset of the tasks, created and configured during the configuration
+                        phase, to be executed. The subset is determined by the task name arguments passed to the
+                        <command>gradle</command> command and the current directory. Gradle then executes each of the
+                        selected tasks.
                     </para>
                 </listitem>
             </varlistentry>
@@ -61,7 +60,7 @@
                     linkend='organizing_build_logic'/>). Let's first do some introspection with a single project
             build:
         </para>
-        <sample id="buildlifecycle" dir="userguide/buildlifecycle">
+        <sample id="buildlifecycle" dir="userguide/buildlifecycle/basic">
             <sourcefile file="settings.gradle"/>
             <sourcefile file="build.gradle"/>
             <output args="test"/>
@@ -195,13 +194,73 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
     </section>
     <section id='sec:configuration_and_execution_of_a_single_project_build'>
         <title>Configuration and Execution of a Single Project Build</title>
-        <para>For a single project build, the workflow of the
-            <emphasis>after initialization</emphasis>
+        <para>For a single project build, the workflow of the <emphasis>after initialization</emphasis>
             phases are pretty simple. The build script is executed against the project object that was created during
-            the initialization phase. Then Gradle looks for tasks with names equals to those passed as command line
+            the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line
             arguments. If these task names exist, they are executed as a separate build in the order you have passed
-            them. The configuration and execution for multi-project builds is discussed in <xref
-                    linkend='multi_project_builds'/>.
+            them. The configuration and execution for multi-project builds is discussed in <xref linkend='multi_project_builds'/>.
         </para>
+    </section>
+    <section id="build_lifecycle_events">
+        <title>Reacting to the Lifecycle in the Build File</title>
+
+        <para>You can receive notifications as Gradle progresses the build through its lifecyle. These notifications
+            generally take 2 forms: You can either implement a particular listener interface, or you can provide a
+            closure to execute when the notification is fired. The examples below concentrate on using closures.
+            For using the listener interfaces, refer to the API documentation.</para>
+
+        <section>
+            <title>Project evaluation</title>
+            <para>You can receive a notification immediately before and after a project is evaluated.  This can be
+                used to perform some additional configuration once all the definitions in a build script have been
+                applied. It can also be used for some custom logging or profiling.
+            </para>
+            <para>Below is an example which adds a <literal>test</literal> task to each project with the
+                <literal>hasTests</literal> property set to true:
+            </para>
+            <sample id="projectEvaluateEvents" dir="userguide/buildlifecycle/projectEvaluateEvents">
+                <sourcefile file="build.gradle" snippet="after-evaluate"/>
+                <output args="-q test"/>
+            </sample>
+            <para>You can also use a <apilink class="org.gradle.api.ProjectEvaluationListener"/> to receive these events.
+            </para>
+        </section>
+
+        <section>
+            <title>Task creation</title>
+            <para>You can receive a notification immediately after a task is added to a project. This can be used
+                to set some default values or add behaviour before the task is made available in the build file.</para>
+            <para>The following example sets the <literal>srcDir</literal> property of each task as it is created.</para>
+            <sample id="taskCreationEvents" dir="userguide/buildlifecycle/taskCreationEvents">
+                <sourcefile file="build.gradle"/>
+                <output args="-q a"/>
+            </sample>
+            <para>You can also use a <apilink class="org.gradle.api.TaskLifecycleListener"/> to receive these events.
+            </para>
+        </section>
+
+        <section>
+            <title>Task execution graph ready</title>
+            <para>You can receive a notification immediately after the task execution graph has been populated. We
+                have seen this already in <xref linkend="configure-by-dag"/>.
+            </para>
+            <para>You can also use a <apilink class="org.gradle.api.execution.TaskExecutionGraphListener"/> to receive
+                these events.
+            </para>
+        </section>
+
+        <section>
+            <title>Task execution</title>
+            <para>You can receive a notification immediately before and after a task is executed.</para>
+            <para>The following example logs the start and end of each task execution. Notice that the
+                <literal>afterTask</literal> notification is received regardless of whether the task executes
+                successfully or fails with an exception.</para>
+            <sample id="taskExecutionEvents" dir="userguide/buildlifecycle/taskExecutionEvents">
+                <sourcefile file="build.gradle"/>
+                <output args="-q broken"/>
+            </sample>
+            <para>You can also use a <apilink class="org.gradle.api.execution.TaskExecutionListener"/> to receive these events.
+            </para>
+        </section>
     </section>
 </chapter>

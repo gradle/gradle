@@ -57,26 +57,30 @@ class UserguideIntegrationTest {
 
     private static def checkSamples(File gradleHome, File samplesDir, File userguideOutputDir, File userguideInfoDir) {
         return getScriptsForSamples(userguideInfoDir).each {GradleRun run ->
-            logger.info("Test Id: $run.id")
-            Map result
-            if (run.groovyScript) {
-                result = runGroovyScript(new File(samplesDir, "userguide/$run.subDir/$run.file"))
-            } else {
-                result = Executer.execute(gradleHome.absolutePath, new File(samplesDir, run.subDir).absolutePath, run.execute, run.envs, run.file,
-                        run.debugLevel)
-            }
-            if (run.outputFile) {
-                String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
-                try {
-                    compareStrings(expectedResult, result.output)
-                } catch (AssertionError e) {
-                    println 'Expected Result:'
-                    println expectedResult
-                    println 'Actual Result:'
-                    println result.output
-                    println '---'
-                    throw e
+            try {
+                logger.info("Test Id: $run.id")
+                Map result
+                if (run.groovyScript) {
+                    result = runGroovyScript(new File(samplesDir, "userguide/$run.subDir/$run.file"))
+                } else {
+                    result = Executer.execute(gradleHome.absolutePath, new File(samplesDir, run.subDir).absolutePath,
+                            run.execute, run.envs, run.file, run.debugLevel, run.expectFailure)
                 }
+                if (run.outputFile) {
+                    String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
+                    try {
+                        compareStrings(expectedResult, result.output)
+                    } catch (AssertionError e) {
+                        println 'Expected Result:'
+                        println expectedResult
+                        println 'Actual Result:'
+                        println result.output
+                        println '---'
+                        throw e
+                    }
+                }
+            } catch (Exception e) {
+                throw new AssertionError("Integration test for sample '$run.id' failed: $e.message").initCause(e)
             }
         }
     }
@@ -138,18 +142,19 @@ class UserguideIntegrationTest {
                     return
                 }
             }
-            samplesById[id] = [id: id, dir: dir, args: args, envs: [:]]
+            samplesById[id] = [id: id, dir: dir, args: args, envs: [:], expectFailure: false]
         }
 
         // Some custom values
         samplesById['properties'].envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue'
+        samplesById['taskExecutionEvents'].expectFailure = true
 
         return samplesById.values().collect {sample ->
             String id = sample.id
             String dir = sample.dir
             List args = sample.args == null ? ['-t'] : sample.args.split('\\s+')
             String outputFile = sample.args != null ? "${id}.out" : null
-            new GradleRun(id: id, subDir: dir, execute: args, outputFile: outputFile, debugLevel: Executer.LIFECYCLE, envs: sample.envs)
+            new GradleRun(id: id, subDir: dir, execute: args, outputFile: outputFile, debugLevel: Executer.LIFECYCLE, envs: sample.envs, expectFailure: sample.expectFailure)
         }
     }
 }

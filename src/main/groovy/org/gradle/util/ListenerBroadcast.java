@@ -15,6 +15,12 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all
+ * registered listeners.</p>
+ *
+ * @param <T> The listener type.
+ */
 public class ListenerBroadcast<T> {
     private final T source;
     private final Class<T> type;
@@ -26,15 +32,28 @@ public class ListenerBroadcast<T> {
                 new BroadcastInvocationHandler()));
     }
 
+    /**
+     * Returns the broadcaster. Any method call on this object is broadcast to all listeners.
+     *
+     * @return The broadcaster.
+     */
     public T getSource() {
         return source;
     }
 
-    public void add(final T listener) {
+    /**
+     * Adds a listener.
+     *
+     * @param listener The listener.
+     */
+    public void add(T listener) {
         handlers.put(listener, new ListenerInvocationHandler(listener));
     }
 
-    public void add(final String methodName, final Closure closure) {
+    /**
+     * Adds a closure to be notified when the given method is called.
+     */
+    public void add(String methodName, Closure closure) {
         handlers.put(closure, new ClosureInvocationHandler(methodName, closure));
     }
 

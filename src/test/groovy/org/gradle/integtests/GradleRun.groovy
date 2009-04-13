@@ -6,9 +6,10 @@ class GradleRun {
     int debugLevel
     String file
     String subDir
-    boolean groovyScript = false
+    boolean groovyScript
     Map envs = [:]
     String outputFile
+    boolean expectFailure
 
     def withLoggingLevel(int debugLevel) {
         this.debugLevel = debugLevel

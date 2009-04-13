@@ -1,0 +1,20 @@
+// START SNIPPET after-evaluate
+allprojects {
+    afterEvaluate { project ->
+        if (project.hasTests) {
+            println "Adding test task to $project"
+            project.createTask('test') {
+                println "Running tests for $project"
+            }
+        }
+    }
+}
+// END SNIPPET after-evaluate
+
+allprojects {
+    hasTests = false
+}
+
+project('projectA') {
+    hasTests = true
+}

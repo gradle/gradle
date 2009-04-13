@@ -1,12 +1,12 @@
-version = null
-createTask('init') {
-    if (build.taskGraph.hasTask(':release')) {
+build.taskGraph.whenReady {taskGraph ->
+    if (taskGraph.hasTask(':release')) {
         version = '1.0'
     } else {
         version = '1.0-SNAPSHOT'
     }
 }
-createTask('distribution', dependsOn: 'init') {
+
+createTask('distribution') {
     println "We build the zip with version=$version"
 }
 createTask('release', dependsOn: 'distribution') {

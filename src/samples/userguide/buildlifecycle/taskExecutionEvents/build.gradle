@@ -1,0 +1,18 @@
+createTask('ok')
+
+createTask('broken', dependsOn: 'ok') {
+    throw new RuntimeException('broken')
+}
+
+build.taskGraph.beforeTask { task ->
+    println "executing $task ..."
+}
+
+build.taskGraph.afterTask { task, exception ->
+    if (exception) {
+        println "FAILED"
+    }
+    else {
+        println "done"
+    }
+}

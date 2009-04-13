@@ -4,3 +4,6 @@ Release Notes - Gradle - Version 0.6
 
 - ProjectDescriptor.getDir() and setDir() have been renamed to getProjectDir() and setProjectDir()
 - Project.getBuildFileName() has been replaced with Project.getBuildFile()
+- org.gradle.api.tasks.util.FileCollection has been removed. It has been replaced by org.gradle.api.artifacts.FileCollection
+- AfterEvaluateListener has been replaced by ProjectEvaluationListener
+- Project.addAfterEvaluateListener(Closure) has been renamed to afterEvaluate(Closure)

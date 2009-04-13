@@ -16,24 +16,23 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.AfterEvaluateListener
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.BuildInternal
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.plugins.Convention
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.project.*
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 
 /**
  * @author Hans Dockter
  */
 class DefaultProject extends AbstractProject {
+
     public DefaultProject(String name) {
         super(name);
     }
@@ -103,10 +102,6 @@ class DefaultProject extends AbstractProject {
             task.configure(configureClosure);
         }
         return task;
-    }
-
-    public void addAfterEvaluateListener(Closure afterEvaluateListener) {
-        addAfterEvaluateListener(afterEvaluateListener as AfterEvaluateListener)
     }
 
     public Object configure(Object object, Closure configureClosure) {

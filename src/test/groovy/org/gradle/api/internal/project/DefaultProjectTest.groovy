@@ -57,6 +57,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.ArtifactHandler
 import org.junit.Ignore
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
+import org.gradle.util.TestClosure
 
 /**
  * @author Hans Dockter
@@ -250,37 +251,37 @@ class DefaultProjectTest {
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
-    @Test public void testAddAndGetAfterEvaluateListener() {
-        AfterEvaluateListener afterEvaluateListener1 = {} as AfterEvaluateListener
-        AfterEvaluateListener afterEvaluateListener2 = {} as AfterEvaluateListener
-        project.addAfterEvaluateListener(afterEvaluateListener1)
-        assertEquals(1, project.getAfterEvaluateListeners().size())
-        assertEquals([afterEvaluateListener1], project.getAfterEvaluateListeners())
-        project.addAfterEvaluateListener(afterEvaluateListener2)
-        assertEquals(2, project.getAfterEvaluateListeners().size())
-        assertEquals([afterEvaluateListener1, afterEvaluateListener2], project.getAfterEvaluateListeners())
+    @Test public void testNotifiesProjectEvaluationListenerBeforeAndAfterEvaluation() {
+        BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
+        project.buildScriptProcessor = buildScriptProcessorMocker
+        ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener)
+        context.checking {
+            one(listener).beforeEvaluate(project)
+            one(buildScriptProcessorMocker).createScript(project); will(returnValue(testScript))
+            one(outputRedirectorMock).on(LogLevel.QUIET)
+            one(outputRedirectorMock).flush()
+            one(listener).afterEvaluate(project)
+        }
+        project.addProjectEvaluationListener(listener)
+        project.evaluate()
     }
 
-    @Test public void testAddAndGetAfterEvaluateListenerWithClosure() {
-        Object testValue = null
-        Closure afterEvaluateListener1 = {Project project -> testValue = new Object() }
-        project.addAfterEvaluateListener(afterEvaluateListener1)
-        assertEquals(1, project.getAfterEvaluateListeners().size())
-        project.getAfterEvaluateListeners()[0].afterEvaluate(project)
-        assertNotNull(testValue)
+    @Test public void testNotifiesProjectEvaluationClosureAfterEvaluation() {
+        TestClosure listener = context.mock(TestClosure)
+        BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
+        project.buildScriptProcessor = buildScriptProcessorMocker
+        context.checking {
+            one(buildScriptProcessorMocker).createScript(project); will(returnValue(testScript))
+            one(outputRedirectorMock).on(LogLevel.QUIET)
+            one(outputRedirectorMock).flush()
+            one(listener).call(project)
+        }
+
+        project.afterEvaluate(HelperUtil.toClosure(listener))
+        project.evaluate()
     }
 
     @Test void testEvaluate() {
-        boolean afterEvaluate1Called = false;
-        boolean afterEvaluate2Called = false;
-        Closure afterEvaluate1 = {Project project ->
-            afterEvaluate1Called = true
-        }
-        Closure afterEvaluate2 = {Project project ->
-            afterEvaluate2Called = true
-        }
-        project.addAfterEvaluateListener(afterEvaluate1)
-        project.addAfterEvaluateListener(afterEvaluate2)
         BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
         project.buildScriptProcessor = buildScriptProcessorMocker
         context.checking {
@@ -290,8 +291,6 @@ class DefaultProjectTest {
         }
         assertSame(project, project.evaluate())
         assertEquals(AbstractProject.State.INITIALIZED, project.state)
-        assert afterEvaluate1Called
-        assert afterEvaluate2Called
         assert project.buildScript.is(testScript)
     }
 
@@ -554,6 +553,27 @@ class DefaultProjectTest {
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
         assertSame(testAction, testTask.getActions()[0])
+    }
+
+    @Test void testNotifiesListenerWhenTaskAdded() {
+        TaskLifecycleListener listener = context.mock(TaskLifecycleListener)
+        context.checking {
+            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(listener).taskAdded(testTask)
+        }
+        project.addTaskLifecycleListener(listener)
+        project.createTask(TEST_TASK_NAME)
+    }
+
+    @Test void testNotifiesClosureWhenTaskAdded() {
+        TestClosure listener = context.mock(TestClosure)
+        context.checking {
+            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(listener).call(testTask)
+        }
+
+        project.whenTaskAdded(HelperUtil.toClosure(listener))
+        project.createTask(TEST_TASK_NAME)
     }
 
     @Test void testTask() {

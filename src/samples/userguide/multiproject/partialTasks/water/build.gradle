@@ -6,7 +6,7 @@ allprojects {
 subprojects {
     hello {
         doLast {println "- I depend on water"}
-        addAfterEvaluateListener { Project project ->
+        afterEvaluate { Project project ->
             if (project.arctic) { doLast { println '- I love to spend time in the arctic waters.' }}
         }
     }
