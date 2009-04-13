@@ -59,12 +59,14 @@ class DependencyHandler {
         throw new MissingMethodException(name, this.getClass(), args);
       }
     }
-    if (args.length == 2 && args[1] instanceof Closure) {
-      return pushDependency(configuration, args[0], (Closure) args[1])
-    } else if (args.length == 1) {
-      return pushDependency(configuration, args[0], (Closure) null)
+
+    Object[] normalizedArgs = (args as List).flatten()
+    if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
+      return pushDependency(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
+    } else if (normalizedArgs.length == 1) {
+      return pushDependency(configuration, normalizedArgs[0], (Closure) null)
     }
-    args.each { notation ->
+    normalizedArgs.each { notation ->
       pushDependency(configuration, notation, null)
     }
     return null;

@@ -95,6 +95,22 @@ class DependencyHandlerTest {
   }
 
   @Test
+  void pushMultipleDependenciesViaNestedList() {
+    String someNotation1 = "someNotation"
+    String someNotation2 = "someNotation2"
+    Dependency dependencyDummy1 = context.mock(Dependency, "dep1")
+    Dependency dependencyDummy2 = context.mock(Dependency, "dep2")
+    context.checking {
+      allowing(dependencyFactoryStub).createDependency(someNotation1, null); will(returnValue(dependencyDummy1))
+      allowing(dependencyFactoryStub).createDependency(someNotation2, null); will(returnValue(dependencyDummy2))
+      one(configurationMock).addDependency(dependencyDummy1);
+      one(configurationMock).addDependency(dependencyDummy2);
+    }
+
+    dependencyHandler."$TEST_CONF_NAME"([[someNotation1, someNotation2]])
+  }
+
+  @Test
   void pushModule() {
     ClientModule clientModule = context.mock(ClientModule)
     String someNotation = "someNotation"
