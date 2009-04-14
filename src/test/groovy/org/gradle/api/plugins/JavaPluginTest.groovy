@@ -24,26 +24,27 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.util.HelperUtil
 import org.gradle.util.WrapUtil
-import org.hamcrest.Matchers
 import org.junit.Test
-import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.equalTo
+import static org.gradle.util.WrapUtil.*
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.tasks.Resources
+import org.gradle.api.tasks.compile.Compile
+import org.gradle.api.tasks.bundling.Bundle
+import org.gradle.api.tasks.javadoc.Javadoc
 
 /**
  * @author Hans Dockter
  */
+// todo Make test stronger
+// This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
 class JavaPluginTest {
-    @Test public void testApply() {
-        // todo Make test stronger
-        // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
-        Project project = HelperUtil.createRootProject()
+    private final Project project = HelperUtil.createRootProject()
+    private final JavaPlugin javaPlugin = new JavaPlugin()
 
-        JavaPlugin javaPlugin = new JavaPlugin()
+    @Test public void testApplyCreatesConfigurations() {
         javaPlugin.apply(project, new PluginRegistry())
 
-        assertTrue(project.appliedPlugins.contains(ReportingBasePlugin))
-        
         def configuration = project.configurations.get(JavaPlugin.COMPILE)
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
@@ -77,5 +78,80 @@ class JavaPluginTest {
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
+    }
+
+    @Test public void createsTasksAndAppliesMappings() {
+        javaPlugin.apply(project, new PluginRegistry())
+
+        def task = project.task(JavaPlugin.RESOURCES)
+        assertThat(task, instanceOf(Resources))
+        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.INIT)))
+        assertThat(task.destinationDir, equalTo(project.classesDir))
+
+        task = project.task(JavaPlugin.COMPILE)
+        assertThat(task, instanceOf(Compile))
+        assertThat(task.dependsOn, hasItem(JavaPlugin.RESOURCES))
+        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE)))
+        assertThat(task.destinationDir, equalTo(project.classesDir))
+
+        task = project.task(JavaPlugin.TEST_RESOURCES)
+        assertThat(task, instanceOf(Resources))
+        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.COMPILE)))
+        assertThat(task.destinationDir, equalTo(project.testClassesDir))
+
+        task = project.task(JavaPlugin.TEST_COMPILE)
+        assertThat(task, instanceOf(Compile))
+        assertThat(task.dependsOn, hasItem(JavaPlugin.TEST_RESOURCES))
+        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.TEST_COMPILE)))
+        assertThat(task.destinationDir, equalTo(project.testClassesDir))
+
+        task = project.task(JavaPlugin.TEST)
+        assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
+        assertThat(task.dependsOn, hasItem(JavaPlugin.TEST_COMPILE))
+        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.TEST_RUNTIME)))
+        assertThat(task.testClassesDir, equalTo(project.testClassesDir))
+
+        task = project.task(JavaPlugin.LIBS)
+        assertThat(task, instanceOf(Bundle))
+        assertThat(task.dependsOn, hasItem(JavaPlugin.TEST))
+        assertThat(task.defaultArchiveTypes, equalTo(project.archiveTypes))
+
+        task = project.task(JavaPlugin.DISTS)
+        assertThat(task, instanceOf(Bundle))
+        assertThat(task.dependsOn, hasItem(JavaPlugin.LIBS))
+        assertThat(task.defaultArchiveTypes, equalTo(project.archiveTypes))
+
+        task = project.task(JavaPlugin.JAVADOC)
+        assertThat(task, instanceOf(Javadoc))
+        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE)))
+        assertThat(task.destinationDir, equalTo(project.javadocDir))
+    }
+
+    @Test public void appliesMappingsToTasksCreatedByBuildScript() {
+        javaPlugin.apply(project, new PluginRegistry())
+
+        def task = project.createTask('customResources', type: Resources)
+        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.INIT)))
+        assertThat(task.destinationDir, equalTo(project.classesDir))
+
+        task = project.createTask('customCompile', type: Compile)
+        assertThat(task.dependsOn, hasItem(JavaPlugin.RESOURCES))
+        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE)))
+        assertThat(task.destinationDir, equalTo(project.classesDir))
+
+        task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
+        assertThat(task.dependsOn, hasItem(JavaPlugin.TEST_COMPILE))
+        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.TEST_RUNTIME)))
+        assertThat(task.testClassesDir, equalTo(project.testClassesDir))
+
+        task = project.createTask('customJavadoc', type: Javadoc)
+        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE)))
+        assertThat(task.destinationDir, equalTo(project.javadocDir))
+    }
+
+    @Test public void appliesBaseReportingPlugin() {
+        javaPlugin.apply(project, new PluginRegistry())
+
+        assertTrue(project.appliedPlugins.contains(ReportingBasePlugin))
     }
 }

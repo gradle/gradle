@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class DefaultConventionsToPropertiesMapping {
 
-    public final static Map JAVADOC = GUtil.map(
+    public final static Map<String, ConventionValue> JAVADOC = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();
@@ -49,7 +49,7 @@ public class DefaultConventionsToPropertiesMapping {
         }
     });
 
-    public final static Map RESOURCES = GUtil.map(
+    public final static Map<String, ConventionValue> RESOURCES = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             return convention.getPlugin(JavaPluginConvention.class).getResourceDirs();
@@ -61,7 +61,7 @@ public class DefaultConventionsToPropertiesMapping {
         }
     });
 
-    public final static Map COMPILE = GUtil.map(
+    public final static Map<String, ConventionValue> COMPILE = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();

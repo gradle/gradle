@@ -28,8 +28,6 @@ import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.testing.ForkMode;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -51,7 +49,7 @@ public class GroovyPlugin implements Plugin {
         GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues);
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
 
-        configureCompile(javaPlugin, project);
+        configureCompile(project);
 
         configureTestCompile(javaPlugin, project);
 
@@ -98,8 +96,7 @@ public class GroovyPlugin implements Plugin {
 
     private void configureTestCompile(JavaPlugin javaPlugin, Project project) {
         Compile testCompile = javaPlugin.configureTestCompile(
-                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn",
-                        TEST_RESOURCES, "overwrite", true), TEST_COMPILE),
+                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), TEST_COMPILE),
                 (Compile) project.task(COMPILE),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
@@ -117,11 +114,8 @@ public class GroovyPlugin implements Plugin {
         }));
     }
 
-    private void configureCompile(JavaPlugin javaPlugin, Project project) {
-        Compile compile = javaPlugin.configureCompile(
-                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "dependsOn", RESOURCES, "overwrite", true), COMPILE),
-                DefaultConventionsToPropertiesMapping.COMPILE,
-                project.getConfigurations());
+    private void configureCompile(Project project) {
+        Compile compile = (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE);
         compile.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

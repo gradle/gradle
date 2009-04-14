@@ -56,8 +56,6 @@ public class JavaPlugin implements Plugin {
     public static final String TEST = "test";
     public static final String LIBS = "libs";
     public static final String DISTS = "dists";
-    public static final String UPLOAD_INTERNAL_LIBS = "uploadInternalLibs";
-    public static final String UPLOAD_LIBS = "uploadLibs";
     public static final String UPLOAD = "upload";
     public static final String CLEAN = "clean";
     public static final String INIT = "init";
@@ -83,7 +81,7 @@ public class JavaPlugin implements Plugin {
         Convention convention = project.getConvention();
         convention.getPlugins().put("java", javaConvention);
 
-        configureConfigurations(project, javaConvention);
+        configureConfigurations(project);
         configureUploadRules(project);
 
         project.createTask(INIT);
@@ -98,22 +96,15 @@ public class JavaPlugin implements Plugin {
 
         configureJavaDoc(project);
 
-        ((ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", INIT), RESOURCES)).
-                conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
-
-        configureCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", RESOURCES),
-                COMPILE), DefaultConventionsToPropertiesMapping.COMPILE, project.getConfigurations());
-
-        configureTestResources(project);
-
-        configureTestCompile((Compile) project.createTask(GUtil.map("type", Compile.class, "dependsOn", TEST_RESOURCES),
-                TEST_COMPILE), (Compile) project.task(COMPILE), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
-                project.getConfigurations());
+        configureResources(project);
+        configureCompile(project);
 
         configureTest(project);
 
-        configureLibs(project, javaConvention);
+        configureTestResources(project);
+        configureTestCompile(project);
 
+        configureLibs(project, javaConvention);
         configureDists(project, javaConvention);
 
         project.createTask(UPLOAD);
@@ -122,10 +113,52 @@ public class JavaPlugin implements Plugin {
         configureEclipseWtpModule(project);
     }
 
-    private void configureJavaDoc(Project project) {
-        Javadoc javadoc = (Javadoc) project.createTask(GUtil.map("type", Javadoc.class), JAVADOC);
-        javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
-        javadoc.setConfiguration(project.getConfigurations().get(COMPILE));
+    private void configureTestCompile(Project project) {
+        configureTestCompile((Compile) project.createTask(GUtil.map("type", Compile.class), TEST_COMPILE),
+                (Compile) project.task(COMPILE), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
+                project.getConfigurations());
+    }
+
+    private void configureCompile(final Project project) {
+        project.addTaskLifecycleListener(new TaskLifecycleListener() {
+            public void taskAdded(Task task) {
+                if (task instanceof Compile) {
+                    Compile compile = (Compile) task;
+                    compile.dependsOn(RESOURCES);
+                    compile.setConfiguration(project.getConfigurations().get(COMPILE));
+                    compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
+                    addDependsOnProjectDependencies(compile, COMPILE);
+                }
+            }
+        });
+
+        project.createTask(GUtil.map("type", Compile.class), COMPILE);
+    }
+
+    private void configureResources(Project project) {
+        project.addTaskLifecycleListener(new TaskLifecycleListener() {
+            public void taskAdded(Task task) {
+                if (task instanceof Resources) {
+                    Resources resources = (Resources) task;
+                    resources.dependsOn(INIT);
+                    resources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
+                }
+            }
+        });
+        project.createTask(GUtil.map("type", Resources.class), RESOURCES);
+    }
+
+    private void configureJavaDoc(final Project project) {
+        project.addTaskLifecycleListener(new TaskLifecycleListener() {
+            public void taskAdded(Task task) {
+                if (task instanceof Javadoc) {
+                    Javadoc javadoc = (Javadoc) task;
+                    javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
+                    javadoc.setConfiguration(project.getConfigurations().get(COMPILE));
+                }
+            }
+        });
+        project.createTask(GUtil.map("type", Javadoc.class), JAVADOC);
     }
 
     private void configureEclipse(Project project) {
@@ -193,7 +226,8 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureTestResources(Project project) {
-        ConventionTask testResources = (ConventionTask) project.createTask(GUtil.map("type", Resources.class, "dependsOn", COMPILE), TEST_RESOURCES);
+        ConventionTask testResources = (ConventionTask) project.createTask(GUtil.map("type", Resources.class), TEST_RESOURCES);
+        testResources.setDependsOn(WrapUtil.toSet(COMPILE));
         testResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
         testResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
     }
@@ -263,21 +297,31 @@ public class JavaPlugin implements Plugin {
         distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
     }
 
-    private void configureTest(Project project) {
-        final Test test = (Test) project.createTask(GUtil.map("type", Test.class, "dependsOn", TEST_COMPILE), TEST);
-        test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
-        test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
-        addDependsOnProjectDependencies(test, TEST_RUNTIME);
-        test.doFirst(new TaskAction() {
-            public void execute(Task task) {
-                Test test = (Test) task;
-                List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().task(TEST_COMPILE)).getUnmanagedClasspath();
-                test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(new Object[unmanagedClasspathFromTestCompile.size()]));
+    private void configureTest(final Project project) {
+        project.addTaskLifecycleListener(new TaskLifecycleListener() {
+            public void taskAdded(Task task) {
+                if (task instanceof Test) {
+                    Test test = (Test) task;
+                    test.dependsOn(TEST_COMPILE);
+                    test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
+                    test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
+                    addDependsOnProjectDependencies(test, TEST_RUNTIME);
+                    test.doFirst(new TaskAction() {
+                        public void execute(Task task) {
+                            Test test = (Test) task;
+                            List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().task(TEST_COMPILE))
+                                    .getUnmanagedClasspath();
+                            test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(
+                                    new Object[unmanagedClasspathFromTestCompile.size()]));
+                        }
+                    });
+                }
             }
         });
+        project.createTask(GUtil.map("type", Test.class), TEST);
     }
 
-    void configureConfigurations(Project project, JavaPluginConvention javaPluginConvention) {
+    void configureConfigurations(Project project) {
         project.setProperty("status", "integration");
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration compileConfiguration = configurations.add(COMPILE).setVisible(false).setTransitive(false);
@@ -290,6 +334,7 @@ public class JavaPlugin implements Plugin {
     }
 
     protected Compile configureTestCompile(Compile testCompile, final Compile compile, Map propertyMapping, ConfigurationContainer configurations) {
+        testCompile.setDependsOn(WrapUtil.toSet(TEST_RESOURCES));
         testCompile.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
         configureCompileInternal(testCompile, propertyMapping);
         testCompile.setConfiguration(configurations.get(TEST_COMPILE));
@@ -298,17 +343,11 @@ public class JavaPlugin implements Plugin {
             public void execute(Task task) {
                 Compile testCompile = (Compile) task;
                 if (compile.getUnmanagedClasspath() != null) {
-                    testCompile.unmanagedClasspath((Object[]) compile.getUnmanagedClasspath().toArray(new Object[compile.getUnmanagedClasspath().size()]));
+                    testCompile.unmanagedClasspath((Object[]) compile.getUnmanagedClasspath().toArray(
+                            new Object[compile.getUnmanagedClasspath().size()]));
                 }
             }
         });
-    }
-
-    protected Compile configureCompile(Compile compile, Map propertyMapping, ConfigurationContainer configurations) {
-        compile.setConfiguration(configurations.get(COMPILE));
-        addDependsOnProjectDependencies(compile, COMPILE);
-        configureCompileInternal(compile, propertyMapping);
-        return compile;
     }
 
     protected Compile configureCompileInternal(Compile compile, Map propertyMapping) {
