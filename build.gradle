@@ -30,6 +30,8 @@ import org.gradle.build.docs.ExtractSnippetsTask
  * a JDK 1.4).
  */
 
+defaultTasks "clean", "dists"
+
 archivesBaseName = 'gradle'
 
 usePlugin('groovy')
