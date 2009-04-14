@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
 import org.gradle.api.artifacts.FileCollection;
-import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.Settings;
@@ -1062,8 +1061,6 @@ public interface Project extends Comparable<Project> {
     Rule addRule(Rule rule);
 
     List<Rule> getRules();
-
-    DependencyFactory getDependencyFactory();
 
     RepositoryHandler createRepositoryHandler();
 

@@ -956,10 +956,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.dependencyHandler = dependencyHandler;
     }
 
-    public DependencyFactory getDependencyFactory() {
-        return dependencyFactory;
-    }
-
     public void setDependencyFactory(DependencyFactory dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
     }
