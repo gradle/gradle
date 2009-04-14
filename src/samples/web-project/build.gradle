@@ -28,9 +28,9 @@ dependencies {
 
 archive_war {
     fileSet(dir: file('src/rootContent')) // adds a file-set to the root of the archive
-    webInf(dir: file('src/additionalWebInf')) // adds a file-set to the WEB-INF dir.
-    additionalLibs(dir: file('additionalLibs')) // adds a file-set to the WEB-INF/lib dir.
-    libConfigurations('moreLibs') // adds a configuration to the WEB-INF/lib dir.
+//    webInf(dir: file('src/additionalWebInf')) // adds a file-set to the WEB-INF dir.
+//    additionalLibs(dir: file('additionalLibs')) // adds a file-set to the WEB-INF/lib dir.
+//    libConfigurations('moreLibs') // adds a configuration to the WEB-INF/lib dir.
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 
