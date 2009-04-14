@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -53,6 +54,9 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
                 } else {
                     result.add(project.file(closureResult));
                 }
+            } else if (element instanceof FileCollection) {
+                FileCollection fileCollection = (FileCollection) element;
+                result.addAll(fileCollection.getFiles());
             } else {
                 result.add(project.file(element));
             }

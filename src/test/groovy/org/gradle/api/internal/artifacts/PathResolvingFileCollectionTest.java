@@ -101,4 +101,21 @@ public class PathResolvingFileCollectionTest {
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
+
+    @Test
+    public void canUseAFileCollectionToSpecifyTheContentsOfTheColleciton() {
+        final File file1 = new File("1");
+        final File file2 = new File("2");
+
+        final FileCollection src = context.mock(FileCollection.class);
+
+        FileCollection collection = new PathResolvingFileCollection(project, toList((Object) src));
+
+        context.checking(new Expectations() {{
+            one(src).getFiles();
+            will(returnValue(toLinkedSet(file1, file2)));
+        }});
+
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
+    }
 }

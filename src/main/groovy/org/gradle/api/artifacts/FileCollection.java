@@ -19,7 +19,10 @@ import java.io.File;
 import java.util.Set;
 
 /**
- * <p>A {@code FileCollection} represents a collection of files which you can query in certain ways.</p>
+ * <p>A {@code FileCollection} represents a collection of files which you can query in certain ways. A file collection
+ * is often used to define a classpath, or to add files to a container.</p>
+ *
+ * <p>You can obtain a {@code FileCollection} instance using {@link org.gradle.api.Project#files}.</p>
  */
 public interface FileCollection extends Iterable<File> {
     /**

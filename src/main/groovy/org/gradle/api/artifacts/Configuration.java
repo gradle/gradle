@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
  */
-public interface Configuration extends FileCollection{
+public interface Configuration extends FileCollection {
     State getState();
 
     enum State { UNRESOLVED, RESOLVED, RESOLVED_WITH_FAILURES }
