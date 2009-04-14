@@ -18,6 +18,8 @@ package org.gradle.api.artifacts.maven;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.util.HelperUtil;
 
 /**
  * @author Hans Dockter
@@ -25,8 +27,8 @@ import org.junit.Test;
 public class Conf2ScopeMappingTest {
     private Conf2ScopeMapping conf2ScopeMapping;
     private static final String TEST_SCOPE = "somescope";
-    private static final int TEST_PRIORITY = 10;
-    private static final String TEST_CONF = "someconf";
+    private static final Integer TEST_PRIORITY = 10;
+    private static final Configuration TEST_CONF = HelperUtil.createConfiguration("someconf");
 
     @Before
     public void setUp() {
@@ -36,7 +38,7 @@ public class Conf2ScopeMappingTest {
     @Test
     public void init() {
         assertEquals(TEST_PRIORITY, conf2ScopeMapping.getPriority());
-        assertEquals(TEST_CONF, conf2ScopeMapping.getConf());
+        assertEquals(TEST_CONF, conf2ScopeMapping.getConfiguration());
         assertEquals(TEST_SCOPE, conf2ScopeMapping.getScope());
     }
 

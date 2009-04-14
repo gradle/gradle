@@ -137,4 +137,18 @@ public class DefaultMavenDependency implements MavenDependency {
         result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultMavenDependency{" +
+                "groupId='" + groupId + '\'' +
+                ", artifactId='" + artifactId + '\'' +
+                ", version='" + version + '\'' +
+                ", type='" + type + '\'' +
+                ", scope='" + scope + '\'' +
+                ", mavenExcludes=" + mavenExcludes +
+                ", optional=" + optional +
+                ", classifier='" + classifier + '\'' +
+                '}';
+    }
 }

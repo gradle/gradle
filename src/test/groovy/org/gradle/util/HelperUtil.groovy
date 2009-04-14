@@ -232,6 +232,7 @@ class HelperUtil {
         }
     }
 
+    // todo should probably be removed
     static Set<DefaultConfiguration> createConfigurations(String confName1, String confName2) {
         return WrapUtil.toSet(
                 new DefaultConfiguration(confName1, null),
@@ -240,6 +241,10 @@ class HelperUtil {
 
     static String createUniqueId() {
         return new UID().toString();
+    }
+
+    static org.gradle.api.artifacts.Configuration createConfiguration(String name) {
+        return new DefaultConfiguration(name, null, null, null, null)
     }
 }
 

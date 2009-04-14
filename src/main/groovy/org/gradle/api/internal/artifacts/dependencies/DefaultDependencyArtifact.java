@@ -65,7 +65,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) return false;
         if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
         if (!name.equals(that.name)) return false;
-        if (!type.equals(that.type)) return false;
+        if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (url != null ? !url.equals(that.url) : that.url != null) return false;
 
         return true;
@@ -74,7 +74,7 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
     @Override
     public int hashCode() {
         int result = name.hashCode();
-        result = 31 * result + type.hashCode();
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (extension != null ? extension.hashCode() : 0);
         result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
         result = 31 * result + (url != null ? url.hashCode() : 0);

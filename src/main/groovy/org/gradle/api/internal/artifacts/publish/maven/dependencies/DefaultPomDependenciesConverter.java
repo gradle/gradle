@@ -20,8 +20,12 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.gradle.api.specs.Specs;
+import org.gradle.api.GradleException;
 
 import java.util.*;
+import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -34,74 +38,90 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
     }
 
     public List<MavenDependency> convert(MavenPom pom, Set<Configuration> configurations) {
-        Map<Dependency, Set<String>> dependenciesMap = createDependenciesMap(configurations);
+        Map<Dependency, String> dependenciesMap = createDependencyToScopeMap(pom, configurations);
         List<MavenDependency> mavenDependencies = new ArrayList<MavenDependency>();
         for (Dependency dependency : dependenciesMap.keySet()) {
             if (dependency.getArtifacts().size() == 0) {
-                addFromDependencyDescriptor(mavenDependencies, pom, dependency, dependenciesMap.get(dependency));
+                addFromDependencyDescriptor(mavenDependencies, dependency, dependenciesMap.get(dependency));
             } else {
-                addFromArtifactDescriptor(mavenDependencies, pom, dependency, dependenciesMap.get(dependency));
+                addFromArtifactDescriptor(mavenDependencies, dependency, dependenciesMap.get(dependency));
             }
         }
         return mavenDependencies;
     }
 
-    private Map<Dependency, Set<String>> createDependenciesMap(Set<Configuration> configurations) {
-        Map<Dependency, Set<String>> dependencySetMap = new HashMap<Dependency, Set<String>>();
+    private Map<Dependency, String> createDependencyToScopeMap(MavenPom pom, Set<Configuration> configurations) {
+        Map<Dependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
+        Map<Dependency, String> dependencyToScope = new HashMap<Dependency, String>();
+        for (Dependency dependency : dependencyToConfigurations.keySet()) {
+            Conf2ScopeMapping conf2ScopeMapping = pom.getScopeMappings().getMapping(
+                    dependencyToConfigurations.get(dependency).toArray(new Configuration[dependencyToConfigurations.get(dependency).size()]));
+            if (!useScope(pom, conf2ScopeMapping)) {
+                continue;
+            }
+            dependencyToScope.put(findDependency(dependency, conf2ScopeMapping.getConfiguration()), conf2ScopeMapping.getScope());
+        }
+        return dependencyToScope;
+    }
+
+    private Dependency findDependency(Dependency dependency, Configuration configuration) {
+        for (Dependency configurationDependency : configuration.getDependencies()) {
+            if (dependency.equals(configurationDependency)) {
+                return configurationDependency;
+            }
+        }
+        throw new GradleException("Dependency could not be found. We should never get here!");
+    }
+
+    private boolean useScope(MavenPom pom, Conf2ScopeMapping conf2ScopeMapping) {
+        return conf2ScopeMapping.getScope() != null || !pom.getScopeMappings().isSkipUnmappedConfs();
+    }
+
+    private Map<Dependency, Set<Configuration>> createDependencyToConfigurationsMap(Set<Configuration> configurations) {
+        Map<Dependency, Set<Configuration>> dependencySetMap = new HashMap<Dependency, Set<Configuration>>();
         for (Configuration configuration : configurations) {
             for (Dependency dependency : configuration.getDependencies()) {
                 if (dependencySetMap.get(dependency) == null) {
-                    dependencySetMap.put(dependency, new HashSet<String>());
+                    dependencySetMap.put(dependency, new HashSet<Configuration>());
                 }
-                dependencySetMap.get(dependency).add(configuration.getName());
+                dependencySetMap.get(dependency).add(configuration);
             }
         }
         return dependencySetMap;
     }
 
-    private void addFromArtifactDescriptor(List<MavenDependency> mavenDependencies, MavenPom pom, Dependency dependency, Set<String> configurations) {
+    private void addFromArtifactDescriptor(List<MavenDependency> mavenDependencies, Dependency dependency, String scope) {
         for (DependencyArtifact artifact : dependency.getArtifacts()) {
-            String scope = pom.getScopeMappings().getScope(configurations.toArray(new String[configurations.size()]));
-            if (useScope(pom, scope)) {
-                return;
-            }
             mavenDependencies.add(createMavenDependencyFromArtifactDescriptor(dependency, artifact, scope));
         }
     }
 
-    private void addFromDependencyDescriptor(List<MavenDependency> mavenDependencies, MavenPom pom, Dependency dependency, Set<String> configurations) {
-        String scope = pom.getScopeMappings().getScope(configurations.toArray(new String[configurations.size()]));
-        if (useScope(pom, scope)) {
-            return;
-        }
+    private void addFromDependencyDescriptor(List<MavenDependency> mavenDependencies, Dependency dependency, String scope) {
         mavenDependencies.add(createMavenDependencyFromDependencyDescriptor(dependency, scope));
     }
 
-    private boolean useScope(MavenPom pom, String scope) {
-        return scope == null && pom.getScopeMappings().isSkipUnmappedConfs();
-    }
-
     private MavenDependency createMavenDependencyFromArtifactDescriptor(Dependency dependency, DependencyArtifact artifact, String scope) {
-        return createMavenDependency(dependency, artifact.getName(), artifact.getType(), scope);
+        return createMavenDependency(dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier());
     }
 
     private MavenDependency createMavenDependencyFromDependencyDescriptor(Dependency dependency, String scope) {
-        return createMavenDependency(dependency, dependency.getName(), null, scope);
+        return createMavenDependency(dependency, dependency.getName(), null, scope, null);
     }
 
-    private MavenDependency createMavenDependency(Dependency dependency, String name, String type, String scope) {
-        DefaultMavenDependency mavenDependency = DefaultMavenDependency.newInstance(dependency.getGroup(), name, dependency.getVersion(), type, scope);
-        addExclude(dependency, mavenDependency);
-        return mavenDependency;
+    private MavenDependency createMavenDependency(Dependency dependency, String name, String type, String scope, String classifier) {
+        return new DefaultMavenDependency(
+                dependency.getGroup(), name, dependency.getVersion(), type, scope, getExcludes(dependency), false, classifier);
     }
 
-    private void addExclude(Dependency dependency, MavenDependency mavenDependency) {
+    private List<MavenExclude> getExcludes(Dependency dependency) {
+        List<MavenExclude> mavenExcludes = new ArrayList<MavenExclude>();
         for (ExcludeRule excludeRule : dependency.getExcludeRules()) {
             DefaultMavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);
             if (mavenExclude != null) {
-                mavenDependency.getMavenExcludes().add(mavenExclude);
+                mavenExcludes.add(mavenExclude);
             }
         }
+        return mavenExcludes;
     }
 
     public ExcludeRuleConverter getExcludeRuleConverter() {

@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.util.WrapUtil;
 
 import java.util.*;
 
@@ -25,78 +27,71 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingContainer {
-    private Map<String, Conf2ScopeMapping> mappings = new HashMap<String, Conf2ScopeMapping>();
+    private Map<Configuration, Conf2ScopeMapping> mappings = new HashMap<Configuration, Conf2ScopeMapping>();
 
     private boolean skipUnmappedConfs = true;
                   
     public DefaultConf2ScopeMappingContainer() {
     }
 
-    public DefaultConf2ScopeMappingContainer(Map<String, Conf2ScopeMapping> mappings) {
+    public DefaultConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings) {
         this.mappings.putAll(mappings);
     }
 
-    public String getScope(String... configurations) {
-        List<Conf2ScopeMapping> mappingWithHighestPriority = getMappingsWithHighestPriority(configurations);
-        if (mappingWithHighestPriority.size() == 0) {
+    public Conf2ScopeMapping getMapping(Configuration... configurations) {
+        Conf2ScopeMapping mappingWithHighestPriority = getMappingWithHighestPriority(configurations);
+        if (mappingWithHighestPriority == null) {
             return null;
         }
-        if (hasDifferentScopes(mappingWithHighestPriority)) {
-            throw new InvalidUserDataException("Mappings with same priority map to different scopes: " + mappingWithHighestPriority);
-        }
-        return mappingWithHighestPriority.get(0).getScope();
+        return mappingWithHighestPriority;
     }
 
-    private boolean hasDifferentScopes(List<Conf2ScopeMapping> mappings) {
-        Set<String> scopes = new HashSet<String>();
-        for (Conf2ScopeMapping mapping : mappings) {
-            scopes.add(mapping.getScope());
+    private Conf2ScopeMapping getMappingWithHighestPriority(Configuration[] configurations) {
+        Set<Conf2ScopeMapping> result = getMappingsWithHighestPriority(configurations);
+        if (result.size() > 1) {
+            throw new InvalidUserDataException("The configuration to scope mapping is not unique. The following configurations " +
+                    "have the same priority: " + result);
         }
-        return scopes.size() > 1;
+        return result.size() == 0 ? null : result.iterator().next();
     }
 
-    private List<Conf2ScopeMapping> getMappingsWithHighestPriority(String[] configurations) {
-        List<Conf2ScopeMapping> sortedExistingMappings = getSortedExistingMappings(configurations);
-        if (sortedExistingMappings.size() <= 1) {
-            return sortedExistingMappings;
-        }
-        int highestPriority = sortedExistingMappings.get(sortedExistingMappings.size() - 1).getPriority();
-        int i = sortedExistingMappings.size() - 2;
-        for ( ; i >= 0; i--) {
-            if (sortedExistingMappings.get(i).getPriority() < highestPriority) {
-                break;
+    private Set<Conf2ScopeMapping> getMappingsWithHighestPriority(Configuration[] configurations) {
+        Set<Conf2ScopeMapping> result = findHighestPriorityMappingsForMappedConfigurations(configurations);
+        return result;
+    }
+
+    private Set<Conf2ScopeMapping> findHighestPriorityMappingsForMappedConfigurations(Configuration[] configurations) {
+        Integer lastPriority = null;
+        Set<Conf2ScopeMapping> result = new HashSet<Conf2ScopeMapping>();
+        for (Conf2ScopeMapping conf2ScopeMapping : getMappingsForConfigurations(configurations)) {
+            if (lastPriority == conf2ScopeMapping.getPriority()) {
+                result.add(conf2ScopeMapping);
+            } else if (lastPriority == null || lastPriority < conf2ScopeMapping.getPriority()) {
+                lastPriority = conf2ScopeMapping.getPriority();
+                result = WrapUtil.toSet(conf2ScopeMapping);
             }
         }
-        return sortedExistingMappings.subList(i + 1, sortedExistingMappings.size());
+        return result;
     }
 
-    private List<Conf2ScopeMapping> getSortedExistingMappings(String[] configurations) {
+    private List<Conf2ScopeMapping> getMappingsForConfigurations(Configuration[] configurations) {
         List<Conf2ScopeMapping> existingMappings = new ArrayList<Conf2ScopeMapping>();
-        for (String configuration : configurations) {
+        for (Configuration configuration : configurations) {
             if (mappings.get(configuration) != null) {
                 existingMappings.add(mappings.get(configuration));
+            } else {
+                existingMappings.add(new Conf2ScopeMapping(null, configuration, null));
             }
         }
-        Collections.sort(existingMappings, new Comparator<Conf2ScopeMapping>() {
-            public int compare(Conf2ScopeMapping o1, Conf2ScopeMapping o2) {
-                return new Integer(o1.getPriority()).compareTo(o2.getPriority());
-            }
-        });
         return existingMappings;
     }
 
-
-    public Conf2ScopeMappingContainer addMapping(int priority, String configuration, String scope) {
+    public Conf2ScopeMappingContainer addMapping(int priority, Configuration configuration, String scope) {
         mappings.put(configuration, new Conf2ScopeMapping(priority, configuration, scope));
         return this;
     }
 
-
-    public Conf2ScopeMapping getMapping(String configuration) {
-        return mappings.get(configuration);
-    }
-
-    public Map<String, Conf2ScopeMapping> getMappings() {
+    public Map<Configuration, Conf2ScopeMapping> getMappings() {
         return mappings;
     }
 

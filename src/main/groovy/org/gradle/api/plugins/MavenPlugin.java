@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
@@ -48,11 +49,11 @@ public class MavenPlugin implements Plugin {
         setConventionMapping(project);
         addConventionObject(project, customValues);
         if (isJavaPluginApplied(project)) {
-            configureJavaScopeMappings(project.getRepositories());
+            configureJavaScopeMappings(project.getRepositories(), project.getConfigurations());
             configureInstall(project, project.getConvention().getPlugin(JavaPluginConvention.class));
         }
         if (isWarPluginApplied(project)) {
-            configureWarScopeMappings(project.getRepositories());
+            configureWarScopeMappings(project.getRepositories(), project.getConfigurations());
         }
     }
 
@@ -90,16 +91,22 @@ public class MavenPlugin implements Plugin {
         return true;
     }
 
-    private void configureJavaScopeMappings(ResolverContainer resolverFactory) {
-        resolverFactory.getMavenScopeMappings().addMapping(COMPILE_PRIORITY, JavaPlugin.COMPILE, Conf2ScopeMappingContainer.COMPILE);
-        resolverFactory.getMavenScopeMappings().addMapping(RUNTIME_PRIORITY, JavaPlugin.RUNTIME, Conf2ScopeMappingContainer.RUNTIME);
-        resolverFactory.getMavenScopeMappings().addMapping(TEST_COMPILE_PRIORITY, JavaPlugin.TEST_COMPILE, Conf2ScopeMappingContainer.TEST);
-        resolverFactory.getMavenScopeMappings().addMapping(TEST_RUNTIME_PRIORITY, JavaPlugin.TEST_RUNTIME, Conf2ScopeMappingContainer.TEST);
+    private void configureJavaScopeMappings(ResolverContainer resolverFactory, ConfigurationContainer configurations) {
+        resolverFactory.getMavenScopeMappings().addMapping(COMPILE_PRIORITY, configurations.get(JavaPlugin.COMPILE),
+                Conf2ScopeMappingContainer.COMPILE);
+        resolverFactory.getMavenScopeMappings().addMapping(RUNTIME_PRIORITY, configurations.get(JavaPlugin.RUNTIME),
+                Conf2ScopeMappingContainer.RUNTIME);
+        resolverFactory.getMavenScopeMappings().addMapping(TEST_COMPILE_PRIORITY, configurations.get(JavaPlugin.TEST_COMPILE),
+                Conf2ScopeMappingContainer.TEST);
+        resolverFactory.getMavenScopeMappings().addMapping(TEST_RUNTIME_PRIORITY, configurations.get(JavaPlugin.TEST_RUNTIME),
+                Conf2ScopeMappingContainer.TEST);
     }
 
-    private void configureWarScopeMappings(ResolverContainer resolverContainer) {
-        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, WarPlugin.PROVIDED_COMPILE, Conf2ScopeMappingContainer.PROVIDED);
-        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, WarPlugin.PROVIDED_RUNTIME, Conf2ScopeMappingContainer.PROVIDED);
+    private void configureWarScopeMappings(ResolverContainer resolverContainer, ConfigurationContainer configurations) {
+        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, configurations.get(WarPlugin.PROVIDED_COMPILE),
+                Conf2ScopeMappingContainer.PROVIDED);
+        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, configurations.get(WarPlugin.PROVIDED_RUNTIME),
+                Conf2ScopeMappingContainer.PROVIDED);
     }
 
     private void configureInstall(Project project, JavaPluginConvention javaConvention) {

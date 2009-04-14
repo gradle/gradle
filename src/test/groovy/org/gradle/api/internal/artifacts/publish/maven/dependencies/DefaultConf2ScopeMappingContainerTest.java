@@ -16,10 +16,15 @@
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.util.HelperUtil;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +34,9 @@ import java.util.Map;
  */
 public class DefaultConf2ScopeMappingContainerTest {
     private DefaultConf2ScopeMappingContainer conf2ScopeMappingContainer;
-    private static final String TEST_CONF_1 = "testCompile";
-    private static final String TEST_CONF_2 = "testCompile2";
-    private static final String TEST_CONF_3 = "testCompile3";
+    private static final Configuration TEST_CONF_1 = HelperUtil.createConfiguration("testCompile");
+    private static final Configuration TEST_CONF_2 = HelperUtil.createConfiguration("testCompile2");
+    private static final Configuration TEST_CONF_3 = HelperUtil.createConfiguration("testCompile3");
     private static final String TEST_SCOPE_1 = "test";
     private static final String TEST_SCOPE_2 = "test2";
     private static final int TEST_PRIORITY_1 = 10;
@@ -48,7 +53,7 @@ public class DefaultConf2ScopeMappingContainerTest {
         conf2ScopeMappingContainer = new DefaultConf2ScopeMappingContainer();
         assertTrue(conf2ScopeMappingContainer.isSkipUnmappedConfs());
         assertEquals(0, conf2ScopeMappingContainer.getMappings().size());
-        Map<String, Conf2ScopeMapping> testMappings = createTestMappings();
+        Map<Configuration, Conf2ScopeMapping> testMappings = createTestMappings();
         conf2ScopeMappingContainer = new DefaultConf2ScopeMappingContainer(testMappings);
         assertNotSame(testMappings, conf2ScopeMappingContainer.getMappings());
         assertEquals(testMappings, conf2ScopeMappingContainer.getMappings());
@@ -56,17 +61,18 @@ public class DefaultConf2ScopeMappingContainerTest {
 
     @Test
     public void equalsAndHashCode() {
-        Map<String, Conf2ScopeMapping> testMappings = createTestMappings();
+        Map<Configuration, Conf2ScopeMapping> testMappings = createTestMappings();
         conf2ScopeMappingContainer = new DefaultConf2ScopeMappingContainer(testMappings);
         assertTrue(conf2ScopeMappingContainer.equals(new DefaultConf2ScopeMappingContainer(testMappings)));
         assertEquals(conf2ScopeMappingContainer.hashCode(), new DefaultConf2ScopeMappingContainer(testMappings).hashCode());
-        conf2ScopeMappingContainer.addMapping(10, "conf", "scope");
+        conf2ScopeMappingContainer.addMapping(10, HelperUtil.createConfiguration("conf2"), "scope");
         assertFalse(conf2ScopeMappingContainer.equals(new DefaultConf2ScopeMappingContainer(testMappings)));
     }
 
-    private Map<String, Conf2ScopeMapping> createTestMappings() {
-        Map<String, Conf2ScopeMapping> testMappings = new HashMap<String, Conf2ScopeMapping>() {{
-            put("key", new Conf2ScopeMapping(10, "conf", "scope"));
+    private Map<Configuration, Conf2ScopeMapping> createTestMappings() {
+        Map<Configuration, Conf2ScopeMapping> testMappings = new HashMap<Configuration, Conf2ScopeMapping>() {{
+            Configuration configuration = HelperUtil.createConfiguration("conf");
+            put(configuration, new Conf2ScopeMapping(10, configuration, "scope"));
         }};
         return testMappings;
     }
@@ -79,30 +85,33 @@ public class DefaultConf2ScopeMappingContainerTest {
 
     @Test
     public void singleMapping() {
-        assertEquals(TEST_SCOPE_1, conf2ScopeMappingContainer.getScope(TEST_CONF_1));      
+        assertThat(conf2ScopeMappingContainer.getMapping(TEST_CONF_1), equalTo(
+                new Conf2ScopeMapping(TEST_PRIORITY_1, TEST_CONF_1, TEST_SCOPE_1)));
     }
 
     @Test
     public void unmappedConfiguration() {
-        assertNull(conf2ScopeMappingContainer.getScope(TEST_CONF_2));      
+        assertThat(conf2ScopeMappingContainer.getMapping(TEST_CONF_2), equalTo(
+                new Conf2ScopeMapping(null, TEST_CONF_2, null)));
     }
 
     @Test
     public void mappingWithDifferentPrioritiesDifferentConfsDifferentScopes() {
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_2, TEST_CONF_2, TEST_SCOPE_2);
-        assertEquals(TEST_SCOPE_2, conf2ScopeMappingContainer.getScope(TEST_CONF_1, TEST_CONF_2));
+        assertThat(conf2ScopeMappingContainer.getMapping(TEST_CONF_1, TEST_CONF_2), equalTo(
+                new Conf2ScopeMapping(TEST_PRIORITY_2, TEST_CONF_2, TEST_SCOPE_2)));
     }
     
-    @Test
+    @Test(expected = InvalidUserDataException.class)
     public void mappingWithSamePrioritiesDifferentConfsSameScope() {
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, TEST_CONF_2, TEST_SCOPE_1);
-        assertEquals(TEST_SCOPE_1, conf2ScopeMappingContainer.getScope(TEST_CONF_1, TEST_CONF_2));
+        conf2ScopeMappingContainer.getMapping(TEST_CONF_1, TEST_CONF_2);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void mappingWithSamePrioritiesDifferentConfsDifferentScopes() {
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, TEST_CONF_2, TEST_SCOPE_1);
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, TEST_CONF_3, TEST_SCOPE_2);
-        conf2ScopeMappingContainer.getScope(TEST_CONF_1, TEST_CONF_2, TEST_CONF_3);
+        conf2ScopeMappingContainer.getMapping(TEST_CONF_1, TEST_CONF_2, TEST_CONF_3);
     }
 }
