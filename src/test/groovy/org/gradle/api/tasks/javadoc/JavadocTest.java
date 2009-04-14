@@ -15,34 +15,30 @@
  */
 package org.gradle.api.tasks.javadoc;
 
-import org.apache.tools.ant.BuildException;
 import org.apache.commons.io.FileUtils;
+import org.apache.tools.ant.BuildException;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleState;
-import org.gradle.external.javadoc.JavadocExecHandleBuilder;
-import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import org.junit.After;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.After;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Set;
 
@@ -58,7 +54,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private ExecHandle execHandleMock = context.mock(ExecHandle.class);
     private Javadoc task;
     private ExistingDirsFilter existingDirsFilter = context.mock(ExistingDirsFilter.class);
-    private Configuration configurationMock = context.mock(Configuration.class);
+    private FileCollection configurationMock = context.mock(FileCollection.class);
 
     @Before
     public void setUp() {
@@ -68,7 +64,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
         task.setConfiguration(configurationMock);
         task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
         context.checking(new Expectations() {{
-            allowing(configurationMock).resolve(); will(returnValue(classpath));
+            allowing(configurationMock).getFiles(); will(returnValue(classpath));
         }});
     }
 

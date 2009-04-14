@@ -16,24 +16,22 @@
 
 package org.gradle.api.tasks.testing;
 
+import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.compile.ClasspathConverter;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.tasks.testing.testng.TestNGTestFramework;
+import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import groovy.lang.MissingPropertyException;
-import groovy.lang.Closure;
 
 /**
  * A task for executing Junit 3.8.x and Junit 4 tests.
@@ -61,7 +59,7 @@ public class Test extends ConventionTask {
 
     private List unmanagedClasspath = null;
 
-    private Configuration configuration;
+    private FileCollection configuration;
 
     protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
 
@@ -103,8 +101,7 @@ public class Test extends ConventionTask {
 
     public List getClasspath() {
         List classpath = classpathConverter.createFileClasspath(getProject().getRootDir(),
-                GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getUnmanagedClasspath(),
-                        new ArrayList(configuration.resolve())));
+                GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getUnmanagedClasspath(), configuration));
         return classpath;
     }
 
@@ -355,11 +352,11 @@ public class Test extends ConventionTask {
         }
     }
 
-    public Configuration getConfiguration() {
+    public FileCollection getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(Configuration configuration) {
+    public void setConfiguration(FileCollection configuration) {
         this.configuration = configuration;
     }
 

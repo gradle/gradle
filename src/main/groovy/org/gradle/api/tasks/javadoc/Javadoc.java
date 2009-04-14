@@ -18,7 +18,7 @@ package org.gradle.api.tasks.javadoc;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.exec.ExecHandle;
@@ -61,7 +61,7 @@ public class Javadoc extends ConventionTask {
     private boolean alwaysAppendDefaultSourcepath = false;
     private boolean alwaysAppendDefaultClasspath = false;
 
-    private Configuration configuration;
+    private FileCollection configuration;
 
     public Javadoc(Project project, String name) {
         super(project, name);
@@ -213,7 +213,7 @@ public class Javadoc extends ConventionTask {
      * @return The classpath.
      */
     public Set<File> getClasspath() {
-        return configuration.resolve();
+        return configuration.getFiles();
     }
 
     /**
@@ -284,11 +284,11 @@ public class Javadoc extends ConventionTask {
         this.existentDirsFilter = existentDirsFilter;
     }
 
-    public Configuration getConfiguration() {
+    public FileCollection getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(Configuration configuration) {
+    public void setConfiguration(FileCollection configuration) {
         this.configuration = configuration;
     }
 

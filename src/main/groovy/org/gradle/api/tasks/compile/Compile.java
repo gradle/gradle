@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.GUtil;
@@ -38,7 +38,7 @@ public class Compile extends ConventionTask {
     /**
      * The directories with the sources to compile
      */
-    private List srcDirs = null;
+    private List srcDirs;
 
     /**
      * The directory where to put the compiled classes (.class files)
@@ -55,7 +55,7 @@ public class Compile extends ConventionTask {
      */
     private String targetCompatibility;
 
-    private Configuration configuration;
+    private FileCollection configuration;
 
     /**
      * This property is used internally by Gradle. It is usually not used by build scripts.
@@ -63,7 +63,7 @@ public class Compile extends ConventionTask {
      * class files. The files added here are not shared in a multi-project build and are not mentioned in
      * a dependency descriptor if you upload your library to a repository.
      */
-    private List unmanagedClasspath = null;
+    private List unmanagedClasspath;
 
     /**
      * Options for the compiler. The compile is delegated to the ant javac task. This property contains almost
@@ -114,7 +114,7 @@ public class Compile extends ConventionTask {
 
     public List getClasspath() {
         List classpath = GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
-                new ArrayList(configuration.resolve()));
+                configuration);
         return classpath;
     }
 
@@ -208,11 +208,11 @@ public class Compile extends ConventionTask {
         this.excludes = excludes;
     }
     
-    public Configuration getConfiguration() {
+    public FileCollection getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(Configuration configuration) {
+    public void setConfiguration(FileCollection configuration) {
         this.configuration = configuration;
     }
 }

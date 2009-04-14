@@ -16,19 +16,18 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.BootstrapUtil;
-import org.gradle.util.GUtil;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.util.ExistingDirsFilter;
 
-import java.util.List;
 import java.io.File;
-
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that
@@ -41,7 +40,7 @@ import java.io.File;
 public class Groovydoc extends ConventionTask {
     private List srcDirs;
 
-    private List groovyClasspath;
+    private FileCollection groovyClasspath;
 
     private File destinationDir;
 
@@ -62,7 +61,7 @@ public class Groovydoc extends ConventionTask {
     private void generate(Task task) {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 getDestinationDir(), getSrcDirs());
-        List taskClasspath = getGroovyClasspath();
+        List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         antGroovydoc.execute(existingSourceDirs, getDestinationDir(), getProject().getAnt(), taskClasspath);
     }
@@ -110,14 +109,14 @@ public class Groovydoc extends ConventionTask {
      *
      * @return The classpath.
      */
-    public List getGroovyClasspath() {
-        return (List) conv(groovyClasspath, "groovyClasspath");
+    public FileCollection getGroovyClasspath() {
+        return groovyClasspath;
     }
 
     /**
      * <p>Sets the classpath to use to locate classes referenced by the documented source.</p>
      */
-    public void setGroovyClasspath(List groovyClasspath) {
+    public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
     }
 

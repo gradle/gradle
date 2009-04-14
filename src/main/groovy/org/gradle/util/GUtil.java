@@ -85,24 +85,25 @@ public class GUtil {
         return isTrue(object) ? object : defaultValue;
     }
 
-    public static Set addToSet(Set source, Collection setToAdd) {
-        source.addAll(setToAdd);
-        return source;
-    }
-
-    public static Set addSets(Set set1, Set set2) {
-        HashSet set = new HashSet();
-        set.addAll(set1);
-        set.addAll(set2);
+    public static <T> Set<T> addSets(Iterable<? extends T>... sets) {
+        HashSet<T> set = new HashSet<T>();
+        addToCollection(set, sets);
         return set;
     }
 
-    public static List addLists(List... lists) {
-        ArrayList newList = new ArrayList();
-        for (List list : lists) {
-            newList.addAll(list);
-        }
+    public static <T> List<T> addLists(Iterable<? extends T>... lists) {
+        ArrayList<T> newList = new ArrayList<T>();
+        addToCollection(newList, lists);
         return newList;
+    }
+
+    private static <T> Collection<T> addToCollection(Collection<T> dest, Iterable<? extends T>... srcs) {
+        for (Iterable<? extends T> src : srcs) {
+            for (T t : src) {
+                dest.add(t);
+            }
+        }
+        return dest;
     }
 
     public static Map addMaps(Map map1, Map map2) {

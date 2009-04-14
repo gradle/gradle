@@ -20,11 +20,16 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Arrays;
 
 public class DefaultFileCollection extends AbstractFileCollection {
     private final Set<File> files = new LinkedHashSet<File>();
 
     public DefaultFileCollection(File... files) {
+        this(Arrays.asList(files));
+    }
+    
+    public DefaultFileCollection(Iterable<File> files) {
         for (File file : files) {
             this.files.add(GFileUtils.canonicalise(file));
         }

@@ -16,32 +16,34 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.GradleScriptException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.GradleScriptException;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
-import static org.junit.Assert.assertThat;
 import org.junit.runner.RunWith;
-import org.hamcrest.Matchers;
 
 import java.io.File;
-import java.util.List;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class GroovyCompileTest extends AbstractCompileTest {
-    static final List TEST_GROOVY_CLASSPATH = WrapUtil.toList("groovy.jar");
+    static final List TEST_GROOVY_CLASSPATH = WrapUtil.toList(new File("groovy.jar"));
 
     private GroovyCompile testObj;
 
@@ -97,11 +99,19 @@ public class GroovyCompileTest extends AbstractCompileTest {
         Assert.fail();
     }
 
-    void setUpMocksAndAttributes(GroovyCompile compile, List groovyClasspath) {
-        super.setUpMocksAndAttributes((Compile) compile);
-        compile.setGroovyClasspath(groovyClasspath);
+    void setUpMocksAndAttributes(GroovyCompile compile, final List groovyClasspath) {
+        super.setUpMocksAndAttributes(compile);
+
+        final FileCollection groovyClasspathCollection = context.mock(FileCollection.class);
+        context.checking(new Expectations(){{
+            allowing(groovyClasspathCollection).getFiles();
+            will(returnValue(new LinkedHashSet(groovyClasspath)));
+        }});
+
+        compile.setGroovyClasspath(groovyClasspathCollection);
         compile.setGroovySourceDirs(WrapUtil.toList(new File("groovySourceDir1"), new File("groovySourceDir2")));
         compile.existentDirsFilter = getGroovyCompileExistingDirsFilterMock();
+        
         context.checking(new Expectations() {
             {
                 one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(), testObj.getDestinationDir(),

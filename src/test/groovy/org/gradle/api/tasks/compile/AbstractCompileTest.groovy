@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.GradleScriptException
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.compile.Compile
@@ -26,6 +25,7 @@ import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
+import org.gradle.api.artifacts.FileCollection
 
 /**
  * @author Hans Dockter
@@ -113,8 +113,8 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.destinationDir = AbstractCompileTest.TEST_TARGET_DIR
 
         compile.configuration = [
-            resolve: { -> AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH as Set}
-        ] as Configuration
+            iterator: { -> AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH.iterator()}
+        ] as FileCollection
 
         compile.classpathConverter = [createFileClasspath: {File baseDir, List pathElements ->
             assertEquals(AbstractCompileTest.TEST_ROOT_DIR, baseDir)

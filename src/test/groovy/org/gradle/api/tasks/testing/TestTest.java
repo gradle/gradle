@@ -18,7 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
@@ -58,18 +58,17 @@ public class TestTest extends AbstractConventionTaskTest {
     static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = WrapUtil.toList(new File("jar2"));
     static final List TEST_UNMANAGED_CLASSPATH = WrapUtil.toList("jar2");
     static final List TEST_CONVERTED_CLASSPATH = GUtil.addLists(WrapUtil.toList(TEST_TEST_CLASSES_DIR),
-            TEST_CONVERTED_UNMANAGED_CLASSPATH,
-            new ArrayList(TEST_DEPENDENCY_MANAGER_CLASSPATH));
+            TEST_CONVERTED_UNMANAGED_CLASSPATH, TEST_DEPENDENCY_MANAGER_CLASSPATH);
 
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
 
-    TestFramework testFrameworkMock = context.mock(TestFramework.class);;
+    TestFramework testFrameworkMock = context.mock(TestFramework.class);
 
     private ClasspathConverter classpathConverterMock = context.mock(ClasspathConverter.class);
     private ExistingDirsFilter existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
-    private Configuration configurationMock = context.mock(Configuration.class);
+    private FileCollection configurationMock = context.mock(FileCollection.class);
 
     private Test test;
 
@@ -194,10 +193,10 @@ public class TestTest extends AbstractConventionTaskTest {
         test.classpathConverter = classpathConverterMock;
 
         context.checking(new Expectations() {{
-            allowing(configurationMock).resolve();
-            will(returnValue(TEST_DEPENDENCY_MANAGER_CLASSPATH));
-            allowing(classpathConverterMock).createFileClasspath(TEST_ROOT_DIR,
-                    GUtil.addLists(WrapUtil.toList(TEST_TEST_CLASSES_DIR), TEST_UNMANAGED_CLASSPATH, new ArrayList(TEST_DEPENDENCY_MANAGER_CLASSPATH)));
+            allowing(configurationMock).iterator();
+            will(returnIterator(TEST_DEPENDENCY_MANAGER_CLASSPATH));
+            allowing(classpathConverterMock).createFileClasspath(TEST_ROOT_DIR, GUtil.addLists(WrapUtil.toList(
+                    TEST_TEST_CLASSES_DIR), TEST_UNMANAGED_CLASSPATH, TEST_DEPENDENCY_MANAGER_CLASSPATH));
             will(returnValue(TEST_CONVERTED_CLASSPATH));
         }});
     }

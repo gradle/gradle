@@ -20,11 +20,14 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collection;
+import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -34,7 +37,7 @@ public class GroovyCompile extends Compile {
 
     private AntGroovyc antGroovyCompile = new AntGroovyc();
 
-    private List groovyClasspath;
+    private FileCollection groovyClasspath;
 
     private List groovyIncludes = null;
 
@@ -77,7 +80,7 @@ public class GroovyCompile extends Compile {
                 classpath = createClasspath();
             }
             // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
-            List taskClasspath = getGroovyClasspath();
+            List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
             throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
             antGroovyCompile.execute(getProject().getAnt(), existingGroovySourceDirs, getGroovyIncludes(), getGroovyExcludes(),
                     getGroovyJavaIncludes(), getGroovyExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
@@ -85,15 +88,15 @@ public class GroovyCompile extends Compile {
         }
     }
 
-    private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {
+    private void throwExceptionIfTaskClasspathIsEmpty(Collection<File> taskClasspath) {
         if (taskClasspath.size() == 0) {
             throw new InvalidUserDataException("You must assign a Groovy library to the groovy configuration!");
         }
     }
 
     private List createClasspath() {
-        return GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
-                new ArrayList(getConfiguration().resolve()));
+        return GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(),
+                getUnmanagedClasspath()), getConfiguration());
     }
 
     /**
@@ -173,11 +176,11 @@ public class GroovyCompile extends Compile {
         return this;
     }
 
-    public List getGroovyClasspath() {
-        return (List) conv(groovyClasspath, "groovyClasspath");
+    public FileCollection getGroovyClasspath() {
+        return groovyClasspath;
     }
 
-    public void setGroovyClasspath(List groovyClasspath) {
+    public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
     }
 
