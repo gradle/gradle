@@ -32,8 +32,8 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getText() {
-        if (!GUtil.isTrue(content)) {
-            return null;
+        if (content == null) {
+            return "";
         }
         return content;
     }

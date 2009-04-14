@@ -65,7 +65,7 @@ public class DefaultCachePropertiesHandlerTest {
 
     @Test
     public void getCacheStateWithDifferentHashes() throws NoSuchAlgorithmException, IOException {
-        createPropertiesFile(TEST_SCRIPT_TEXT + "delta", false, new GradleVersion().getVersion());
+        createPropertiesFile(TEST_SCRIPT_TEXT + "delta", new GradleVersion().getVersion());
         assertEquals(CachePropertiesHandler.CacheState.INVALID, cachePropertyHandler.getCacheState(TEST_SCRIPT_TEXT, testCacheDir));
     }
 
@@ -77,42 +77,27 @@ public class DefaultCachePropertiesHandlerTest {
 
     @Test
     public void getCacheStateWithSameHashes() throws NoSuchAlgorithmException, IOException {
-        createPropertiesFile(TEST_SCRIPT_TEXT, false, new GradleVersion().getVersion());
+        createPropertiesFile(TEST_SCRIPT_TEXT, new GradleVersion().getVersion());
         assertEquals(CachePropertiesHandler.CacheState.VALID, cachePropertyHandler.getCacheState(TEST_SCRIPT_TEXT, testCacheDir));
     }
 
     @Test
     public void getCacheStateWithDifferentVersions() throws NoSuchAlgorithmException, IOException {
-        createPropertiesFile(TEST_SCRIPT_TEXT, false, new GradleVersion().getVersion() + "delta");
+        createPropertiesFile(TEST_SCRIPT_TEXT, new GradleVersion().getVersion() + "delta");
         assertEquals(CachePropertiesHandler.CacheState.INVALID, cachePropertyHandler.getCacheState(TEST_SCRIPT_TEXT, testCacheDir));
     }
 
-    @Test
-    public void getCacheStateWithEmptyScript() throws NoSuchAlgorithmException, IOException {
-        createPropertiesFile(TEST_SCRIPT_TEXT, true, new GradleVersion().getVersion());
-        assertEquals(CachePropertiesHandler.CacheState.EMPTY_SCRIPT, cachePropertyHandler.getCacheState(TEST_SCRIPT_TEXT, testCacheDir));
-    }
-
-    private void createPropertiesFile(String scriptText, boolean emptyScript, String version) throws NoSuchAlgorithmException, IOException {
+    private void createPropertiesFile(String scriptText, String version) throws NoSuchAlgorithmException, IOException {
         Properties properties = new Properties();
         properties.put(CachePropertiesHandler.HASH_KEY, createHash(scriptText));
         properties.put(CachePropertiesHandler.VERSION_KEY, version);
-        if (emptyScript) {
-            properties.put(CachePropertiesHandler.EMPTY_SCRIPT, Boolean.TRUE.toString());
-        }
         GUtil.saveProperties(properties, new File(testCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
     }
 
     @Test
-    public void writePropertiesWithEmptyScriptFalse() throws IOException, NoSuchAlgorithmException {
-        cachePropertyHandler.writeProperties(TEST_SCRIPT_TEXT, testCacheDir, false);
+    public void writeProperties() throws IOException, NoSuchAlgorithmException {
+        cachePropertyHandler.writeProperties(TEST_SCRIPT_TEXT, testCacheDir);
         checkWriteProperties(new HashMap());
-    }
-
-    @Test
-    public void writePropertiesWithEmptyScriptTrue() throws IOException, NoSuchAlgorithmException {
-        cachePropertyHandler.writeProperties(TEST_SCRIPT_TEXT, testCacheDir, true);
-        checkWriteProperties(WrapUtil.toMap(CachePropertiesHandler.EMPTY_SCRIPT, Boolean.TRUE.toString()));
     }
 
     private void checkWriteProperties(Map additionalExpectedProperties) throws IOException, NoSuchAlgorithmException {

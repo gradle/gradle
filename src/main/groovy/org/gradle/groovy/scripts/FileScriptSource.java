@@ -33,7 +33,7 @@ public class FileScriptSource implements ScriptSource {
 
     public String getText() {
         if (!sourceFile.exists()) {
-            return null;
+            return "";
         }
         return GFileUtils.readFileToString(sourceFile);
     }

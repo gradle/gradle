@@ -22,7 +22,7 @@ import java.io.File;
  */
 public interface ScriptSource {
     /**
-     * Returns the text of this script. Returns null if this script has no text.
+     * Returns the text of this script. Returns an empty String if this script has no text. Never returns null.
      */
     String getText();
 

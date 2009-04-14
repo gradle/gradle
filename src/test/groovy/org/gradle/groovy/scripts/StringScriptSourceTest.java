@@ -32,7 +32,7 @@ public class StringScriptSourceTest {
     @Test
     public void hasNoContentWhenScriptContentIsEmpty() {
         StringScriptSource source = new StringScriptSource("<description>", "");
-        assertThat(source.getText(), nullValue());
+        assertThat(source.getText(), equalTo(""));
     }
 
     @Test

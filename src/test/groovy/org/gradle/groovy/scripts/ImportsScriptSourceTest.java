@@ -62,10 +62,10 @@ public class ImportsScriptSourceTest {
     public void doesNotPrependImportsWhenScriptHasNoText() {
         context.checking(new Expectations(){{
             one(backingSource).getText();
-            will(returnValue(null));
+            will(returnValue(""));
         }});
 
-        assertThat(source.getText(), nullValue());
+        assertThat(source.getText(), equalTo(""));
     }
 
     @Test

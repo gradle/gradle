@@ -26,25 +26,25 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class DefaultCachePropertiesHandler implements CachePropertiesHandler {
-    public void writeProperties(String scriptText, File scriptCacheDir, boolean emptyScript) {
+    public void writeProperties(String scriptText, File scriptCacheDir) {
+        assert scriptText != null;
+
         Properties properties = new Properties();
         properties.put(CachePropertiesHandler.HASH_KEY, HashUtil.createHash(scriptText));
         properties.put(CachePropertiesHandler.VERSION_KEY, new GradleVersion().getVersion());
-        if (emptyScript) {
-            properties.put(CachePropertiesHandler.EMPTY_SCRIPT, Boolean.TRUE.toString());
-        }
+        
         GUtil.saveProperties(properties, new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
     }
 
     public CacheState getCacheState(String scriptText, File scriptCacheDir) {
+        assert scriptText != null;
+        
         File propertiesFile = new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME);
         if (!propertiesFile.isFile()) {
             return CacheState.INVALID;
         }
         Properties properties = GUtil.loadProperties(new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
-        if (properties.get(CachePropertiesHandler.EMPTY_SCRIPT) != null && properties.get(CachePropertiesHandler.EMPTY_SCRIPT).equals(Boolean.TRUE.toString())) {
-            return CacheState.EMPTY_SCRIPT;
-        }
+
         if (!properties.get(CachePropertiesHandler.VERSION_KEY).equals(new GradleVersion().getVersion())) {
             return CacheState.INVALID;
         }

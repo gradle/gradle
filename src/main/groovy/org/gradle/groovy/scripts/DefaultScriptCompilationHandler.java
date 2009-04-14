@@ -30,6 +30,8 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.AbstractFileFilter;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -80,7 +82,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         CompilationUnit unit = new CompilationUnit(configuration, null, new GroovyClassLoader(classLoader));
         String scriptName = source.getClassName();
         String scriptText = source.getText();
-        unit.addSource(scriptName, new ByteArrayInputStream(scriptText == null ? new byte[0] : scriptText.getBytes()));
+        unit.addSource(scriptName, new ByteArrayInputStream(scriptText.getBytes()));
         try {
             unit.compile();
         } catch (MultipleCompilationErrorsException e) {
@@ -89,11 +91,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
-        boolean emptyScript = false;
-        if (unit.getClasses().isEmpty()) {
-            emptyScript = true;
-        }
-        cachePropertiesHandler.writeProperties(scriptText, scriptCacheDir, emptyScript);
+        
+        cachePropertiesHandler.writeProperties(scriptText, scriptCacheDir);
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
     }
 
@@ -109,8 +108,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(scriptText, scriptCacheDir);
         if (cacheState == CachePropertiesHandler.CacheState.INVALID) {
             return null;
-        } else if (cacheState == CachePropertiesHandler.CacheState.EMPTY_SCRIPT) {
-            return new EmptyScript();
+        }
+        if (!hasCompiledClasses(scriptCacheDir)) {
+            return new EmptyScript();   
         }
         Clock clock = new Clock();
         Script script;
@@ -129,6 +129,15 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
         logger.debug("Timing: Loading script from cache took: {}", clock.getTime());
         return script;
+    }
+
+    private boolean hasCompiledClasses(File scriptCacheDir) {
+        for (String fileName : scriptCacheDir.list()) {
+            if (fileName.endsWith(".class")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public CachePropertiesHandler getCachePropertyHandler() {

@@ -37,12 +37,16 @@ public class ImportsScriptSource implements ScriptSource {
 
     public String getText() {
         String text = source.getText();
-        if (!GUtil.isTrue(text)) {
-            return null;
+        assert text != null;
+
+        String imports;
+        if (text.length() > 0) {
+            imports = '\n' + importsReader.getImports(rootDir);
+        } else {
+            imports = "";
         }
 
-        String imports = importsReader.getImports(rootDir);
-        return text + '\n' + imports;
+        return text + imports;
     }
 
     public String getClassName() {

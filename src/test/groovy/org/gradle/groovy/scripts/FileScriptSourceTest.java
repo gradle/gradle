@@ -51,7 +51,7 @@ public class FileScriptSourceTest {
 
     @Test
     public void hasNoContentWhenScriptFileDoesNotExist() {
-        assertThat(source.getText(), nullValue());
+        assertThat(source.getText(), equalTo(""));
     }
 
     @Test

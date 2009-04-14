@@ -23,12 +23,11 @@ import java.io.File;
 public interface CachePropertiesHandler {
     String HASH_KEY = "hash";
     String PROPERTY_FILE_NAME = "cache.properties";
-    String EMPTY_SCRIPT = "emptyScript";
     String VERSION_KEY = "version";
 
-    enum CacheState { VALID, EMPTY_SCRIPT, INVALID }
+    enum CacheState { VALID, INVALID }
 
-    void writeProperties(String scriptText, File scriptCacheDir, boolean emptyScript);
+    void writeProperties(String scriptText, File scriptCacheDir);
 
     CacheState getCacheState(String testScript, File scriptCacheDir);
 }
