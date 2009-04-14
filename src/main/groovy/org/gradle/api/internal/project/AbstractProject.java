@@ -65,7 +65,7 @@ public abstract class AbstractProject implements ProjectInternal {
     private static Logger buildLogger = LoggerFactory.getLogger(Project.class);
 
     public enum State {
-        CREATED, INITIALIZING, INITIALIZED;
+        CREATED, INITIALIZING, INITIALIZED
     }
 
     private Project rootProject;
@@ -138,8 +138,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ConfigurationContainer configurationContainer;
 
-    private DependencyFactory dependencyFactory;
-
     private PublishArtifactFactory publishArtifactFactory;
 
     private ArtifactHandler artifactHandler;
@@ -186,7 +184,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.internalRepository = internalRepository;
         this.configurationContainerFactory = configurationContainerFactory;
         this.configurationContainer = configurationContainerFactory.createConfigurationContainer(createResolverProvider(), createArtifactsProvider());
-        this.dependencyFactory = dependencyFactory;
         this.repositoryHandlerFactory = repositoryHandlerFactory;
         this.repositoryHandlerFactory.setConvention(convention);
         this.repositoryHandler = repositoryHandlerFactory.createRepositoryHandler();
@@ -564,9 +561,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
         AbstractProject that = (AbstractProject) o;
 
-        if (!path.equals(that.path)) return false;
-
-        return true;
+        return path.equals(that.path);
     }
 
     @Override
@@ -956,10 +951,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.dependencyHandler = dependencyHandler;
     }
 
-    public void setDependencyFactory(DependencyFactory dependencyFactory) {
-        this.dependencyFactory = dependencyFactory;
-    }
-
     public ConfigurationContainerFactory getConfigurationContainerFactory() {
         return configurationContainerFactory;
     }
@@ -985,13 +976,20 @@ public abstract class AbstractProject implements ProjectInternal {
         projectEvaluationListeners.add("afterEvaluate", afterEvaluateListener);
     }
 
-    public TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener listener) {
+    public TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener<Task> listener) {
         taskLifecycleListeners.add(listener);
         return listener;
     }
 
-    public void removeTaskLifecycleListener(TaskLifecycleListener listener) {
-        taskLifecycleListeners.remove(listener);
+    public <T extends Task> TaskLifecycleListener addTaskLifecycleListener(final Class<T> type, final TaskLifecycleListener<? super T> listener) {
+        addTaskLifecycleListener(new TaskLifecycleListener<Task>() {
+            public void taskAdded(Task task) {
+                if (type.isInstance(task)) {
+                    listener.taskAdded(type.cast(task));
+                }
+            }
+        });
+        return listener;
     }
 
     public void whenTaskAdded(Closure taskAddedListener) {

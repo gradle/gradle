@@ -34,15 +34,20 @@ import static org.junit.Assert.*
 /**
  * @author Hans Dockter
  */
+// todo Make test stronger
+// This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
 class GroovyPluginTest {
-    @Test public void testApply() {
-        // todo Make test stronger
-        // This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
-        Project project = HelperUtil.createRootProject()
-        GroovyPlugin groovyPlugin = new GroovyPlugin()
+    private final Project project = HelperUtil.createRootProject()
+    private final GroovyPlugin groovyPlugin = new GroovyPlugin()
+
+    @Test public void appliesTheJavaPluginToTheProject() {
         groovyPlugin.apply(project, new PluginRegistry(), null)
 
         assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
+    }
+
+    @Test public void addsAGroovyConfigurationToTheProject() {
+        groovyPlugin.apply(project, new PluginRegistry(), null)
 
         def configuration = project.configurations.get(JavaPlugin.COMPILE)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyPlugin.GROOVY)))
@@ -53,6 +58,10 @@ class GroovyPluginTest {
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
+    }
+
+    @Test public void addsTasksToTheProject() {
+        groovyPlugin.apply(project, new PluginRegistry(), null)
 
         def task = project.tasks[JavaPlugin.COMPILE]
         assertThat(task, instanceOf(GroovyCompile.class))
@@ -75,5 +84,24 @@ class GroovyPluginTest {
         assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
         assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.srcDirs as Object[])))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+    }
+
+    @Test public void configuresAdditionalTasksAddedToTheProject() {
+        groovyPlugin.apply(project, new PluginRegistry(), null)
+        
+        def task = project.createTask('otherCompile', type: GroovyCompile)
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
+        assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+
+        task = project.createTask('otherJavadoc', type: Javadoc)
+        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
+        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+        assertThat(((Javadoc)task).exclude, hasItem('**/*.groovy'))
+
+        task = project.createTask('otherGroovydoc', type: Groovydoc)
+        assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
+        assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.srcDirs as Object[])))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+
     }
 }

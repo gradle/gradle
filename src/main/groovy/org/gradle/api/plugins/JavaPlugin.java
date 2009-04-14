@@ -120,15 +120,12 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureCompile(final Project project) {
-        project.addTaskLifecycleListener(new TaskLifecycleListener() {
-            public void taskAdded(Task task) {
-                if (task instanceof Compile) {
-                    Compile compile = (Compile) task;
-                    compile.dependsOn(RESOURCES);
-                    compile.setConfiguration(project.getConfigurations().get(COMPILE));
-                    compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
-                    addDependsOnProjectDependencies(compile, COMPILE);
-                }
+        project.addTaskLifecycleListener(Compile.class, new TaskLifecycleListener<Compile>() {
+            public void taskAdded(Compile compile) {
+                compile.dependsOn(RESOURCES);
+                compile.setConfiguration(project.getConfigurations().get(COMPILE));
+                compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
+                addDependsOnProjectDependencies(compile, COMPILE);
             }
         });
 
@@ -136,26 +133,20 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureResources(Project project) {
-        project.addTaskLifecycleListener(new TaskLifecycleListener() {
-            public void taskAdded(Task task) {
-                if (task instanceof Resources) {
-                    Resources resources = (Resources) task;
-                    resources.dependsOn(INIT);
-                    resources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
-                }
+        project.addTaskLifecycleListener(Resources.class, new TaskLifecycleListener<Resources>() {
+            public void taskAdded(Resources resources) {
+                resources.dependsOn(INIT);
+                resources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
             }
         });
         project.createTask(GUtil.map("type", Resources.class), RESOURCES);
     }
 
     private void configureJavaDoc(final Project project) {
-        project.addTaskLifecycleListener(new TaskLifecycleListener() {
-            public void taskAdded(Task task) {
-                if (task instanceof Javadoc) {
-                    Javadoc javadoc = (Javadoc) task;
-                    javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
-                    javadoc.setConfiguration(project.getConfigurations().get(COMPILE));
-                }
+        project.addTaskLifecycleListener(Javadoc.class, new TaskLifecycleListener<Javadoc>() {
+            public void taskAdded(Javadoc javadoc) {
+                javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
+                javadoc.setConfiguration(project.getConfigurations().get(COMPILE));
             }
         });
         project.createTask(GUtil.map("type", Javadoc.class), JAVADOC);
@@ -298,24 +289,21 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureTest(final Project project) {
-        project.addTaskLifecycleListener(new TaskLifecycleListener() {
-            public void taskAdded(Task task) {
-                if (task instanceof Test) {
-                    Test test = (Test) task;
-                    test.dependsOn(TEST_COMPILE);
-                    test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
-                    test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
-                    addDependsOnProjectDependencies(test, TEST_RUNTIME);
-                    test.doFirst(new TaskAction() {
-                        public void execute(Task task) {
-                            Test test = (Test) task;
-                            List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().task(TEST_COMPILE))
-                                    .getUnmanagedClasspath();
-                            test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(
-                                    new Object[unmanagedClasspathFromTestCompile.size()]));
-                        }
-                    });
-                }
+        project.addTaskLifecycleListener(Test.class, new TaskLifecycleListener<Test>() {
+            public void taskAdded(Test test) {
+                test.dependsOn(TEST_COMPILE);
+                test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
+                test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME));
+                addDependsOnProjectDependencies(test, TEST_RUNTIME);
+                test.doFirst(new TaskAction() {
+                    public void execute(Task task) {
+                        Test test = (Test) task;
+                        List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().task(TEST_COMPILE))
+                                .getUnmanagedClasspath();
+                        test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(
+                                new Object[unmanagedClasspathFromTestCompile.size()]));
+                    }
+                });
             }
         });
         project.createTask(GUtil.map("type", Test.class), TEST);

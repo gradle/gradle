@@ -768,6 +768,8 @@ public interface Project extends Comparable<Project> {
      *
      * <li>A Collection. Flattened and recursively converted to files.</li>
      *
+     * <li>A {@code FileCollection}.</li>
+     *
      * <li>A Closure. Should return an Object or Collection, which are then converted to files.</li>
      *
      * <li>An Object. Its toString() value is treated the same way as a String.<li>
@@ -931,14 +933,18 @@ public interface Project extends Comparable<Project> {
      * this project
      * @return The added listener
      */
-    TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener listener);
+    TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener<Task> listener);
 
     /**
-     * Removes the given listener from this project.
+     * <p>Adds a {@link TaskLifecycleListener} to this project. This listener is notified when tasks of the given type
+     * are added to this project.</p>
      *
-     * @param listener The listener to remove. Does nothing when the listener has not been added to this project.
+     * @param type The type of task to notify the listener of. Must not be null.
+     * @param listener The listener to add. Must not be null. Does nothing if this listener has already been added to
+     * this project.
+     * @return The added listener
      */
-    void removeTaskLifecycleListener(TaskLifecycleListener listener);
+    <T extends Task> TaskLifecycleListener addTaskLifecycleListener(Class<T> type, TaskLifecycleListener<? super T> listener);
 
     /**
      * Adds a closure to be notified when a task is added to this project. The task is passed to the closure as the
