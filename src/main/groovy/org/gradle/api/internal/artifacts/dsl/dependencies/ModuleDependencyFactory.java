@@ -41,7 +41,7 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
     }
 
     private static class MapNotationParser {
-
+        
     }
 
     private static class StringNotationParser {

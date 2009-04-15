@@ -25,60 +25,36 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.util.HelperUtil;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 
 import java.awt.*;
 
 /**
  * @author Hans Dockter
  */
-public class ModuleDependencyFactoryTest {
-    private static final String TEST_GROUP = "org.gradle";
-    private static final String TEST_NAME = "gradle-core";
-    private static final String TEST_VERSION = "4.4-beta2";
-    private static final String TEST_TYPE = "mytype";
-    private static final String TEST_CLASSIFIER = "jdk-1.4";
-    private static final String TEST_MODULE_DESCRIPTOR = String.format("%s:%s:%s", TEST_GROUP, TEST_NAME, TEST_VERSION);
-    private static final String TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER = TEST_MODULE_DESCRIPTOR + ":" + TEST_CLASSIFIER;
+public class ModuleDependencyFactoryTest extends AbstractModuleFactoryTest {
     private static final String TEST_ARTIFACT_DESCRIPTOR = TEST_MODULE_DESCRIPTOR + "@" + TEST_TYPE;
     private static final String TEST_ARTIFACT_DESCRIPTOR_WITH_CLASSIFIER = TEST_MODULE_DESCRIPTOR + String.format(":%s@%s", TEST_CLASSIFIER, TEST_TYPE);
-
+    
     private ModuleDependencyFactory moduleDependencyFactory = new ModuleDependencyFactory();
 
-    @Test
-    public void testInitWithDependencyNotation() {
-        DefaultModuleDependency moduleDependency = moduleDependencyFactory.createDependency(TEST_MODULE_DESCRIPTOR);
-        checkCommonModuleProperties(moduleDependency);
-        assert !moduleDependency.isForce();
-        assertNotNull(moduleDependency.getExcludeRules());
+    protected ExternalDependency createDependency(Object notation) {
+        return moduleDependencyFactory.createDependency(notation);
+    }
+
+    protected void checkOtherProperties(ExternalDependency moduleDependency) {
+        super.checkOtherProperties(moduleDependency);
+        assertFalse(((ModuleDependency)moduleDependency).isChanging());
     }
 
     @Test
-    public void testInitWithGStringAndWithoutClassifier() {
-        checkCommonModuleProperties(moduleDependencyFactory.createDependency(HelperUtil.createScript(
-                 "descriptor = '" + TEST_MODULE_DESCRIPTOR + "'; \"$descriptor\"").run()));
-    }
-
-    @Test (expected = InvalidUserDataException.class) public void testSingleString() {
-        moduleDependencyFactory.createDependency("singlestring");
-    }
-
-    @Test (expected = InvalidUserDataException.class) public void testMissingVersion() {
-        moduleDependencyFactory.createDependency("junit:junit");
-    }
-
-    @Test (expected = UnknownDependencyNotation.class) public void testUnknownType() {
-        moduleDependencyFactory.createDependency(new Point(3, 4));
-    }
-
-    @Test public void testWithModuleUserDescription() {
-        DefaultModuleDependency moduleDependency = moduleDependencyFactory.createDependency(TEST_MODULE_DESCRIPTOR);
-        checkCommonModuleProperties(moduleDependency);
-        assertTrue(moduleDependency.isTransitive());
-    }
-
-    @Test public void testWithArtifactUserDescription() {
-        DefaultModuleDependency moduleDependency = moduleDependencyFactory.createDependency(TEST_ARTIFACT_DESCRIPTOR);
+    public void testStringNotationWithArtifact() {
+        ExternalDependency moduleDependency = createDependency(TEST_ARTIFACT_DESCRIPTOR);
         checkCommonModuleProperties(moduleDependency);
         assertFalse(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
@@ -88,20 +64,9 @@ public class ModuleDependencyFactoryTest {
         assertEquals(null, artifact.getClassifier());
     }
 
-    @Test public void testWithModuleUserDescriptionWithClassifier() {
-        DefaultModuleDependency moduleDependency = moduleDependencyFactory.createDependency(TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
-        checkCommonModuleProperties(moduleDependency);
-        assertTrue(moduleDependency.isTransitive());
-        assertEquals(1, moduleDependency.getArtifacts().size());
-        DependencyArtifact artifact = moduleDependency.getArtifacts().iterator().next();
-        assertEquals(TEST_NAME, artifact.getName());
-        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getType());
-        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getExtension());
-        assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
-    }
-
-    @Test public void testWithArtifactUserDescriptionWithClassifier() {
-        DefaultModuleDependency moduleDependency = moduleDependencyFactory.createDependency(TEST_ARTIFACT_DESCRIPTOR_WITH_CLASSIFIER);
+    @Test
+    public void testStringNotationWithArtifactAndClassifier() {
+        ExternalDependency moduleDependency = createDependency(TEST_ARTIFACT_DESCRIPTOR_WITH_CLASSIFIER);
         checkCommonModuleProperties(moduleDependency);
         assertFalse(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
@@ -111,13 +76,4 @@ public class ModuleDependencyFactoryTest {
         assertEquals(TEST_TYPE, artifact.getExtension());
         assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
     }
-
-    private void checkCommonModuleProperties(DefaultModuleDependency moduleDependency) {
-        assertEquals(TEST_GROUP, moduleDependency.getGroup());
-        assertEquals(TEST_NAME, moduleDependency.getName());
-        assertEquals(TEST_VERSION, moduleDependency.getVersion());
-        assertFalse(moduleDependency.isForce());
-        assertFalse(moduleDependency.isChanging());
-    }
-
 }

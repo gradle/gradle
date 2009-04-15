@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.util.HelperUtil;
 
@@ -33,63 +34,10 @@ import groovy.lang.GString;
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModuleFactoryTest {
-    private static final String TEST_GROUP = "org.gradle";
-    private static final String TEST_NAME = "gradle-core";
-    private static final String TEST_VERSION = "4.4-beta2";
-    private static final String TEST_CLASSIFIER = "jdk-1.4";
-    private static final String TEST_MODULE_DESCRIPTOR = String.format("%s:%s:%s", TEST_GROUP, TEST_NAME, TEST_VERSION);
-    private static final String TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER = TEST_MODULE_DESCRIPTOR + ":" + TEST_CLASSIFIER;
-
+public class DefaultClientModuleFactoryTest extends AbstractModuleFactoryTest {
     private DefaultClientModuleFactory clientModuleFactory = new DefaultClientModuleFactory();
-    
-    @Test
-    public void testInitWithoutClassifier() {
-        checkInit(clientModuleFactory.createClientModule(TEST_MODULE_DESCRIPTOR));
-    }
 
-    @Test
-    public void testInitWithGStringAndWithoutClassifier() {
-        checkInit(clientModuleFactory.createClientModule(HelperUtil.createScript(
-                 "descriptor = '" + TEST_MODULE_DESCRIPTOR + "'; \"$descriptor\"").run()));
-    }
-
-    @Test
-    public void testInitWithClassifier() {
-        ClientModule clientModule = clientModuleFactory.createClientModule(TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
-        checkInit(clientModule);
-        DependencyArtifact artifact = clientModule.getArtifacts().iterator().next();
-        assertEquals(TEST_NAME, artifact.getName());
-        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getType());
-        assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getExtension());
-        assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
-    }
-
-    private void checkInit(ClientModule clientModule) {
-        assertEquals(TEST_GROUP, clientModule.getGroup());
-        assertEquals(TEST_NAME, clientModule.getName());
-        assertEquals(TEST_VERSION, clientModule.getVersion());
-        assertFalse(clientModule.isForce());
-        assertTrue(clientModule.isTransitive());
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testInitWithFiveParts() {
-        clientModuleFactory.createClientModule("1:2:3:4:5");
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testInitWithTwoParts() {
-        clientModuleFactory.createClientModule("1:2");
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testInitWithOneParts() {
-        clientModuleFactory.createClientModule("1");
-    }
-
-    @Test(expected = UnknownDependencyNotation.class)
-    public void createWithUnknownDependencyNotation_shouldThrowUnknownDependencyNotationEx() {
-        clientModuleFactory.createClientModule(new Point(4, 3));
+    protected ExternalDependency createDependency(Object notation) {
+        return clientModuleFactory.createClientModule(notation);
     }
 }
