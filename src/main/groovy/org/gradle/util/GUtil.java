@@ -24,25 +24,35 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class GUtil {
+    public static List flatten(Object[] elements, List addTo, boolean flattenMaps) {
+        return flatten(Arrays.asList(elements), addTo, flattenMaps);
+    }
+
     public static List flatten(Object[] elements, List addTo) {
         return flatten(Arrays.asList(elements), addTo);
     }
 
-    /**
-     * The behavior of this method is different to the flatten behavior of Groovy. The Groovy flatten
-     * method also flattens maps by extracting the map values. This flatten method leaves maps untouched.
-     */
     public static List flatten(Collection elements, List addTo) {
+        return flatten(elements, addTo, true);
+    }
+
+    public static List flatten(Collection elements, List addTo, boolean flattenMaps) {
         Iterator iter = elements.iterator();
         while (iter.hasNext()) {
             Object element = iter.next();
             if (element instanceof Collection) {
-                flatten((Collection) element, addTo);
+                flatten((Collection) element, addTo, flattenMaps);
+            } else if ((element instanceof Map) && flattenMaps) {
+                flatten(((Map) element).values(), addTo, flattenMaps);
             } else {
                 addTo.add(element);
             }
         }
         return addTo;
+    }
+
+    public static List flatten(Collection elements, boolean flattenMaps) {
+        return flatten(elements, new ArrayList(), flattenMaps);
     }
 
     public static List flatten(Collection elements) {

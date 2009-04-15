@@ -61,7 +61,7 @@ class DependencyHandler {
       }
     }
 
-    Object[] normalizedArgs = GUtil.flatten(args as List)
+    Object[] normalizedArgs = GUtil.flatten(args as List, false)
     if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
       return pushDependency(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
     } else if (normalizedArgs.length == 1) {
