@@ -19,7 +19,7 @@ repositories {
 
 // START SNIPPET dependencies
 dependencies {
-    compile 'commons-collections:commons-collections:3.2'
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
     testCompile 'junit:junit:4.+'
 }
 // END SNIPPET dependencies

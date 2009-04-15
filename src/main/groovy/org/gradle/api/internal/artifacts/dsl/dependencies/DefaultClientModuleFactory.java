@@ -21,17 +21,23 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
+import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
+
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultClientModuleFactory implements ClientModuleFactory {
     private StringNotationParser stringNotationParser = new StringNotationParser();
+    private MapModuleNotationParser mapNotationParser = new MapModuleNotationParser();
 
     public ClientModule createClientModule(Object notation) {
         assert notation != null;
         if (notation instanceof String || notation instanceof GString) {
             return stringNotationParser.createDependency(notation.toString());
+        } else if (notation instanceof Map) {
+            return (ClientModule) mapNotationParser.createDependency(DefaultClientModule.class, (Map) notation);
         }
         throw new UnknownDependencyNotation();
     }

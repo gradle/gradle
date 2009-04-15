@@ -43,7 +43,7 @@ class DependencyHandlerTest {
   private ConfigurationContainer configurationContainerStub = context.mock(ConfigurationContainer)
   private DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
   private Configuration configurationMock = context.mock(Configuration)
-  
+
   private DependencyHandler dependencyHandler = new DependencyHandler(configurationContainerStub, dependencyFactoryStub)
 
   @Before
@@ -61,8 +61,8 @@ class DependencyHandlerTest {
       allowing(dependencyFactoryStub).createDependency(someNotation, null); will(returnValue(dependencyDummy))
       one(configurationMock).addDependency(dependencyDummy);
     }
-    
-    assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation), Matchers.equalTo(dependencyDummy)) 
+
+    assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation), Matchers.equalTo(dependencyDummy))
   }
 
   @Test
@@ -81,7 +81,7 @@ class DependencyHandlerTest {
   @Test
   void pushMultipleDependencies() {
     String someNotation1 = "someNotation"
-    String someNotation2 = "someNotation2"
+    Map someNotation2 = [a: 'b', c: 'd']
     Dependency dependencyDummy1 = context.mock(Dependency, "dep1")
     Dependency dependencyDummy2 = context.mock(Dependency, "dep2")
     context.checking {
@@ -90,14 +90,14 @@ class DependencyHandlerTest {
       one(configurationMock).addDependency(dependencyDummy1);
       one(configurationMock).addDependency(dependencyDummy2);
     }
-    
+
     dependencyHandler."$TEST_CONF_NAME"(someNotation1, someNotation2)
   }
 
   @Test
   void pushMultipleDependenciesViaNestedList() {
     String someNotation1 = "someNotation"
-    String someNotation2 = "someNotation2"
+    Map someNotation2 = [a: 'b', c: 'd']
     Dependency dependencyDummy1 = context.mock(Dependency, "dep1")
     Dependency dependencyDummy2 = context.mock(Dependency, "dep2")
     context.checking {
@@ -141,7 +141,7 @@ class DependencyHandlerTest {
     ConfigureUtil.configure(moduleClosure, dependencyHandler)
   }
 
-  @Test(expected = MissingMethodException) 
+  @Test(expected = MissingMethodException)
   void pushToUnknownConfiguration() {
     String unknownConf = TEST_CONF_NAME + "delta"
     context.checking {

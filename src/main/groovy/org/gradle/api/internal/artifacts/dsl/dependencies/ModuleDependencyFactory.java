@@ -25,23 +25,23 @@ import org.gradle.api.artifacts.DependencyArtifact;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class ModuleDependencyFactory implements IDependencyImplementationFactory {
     private StringNotationParser stringNotationParser = new StringNotationParser();
+    private MapModuleNotationParser mapNotationParser = new MapModuleNotationParser();
 
     public DefaultModuleDependency createDependency(Object notation) {
         assert notation != null;
         if (notation instanceof String || notation instanceof GString) {
             return stringNotationParser.createDependency(notation.toString());
+        } else if (notation instanceof Map) {
+            return (DefaultModuleDependency) mapNotationParser.createDependency(DefaultModuleDependency.class, (Map) notation);
         }
         throw new UnknownDependencyNotation();
-    }
-
-    private static class MapNotationParser {
-        
     }
 
     private static class StringNotationParser {

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.util.GUtil
 
 /**
  * @author Hans Dockter
@@ -60,7 +61,7 @@ class DependencyHandler {
       }
     }
 
-    Object[] normalizedArgs = (args as List).flatten()
+    Object[] normalizedArgs = GUtil.flatten(args as List)
     if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
       return pushDependency(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
     } else if (normalizedArgs.length == 1) {

@@ -22,11 +22,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.GUtil;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.hamcrest.Matchers.nullValue;
+import org.hamcrest.Matchers;
 
 import java.awt.*;
 
@@ -108,6 +110,21 @@ public abstract class AbstractModuleFactoryTest {
         assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getType());
         assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getExtension());
         assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
+    }
+    
+    @Test
+    public void mapNotation() {
+        ExternalDependency moduleDependency = createDependency(GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION));
+        checkCommonModuleProperties(moduleDependency);
+        assertTrue(moduleDependency.isTransitive());
+    }
+
+    @Test
+    public void mapNotationWithProperty() {
+        ExternalDependency moduleDependency = createDependency(
+                GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION, "dependencyConfiguration", "conf"));
+        checkCommonModuleProperties(moduleDependency);
+        assertThat(moduleDependency.getDependencyConfiguration(), Matchers.equalTo("conf"));
     }
 
     protected void checkCommonModuleProperties(ExternalDependency moduleDependency) {
