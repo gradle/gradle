@@ -56,7 +56,7 @@ class DefaultResolverFactoryTest {
         def someIllegalDescription = new NullPointerException()
         factory.createResolver(someIllegalDescription)
     }
-               
+
     private void checkMavenResolver(IBiblioResolver resolver, String name, String url) {
         assertEquals url, resolver.root
         assertEquals name, resolver.name
@@ -97,11 +97,13 @@ class DefaultResolverFactoryTest {
         FileSystemResolver resolver = factory.createFlatDirResolver(expectedName, [dir1, dir2] as File[])
         checkNoModuleRepository(resolver, expectedName,
                 [dir1, dir2].collect {"$it.absolutePath/$ResolverContainer.FLAT_DIR_RESOLVER_PATTERN"}, [])
-        assertEquals(File.getTempDir(), ((DefaultRepositoryCacheManager) resolver.getRepositoryCacheManager()).getBasedir().getParent())
+        assertEquals(new File(System.getProperty('java.io.tmpdir')).getCanonicalPath(),
+                new File(((DefaultRepositoryCacheManager) resolver.getRepositoryCacheManager()).getBasedir().getParent()).getCanonicalPath())
+
     }
 
     private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedArtifactPatterns,
-                    List expectedIvyPatterns) {
+                                         List expectedIvyPatterns) {
         assertEquals(expectedName, resolver.name)
         assertEquals(expectedIvyPatterns, resolver.ivyPatterns)
         assert expectedArtifactPatterns == resolver.artifactPatterns
