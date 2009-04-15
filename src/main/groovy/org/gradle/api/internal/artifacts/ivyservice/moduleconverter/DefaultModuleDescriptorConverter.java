@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
@@ -49,14 +50,14 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
     private DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter = new DefaultDependenciesToModuleDescriptorConverter();
     private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter = new DefaultArtifactsToModuleDescriptorConverter();
 
-    public ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry) {
-        return createResolveModuleDescriptor(module, new LinkedHashSet(configuration.getHierarchy()), clientModuleRegistry);
+    public ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry, IvySettings settings) {
+        return createResolveModuleDescriptor(module, new LinkedHashSet(configuration.getHierarchy()), clientModuleRegistry, settings);
     }
 
-    public ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module) {
+    public ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings) {
         assert configurations.size() > 0;
         Set<Configuration> descriptorConfigurations = publishDescriptor ? setWithAllConfs(configurations) : configurations;
-        ModuleDescriptor moduleDescriptor = createPublishModuleDescriptor(module, descriptorConfigurations);
+        ModuleDescriptor moduleDescriptor = createPublishModuleDescriptor(module, descriptorConfigurations, settings);
         artifactsToModuleDescriptorConverter.addArtifacts((DefaultModuleDescriptor) moduleDescriptor, descriptorConfigurations);
         return moduleDescriptor;
     }
@@ -65,20 +66,23 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
         return configurations.iterator().next().getAll();
     }
 
-    private ModuleDescriptor createResolveModuleDescriptor(Module module, Set<Configuration> configurations, Map clientModuleRegistry) {
-        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, clientModuleRegistry);
+    private ModuleDescriptor createResolveModuleDescriptor(Module module, Set<Configuration> configurations,
+                                                           Map clientModuleRegistry, IvySettings ivySettings) {
+        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, clientModuleRegistry, ivySettings);
         return transformer.transform(moduleDescriptor);
     }
 
-    private ModuleDescriptor createPublishModuleDescriptor(Module module, Set<Configuration> configurations) {
-        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, new HashMap());
+    private ModuleDescriptor createPublishModuleDescriptor(Module module, Set<Configuration> configurations, IvySettings ivySettings) {
+        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, new HashMap(), ivySettings);
         return transformer.transform(moduleDescriptor);
     }
 
-    private DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<Configuration> configurations, Map clientModuleRegistry) {
+    private DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<Configuration> configurations,
+                                                                 Map clientModuleRegistry, IvySettings ivySettings) {
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, clientModuleRegistry);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations,
+                clientModuleRegistry, ivySettings);
         return moduleDescriptor;
     }
 

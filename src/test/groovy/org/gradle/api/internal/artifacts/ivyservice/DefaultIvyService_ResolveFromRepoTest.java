@@ -103,6 +103,9 @@ public class DefaultIvyService_ResolveFromRepoTest {
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);
             will(returnValue(ivyStub));
 
+            allowing(ivyStub).getSettings();
+            will(returnValue(ivySettingsDummy));
+
             allowing(ivyService.getDependencyResolver()).resolveAsReport(configurationDummy, ivyStub, moduleDescriptorDummy, resolveFailOnError);
             will(returnValue(resolveReportDummy));
 
@@ -112,7 +115,8 @@ public class DefaultIvyService_ResolveFromRepoTest {
             allowing(configurationDummy).getDependencyResolvers();
             will(returnValue(dependencyResolversDummy));
 
-            allowing(ivyService.getModuleDescriptorConverter()).convertForResolve(configurationDummy, moduleDummy, clientModuleRegistryDummy);
+            allowing(ivyService.getModuleDescriptorConverter()).convertForResolve(configurationDummy, moduleDummy, clientModuleRegistryDummy,
+                    ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
 
             allowing(ivyService.getSettingsConverter()).convertForResolve(dependencyResolversDummy, cacheParentDirDummy, internalRepositoryDummy,

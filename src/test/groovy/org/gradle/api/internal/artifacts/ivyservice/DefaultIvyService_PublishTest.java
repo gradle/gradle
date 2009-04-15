@@ -127,7 +127,7 @@ public class DefaultIvyService_PublishTest {
             will(returnValue(publishEngineDummy));
 
             allowing(ivyService.getModuleDescriptorConverter()).convertForPublish(configurations,
-                    publishInstruction.isUploadModuleDescriptor(), moduleDummy);
+                    publishInstruction.isUploadModuleDescriptor(), moduleDummy, ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
         }});
     }
@@ -138,6 +138,9 @@ public class DefaultIvyService_PublishTest {
         context.checking(new Expectations() {{
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);
             will(returnValue(ivyStub));
+
+            allowing(ivyStub).getSettings();
+            will(returnValue(ivySettingsDummy));
         }});
         ivyService.setIvyFactory(ivyFactoryStub);
         return ivyStub;

@@ -151,7 +151,7 @@ public class DefaultIvyService implements IvyService {
                 cacheParentDir,
                 clientModuleRegistry);
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForResolve(configuration,
-                module, clientModuleRegistry);
+                module, clientModuleRegistry, ivy.getSettings());
         return dependencyResolver.resolveAsReport(configuration, ivy, moduleDescriptor, failOnError);
     }
 
@@ -164,8 +164,8 @@ public class DefaultIvyService implements IvyService {
                 confs,
                 publishInstruction,
                 publishResolvers,
-                moduleDescriptorConverter.convertForPublish(
-                        configurationsToPublish, publishInstruction.isUploadModuleDescriptor(), module),
+                moduleDescriptorConverter.convertForPublish(configurationsToPublish, publishInstruction.isUploadModuleDescriptor(),
+                        module, ivy.getSettings()),
                 ivy.getPublishEngine());
     }
 

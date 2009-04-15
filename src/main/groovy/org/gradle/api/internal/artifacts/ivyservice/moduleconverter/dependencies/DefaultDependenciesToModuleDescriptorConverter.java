@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
@@ -36,11 +37,11 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
 
     public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,
-                                         Map clientModuleRegistry) {
+                                         Map clientModuleRegistry, IvySettings ivySettings) {
         assert !configurations.isEmpty();
         addDependencies(moduleDescriptor, configurations, clientModuleRegistry);
         addExcludeRules(moduleDescriptor, configurations);
-        addConflictManager(moduleDescriptor);
+        addConflictManager(moduleDescriptor, ivySettings);
     }
 
     private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations, Map clientModuleRegistry) {
@@ -52,19 +53,6 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         }
     }
 
-//    private Map<Dependency, String> normalizeDependencies(List<Configuration> configurations) {
-//        Map<Dependency, String> normalizedDependencies = new HashMap<Dependency, String>();
-//        Iterator<Configuration> iterator = new ReverseIterator<Configuration>(configurations);
-//        while (iterator.hasNext()) {
-//            Configuration configuration = iterator.next();
-//            for (Dependency dependency : configuration.getDependencies()) {
-//                normalizedDependencies.remove(dependency);
-//                normalizedDependencies.put(dependency, configuration.getName());
-//            }
-//        }
-//        return normalizedDependencies;
-//    }
-
     private void addExcludeRules(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
@@ -73,10 +61,12 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         }
     }
 
-    private void addConflictManager(DefaultModuleDescriptor moduleDescriptor) {
+    private void addConflictManager(DefaultModuleDescriptor moduleDescriptor, IvySettings ivySettings) {
+        LatestConflictManager conflictManager = new LatestConflictManager(new LatestRevisionStrategy());
+        conflictManager.setSettings(ivySettings);
         moduleDescriptor.addConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION,
                 ExactPatternMatcher.ANY_EXPRESSION), ExactPatternMatcher.INSTANCE,
-                new LatestConflictManager(new LatestRevisionStrategy()));
+                conflictManager);
     }
 
     public DependencyDescriptorFactory getDependencyDescriptorFactory() {

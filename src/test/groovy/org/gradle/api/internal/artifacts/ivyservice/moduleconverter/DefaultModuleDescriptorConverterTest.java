@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
@@ -52,6 +53,7 @@ public class DefaultModuleDescriptorConverterTest {
     private Set<Configuration> configurationsDummy = WrapUtil.toSet(context.mock(Configuration.class, "conf1"),
             context.mock(Configuration.class, "conf2"));
     private Module moduleDummy = context.mock(Module.class);
+    private IvySettings ivySettingsDummy = context.mock(IvySettings.class);
     private DefaultModuleDescriptor moduleDescriptorDummy = context.mock(DefaultModuleDescriptor.class);
 
     // SUT
@@ -100,7 +102,7 @@ public class DefaultModuleDescriptorConverterTest {
         }});
 
         DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor)
-                moduleDescriptorConverter.convertForPublish(configurations, publishDescriptor, moduleDummy);
+                moduleDescriptorConverter.convertForPublish(configurations, publishDescriptor, moduleDummy, ivySettingsDummy);
 
         assertThat(actualModuleDescriptor, equalTo(moduleDescriptorDummy));
     }
@@ -128,7 +130,7 @@ public class DefaultModuleDescriptorConverterTest {
         defineCommonExpectations(configurationsDummy, moduleRegistryDummy);
 
         DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor)
-                moduleDescriptorConverter.convertForResolve(configurationStub, moduleDummy, moduleRegistryDummy);
+                moduleDescriptorConverter.convertForResolve(configurationStub, moduleDummy, moduleRegistryDummy, ivySettingsDummy);
 
         assertThat(actualModuleDescriptor, equalTo(moduleDescriptorDummy));
     }
@@ -146,7 +148,7 @@ public class DefaultModuleDescriptorConverterTest {
                     addConfigurations(moduleDescriptorDummy, configurationsDummy);
 
             one(moduleDescriptorConverter.getDependenciesToModuleDescriptorConverter()).
-                    addDependencyDescriptors(moduleDescriptorDummy, configurationsDummy, clientModuleRegistry);
+                    addDependencyDescriptors(moduleDescriptorDummy, configurationsDummy, clientModuleRegistry, ivySettingsDummy);
         }});
     }
 

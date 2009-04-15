@@ -19,7 +19,9 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
+import org.apache.ivy.plugins.conflict.ConflictManager;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -68,6 +70,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     private DependencyDescriptorFactory dependencyDescriptorFactoryStub = context.mock(DependencyDescriptorFactory.class);
     private ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
+    private IvySettings ivySettingsDummy = new IvySettings();
 
     @Test
     public void testAddDependencyDescriptors() {
@@ -87,7 +90,8 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_1, ivyExcludeRuleStub_1, configurationStub1);
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_2, ivyExcludeRuleStub_2, configurationStub2);
 
-        converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3), CLIENT_MODULE_REGISTRY_DUMMY);
+        converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3),
+                CLIENT_MODULE_REGISTRY_DUMMY, ivySettingsDummy);
                 
         assertThat(moduleDescriptor.getDependencies().length, equalTo(5));
         assertThat(moduleDescriptor.getDependencies(), Matchers.hasItemInArray(sameInstance(dependencyDescriptorDummy1)));
@@ -102,8 +106,10 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     }
 
     private void assertIsCorrectConflictResolver(DefaultModuleDescriptor moduleDescriptor) {
-        assertThat(moduleDescriptor.getConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION, ExactPatternMatcher.ANY_EXPRESSION)),
-                instanceOf(LatestConflictManager.class));
+        ConflictManager conflictManager = moduleDescriptor.getConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION, ExactPatternMatcher.ANY_EXPRESSION));
+        assertThat(conflictManager, instanceOf(LatestConflictManager.class));
+        assertThat(((LatestConflictManager) conflictManager).getSettings(), equalTo(ivySettingsDummy));
+
     }
 
     private void associateGradleExcludeRuleWithIvyExcludeRule(final ExcludeRule gradleExcludeRule,
