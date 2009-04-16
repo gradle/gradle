@@ -37,7 +37,6 @@ import org.gradle.api.tasks.javadoc.Javadoc
  * @author Hans Dockter
  */
 // todo Make test stronger
-// This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
 class JavaPluginTest {
     private final Project project = HelperUtil.createRootProject()
     private final JavaPlugin javaPlugin = new JavaPlugin()

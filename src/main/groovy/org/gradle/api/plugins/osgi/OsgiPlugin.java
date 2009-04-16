@@ -32,39 +32,37 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project JARs.</p> 
+ * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project JARs.</p>
  *
  * @author Hans Dockter
  */
 public class OsgiPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
-        Bundle.ConfigureAction configureAction = createOsgiConfigureAction();
+        TaskLifecycleListener<Jar> configureAction = createOsgiConfigureAction();
         Bundle libsTask = ((Bundle) project.task(JavaPlugin.LIBS_TASK_NAME));
         for (AbstractArchiveTask abstractArchiveTask : libsTask.getArchiveTasks()) {
-            configureAction.configure(abstractArchiveTask);
+            if (abstractArchiveTask instanceof Jar) {
+                Jar jar = (Jar) abstractArchiveTask;
+                configureAction.taskAdded(jar);
+            }
         }
-        libsTask.addConfigureAction(createOsgiConfigureAction());
+        project.addTaskLifecycleListener(Jar.class, configureAction);
     }
 
-    private Bundle.ConfigureAction createOsgiConfigureAction() {
-        return new Bundle.ConfigureAction() {
-            public void configure(final AbstractArchiveTask archiveTask) {
-                if (archiveTask instanceof Jar) {
-                    archiveTask.dependsOn(archiveTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
-                    archiveTask.defineProperty("osgi", createDefaultOsgiManifest(archiveTask.getProject()));
-                    archiveTask.doFirst(new TaskAction() {
-                        public void execute(Task task) {
-                            Jar jarTask = (Jar) task;
-                            OsgiManifest osgiManifest = (OsgiManifest) jarTask.getAdditionalProperties().get("osgi");
-                            osgiManifest.setClasspath(getDependencies(
-                                    osgiManifest,
-                                    jarTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve())
-                            );
-                            osgiManifest.overwrite(jarTask.getManifest());
-                        }
-                    });
-                }
+    private TaskLifecycleListener<Jar> createOsgiConfigureAction() {
+        return new TaskLifecycleListener<Jar>() {
+            public void taskAdded(final Jar jar) {
+                jar.dependsOn(jar.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
+                jar.defineProperty("osgi", createDefaultOsgiManifest(jar.getProject()));
+                jar.doFirst(new TaskAction() {
+                    public void execute(Task task) {
+                        OsgiManifest osgiManifest = (OsgiManifest) jar.getAdditionalProperties().get("osgi");
+                        osgiManifest.setClasspath(getDependencies(osgiManifest,
+                                jar.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve()));
+                        osgiManifest.overwrite(jar.getManifest());
+                    }
+                });
             }
         };
     }

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.GUtil;
@@ -30,9 +29,6 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class Bundle extends ConventionTask {
-    public interface ConfigureAction {
-        void configure(AbstractArchiveTask archiveTask);
-    }
     public static final String BASENAME_KEY = "baseName";
     public static final String APPENDIX_KEY = "appendix";
     public static final String CLASSIFIER_KEY = "classifier";
@@ -47,8 +43,6 @@ public class Bundle extends ConventionTask {
     private List<String> defaultConfigurations = new ArrayList<String>();
 
     private File defaultDestinationDir;
-
-    private List<ConfigureAction> configureActions = new ArrayList<ConfigureAction>();
 
     public Bundle(Project project, String name) {
         super(project, name);
@@ -70,7 +64,6 @@ public class Bundle extends ConventionTask {
         setTaskDependsOn(archiveTask, getChildrenDependOn());
         this.dependsOn(taskName);
         archiveTasks.add(archiveTask);
-        applyConfigureActions(archiveTask);
         applyConfigureClosure(configureClosure, archiveTask);
         return archiveTask;
     }
@@ -93,12 +86,6 @@ public class Bundle extends ConventionTask {
     private void applyConfigureClosure(Closure configureClosure, AbstractArchiveTask archiveTask) {
         if (configureClosure != null) {
             archiveTask.configure(configureClosure);
-        }
-    }
-
-    private void applyConfigureActions(AbstractArchiveTask archiveTask) {
-        for (ConfigureAction configureAction : configureActions) {
-            configureAction.configure(archiveTask);
         }
     }
 
@@ -271,21 +258,5 @@ public class Bundle extends ConventionTask {
 
     public void setDefaultDestinationDir(Object defaultDestinationDir) {
         this.defaultDestinationDir = new File(defaultDestinationDir.toString());
-    }
-
-    public Bundle addConfigureAction(ConfigureAction configureAction) {
-        if (configureAction == null) {
-            throw new InvalidUserDataException("A configure action must not be null.");
-        }
-        configureActions.add(configureAction);
-        return this;
-    }
-
-    public List<ConfigureAction> getConfigureActions() {
-        return configureActions;
-    }
-
-    public void setConfigureActions(List<ConfigureAction> configureActions) {
-        this.configureActions = configureActions;
     }
 }

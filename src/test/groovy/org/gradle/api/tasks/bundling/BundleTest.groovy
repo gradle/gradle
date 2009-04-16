@@ -26,22 +26,18 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.ConventionValue
-import org.gradle.api.tasks.bundling.Bundle.ConfigureAction
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.tasks.bundling.*
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
-@RunWith (org.jmock.integration.junit4.JMock)
+@RunWith (JMock)
 class BundleTest extends AbstractConventionTaskTest {
 
     Bundle bundle
@@ -113,7 +109,6 @@ class BundleTest extends AbstractConventionTaskTest {
     @Test public void testBundle() {
         bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
         assertEquals([] as Set, bundle.childrenDependOn)
-        assertEquals([], bundle.configureActions)
     }
 
     @Test public void testJarWithDefaultValues() {
@@ -261,33 +256,4 @@ class BundleTest extends AbstractConventionTaskTest {
         bundle.setDefaultDestinationDir(testDefaultDestinationDir.absolutePath)
         assertEquals(testDefaultDestinationDir.absolutePath, bundle.getDefaultDestinationDir().absolutePath)
     }
-
-    @Test
-    void addConfigureActions() {
-        bundle = new Bundle(project, AbstractTaskTest.TEST_TASK_NAME)
-        ConfigureAction configureAction1 = {} as ConfigureAction
-        ConfigureAction configureAction2 = {} as ConfigureAction
-        assertSame(bundle, bundle.addConfigureAction(configureAction1))
-        bundle.addConfigureAction(configureAction2)
-        assertEquals([configureAction1, configureAction2], bundle.getConfigureActions())
-    }
-
-    @Test(expected = InvalidUserDataException)
-    void addConfigureActionsWithNull() {
-        bundle.addConfigureAction(null)
-    }
-
-    @Test
-    void configureActions() {
-        prepateProjectMock(bundle.defaultArchiveTypes.jar, [:])
-        String expectedName = 'myjar'
-        ConfigureAction configureAction1 = { task -> task.name = expectedName; task.extension = 'zip' } as ConfigureAction
-        ConfigureAction configureAction2 = { task -> task.extension = 'jar'} as ConfigureAction
-        bundle.addConfigureAction(configureAction1)
-        bundle.addConfigureAction(configureAction2)
-        AbstractArchiveTask task = bundle.jar()
-        assertEquals(expectedName, task.name)
-        assertEquals('jar', task.extension)
-    }
-
 }

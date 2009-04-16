@@ -35,7 +35,6 @@ import static org.junit.Assert.*
  * @author Hans Dockter
  */
 // todo Make test stronger
-// This is a very weak test. But due to the dynamic nature of Groovy, it does help to find bugs.
 class GroovyPluginTest {
     private final Project project = HelperUtil.createRootProject()
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
