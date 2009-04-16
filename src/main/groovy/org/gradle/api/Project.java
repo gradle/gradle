@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.invocation.Build;

@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
+import org.gradle.api.artifacts.ConfigurationContainer;
 
 /**
  * @author Hans Dockter

@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyFactory
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.JUnit4GroovyMockery
@@ -29,7 +29,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.assertThat
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
 
 /**
  * @author Hans Dockter

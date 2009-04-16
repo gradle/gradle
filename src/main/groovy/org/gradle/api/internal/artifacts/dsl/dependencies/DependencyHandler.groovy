@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyFactory
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.util.GUtil
 
 /**

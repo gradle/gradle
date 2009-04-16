@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.ConventionTestHelper
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention

@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;

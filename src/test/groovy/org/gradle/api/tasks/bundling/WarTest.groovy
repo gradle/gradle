@@ -21,7 +21,7 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.specs.DependencyTypeSpec
 import org.gradle.api.artifacts.specs.Type
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.AbstractTaskTest

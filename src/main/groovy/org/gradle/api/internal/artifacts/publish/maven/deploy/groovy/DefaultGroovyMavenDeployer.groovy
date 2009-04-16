@@ -19,7 +19,7 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.MavenPom
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.RepositoryBuilder

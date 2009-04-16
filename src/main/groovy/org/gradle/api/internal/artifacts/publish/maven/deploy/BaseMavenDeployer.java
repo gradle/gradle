@@ -23,7 +23,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 
 import java.io.File;
 import java.util.ArrayList;

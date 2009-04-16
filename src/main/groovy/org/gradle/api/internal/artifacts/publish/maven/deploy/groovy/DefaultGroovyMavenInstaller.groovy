@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy.groovy
 
 import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.MavenPom
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller
 

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.DefaultTask
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
 import org.gradle.api.internal.artifacts.dsl.ArtifactHandler
@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.internal.project.AbstractProject.State
 import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
@@ -53,7 +52,6 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
-import org.gradle.api.internal.project.*
 import org.gradle.util.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*

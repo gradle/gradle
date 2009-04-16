@@ -17,14 +17,11 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.junit.Test
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Configuration
 import org.junit.Before
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JUnit4Mockery
-import org.hamcrest.Matchers
-import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter

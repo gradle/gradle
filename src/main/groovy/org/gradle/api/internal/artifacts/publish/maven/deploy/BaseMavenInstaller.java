@@ -19,7 +19,7 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 
 /**
  * @author Hans Dockter

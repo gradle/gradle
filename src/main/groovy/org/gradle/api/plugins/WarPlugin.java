@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.specs.Specs;

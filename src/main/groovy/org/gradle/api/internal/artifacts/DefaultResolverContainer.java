@@ -23,6 +23,7 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;

@@ -19,7 +19,7 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.internal.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.initialization.BuildListenerAction
 import org.gradle.initialization.BuildSourceBuilder

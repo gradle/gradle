@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;

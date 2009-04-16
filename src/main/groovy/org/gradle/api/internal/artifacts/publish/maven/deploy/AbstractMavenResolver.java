@@ -40,7 +40,7 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.internal.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
