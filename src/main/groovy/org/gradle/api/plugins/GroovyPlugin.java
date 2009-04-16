@@ -40,14 +40,14 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class GroovyPlugin implements Plugin {
-    public static final String GROOVYDOC = "groovydoc";
-    static final String GROOVY = "groovy";
+    public static final String GROOVYDOC_TASK_NAME = "groovydoc";
+    static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         JavaPlugin javaPlugin = pluginRegistry.apply(JavaPlugin.class, project, customValues);
         GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues);
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
-        Configuration groovyConfiguration = project.getConfigurations().add(GROOVY).setVisible(false).setTransitive(false).
+        Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
                 setDescription("The groovy libraries to be used for this Groovy project.");
 
         configureCompile(project);
@@ -58,7 +58,7 @@ public class GroovyPlugin implements Plugin {
 
         configureGroovydoc(project);
 
-        project.getConfigurations().get(COMPILE).extendsFrom(groovyConfiguration);
+        project.getConfigurations().get(COMPILE_CONFIGURATION_NAME).extendsFrom(groovyConfiguration);
     }
 
     private void configureGroovydoc(final Project project) {
@@ -76,7 +76,7 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         });
-        project.createTask(GUtil.map("type", Groovydoc.class), GROOVYDOC).setDescription("Generates the groovydoc for the source code.");
+        project.createTask(GUtil.map("type", Groovydoc.class), GROOVYDOC_TASK_NAME).setDescription("Generates the groovydoc for the source code.");
     }
 
     private void configureJavadoc(Project project) {
@@ -92,18 +92,18 @@ public class GroovyPlugin implements Plugin {
             }
         };
         project.addTaskLifecycleListener(Javadoc.class, taskListener);
-        taskListener.taskAdded((Javadoc) project.task(JAVADOC));
+        taskListener.taskAdded((Javadoc) project.task(JAVADOC_TASK_NAME));
     }
 
     private void configureTestCompile(JavaPlugin javaPlugin, Project project) {
-        GroovyCompile testCompile = (GroovyCompile) javaPlugin.configureTestCompile(
-                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), TEST_COMPILE),
-                (Compile) project.task(COMPILE),
+        GroovyCompile compileTests = (GroovyCompile) javaPlugin.configureCompileTests(
+                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE_TESTS_TASK_NAME),
+                (Compile) project.task(COMPILE_TASK_NAME),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
-        testCompile.setGroovyClasspath(project.getConfigurations().get("groovy"));
-        testCompile.setDescription("Compiles the Java and Groovy test source code.");
-        testCompile.conventionMapping(GUtil.map(
+        compileTests.setGroovyClasspath(project.getConfigurations().get("groovy"));
+        compileTests.setDescription("Compiles the Java and Groovy test source code.");
+        compileTests.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return groovy(convention).getGroovyTestSrcDirs();
@@ -122,7 +122,7 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         });
-        project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE).setDescription(
+        project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE_TASK_NAME).setDescription(
                 "Compiles the Java and Groovy source code.");
     }
 

@@ -40,7 +40,7 @@ public class OsgiPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
         Bundle.ConfigureAction configureAction = createOsgiConfigureAction();
-        Bundle libsTask = ((Bundle) project.task(JavaPlugin.LIBS));
+        Bundle libsTask = ((Bundle) project.task(JavaPlugin.LIBS_TASK_NAME));
         for (AbstractArchiveTask abstractArchiveTask : libsTask.getArchiveTasks()) {
             configureAction.configure(abstractArchiveTask);
         }
@@ -51,7 +51,7 @@ public class OsgiPlugin implements Plugin {
         return new Bundle.ConfigureAction() {
             public void configure(final AbstractArchiveTask archiveTask) {
                 if (archiveTask instanceof Jar) {
-                    archiveTask.dependsOn(archiveTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME).getBuildDependencies());
+                    archiveTask.dependsOn(archiveTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
                     archiveTask.defineProperty("osgi", createDefaultOsgiManifest(archiveTask.getProject()));
                     archiveTask.doFirst(new TaskAction() {
                         public void execute(Task task) {
@@ -59,7 +59,7 @@ public class OsgiPlugin implements Plugin {
                             OsgiManifest osgiManifest = (OsgiManifest) jarTask.getAdditionalProperties().get("osgi");
                             osgiManifest.setClasspath(getDependencies(
                                     osgiManifest,
-                                    jarTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME).resolve())
+                                    jarTask.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve())
                             );
                             osgiManifest.overwrite(jarTask.getManifest());
                         }

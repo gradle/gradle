@@ -138,7 +138,7 @@ public class BaseSettings implements SettingsInternal {
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {
         buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN,
+        buildSrcStartParameter.setTaskNames(WrapUtil.toList(JavaPlugin.CLEAN_TASK_NAME,
                 Configurations.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)));
         buildSrcStartParameter.setSearchUpwards(true);
     }

@@ -1,7 +1,7 @@
 usePlugin('java')
 
 createTask('check') {
-    resources.destinationDir = new File(buildDir, 'output')
-    println(resources.destinationDir.name)
+    processResources.destinationDir = new File(buildDir, 'output')
+    println(processResources.destinationDir.name)
     println(compile.destinationDir.name)
 }

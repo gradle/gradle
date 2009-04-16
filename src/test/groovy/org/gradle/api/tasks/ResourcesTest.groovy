@@ -32,8 +32,8 @@ import org.junit.runner.RunWith
  * @author Hans Dockter
  */
 @RunWith (org.jmock.integration.junit4.JMock)
-class ResourcesTest extends AbstractTaskTest {
-    Resources resources
+class ProcessResourcesTest extends AbstractTaskTest {
+    ProcessResources processResources
 
     CopyInstructionFactory copyInstructionFactoryMock
 
@@ -47,19 +47,19 @@ class ResourcesTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        resources = new Resources(project, AbstractTaskTest.TEST_TASK_NAME)
+        processResources = new ProcessResources(project, AbstractTaskTest.TEST_TASK_NAME)
         pluginConvention = new ResourcesTestConvention()
         pluginConvention.classesDir = new File('/classes')
         project.convention.plugins.test = pluginConvention
-        resources.conventionMapping = [destinationDir: { convention, task -> convention.classesDir } as ConventionValue]
+        processResources.conventionMapping = [destinationDir: { convention, task -> convention.classesDir } as ConventionValue]
         copyInstructionFactoryMock = context.mock(CopyInstructionFactory.class)
-        resources.copyInstructionFactory = copyInstructionFactoryMock
+        processResources.copyInstructionFactory = copyInstructionFactoryMock
     }
 
-    AbstractTask getTask() {resources}
+    AbstractTask getTask() {processResources}
 
     @Test public void testExecute() {
-        assertEquals(pluginConvention.classesDir, resources.destinationDir)
+        assertEquals(pluginConvention.classesDir, processResources.destinationDir)
 
         File sourceDir1 = new File('/source1')
         File sourceDir2 = new File('/source2')
@@ -83,33 +83,33 @@ class ResourcesTest extends AbstractTaskTest {
         Map sourceDir1Filter2 = [sdf12Token: 'sdf12']
         Map sourceDir2Filter1 = [sdf21Token: 'sdf21']
         Map sourceDir2Filter2 = [sdf22Token: 'sdf22']
-        assert resources.is(resources.from(sourceDir1, sourceDir2))
-        assert resources.is(resources.from(sourceDir3))
-        assert resources.is(resources.into(targetDir))
+        assert processResources.is(processResources.from(sourceDir1, sourceDir2))
+        assert processResources.is(processResources.from(sourceDir3))
+        assert processResources.is(processResources.into(targetDir))
         ['includes', 'excludes'].each {
-            assert resources.is(resources."$it"(globalPattern1, globalPattern2))
-            assert resources.is(resources."$it"(globalPattern3))
-            assert resources.is(resources."$it"(sourceDir1, sourceDir1Pattern1, sourceDir1Pattern2))
-            assert resources.is(resources."$it"(sourceDir1, sourceDir1Pattern3))
-            assert resources.is(resources."$it"(sourceDir2, sourceDir2Pattern1, sourceDir2Pattern2))
-            assert resources.is(resources."$it"(sourceDir2, sourceDir2Pattern3))
+            assert processResources.is(processResources."$it"(globalPattern1, globalPattern2))
+            assert processResources.is(processResources."$it"(globalPattern3))
+            assert processResources.is(processResources."$it"(sourceDir1, sourceDir1Pattern1, sourceDir1Pattern2))
+            assert processResources.is(processResources."$it"(sourceDir1, sourceDir1Pattern3))
+            assert processResources.is(processResources."$it"(sourceDir2, sourceDir2Pattern1, sourceDir2Pattern2))
+            assert processResources.is(processResources."$it"(sourceDir2, sourceDir2Pattern3))
         }
-        assert resources.is(resources.filter(globalFilter1))
-        assert resources.is(resources.filter(globalFilter2))
-        assert resources.is(resources.filter(sourceDir1, sourceDir1Filter1))
-        assert resources.is(resources.filter(sourceDir1, sourceDir1Filter2))
-        assert resources.is(resources.filter(sourceDir2, sourceDir2Filter1))
-        assert resources.is(resources.filter(sourceDir2, sourceDir2Filter2))
+        assert processResources.is(processResources.filter(globalFilter1))
+        assert processResources.is(processResources.filter(globalFilter2))
+        assert processResources.is(processResources.filter(sourceDir1, sourceDir1Filter1))
+        assert processResources.is(processResources.filter(sourceDir1, sourceDir1Filter2))
+        assert processResources.is(processResources.filter(sourceDir2, sourceDir2Filter1))
+        assert processResources.is(processResources.filter(sourceDir2, sourceDir2Filter2))
 
-        assertEquals([sourceDir1, sourceDir2, sourceDir3], resources.srcDirs)
-        assertEquals(targetDir, resources.destinationDir)
+        assertEquals([sourceDir1, sourceDir2, sourceDir3], processResources.srcDirs)
+        assertEquals(targetDir, processResources.destinationDir)
 
         Map instructionExecuted = [:]
 
-        resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
-            assert destDir.is(resources.destinationDir)
-            assert srcDirs.is(resources.srcDirs)
-            resources.srcDirs
+        processResources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
+            assert destDir.is(processResources.destinationDir)
+            assert srcDirs.is(processResources.srcDirs)
+            processResources.srcDirs
         }] as ExistingDirsFilter
 
         int executeCounter = 0
@@ -144,13 +144,13 @@ class ResourcesTest extends AbstractTaskTest {
         }
 
 
-        resources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
-            assert destDir.is(resources.destinationDir)
-            assert srcDirs.is(resources.srcDirs)
-            resources.srcDirs
+        processResources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
+            assert destDir.is(processResources.destinationDir)
+            assert srcDirs.is(processResources.srcDirs)
+            processResources.srcDirs
         }] as ExistingDirsFilter
 
-        resources.execute()
+        processResources.execute()
 
         assert executeCounter == 3
         

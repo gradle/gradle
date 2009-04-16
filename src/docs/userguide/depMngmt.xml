@@ -662,7 +662,7 @@ project-root
             <para>There are three hooks for adding resolvers. Via the resolvers assigned to the
                 <literal>classpathResolvers</literal>
                 property of the dependency manager, the <literal>compile</literal>,
-                <literal>testCompile</literal>
+                <literal>compileTests</literal>
                 and
                 <literal>test</literal>
                 tasks retrieve their dependencies. The

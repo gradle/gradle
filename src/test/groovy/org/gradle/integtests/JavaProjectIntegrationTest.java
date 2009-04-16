@@ -41,7 +41,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("libs").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task ':testCompile'");
+        failure.assertHasContext("Execution failed for task ':compileTests'");
         failure.assertHasDescription("Compile failed; see the compiler error output for details.");
     }
 

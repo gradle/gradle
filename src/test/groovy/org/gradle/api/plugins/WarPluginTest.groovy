@@ -41,23 +41,23 @@ class WarPluginTest {
 
         assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
 
-        def configuration = project.configurations.get(JavaPlugin.COMPILE)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
+        def configuration = project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.configurations.get(JavaPlugin.RUNTIME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE, WarPlugin.PROVIDED_RUNTIME)))
+        configuration = project.configurations.get(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME, WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.configurations.get(WarPlugin.PROVIDED_COMPILE)
+        configuration = project.configurations.get(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.configurations.get(WarPlugin.PROVIDED_RUNTIME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE)))
+        configuration = project.configurations.get(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME)
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
     }

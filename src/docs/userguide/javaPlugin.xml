@@ -96,37 +96,37 @@
         </tr>
         <tr>
             <td>
-                <literal>resources</literal>
+                <literal>processResources</literal>
             </td>
             <td>
                 <literal>init</literal>
             </td>
-            <td><apilink class="org.gradle.api.tasks.Resources"/></td>
+            <td><apilink class="org.gradle.api.tasks.ProcessResources"/></td>
         </tr>
         <tr>
             <td>
                 <literal>compile</literal>
             </td>
             <td>
-                <literal>resources</literal>
+                <literal>processResources</literal>
             </td>
             <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
         </tr>
         <tr>
             <td>
-                <literal>testResources</literal>
+                <literal>processTestResources</literal>
             </td>
             <td>
                 <literal>compile</literal>
             </td>
-            <td><apilink class="org.gradle.api.tasks.Resources"/></td>
+            <td><apilink class="org.gradle.api.tasks.ProcessResources"/></td>
         </tr>
         <tr>
             <td>
-                <literal>testCompile</literal>
+                <literal>compileTests</literal>
             </td>
             <td>
-                <literal>testResources</literal>
+                <literal>processTestResources</literal>
             </td>
             <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
         </tr>
@@ -135,7 +135,7 @@
                 <literal>test</literal>
             </td>
             <td>
-                <literal>testCompile</literal>
+                <literal>compileTests</literal>
             </td>
             <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
         </tr>
@@ -493,10 +493,10 @@
     <section id='sec:resources'>
         <title>Resources</title>
         <para>The
-            <emphasis>Resources</emphasis>
+            <emphasis>ProcessResources</emphasis>
             task has two instances,
-            <literal>resources</literal>
-            and <literal>testResources</literal>.
+            <literal>processResources</literal>
+            and <literal>processTestResources</literal>.
         </para>
         <table>
             <title>Java Convention Object - Resource Properties</title>
@@ -508,31 +508,31 @@
                 </tr>
             </thead>
             <tr>
-                <td>resources</td>
+                <td>processResources</td>
                 <td>sourceDirs</td>
                 <td>resourceDirs</td>
             </tr>
             <tr>
-                <td>resources</td>
+                <td>processResources</td>
                 <td>destinationDir</td>
                 <td>classesDir</td>
             </tr>
             <tr>
-                <td>testResources</td>
+                <td>processTestResources</td>
                 <td>sourceDirs</td>
                 <td>testResourceDirs</td>
             </tr>
             <tr>
-                <td>testResources</td>
+                <td>processTestResources</td>
                 <td>destinationDir</td>
                 <td>testClassesDir</td>
             </tr>
 
         </table>
         <para>The
-            <literal>resources</literal>
+            <literal>processResources</literal>
             task offers includes and excludes directives as well as filters. Have a look at
-            <apilink class="org.gradle.api.tasks.Resources"/> to learn about the details.
+            <apilink class="org.gradle.api.tasks.ProcessResources"/> to learn about the details.
         </para>
     </section>
     <section id='sec:compile'>
@@ -541,7 +541,7 @@
             <emphasis>Compile</emphasis>
             task has two instances,
             <literal>compile</literal>
-            and <literal>testCompile</literal>.
+            and <literal>compileTests</literal>.
         </para>
         <table>
             <title>Java Convention Object - Compile Properties</title>
@@ -573,22 +573,22 @@
                 <td>targetCompatibility</td>
             </tr>
             <tr>
-                <td>testCompile</td>
+                <td>compileTests</td>
                 <td>srcDirs</td>
                 <td>testSrcDirs</td>
             </tr>
             <tr>
-                <td>testCompile</td>
+                <td>compileTests</td>
                 <td>destinationDir</td>
                 <td>testClassesDir</td>
             </tr>
             <tr>
-                <td>testCompile</td>
+                <td>compileTests</td>
                 <td>sourceCompatibility</td>
                 <td>sourceCompatibility</td>
             </tr>
             <tr>
-                <td>testCompile</td>
+                <td>compileTests</td>
                 <td>targetCompatibility</td>
                 <td>targetCompatibility</td>
             </tr>
@@ -617,7 +617,7 @@
         <para>The
             <literal>test</literal>
             task executes the unit tests which have been compiled by the
-            <literal>testCompile</literal>
+            <literal>compileTests</literal>
             task.
         </para>
         <table>

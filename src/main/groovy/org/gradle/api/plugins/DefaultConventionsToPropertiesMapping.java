@@ -191,12 +191,12 @@ public class DefaultConventionsToPropertiesMapping {
         },
                 "libExcludeConfigurations", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(WarPlugin.PROVIDED_RUNTIME);
+                return WrapUtil.toList(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
             }
         },
                 "libConfigurations", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(JavaPlugin.RUNTIME);
+                return WrapUtil.toList(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
             }
         }));
     }

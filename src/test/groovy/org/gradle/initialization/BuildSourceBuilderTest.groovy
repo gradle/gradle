@@ -81,7 +81,7 @@ class BuildSourceBuilderTest {
                 "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
         context.checking {
             allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationContainerStub))
-            allowing(configurationContainerStub).get(JavaPlugin.RUNTIME); will(returnValue(configurationMock))
+            allowing(configurationContainerStub).get(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
         }
     }
 
@@ -117,7 +117,7 @@ class BuildSourceBuilderTest {
     @Test public void testCreateDependencyWithCachedArtifactAndValidCache() {
         expectedStartParameter.setCacheUsage(CacheUsage.ON)
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        modifiedStartParameter.setTaskNames([JavaPlugin.INIT])
+        modifiedStartParameter.setTaskNames([JavaPlugin.INIT_TASK_NAME])
         modifiedStartParameter.setSearchUpwards(false)
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(true))

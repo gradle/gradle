@@ -48,9 +48,9 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class WarPlugin implements Plugin {
-    public static final String PROVIDED_COMPILE = "providedCompile";
-    public static final String PROVIDED_RUNTIME = "providedRuntime";
-    public static final String ECLIPSE_WTP = "eclipseWtp";
+    public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
+    public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
+    public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
@@ -63,22 +63,22 @@ public class WarPlugin implements Plugin {
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        Configuration provideCompileConfiguration = configurationContainer.add(PROVIDED_COMPILE).setVisible(false).
+        Configuration provideCompileConfiguration = configurationContainer.add(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
                 setDescription("Additional compile classpath for libraries that should not be part of the war archive.");
-        Configuration provideRuntimeConfiguration = configurationContainer.add(PROVIDED_RUNTIME).setVisible(false).
+        Configuration provideRuntimeConfiguration = configurationContainer.add(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
                 extendsFrom(provideCompileConfiguration).
                 setDescription("Additional runtime classpath for libraries that should not be part of the war archive.");
-        configurationContainer.get(JavaPlugin.COMPILE).extendsFrom(provideCompileConfiguration);
-        configurationContainer.get(JavaPlugin.RUNTIME).extendsFrom(provideRuntimeConfiguration);
+        configurationContainer.get(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
+        configurationContainer.get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
     }
 
     private void configureEclipse(Project project, War war) {
         EclipseWtp eclipseWtp = configureEclipseWtp(project, war);
-        project.task(JavaPlugin.ECLIPSE).dependsOn(eclipseWtp);
+        project.task(JavaPlugin.ECLIPSE_TASK_NAME).dependsOn(eclipseWtp);
     }
 
     private EclipseWtp configureEclipseWtp(final Project project, final War war) {
-        final EclipseWtp eclipseWtp = (EclipseWtp) project.createTask(GUtil.map("type", EclipseWtp.class), ECLIPSE_WTP);
+        final EclipseWtp eclipseWtp = (EclipseWtp) project.createTask(GUtil.map("type", EclipseWtp.class), ECLIPSE_WTP_TASK_NAME);
 
         eclipseWtp.conventionMapping(GUtil.map(
                 "warResourceMappings", new ConventionValue() {
@@ -115,7 +115,7 @@ public class WarPlugin implements Plugin {
                         * ourselfes. This is not completely trivial due to configuration inheritance.
                         */
                         return new ArrayList(Specs.filterIterable(
-                                ((Task) conventionAwareObject).getProject().getConfigurations().get(JavaPlugin.RUNTIME).getAllDependencies(),
+                                ((Task) conventionAwareObject).getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),
                                 DependencySpecs.type(Type.PROJECT))
                         );
                     }
@@ -133,7 +133,7 @@ public class WarPlugin implements Plugin {
 
     private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {
         Set<Dependency> projectDependencies = Specs.filterIterable(
-                project.getConfigurations().get(JavaPlugin.RUNTIME).getDependencies(),
+                project.getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getDependencies(),
                 DependencySpecs.type(Type.PROJECT)
         );
 

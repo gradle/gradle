@@ -18,43 +18,43 @@
             :
         </para>
         <programlisting><![CDATA[
-createTask('resources', type: Resources)
+createTask('processResources', type: ProcessResources)
 ]]></programlisting>
-        <para>The resources task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Resources"/>).
+        <para>The processResources task provides an API to configure it (see <apilink class="org.gradle.api.tasks.ProcessResources"/>).
             If you create the resources task like this, it has no default behavior.
             <footnote>
                 <para>This is different when added by the JavaPlugin
                 </para>
             </footnote>
-            . We want now use the resources task to learn about different ways to configure it (the result is always the
+            . We want now use the processResources task to learn about different ways to configure it (the result is always the
             same for our examples).
         </para>
         <programlisting><![CDATA[
-Resources resources = createTask('resources', type: Resources)
-resources.from(file('resources'))
-resources.into(file('target'))
-resources.includes('**/*.txt', '**/*.xml', '**/*.properties')	
+ProcessResources resources = createTask('processResources', type: ProcessResources)
+processResources.from(file('resources'))
+processResources.into(file('target'))
+processResources.includes('**/*.txt', '**/*.xml', '**/*.properties')
 ]]></programlisting>
         <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
-            (resources) in the configuration statement every time. This is a redundancy and not very nice to read.
+            (processResources) in the configuration statement every time. This is a redundancy and not very nice to read.
         </para>
         <para>There is a more convenient way of doing this.
         </para>
         <programlisting><![CDATA[
-Resources resources = createTask('resources', type: Resources)
-resources.from(file('resources')).to(file('target')).
+ProcessResources processResources = createTask('processResources', type: ProcessResources)
+processResources.from(file('resources')).to(file('target')).
 	includes('**/*.txt', '**/*.xml', '**/*.properties')	
 ]]></programlisting>
         <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
             has to support this. The from, to and includes methods all return an instance of the resources object. All
             of Gradle's build-in tasks usually support this configuration style.
         </para>
-        <para>But there is yet another way of configuring the resources task. It also preserves the context and it
+        <para>But there is yet another way of configuring the processResources task. It also preserves the context and it
             possibly offers the best readability. It is usually our favorite.
         </para>
         <programlisting><![CDATA[
-createTask('resources', type: Resources)
-resources {
+createTask('processResources', type: ProcessResources)
+processResources {
    from(file('resources'))
    to(file('target'))
    includes('**/*.txt', '**/*.xml', '**/*.properties')
@@ -62,7 +62,7 @@ resources {
 ]]></programlisting>
         <para>This works for
             <emphasis>any</emphasis>
-            task. Line 2 of the example is just a shortcut for <literal>task("resources")</literal>. It is important to
+            task. Line 2 of the example is just a shortcut for <literal>task("processResources")</literal>. It is important to
             note that if you pass a closure to the
             <literal>task</literal>
             method, this closure is applied for
@@ -70,7 +70,7 @@ resources {
             the task. There is a slightly different ways of doing this.
         </para>
         <programlisting><![CDATA[
-Resources resources = createTask('resources', type: Resources).configure {
+ProcessResources processResources = createTask('processResources', type: ProcessResources).configure {
    from(file('source'))
    to(file('target'))
    includes('**/*.txt', '**/*.xml', '**/*.properties')
@@ -129,7 +129,7 @@ Resources resources = createTask('resources', type: Resources).configure {
         </para>
         <sample id="replaceTask" dir="userguide/tutorial/replaceTask">
             <sourcefile file="build.gradle"/>
-            <output args="-q resources"/>
+            <output args="-q processResources"/>
         </sample>
         <para>Here we replace a task of type <literal>Resources</literal> with a simple task. When creating the simple
             task, you have to set the <literal>overwrite</literal> property to true. Otherwise Gradle throws an

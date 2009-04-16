@@ -75,7 +75,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         <title>Configuration</title>
         <para>If you use the
             <emphasis>JavaPlugin</emphasis>
-            there is for example a compile and resources task for your production code (the same is true for your test
+            there is for example a compile and processResources task for your production code (the same is true for your test
             code). The default location for the output of those task is the directory <literal>build/classes</literal>.
             What if you want to change this? Let's try:
         </para>
@@ -85,7 +85,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         </sample>
         <para>Setting the
             <literal>destinationDir</literal>
-            of the resources task had only an effect on the resources task. Maybe this was what you wanted. But what if
+            of the processResources task had only an effect on the processResources task. Maybe this was what you wanted. But what if
             you want to change the output directory for all tasks? It would be unfortunate if you had to do this for
             each task separately.
         </para>

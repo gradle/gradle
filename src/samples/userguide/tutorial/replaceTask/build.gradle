@@ -1,5 +1,5 @@
-createTask('resources', type: Resources)
+createTask('processResources', type: ProcessResources)
 
-createTask('resources', overwrite: true) {
+createTask('processResources', overwrite: true) {
     println('I am the new one.')
 }

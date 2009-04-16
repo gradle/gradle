@@ -49,12 +49,12 @@ class GroovyPluginTest {
     @Test public void addsAGroovyConfigurationToTheProject() {
         groovyPlugin.apply(project, new PluginRegistry(), null)
 
-        def configuration = project.configurations.get(JavaPlugin.COMPILE)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyPlugin.GROOVY)))
+        def configuration = project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyPlugin.GROOVY_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.configurations.get(GroovyPlugin.GROOVY)
+        configuration = project.configurations.get(GroovyPlugin.GROOVY_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
@@ -63,23 +63,23 @@ class GroovyPluginTest {
     @Test public void addsTasksToTheProject() {
         groovyPlugin.apply(project, new PluginRegistry(), null)
 
-        def task = project.tasks[JavaPlugin.COMPILE]
+        def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
         assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
 
-        task = project.tasks[JavaPlugin.TEST_COMPILE]
+        task = project.tasks[JavaPlugin.COMPILE_TESTS_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.testSrcDirs as Object[]))
         assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovyTestSrcDirs as Object[]))
 
-        task = project.tasks[JavaPlugin.JAVADOC]
+        task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc.class))
         assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
         assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
         assertThat(((Javadoc)task).exclude, hasItem('**/*.groovy'))
 
-        task = project.tasks[GroovyPlugin.GROOVYDOC]
+        task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
         assertThat(task, instanceOf(Groovydoc.class))
         assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
         assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.srcDirs as Object[])))

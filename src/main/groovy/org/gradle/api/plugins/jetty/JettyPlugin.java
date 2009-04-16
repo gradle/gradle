@@ -94,12 +94,12 @@ public class JettyPlugin implements Plugin {
     private void configureJettyRun(final Project project, final JettyPluginConvention jettyConvention) {
         JettyRun jettyRun = (JettyRun) project.createTask(GUtil.map("type", JettyRun.class), JETTY_RUN);
         jettyRun.setDescription("Uses your files as and where they are and deploys them to Jetty.");
-        jettyRun.dependsOn(JavaPlugin.TEST_COMPILE);
+        jettyRun.dependsOn(JavaPlugin.COMPILE_TESTS_TASK_NAME);
 
         configureAbstractJettyTask(project, jettyConvention, jettyRun);
 
-        jettyRun.setConfiguration(JavaPlugin.RUNTIME);
-        jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME);
+        jettyRun.setConfiguration(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
+        jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
         jettyRun.setUseTestClasspath(false);
         jettyRun.getConventionMapping().put("webXml", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

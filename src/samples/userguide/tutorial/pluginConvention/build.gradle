@@ -2,7 +2,7 @@ usePlugin('java')
 
 createTask('check') {
     classesDirName = 'output'
-    println(resources.destinationDir.name)
+    println(processResources.destinationDir.name)
     println(compile.destinationDir.name)
     println(convention.classesDirName)
 }
