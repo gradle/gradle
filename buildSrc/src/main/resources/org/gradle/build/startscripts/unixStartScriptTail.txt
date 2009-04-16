@@ -111,7 +111,7 @@ STARTER_MAIN_CLASS=org.gradle.BootstrapMain
 if $useprofiler ; then
     runProfiler
 else
-    exec "$JAVACMD" $GRADLE_OPTS \
+    exec "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dgradle.home="$GRADLE_HOME" \
         -Dtools.jar="$TOOLS_JAR" \

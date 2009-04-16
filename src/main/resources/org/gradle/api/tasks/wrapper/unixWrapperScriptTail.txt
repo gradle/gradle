@@ -63,7 +63,7 @@ if $cygwin ; then
     esac
 fi
 
-"$JAVACMD" $GRADLE_OPTS \
+"$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dtools.jar="$TOOLS_JAR" \
         -Dorg.gradle.wrapper.properties="$WRAPPER_PROPERTIES" \

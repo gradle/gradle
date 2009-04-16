@@ -3,8 +3,7 @@ set STARTER_MAIN_CLASS=org.gradle.BootstrapMain
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 
-if "%GRADLE_OPTS%" == "" set GRADLE_OPTS="-Xmx128m"
-set GRADLE_OPTS=%GRADLE_OPTS% -Dgradle.home="%GRADLE_HOME%"
+set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS% -Dgradle.home="%GRADLE_HOME%"
 set GRADLE_OPTS=%GRADLE_OPTS% -Dtools.jar="%TOOLS_JAR%"
 
 @rem Execute Gradle

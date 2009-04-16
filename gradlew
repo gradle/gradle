@@ -6,8 +6,9 @@
 ##                                                                          ##
 ##############################################################################
 
-# Uncomment this line to set JVM_OPTS 
+# Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.  
 # GRADLE_OPTS="$GRADLE_OPTS -Xmx512"
+# JAVA_OPTS="$JAVA_OPTS -Xmx512"
 
 warn ( ) {
     echo "${PROGNAME}: $*"
@@ -127,7 +128,7 @@ if $cygwin ; then
     esac
 fi
 
-"$JAVACMD" $GRADLE_OPTS \
+"$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dtools.jar="$TOOLS_JAR" \
         -Dorg.gradle.wrapper.properties="$WRAPPER_PROPERTIES" \

@@ -82,8 +82,11 @@ OS Name: Mac OS X
 <section>
 <title>JVM Options</title>
 
-<para>JVM options for running Gradle can be set by either defining an environment variable <envar>GRADLE_OPTS</envar>,
-or by setting the <envar>GRADLE_OPTS</envar> variable at the beginning of the <command>gradle</command> script.
+<para>JVM options for running Gradle can be set via environment variables. You can use <envar>GRADLE_OPTS</envar>
+or <envar>JAVA_OPTS</envar>. Those variables can be used together. <envar>JAVA_OPTS</envar> is by convention an environment
+variable shared by many Java applications. A typical use case would be to set the http proxy in
+<envar>JAVA_OPTS</envar> and the memory options in <envar>GRADLE_OPTS</envar>. Those variables can also be set at the beginning
+of the <command>gradle</command> or <command>gradlew</command> script.
 </para>
 
 </section>

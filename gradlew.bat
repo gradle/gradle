@@ -12,8 +12,9 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Uncomment this line to set JVM_OPTS
+@rem Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.
 @rem set GRADLE_OPTS=%GRADLE_OPTS% -Xmx512
+@rem set JAVA_OPTS=%JAVA_OPTS% -Xmx512
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.\
@@ -105,8 +106,7 @@ set WRAPPER_PROPERTIES=%DIRNAME%\wrapper\gradle-wrapper.properties
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 
-if "%GRADLE_OPTS%" == "" set GRADLE_OPTS="-Xmx128m"
-set GRADLE_OPTS=%GRADLE_OPTS% -Dtools.jar="%TOOLS_JAR%" -Dorg.gradle.wrapper.properties="%WRAPPER_PROPERTIES%" 
+set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS% -Dtools.jar="%TOOLS_JAR%" -Dorg.gradle.wrapper.properties="%WRAPPER_PROPERTIES%" 
 
 "%JAVA_EXE%" %GRADLE_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
 
