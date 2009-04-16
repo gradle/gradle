@@ -355,15 +355,17 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         //way of doing things
         if (webAppConfig == null) {
             webAppConfig = new JettyPluginWebAppContext();
-            webAppConfig.setContextPath((getContextPath().startsWith("/") ? getContextPath() : "/" + getContextPath()));
-            if (getTmpDirectory() != null)
-                webAppConfig.setTempDirectory(getTmpDirectory());
-            if (getWebDefaultXml() != null)
-                webAppConfig.setDefaultsDescriptor(getWebDefaultXml().getCanonicalPath());
-            if (getOverrideWebXml() != null)
-                webAppConfig.setOverrideDescriptor(getOverrideWebXml().getCanonicalPath());
         }
-
+        webAppConfig.setContextPath((getContextPath().startsWith("/") ? getContextPath() : "/" + getContextPath()));
+        if (getTmpDirectory() != null) {
+            webAppConfig.setTempDirectory(getTmpDirectory());
+        }
+        if (getWebDefaultXml() != null) {
+            webAppConfig.setDefaultsDescriptor(getWebDefaultXml().getCanonicalPath());
+        }
+        if (getOverrideWebXml() != null) {
+            webAppConfig.setOverrideDescriptor(getOverrideWebXml().getCanonicalPath());
+        }
 
         logger.info("Context path = " + webAppConfig.getContextPath());
         logger.info("Tmp directory = " + " determined at runtime");
