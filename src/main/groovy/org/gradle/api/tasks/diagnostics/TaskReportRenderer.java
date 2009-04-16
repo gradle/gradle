@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Rule;
 import org.gradle.util.GUtil;
 
 import java.util.SortedSet;
@@ -30,7 +31,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class TaskReportRenderer extends TextProjectReportRenderer {
-    private boolean currentProjectHasTasks;
+    private boolean currentProjectHasTasksOrRules;
 
     public TaskReportRenderer() {
     }
@@ -41,13 +42,13 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
 
     @Override
     public void startProject(Project project) {
-        currentProjectHasTasks = false;
+        currentProjectHasTasksOrRules = false;
         super.startProject(project);
     }
 
     @Override
     public void completeProject(Project project) {
-        if (!currentProjectHasTasks) {
+        if (!currentProjectHasTasksOrRules) {
             getFormatter().format("No tasks%n");
         }
         super.completeProject(project);
@@ -78,10 +79,20 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         if (sortedDependencies.size() > 0) {
             getFormatter().format("   -> %s%n", GUtil.join(sortedDependencies, ", "));
         }
-        currentProjectHasTasks = true;
+        currentProjectHasTasksOrRules = true;
     }
 
     private String getDescription(Task task) {
         return GUtil.isTrue(task.getDescription()) ? "- " + task.getDescription() : "";
+    }
+
+    /**
+     * Writes a rule for the current project.
+     *
+     * @param rule The rule
+     */
+    public void addRule(Rule rule) {
+        getFormatter().format("rule - %s%n", GUtil.elvis(rule.getDescription(), ""));
+        currentProjectHasTasksOrRules = true;
     }
 }

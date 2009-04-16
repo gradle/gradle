@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import static org.gradle.util.Matchers.*
 import org.junit.Test
+import org.gradle.api.Rule
 
 /**
  * @author Hans Dockter
@@ -39,11 +40,17 @@ class TaskReportRendererTest {
         String task1Description = 'task1Description'
         Task task1 = [getPath: {':task1'}, getDescription: {task1Description}, getTaskDependencies: {taskDependency1}] as Task
         Task task2 = [getPath: {':task2'}, getDescription: {null}, getTaskDependencies: {taskDependency2}] as Task
+        String rule1Description = "rule1Description"
+        String rule2Description = "rule2Description"
+        Rule rule1 = [getDescription: {rule1Description}] as Rule
+        Rule rule2 = [getDescription: {rule2Description}] as Rule
 
         List testDefaultTasks = ['task1, task2']
         renderer.addDefaultTasks(testDefaultTasks)
         renderer.addTask(task1)
         renderer.addTask(task2)
+        renderer.addRule(rule1)
+        renderer.addRule(rule2)
 
         List lines = new StringReader(writer.toString()).readLines()
         assertThat(lines[0], containsString("Default Tasks: " + testDefaultTasks.join(', ')))
@@ -51,7 +58,9 @@ class TaskReportRendererTest {
         assertThat(lines[3], containsString("-> :task11, :task12"))
         assertThat(lines[4], containsString(":task2"))
         assertThat(lines[4], not(containsString(":task2 -")))
-        assertThat(lines.size(), equalTo(5))
+        assertThat(lines[5], containsString("rule - $rule1Description"))
+        assertThat(lines[6], containsString("rule - $rule2Description"))
+        assertThat(lines.size(), equalTo(7))
     }
 
     @Test public void testWritesTaskAndDependenciesWithNoDefaultTasks() {
@@ -65,13 +74,24 @@ class TaskReportRendererTest {
         assertThat(lines.size(), equalTo(1))
     }
 
-    @Test public void testProjectWithNoTasks() {
+    @Test public void testProjectWithNoTasksAndNoRules() {
         Project project = [getPath: {':project'}, getRootProject: {null}] as Project
 
         renderer.startProject(project)
         renderer.completeProject(project)
 
         assertThat(writer.toString(), containsLine('No tasks'))
+    }
+
+    @Test public void testProjectWithNoTasksButRules() {
+        Project project = [getPath: {':project'}, getRootProject: {null}] as Project
+        String ruleDescription = "someDescription"
+
+        renderer.startProject(project)
+        renderer.addRule([getDescription: {ruleDescription}] as Rule)
+        renderer.completeProject(project)
+
+        assertThat(writer.toString(), containsLine("rule - $ruleDescription"))
     }
     
     @Test public void testProjectWithTasks() {
