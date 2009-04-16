@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.report.IvyDependency;
 import org.gradle.api.artifacts.report.IvyDependencyGraph;
 import org.gradle.api.Project;
+import org.gradle.util.GUtil;
 
 import java.io.IOException;
 
@@ -53,7 +54,11 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
 
     public void startConfiguration(Configuration configuration) {
         hasConfigs = true;
-        getFormatter().format("%s%n", configuration.getName());
+        getFormatter().format("%s%s%n", configuration.getName(), getDescription(configuration));
+    }
+
+    private String getDescription(Configuration configuration) {
+        return GUtil.isTrue(configuration.getDescription()) ? " - " + configuration.getDescription() : "";
     }
 
     public void completeConfiguration(Configuration configuration) {

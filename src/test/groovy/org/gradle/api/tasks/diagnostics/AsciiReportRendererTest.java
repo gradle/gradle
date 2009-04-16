@@ -36,11 +36,10 @@ public class AsciiReportRendererTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final StringWriter writer = new StringWriter();
     private final AsciiReportRenderer renderer = new AsciiReportRenderer(writer);
+    private final Project project = HelperUtil.createRootProject();
 
     @Test
     public void writesMessageWhenProjectHasNoConfigurations() {
-        Project project = HelperUtil.createRootProject();
-
         renderer.startProject(project);
         renderer.completeProject(project);
 
@@ -49,11 +48,12 @@ public class AsciiReportRendererTest {
 
     @Test
     public void writesConfigurationHeader() {
-        Project project = HelperUtil.createRootProject();
         final Configuration configuration = context.mock(Configuration.class);
         context.checking(new Expectations(){{
             allowing(configuration).getName();
             will(returnValue("configName"));
+            allowing(configuration).getDescription();
+            will(returnValue("description"));
         }});
 
         renderer.startProject(project);
@@ -61,7 +61,7 @@ public class AsciiReportRendererTest {
         renderer.completeConfiguration(configuration);
         renderer.completeProject(project);
 
-        assertThat(writer.toString(), containsLine("configName"));
+        assertThat(writer.toString(), containsLine("configName - description"));
         assertThat(writer.toString(), not(containsLine("No configurations")));
     }
 }
