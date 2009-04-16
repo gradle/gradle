@@ -1,5 +1,5 @@
-createTask('processResources', type: ProcessResources)
+createTask('copy', type: Copy)
 
-createTask('processResources', overwrite: true) {
+createTask('copy', overwrite: true) {
     println('I am the new one.')
 }

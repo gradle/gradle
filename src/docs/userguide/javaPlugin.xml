@@ -101,7 +101,7 @@
             <td>
                 <literal>init</literal>
             </td>
-            <td><apilink class="org.gradle.api.tasks.ProcessResources"/></td>
+            <td><apilink class="org.gradle.api.tasks.Copy"/></td>
         </tr>
         <tr>
             <td>
@@ -119,7 +119,7 @@
             <td>
                 <literal>compile</literal>
             </td>
-            <td><apilink class="org.gradle.api.tasks.ProcessResources"/></td>
+            <td><apilink class="org.gradle.api.tasks.Copy"/></td>
         </tr>
         <tr>
             <td>
@@ -492,9 +492,9 @@
     </section>
     <section id='sec:resources'>
         <title>Resources</title>
-        <para>The
-            <emphasis>ProcessResources</emphasis>
-            task has two instances,
+        <para>Gradle uses the
+            <emphasis>Copy</emphasis>
+            task for resource handling. It has two instances,
             <literal>processResources</literal>
             and <literal>processTestResources</literal>.
         </para>
@@ -532,7 +532,7 @@
         <para>The
             <literal>processResources</literal>
             task offers includes and excludes directives as well as filters. Have a look at
-            <apilink class="org.gradle.api.tasks.ProcessResources"/> to learn about the details.
+            <apilink class="org.gradle.api.tasks.Copy"/> to learn about the details.
         </para>
     </section>
     <section id='sec:compile'>

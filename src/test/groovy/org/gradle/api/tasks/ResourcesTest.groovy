@@ -32,8 +32,8 @@ import org.junit.runner.RunWith
  * @author Hans Dockter
  */
 @RunWith (org.jmock.integration.junit4.JMock)
-class ProcessResourcesTest extends AbstractTaskTest {
-    ProcessResources processResources
+class CopyTest extends AbstractTaskTest {
+    Copy copy
 
     CopyInstructionFactory copyInstructionFactoryMock
 
@@ -47,19 +47,19 @@ class ProcessResourcesTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        processResources = new ProcessResources(project, AbstractTaskTest.TEST_TASK_NAME)
+        copy = new Copy(project, AbstractTaskTest.TEST_TASK_NAME)
         pluginConvention = new ResourcesTestConvention()
         pluginConvention.classesDir = new File('/classes')
         project.convention.plugins.test = pluginConvention
-        processResources.conventionMapping = [destinationDir: { convention, task -> convention.classesDir } as ConventionValue]
+        copy.conventionMapping = [destinationDir: { convention, task -> convention.classesDir } as ConventionValue]
         copyInstructionFactoryMock = context.mock(CopyInstructionFactory.class)
-        processResources.copyInstructionFactory = copyInstructionFactoryMock
+        copy.copyInstructionFactory = copyInstructionFactoryMock
     }
 
-    AbstractTask getTask() {processResources}
+    AbstractTask getTask() {copy}
 
     @Test public void testExecute() {
-        assertEquals(pluginConvention.classesDir, processResources.destinationDir)
+        assertEquals(pluginConvention.classesDir, copy.destinationDir)
 
         File sourceDir1 = new File('/source1')
         File sourceDir2 = new File('/source2')
@@ -83,33 +83,33 @@ class ProcessResourcesTest extends AbstractTaskTest {
         Map sourceDir1Filter2 = [sdf12Token: 'sdf12']
         Map sourceDir2Filter1 = [sdf21Token: 'sdf21']
         Map sourceDir2Filter2 = [sdf22Token: 'sdf22']
-        assert processResources.is(processResources.from(sourceDir1, sourceDir2))
-        assert processResources.is(processResources.from(sourceDir3))
-        assert processResources.is(processResources.into(targetDir))
+        assert copy.is(copy.from(sourceDir1, sourceDir2))
+        assert copy.is(copy.from(sourceDir3))
+        assert copy.is(copy.into(targetDir))
         ['includes', 'excludes'].each {
-            assert processResources.is(processResources."$it"(globalPattern1, globalPattern2))
-            assert processResources.is(processResources."$it"(globalPattern3))
-            assert processResources.is(processResources."$it"(sourceDir1, sourceDir1Pattern1, sourceDir1Pattern2))
-            assert processResources.is(processResources."$it"(sourceDir1, sourceDir1Pattern3))
-            assert processResources.is(processResources."$it"(sourceDir2, sourceDir2Pattern1, sourceDir2Pattern2))
-            assert processResources.is(processResources."$it"(sourceDir2, sourceDir2Pattern3))
+            assert copy.is(copy."$it"(globalPattern1, globalPattern2))
+            assert copy.is(copy."$it"(globalPattern3))
+            assert copy.is(copy."$it"(sourceDir1, sourceDir1Pattern1, sourceDir1Pattern2))
+            assert copy.is(copy."$it"(sourceDir1, sourceDir1Pattern3))
+            assert copy.is(copy."$it"(sourceDir2, sourceDir2Pattern1, sourceDir2Pattern2))
+            assert copy.is(copy."$it"(sourceDir2, sourceDir2Pattern3))
         }
-        assert processResources.is(processResources.filter(globalFilter1))
-        assert processResources.is(processResources.filter(globalFilter2))
-        assert processResources.is(processResources.filter(sourceDir1, sourceDir1Filter1))
-        assert processResources.is(processResources.filter(sourceDir1, sourceDir1Filter2))
-        assert processResources.is(processResources.filter(sourceDir2, sourceDir2Filter1))
-        assert processResources.is(processResources.filter(sourceDir2, sourceDir2Filter2))
+        assert copy.is(copy.filter(globalFilter1))
+        assert copy.is(copy.filter(globalFilter2))
+        assert copy.is(copy.filter(sourceDir1, sourceDir1Filter1))
+        assert copy.is(copy.filter(sourceDir1, sourceDir1Filter2))
+        assert copy.is(copy.filter(sourceDir2, sourceDir2Filter1))
+        assert copy.is(copy.filter(sourceDir2, sourceDir2Filter2))
 
-        assertEquals([sourceDir1, sourceDir2, sourceDir3], processResources.srcDirs)
-        assertEquals(targetDir, processResources.destinationDir)
+        assertEquals([sourceDir1, sourceDir2, sourceDir3], copy.srcDirs)
+        assertEquals(targetDir, copy.destinationDir)
 
         Map instructionExecuted = [:]
 
-        processResources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
-            assert destDir.is(processResources.destinationDir)
-            assert srcDirs.is(processResources.srcDirs)
-            processResources.srcDirs
+        copy.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
+            assert destDir.is(copy.destinationDir)
+            assert srcDirs.is(copy.srcDirs)
+            copy.srcDirs
         }] as ExistingDirsFilter
 
         int executeCounter = 0
@@ -144,13 +144,13 @@ class ProcessResourcesTest extends AbstractTaskTest {
         }
 
 
-        processResources.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
-            assert destDir.is(processResources.destinationDir)
-            assert srcDirs.is(processResources.srcDirs)
-            processResources.srcDirs
+        copy.existentDirsFilter = [checkDestDirAndFindExistingDirsAndThrowStopActionIfNone: {File destDir, Collection srcDirs ->
+            assert destDir.is(copy.destinationDir)
+            assert srcDirs.is(copy.srcDirs)
+            copy.srcDirs
         }] as ExistingDirsFilter
 
-        processResources.execute()
+        copy.execute()
 
         assert executeCounter == 3
         

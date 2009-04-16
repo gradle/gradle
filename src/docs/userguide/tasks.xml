@@ -18,19 +18,19 @@
             :
         </para>
         <programlisting><![CDATA[
-createTask('processResources', type: ProcessResources)
+createTask('copy', type: Copy)
 ]]></programlisting>
-        <para>The processResources task provides an API to configure it (see <apilink class="org.gradle.api.tasks.ProcessResources"/>).
-            If you create the resources task like this, it has no default behavior.
+        <para>The copy task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Copy"/>).
+            If you create the copy task like this, it has no default behavior.
             <footnote>
-                <para>This is different when added by the JavaPlugin
+                <para>This is different when added by the JavaPlugin where it is used for resources processing.
                 </para>
             </footnote>
-            . We want now use the processResources task to learn about different ways to configure it (the result is always the
+            . We want now use the copy task to learn about different ways to configure it (the result is always the
             same for our examples).
         </para>
         <programlisting><![CDATA[
-ProcessResources resources = createTask('processResources', type: ProcessResources)
+Copy processResources = createTask('copy', type: Copy)
 processResources.from(file('resources'))
 processResources.into(file('target'))
 processResources.includes('**/*.txt', '**/*.xml', '**/*.properties')
@@ -41,7 +41,7 @@ processResources.includes('**/*.txt', '**/*.xml', '**/*.properties')
         <para>There is a more convenient way of doing this.
         </para>
         <programlisting><![CDATA[
-ProcessResources processResources = createTask('processResources', type: ProcessResources)
+Copy processResources = createTask('processResources', type: Copy)
 processResources.from(file('resources')).to(file('target')).
 	includes('**/*.txt', '**/*.xml', '**/*.properties')	
 ]]></programlisting>
@@ -53,7 +53,7 @@ processResources.from(file('resources')).to(file('target')).
             possibly offers the best readability. It is usually our favorite.
         </para>
         <programlisting><![CDATA[
-createTask('processResources', type: ProcessResources)
+createTask('processResources', type: Copy)
 processResources {
    from(file('resources'))
    to(file('target'))
@@ -70,7 +70,7 @@ processResources {
             the task. There is a slightly different ways of doing this.
         </para>
         <programlisting><![CDATA[
-ProcessResources processResources = createTask('processResources', type: ProcessResources).configure {
+Copy processResources = createTask('processResources', type: Copy).configure {
    from(file('source'))
    to(file('target'))
    includes('**/*.txt', '**/*.xml', '**/*.properties')
@@ -129,7 +129,7 @@ ProcessResources processResources = createTask('processResources', type: Process
         </para>
         <sample id="replaceTask" dir="userguide/tutorial/replaceTask">
             <sourcefile file="build.gradle"/>
-            <output args="-q processResources"/>
+            <output args="-q copy"/>
         </sample>
         <para>Here we replace a task of type <literal>Resources</literal> with a simple task. When creating the simple
             task, you have to set the <literal>overwrite</literal> property to true. Otherwise Gradle throws an

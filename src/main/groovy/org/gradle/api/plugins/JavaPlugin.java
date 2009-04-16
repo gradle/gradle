@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.ProcessResources;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.Jar;
@@ -138,13 +138,13 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureProcessResources(Project project) {
-        project.addTaskLifecycleListener(ProcessResources.class, new TaskLifecycleListener<ProcessResources>() {
-            public void taskAdded(ProcessResources processResources) {
+        project.addTaskLifecycleListener(Copy.class, new TaskLifecycleListener<Copy>() {
+            public void taskAdded(Copy processResources) {
                 processResources.dependsOn(INIT_TASK_NAME);
                 processResources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
             }
         });
-        project.createTask(GUtil.map("type", ProcessResources.class), PROCESS_RESOURCES_TASK_NAME).setDescription(
+        project.createTask(GUtil.map("type", Copy.class), PROCESS_RESOURCES_TASK_NAME).setDescription(
                 "Process and copy the resources into the binary directory of the compiled sources.");
     }
 
@@ -226,7 +226,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureProcessTestResources(Project project) {
-        ConventionTask processTestResources = (ConventionTask) project.createTask(GUtil.map("type", ProcessResources.class), PROCESS_TEST_RESOURCES_TASK_NAME);
+        ConventionTask processTestResources = (ConventionTask) project.createTask(GUtil.map("type", Copy.class), PROCESS_TEST_RESOURCES_TASK_NAME);
         processTestResources.setDependsOn(WrapUtil.toSet(COMPILE_TASK_NAME));
         processTestResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         processTestResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);

@@ -28,7 +28,7 @@ import org.junit.Test
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.tasks.ProcessResources
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -84,7 +84,7 @@ class JavaPluginTest {
         javaPlugin.apply(project, new PluginRegistry())
 
         def task = project.task(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
-        assertThat(task, instanceOf(ProcessResources))
+        assertThat(task, instanceOf(Copy))
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.INIT_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
@@ -95,7 +95,7 @@ class JavaPluginTest {
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.task(JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME)
-        assertThat(task, instanceOf(ProcessResources))
+        assertThat(task, instanceOf(Copy))
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.COMPILE_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.testClassesDir))
 
@@ -130,7 +130,7 @@ class JavaPluginTest {
     @Test public void appliesMappingsToTasksCreatedByBuildScript() {
         javaPlugin.apply(project, new PluginRegistry())
 
-        def task = project.createTask('customResources', type: ProcessResources)
+        def task = project.createTask('customResources', type: Copy)
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.INIT_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 

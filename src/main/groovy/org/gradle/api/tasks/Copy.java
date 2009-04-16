@@ -34,7 +34,7 @@ import java.io.File;
  *
  * @author Hans Dockter
  */
-public class ProcessResources extends ConventionTask {
+public class Copy extends ConventionTask {
 
     /**
      * A list of file objects denoting the directories to extract the content from.
@@ -96,7 +96,7 @@ public class ProcessResources extends ConventionTask {
 
     ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
-    public ProcessResources(Project project, String name) {
+    public Copy(Project project, String name) {
         super(project, name);
         copyInstructionFactory = new CopyInstructionFactory(project.getAnt());
         doLast(new TaskAction() {
@@ -121,7 +121,7 @@ public class ProcessResources extends ConventionTask {
     /**
      * adds the given sourceDirs to the sourceDirs property.
      */
-    public ProcessResources from(File... sourceDirs) {
+    public Copy from(File... sourceDirs) {
         if (srcDirs == null) {
             srcDirs = new ArrayList();
         }
@@ -132,7 +132,7 @@ public class ProcessResources extends ConventionTask {
     /**
      * sets the destination dir (equivalent to <code>resources.destinationDir = </code>
      */
-    public ProcessResources into(File destinationDir) {
+    public Copy into(File destinationDir) {
         this.destinationDir = destinationDir;
         return this;
     }
@@ -140,7 +140,7 @@ public class ProcessResources extends ConventionTask {
     /**
      * Add global includes patterns applied to all source dirs.
      */
-    public ProcessResources includes(String... includes) {
+    public Copy includes(String... includes) {
         return includes(null, includes);
     }
 
@@ -148,14 +148,14 @@ public class ProcessResources extends ConventionTask {
      * Add includes patterns. If the sourceDir is specified the pattern is limited to the specified source dir.
      * Otherwise it is a global pattern applied to all source dirs.
      */
-    public ProcessResources includes(File sourceDir, String... includes) {
+    public Copy includes(File sourceDir, String... includes) {
         return addIncludesExcludes(this.sourceDirIncludes, globalIncludes, sourceDir, includes);
     }
 
     /**
      * Add global excludes patterns applied to all source dirs.
      */
-    public ProcessResources excludes(String... excludes) {
+    public Copy excludes(String... excludes) {
         return excludes(null, excludes);
     }
 
@@ -163,7 +163,7 @@ public class ProcessResources extends ConventionTask {
      * Add excludes patterns. If the sourceDir is specified the pattern is limited to the specified source dir.
      * Otherwise it is a global pattern applied to all source dirs.
      */
-    public ProcessResources excludes(File sourceDir, String... excludes) {
+    public Copy excludes(File sourceDir, String... excludes) {
         return addIncludesExcludes(this.sourceDirExcludes, globalExcludes, sourceDir, excludes);
     }
 
@@ -171,7 +171,7 @@ public class ProcessResources extends ConventionTask {
      * Add filters. If the sourceDir is specified the filters are limited to the specified source dir.
      * Otherwise they are global filters applied to all source dirs.
      */
-    public ProcessResources filter(Map filters) {
+    public Copy filter(Map filters) {
         return filter(null, filters);
     }
 
@@ -179,7 +179,7 @@ public class ProcessResources extends ConventionTask {
      * Add filters. If the sourceDir is specified the filters are limited to the specified source dir.
      * Otherwise they are global filters applied to all source dirs.
      */
-    public ProcessResources filter(File sourceDir, Map filters) {
+    public Copy filter(File sourceDir, Map filters) {
         Map mapToAddTo = sourceDir != null ? getMapFromMap(sourceDirFilters, sourceDir) : globalFilters;
         mapToAddTo.putAll(filters);
         return this;
@@ -192,7 +192,7 @@ public class ProcessResources extends ConventionTask {
         return (Map) map.get(key);
     }
 
-    private ProcessResources addIncludesExcludes(Map map, Set globals, File sourceDir, String[] args) {
+    private Copy addIncludesExcludes(Map map, Set globals, File sourceDir, String[] args) {
         Set listToAddTo = sourceDir != null ? getSetFromMap(map, sourceDir) : globals;
         listToAddTo.addAll(Arrays.asList(args));
         return this;
