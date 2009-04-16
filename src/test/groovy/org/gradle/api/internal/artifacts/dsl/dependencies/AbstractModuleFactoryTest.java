@@ -102,6 +102,17 @@ public abstract class AbstractModuleFactoryTest {
     @Test
     public void testStringNotationWithModuleAndClassifier() {
         ExternalDependency moduleDependency = createDependency(TEST_MODULE_DESCRIPTOR_WITH_CLASSIFIER);
+        assertCorrectnesForModuleWithClassifier(moduleDependency);
+    }
+
+    @Test
+    public void testMapNotationWithModuleAndClassifier() {
+        ExternalDependency moduleDependency = createDependency(
+                GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION, "classifier", TEST_CLASSIFIER));
+        assertCorrectnesForModuleWithClassifier(moduleDependency);
+    }
+
+    private void assertCorrectnesForModuleWithClassifier(ExternalDependency moduleDependency) {
         checkCommonModuleProperties(moduleDependency);
         assertTrue(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
@@ -111,7 +122,7 @@ public abstract class AbstractModuleFactoryTest {
         assertEquals(DependencyArtifact.DEFAULT_TYPE, artifact.getExtension());
         assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
     }
-    
+
     @Test
     public void mapNotation() {
         ExternalDependency moduleDependency = createDependency(GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION));

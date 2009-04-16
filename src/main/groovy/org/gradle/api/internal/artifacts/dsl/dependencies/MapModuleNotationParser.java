@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.GradleException;
 import org.gradle.util.ReflectionUtil;
 
@@ -36,6 +39,7 @@ class MapModuleNotationParser {
         try {
             ExternalDependency dependency = dependencyType.getConstructor(String.class, String.class, String.class).
                     newInstance(group, name, version);
+            ModuleFactoryHelper.addClassifierArtifactIfSet(getAndRemove(args, "classifier"), dependency);
             for (String property : args.keySet()) {
                 ReflectionUtil.setProperty(dependency, property, args.get(property));
             }
@@ -52,8 +56,8 @@ class MapModuleNotationParser {
     }
 
     private String getAndRemove(Map<String, Object> args, String key) {
-        String group = args.get(key).toString();
+        Object value = args.get(key);
         args.remove(key);
-        return group;
+        return value != null ? value.toString() : null;
     }
 }
