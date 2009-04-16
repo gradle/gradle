@@ -116,5 +116,6 @@ public class MavenPlugin implements Plugin {
         publishInstruction.setIvyFileParentDir(new File("nonNullDummy"));
         installUpload.setPublishInstruction(publishInstruction);
         installUpload.getRepositories().addMavenInstaller("maven-installer");
+        installUpload.setDescription("Does a maven install of the master artifacts into the local .m2 cache.");
     }
 }

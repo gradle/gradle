@@ -84,7 +84,7 @@ public class JavaPlugin implements Plugin {
         configureConfigurations(project);
         configureUploadRules(project);
 
-        project.createTask(INIT);
+        project.createTask(INIT).setDescription("The first task of the Java plugin tasks to be excuted. Does nothing if not customized.");
 
         ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN)).
                 conventionMapping(GUtil.map(
@@ -92,11 +92,12 @@ public class JavaPlugin implements Plugin {
                             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                                 return project.getBuildDir();
                             }
-                        }));
+                        })).setDescription("Deletes the build directory.");
 
         configureJavaDoc(project);
 
         configureResources(project);
+
         configureCompile(project);
 
         configureTest(project);
@@ -116,7 +117,7 @@ public class JavaPlugin implements Plugin {
     private void configureTestCompile(Project project) {
         configureTestCompile((Compile) project.createTask(GUtil.map("type", Compile.class), TEST_COMPILE),
                 (Compile) project.task(COMPILE), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
-                project.getConfigurations());
+                project.getConfigurations()).setDescription("Compiles the Java test source code.");
     }
 
     private void configureCompile(final Project project) {
@@ -129,7 +130,7 @@ public class JavaPlugin implements Plugin {
             }
         });
 
-        project.createTask(GUtil.map("type", Compile.class), COMPILE);
+        project.createTask(GUtil.map("type", Compile.class), COMPILE).setDescription("Compiles the Java source code.");
     }
 
     private void configureResources(Project project) {
@@ -139,7 +140,8 @@ public class JavaPlugin implements Plugin {
                 resources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
             }
         });
-        project.createTask(GUtil.map("type", Resources.class), RESOURCES);
+        project.createTask(GUtil.map("type", Resources.class), RESOURCES).setDescription(
+                "Process and copy the resources into the binary directory of the compiled sources.");
     }
 
     private void configureJavaDoc(final Project project) {
@@ -149,27 +151,28 @@ public class JavaPlugin implements Plugin {
                 javadoc.setConfiguration(project.getConfigurations().get(COMPILE));
             }
         });
-        project.createTask(GUtil.map("type", Javadoc.class), JAVADOC);
+        project.createTask(GUtil.map("type", Javadoc.class), JAVADOC).setDescription("Generates the javadoc for the source code.");
     }
 
     private void configureEclipse(Project project) {
-        Task eclipse = project.createTask(ECLIPSE).dependsOn(
+        project.createTask(ECLIPSE).dependsOn(
                 configureEclipseProject(project),
                 configureEclipseClasspath(project)
-        );
-        project.createTask(WrapUtil.toMap("type", EclipseClean.class), ECLIPSE_CLEAN);
+        ).setDescription("Generates an Eclipse .project and .classpath file.");
+        project.createTask(WrapUtil.toMap("type", EclipseClean.class), ECLIPSE_CLEAN).setDescription(
+                "Deletes the Eclipse .project and .classpath files.");
     }
 
     private EclipseProject configureEclipseProject(Project project) {
         EclipseProject eclipseProject = (EclipseProject) project.createTask(GUtil.map("type", EclipseProject.class), ECLIPSE_PROJECT);
         eclipseProject.setProjectName(project.getName());
         eclipseProject.setProjectType(ProjectType.JAVA);
+        eclipseProject.setDescription("Generates an Eclipse .project file.");
         return eclipseProject;
     }
 
     private void configureEclipseWtpModule(Project project) {
         EclipseWtpModule eclipseWtpModule = (EclipseWtpModule) project.createTask(GUtil.map("type", EclipseWtpModule.class), ECLIPSE_WTP_MODULE);
-
 
         eclipseWtpModule.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
@@ -177,6 +180,7 @@ public class JavaPlugin implements Plugin {
                         return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
                     }
                 }));
+        eclipseWtpModule.setDescription("Generates the Eclipse Wtp files.");
     }
 
     private EclipseClasspath configureEclipseClasspath(Project project) {
@@ -213,6 +217,7 @@ public class JavaPlugin implements Plugin {
                         return new ArrayList(((Task) conventionAwareObject).getProject().getConfigurations().get(TEST_RUNTIME).getAllProjectDependencies());
                     }
                 }));
+        eclipseClasspath.setDescription("Generates an Eclipse .classpath file.");
         return eclipseClasspath;
     }
 
@@ -221,6 +226,8 @@ public class JavaPlugin implements Plugin {
         testResources.setDependsOn(WrapUtil.toSet(COMPILE));
         testResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST);
         testResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
+        testResources.setDescription(
+                "Process and copy the test resources into the binary directory of the compiled test sources.");
     }
 
     private void configureUploadRules(final Project project) {
@@ -263,6 +270,7 @@ public class JavaPlugin implements Plugin {
         upload.setConfiguration(configuration);
         upload.setPublishInstruction(publishInstruction);
         upload.dependsOn(configuration.getBuildArtifacts());
+        upload.setDescription(String.format("Uploads all artifacts belonging to the %s configuration", configuration.getName()));
         return upload;
     }
 
@@ -278,6 +286,7 @@ public class JavaPlugin implements Plugin {
                         return WrapUtil.toList(new FileSet(javaConvention.getClassesDir()));
                     }
                 }));
+        jar.setDescription("Generates a jar archive with all the compiled classes.");
         project.getConfigurations().get(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 
@@ -306,18 +315,24 @@ public class JavaPlugin implements Plugin {
                 });
             }
         });
-        project.createTask(GUtil.map("type", Test.class), TEST);
+        project.createTask(GUtil.map("type", Test.class), TEST).setDescription("Runs the tests.");
     }
 
     void configureConfigurations(Project project) {
         project.setProperty("status", "integration");
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration compileConfiguration = configurations.add(COMPILE).setVisible(false).setTransitive(false);
-        Configuration runtimeConfiguration = configurations.add(RUNTIME).setVisible(false).extendsFrom(compileConfiguration);
-        Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE).setVisible(false).extendsFrom(compileConfiguration).setTransitive(false);
-        Configuration runTestsConfiguration = configurations.add(TEST_RUNTIME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
-        Configuration masterConfiguration = configurations.add(Dependency.MASTER_CONFIGURATION);
-        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, masterConfiguration);
+        Configuration compileConfiguration = configurations.add(COMPILE).setVisible(false).setTransitive(false).
+                setDescription("Classpath for compiling the sources.");
+        Configuration runtimeConfiguration = configurations.add(RUNTIME).setVisible(false).extendsFrom(compileConfiguration).
+                setDescription("Classpath for running the compiled sources.");;
+        Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE).setVisible(false).extendsFrom(compileConfiguration).
+                setTransitive(false).setDescription("Classpath for compiling the test sources.");;
+        Configuration runTestsConfiguration = configurations.add(TEST_RUNTIME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration).
+                setDescription("Classpath for running the test sources.");;
+        Configuration masterConfiguration = configurations.add(Dependency.MASTER_CONFIGURATION).
+                setDescription("Configuration for the default artifacts.");;
+        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, masterConfiguration).
+                setDescription("Configuration the default artifacts and its dependencies.");
         configurations.add(DISTS);
     }
 

@@ -47,7 +47,8 @@ public class GroovyPlugin implements Plugin {
         JavaPlugin javaPlugin = pluginRegistry.apply(JavaPlugin.class, project, customValues);
         GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues);
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
-        Configuration groovyConfiguration = project.getConfigurations().add(GROOVY).setVisible(false).setTransitive(false);
+        Configuration groovyConfiguration = project.getConfigurations().add(GROOVY).setVisible(false).setTransitive(false).
+                setDescription("The groovy libraries to be used for this Groovy project.");
 
         configureCompile(project);
 
@@ -75,7 +76,7 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         });
-        project.createTask(GUtil.map("type", Groovydoc.class), GROOVYDOC);
+        project.createTask(GUtil.map("type", Groovydoc.class), GROOVYDOC).setDescription("Generates the groovydoc for the source code.");
     }
 
     private void configureJavadoc(Project project) {
@@ -101,6 +102,7 @@ public class GroovyPlugin implements Plugin {
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
         testCompile.setGroovyClasspath(project.getConfigurations().get("groovy"));
+        testCompile.setDescription("Compiles the Java and Groovy test source code.");
         testCompile.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -120,7 +122,8 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         });
-        project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE);
+        project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE).setDescription(
+                "Compiles the Java and Groovy source code.");
     }
 
     private GroovyPluginConvention groovy(Convention convention) {

@@ -59,11 +59,13 @@ public class JettyPlugin implements Plugin {
     private void configureJettyRunWarExploded(Project project, JettyPluginConvention jettyConvention) {
         JettyRunWarExploded jettyRunWarExploded = (JettyRunWarExploded)
                  project.createTask(GUtil.map("type", JettyRunWarExploded.class), JETTY_RUN_EXPLODED_WAR);
+        jettyRunWarExploded.setDescription("Assembles the webapp into an exploded war and deploys it to Jetty.");
         configureAbstractJettyTask(project, jettyConvention, jettyRunWarExploded);
     }
 
     private void configureJettyRunWar(final Project project, JettyPluginConvention jettyConvention) {
         JettyRunWar jettyRunWar = (JettyRunWar) project.createTask(GUtil.map("type", JettyRunWar.class), JETTY_RUN_WAR);
+        jettyRunWar.setDescription("Assembles the webapp into a war and deploys it to Jetty.");
         jettyRunWar.dependsOn("archive_war");
 
         configureAbstractJettyTask(project, jettyConvention, jettyRunWar);
@@ -76,6 +78,7 @@ public class JettyPlugin implements Plugin {
 
     private void configureJettyStop(Project project, final JettyPluginConvention jettyConvention) {
         JettyStop jettyStop = (JettyStop) project.createTask(GUtil.map("type", JettyStop.class), JETTY_STOP);
+        jettyStop.setDescription("Stops Jetty.");
         jettyStop.getConventionMapping().put("stopPort", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return jettyConvention.getStopPort();
@@ -90,6 +93,7 @@ public class JettyPlugin implements Plugin {
 
     private void configureJettyRun(final Project project, final JettyPluginConvention jettyConvention) {
         JettyRun jettyRun = (JettyRun) project.createTask(GUtil.map("type", JettyRun.class), JETTY_RUN);
+        jettyRun.setDescription("Uses your files as and where they are and deploys them to Jetty.");
         jettyRun.dependsOn(JavaPlugin.TEST_COMPILE);
 
         configureAbstractJettyTask(project, jettyConvention, jettyRun);

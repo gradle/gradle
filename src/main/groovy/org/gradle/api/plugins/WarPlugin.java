@@ -56,15 +56,18 @@ public class WarPlugin implements Plugin {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
         project.task(project.getArchivesTaskBaseName() + "_jar").setEnabled(false);
         War war = ((Bundle) project.task("libs")).war();
+        war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         project.getConfigurations().get(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());
         configureEclipse(project, war);
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        Configuration provideCompileConfiguration = configurationContainer.add(PROVIDED_COMPILE).setVisible(false);
+        Configuration provideCompileConfiguration = configurationContainer.add(PROVIDED_COMPILE).setVisible(false).
+                setDescription("Additional compile classpath for libraries that should not be part of the war archive.");
         Configuration provideRuntimeConfiguration = configurationContainer.add(PROVIDED_RUNTIME).setVisible(false).
-                extendsFrom(provideCompileConfiguration);
+                extendsFrom(provideCompileConfiguration).
+                setDescription("Additional runtime classpath for libraries that should not be part of the war archive.");
         configurationContainer.get(JavaPlugin.COMPILE).extendsFrom(provideCompileConfiguration);
         configurationContainer.get(JavaPlugin.RUNTIME).extendsFrom(provideRuntimeConfiguration);
     }
