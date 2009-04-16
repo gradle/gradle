@@ -1,3 +1,5 @@
+import org.gradle.api.Rule
+
 defaultTasks 'dists'
 
 createTask('clean', description: "Deletes the build directory ($buildDirName)")
@@ -15,4 +17,14 @@ subprojects {
         compile "commons-io:commons-io:1.2"
     }
     createTask('libs')
+    addRule(new TestRule())
+}
+
+class TestRule implements Rule {
+    public String getDescription() {
+        'build<ConfigurationName>: builds the artifacts of the given configuration'
+    }
+
+    public void apply(String taskName) {
+    }
 }

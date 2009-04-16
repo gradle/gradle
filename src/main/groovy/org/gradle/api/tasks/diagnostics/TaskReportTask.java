@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Rule;
 
 import java.io.IOException;
 import java.util.Set;
@@ -46,6 +47,9 @@ public class TaskReportTask extends AbstractReportTask {
         Set<Task> tasks = new TreeSet<Task>(project.getTasks().values());
         for (Task task : tasks) {
             renderer.addTask(task);
+        }
+        for (Rule rule : project.getRules()) {
+            renderer.addRule(rule);
         }
     }
 }

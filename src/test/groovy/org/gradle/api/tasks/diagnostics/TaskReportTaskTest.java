@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Task;
+import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -67,6 +68,9 @@ public class TaskReportTaskTest {
             one(project).getTasks();
             will(returnValue(GUtil.map("task2", task2, "task1", task1)));
 
+            allowing(project).getRules();
+            will(returnValue(WrapUtil.toList()));
+
             allowing(task2).compareTo(task1);
             will(returnValue(1));
             
@@ -79,6 +83,37 @@ public class TaskReportTaskTest {
             inSequence(sequence);
 
             one(renderer).addTask(task2);
+            inSequence(sequence);
+        }});
+
+        task.generate(project);
+    }
+
+    @Test
+    public void passesEachRuleToRenderer() throws IOException {
+        context.checking(new Expectations() {{
+            Rule rule1 = context.mock(Rule.class, "rule1");
+            Rule rule2 = context.mock(Rule.class, "rule2");
+
+            List<String> defaultTasks = WrapUtil.toList();
+            allowing(project).getDefaultTasks();
+            will(returnValue(defaultTasks));
+
+            one(project).getTasks();
+            will(returnValue(GUtil.map()));
+
+            one(project).getRules();
+            will(returnValue(WrapUtil.toList(rule1, rule2)));
+
+            Sequence sequence = context.sequence("seq");
+
+            one(renderer).addDefaultTasks(defaultTasks);
+            inSequence(sequence);
+
+            one(renderer).addRule(rule1);
+            inSequence(sequence);
+
+            one(renderer).addRule(rule2);
             inSequence(sequence);
         }});
 
