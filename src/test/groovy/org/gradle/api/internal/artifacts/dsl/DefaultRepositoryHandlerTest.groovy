@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.junit.Test
-import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.plugins.DefaultConvention
 import static org.junit.Assert.*
 import org.gradle.api.InvalidUserDataException
@@ -62,6 +61,14 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         assertEquals([expectedResolver], repositoryHandler.resolverList)
     }
 
+    @Test public void testFlatDirWithNameAndWithDirsAsWhiteSpaceSeparatedString() {
+        String resolverName = 'libs'
+        prepareFlatDirResolverCreation(resolverName, ['a' as File, 'b' as File, 'c' as File] as File[])
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert repositoryHandler.flatDir([name: resolverName] + [dirs: 'a    b      c']).is(expectedResolver)
+        assertEquals([expectedResolver], repositoryHandler.resolverList)
+    }
+
     @Test (expected = InvalidUserDataException)
     public void testFlatDirWithMissingDirs() {
         repositoryHandler.flatDir([name: 'someName'])
@@ -76,21 +83,33 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
     }
 
     @Test
-    public void testMavenCentral() {
+    public void testMavenCentralWithSingleUrl() {
         String testUrl2 = 'http://www.gradle2.org'
         prepareCreateMavenRepo(repositoryHandler.DEFAULT_MAVEN_CENTRAL_REPO_NAME, repositoryHandler.MAVEN_CENTRAL_URL, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.mavenCentral(urls: [testUrl2]).is(expectedResolver)
+        assert repositoryHandler.mavenCentral(urls: testUrl2).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolverList)
     }
 
     @Test
-    public void testMavenCentralWithName() {
+    public void testMavenCentralWithNameAndUrls() {
+        String testUrl1 = 'http://www.gradle1.org'
         String testUrl2 = 'http://www.gradle2.org'
         String name = 'customName'
-        prepareCreateMavenRepo(name, repositoryHandler.MAVEN_CENTRAL_URL, testUrl2)
+        prepareCreateMavenRepo(name, repositoryHandler.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.mavenCentral(name: name, urls: [testUrl2]).is(expectedResolver)
+        assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(expectedResolver)
+        assertEquals([expectedResolver], repositoryHandler.resolverList)
+    }
+
+    @Test
+    public void testMavenCentralWithNameAndUrlsAsWhiteSpaceSeparatedString() {
+        String testUrl1 = 'http://www.gradle1.org'
+        String testUrl2 = 'http://www.gradle2.org'
+        String name = 'customName'
+        prepareCreateMavenRepo(name, repositoryHandler.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert repositoryHandler.mavenCentral(name: name, urls: "$testUrl1 $testUrl2").is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolverList)
     }
 
@@ -107,6 +126,17 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
+        assertEquals([expectedResolver], repositoryHandler.resolverList)
+    }
+
+    @Test
+    public void testMavenRepoWithNameAndUrlsAsWhiteSpaceSeparatedString() {
+        String testUrl2 = 'http://www.gradle2.org'
+        String repoRoot = 'http://www.reporoot.org'
+        String repoName = 'mavenRepoName'
+        prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert repositoryHandler.mavenRepo([name: repoName, urls: "$repoRoot    $testUrl2"]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolverList)
     }
 

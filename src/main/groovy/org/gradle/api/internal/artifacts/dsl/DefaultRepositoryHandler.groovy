@@ -69,7 +69,7 @@ class DefaultRepositoryHandler extends DefaultResolverContainer implements Repos
         if (dirs instanceof Iterable) {
             iterable = (Iterable<Object>) dirs;
         } else {
-            iterable = WrapUtil.toSet(dirs);
+            iterable = dirs.toString().split() as List;
         }
         List list = new ArrayList();
         for (Object o : iterable) {
