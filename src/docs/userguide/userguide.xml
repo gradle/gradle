@@ -25,6 +25,7 @@
     <xi:include href='overview.xml'/>
     <xi:include href='gettingStarted.xml'/>
     <xi:include href='buildscripts.xml'/>
+    <xi:include href='artifactDependenciesTutorial.xml'/>
     <xi:include href='javaTutorial.xml'/>
     <xi:include href='groovyTutorial.xml'/>
     <xi:include href='commandLineTutorial.xml'/>

@@ -1,0 +1,10 @@
+// START SNIPPET define-configuration
+configurations {
+    compile
+}
+// END SNIPPET define-configuration
+
+// START SNIPPET lookup-configuration
+println configurations.compile.name
+println configurations.compile['name']
+// END SNIPPET lookup-configuration

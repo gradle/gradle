@@ -27,6 +27,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
+import java.util.Iterator;
+
 public class DefaultDomainObjectContainerTest {
     private final DefaultDomainObjectContainer<Bean> container = new DefaultDomainObjectContainer<Bean>();
 
@@ -46,6 +48,29 @@ public class DefaultDomainObjectContainerTest {
         container.add("c", bean3);
 
         assertThat(container.getAll(), equalTo(toLinkedSet(bean1, bean2, bean3)));
+    }
+
+    @Test
+    public void canIterateOverEmptyContainer() {
+        Iterator<Bean> iterator = container.iterator();
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    public void canIterateOverDomainObjectsOrderedByName() {
+        Bean bean1 = new Bean();
+        Bean bean2 = new Bean();
+        Bean bean3 = new Bean();
+
+        container.add("b", bean2);
+        container.add("a", bean1);
+        container.add("c", bean3);
+
+        Iterator<Bean> iterator = container.iterator();
+        assertThat(iterator.next(), sameInstance(bean1));
+        assertThat(iterator.next(), sameInstance(bean2));
+        assertThat(iterator.next(), sameInstance(bean3));
+        assertFalse(iterator.hasNext());
     }
 
     @Test
@@ -104,6 +129,7 @@ public class DefaultDomainObjectContainerTest {
         container.add("a", bean);
 
         assertThat(container.get("a"), sameInstance(bean));
+        assertThat(container.getAt("a"), sameInstance(bean));
     }
 
     @Test

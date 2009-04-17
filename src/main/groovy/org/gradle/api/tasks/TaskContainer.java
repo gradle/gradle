@@ -16,19 +16,18 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.Rule;
 import org.gradle.api.specs.Spec;
 
-import java.util.Set;
 import java.util.Map;
-import java.util.List;
+import java.util.Set;
 
 /**
  * <p>A {@code TaskContainer} is responsible for managing a set of {@link Task} instances.</p>
  */
-public interface TaskContainer {
+public interface TaskContainer extends Iterable<Task> {
     /**
      * Returns the tasks in this container.
      *
@@ -71,13 +70,32 @@ public interface TaskContainer {
     Task get(String name, Closure configureClosure) throws UnknownTaskException;
 
     /**
-     * Locates a task by name, failing if there is no such task.
+     * Locates a task by name, failing if there is no such task. You can call this method in your build script by using
+     * the {@code .} operator:
+     *
+     * <pre>
+     * tasks.someTask.dependsOn 'another-task'
+     * </pre>
      *
      * @param name The task name
      * @return The task with the given name. Never returns null.
      * @throws UnknownTaskException when there is no such task in this container.
      */
     Task get(String name) throws UnknownTaskException;
+
+    /**
+     * Locates a task by name, failing if there is no such task. This method is identical to {@link #get(String)}. You
+     * can call this method in your build script by using the groovy {@code []} operator:
+     *
+     * <pre>
+     * tasks['some-task'].dependsOn 'another-task'
+     * </pre>
+     *
+     * @param name The task name
+     * @return The tasl with the given name. Never returns null.
+     * @throws UnknownTaskException when there is no such task in this container.
+     */
+    Task getAt(String name) throws UnknownTaskException;
 
     /**
      * Adds a rule to this container. The given rule is invoked when an unknown task is requested.

@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.List;
 
-public interface DomainObjectContainer<T> {
+public interface DomainObjectContainer<T> extends Iterable<T> {
     Set<T> getAll();
 
     Set<T> get(Spec<? super T> spec);
@@ -36,6 +36,8 @@ public interface DomainObjectContainer<T> {
     T get(String name) throws UnknownDomainObjectException;
 
     T get(String name, Closure configureClosure) throws UnknownDomainObjectException;
+
+    T getAt(String name) throws UnknownDomainObjectException;
 
     Rule addRule(Rule rule);
 

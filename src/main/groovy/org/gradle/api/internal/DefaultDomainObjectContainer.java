@@ -69,6 +69,14 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return Collections.unmodifiableMap(objects);
     }
 
+    public T getAt(String name) throws UnknownDomainObjectException {
+        return get(name);
+    }
+
+    public Iterator<T> iterator() {
+        return objects.values().iterator();
+    }
+
     public T find(String name) {
         if (!objects.containsKey(name)) {
             applyRules(name);

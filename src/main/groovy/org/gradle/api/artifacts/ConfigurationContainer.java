@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author Hans Dockter
  */
-public interface ConfigurationContainer {
+public interface ConfigurationContainer extends Iterable<Configuration> {
     /**
      * Returns the configurations in this container.
      *
@@ -39,7 +39,8 @@ public interface ConfigurationContainer {
     Set<Configuration> getAll();
 
     /**
-     * Returns the configurations in this container, as a map from configuration name to {@code Configuration} instance.
+     * Returns the configurations in this container, as a map from configuration name to {@code Configuration}
+     * instance.
      *
      * @return The configurations. Returns an empty map if this container is empty.
      */
@@ -62,13 +63,32 @@ public interface ConfigurationContainer {
     Configuration find(String name);
 
     /**
-     * Locates a configuration by name, failing if there is no such configuration.
+     * Locates a configuration by name, failing if there is no such configuration. You can call this method in your
+     * build script by using the {@code .} operator:
+     *
+     * <pre>
+     * println configurations.someConfig.asPath
+     * </pre>
      *
      * @param name The configuration name
      * @return The configuration with the given name. Never returns null.
      * @throws UnknownConfigurationException when there is no such configuration in this container.
      */
     Configuration get(String name) throws UnknownConfigurationException;
+
+    /**
+     * Locates a configuration by name, failing if there is no such configuration. This method is identical to {@link
+     * #get(String)}. You can call this method in your build script by using the groovy {@code []} operator:
+     *
+     * <pre>
+     * println configurations['some-config'].asPath
+     * </pre>
+     *
+     * @param name The configuration name
+     * @return The configuration with the given name. Never returns null.
+     * @throws UnknownConfigurationException when there is no such configuration in this container.
+     */
+    Configuration getAt(String name) throws UnknownConfigurationException;
 
     /**
      * Locates a configuration by name, failing if there is no such configuration. The given configuration closure is

@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="artifact_dependencies_tutorial">
+    <title>Artifact Basics</title>
+
+    <note>
+        <para>This chapter is a work in progress</para>
+    </note>
+
+    <para>This chapter introduces some of the basics of artifact handling in Gradle.</para>
+
+    <section>
+        <title>Artifact Configurations</title>
+        <para>Artifacts are grouped into <firstterm>configurations</firstterm>. A configuration is simply a set of files
+            with a name. You can use them to declare the external dependencies your project has, or to declare the
+            artifacts which your project publishes.</para>
+        <para>To define a configuration:</para>
+        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
+            <sourcefile file="build.gradle" snippet="define-configuration"/>
+        </sample>
+        <para>To access a configuration:</para>
+        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
+            <sourcefile file="build.gradle" snippet="lookup-configuration"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>External Dependencies</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Artifact Publishing</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>API</title>
+        <para>Configurations are contained in a <apilink class="org.gradle.api.artifacts.ConfigurationContainer"/>.
+            Each configuration implements the <apilink class="org.gradle.api.artifacts.Configuration"/>.</para>
+    </section>
+</chapter>
