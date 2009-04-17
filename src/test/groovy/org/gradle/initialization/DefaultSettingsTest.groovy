@@ -49,6 +49,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 
 /**
  * @author Hans Dockter
@@ -69,7 +71,7 @@ class DefaultSettingsTest {
     Configuration configurationStub = context.mock(Configuration.class);
     InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
-    ResolverContainer resolverContainerMock = context.mock(ResolverContainer.class);
+    RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class);
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
@@ -86,7 +88,7 @@ class DefaultSettingsTest {
             one(configurationContainerStub).add("build")
             will(returnValue(configurationStub))
         }
-        settings = new DefaultSettings(dependencyFactoryStub, resolverContainerMock,
+        settings = new DefaultSettings(dependencyFactoryStub, repositoryHandlerMock,
                 configurationContainerFactoryStub, internalRepositoryDummy,
                 projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
     }
@@ -220,20 +222,20 @@ class DefaultSettingsTest {
     }
 
     @Test public void testMavenCentralWithArgs() {
-        settings.setResolverContainer(resolverContainerMock)
+        settings.setRepositoryHandler(repositoryHandlerMock)
         DualResolver expectedResolver = new DualResolver()
         context.checking {
-            one(resolverContainerMock).mavenCentral(); will(returnValue(expectedResolver))
+            one(repositoryHandlerMock).mavenCentral(); will(returnValue(expectedResolver))
         }
         assert settings.mavenCentral().is(expectedResolver)
     }
 
     @Test public void testMavenCentral() {
-        settings.setResolverContainer(resolverContainerMock)
+        settings.setRepositoryHandler(repositoryHandlerMock)
         DualResolver expectedResolver = new DualResolver()
         Map args = createTestRepoArgs()
         context.checking {
-            one(resolverContainerMock).mavenCentral(args); will(returnValue(expectedResolver))
+            one(repositoryHandlerMock).mavenCentral(args); will(returnValue(expectedResolver))
         }
         assert settings.mavenCentral(args).is(expectedResolver)
     }
@@ -246,7 +248,7 @@ class DefaultSettingsTest {
         DualResolver expectedResolver = new DualResolver()
         Map args = createTestRepoArgs()
         context.checking {
-            one(resolverContainerMock).mavenRepo(args);
+            one(repositoryHandlerMock).mavenRepo(args);
             will(returnValue(expectedResolver))
         }
         assert settings.mavenRepo(args).is(expectedResolver)
@@ -256,7 +258,7 @@ class DefaultSettingsTest {
         DualResolver expectedResolver = new DualResolver()
         Map args = createTestRepoArgs()
         context.checking {
-            one(resolverContainerMock).mavenRepo(args);
+            one(repositoryHandlerMock).mavenRepo(args);
             will(returnValue(expectedResolver))
         }
         assert settings.mavenRepo(args).is(expectedResolver)
@@ -266,7 +268,7 @@ class DefaultSettingsTest {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         Map args = createTestRepoArgs()
         context.checking {
-            one(resolverContainerMock).flatDir(args);
+            one(repositoryHandlerMock).flatDir(args);
             will(returnValue(expectedResolver))
         }
         assert settings.flatDir(args).is(expectedResolver)
@@ -276,14 +278,14 @@ class DefaultSettingsTest {
         FileSystemResolver expectedResolver = new FileSystemResolver()
         Map args = createTestRepoArgs()
         context.checking {
-            one(resolverContainerMock).flatDir(args);
+            one(repositoryHandlerMock).flatDir(args);
             will(returnValue(expectedResolver))
         }
         assert settings.flatDir(args).is(expectedResolver)
     }
 
     @Test public void testResolver() {
-        settings.setResolverContainer(new DefaultResolverContainer(new DefaultResolverFactory(), null))
+        settings.setRepositoryHandler(new DefaultRepositoryHandler(new DefaultResolverFactory(), null))
         DependencyResolver resolver = settings.mavenCentral();
         assertEquals([resolver], settings.resolvers)
     }

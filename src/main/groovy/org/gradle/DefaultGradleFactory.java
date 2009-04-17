@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFacto
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
@@ -84,18 +85,18 @@ public class DefaultGradleFactory implements GradleFactory {
                                         scriptProcessor,
                                         importsReader,
                                         new SettingsFactory(
-                                        new DefaultProjectDescriptorRegistry(),
-                                        dependencyFactory,
-                                        new DefaultResolverContainer(resolverFactory, null),
-                                        configurationContainerFactory,
-                                        internalRepository,
-                                        new BuildSourceBuilder(new DefaultGradleFactory(
-                                                new LoggingConfigurer() {
-                                                    public void configure(LogLevel logLevel) {
-                                                        // do nothing
-                                                    }
-                                                }
-                                        ), new DefaultCacheInvalidationStrategy())))
+                                                new DefaultProjectDescriptorRegistry(),
+                                                dependencyFactory,
+                                                new DefaultRepositoryHandler(resolverFactory, null),
+                                                configurationContainerFactory,
+                                                internalRepository,
+                                                new BuildSourceBuilder(new DefaultGradleFactory(
+                                                        new LoggingConfigurer() {
+                                                            public void configure(LogLevel logLevel) {
+                                                                // do nothing
+                                                            }
+                                                        }
+                                                ), new DefaultCacheInvalidationStrategy())))
                 )),
                 new BuildLoader(
                         new ProjectFactory(

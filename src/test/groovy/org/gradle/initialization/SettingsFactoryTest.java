@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -55,7 +56,7 @@ public class SettingsFactoryTest {
         final Configuration configuration = context.mock(Configuration.class);
         final InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
         final File expectedSettingsDir = new File("settingsDir");
-        final ResolverContainer resolverContainerMock = context.mock(ResolverContainer.class);
+        final RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class);
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         context.checking(new Expectations() {{
@@ -70,7 +71,7 @@ public class SettingsFactoryTest {
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
         SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, dependencyFactory,
-                resolverContainerMock,
+                repositoryHandlerMock,
                 configurationContainerFactory, internalRepositoryDummy, expectedBuildSourceBuilder);
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,

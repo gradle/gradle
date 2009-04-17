@@ -23,8 +23,8 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.DynamicObjectHelper;
@@ -76,7 +76,7 @@ public class BaseSettings implements SettingsInternal {
 
     private DependencyFactory dependencyFactory;
 
-    private ResolverContainer resolverContainer;
+    private RepositoryHandler repositoryHandler;
 
     private InternalRepository internalRepository;
 
@@ -86,14 +86,14 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public BaseSettings(DependencyFactory dependencyFactory,
-                        ResolverContainer resolverContainer,
+                        RepositoryHandler repositoryHandler,
                         ConfigurationContainerFactory configurationContainerFactory,
                         InternalRepository internalRepository,
                         IProjectDescriptorRegistry projectDescriptorRegistry,
                         BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
         this.dependencyFactory = dependencyFactory;
-        this.resolverContainer = resolverContainer;
+        this.repositoryHandler = repositoryHandler;
         this.internalRepository = internalRepository;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
@@ -130,7 +130,7 @@ public class BaseSettings implements SettingsInternal {
         };
         ResolverProvider resolverProvider = new ResolverProvider() {
             public List<DependencyResolver> getResolvers() {
-                return resolverContainer.getResolverList();
+                return repositoryHandler.getResolverList();
             }
         };
         return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider).add(BUILD_CONFIGURATION);
@@ -224,23 +224,23 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public FileSystemResolver flatDir(Map args) {
-        return resolverContainer.flatDir(args);
+        return repositoryHandler.flatDir(args);
     }
 
     public DependencyResolver mavenCentral(Map args) {
-        return resolverContainer.mavenCentral(args);
+        return repositoryHandler.mavenCentral(args);
     }
 
     public DependencyResolver mavenCentral() {
-        return resolverContainer.mavenCentral();
+        return repositoryHandler.mavenCentral();
     }
 
     public DependencyResolver mavenRepo(Map args) {
-        return resolverContainer.mavenRepo(args);
+        return repositoryHandler.mavenRepo(args);
     }
 
     public List<DependencyResolver> getResolvers() {
-        return resolverContainer.getResolverList();
+        return repositoryHandler.getResolverList();
     }
 
     // todo We don't have command query separation here. This si a temporary thing. If our new classloader handling works out, which
@@ -332,12 +332,12 @@ public class BaseSettings implements SettingsInternal {
         return buildConfiguration;
     }
 
-    public ResolverContainer getResolverContainer() {
-        return resolverContainer;
+    public RepositoryHandler getRepositoryHandler() {
+        return repositoryHandler;
     }
 
-    public void setResolverContainer(ResolverContainer resolverContainer) {
-        this.resolverContainer = resolverContainer;
+    public void setRepositoryHandler(RepositoryHandler repositoryHandler) {
+        this.repositoryHandler = repositoryHandler;
     }
 
     public DependencyFactory getDependencyFactory() {

@@ -25,6 +25,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.BaseSettings
 import org.gradle.initialization.BuildSourceBuilder
 import org.gradle.initialization.IProjectDescriptorRegistry
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 /**
  * @author Hans Dockter
@@ -33,12 +34,12 @@ public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
     DefaultSettings(DependencyFactory dependencyFactory,
-                    ResolverContainer resolverContainer,
+                    RepositoryHandler repositoryHandler,
                     ConfigurationContainerFactory configurationContainerFactory,
                     InternalRepository internalRepository,
                     IProjectDescriptorRegistry projectDescriptorRegistry,
                     BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
-        super(dependencyFactory, resolverContainer, configurationContainerFactory, internalRepository, projectDescriptorRegistry,
+        super(dependencyFactory, repositoryHandler, configurationContainerFactory, internalRepository, projectDescriptorRegistry,
                 buildSourceBuilder, settingsDir, settingsScript, startParameter)
     }
 

@@ -42,9 +42,8 @@ import static org.junit.Assert.assertSame
  * @author Hans Dockter
  */
 class DefaultResolverContainerTest {
-
-  static final String TEST_REPO_NAME = 'reponame'
-    static final String TEST_REPO_URL = 'http://www.gradle.org'
+    static final String TEST_REPO_NAME = 'reponame'
+    
     DefaultResolverContainer resolverContainer
 
     RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
@@ -62,6 +61,10 @@ class DefaultResolverContainerTest {
     ResolverFactory resolverFactoryMock;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
+    ResolverContainer createResolverContainer() {
+        return new DefaultResolverContainer(resolverFactoryMock, new DefaultConvention())
+    }
 
     @Before public void setUp() {
         expectedUserDescription = 'somedescription'
@@ -82,7 +85,7 @@ class DefaultResolverContainerTest {
             allowing(resolverFactoryMock).createResolver(expectedUserDescription2); will(returnValue(expectedResolver2))
             allowing(resolverFactoryMock).createResolver(expectedUserDescription3); will(returnValue(expectedResolver3))
         }
-        resolverContainer = new DefaultResolverContainer(resolverFactoryMock, new DefaultConvention())
+        resolverContainer = createResolverContainer()
     }
 
     @Test public void testAddResolver() {
@@ -149,141 +152,10 @@ class DefaultResolverContainerTest {
         resolverContainer.add(expectedUserDescription).is(expectedResolver)
     }
 
-    @Test public void testCreateFlatDirResolver() {
-        prepareFlatDirResolverCreation('libs', createFlatDirTestDirs())
-        assert resolverContainer.createFlatDirResolver("libs", createFlatDirTestDirsArgs() as Object[]).is(expectedResolver)
-    }
-
-    private def prepareFlatDirResolverCreation(String expectedName, File[] expectedDirs) {
-        context.checking {
-          one(resolverFactoryMock).createFlatDirResolver(expectedName, expectedDirs); will(returnValue(expectedResolver))
-        }
-    }
-  
-    private List createFlatDirTestDirsArgs() {
-        return ['a', 'b' as File]
-    }
-
-    private File[] createFlatDirTestDirs() {
-        return ['a' as File, 'b' as File] as File[]
-    }
-
-    private def prepareResolverFactoryToTakeAndReturnExpectedResolver() {
-      context.checking {
-        one(resolverFactoryMock).createResolver(expectedResolver); will(returnValue(expectedResolver))
-      }
-    }
-
-    @Test public void testFlatDirWithNameAndDirs() {
-        String resolverName = 'libs'
-        prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir([name: resolverName] + [dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test public void testFlatDirWithNameAndSingleDir() {
-        String resolverName = 'libs'
-        prepareFlatDirResolverCreation(resolverName, ['a' as File] as File[])
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir([name: resolverName] + [dirs: 'a']).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test public void testFlatDirWithoutNameAndWithDirs() {
-        Object[] expectedDirs = createFlatDirTestDirs()
-        String expectedName = HashUtil.createHash(expectedDirs.join(''))
-        prepareFlatDirResolverCreation(expectedName, expectedDirs)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir([dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test(expected = InvalidUserDataException)
-    public void testFlatDirWithMissingDirs() {
-        resolverContainer.flatDir([name: 'someName'])
-    }
-
-    @Test
-    public void testCreateMavenRepo() {
-        String testUrl2 = 'http://www.gradle2.org'
-        prepareCreateMavenRepo(TEST_REPO_NAME, TEST_REPO_URL, testUrl2)
-        assert resolverContainer.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL, [testUrl2] as String[]).is(expectedResolver)
-    }
-
-    @Test
-    public void testMavenCentralWithNoArgs() {
-        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenCentral().is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test
-    public void testMavenCentral() {
-        String testUrl2 = 'http://www.gradle2.org'
-        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2) 
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenCentral(urls: [testUrl2]).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test
-    public void testMavenCentralWithName() {
-        String testUrl2 = 'http://www.gradle2.org'
-        String name = 'customName'
-        prepareCreateMavenRepo(name, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenCentral(name: name, urls: [testUrl2]).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test(expected = InvalidUserDataException)
-    public void testMavenRepoWithMissingUrls() {
-        resolverContainer.mavenRepo([name: 'someName'])
-    }
-
-    @Test
-    public void testMavenRepoWithNameAndUrls() {
-        String testUrl2 = 'http://www.gradle2.org'
-        String repoRoot = 'http://www.reporoot.org'
-        String repoName = 'mavenRepoName'
-        prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test
-    public void testMavenRepoWithNameAndRootUrlOnly() {
-        String repoRoot = 'http://www.reporoot.org'
-        String repoName = 'mavenRepoName'
-        prepareCreateMavenRepo(repoName, repoRoot)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenRepo([name: repoName, urls: repoRoot]).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    @Test
-    public void testMavenRepoWithoutName() {
-        String testUrl2 = 'http://www.gradle2.org'
-        String repoRoot = 'http://www.reporoot.org'
-        prepareCreateMavenRepo(repoRoot, repoRoot, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenRepo([urls: [repoRoot, testUrl2]]).is(expectedResolver)
-        assertEquals([expectedResolver], resolverContainer.resolverList)
-    }
-
-    private prepareCreateMavenRepo(String name, String mavenUrl, String[] jarUrls) {
-        context.checking {
-            one(resolverFactoryMock).createMavenRepoResolver(name, mavenUrl, jarUrls);
-            will(returnValue(expectedResolver))
-        }
-    }
-
     @Test
     public void createMavenUploader() {
-        assertSame(prepareMavenDeployerTests(), resolverContainer.createMavenDeployer(TEST_REPO_NAME));
+        // todo we have to specify the class name, as this class is extended. This is a Groovy bug. As soon as we switch to a new Groovy version, we can refactor this. 
+        assertSame(prepareMavenDeployerTests(), resolverContainer.createMavenDeployer(DefaultResolverContainerTest.TEST_REPO_NAME));
     }
 
     @Test
@@ -293,13 +165,13 @@ class DefaultResolverContainerTest {
             one(resolverFactoryMock).createResolver(expectedResolver);
             will(returnValue(expectedResolver))
         }
-        assertSame(expectedResolver, resolverContainer.addMavenDeployer(TEST_REPO_NAME));
-        assert resolverContainer.resolver(TEST_REPO_NAME).is(expectedResolver)
+        assertSame(expectedResolver, resolverContainer.addMavenDeployer(DefaultResolverContainerTest.TEST_REPO_NAME));
+        assert resolverContainer.resolver(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
     }
 
     @Test
     public void createMavenInstaller() {
-        assertSame(prepareMavenInstallerTests(), resolverContainer.createMavenInstaller(TEST_REPO_NAME));
+        assertSame(prepareMavenInstallerTests(), resolverContainer.createMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
     }
 
     @Test
@@ -309,8 +181,8 @@ class DefaultResolverContainerTest {
             one(resolverFactoryMock).createResolver(expectedResolver);
             will(returnValue(expectedResolver))
         }
-        assertSame(expectedResolver, resolverContainer.addMavenInstaller(TEST_REPO_NAME));
-        assert resolverContainer.resolver(TEST_REPO_NAME).is(expectedResolver)
+        assertSame(expectedResolver, resolverContainer.addMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
+        assert resolverContainer.resolver(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
     }
 
     private GroovyMavenDeployer prepareMavenDeployerTests() {
@@ -330,8 +202,8 @@ class DefaultResolverContainerTest {
         resolverContainer.setMavenScopeMappings(conf2ScopeMappingContainer)
         DependencyResolver expectedResolver = context.mock(resolverType)
         context.checking {
-            allowing(expectedResolver).getName(); will(returnValue(TEST_REPO_NAME))
-            one(resolverFactoryMock)."$createMethod"(TEST_REPO_NAME, testPomDir, configurationContainer, conf2ScopeMappingContainer);
+            allowing(expectedResolver).getName(); will(returnValue(DefaultResolverContainerTest.TEST_REPO_NAME))
+            one(resolverFactoryMock)."$createMethod"(DefaultResolverContainerTest.TEST_REPO_NAME, testPomDir, configurationContainer, conf2ScopeMappingContainer);
             will(returnValue(expectedResolver))
         }
         expectedResolver
