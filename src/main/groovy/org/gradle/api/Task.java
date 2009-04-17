@@ -36,7 +36,7 @@ import java.util.Set;
  *
  * <p>Each task has a name, which can be used to refer to the task within its owning project, and a fully qualified
  * path, which is unique across all tasks in all projects. The path is the concatenation of the owning project's path
- * and the task's name. Path elements are separated using the {@value Project#PATH_SEPARATOR} character.</p>
+ * and the task's name. Path elements are separated using the {@value org.gradle.api.Project#PATH_SEPARATOR} character.</p>
  *
  * <h3>Task Actions</h3>
  *

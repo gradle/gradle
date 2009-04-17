@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  */
 
 /**
- * <p><b>Start Here:</b> Gradle's {@link org.gradle.api.Project} API, which is available from your build files. The
- * API used from your build files is made up of 2 main interfaces:</p>
- *
- * <ul>
- * <li>{@link org.gradle.api.Project}</li>
- * <li>{@link org.gradle.api.Task}</li>
- * </ul>
+ * Classes used in the artifact DSL.
  */
-package org.gradle.api;
+package org.gradle.api.artifacts.dsl;

@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes for declaring and using artifact dependencies.
+ * Classes for declaring and using artifacts and artifact dependencies.
  */
 package org.gradle.api.artifacts;

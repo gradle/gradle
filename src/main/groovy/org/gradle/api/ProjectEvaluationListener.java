@@ -16,11 +16,12 @@
 package org.gradle.api;
 
 /**
- * <p>An {@code AfterEvaluateListener} is notified when a project is evaluated. You add can add an {@code
- * ProjectEvaluationListener] to a {@link Project} using {@link Project#addProjectEvaluationListener(ProjectEvaluationListener)}.</p>
+ * <p>An {@code ProjectEvaluationListener} is notified when a project is evaluated. You add can add an {@code
+ * ProjectEvaluationListener} to a {@link Project} using
+ * {@link Project#addProjectEvaluationListener(ProjectEvaluationListener)}.</p>
  *
  * @author Hans Dockter
- * @see org.gradle.api.Project#addAfterEvaluateListener(ProjectEvaluationListener)
+ * @see org.gradle.api.Project#addProjectEvaluationListener(ProjectEvaluationListener)
  */
 public interface ProjectEvaluationListener {
     /**
