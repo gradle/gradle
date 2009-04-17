@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.tasks.TaskContainer;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -818,6 +819,11 @@ public interface Project extends Comparable<Project> {
      */
     AntBuilder ant(Closure configureClosure);
 
+    /**
+     * Returns the configuration of this project.
+     *
+     * @return The configuration of this project.
+     */
     ConfigurationContainer getConfigurations();
 
     ArtifactHandler getArtifacts();
@@ -854,9 +860,9 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Returns the tasks of this project.</p>
      *
-     * @return A map from task name to {@link Task} object. Returns an empty map when this project has no tasks.
+     * @return the tasks of this project.
      */
-    Map<String, Task> getTasks();
+    TaskContainer getTasks();
 
     /**
      * <p>Returns the set of plugin types which have been applied to this project.</p>

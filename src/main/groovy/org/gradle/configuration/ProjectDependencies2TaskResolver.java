@@ -18,6 +18,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.Project;
 import org.gradle.api.ProjectAction;
+import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +33,12 @@ public class ProjectDependencies2TaskResolver {
             public void execute(Project project) {
                 for (Project dependsOnProject : project.getDependsOnProjects()) {
                     logger.debug("Checking task dependencies for project: {} dependsOn: {}", project, dependsOnProject);
-                    for (String taskName : project.getTasks().keySet()) {
-                        if (dependsOnProject.getTasks().get(taskName) != null) {
+                    for (Task task : project.getTasks()) {
+                        String taskName = task.getName();
+                        Task dependentTask = dependsOnProject.getTasks().find(taskName);
+                        if (dependentTask != null) {
                             logger.debug("Setting task dependencies for task: {}", taskName);
-                            project.getTasks().get(taskName).dependsOn(dependsOnProject.getTasks().get(taskName));
+                            task.dependsOn(dependentTask);
                         }
                     }
                 }

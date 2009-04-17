@@ -26,6 +26,8 @@ import java.util.Set;
 
 /**
  * <p>A {@code TaskContainer} is responsible for managing a set of {@link Task} instances.</p>
+ *
+ * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}.</p>
  */
 public interface TaskContainer extends Iterable<Task> {
     /**

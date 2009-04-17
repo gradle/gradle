@@ -3,7 +3,7 @@ createTask('taskX') {
 }
 
 taskX.dependsOn {
-    tasks.values().findAll { task -> task.name.startsWith('lib') }
+    tasks.findAll { task -> task.name.startsWith('lib') }
 }
 
 createTask('lib1') {

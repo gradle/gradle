@@ -511,7 +511,7 @@ class DefaultProjectTest {
 
     @Test public void testCreateTaskWithName() {
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME));
     }
@@ -519,7 +519,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndArgs() {
         Map testArgs = [a: 'b']
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME));
     }
@@ -527,7 +527,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndAction() {
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
         assertSame(testAction, testTask.getActions()[0])
@@ -536,7 +536,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndClosureAction() {
         Closure testAction = {}
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
         assertEquals(1, testTask.getActions().size())
@@ -546,7 +546,7 @@ class DefaultProjectTest {
         Map testArgs = [a: 'b']
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
         assertSame(testAction, testTask.getActions()[0])
@@ -555,7 +555,7 @@ class DefaultProjectTest {
     @Test void testNotifiesListenerWhenTaskAdded() {
         TaskLifecycleListener listener = context.mock(TaskLifecycleListener)
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
             one(listener).taskAdded(testTask)
         }
         project.addTaskLifecycleListener(listener)
@@ -565,7 +565,7 @@ class DefaultProjectTest {
     @Test void testNotifiesClosureWhenTaskAdded() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
             one(listener).call(testTask)
         }
 
@@ -577,7 +577,7 @@ class DefaultProjectTest {
         TaskLifecycleListener listener = context.mock(TaskLifecycleListener)
         TestTask task = new TestTask(project, 'name')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, [type: TestTask], TEST_TASK_NAME); will(returnValue(task))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [type: TestTask], TEST_TASK_NAME); will(returnValue(task))
             one(listener).taskAdded(task)
         }
         project.addTaskLifecycleListener(TestTask, listener)
@@ -587,7 +587,7 @@ class DefaultProjectTest {
     @Test void testDoesNotNotifyListenerWhenTaskOfOtherTypeAdded() {
         TaskLifecycleListener listener = context.mock(TaskLifecycleListener)
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
         }
         project.addTaskLifecycleListener(TestTask, listener)
         project.createTask(TEST_TASK_NAME)
@@ -768,7 +768,7 @@ class DefaultProjectTest {
     
     private Task addTestTask(Project project, String name) {
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), name); will(returnValue(new DefaultTask(project, name)))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], name); will(returnValue(new DefaultTask(project, name)))
         }
         project.createTask(name)
     }
@@ -951,9 +951,9 @@ def scriptMethod(Closure closure) {
         Task dirTask123 = new Directory(project, 'dir1/dir2/dir3')
         Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
-            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1/dir2'); will(returnValue(dirTask12))
-            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1/dir2/dir3'); will(returnValue(dirTask123))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1/dir2'); will(returnValue(dirTask12))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1/dir2/dir3'); will(returnValue(dirTask123))
         }
         assertSame(dirTask123, project.dir('dir1/dir2/dir3'));
     }
@@ -963,13 +963,13 @@ def scriptMethod(Closure closure) {
 
         Task dirTask1 = new Directory(project, 'dir1')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
         }
         project.dir('dir1')
 
         Task dirTask14 = new Directory(project, 'dir1/dir4')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1/dir4'); will(returnValue(dirTask14))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1/dir4'); will(returnValue(dirTask14))
         }
         project.dir('dir1/dir4');
     }
@@ -981,7 +981,7 @@ def scriptMethod(Closure closure) {
 
         Task dirTask14 = new Directory(project, 'dir1')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1'); will(returnValue(dirTask14))
+            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1'); will(returnValue(dirTask14))
         }
 
         project.dir('dir1/dir4')

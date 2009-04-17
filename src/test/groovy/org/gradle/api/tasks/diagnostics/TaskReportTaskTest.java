@@ -17,9 +17,11 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Task;
 import org.gradle.api.Rule;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -39,16 +41,20 @@ public class TaskReportTaskTest {
     private TaskReportRenderer renderer;
     private ProjectInternal project;
     private TaskReportTask task;
+    private TaskContainer taskContainer;
 
     @Before
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         renderer = context.mock(TaskReportRenderer.class);
         project = context.mock(ProjectInternal.class);
+        taskContainer = context.mock(TaskContainer.class);
 
         context.checking(new Expectations(){{
             allowing(project).absolutePath("list");
             will(returnValue(":path"));
+            allowing(project).getTasks();
+            will(returnValue(taskContainer));
         }});
 
         task = new TaskReportTask(project, "list");
@@ -61,19 +67,22 @@ public class TaskReportTaskTest {
             Task task1 = context.mock(Task.class, "task1");
             Task task2 = context.mock(Task.class, "task2");
 
-            List<String> testDefaultTasks = WrapUtil.toList("defaultTask1", "defaultTask2");
+            List<String> testDefaultTasks = toList("defaultTask1", "defaultTask2");
             allowing(project).getDefaultTasks();
             will(returnValue(testDefaultTasks));
 
-            one(project).getTasks();
-            will(returnValue(GUtil.map("task2", task2, "task1", task1)));
+            one(taskContainer).getAll();
+            will(returnValue(toLinkedSet(task2, task1)));
 
             allowing(project).getRules();
-            will(returnValue(WrapUtil.toList()));
+            will(returnValue(toList()));
 
             allowing(task2).compareTo(task1);
             will(returnValue(1));
-            
+
+            allowing(task1).compareTo(task2);
+            will(returnValue(-1));
+
             Sequence sequence = context.sequence("seq");
 
             one(renderer).addDefaultTasks(testDefaultTasks);
@@ -95,15 +104,15 @@ public class TaskReportTaskTest {
             Rule rule1 = context.mock(Rule.class, "rule1");
             Rule rule2 = context.mock(Rule.class, "rule2");
 
-            List<String> defaultTasks = WrapUtil.toList();
+            List<String> defaultTasks = toList();
             allowing(project).getDefaultTasks();
             will(returnValue(defaultTasks));
 
-            one(project).getTasks();
-            will(returnValue(GUtil.map()));
+            one(taskContainer).getAll();
+            will(returnValue(toSet()));
 
             one(project).getRules();
-            will(returnValue(WrapUtil.toList(rule1, rule2)));
+            will(returnValue(toList(rule1, rule2)));
 
             Sequence sequence = context.sequence("seq");
 

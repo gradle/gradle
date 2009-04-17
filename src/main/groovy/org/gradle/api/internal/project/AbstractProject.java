@@ -722,8 +722,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return project.task(StringUtils.substringAfterLast(path, PATH_SEPARATOR));
     }
 
-    public Map<String, Task> getTasks() {
-        return taskContainer.getAsMap();
+    public TaskContainer getTasks() {
+        return taskContainer;
     }
 
     public Task task(String path) {
@@ -760,7 +760,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(Map args, String name, TaskAction action) {
-        Task task = taskFactory.createTask(this, getTasks(), args, name);
+        Task task = taskFactory.createTask(this, taskContainer.getAsMap(), args, name);
         taskContainer.add(name, task);
         if (action != null) {
             task.doFirst(action);
@@ -841,7 +841,7 @@ public abstract class AbstractProject implements ProjectInternal {
         final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
         ProjectAction action = new ProjectAction() {
             public void execute(Project project) {
-                foundTargets.put(project, new TreeSet<Task>(project.getTasks().values()));
+                foundTargets.put(project, new TreeSet<Task>(project.getTasks().getAll()));
             }
         };
         if (recursive) {
@@ -859,8 +859,9 @@ public abstract class AbstractProject implements ProjectInternal {
         final Set<Task> foundTasks = new HashSet<Task>();
         ProjectAction action = new ProjectAction() {
             public void execute(Project project) {
-                if (project.findTask(name) != null) {
-                    foundTasks.add(project.getTasks().get(name));
+                Task task = project.findTask(name);
+                if (task != null) {
+                    foundTasks.add(task);
                 }
             }
         };
@@ -925,10 +926,6 @@ public abstract class AbstractProject implements ProjectInternal {
             }
         }
         return task(path);
-    }
-
-    public TaskContainer getTaskContainer() {
-        return taskContainer;
     }
 
     public void setTaskContainer(DefaultTaskContainer taskContainer) {

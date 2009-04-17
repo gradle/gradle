@@ -28,6 +28,8 @@ import java.util.Map;
 /**
  * <p>A {@code ConfigurationContainer} is responsible for managing a set of {@link Configuration} instances.</p>
  *
+ * <p>You can obtain a {@code ConfigurationContainer} instance by calling {@link org.gradle.api.Project#getConfigurations()}.</p>
+ *
  * @author Hans Dockter
  */
 public interface ConfigurationContainer extends Iterable<Configuration> {
