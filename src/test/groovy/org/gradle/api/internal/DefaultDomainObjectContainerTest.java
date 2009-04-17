@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.specs.Spec;
+import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
+import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
-import static org.gradle.util.WrapUtil.*;
-import org.gradle.util.HelperUtil;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
-import groovy.lang.Closure;
 
 public class DefaultDomainObjectContainerTest {
     private final DefaultDomainObjectContainer<Bean> container = new DefaultDomainObjectContainer<Bean>();
@@ -115,11 +117,28 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
+    public void getDomainObjectInvokesRuleForUnknownDomainObject() {
+        Bean bean = new Bean();
+        addRule(bean);
+
+        assertThat(container.get("bean"), sameInstance(bean));
+    }
+
+    @Test
     public void canConfigureDomainObjectByName() {
         Bean bean = new Bean();
         container.add("a", bean);
 
-        container.get("a", HelperUtil.toClosure("{ beanProperty = 'hi' }"));
+        assertThat(container.get("a", HelperUtil.toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
+        assertThat(bean.getBeanProperty(), equalTo("hi"));
+    }
+
+    @Test
+    public void configureDomainObjectInvokesRuleForUnknownDomainObject() {
+        Bean bean = new Bean();
+        addRule(bean);
+
+        assertThat(container.get("bean", HelperUtil.toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
         assertThat(bean.getBeanProperty(), equalTo("hi"));
     }
 
@@ -137,12 +156,41 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
+    public void findDomainObjectByNameInvokesRulesForUnknownDomainObject() {
+        Bean bean = new Bean();
+        addRule(bean);
+
+        assertThat(container.find("bean"), sameInstance(bean));
+    }
+
+    @Test
     public void eachObjectIsAvailableAsDynamicProperty() {
         Bean bean = new Bean();
         container.add("child", bean);
         assertTrue(container.getAsDynamicObject().hasProperty("child"));
         assertThat(container.getAsDynamicObject().getProperty("child"), sameInstance((Object) bean));
         assertThat(container.getAsDynamicObject().getProperties().get("child"), sameInstance((Object) bean));
+    }
+
+    @Test
+    public void cannotGetUnknownProperty() {
+        assertFalse(container.getAsDynamicObject().hasProperty("unknown"));
+
+        try {
+            container.getAsDynamicObject().getProperty("unknown");
+            fail();
+        } catch (MissingPropertyException e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void dynamicPropertyAccessInvokesRulesForUnknownDomainObject() {
+        Bean bean = new Bean();
+        addRule(bean);
+
+        assertTrue(container.getAsDynamicObject().hasProperty("bean"));
+        assertThat(container.getAsDynamicObject().getProperty("bean"), sameInstance((Object) bean));
     }
 
     @Test
@@ -163,6 +211,26 @@ public class DefaultDomainObjectContainerTest {
         assertFalse(container.getAsDynamicObject().hasMethod("child"));
         assertFalse(container.getAsDynamicObject().hasMethod("child", "not a closure"));
         assertFalse(container.getAsDynamicObject().hasMethod("child", HelperUtil.toClosure("{ }"), "something else"));
+    }
+
+    @Test
+    public void configureMethodInvokesRuleForUnknownDomainObject() {
+        Bean bean = new Bean();
+        addRule(bean);
+
+        assertTrue(container.getAsDynamicObject().hasMethod("bean", HelperUtil.toClosure("{ }")));
+    }
+
+    private void addRule(final Bean bean) {
+        container.addRule(new Rule() {
+            public String getDescription() {
+                throw new UnsupportedOperationException();
+            }
+
+            public void apply(String taskName) {
+                container.add(taskName, bean);
+            }
+        });
     }
 
     private class Bean {

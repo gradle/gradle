@@ -18,18 +18,72 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.Rule;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
+import java.util.Map;
+import java.util.List;
 
+/**
+ * <p>A {@code TaskContainer} is responsible for managing a set of {@link Task} instances.</p>
+ */
 public interface TaskContainer {
+    /**
+     * Returns the tasks in this container.
+     *
+     * @return The tasks. Returns an empty set if this container is empty.
+     */
     Set<Task> getAll();
 
+    /**
+     * Returns the tasks in this container, as a map from task name to {@code Task} instance.
+     *
+     * @return The tasks. Returns an empty map if this container is empty.
+     */
+    Map<String, Task> getAsMap();
+
+    /**
+     * Returns the tasks in this container which meet the given criteria.
+     *
+     * @param spec The criteria to use.
+     * @return The matching tasks. Returns an empty set if there are no such tasks in this container.
+     */
     Set<Task> get(Spec<? super Task> spec);
 
+    /**
+     * Locates a task by name, returning null if there is no such task.
+     *
+     * @param name The task name
+     * @return The task with the given name, or null if there is no such task in this container.
+     */
     Task find(String name);
 
+    /**
+     * Locates a task by name, failing if there is no such task. The given task closure is executed against the task
+     * before it is returned from this method.
+     *
+     * @param name The task name
+     * @param configureClosure The closure to use to configure the task.
+     * @return The task with the given name. Never returns null.
+     * @throws UnknownTaskException when there is no such task in this container.
+     */
     Task get(String name, Closure configureClosure) throws UnknownTaskException;
 
+    /**
+     * Locates a task by name, failing if there is no such task.
+     *
+     * @param name The task name
+     * @return The task with the given name. Never returns null.
+     * @throws UnknownTaskException when there is no such task in this container.
+     */
     Task get(String name) throws UnknownTaskException;
+
+    /**
+     * Adds a rule to this container. The given rule is invoked when an unknown task is requested.
+     *
+     * @param rule The rule to add.
+     * @return The added rule.
+     */
+    Rule addRule(Rule rule);
 }

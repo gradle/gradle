@@ -1119,11 +1119,6 @@ def scriptMethod(Closure closure) {
         project.name = "someNewName" 
     }
 
-    @Test(expected = InvalidUserDataException)
-    void addNullSyntheticTasks() {
-        project.addRule(null)
-    }
-
     @Test
     void addGetSyntheticTasks() {
         assertEquals([], project.getRules())

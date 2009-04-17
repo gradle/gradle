@@ -42,12 +42,12 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler;
 import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.tasks.DefaultTaskEngine;
-import org.gradle.api.internal.tasks.TaskEngine;
+import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.*;
@@ -124,7 +124,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private int depth = 0;
 
-    private TaskEngine taskEngine = new DefaultTaskEngine();
+    private DefaultTaskContainer taskContainer = new DefaultTaskContainer();
 
     private ITaskFactory taskFactory;
 
@@ -211,7 +211,7 @@ public abstract class AbstractProject implements ProjectInternal {
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
-        dynamicObjectHelper.addObject(taskEngine, DynamicObjectHelper.Location.AfterConvention);
+        dynamicObjectHelper.addObject(taskContainer.getAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
 
         if (parent != null) {
             depth = parent.getDepth() + 1;
@@ -711,7 +711,7 @@ public abstract class AbstractProject implements ProjectInternal {
             throw new InvalidUserDataException("A path must be specified!");
         }
         if (!path.contains(PATH_SEPARATOR)) {
-            return taskEngine.findTask(path);
+            return taskContainer.find(path);
         }
 
         String projectPath = StringUtils.substringBeforeLast(path, PATH_SEPARATOR);
@@ -723,7 +723,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Map<String, Task> getTasks() {
-        return taskEngine.getProperties();
+        return taskContainer.getAsMap();
     }
 
     public Task task(String path) {
@@ -761,7 +761,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public Task createTask(Map args, String name, TaskAction action) {
         Task task = taskFactory.createTask(this, getTasks(), args, name);
-        taskEngine.addTask(task);
+        taskContainer.add(name, task);
         if (action != null) {
             task.doFirst(action);
         }
@@ -914,8 +914,8 @@ public abstract class AbstractProject implements ProjectInternal {
         String name = "";
         for (String pathElement : pathElements) {
             name += name.length() != 0 ? "/" + pathElement : pathElement;
-            if (taskEngine.findTask(name) != null) {
-                if (!(taskEngine.findTask(name) instanceof Directory)) {
+            if (taskContainer.find(name) != null) {
+                if (!(taskContainer.find(name) instanceof Directory)) {
                     throw new InvalidUserDataException("A non directory task with this name already exsists.");
                 }
             } else {
@@ -927,12 +927,12 @@ public abstract class AbstractProject implements ProjectInternal {
         return task(path);
     }
 
-    public TaskEngine getTaskEngine() {
-        return taskEngine;
+    public TaskContainer getTaskContainer() {
+        return taskContainer;
     }
 
-    public void setTaskEngine(TaskEngine taskEngine) {
-        this.taskEngine = taskEngine;
+    public void setTaskContainer(DefaultTaskContainer taskContainer) {
+        this.taskContainer = taskContainer;
     }
 
     public AntBuilderFactory getAntBuilderFactory() {
@@ -1030,10 +1030,10 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Rule addRule(Rule rule) {
-        return taskEngine.addRule(rule);
+        return taskContainer.addRule(rule);
     }
 
     public List<Rule> getRules() {
-        return taskEngine.getRules();
+        return taskContainer.getRules();
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.Rule;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
@@ -25,6 +26,7 @@ import java.util.*;
 
 public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T> {
     private final Map<String, T> objects = new TreeMap<String, T>();
+    private final List<Rule> rules = new ArrayList<Rule>();
 
     /**
      * Adds a domain object to this container.
@@ -46,7 +48,8 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
     }
 
     /**
-     * Returns a {@link DynamicObject} which can be used to access the domain objects as dynamic properties and methods.
+     * Returns a {@link DynamicObject} which can be used to access the domain objects as dynamic properties and
+     * methods.
      *
      * @return The dynamic object
      */
@@ -67,6 +70,9 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
     }
 
     public T find(String name) {
+        if (!objects.containsKey(name)) {
+            applyRules(name);
+        }
         return objects.get(name);
     }
 
@@ -82,6 +88,21 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         T t = get(name);
         ConfigureUtil.configure(configureClosure, t);
         return t;
+    }
+
+    private void applyRules(String name) {
+        for (Rule rule : rules) {
+            rule.apply(name);
+        }
+    }
+
+    public Rule addRule(Rule rule) {
+        rules.add(rule);
+        return rule;
+    }
+
+    public List<Rule> getRules() {
+        return Collections.unmodifiableList(rules);
     }
 
     /**
@@ -102,15 +123,16 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
 
         @Override
         public boolean hasProperty(String name) {
-            return objects.containsKey(name);
+            return find(name) != null;
         }
 
         @Override
         public T getProperty(String name) throws MissingPropertyException {
-            if (!hasProperty(name)) {
+            T t = find(name);
+            if (t == null) {
                 throw new MissingPropertyException(name, this.getClass());
             }
-            return objects.get(name);
+            return t;
         }
 
         @Override
@@ -120,12 +142,12 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
 
         @Override
         public boolean hasMethod(String name, Object... arguments) {
-            return objects.containsKey(name) && arguments.length == 1 && arguments[0] instanceof Closure;
+            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
         }
 
         @Override
         public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
-            return ConfigureUtil.configure((Closure) arguments[0], objects.get(name));
+            return ConfigureUtil.configure((Closure) arguments[0], get(name));
         }
     }
 }

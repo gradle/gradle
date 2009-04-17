@@ -23,24 +23,89 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
+import java.util.Map;
 
 /**
+ * <p>A {@code ConfigurationContainer} is responsible for managing a set of {@link Configuration} instances.</p>
+ *
  * @author Hans Dockter
  */
 public interface ConfigurationContainer {
+    /**
+     * Returns the configurations in this container.
+     *
+     * @return The configurations. Returns an empty set if this container is empty.
+     */
     Set<Configuration> getAll();
 
+    /**
+     * Returns the configurations in this container, as a map from configuration name to {@code Configuration} instance.
+     *
+     * @return The configurations. Returns an empty map if this container is empty.
+     */
+    Map<String, Configuration> getAsMap();
+
+    /**
+     * Returns the configurations in this container which meet the given criteria.
+     *
+     * @param spec The criteria to use.
+     * @return The matching configurations. Returns an empty set if there are no such configurations in this container.
+     */
     Set<Configuration> get(Spec<? super Configuration> spec);
 
-    Configuration add(String configuration, Closure configureClosure) throws InvalidUserDataException;
-
+    /**
+     * Locates a configuration by name, returning null if there is no such configuration.
+     *
+     * @param name The configuration name
+     * @return The configuration with the given name, or null if there is no such configuration in this container.
+     */
     Configuration find(String name);
 
-    Configuration get(String name, Closure configureClosure) throws UnknownConfigurationException;
-
-    Configuration add(String name);
-
+    /**
+     * Locates a configuration by name, failing if there is no such configuration.
+     *
+     * @param name The configuration name
+     * @return The configuration with the given name. Never returns null.
+     * @throws UnknownConfigurationException when there is no such configuration in this container.
+     */
     Configuration get(String name) throws UnknownConfigurationException;
 
+    /**
+     * Locates a configuration by name, failing if there is no such configuration. The given configuration closure is
+     * executed against the configuration before it is returned from this method.
+     *
+     * @param name The configuration name
+     * @param configureClosure The closure to use to configure the configuration.
+     * @return The configuration with the given name. Never returns null.
+     * @throws UnknownConfigurationException when there is no such configuration in this container.
+     */
+    Configuration get(String name, Closure configureClosure) throws UnknownConfigurationException;
+
+    /**
+     * Adds a configuration with the given name.
+     *
+     * @param name The name of the new configuration.
+     * @return The newly added configuration.
+     * @throws InvalidUserDataException when a configuration with the given name already exists in this container.
+     */
+    Configuration add(String name) throws InvalidUserDataException;
+
+    /**
+     * Adds a configuration with the given name. The given configuration closure is executed against the configuration
+     * before it is returned from this method.
+     *
+     * @param name The name of the new configuration.
+     * @param configureClosure The closure to use to configure the configuration.
+     * @return The newly added configuration.
+     * @throws InvalidUserDataException when a configuration with the given name already exists in this container.
+     */
+    Configuration add(String name, Closure configureClosure) throws InvalidUserDataException;
+
+    /**
+     * Creates a configuration, but does not add it to this container.
+     *
+     * @param dependencies The dependencies of the configuration.
+     * @return The configuration.
+     */
     Configuration detachedConfiguration(Dependency... dependencies);
 }
