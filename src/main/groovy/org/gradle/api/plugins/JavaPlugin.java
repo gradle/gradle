@@ -49,9 +49,6 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class JavaPlugin implements Plugin {
-    public static final String UPLOAD = "upload";
-    public static final String UPLOAD_DISTS = "uploadDists";
-    
     public static final String CLEAN_TASK_NAME = "clean";
     public static final String INIT_TASK_NAME = "init";
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
@@ -111,8 +108,6 @@ public class JavaPlugin implements Plugin {
 
         configureLibs(project, javaConvention);
         configureDists(project, javaConvention);
-
-        project.createTask(UPLOAD);
 
         configureEclipse(project);
         configureEclipseWtpModule(project);
