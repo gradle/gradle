@@ -179,18 +179,30 @@ public class DefaultResolverContainer implements ResolverContainer {
     }
 
     private Object[] getFlatDirRootDirs(Map args) {
-        Object rootDir = args.get("rootDir");
-        List rootDirs = (List) args.get("rootDirs");
-        if (rootDir != null) {
-            if (rootDirs != null) {
-                throw new InvalidUserDataException("You can't specify both rootDir and rootDirs for a flat dir repository.");
-            }
-            return WrapUtil.toArray(rootDir);
-        } else if (rootDirs != null){
-            return rootDirs.toArray();
-        } else {
-            throw new InvalidUserDataException("You must specify either the rootDir or the rootDirs for a flat dir repository.");
+        List dirs = createStringifiedListFromMapArg(args, "dirs");
+        if (dirs == null) {
+            throw new InvalidUserDataException("You must specify dirs for the flat dir repository.");    
         }
+        ;
+        return dirs.toArray();
+    }
+
+    private List<String> createStringifiedListFromMapArg(Map args, String argName) {
+        Object dirs = args.get(argName);
+        if (dirs == null) {
+            return null;
+        }
+        Iterable<Object> iterable = null;
+        if (dirs instanceof Iterable) {
+            iterable = (Iterable<Object>) dirs;
+        } else {
+            iterable = WrapUtil.toSet(dirs);
+        }
+        List list = new ArrayList();
+        for (Object o : iterable) {
+            list.add(o.toString());
+        }
+        return list;
     }
 
     public DependencyResolver mavenCentral() {
@@ -198,30 +210,22 @@ public class DefaultResolverContainer implements ResolverContainer {
     }
 
     public DependencyResolver mavenCentral(Map args) {
+        List<String> urls = createStringifiedListFromMapArg(args, "urls");
         return add(createMavenRepoResolver(
                 getNameFromMap(args, DEFAULT_MAVEN_CENTRAL_REPO_NAME),
                 MAVEN_CENTRAL_URL,
-                getJarOnlyReposFromMap(args)));
-    }
-
-    private String[] getJarOnlyReposFromMap(Map args) {
-        List jarOnlyRepos = GUtil.isTrue(args.get("jarOnlyRepos")) ? (List) args.get("jarOnlyRepos") : new ArrayList();
-        String[] jarOnlyRepoStrings = new String[jarOnlyRepos.size()];
-        for (int i = 0; i < jarOnlyRepoStrings.length; i++) {
-            jarOnlyRepoStrings[i] = jarOnlyRepos.get(i).toString();
-        }
-        return jarOnlyRepoStrings;
+                urls == null ? WrapUtil.<String>toArray() : urls.toArray(new String[urls.size()])));
     }
 
     public DependencyResolver mavenRepo(Map args) {
-        if (!GUtil.isTrue(args.get("rootRepo"))) {
-            throw new InvalidUserDataException("You must specify a root repo for a Maven repo.");
+        List<String> urls = createStringifiedListFromMapArg(args, "urls");
+        if (urls == null) {
+            throw new InvalidUserDataException("You must specify a urls for a Maven repo.");
         }
-        Object rootRepo = args.get("rootRepo");
         return add(createMavenRepoResolver(
-                getNameFromMap(args, rootRepo.toString()),
-                rootRepo.toString(),
-                getJarOnlyReposFromMap(args)));
+                getNameFromMap(args, urls.get(0).toString()),
+                urls.get(0).toString(),
+                urls.size() == 1 ? WrapUtil.<String>toArray() : urls.subList(1, urls.size()).toArray(new String[urls.size() - 1])));
     }
 
     public FileSystemResolver createFlatDirResolver(String name, Object... dirs) {

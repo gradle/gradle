@@ -33,7 +33,7 @@ test {
 // START SNIPPET upload
 uploadMaster {
     repositories {
-       flatDir(rootDir: file('repos'))
+       flatDir(dirs: file('repos'))
     }
 }
 // END SNIPPET upload

@@ -174,38 +174,33 @@ class DefaultResolverContainerTest {
       }
     }
 
-    @Test public void testFlatDirWithNameAndRootDirs() {
+    @Test public void testFlatDirWithNameAndDirs() {
         String resolverName = 'libs'
         prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir([name: resolverName] + [rootDirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
+        assert resolverContainer.flatDir([name: resolverName] + [dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
-    @Test public void testFlatDirWithNameAndRootDir() {
+    @Test public void testFlatDirWithNameAndSingleDir() {
         String resolverName = 'libs'
         prepareFlatDirResolverCreation(resolverName, ['a' as File] as File[])
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir([name: resolverName] + [rootDir: 'a']).is(expectedResolver)
+        assert resolverContainer.flatDir([name: resolverName] + [dirs: 'a']).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
-    @Test public void testFlatDirWithoutNameAndRootDirs() {
+    @Test public void testFlatDirWithoutNameAndWithDirs() {
         Object[] expectedDirs = createFlatDirTestDirs()
         String expectedName = HashUtil.createHash(expectedDirs.join(''))
         prepareFlatDirResolverCreation(expectedName, expectedDirs)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.flatDir([rootDirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
+        assert resolverContainer.flatDir([dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
     @Test(expected = InvalidUserDataException)
-    public void testFlatDirWithRootDirAndRootDirsSet() {
-        resolverContainer.flatDir([rootDir: 'a', rootDirs: ['b', 'c']])
-    }
-
-    @Test(expected = InvalidUserDataException)
-    public void testFlatDirWithMissingRootDirAndMissingRootDirs() {
+    public void testFlatDirWithMissingDirs() {
         resolverContainer.flatDir([name: 'someName'])
     }
 
@@ -229,7 +224,7 @@ class DefaultResolverContainerTest {
         String testUrl2 = 'http://www.gradle2.org'
         prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2) 
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenCentral(jarOnlyRepos: [testUrl2]).is(expectedResolver)
+        assert resolverContainer.mavenCentral(urls: [testUrl2]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
@@ -239,23 +234,33 @@ class DefaultResolverContainerTest {
         String name = 'customName'
         prepareCreateMavenRepo(name, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenCentral(name: name, jarOnlyRepos: [testUrl2]).is(expectedResolver)
+        assert resolverContainer.mavenCentral(name: name, urls: [testUrl2]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
     @Test(expected = InvalidUserDataException)
-    public void testMavenRepoWithMissingRootRepo() {
+    public void testMavenRepoWithMissingUrls() {
         resolverContainer.mavenRepo([name: 'someName'])
     }
 
     @Test
-    public void testMavenRepoWithName() {
+    public void testMavenRepoWithNameAndUrls() {
         String testUrl2 = 'http://www.gradle2.org'
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
         prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenRepo([name: repoName, rootRepo: repoRoot, jarOnlyRepos: [testUrl2]]).is(expectedResolver)
+        assert resolverContainer.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
+        assertEquals([expectedResolver], resolverContainer.resolverList)
+    }
+
+    @Test
+    public void testMavenRepoWithNameAndRootUrlOnly() {
+        String repoRoot = 'http://www.reporoot.org'
+        String repoName = 'mavenRepoName'
+        prepareCreateMavenRepo(repoName, repoRoot)
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert resolverContainer.mavenRepo([name: repoName, urls: repoRoot]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 
@@ -265,7 +270,7 @@ class DefaultResolverContainerTest {
         String repoRoot = 'http://www.reporoot.org'
         prepareCreateMavenRepo(repoRoot, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert resolverContainer.mavenRepo([rootRepo: repoRoot, jarOnlyRepos: [testUrl2]]).is(expectedResolver)
+        assert resolverContainer.mavenRepo([urls: [repoRoot, testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], resolverContainer.resolverList)
     }
 

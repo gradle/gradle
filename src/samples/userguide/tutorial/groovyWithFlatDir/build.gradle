@@ -2,7 +2,7 @@ usePlugin 'groovy'
 
 // START SNIPPET groovy-dependency
 repositories {
-    flatDir(rootDir: file('lib'))
+    flatDir(dirs: file('lib'))
 }
 
 dependencies {
