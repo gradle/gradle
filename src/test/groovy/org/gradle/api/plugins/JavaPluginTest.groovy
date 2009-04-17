@@ -32,6 +32,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.internal.DefaultTask
 
 /**
  * @author Hans Dockter
@@ -124,6 +125,11 @@ class JavaPluginTest {
         assertThat(task, instanceOf(Javadoc))
         assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
+
+        task = project.task("build" + Dependency.MASTER_CONFIGURATION[0].toUpperCase() + Dependency.MASTER_CONFIGURATION[1..-1])
+        assertThat(task, instanceOf(DefaultTask))
+        assertThat(task.dependsOn.iterator().next().getDependencies(null),
+                equalTo([project.task("archive_jar")] as Set))
     }
 
     @Test public void appliesMappingsToTasksCreatedByBuildScript() {

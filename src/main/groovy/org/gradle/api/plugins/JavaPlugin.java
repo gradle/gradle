@@ -84,6 +84,7 @@ public class JavaPlugin implements Plugin {
 
         configureConfigurations(project);
         configureUploadRules(project);
+        configureBuildConfigurationRule(project);
 
         project.createTask(INIT_TASK_NAME).setDescription("The first task of the Java plugin tasks to be excuted. Does nothing if not customized.");
 
@@ -227,6 +228,24 @@ public class JavaPlugin implements Plugin {
         processTestResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
         processTestResources.setDescription(
                 "Process and copy the test resources into the binary directory of the compiled test sources.");
+    }
+
+    private void configureBuildConfigurationRule(final Project project) {
+        final String prefix = "build";
+        project.addRule(new Rule() {
+            public String getDescription() {
+                return String.format("Pattern: %s<ConfigurationName>: Builds the artifacts belonging to the configuration.", prefix);
+            }
+
+            public void apply(String taskName) {
+                if (taskName.startsWith(prefix)) {
+                    Configuration configuration = project.getConfigurations().find(taskName.substring(prefix.length()).toLowerCase());
+                    if (configuration != null) {
+                        project.createTask(taskName).dependsOn(configuration.getBuildArtifacts());
+                    }
+                }
+            }
+        });
     }
 
     private void configureUploadRules(final Project project) {
