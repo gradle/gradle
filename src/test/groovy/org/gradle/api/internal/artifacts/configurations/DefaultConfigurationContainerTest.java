@@ -119,20 +119,6 @@ public class DefaultConfigurationContainerTest {
     }
 
     @Test
-    public void testEqualsAndHashCode() {
-        configurationContainer.add(TEST_NAME);
-        configurationContainer.add(TEST_NAME + "delta");
-        ConfigurationContainer otherConfigurationContainer = new DefaultConfigurationContainer(ivyServiceDummy,
-                resolverProviderDummy, dependencyMetaDataProviderDummy);
-        otherConfigurationContainer.add(TEST_NAME);
-        otherConfigurationContainer.add(TEST_NAME + "delta");
-        assertThat(configurationContainer, equalTo(otherConfigurationContainer));
-        assertThat(configurationContainer.hashCode(), equalTo(otherConfigurationContainer.hashCode()));
-        otherConfigurationContainer.add(TEST_NAME + "delta2");
-        assertThat(configurationContainer, not(equalTo(otherConfigurationContainer)));
-    }
-    
-    @Test
     public void testCreateDetached() {
         Dependency dependency1 = HelperUtil.createDependency("group1", "name1", "version1");
         Dependency dependency2 = HelperUtil.createDependency("group2", "name2", "version2");

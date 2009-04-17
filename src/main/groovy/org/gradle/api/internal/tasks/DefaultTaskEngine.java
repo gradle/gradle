@@ -15,27 +15,28 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.ConfigurableObjectCollection;
-import org.gradle.api.internal.AbstractDynamicObject;
-import org.gradle.api.internal.project.ITaskFactory;
-import org.gradle.api.*;
-
-import java.util.*;
-
-import groovy.lang.MissingPropertyException;
 import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Rule;
+import org.gradle.api.Task;
+import org.gradle.api.internal.AbstractDynamicObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultTaskEngine extends AbstractDynamicObject implements TaskEngine {
     private List<Rule> rules = new ArrayList<Rule>();
-    private ConfigurableObjectCollection<Task> tasks = new ConfigurableObjectCollection<Task>(toString());    
+    private DefaultTaskContainer tasks = new DefaultTaskContainer();
 
     public Task findTask(String name) {
         if (hasProperty(name)) {
             return getProperty(name);
-        };
+        }
         return null;
     }
 
@@ -52,20 +53,21 @@ public class DefaultTaskEngine extends AbstractDynamicObject implements TaskEngi
     }
 
     public void addTask(Task task) {
-        tasks.put(task.getName(), task);
+        tasks.add(task.getName(), task);
     }
 
-    public ConfigurableObjectCollection<Task> getTasks() {
+    public DefaultTaskContainer getTasks() {
         return tasks;
     }
 
+    @Override
     public boolean hasProperty(String name) {
         applyRulesIfUnknownProperty(name);
-        return tasks.hasProperty(name);
+        return tasks.getAsDynamicObject().hasProperty(name);
     }
 
     private void applyRulesIfUnknownProperty(String name) {
-        if (!tasks.hasProperty(name)) {
+        if (!tasks.getAsDynamicObject().hasProperty(name)) {
             applyRules(name);
         }
     }
@@ -73,38 +75,33 @@ public class DefaultTaskEngine extends AbstractDynamicObject implements TaskEngi
     private void applyRules(String name) {
         for (Rule rule : rules) {
             rule.apply(name);
-        };
-    }
-
-    public Task getProperty(String name) throws MissingPropertyException {
-        applyRulesIfUnknownProperty(name);
-        return tasks.getProperty(name);
-    }
-
-    public Map<String, Task> getProperties() {
-        return tasks.getProperties();
-    }
-
-    public boolean hasMethod(String name, Object... arguments) {
-        applyRulesIfUnknownProperty(name);
-        return tasks.hasMethod(name, arguments);
-    }
-
-    public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-        applyRulesIfUnknownProperty(name);
-        return tasks.invokeMethod(name, arguments);
+        }
     }
 
     @Override
-    public void setProperty(String name, Object value) throws MissingPropertyException {
-        throw new UnsupportedOperationException("Set property is not supported!");
+    public Task getProperty(String name) throws MissingPropertyException {
+        applyRulesIfUnknownProperty(name);
+        return (Task) tasks.getAsDynamicObject().getProperty(name);
+    }
+
+    @Override
+    public Map<String, Task> getProperties() {
+        return tasks.getAsMap();
+    }
+
+    @Override
+    public boolean hasMethod(String name, Object... arguments) {
+        applyRulesIfUnknownProperty(name);
+        return tasks.getAsDynamicObject().hasMethod(name, arguments);
+    }
+
+    @Override
+    public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
+        applyRulesIfUnknownProperty(name);
+        return tasks.getAsDynamicObject().invokeMethod(name, arguments);
     }
 
     protected String getDisplayName() {
-        return null;
-    }
-
-    public void setTasks(ConfigurableObjectCollection<Task> tasks) {
-        this.tasks = tasks;
+        return tasks.getDisplayName();
     }
 }

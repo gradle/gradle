@@ -30,7 +30,7 @@ import java.util.Set;
 public interface ConfigurationContainer {
     Set<Configuration> getAll();
 
-    Set<Configuration> get(Spec<Configuration> spec);
+    Set<Configuration> get(Spec<? super Configuration> spec);
 
     Configuration add(String configuration, Closure configureClosure) throws InvalidUserDataException;
 

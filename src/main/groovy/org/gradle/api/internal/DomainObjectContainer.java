@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal;
 
-package org.gradle.api;
+import groovy.lang.Closure;
+import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.specs.Spec;
 
-/**
- * <p>An <code>UnknownProjectException</code> is thrown when a project referenced by path cannot be found.</p>
- *
- * @author Hans Dockter
- */
-public class UnknownProjectException extends UnknownDomainObjectException {
-    public UnknownProjectException(String message) {
-        super(message);
-    }
+import java.util.Set;
+import java.util.Map;
 
-    public UnknownProjectException(String message, Throwable cause) {
-        super(message, cause);
-    }
+public interface DomainObjectContainer<T> {
+    Set<T> getAll();
+
+    Set<T> get(Spec<? super T> spec);
+
+    Map<String, T> getAsMap();
+
+    T find(String name);
+
+    T get(String name) throws UnknownDomainObjectException;
+
+    T get(String name, Closure configureClosure) throws UnknownDomainObjectException;
 }

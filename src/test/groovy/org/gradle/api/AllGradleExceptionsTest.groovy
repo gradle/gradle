@@ -25,10 +25,6 @@ import static org.junit.Assert.*;
 class AllGradleExceptionsTest {
     static final List EXCEPTION_CLASSES = [UnknownTaskException, UnknownProjectException, InvalidUserDataException, GradleException, CircularReferenceException]
 
-    @Test public void testNoArg() {
-        checkException([]) {}
-    }
-
     @Test public void testWithMessage() {
         String expectedMessage = 'somemessage'
         checkException([expectedMessage]) { GradleException exception ->
@@ -41,13 +37,6 @@ class AllGradleExceptionsTest {
         Throwable expectedCause = new Throwable()
         checkException([expectedMessage, expectedCause]) { GradleException exception ->
             assertEquals(expectedMessage, exception.message)
-            assertEquals(expectedCause, exception.cause)
-        }
-    }
-
-    @Test public void testWithCause() {
-        Throwable expectedCause = new Throwable()
-        checkException([expectedCause]) { GradleException exception ->
             assertEquals(expectedCause, exception.cause)
         }
     }

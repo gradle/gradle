@@ -594,8 +594,8 @@ class DefaultProjectTest {
     }
 
     @Test void testTask() {
-        DefaultTask task = project.tasks['task'] = new DefaultTask(project, 'task')
-        DefaultTask childTask = child1.tasks['task'] = new DefaultTask(child1, 'task')
+        Task task = addTestTask(project, 'task')
+        Task childTask = addTestTask(child1, 'task')
         assertThat(project.task('task'), sameInstance(task))
         assertThat(project.task(':task'), sameInstance(task))
         assertThat(project.task(':child1:task'), sameInstance(childTask))
@@ -603,14 +603,11 @@ class DefaultProjectTest {
     }
 
     @Test void testTaskWithConfigureClosure() {
-        Closure testConfigureClosure = {}
-        Task mockTask = context.mock(Task)
-        project.tasks[TEST_TASK_NAME] = mockTask
-        context.checking {
-            one(mockTask).configure(testConfigureClosure); will(returnValue(mockTask))
-        }
+        Closure testConfigureClosure = { additional = 'value' }
+        Task mockTask = addTestTask(project, TEST_TASK_NAME)
 
         assertThat(project.task(TEST_TASK_NAME, testConfigureClosure), sameInstance(mockTask))
+        assertThat(mockTask.additional, equalTo('value'))
     }
 
     @Test void testTaskWithNonExistingTask() {
@@ -632,7 +629,7 @@ class DefaultProjectTest {
     }
 
     @Test void testCanAccessTaskAsAProjectProperty() {
-        DefaultTask task = project.tasks[TEST_TASK_NAME] = new DefaultTask(project, TEST_TASK_NAME)
+        Task task = addTestTask(project, TEST_TASK_NAME)
         assertThat(project."$TEST_TASK_NAME", sameInstance(task))
     }
 
@@ -742,7 +739,7 @@ class DefaultProjectTest {
     }
 
     @Test void testGetTasksByNameWithSingularTask() {
-        DefaultTask child1Task = child1.tasks['child1Task'] = new DefaultTask(project, 'child1Task')
+        Task child1Task = addTestTask(child1, 'child1Task')
         assertEquals([child1Task] as Set, project.getTasksByName(child1Task.name, true))
         assertEquals(0, project.getTasksByName(child1Task.name, false).size())
     }
@@ -764,10 +761,16 @@ class DefaultProjectTest {
     private List addTestTaskToAllProjects(String name) {
         List tasks = []
         project.allprojects.each {Project project ->
-            project.tasks[name] = new DefaultTask(project, name)
-            tasks << project.tasks[name]
+            tasks << addTestTask(project, name)
         }
         tasks
+    }
+    
+    private Task addTestTask(Project project, String name) {
+        context.checking {
+            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), name); will(returnValue(new DefaultTask(project, name)))
+        }
+        project.createTask(name)
     }
 
     @Test void testMethodMissing() {
@@ -778,7 +781,7 @@ class DefaultProjectTest {
         boolean closureCalled = false
         Closure testConfigureClosure = {closureCalled = true}
         assertEquals('parent', project.scriptMethod(testConfigureClosure))
-        project.tasks['scriptMethod'] = new DefaultTask(project, 'scriptMethod')
+        addTestTask(project, 'scriptMethod')
         project.scriptMethod(testConfigureClosure)
         assert closureCalled
         project.convention.plugins.test = new TestConvention()
@@ -866,17 +869,13 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testProperties() {
-        context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, new HashMap(), testTask.getName()); will(returnValue(testTask))
-        }
-
+        Task task = addTestTask(project, 'testTask')
         project.additional = 'additional'
-        project.createTask(testTask.getName())
 
         Map properties = project.properties
         assertEquals(properties.name, 'root')
         assertEquals(properties.additional, 'additional')
-        assertEquals(properties[testTask.getName()], testTask)
+        assertEquals(properties['testTask'], task)
     }
 
     @Test void testAdditionalProperty() {
@@ -960,10 +959,15 @@ def scriptMethod(Closure closure) {
     }
 
     @Test public void testDirWithExistingParentDirTask() {
-        Task dirTask1 = new Directory(project, 'dir1')
-        project.tasks.dir1 = dirTask1
-        Task dirTask14 = new Directory(project, 'dir1/dir4')
         Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
+
+        Task dirTask1 = new Directory(project, 'dir1')
+        context.checking {
+            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
+        }
+        project.dir('dir1')
+
+        Task dirTask14 = new Directory(project, 'dir1/dir4')
         context.checking {
             one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1/dir4'); will(returnValue(dirTask14))
         }
@@ -971,14 +975,16 @@ def scriptMethod(Closure closure) {
     }
 
     @Test (expected = InvalidUserDataException) public void testDirWithConflictingNonDirTask() {
-        Task confictingTask = new DefaultTask(project, 'dir1')
-        project.tasks.dir1 = confictingTask
-        Task dirTask14 = new Directory(project, 'dir1/dir4')
         Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
+
+        addTestTask(project, 'dir1/dir4')
+
+        Task dirTask14 = new Directory(project, 'dir1')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1/dir4'); will(returnValue(dirTask14))
+            one(taskFactoryMock).createTask(project, project.tasks, expectedArgMap, 'dir1'); will(returnValue(dirTask14))
         }
-        assertSame(dirTask14, project.dir('dir1/dir4'));
+
+        project.dir('dir1/dir4')
     }
 
     @Test void testCachingOfAnt() {

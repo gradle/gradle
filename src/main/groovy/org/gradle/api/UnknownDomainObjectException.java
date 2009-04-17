@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api;
 
 /**
- * <p>An <code>UnknownProjectException</code> is thrown when a project referenced by path cannot be found.</p>
- *
- * @author Hans Dockter
+ * <p>A {@code UnknownDomainObjectException} is the super class of all exceptions thrown when a given domain object
+ * cannot be located.</p>
  */
-public class UnknownProjectException extends UnknownDomainObjectException {
-    public UnknownProjectException(String message) {
+public class UnknownDomainObjectException extends GradleException {
+    public UnknownDomainObjectException(String message) {
         super(message);
     }
 
-    public UnknownProjectException(String message, Throwable cause) {
+    public UnknownDomainObjectException(String message, Throwable cause) {
         super(message, cause);
     }
 }

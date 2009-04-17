@@ -17,28 +17,22 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.internal.artifacts.IvyService;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultConfigurationContainer implements ConfigurationContainer, ConfigurationsProvider {
+public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<Configuration> 
+        implements ConfigurationContainer, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
-    private Map<String, Configuration> configurations = new HashMap<String, Configuration>();
-
     private IvyService ivyService;
 
     private ResolverProvider resolverProvider;
@@ -54,71 +48,34 @@ public class DefaultConfigurationContainer implements ConfigurationContainer, Co
     }
 
     public Configuration add(String name, Closure configureClosure) {
-        if (configurations.containsKey(name)) {
+        if (find(name) != null) {
             throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
                     name));
         }
         DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService, resolverProvider, dependencyMetaDataProvider);
-        configurations.put(name, configuration);
+        add(name, configuration);
         ConfigureUtil.configure(configureClosure, configuration);
         return configuration;
     }
 
     public Configuration add(String name) {
-        return add(name, null);
-    }
-
-    public Configuration find(String name) {
-        return configurations.get(name);
-    }
-
-    public Configuration get(String name, Closure configureClosure) throws UnknownConfigurationException {
-        Configuration configuration = find(name);
-        if (configuration == null) {
-            throw new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
-        }
-        ConfigureUtil.configure(configureClosure, configuration);
-        return configuration;
-    }
-
-    public Configuration get(String name) throws UnknownConfigurationException {
-        return get(name, null);
-    }
-
-    public Set<Configuration> getAll() {
-        return new HashSet<Configuration>(configurations.values());
-    }
-
-    public Set<Configuration> get(Spec<Configuration> spec) {
-        return new HashSet<Configuration>(Specs.filterIterable(configurations.values(), spec));
-    }
-
-    public void setConfigurations(Map<String, Configuration> configurations) {
-        this.configurations = configurations;
+        return add(name, (Closure) null);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        DefaultConfigurationContainer that = (DefaultConfigurationContainer) o;
-
-        if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null)
-            return false;
-
-        return true;
+    public String getDisplayName() {
+        return "configuration container";
     }
 
     @Override
-    public int hashCode() {
-        return configurations != null ? configurations.hashCode() : 0;
+    protected UnknownDomainObjectException createNotFoundException(String name) {
+        return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
     @Override
     public String toString() {
         return "DefaultConfigurationContainer{" +
-                "configurations=" + configurations +
+                "configurations=" + getAll() +
                 '}';
     }
 

@@ -32,7 +32,7 @@ public class Specs {
         return (Spec<T>) SATISFIES_ALL;
     }
 
-    public static <T> Set<T> filterIterable(Iterable<T> iterable, Spec<T> spec) {
+    public static <T> Set<T> filterIterable(Iterable<T> iterable, Spec<? super T> spec) {
         Set<T> result = new LinkedHashSet<T>();
         for (T t : iterable) {
             if (spec.isSatisfiedBy(t)) {

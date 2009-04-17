@@ -15,27 +15,27 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-import org.gradle.api.Task;
-import org.gradle.api.Rule;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.HelperUtil;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import static org.hamcrest.Matchers.*;
 import groovy.lang.MissingPropertyException;
-import groovy.lang.Closure;
+import org.gradle.api.Rule;
+import org.gradle.api.Task;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 public class DefaultTaskEngineTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private DefaultTaskEngine taskEngine = new DefaultTaskEngine();
-    private ProjectInternal projectMock = context.mock(ProjectInternal.class);
     private static final String TASK_NAME = "taskName";
     private Task dynamicTask = context.mock(Task.class, "dynamic");
     private Task staticTask = context.mock(Task.class, "static");
@@ -89,7 +89,7 @@ public class DefaultTaskEngineTest {
 
             public void apply(String taskName) {
                 if (taskName.equals(TASK_NAME)) {
-                    taskEngine.getTasks().put(TASK_NAME, dynamicTask);
+                    taskEngine.getTasks().add(TASK_NAME, dynamicTask);
                 }
             }
         };
@@ -98,7 +98,7 @@ public class DefaultTaskEngineTest {
     }
 
     private void addStaticTestTask(String taskName) {
-        taskEngine.getTasks().put(taskName, staticTask);
+        taskEngine.getTasks().add(taskName, staticTask);
     }
 
     @Test
@@ -141,7 +141,7 @@ public class DefaultTaskEngineTest {
         taskEngine.invokeMethod(TASK_NAME, HelperUtil.toClosure("{description = '" + description + "' }"));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test(expected = MissingPropertyException.class)
     public void testSetProperty() {
         taskEngine.setProperty("name", dynamicTask);
     }
