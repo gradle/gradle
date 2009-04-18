@@ -61,14 +61,6 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         assertEquals([expectedResolver], repositoryHandler.resolverList)
     }
 
-    @Test public void testFlatDirWithNameAndWithDirsAsWhiteSpaceSeparatedString() {
-        String resolverName = 'libs'
-        prepareFlatDirResolverCreation(resolverName, ['a' as File, 'b' as File, 'c' as File] as File[])
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.flatDir([name: resolverName] + [dirs: 'a    b      c']).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
-    }
-
     @Test (expected = InvalidUserDataException)
     public void testFlatDirWithMissingDirs() {
         repositoryHandler.flatDir([name: 'someName'])
@@ -102,17 +94,6 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         assertEquals([expectedResolver], repositoryHandler.resolverList)
     }
 
-    @Test
-    public void testMavenCentralWithNameAndUrlsAsWhiteSpaceSeparatedString() {
-        String testUrl1 = 'http://www.gradle1.org'
-        String testUrl2 = 'http://www.gradle2.org'
-        String name = 'customName'
-        prepareCreateMavenRepo(name, repositoryHandler.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.mavenCentral(name: name, urls: "$testUrl1 $testUrl2").is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
-    }
-
     @Test(expected = InvalidUserDataException)
     public void testMavenRepoWithMissingUrls() {
         repositoryHandler.mavenRepo([name: 'someName'])
@@ -126,17 +107,6 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
-    }
-
-    @Test
-    public void testMavenRepoWithNameAndUrlsAsWhiteSpaceSeparatedString() {
-        String testUrl2 = 'http://www.gradle2.org'
-        String repoRoot = 'http://www.reporoot.org'
-        String repoName = 'mavenRepoName'
-        prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.mavenRepo([name: repoName, urls: "$repoRoot    $testUrl2"]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolverList)
     }
 
