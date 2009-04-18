@@ -1,4 +1,4 @@
-whenTaskAdded { task ->
+tasks.whenTaskAdded { task ->
     task.srcDir = 'src/main/java'
 }
 

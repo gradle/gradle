@@ -22,9 +22,9 @@ import groovy.util.AntBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
@@ -148,9 +148,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListeners
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
-
-    private ListenerBroadcast<TaskLifecycleListener> taskLifecycleListeners
-            = new ListenerBroadcast<TaskLifecycleListener>(TaskLifecycleListener.class);
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
     private DynamicObjectHelper dynamicObjectHelper;
@@ -765,7 +762,6 @@ public abstract class AbstractProject implements ProjectInternal {
         if (action != null) {
             task.doFirst(action);
         }
-        taskLifecycleListeners.getSource().taskAdded(task);
         return task;
     }
 
@@ -971,26 +967,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void afterEvaluate(Closure afterEvaluateListener) {
         projectEvaluationListeners.add("afterEvaluate", afterEvaluateListener);
-    }
-
-    public TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener<Task> listener) {
-        taskLifecycleListeners.add(listener);
-        return listener;
-    }
-
-    public <T extends Task> TaskLifecycleListener addTaskLifecycleListener(final Class<T> type, final TaskLifecycleListener<? super T> listener) {
-        addTaskLifecycleListener(new TaskLifecycleListener<Task>() {
-            public void taskAdded(Task task) {
-                if (type.isInstance(task)) {
-                    listener.taskAdded(type.cast(task));
-                }
-            }
-        });
-        return listener;
-    }
-
-    public void whenTaskAdded(Closure taskAddedListener) {
-        taskLifecycleListeners.add("taskAdded", taskAddedListener);
     }
 
     public Logger getLogger() {

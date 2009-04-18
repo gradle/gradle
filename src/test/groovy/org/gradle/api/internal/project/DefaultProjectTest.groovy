@@ -20,12 +20,12 @@ import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.FileCollection
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.DefaultTask
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
 import org.gradle.api.internal.artifacts.dsl.ArtifactHandler
@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention
+import org.gradle.api.internal.project.AbstractProject.State
 import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
@@ -45,6 +46,10 @@ import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.invocation.DefaultBuild
+import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TestClosure
+import org.gradle.util.WrapUtil
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
@@ -52,7 +57,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
-import org.gradle.util.*
+import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -550,47 +555,6 @@ class DefaultProjectTest {
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
         assertSame(testAction, testTask.getActions()[0])
-    }
-
-    @Test void testNotifiesListenerWhenTaskAdded() {
-        TaskLifecycleListener listener = context.mock(TaskLifecycleListener)
-        context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
-            one(listener).taskAdded(testTask)
-        }
-        project.addTaskLifecycleListener(listener)
-        project.createTask(TEST_TASK_NAME)
-    }
-
-    @Test void testNotifiesClosureWhenTaskAdded() {
-        TestClosure listener = context.mock(TestClosure)
-        context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
-            one(listener).call(testTask)
-        }
-
-        project.whenTaskAdded(HelperUtil.toClosure(listener))
-        project.createTask(TEST_TASK_NAME)
-    }
-
-    @Test void testNotifiesListenerWhenTaskOfGivenTypeAdded() {
-        TaskLifecycleListener listener = context.mock(TaskLifecycleListener)
-        TestTask task = new TestTask(project, 'name')
-        context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [type: TestTask], TEST_TASK_NAME); will(returnValue(task))
-            one(listener).taskAdded(task)
-        }
-        project.addTaskLifecycleListener(TestTask, listener)
-        project.createTask(TEST_TASK_NAME, type: TestTask)
-    }
-
-    @Test void testDoesNotNotifyListenerWhenTaskOfOtherTypeAdded() {
-        TaskLifecycleListener listener = context.mock(TaskLifecycleListener)
-        context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
-        }
-        project.addTaskLifecycleListener(TestTask, listener)
-        project.createTask(TEST_TASK_NAME)
     }
 
     @Test void testTask() {

@@ -20,11 +20,5 @@ package org.gradle.api;
  *
  * @author Hans Dockter
  */
-public interface ProjectAction {
-    /**
-     * <p>Executes this action against the given project.</p>
-     *
-     * @param project The project.
-     */
-    void execute(Project project);
+public interface ProjectAction extends Action<Project> {
 }

@@ -16,13 +16,13 @@
 package org.gradle.api;
 
 /**
- * A {@code TaskLifecycleListener} is notified of events in the lifecycle of a {@link Task}.
+ * Performs some action against objects of type T.
  */
-public interface TaskLifecycleListener<T extends Task> {
+public interface Action<T> {
     /**
-     * This method is called when a task is added to a project.
+     * Performs this action against the given object
      *
-     * @param task The newly added task. Never null.
+     * @param t The object to perform the action on.
      */
-    void taskAdded(T task);
+    void execute(T t);
 }

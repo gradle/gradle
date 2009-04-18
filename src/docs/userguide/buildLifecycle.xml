@@ -235,8 +235,7 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
                 <sourcefile file="build.gradle"/>
                 <output args="-q a"/>
             </sample>
-            <para>You can also use a <apilink class="org.gradle.api.TaskLifecycleListener"/> to receive these events.
-            </para>
+            <para>You can also use a <apilink class="org.gradle.api.TaskAction"/> to receive these events.</para>
         </section>
 
         <section>

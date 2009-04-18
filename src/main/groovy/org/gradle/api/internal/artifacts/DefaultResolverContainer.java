@@ -165,8 +165,9 @@ public class DefaultResolverContainer implements ResolverContainer {
         }
         return returnedResolvers;
     }
-    
+
     private static interface OrderAction {
+        
         void apply(String resolverName);
     }
 

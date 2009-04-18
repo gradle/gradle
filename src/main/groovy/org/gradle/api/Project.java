@@ -18,11 +18,11 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.invocation.Build;
@@ -930,35 +930,6 @@ public interface Project extends Comparable<Project> {
      * @param afterEvaluateListener The listener to be added.
      */
     void afterEvaluate(Closure afterEvaluateListener);
-
-    /**
-     * <p>Adds a {@link TaskLifecycleListener} to this project. This listener is notified when tasks are added to this
-     * project.</p>
-     *
-     * @param listener The listener to add. Must not be null. Does nothing if this listener has already been added to
-     * this project
-     * @return The added listener
-     */
-    TaskLifecycleListener addTaskLifecycleListener(TaskLifecycleListener<Task> listener);
-
-    /**
-     * <p>Adds a {@link TaskLifecycleListener} to this project. This listener is notified when tasks of the given type
-     * are added to this project.</p>
-     *
-     * @param type The type of task to notify the listener of. Must not be null.
-     * @param listener The listener to add. Must not be null. Does nothing if this listener has already been added to
-     * this project.
-     * @return The added listener
-     */
-    <T extends Task> TaskLifecycleListener addTaskLifecycleListener(Class<T> type, TaskLifecycleListener<? super T> listener);
-
-    /**
-     * Adds a closure to be notified when a task is added to this project. The task is passed to the closure as the
-     * parameter.
-     *
-     * @param taskAddedListener The closure
-     */
-    void whenTaskAdded(Closure taskAddedListener);
 
     /**
      * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the

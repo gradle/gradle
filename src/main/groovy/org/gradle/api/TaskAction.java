@@ -20,11 +20,5 @@ package org.gradle.api;
  *
  * @author Hans Dockter
  */
-public interface TaskAction {
-    /**
-     * <p>Executed this action against the given task.</p>
-     *
-     * @param task The task.
-     */
-    void execute(Task task);
+public interface TaskAction extends Action<Task> {
 }

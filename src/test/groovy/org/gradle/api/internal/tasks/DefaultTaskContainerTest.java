@@ -15,19 +15,25 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.TestClosure;
+import org.gradle.util.TestTask;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.UnknownTaskException;
 
+@RunWith(JMock.class)
 public class DefaultTaskContainerTest {
     private final DefaultTaskContainer container = new DefaultTaskContainer();
-    
+    private final JUnit4Mockery context = new JUnit4Mockery();
+
     @Test
     public void getByNameFailsForUnknownTask() {
         try {
@@ -36,5 +42,52 @@ public class DefaultTaskContainerTest {
         } catch (UnknownTaskException e) {
             assertThat(e.getMessage(), equalTo("Task with name 'unknown' not found."));
         }
+    }
+
+    @Test
+    public void callsActionWhenTaskAdded() {
+        final Action<Task> action = context.mock(Action.class);
+        final Task task = context.mock(Task.class);
+
+        context.checking(new Expectations() {{
+            one(action).execute(task);
+        }});
+
+        container.whenTaskAdded(action);
+        container.add("task", task);
+    }
+
+    @Test
+    public void callsActionWhenTaskOfRequestedTypeAdded() {
+        final Action<TestTask> action = context.mock(Action.class);
+        final TestTask task = new TestTask(HelperUtil.createRootProject(), "task");
+
+        context.checking(new Expectations() {{
+            one(action).execute(task);
+        }});
+
+        container.whenTaskAdded(TestTask.class, action);
+        container.add("task", task);
+    }
+
+    @Test
+    public void doesNotCallActionWhenTaskOfNonRequestedTypeAdded() {
+        final Action<TestTask> action = context.mock(Action.class);
+        final Task task = context.mock(Task.class);
+
+        container.whenTaskAdded(TestTask.class, action);
+        container.add("task", task);
+    }
+
+    @Test
+    public void callsClosureWhenTaskAdded() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        final Task task = context.mock(Task.class);
+        context.checking(new Expectations() {{
+            one(closure).call(task);
+        }});
+
+        container.whenTaskAdded(HelperUtil.toClosure(closure));
+        container.add("task", task);
     }
 }

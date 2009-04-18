@@ -18,9 +18,9 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.ConventionTask;
@@ -121,8 +121,8 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureCompile(final Project project) {
-        project.addTaskLifecycleListener(Compile.class, new TaskLifecycleListener<Compile>() {
-            public void taskAdded(Compile compile) {
+        project.getTasks().whenTaskAdded(Compile.class, new Action<Compile>() {
+            public void execute(Compile compile) {
                 compile.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                 compile.setConfiguration(project.getConfigurations().get(COMPILE_CONFIGURATION_NAME));
                 compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
@@ -134,8 +134,8 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureProcessResources(Project project) {
-        project.addTaskLifecycleListener(Copy.class, new TaskLifecycleListener<Copy>() {
-            public void taskAdded(Copy processResources) {
+        project.getTasks().whenTaskAdded(Copy.class, new Action<Copy>() {
+            public void execute(Copy processResources) {
                 processResources.dependsOn(INIT_TASK_NAME);
                 processResources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
             }
@@ -145,8 +145,8 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureJavaDoc(final Project project) {
-        project.addTaskLifecycleListener(Javadoc.class, new TaskLifecycleListener<Javadoc>() {
-            public void taskAdded(Javadoc javadoc) {
+        project.getTasks().whenTaskAdded(Javadoc.class, new Action<Javadoc>() {
+            public void execute(Javadoc javadoc) {
                 javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
                 javadoc.setConfiguration(project.getConfigurations().get(COMPILE_CONFIGURATION_NAME));
             }
@@ -316,8 +316,8 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureTest(final Project project) {
-        project.addTaskLifecycleListener(Test.class, new TaskLifecycleListener<Test>() {
-            public void taskAdded(Test test) {
+        project.getTasks().whenTaskAdded(Test.class, new Action<Test>() {
+            public void execute(Test test) {
                 test.dependsOn(COMPILE_TESTS_TASK_NAME);
                 test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
                 test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME_CONFIGURATION_NAME));

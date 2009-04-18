@@ -18,7 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.TaskLifecycleListener;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
@@ -62,8 +62,8 @@ public class GroovyPlugin implements Plugin {
     }
 
     private void configureGroovydoc(final Project project) {
-        project.addTaskLifecycleListener(Groovydoc.class, new TaskLifecycleListener<Groovydoc>() {
-            public void taskAdded(Groovydoc groovydoc) {
+        project.getTasks().whenTaskAdded(Groovydoc.class, new Action<Groovydoc>() {
+            public void execute(Groovydoc groovydoc) {
                 groovydoc.setGroovyClasspath(project.getConfigurations().get("groovy"));
                 groovydoc.conventionMapping(GUtil.map("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -80,8 +80,8 @@ public class GroovyPlugin implements Plugin {
     }
 
     private void configureJavadoc(Project project) {
-        TaskLifecycleListener<Javadoc> taskListener = new TaskLifecycleListener<Javadoc>() {
-            public void taskAdded(Javadoc javadoc) {
+        Action<Javadoc> taskListener = new Action<Javadoc>() {
+            public void execute(Javadoc javadoc) {
                 javadoc.exclude("**/*.groovy");
                 javadoc.conventionMapping(WrapUtil.<String, ConventionValue>toMap("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -91,8 +91,8 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         };
-        project.addTaskLifecycleListener(Javadoc.class, taskListener);
-        taskListener.taskAdded((Javadoc) project.task(JAVADOC_TASK_NAME));
+        project.getTasks().whenTaskAdded(Javadoc.class, taskListener);
+        taskListener.execute((Javadoc) project.task(JAVADOC_TASK_NAME));
     }
 
     private void configureTestCompile(JavaPlugin javaPlugin, Project project) {
@@ -112,8 +112,8 @@ public class GroovyPlugin implements Plugin {
     }
 
     private void configureCompile(final Project project) {
-        project.addTaskLifecycleListener(GroovyCompile.class, new TaskLifecycleListener<GroovyCompile>() {
-            public void taskAdded(GroovyCompile compile) {
+        project.getTasks().whenTaskAdded(GroovyCompile.class, new Action<GroovyCompile>() {
+            public void execute(GroovyCompile compile) {
                 compile.setGroovyClasspath(project.getConfigurations().get("groovy"));
                 compile.conventionMapping(GUtil.map("groovySourceDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

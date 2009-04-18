@@ -39,20 +39,20 @@ import java.util.Set;
 public class OsgiPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
-        TaskLifecycleListener<Jar> configureAction = createOsgiConfigureAction();
+        Action<Jar> configureAction = createOsgiConfigureAction();
         Bundle libsTask = ((Bundle) project.task(JavaPlugin.LIBS_TASK_NAME));
         for (AbstractArchiveTask abstractArchiveTask : libsTask.getArchiveTasks()) {
             if (abstractArchiveTask instanceof Jar) {
                 Jar jar = (Jar) abstractArchiveTask;
-                configureAction.taskAdded(jar);
+                configureAction.execute(jar);
             }
         }
-        project.addTaskLifecycleListener(Jar.class, configureAction);
+        project.getTasks().whenTaskAdded(Jar.class, configureAction);
     }
 
-    private TaskLifecycleListener<Jar> createOsgiConfigureAction() {
-        return new TaskLifecycleListener<Jar>() {
-            public void taskAdded(final Jar jar) {
+    private Action<Jar> createOsgiConfigureAction() {
+        return new Action<Jar>() {
+            public void execute(final Jar jar) {
                 jar.dependsOn(jar.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
                 jar.defineProperty("osgi", createDefaultOsgiManifest(jar.getProject()));
                 jar.doFirst(new TaskAction() {

@@ -16,9 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Rule;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownTaskException;
+import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 
 import java.util.Map;
@@ -84,6 +82,31 @@ public interface TaskContainer extends Iterable<Task> {
      * @throws UnknownTaskException when there is no such task in this container.
      */
     Task get(String name) throws UnknownTaskException;
+
+    /**
+     * Adds a {@code TaskAction} to be performed when a task is added to this container.
+     *
+     * @param action The action to be performed
+     * @return the supplied action
+     */
+    Action<? super Task> whenTaskAdded(Action<? super Task> action);
+
+    /**
+     * Adds a {@code TaskAction} to be performed when a task of the given type is added to this container.
+     *
+     * @param action The action to be performed
+     * @param type The type of tasks to be notified of
+     * @return the supplied action
+     */
+    <T extends Task> Action<T> whenTaskAdded(Class<T> type, Action<T> action);
+
+    /**
+     * Adds a closure to be called when a task is added to this container. The task is passed to the closure as the
+     * parameter.
+     *
+     * @param closure The closure to be called
+     */
+    void whenTaskAdded(Closure closure);
 
     /**
      * Locates a task by name, failing if there is no such task. This method is identical to {@link #get(String)}. You

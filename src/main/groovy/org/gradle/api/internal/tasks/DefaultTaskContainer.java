@@ -15,16 +15,39 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
-import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.UnknownTaskException;
+import org.gradle.api.*;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.util.ListenerBroadcast;
+import groovy.lang.Closure;
 
 public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> implements TaskContainer {
+    private ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
+
     @Override
     public void add(String name, Task object) {
+        addActions.getSource().execute(object);
         super.add(name, object);
+    }
+
+    public Action<? super Task> whenTaskAdded(Action<? super Task> action) {
+        addActions.add(action);
+        return action;
+    }
+
+    public <T extends Task> Action<T> whenTaskAdded(final Class<T> type, final Action<T> action) {
+        whenTaskAdded(new Action<Task>() {
+            public void execute(Task task) {
+                if (type.isInstance(task)) {
+                    action.execute(type.cast(task));
+                }
+            }
+        });
+        return action;
+    }
+
+    public void whenTaskAdded(Closure closure) {
+        addActions.add("execute", closure);
     }
 
     @Override
