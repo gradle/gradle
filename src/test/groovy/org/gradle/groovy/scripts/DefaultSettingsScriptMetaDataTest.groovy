@@ -16,11 +16,9 @@
  
 package org.gradle.groovy.scripts
 
-import org.codehaus.groovy.control.CompilerConfiguration
-import org.gradle.api.internal.project.DefaultProject
-import org.junit.Test
+import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData
 import org.gradle.initialization.DefaultSettings
-import org.gradle.api.internal.project.ProjectScript
+import org.junit.Test
 import static org.junit.Assert.*
 
 /**

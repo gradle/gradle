@@ -124,9 +124,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private int depth = 0;
 
-    private DefaultTaskContainer taskContainer = new DefaultTaskContainer();
-
-    private ITaskFactory taskFactory;
+    private DefaultTaskContainer taskContainer;
 
     private IProjectRegistry<ProjectInternal> projectRegistry;
 
@@ -157,6 +155,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.name = name;
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(new DefaultConvention());
+        taskContainer = null;
     }
 
     public AbstractProject(String name, ProjectInternal parent, File projectDir, File buildFile,
@@ -177,7 +176,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.name = name;
         this.buildFile = buildFile;
         this.buildScriptClassLoader = buildScriptClassLoader;
-        this.taskFactory = taskFactory;
         this.internalRepository = internalRepository;
         this.configurationContainerFactory = configurationContainerFactory;
         this.configurationContainer = configurationContainerFactory.createConfigurationContainer(createResolverProvider(), createArtifactsProvider());
@@ -196,6 +194,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.archivesBaseName = name;
         this.buildScriptSource = buildScriptSource;
         this.build = build;
+        taskContainer = new DefaultTaskContainer(this, taskFactory);
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
@@ -535,14 +534,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.archivesBaseName = archivesBaseName;
     }
 
-    public ITaskFactory getTaskFactory() {
-        return taskFactory;
-    }
-
-    public void setTaskFactory(ITaskFactory taskFactory) {
-        this.taskFactory = taskFactory;
-    }
-
     public IProjectRegistry<ProjectInternal> getProjectRegistry() {
         return projectRegistry;
     }
@@ -757,12 +748,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(Map args, String name, TaskAction action) {
-        Task task = taskFactory.createTask(this, taskContainer.getAsMap(), args, name);
-        taskContainer.add(name, task);
-        if (action != null) {
-            task.doFirst(action);
-        }
-        return task;
+        return taskContainer.add(args, name, action);
     }
 
     public void addChildProject(ProjectInternal childProject) {
@@ -916,9 +902,7 @@ public abstract class AbstractProject implements ProjectInternal {
                     throw new InvalidUserDataException("A non directory task with this name already exsists.");
                 }
             } else {
-                HashMap<String, Object> map = new HashMap<String, Object>();
-                map.put("type", Directory.class);
-                createTask(map, name);
+                taskContainer.add(name, Directory.class);
             }
         }
         return task(path);
@@ -1000,13 +984,5 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public Map<String, ?> getProperties() {
         return dynamicObjectHelper.getProperties();
-    }
-
-    public Rule addRule(Rule rule) {
-        return taskContainer.addRule(rule);
-    }
-
-    public List<Rule> getRules() {
-        return taskContainer.getRules();
     }
 }

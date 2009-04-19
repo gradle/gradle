@@ -17,12 +17,48 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.project.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.util.ListenerBroadcast;
+import org.gradle.util.GUtil;
 import groovy.lang.Closure;
 
+import java.util.Map;
+
 public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> implements TaskContainer {
-    private ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
+    private final ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
+    private final Project project;
+    private final ITaskFactory taskFactory;
+
+    public DefaultTaskContainer(Project project, ITaskFactory taskFactory) {
+        this.project = project;
+        this.taskFactory = taskFactory;
+    }
+
+    public Task add(Map<String, ?> options, String name, TaskAction taskAction) {
+        Task task = taskFactory.createTask(project, getAsMap(), options, name);
+        add(name, task);
+        if (taskAction != null) {
+            task.doFirst(taskAction);
+        }
+        return task;
+    }
+
+    public <T extends Task> T add(String name, Class<T> type) {
+        return type.cast(add(GUtil.map(Task.TASK_TYPE, type), name, null));
+    }
+
+    public Task add(String name) {
+        return add(GUtil.map(), name, null);
+    }
+
+    public Task replace(String name) {
+        return add(GUtil.map(Task.TASK_OVERWRITE, true), name, null);
+    }
+
+    public <T extends Task> T replace(String name, Class<T> type) {
+        return type.cast(add(GUtil.map(Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true), name, null));
+    }
 
     @Override
     public void add(String name, Task object) {

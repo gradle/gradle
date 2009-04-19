@@ -9,7 +9,7 @@ public abstract class ScriptWithSource extends Script {
         return source;
     }
 
-    public void setSource(ScriptSource source) {
+    public void setScriptSource(ScriptSource source) {
         this.source = source;
     }
 }

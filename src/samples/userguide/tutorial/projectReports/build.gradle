@@ -17,7 +17,7 @@ subprojects {
         compile "commons-io:commons-io:1.2"
     }
     createTask('libs')
-    addRule(new TestRule())
+    tasks.addRule(new TestRule())
 }
 
 class TestRule implements Rule {

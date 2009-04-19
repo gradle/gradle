@@ -34,18 +34,15 @@ public class ProjectReportsPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(ReportingBasePlugin.class, project, customValues);
         
-        TaskReportTask taskReportTask = (TaskReportTask) project.createTask(toMap(Task.TASK_TYPE, TaskReportTask.class),
-                "taskReport");
+        TaskReportTask taskReportTask = project.getTasks().add("taskReport", TaskReportTask.class);
         taskReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/tasks.txt"));
         taskReportTask.setDescription("Shows a report about your tasks.");
 
-        PropertyReportTask propertyReportTask = (PropertyReportTask) project.createTask(toMap(Task.TASK_TYPE,
-                PropertyReportTask.class), "propertyReport");
+        PropertyReportTask propertyReportTask = project.getTasks().add("propertyReport", PropertyReportTask.class);
         propertyReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/properties.txt"));
         propertyReportTask.setDescription("Shows a report about your properties.");
 
-        DependencyReportTask dependencyReportTask = (DependencyReportTask) project.createTask(toMap(Task.TASK_TYPE,
-                DependencyReportTask.class), "dependencyReport");
+        DependencyReportTask dependencyReportTask = project.getTasks().add("dependencyReport", DependencyReportTask.class);
         dependencyReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/dependencies.txt"));
         dependencyReportTask.setDescription("Shows a report about your library dependencies.");
     }

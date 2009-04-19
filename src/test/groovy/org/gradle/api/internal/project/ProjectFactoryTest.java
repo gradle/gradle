@@ -204,7 +204,6 @@ public class ProjectFactoryTest {
     }
 
     private void checkProjectResources(DefaultProject project) {
-        assertSame(taskFactoryMock, project.getTaskFactory());
         assertSame(buildScriptClassLoader, project.getBuildScriptClassLoader());
         assertSame(configurationContainerFactory, project.getConfigurationContainerFactory());
         assertSame(buildScriptProcessor, project.getBuildScriptProcessor());

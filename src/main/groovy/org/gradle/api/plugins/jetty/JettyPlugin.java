@@ -25,7 +25,6 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.War;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Map;
@@ -57,14 +56,13 @@ public class JettyPlugin implements Plugin {
     }
 
     private void configureJettyRunWarExploded(Project project, JettyPluginConvention jettyConvention) {
-        JettyRunWarExploded jettyRunWarExploded = (JettyRunWarExploded)
-                 project.createTask(GUtil.map("type", JettyRunWarExploded.class), JETTY_RUN_EXPLODED_WAR);
+        JettyRunWarExploded jettyRunWarExploded = project.getTasks().add(JETTY_RUN_EXPLODED_WAR, JettyRunWarExploded.class);
         jettyRunWarExploded.setDescription("Assembles the webapp into an exploded war and deploys it to Jetty.");
         configureAbstractJettyTask(project, jettyConvention, jettyRunWarExploded);
     }
 
     private void configureJettyRunWar(final Project project, JettyPluginConvention jettyConvention) {
-        JettyRunWar jettyRunWar = (JettyRunWar) project.createTask(GUtil.map("type", JettyRunWar.class), JETTY_RUN_WAR);
+        JettyRunWar jettyRunWar = project.getTasks().add(JETTY_RUN_WAR, JettyRunWar.class);
         jettyRunWar.setDescription("Assembles the webapp into a war and deploys it to Jetty.");
         jettyRunWar.dependsOn("archive_war");
 
@@ -77,7 +75,7 @@ public class JettyPlugin implements Plugin {
     }
 
     private void configureJettyStop(Project project, final JettyPluginConvention jettyConvention) {
-        JettyStop jettyStop = (JettyStop) project.createTask(GUtil.map("type", JettyStop.class), JETTY_STOP);
+        JettyStop jettyStop = project.getTasks().add(JETTY_STOP, JettyStop.class);
         jettyStop.setDescription("Stops Jetty.");
         jettyStop.getConventionMapping().put("stopPort", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -92,7 +90,7 @@ public class JettyPlugin implements Plugin {
     }
 
     private void configureJettyRun(final Project project, final JettyPluginConvention jettyConvention) {
-        JettyRun jettyRun = (JettyRun) project.createTask(GUtil.map("type", JettyRun.class), JETTY_RUN);
+        JettyRun jettyRun = project.getTasks().add(JETTY_RUN, JettyRun.class);
         jettyRun.setDescription("Uses your files as and where they are and deploys them to Jetty.");
         jettyRun.dependsOn(JavaPlugin.COMPILE_TESTS_TASK_NAME);
 

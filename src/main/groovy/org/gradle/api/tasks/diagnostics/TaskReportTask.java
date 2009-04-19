@@ -48,7 +48,7 @@ public class TaskReportTask extends AbstractReportTask {
         for (Task task : tasks) {
             renderer.addTask(task);
         }
-        for (Rule rule : project.getRules()) {
+        for (Rule rule : project.getTasks().getRules()) {
             renderer.addRule(rule);
         }
     }

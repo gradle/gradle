@@ -74,7 +74,7 @@ public class TaskReportTaskTest {
             one(taskContainer).getAll();
             will(returnValue(toLinkedSet(task2, task1)));
 
-            allowing(project).getRules();
+            allowing(taskContainer).getRules();
             will(returnValue(toList()));
 
             allowing(task2).compareTo(task1);
@@ -111,7 +111,7 @@ public class TaskReportTaskTest {
             one(taskContainer).getAll();
             will(returnValue(toSet()));
 
-            one(project).getRules();
+            one(taskContainer).getRules();
             will(returnValue(toList(rule1, rule2)));
 
             Sequence sequence = context.sequence("seq");

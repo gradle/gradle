@@ -31,18 +31,20 @@ import java.util.Set;
 /**
  * <p>A <code>Task</code> represents a single step of a build, such as compiling classes or generating javadoc.</p>
  *
- * <p>Each task belongs to a {@link Project}. You can use the various methods on {@link Project} to create and lookup
- * task instances. For example, {@link Project#createTask(String)} creates an empty task with the given name.</p>
+ * <p>Each task belongs to a {@link Project}. You can use the various methods on {@link Project} or {@link
+ * org.gradle.api.tasks.TaskContainer} to create and lookup task instances. For example, {@link
+ * Project#createTask(String)} creates an empty task with the given name.</p>
  *
  * <p>Each task has a name, which can be used to refer to the task within its owning project, and a fully qualified
  * path, which is unique across all tasks in all projects. The path is the concatenation of the owning project's path
- * and the task's name. Path elements are separated using the {@value org.gradle.api.Project#PATH_SEPARATOR} character.</p>
+ * and the task's name. Path elements are separated using the {@value org.gradle.api.Project#PATH_SEPARATOR}
+ * character.</p>
  *
  * <h3>Task Actions</h3>
  *
  * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
- * actions is executed in turn, by calling {@link TaskAction#execute(Task)}.  You can add actions to a task by calling
- * {@link #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
+ * actions is executed in turn, by calling {@link TaskAction#execute}.  You can add actions to a task by calling {@link
+ * #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
  * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or

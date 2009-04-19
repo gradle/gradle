@@ -43,7 +43,7 @@ public class DefaultScriptProcessor implements IScriptProcessor {
         else {
             script = (ScriptWithSource) loadWithoutCache(source, classLoader, scriptBaseClass);
         }
-        script.setSource(source);
+        script.setScriptSource(source);
         return (T) script;
     }
 

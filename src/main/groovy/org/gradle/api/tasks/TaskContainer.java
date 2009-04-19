@@ -21,6 +21,7 @@ import org.gradle.api.specs.Spec;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 
 /**
  * <p>A {@code TaskContainer} is responsible for managing a set of {@link Task} instances.</p>
@@ -123,10 +124,103 @@ public interface TaskContainer extends Iterable<Task> {
     Task getAt(String name) throws UnknownTaskException;
 
     /**
+     * <p>Creates a {@link Task} with the given name and adds it to this container. Before the task is returned, the
+     * given action closure is passed to the task's {@link Task#doFirst(TaskAction)} method. A map of creation options
+     * can be passed to this method to control how the task is created. The following options are available:</p>
+     *
+     * <table>
+     *
+     * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
+     *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
+     * create.</td><td>{@link org.gradle.api.internal.DefaultTask}</td></tr>
+     *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
+     * task?</td><td><code>false</code></td></tr>
+     *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>The dependencies of the task. See <a
+     * href="../Task.html#dependencies">here</a> for more details.</td><td><code>[]</code></td></tr>
+     *
+     * </table>
+     *
+     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
+     * by name in your build file.  See <a href="../Project.html#properties">here</a> for more details.</p>
+     *
+     * <p>If a task with the given name already exists in this container and the <code>override</code> option is not set
+     * to true, an exception is thrown.</p>
+     *
+     * @param options The task creation options.
+     * @param name The name of the task to be created
+     * @param taskAction The closure to be passed to the {@link Task#doFirst(TaskAction)} method of the created task.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exsists in this project.
+     */
+    Task add(Map<String, ?> options, String name, TaskAction taskAction) throws InvalidUserDataException;
+
+    /**
+     * <p>Creates a {@link Task} with the given name and adds it to this container.</p>
+     *
+     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
+     * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
+     *
+     * @param name The name of the task to be created
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exsists in this project.
+     */
+    Task add(String name) throws InvalidUserDataException;
+
+    /**
+     * <p>Creates a {@link Task} with the given name and type, and adds it to this container.</p>
+     *
+     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
+     * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
+     *
+     * @param name The name of the task to be created.
+     * @param type The type of task to create.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exsists in this project.
+     */
+    <T extends Task> T add(String name, Class<T> type) throws InvalidUserDataException;
+
+    /**
+     * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the
+     * same name.</p>
+     *
+     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
+     * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
+     *
+     * @param name The name of the task to be created
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exsists in this project.
+     */
+    Task replace(String name);
+
+    /**
+     * <p>Creates a {@link Task} with the given name and type, and adds it to this container, replacing any existing
+     * task of the same name.</p>
+     *
+     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
+     * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
+     *
+     * @param name The name of the task to be created.
+     * @param type The type of task to create.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exsists in this project.
+     */
+    <T extends Task> T replace(String name, Class<T> type);
+
+    /**
      * Adds a rule to this container. The given rule is invoked when an unknown task is requested.
      *
      * @param rule The rule to add.
      * @return The added rule.
      */
     Rule addRule(Rule rule);
+
+    /**
+     * Returns the rules used by this container.
+     *
+     * @return The rules, in the order they will be applied.
+     */
+    List<Rule> getRules();
 }

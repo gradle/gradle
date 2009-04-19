@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ITaskFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.AbstractTaskTest
@@ -32,7 +32,10 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.tasks.bundling.*
 import static org.junit.Assert.*
+import org.gradle.api.tasks.TaskContainer
+
 
 /**
  * @author Hans Dockter
@@ -84,7 +87,7 @@ class BundleTest extends AbstractConventionTaskTest {
         testDefaultDestinationDir = 'someDestDir' as File
         taskMock = context.mock(Task)
         taskFactoryMock = context.mock(ITaskFactory)
-        getProject().setTaskFactory(taskFactoryMock)
+        getProject().setTaskContainer(new DefaultTaskContainer(getProject(), taskFactoryMock))
         testCustomConfigurations = ['customConf1', 'customConf2']
         testArgs = [baseName: 'testBasename', appendix: 'testAppendix', classifier: 'testClassifier',
                 confs: testCustomConfigurations]
@@ -201,13 +204,15 @@ class BundleTest extends AbstractConventionTaskTest {
 
     private void preparForDependsOnTest(Map args = [:]) {
         Project projectMock = context.mock(ProjectInternal)
+        TaskContainer taskContainer = context.mock(TaskContainer)
         bundle.setProject(projectMock)
         context.checking {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
             allowing(projectMock).getArchivesTaskBaseName(); will(returnValue('archive'))
-            one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip1_zip")
+            allowing(projectMock).getTasks(); will(returnValue(taskContainer))
+            one(taskContainer).add("zip1_zip", Zip)
             will(returnValue(Zip.newInstance(getProject(), "zip1_zip")))
-            one(projectMock).createTask([(Task.TASK_TYPE): Zip], "zip2_zip")
+            one(taskContainer).add("zip2_zip", Zip)
             will(returnValue(Zip.newInstance(getProject(), "zip2_zip")))
         }
     }
@@ -218,11 +223,13 @@ class BundleTest extends AbstractConventionTaskTest {
         String classifier = args.classifier ? '_' + args.classifier : ''
         taskName = "${taskName}${classifier}_${archiveType.defaultExtension}"
         Project projectMock = context.mock(ProjectInternal)
+        TaskContainer taskContainer = context.mock(TaskContainer)
         bundle.setProject(projectMock)
         context.checking {
             allowing(projectMock).getArchivesBaseName(); will(returnValue(getProject().getArchivesBaseName()))
             allowing(projectMock).getArchivesTaskBaseName(); will(returnValue(Project.DEFAULT_ARCHIVES_TASK_BASE_NAME))
-            one(projectMock).createTask([(Task.TASK_TYPE): archiveType.getTaskClass()], taskName)
+            allowing(projectMock).getTasks(); will(returnValue(taskContainer))
+            one(taskContainer).add(taskName, archiveType.getTaskClass())
             will(returnValue(createTask(archiveType.getTaskClass(), getProject(), taskName)))
         }
     }

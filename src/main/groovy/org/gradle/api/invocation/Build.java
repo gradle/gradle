@@ -64,7 +64,7 @@ public interface Build {
     TaskExecutionGraph getTaskGraph();
 
     /**
-     * Returns the {@link org.gradle.StartParameter} used to start this build.
+     * Returns the {@link StartParameter} used to start this build.
      *
      * @return The start parameter. Never returns null.
      */

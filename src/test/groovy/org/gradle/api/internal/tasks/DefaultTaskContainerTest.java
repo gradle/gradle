@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownTaskException;
+import org.gradle.api.*;
+import org.gradle.api.internal.project.ITaskFactory;
+import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
 import org.gradle.util.TestTask;
@@ -29,10 +29,81 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Map;
+
 @RunWith(JMock.class)
 public class DefaultTaskContainerTest {
-    private final DefaultTaskContainer container = new DefaultTaskContainer();
     private final JUnit4Mockery context = new JUnit4Mockery();
+    private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
+    private final Project project = context.mock(Project.class);
+    private final DefaultTaskContainer container = new DefaultTaskContainer(project, taskFactory);
+
+    @Test
+    public void addsTaskWithMapAndClosure() {
+        final Map<String, ?> options = GUtil.map("option", "value");
+        final TaskAction action = context.mock(TaskAction.class);
+        final Task task = context.mock(Task.class);
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            will(returnValue(task));
+            one(task).doFirst(action);
+        }});
+        assertThat(container.add(options, "task", action), sameInstance(task));
+        assertThat(container.get("task"), sameInstance(task));
+    }
+    
+    @Test
+    public void addsTaskWithName() {
+        final Map<String, ?> options = GUtil.map();
+        final Task task = context.mock(Task.class);
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            will(returnValue(task));
+        }});
+        assertThat(container.add("task"), sameInstance(task));
+        assertThat(container.get("task"), sameInstance(task));
+    }
+
+    @Test
+    public void addsTaskWithNameAndType() {
+        final Map<String, ?> options = GUtil.map(Task.TASK_TYPE, Task.class);
+        final Task task = context.mock(Task.class);
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            will(returnValue(task));
+        }});
+        assertThat(container.add("task", Task.class), sameInstance(task));
+        assertThat(container.get("task"), sameInstance(task));
+    }
+
+    @Test
+    public void replacesTaskWithName() {
+        final Map<String, ?> options = GUtil.map(Task.TASK_OVERWRITE, true);
+        final Task task = context.mock(Task.class);
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            will(returnValue(task));
+        }});
+        assertThat(container.replace("task"), sameInstance(task));
+        assertThat(container.get("task"), sameInstance(task));
+    }
+
+    @Test
+    public void replacesTaskWithNameAndType() {
+        final Map<String, ?> options = GUtil.map(Task.TASK_TYPE, Task.class, Task.TASK_OVERWRITE, true);
+        final Task task = context.mock(Task.class);
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            will(returnValue(task));
+        }});
+        assertThat(container.replace("task", Task.class), sameInstance(task));
+        assertThat(container.get("task"), sameInstance(task));
+    }
 
     @Test
     public void getByNameFailsForUnknownTask() {

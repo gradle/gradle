@@ -1041,10 +1041,6 @@ public interface Project extends Comparable<Project> {
      */
     Object configure(Object object, Closure configureClosure);
 
-    Rule addRule(Rule rule);
-
-    List<Rule> getRules();
-
     RepositoryHandler createRepositoryHandler();
 
     RepositoryHandler getRepositories();

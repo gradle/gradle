@@ -50,7 +50,7 @@ public class MavenPlugin implements Plugin {
         addConventionObject(project, customValues);
         if (isJavaPluginApplied(project)) {
             configureJavaScopeMappings(project.getRepositories(), project.getConfigurations());
-            configureInstall(project, project.getConvention().getPlugin(JavaPluginConvention.class));
+            configureInstall(project);
         }
         if (isWarPluginApplied(project)) {
             configureWarScopeMappings(project.getRepositories(), project.getConfigurations());
@@ -109,8 +109,8 @@ public class MavenPlugin implements Plugin {
                 Conf2ScopeMappingContainer.PROVIDED);
     }
 
-    private void configureInstall(Project project, JavaPluginConvention javaConvention) {
-        Upload installUpload = (Upload) project.createTask(GUtil.map("type", Upload.class), INSTALL_TASK_NAME);
+    private void configureInstall(Project project) {
+        Upload installUpload = project.getTasks().add(INSTALL_TASK_NAME, Upload.class);
         installUpload.setConfiguration(project.getConfigurations().get(Dependency.MASTER_CONFIGURATION));
         PublishInstruction publishInstruction = new PublishInstruction();
         publishInstruction.setIvyFileParentDir(new File("nonNullDummy"));

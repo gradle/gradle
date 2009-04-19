@@ -86,9 +86,9 @@ public class JavaPlugin implements Plugin {
         configureUploadRules(project);
         configureBuildConfigurationRule(project);
 
-        project.createTask(INIT_TASK_NAME).setDescription("The first task of the Java plugin tasks to be excuted. Does nothing if not customized.");
+        project.getTasks().add(INIT_TASK_NAME).setDescription("The first task of the Java plugin tasks to be excuted. Does nothing if not customized.");
 
-        ((ConventionTask) project.createTask(GUtil.map("type", Clean.class), CLEAN_TASK_NAME)).
+        project.getTasks().add(CLEAN_TASK_NAME, Clean.class).
                 conventionMapping(GUtil.map(
                         "dir", new ConventionValue() {
                             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -115,7 +115,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureTestCompile(Project project) {
-        configureCompileTests((Compile) project.createTask(GUtil.map("type", Compile.class), COMPILE_TESTS_TASK_NAME),
+        configureCompileTests(project.getTasks().add(COMPILE_TESTS_TASK_NAME, Compile.class),
                 (Compile) project.task(COMPILE_TASK_NAME), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations()).setDescription("Compiles the Java test source code.");
     }
@@ -130,7 +130,7 @@ public class JavaPlugin implements Plugin {
             }
         });
 
-        project.createTask(GUtil.map("type", Compile.class), COMPILE_TASK_NAME).setDescription("Compiles the Java source code.");
+        project.getTasks().add(COMPILE_TASK_NAME, Compile.class).setDescription("Compiles the Java source code.");
     }
 
     private void configureProcessResources(Project project) {
@@ -140,7 +140,7 @@ public class JavaPlugin implements Plugin {
                 processResources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
             }
         });
-        project.createTask(GUtil.map("type", Copy.class), PROCESS_RESOURCES_TASK_NAME).setDescription(
+        project.getTasks().add(PROCESS_RESOURCES_TASK_NAME, Copy.class).setDescription(
                 "Process and copy the resources into the binary directory of the compiled sources.");
     }
 
@@ -151,20 +151,20 @@ public class JavaPlugin implements Plugin {
                 javadoc.setConfiguration(project.getConfigurations().get(COMPILE_CONFIGURATION_NAME));
             }
         });
-        project.createTask(GUtil.map("type", Javadoc.class), JAVADOC_TASK_NAME).setDescription("Generates the javadoc for the source code.");
+        project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class).setDescription("Generates the javadoc for the source code.");
     }
 
     private void configureEclipse(Project project) {
-        project.createTask(ECLIPSE_TASK_NAME).dependsOn(
+        project.getTasks().add(ECLIPSE_TASK_NAME).dependsOn(
                 configureEclipseProject(project),
                 configureEclipseClasspath(project)
         ).setDescription("Generates an Eclipse .project and .classpath file.");
-        project.createTask(WrapUtil.toMap("type", EclipseClean.class), ECLIPSE_CLEAN_TASK_NAME).setDescription(
-                "Deletes the Eclipse .project and .classpath files.");
+
+        project.getTasks().add(ECLIPSE_CLEAN_TASK_NAME, EclipseClean.class).setDescription("Deletes the Eclipse .project and .classpath files.");
     }
 
     private EclipseProject configureEclipseProject(Project project) {
-        EclipseProject eclipseProject = (EclipseProject) project.createTask(GUtil.map("type", EclipseProject.class), ECLIPSE_PROJECT_TASK_NAME);
+        EclipseProject eclipseProject = project.getTasks().add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
         eclipseProject.setProjectName(project.getName());
         eclipseProject.setProjectType(ProjectType.JAVA);
         eclipseProject.setDescription("Generates an Eclipse .project file.");
@@ -172,7 +172,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureEclipseWtpModule(Project project) {
-        EclipseWtpModule eclipseWtpModule = (EclipseWtpModule) project.createTask(GUtil.map("type", EclipseWtpModule.class), ECLIPSE_WTP_MODULE_TASK_NAME);
+        EclipseWtpModule eclipseWtpModule = project.getTasks().add(ECLIPSE_WTP_MODULE_TASK_NAME, EclipseWtpModule.class);
 
         eclipseWtpModule.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
@@ -184,7 +184,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private EclipseClasspath configureEclipseClasspath(Project project) {
-        EclipseClasspath eclipseClasspath = (EclipseClasspath) project.createTask(GUtil.map("type", EclipseClasspath.class), ECLIPSE_CP_TASK_NAME);
+        EclipseClasspath eclipseClasspath = project.getTasks().add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
         eclipseClasspath.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -222,7 +222,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureProcessTestResources(Project project) {
-        ConventionTask processTestResources = (ConventionTask) project.createTask(GUtil.map("type", Copy.class), PROCESS_TEST_RESOURCES_TASK_NAME);
+        ConventionTask processTestResources = project.getTasks().add(PROCESS_TEST_RESOURCES_TASK_NAME, Copy.class);
         processTestResources.setDependsOn(WrapUtil.toSet(COMPILE_TASK_NAME));
         processTestResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         processTestResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
@@ -232,7 +232,7 @@ public class JavaPlugin implements Plugin {
 
     private void configureBuildConfigurationRule(final Project project) {
         final String prefix = "build";
-        project.addRule(new Rule() {
+        project.getTasks().addRule(new Rule() {
             public String getDescription() {
                 return String.format("Pattern: %s<ConfigurationName>: Builds the artifacts belonging to the configuration.", prefix);
             }
@@ -241,7 +241,7 @@ public class JavaPlugin implements Plugin {
                 if (taskName.startsWith(prefix)) {
                     Configuration configuration = project.getConfigurations().find(taskName.substring(prefix.length()).toLowerCase());
                     if (configuration != null) {
-                        project.createTask(taskName).dependsOn(configuration.getBuildArtifacts());
+                        project.getTasks().add(taskName).dependsOn(configuration.getBuildArtifacts());
                     }
                 }
             }
@@ -249,7 +249,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureUploadRules(final Project project) {
-        project.addRule(new Rule() {
+        project.getTasks().addRule(new Rule() {
             public String getDescription() {
                 return "Pattern: upload<ConfigurationName>Internal: Upload the project artifacts of a configuration to the internal Gradle repository.";
             }
@@ -265,7 +265,7 @@ public class JavaPlugin implements Plugin {
             }
         });
 
-        project.addRule(new Rule() {
+        project.getTasks().addRule(new Rule() {
             public String getDescription() {
                 return "Pattern: upload<ConfigurationName>: Upload the project artifacts of a configuration to a public Gradle repository.";
             }
@@ -282,18 +282,20 @@ public class JavaPlugin implements Plugin {
     }
 
     private Upload createUploadTask(String name, final Configuration configuration, Project project) {
-        final Upload upload = (Upload) project.createTask(GUtil.map("type", Upload.class), name);
+        Upload upload = project.getTasks().add(name, Upload.class);
         PublishInstruction publishInstruction = new PublishInstruction();
         publishInstruction.setIvyFileParentDir(project.getBuildDir());
         upload.setConfiguration(configuration);
         upload.setPublishInstruction(publishInstruction);
         upload.dependsOn(configuration.getBuildArtifacts());
-        upload.setDescription(String.format("Uploads all artifacts belonging to the %s configuration", configuration.getName()));
+        upload.setDescription(String.format("Uploads all artifacts belonging to the %s configuration",
+                configuration.getName()));
         return upload;
     }
 
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
-        Bundle libsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", TEST_TASK_NAME), LIBS_TASK_NAME);
+        Bundle libsBundle = project.getTasks().add(LIBS_TASK_NAME, Bundle.class);
+        libsBundle.dependsOn(TEST_TASK_NAME);
         libsBundle.setDefaultConfigurations(WrapUtil.toList(Dependency.MASTER_CONFIGURATION));
         libsBundle.setDefaultDestinationDir(project.getBuildDir());
         libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
@@ -309,7 +311,8 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
-        Bundle distsBundle = (Bundle) project.createTask(GUtil.map("type", Bundle.class, "dependsOn", LIBS_TASK_NAME), DISTS_TASK_NAME);
+        Bundle distsBundle = project.getTasks().add(DISTS_TASK_NAME, Bundle.class);
+        distsBundle.dependsOn(LIBS_TASK_NAME);
         distsBundle.setDefaultConfigurations(WrapUtil.toList(DISTS_TASK_NAME));
         distsBundle.setDefaultDestinationDir(javaPluginConvention.getDistsDir());
         distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
@@ -333,7 +336,7 @@ public class JavaPlugin implements Plugin {
                 });
             }
         });
-        project.createTask(GUtil.map("type", Test.class), TEST_TASK_NAME).setDescription("Runs the tests.");
+        project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the tests.");
     }
 
     void configureConfigurations(Project project) {

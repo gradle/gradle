@@ -238,7 +238,6 @@ class DefaultProjectTest {
         assertNotNull(project.ant)
         assertNotNull(project.convention)
         assertEquals([], project.getDefaultTasks())
-        assert project.getTaskFactory().is(taskFactoryMock);
         assert project.configurationContainerFactory.is(configurationContainerFactoryMock)
         assert project.configurations.is(configurationContainerMock)
         assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
@@ -1081,17 +1080,6 @@ def scriptMethod(Closure closure) {
 
     @Test(expected = ReadOnlyPropertyException) void setName() {
         project.name = "someNewName" 
-    }
-
-    @Test
-    void addGetSyntheticTasks() {
-        assertEquals([], project.getRules())
-        Rule syntheticTask1 = [:] as Rule
-        project.addRule(syntheticTask1)
-        assertEquals([syntheticTask1], project.getRules())
-        Rule syntheticTask2 = [:] as Rule
-        project.addRule(syntheticTask2)
-        assertEquals([syntheticTask1, syntheticTask2], project.getRules())
     }
 }
 

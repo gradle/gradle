@@ -80,7 +80,7 @@ public class TaskFactory implements ITaskFactory {
     private void checkTaskArgsAndCreateDefaultValues(Map args) {
         setIfNull(args, Task.TASK_TYPE, DefaultTask.class);
         setIfNull(args, Task.TASK_DEPENDS_ON, new ArrayList());
-        setIfNull(args, Task.TASK_OVERWRITE, new Boolean(false));
+        setIfNull(args, Task.TASK_OVERWRITE, false);
     }
 
     private void setIfNull(Map map, String key, Object defaultValue) {

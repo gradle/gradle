@@ -24,7 +24,7 @@ class ArchiveType {
 
     Map conventionMapping
 
-    Class taskClass
+    Class<AbstractArchiveTask> taskClass
 
     ArchiveType(String defaultExtension, Map conventionMapping, Class taskClass) {
         this.defaultExtension = defaultExtension

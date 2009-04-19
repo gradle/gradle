@@ -27,17 +27,20 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
-import org.gradle.CacheUsage
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory
+import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
-import org.gradle.api.logging.LogLevel
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
@@ -45,18 +48,13 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.ScriptWithSource
 import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.initialization.DefaultProjectDescriptorRegistry
-import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory
 
 /**
  * @author Hans Dockter
@@ -96,7 +94,6 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-      Convention convention = new DefaultConvention()
       IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
                 new DefaultConfigurationContainerFactory(),
@@ -126,7 +123,7 @@ class HelperUtil {
                 parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.buildScriptClassLoader,
-                parentProject.taskFactory,
+                new TaskFactory(),
                 parentProject.configurationContainerFactory,
                 new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
                 new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
@@ -214,7 +211,7 @@ class HelperUtil {
 
         GroovyShell shell = new GroovyShell(configuration)
         ScriptWithSource script = shell.parse(source.getText())
-        script.setSource(source)
+        script.setScriptSource(source)
         return script.run()
     }
 

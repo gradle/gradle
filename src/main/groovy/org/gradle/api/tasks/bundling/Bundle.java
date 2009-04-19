@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.*;
@@ -69,7 +68,7 @@ public class Bundle extends ConventionTask {
     }
 
     private AbstractArchiveTask createArchiveTask(ArchiveType type, Map<String, Object> args, String classifier, String taskName) {
-        AbstractArchiveTask archiveTask = (AbstractArchiveTask) getProject().createTask(WrapUtil.toMap("type", type.getTaskClass()), taskName);
+        AbstractArchiveTask archiveTask = getProject().getTasks().add(taskName, type.getTaskClass());
         archiveTask.conventionMapping(type.getConventionMapping());
         if (args.get(BASENAME_KEY) != null) {
             archiveTask.setBaseName(args.get(BASENAME_KEY).toString());

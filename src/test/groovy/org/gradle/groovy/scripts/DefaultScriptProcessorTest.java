@@ -80,7 +80,7 @@ public class DefaultScriptProcessorTest {
         context.checking(new Expectations(){{
             allowing(source).getDisplayName();
             will(returnValue("[script source]"));
-            allowing(expectedScript).setSource(source);
+            allowing(expectedScript).setScriptSource(source);
         }});
     }
 

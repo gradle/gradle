@@ -76,7 +76,7 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         });
-        project.createTask(GUtil.map("type", Groovydoc.class), GROOVYDOC_TASK_NAME).setDescription("Generates the groovydoc for the source code.");
+        project.getTasks().add(GROOVYDOC_TASK_NAME, Groovydoc.class).setDescription("Generates the groovydoc for the source code.");
     }
 
     private void configureJavadoc(Project project) {
@@ -97,7 +97,7 @@ public class GroovyPlugin implements Plugin {
 
     private void configureTestCompile(JavaPlugin javaPlugin, Project project) {
         GroovyCompile compileTests = (GroovyCompile) javaPlugin.configureCompileTests(
-                (Compile) project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE_TESTS_TASK_NAME),
+                project.getTasks().replace(COMPILE_TESTS_TASK_NAME, GroovyCompile.class),
                 (Compile) project.task(COMPILE_TASK_NAME),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
@@ -122,8 +122,7 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         });
-        project.createTask(GUtil.map("type", GroovyCompile.class, "overwrite", true), COMPILE_TASK_NAME).setDescription(
-                "Compiles the Java and Groovy source code.");
+        project.getTasks().replace(COMPILE_TASK_NAME, GroovyCompile.class).setDescription("Compiles the Java and Groovy source code.");
     }
 
     private GroovyPluginConvention groovy(Convention convention) {

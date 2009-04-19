@@ -78,7 +78,7 @@ public class WarPlugin implements Plugin {
     }
 
     private EclipseWtp configureEclipseWtp(final Project project, final War war) {
-        final EclipseWtp eclipseWtp = (EclipseWtp) project.createTask(GUtil.map("type", EclipseWtp.class), ECLIPSE_WTP_TASK_NAME);
+        final EclipseWtp eclipseWtp = project.getTasks().add(ECLIPSE_WTP_TASK_NAME, EclipseWtp.class);
 
         eclipseWtp.conventionMapping(GUtil.map(
                 "warResourceMappings", new ConventionValue() {
