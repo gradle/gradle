@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.plugins.Convention
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
+import org.gradle.configuration.ProjectEvaluator
 
 /**
  * @author Hans Dockter
@@ -45,12 +46,12 @@ class DefaultProject extends AbstractProject {
                            PublishArtifactFactory publishArtifactFactory,
                            InternalRepository internalRepository,
                            AntBuilderFactory antBuilderFactory,
-                           BuildScriptProcessor buildScriptProcessor,
+                           ProjectEvaluator projectEvaluator,
                            PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
                            BuildInternal build, Convention convention) {
         super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader, taskFactory, configurationContainerFactory,
                 dependencyFactory, repositoryHandlerFactory, publishArtifactFactory,
-                internalRepository, antBuilderFactory, buildScriptProcessor, pluginRegistry,
+                internalRepository, antBuilderFactory, projectEvaluator, pluginRegistry,
                 projectRegistry, build, convention);
     }
 

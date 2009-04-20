@@ -18,7 +18,6 @@ package org.gradle.configuration;
 
 import org.gradle.api.Project;
 import org.gradle.api.ProjectAction;
-import org.gradle.api.internal.project.BuildScriptProcessor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
@@ -39,7 +38,6 @@ import java.util.TreeMap;
 public class BuildConfigurerTest {
     BuildConfigurer buildConfigurer;
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver;
-    BuildScriptProcessor buildScriptProcessor;
     ProjectInternal rootProject;
     boolean evaluatedCalled;
     boolean resolveCalled;
@@ -53,7 +51,6 @@ public class BuildConfigurerTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         projectDependencies2TasksResolver = context.mock(ProjectDependencies2TaskResolver.class);
         buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver);
-        buildScriptProcessor = new BuildScriptProcessor();
         resolveCalled = false;
         expectedTasksMap = new TreeMap();
         rootProject = HelperUtil.createRootProject(new File("root"));
@@ -63,13 +60,11 @@ public class BuildConfigurerTest {
     private void createExpectations() {
         final ProjectAction testEvaluateAction = new ProjectAction() {
             public void execute(Project project) {
-                ;
             }
         };
         buildConfigurer.setProjectEvaluateAction(testEvaluateAction);
         context.checking(new Expectations() {{
             allowing(rootProject).evaluate(); will(returnValue(rootProject));
-            allowing(rootProject).getBuildScriptProcessor(); will(returnValue(buildScriptProcessor));
             allowing(rootProject).getAllTasks(expectedRecursive); will(returnValue(expectedTasksMap));
             one(rootProject).allprojects(testEvaluateAction);
             one(projectDependencies2TasksResolver).resolve(with(same(rootProject)));

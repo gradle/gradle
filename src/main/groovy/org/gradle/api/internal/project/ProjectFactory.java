@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.internal.BuildInternal;
-import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -38,7 +37,7 @@ import java.io.File;
 public class ProjectFactory implements IProjectFactory {
     private ConfigurationContainerFactory configurationContainerFactory;
     private DependencyFactory dependencyFactory;
-    private BuildScriptProcessor buildScriptProcessor;
+    private ProjectEvaluator projectEvaluator;
     private PluginRegistry pluginRegistry;
     private ScriptSource embeddedScript;
     private ITaskFactory taskFactory;
@@ -55,7 +54,7 @@ public class ProjectFactory implements IProjectFactory {
                           RepositoryHandlerFactory repositoryHandlerFactory,
                           PublishArtifactFactory publishArtifactFactory,
                           InternalRepository internalRepository,
-                          BuildScriptProcessor buildScriptProcessor, PluginRegistry pluginRegistry,
+                          ProjectEvaluator projectEvaluator, PluginRegistry pluginRegistry,
                           ScriptSource embeddedScript, AntBuilderFactory antBuilderFactory) {
         this.taskFactory = taskFactory;
         this.configurationContainerFactory = configurationContainerFactory;
@@ -63,7 +62,7 @@ public class ProjectFactory implements IProjectFactory {
         this.repositoryHandlerFactory = repositoryHandlerFactory;
         this.publishArtifactFactory = publishArtifactFactory;
         this.internalRepository = internalRepository;
-        this.buildScriptProcessor = buildScriptProcessor;
+        this.projectEvaluator = projectEvaluator;
         this.pluginRegistry = pluginRegistry;
         this.embeddedScript = embeddedScript;
         this.antBuilderFactory = antBuilderFactory;
@@ -86,7 +85,7 @@ public class ProjectFactory implements IProjectFactory {
                 dependencyFactory,
                 repositoryHandlerFactory,
                 publishArtifactFactory,
-                internalRepository, antBuilderFactory, buildScriptProcessor, pluginRegistry,
+                internalRepository, antBuilderFactory, projectEvaluator, pluginRegistry,
                 build.getProjectRegistry(), build, new DefaultConvention());
         if (parent != null) {
             parent.addChildProject(project);

@@ -18,20 +18,20 @@ package org.gradle;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.DefaultResolverContainer;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleDependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectDependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleDependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.BuildConfigurer;
+import org.gradle.configuration.DefaultProjectEvaluator;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
@@ -106,10 +106,10 @@ public class DefaultGradleFactory implements GradleFactory {
                                 new DefaultRepositoryHandlerFactory(resolverFactory),
                                 new DefaultPublishArtifactFactory(),
                                 internalRepository,
-                                new BuildScriptProcessor(
+                                new DefaultProjectEvaluator(
+                                        importsReader,
                                         scriptProcessor,
-                                        new DefaultProjectScriptMetaData(),
-                                        importsReader
+                                        new DefaultProjectScriptMetaData()
                                 ),
                                 new PluginRegistry(
                                         startParameter.getPluginPropertiesFile()),

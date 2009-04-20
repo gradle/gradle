@@ -49,6 +49,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.BaseDirConverter;
+import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.*;
 import org.slf4j.Logger;
@@ -72,7 +73,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private BuildInternal build;
 
-    private BuildScriptProcessor buildScriptProcessor;
+    private ProjectEvaluator projectEvaluator;
 
     private ClassLoader buildScriptClassLoader;
 
@@ -166,7 +167,7 @@ public abstract class AbstractProject implements ProjectInternal {
                            PublishArtifactFactory publishArtifactFactory,
                            InternalRepository internalRepository,
                            AntBuilderFactory antBuilderFactory,
-                           BuildScriptProcessor buildScriptProcessor,
+                           ProjectEvaluator projectEvaluator,
                            PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
                            BuildInternal build, Convention convention) {
         assert name != null;
@@ -186,7 +187,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.publishArtifactFactory = publishArtifactFactory;
         this.artifactHandler = new ArtifactHandler(configurationContainer, publishArtifactFactory);
         this.antBuilderFactory = antBuilderFactory;
-        this.buildScriptProcessor = buildScriptProcessor;
+        this.projectEvaluator = projectEvaluator;
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
@@ -280,12 +281,12 @@ public abstract class AbstractProject implements ProjectInternal {
         this.build = build;
     }
 
-    public BuildScriptProcessor getBuildScriptProcessor() {
-        return buildScriptProcessor;
+    public ProjectEvaluator getProjectEvaluator() {
+        return projectEvaluator;
     }
 
-    public void setBuildScriptProcessor(BuildScriptProcessor buildScriptProcessor) {
-        this.buildScriptProcessor = buildScriptProcessor;
+    public void setProjectEvaluator(ProjectEvaluator projectEvaluator) {
+        this.projectEvaluator = projectEvaluator;
     }
 
     public ClassLoader getBuildScriptClassLoader() {
@@ -644,17 +645,7 @@ public abstract class AbstractProject implements ProjectInternal {
         Clock clock = new Clock();
         projectEvaluationListeners.getSource().beforeEvaluate(this);
         state = State.INITIALIZING;
-        try {
-            setBuildScript(buildScriptProcessor.createScript(this));
-            standardOutputRedirector.on(LogLevel.QUIET);
-            try {
-                buildScript.run();
-            } finally {
-                standardOutputRedirector.flush();
-            }
-        } catch (Throwable t) {
-            throw new GradleScriptException(String.format("A problem occurred evaluating %s.", this), t, getBuildScriptSource());
-        }
+        projectEvaluator.evaluate(this);
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = State.INITIALIZED;
         projectEvaluationListeners.getSource().afterEvaluate(this);

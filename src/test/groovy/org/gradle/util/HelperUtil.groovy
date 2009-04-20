@@ -55,6 +55,7 @@ import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
+import org.gradle.configuration.DefaultProjectEvaluator
 
 /**
  * @author Hans Dockter
@@ -101,7 +102,7 @@ class HelperUtil {
                 new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
                 new DefaultPublishArtifactFactory(),
                 [:] as InternalRepository,
-                new BuildScriptProcessor(),
+                new DefaultProjectEvaluator(null, null, null),
                 new PluginRegistry(),
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
@@ -130,7 +131,7 @@ class HelperUtil {
                 new DefaultPublishArtifactFactory(),
                 parentProject.internalRepository,
                 parentProject.getAntBuilderFactory(),
-                parentProject.buildScriptProcessor,
+                parentProject.projectEvaluator,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
                 parentProject.build,

@@ -43,6 +43,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginTest
 import org.gradle.api.tasks.Directory
 import org.gradle.api.tasks.util.BaseDirConverter
+import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.invocation.DefaultBuild
@@ -65,7 +66,7 @@ import static org.junit.Assert.*
  * @author Hans Dockter
  * todo: test for relativeFilePath
  */
-@RunWith (org.jmock.integration.junit4.JMock.class)
+@RunWith (JMock.class)
 class DefaultProjectTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
@@ -79,7 +80,7 @@ class DefaultProjectTest {
 
     DefaultProject project, child1, child2, childchild
 
-    BuildScriptProcessor buildScriptProcessor
+    ProjectEvaluator projectEvaluator
 
     ClassLoader buildScriptClassLoader
 
@@ -147,24 +148,24 @@ class DefaultProjectTest {
         rootDir = new File("/path/root").absoluteFile
         pluginRegistry = new PluginRegistry(new File('somepath'))
         projectRegistry = build.projectRegistry
-        buildScriptProcessor = new BuildScriptProcessor()
+        projectEvaluator = context.mock(ProjectEvaluator)
         project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
                 taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, projectRegistry,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator, pluginRegistry, projectRegistry,
                 build, convention);
         child1 = new DefaultProject("child1", project, new File("child1"), null, script, buildScriptClassLoader,
                 taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator,
                 pluginRegistry, projectRegistry, build, convention)
         project.addChildProject(child1)
         childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script, buildScriptClassLoader,
                 taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator,
                 pluginRegistry, projectRegistry, build, convention)
         child1.addChildProject(childchild)
         child2 = new DefaultProject("child2", project, new File("child2"), null, script, buildScriptClassLoader,
                 taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor,
+                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator,
                 pluginRegistry, projectRegistry, build, convention)
         project.addChildProject(child2)
         testTask = new DefaultTask(project, TEST_TASK_NAME)
@@ -216,7 +217,7 @@ class DefaultProjectTest {
         assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
                 taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
                 repositoryHandlerFactoryMock, publishArtifactFactoryMock,
-                internalRepositoryDummy, antBuilderFactoryMock, buildScriptProcessor, pluginRegistry, new DefaultProjectRegistry(),
+                internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator, pluginRegistry, new DefaultProjectRegistry(),
                 build, convention).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
@@ -232,7 +233,7 @@ class DefaultProjectTest {
         assertSame this.project, project.rootProject
         assertEquals(new File(projectDir, TEST_BUILD_FILE_NAME), project.buildFile)
         assertSame project.buildScriptClassLoader, buildScriptClassLoader
-        assertSame buildScriptProcessor, project.buildScriptProcessor
+        assertSame projectEvaluator, project.projectEvaluator
         assertSame antBuilderFactoryMock, project.antBuilderFactory
         assertSame project.build, build
         assertNotNull(project.ant)
@@ -253,14 +254,10 @@ class DefaultProjectTest {
     }
 
     @Test public void testNotifiesProjectEvaluationListenerBeforeAndAfterEvaluation() {
-        BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
-        project.buildScriptProcessor = buildScriptProcessorMocker
         ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener)
         context.checking {
             one(listener).beforeEvaluate(project)
-            one(buildScriptProcessorMocker).createScript(project); will(returnValue(testScript))
-            one(outputRedirectorMock).on(LogLevel.QUIET)
-            one(outputRedirectorMock).flush()
+            one(projectEvaluator).evaluate(project)
             one(listener).afterEvaluate(project)
         }
         project.addProjectEvaluationListener(listener)
@@ -269,12 +266,8 @@ class DefaultProjectTest {
 
     @Test public void testNotifiesProjectEvaluationClosureAfterEvaluation() {
         TestClosure listener = context.mock(TestClosure)
-        BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
-        project.buildScriptProcessor = buildScriptProcessorMocker
         context.checking {
-            one(buildScriptProcessorMocker).createScript(project); will(returnValue(testScript))
-            one(outputRedirectorMock).on(LogLevel.QUIET)
-            one(outputRedirectorMock).flush()
+            one(projectEvaluator).evaluate(project)
             one(listener).call(project)
         }
 
@@ -283,16 +276,11 @@ class DefaultProjectTest {
     }
 
     @Test void testEvaluate() {
-        BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
-        project.buildScriptProcessor = buildScriptProcessorMocker
         context.checking {
-            one(buildScriptProcessorMocker).createScript(project); will(returnValue(testScript))
-            one(outputRedirectorMock).on(LogLevel.QUIET)
-            one(outputRedirectorMock).flush()
+            one(projectEvaluator).evaluate(project)
         }
         assertSame(project, project.evaluate())
         assertEquals(AbstractProject.State.INITIALIZED, project.state)
-        assert project.buildScript.is(testScript)
     }
 
     @Test void testUsePluginWithString() {
@@ -333,23 +321,19 @@ class DefaultProjectTest {
     @Test void testEvaluationDependsOn() {
         boolean mockReader2Finished = false
         boolean mockReader1Called = false
-        final BuildScriptProcessor mockReader1 = [createScript: {DefaultProject project ->
+        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project ->
             project.evaluationDependsOn(child1.path)
             assertTrue(mockReader2Finished)
             mockReader1Called = true
             testScript
-        }] as BuildScriptProcessor
-        final BuildScriptProcessor mockReader2 = [
-                createScript: {DefaultProject project ->
+        }] as ProjectEvaluator
+        final ProjectEvaluator mockReader2 = [
+                evaluate: {DefaultProject project ->
                     mockReader2Finished = true
                     testScript
-                }] as BuildScriptProcessor
-        project.buildScriptProcessor = mockReader1
-        child1.buildScriptProcessor = mockReader2
-        context.checking {
-            allowing(outputRedirectorMock).on(LogLevel.QUIET)
-            allowing(outputRedirectorMock).flush()
-        }
+                }] as ProjectEvaluator
+        project.projectEvaluator = mockReader1
+        child1.projectEvaluator = mockReader2
         project.evaluate()
         assertTrue mockReader1Called
     }
@@ -362,55 +346,27 @@ class DefaultProjectTest {
         project.evaluationDependsOn('')
     }
 
-    @Test void testEvaluationDependsOnWithCircularDependency() {
-        final BuildScriptProcessor mockReader1 = [createScript: {DefaultProject project ->
+    @Test (expected = CircularReferenceException) void testEvaluationDependsOnWithCircularDependency() {
+        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project ->
             project.evaluationDependsOn(child1.path)
             testScript
-        }] as BuildScriptProcessor
-        final BuildScriptProcessor mockReader2 = [createScript: {DefaultProject project ->
+        }] as ProjectEvaluator
+        final ProjectEvaluator mockReader2 = [evaluate: {DefaultProject project ->
             project.evaluationDependsOn(project.path)
             testScript
-        }] as BuildScriptProcessor
-        project.buildScriptProcessor = mockReader1
-        child1.buildScriptProcessor = mockReader2
-        try {
-            project.evaluate()
-            fail()
-        } catch (GradleScriptException e) {
-            assertThat(e.reportableException.cause, instanceOf(CircularReferenceException))
-        }
-    }
-
-    @Test void testWrapsEvaulationFailure() {
-        RuntimeException failure = new RuntimeException()
-        BuildScriptProcessor mockBuildScriptProcessor = context.mock(BuildScriptProcessor)
-        Script mockScript = context.mock(Script)
-        project.buildScriptProcessor = mockBuildScriptProcessor
-        context.checking {
-            one(mockBuildScriptProcessor).createScript(project)
-            will(returnValue(mockScript))
-            one(mockScript)
-            will(throwException(failure))
-            one(outputRedirectorMock).on(LogLevel.QUIET)
-            one(outputRedirectorMock).flush()
-        }
-        try {
-            project.evaluate()
-            fail()
-        } catch (GradleScriptException e) {
-            assertThat(e.originalMessage, equalTo("A problem occurred evaluating root project 'root'."))
-            assertThat(e.scriptSource, equalTo(project.buildScriptSource))
-            assertThat(e.cause, equalTo(failure))
-        };
+        }] as ProjectEvaluator
+        project.projectEvaluator = mockReader1
+        child1.projectEvaluator = mockReader2
+        project.evaluate()
     }
 
     @Test void testDependsOnWithNoEvaluation() {
         boolean mockReaderCalled = false
-        final BuildScriptProcessor mockReader = [createScript: {DefaultProject project ->
+        final ProjectEvaluator mockReader = [evaluateProject: {DefaultProject project ->
             mockReaderCalled = true
             testScript
-        }] as BuildScriptProcessor
-        child1.buildScriptProcessor = mockReader
+        }] as ProjectEvaluator
+        child1.projectEvaluator = mockReader
         project.dependsOn(child1.name, false)
         assertFalse mockReaderCalled
         assertEquals([child1] as Set, project.dependsOnProjects)
@@ -420,11 +376,11 @@ class DefaultProjectTest {
 
     @Test void testDependsOn() {
         boolean mockReaderCalled = false
-        final BuildScriptProcessor mockReader = [createScript: {DefaultProject project ->
+        final ProjectEvaluator mockReader = [evaluate: {DefaultProject project ->
             mockReaderCalled = true
             testScript
-        }] as BuildScriptProcessor
-        child1.buildScriptProcessor = mockReader
+        }] as ProjectEvaluator
+        child1.projectEvaluator = mockReader
         project.dependsOn(child1.name)
         assertTrue mockReaderCalled
         assertEquals([child1] as Set, project.dependsOnProjects)
@@ -440,10 +396,8 @@ class DefaultProjectTest {
     }
 
     @Test void testDependsOnChildren() {
-        BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
-        child1.buildScriptProcessor = buildScriptProcessorMocker
         context.checking {
-            never(buildScriptProcessorMocker).createScript(child1)
+            never(projectEvaluator).evaluate(child1)
         }
 
         project.dependsOnChildren()
@@ -454,12 +408,9 @@ class DefaultProjectTest {
     }
 
     @Test void testDependsOnChildrenIncludingEvaluate() {
-        BuildScriptProcessor buildScriptProcessorMocker = context.mock(BuildScriptProcessor)
-        child1.buildScriptProcessor = buildScriptProcessorMocker
-        child2.buildScriptProcessor = buildScriptProcessorMocker
         context.checking {
-            one(buildScriptProcessorMocker).createScript(child1); will(returnValue(testScript))
-            one(buildScriptProcessorMocker).createScript(child2); will(returnValue(testScript))
+            one(projectEvaluator).evaluate(child1)
+            one(projectEvaluator).evaluate(child2)
         }
         project.dependsOnChildren(true)
         assertTrue(project.dependsOnProjects.contains(child1))

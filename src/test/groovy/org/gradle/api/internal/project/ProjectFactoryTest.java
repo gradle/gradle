@@ -32,6 +32,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
+import org.gradle.configuration.ProjectEvaluator;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -64,7 +65,7 @@ public class ProjectFactoryTest {
     private PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory.class);
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private ITaskFactory taskFactoryMock = context.mock(ITaskFactory.class);
-    private BuildScriptProcessor buildScriptProcessor = context.mock(BuildScriptProcessor.class);
+    private ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
     private PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
     private BuildInternal build = context.mock(BuildInternal.class);
@@ -93,7 +94,7 @@ public class ProjectFactoryTest {
 
         projectFactory = new ProjectFactory(taskFactoryMock, configurationContainerFactory,
                 dependencyFactoryMock, repositoryHandlerFactory, publishArtifactFactoryMock,
-                internalRepositoryDummy, buildScriptProcessor, pluginRegistry,
+                internalRepositoryDummy, projectEvaluator, pluginRegistry,
                 null, antBuilderFactory);
     }
 
@@ -162,8 +163,7 @@ public class ProjectFactoryTest {
                 dependencyFactoryMock,
                 repositoryHandlerFactory,
                 publishArtifactFactoryMock,
-                internalRepositoryDummy,
-                buildScriptProcessor, pluginRegistry,
+                internalRepositoryDummy, projectEvaluator, pluginRegistry,
                 expectedScriptSource, antBuilderFactory);
 
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, build);
@@ -206,7 +206,7 @@ public class ProjectFactoryTest {
     private void checkProjectResources(DefaultProject project) {
         assertSame(buildScriptClassLoader, project.getBuildScriptClassLoader());
         assertSame(configurationContainerFactory, project.getConfigurationContainerFactory());
-        assertSame(buildScriptProcessor, project.getBuildScriptProcessor());
+        assertSame(projectEvaluator, project.getProjectEvaluator());
         assertSame(pluginRegistry, project.getPluginRegistry());
         assertSame(projectRegistry, project.getProjectRegistry());
         assertSame(antBuilderFactory, project.getAntBuilderFactory());
