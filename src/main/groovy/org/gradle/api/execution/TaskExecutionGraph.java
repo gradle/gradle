@@ -35,7 +35,7 @@ import java.util.List;
  */
 public interface TaskExecutionGraph {
     /**
-     * <p>Adds a listener to this graph.</p>
+     * <p>Adds a listener to this graph, to be notified when this graph is ready.</p>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
      */
@@ -49,7 +49,7 @@ public interface TaskExecutionGraph {
     void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener);
 
     /**
-     * <p>Adds a listener to this graph.</p>
+     * <p>Adds a listener to this graph, to be notified as tasks are executed.</p>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
      */
@@ -79,7 +79,7 @@ public interface TaskExecutionGraph {
     void beforeTask(Closure closure);
 
     /**
-     * <p>Adds a closure to be called immediately after a task is executed. The task is passed to the closure as the
+     * <p>Adds a closure to be called immediately after a task has executed. The task is passed to the closure as the
      * first parameter. The task execution exception, if any, is passed as the second parameter. Both parameters are
      * optional.</p>
      *

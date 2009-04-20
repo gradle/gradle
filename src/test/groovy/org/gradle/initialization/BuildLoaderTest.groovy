@@ -17,14 +17,16 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildInternal
-import org.gradle.initialization.BuildLoader
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.initialization.DefaultProjectDescriptorRegistry
-import org.gradle.initialization.IProjectDescriptorRegistry
-import org.gradle.invocation.DefaultBuild
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.IProjectFactory
+import org.gradle.api.internal.project.IProjectRegistry
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
@@ -33,11 +35,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.GradleException
 
 /**
  * @author Hans Dockter
@@ -57,12 +56,14 @@ class BuildLoaderTest {
     ProjectInternal rootProject
     ProjectDescriptor childDescriptor
     ProjectInternal childProject
+    InternalRepository internalRepository
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp()  {
         testClassLoader = new URLClassLoader([] as URL[])
         projectFactory = context.mock(IProjectFactory)
-        buildLoader = new BuildLoader(projectFactory)
+        internalRepository = context.mock(InternalRepository)
+        buildLoader = new BuildLoader(projectFactory, internalRepository)
         testDir = HelperUtil.makeNewTestDir()
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
@@ -95,6 +96,7 @@ class BuildLoaderTest {
         assertThat(build.startParameter, sameInstance(startParameter))
         assertThat(build.rootProject, sameInstance(rootProject))
         assertThat(build.defaultProject, sameInstance(rootProject))
+        assertThat(build.internalRepository, sameInstance(internalRepository))
     }
 
     @Test public void createsBuildWithMultipleProjects() {

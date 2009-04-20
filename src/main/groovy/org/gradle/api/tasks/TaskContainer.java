@@ -85,17 +85,17 @@ public interface TaskContainer extends Iterable<Task> {
     Task get(String name) throws UnknownTaskException;
 
     /**
-     * Adds a {@code TaskAction} to be performed when a task is added to this container.
+     * Adds an {@code Action} to be executed when a task is added to this container.
      *
-     * @param action The action to be performed
+     * @param action The action to be executed
      * @return the supplied action
      */
     Action<? super Task> whenTaskAdded(Action<? super Task> action);
 
     /**
-     * Adds a {@code TaskAction} to be performed when a task of the given type is added to this container.
+     * Adds an {@code Action} to be executed when a task of the given type is added to this container.
      *
-     * @param action The action to be performed
+     * @param action The action to be executed
      * @param type The type of tasks to be notified of
      * @return the supplied action
      */

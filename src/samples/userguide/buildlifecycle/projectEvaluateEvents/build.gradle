@@ -14,7 +14,3 @@ allprojects {
 allprojects {
     hasTests = false
 }
-
-project('projectA') {
-    hasTests = true
-}

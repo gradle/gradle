@@ -16,15 +16,20 @@
 package org.gradle.api.invocation;
 
 import org.gradle.api.Project;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.StartParameter;
 
 import java.io.File;
 
+import groovy.lang.Closure;
+
 /**
  * <p>A {@code Build} represents an invocation of Gradle.</p>
  *
- * <p>You can obtain a {@code Build} instance by calling {@link Project#getBuild()}</p>
+ * <p>You can obtain a {@code Build} instance by calling {@link Project#getBuild()}. In your build file you can use
+ * {@code build} to access it.</p>
  */
 public interface Build {
     /**
@@ -69,4 +74,43 @@ public interface Build {
      * @return The start parameter. Never returns null.
      */
     StartParameter getStartParameter();
+
+    /**
+     * Returns the repository used to pass artifacts between projects in this build.
+     *
+     * @return The internal repository. Never returns null.
+     */
+    InternalRepository getInternalRepository();
+
+    /**
+     * Adds a listener to this build, to receive notifications as projects are evaluated.
+     *
+     * @param listener The listener to add. Does nothing if this listener has already been added.
+     * @return The added listener.
+     */
+    ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener);
+
+    /**
+     * Removes the given listener from this build.
+     *
+     * @param listener The listener to remove. Does nothing if this listener has not been added.
+     */
+    void removeProjectEvaluationListener(ProjectEvaluationListener listener);
+
+    /**
+     * Adds a closure to be called immediately before a project is evaluated. The project is passed to the closure as a
+     * parameter.
+     *
+     * @param closure The closure to execute.
+     */
+    void beforeProjectEvaluate(Closure closure);
+
+    /**
+     * Adds a closure to be called immediately after a project is evaluated. The project is passed to the closure as the
+     * first parameter. The project evaluation failure, if any, is passed as the second parameter. Both parameters are
+     * options.
+     *
+     * @param closure The closure to execute.
+     */
+    void afterProjectEvaluate(Closure closure);
 }

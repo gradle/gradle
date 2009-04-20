@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.StartParameter;
 import org.gradle.execution.TaskExecuter;
 
@@ -43,4 +44,9 @@ public interface BuildInternal extends Build {
      * Returns the classloader to use for the build files of this build.
      */
     ClassLoader getBuildScriptClassLoader();
+
+    /**
+     * Returns the broadcaster for {ProjectEvaluationListener} events for this build
+     */
+    ProjectEvaluationListener getProjectEvaluationBroadcaster();
 }

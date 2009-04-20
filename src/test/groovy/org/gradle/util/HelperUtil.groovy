@@ -107,7 +107,7 @@ class HelperUtil {
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
 
-        DefaultBuild build = new DefaultBuild(new StartParameter(), null)
+        DefaultBuild build = new DefaultBuild(new StartParameter(), null, null)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
@@ -129,7 +129,7 @@ class HelperUtil {
                 new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
                 new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
                 new DefaultPublishArtifactFactory(),
-                parentProject.internalRepository,
+                null,
                 parentProject.getAntBuilderFactory(),
                 parentProject.projectEvaluator,
                 parentProject.pluginRegistry,

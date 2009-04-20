@@ -172,46 +172,6 @@ public class Gradle {
         return startParameter;
     }
 
-    public ISettingsFinder getSettingsFinder() {
-        return settingsFinder;
-    }
-
-    public void setSettingsFinder(ISettingsFinder settingsFinder) {
-        this.settingsFinder = settingsFinder;
-    }
-
-    public IGradlePropertiesLoader getGradlePropertiesLoader() {
-        return gradlePropertiesLoader;
-    }
-
-    public void setGradlePropertiesLoader(IGradlePropertiesLoader gradlePropertiesLoader) {
-        this.gradlePropertiesLoader = gradlePropertiesLoader;
-    }
-
-    public SettingsProcessor getSettingsProcessor() {
-        return settingsProcessor;
-    }
-
-    public void setSettingsProcessor(SettingsProcessor settingsProcessor) {
-        this.settingsProcessor = settingsProcessor;
-    }
-
-    public BuildLoader getBuildLoader() {
-        return buildLoader;
-    }
-
-    public void setBuildLoader(BuildLoader buildLoader) {
-        this.buildLoader = buildLoader;
-    }
-
-    public BuildConfigurer getBuildConfigurer() {
-        return buildConfigurer;
-    }
-
-    public void setBuildConfigurer(BuildConfigurer buildConfigurer) {
-        this.buildConfigurer = buildConfigurer;
-    }
-
     /**
      * <p>Adds a {@link BuildListener} to this Gradle instance. The listener is notified of events which occur during a
      * build.</p>

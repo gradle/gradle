@@ -21,7 +21,6 @@ import groovy.util.AntBuilder;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
@@ -828,8 +827,6 @@ public interface Project extends Comparable<Project> {
 
     ArtifactHandler getArtifacts();
 
-    InternalRepository getInternalRepository();
-
     /**
      * <p>Return the {@link Convention} for this project.</p>
      *
@@ -924,10 +921,10 @@ public interface Project extends Comparable<Project> {
     ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener projectEvaluationListener);
 
     /**
-     * <p>Adds a closure to be notified when this project has been evaluated. See {@link
+     * <p>Adds a closure to be called immediately after this project has been evaluated. See {@link
      * #addProjectEvaluationListener(ProjectEvaluationListener)} for more details.</p>
      *
-     * @param afterEvaluateListener The listener to be added.
+     * @param afterEvaluateListener The closure to be call.
      */
     void afterEvaluate(Closure afterEvaluateListener);
 

@@ -158,18 +158,6 @@ public class GradleTest {
     }
 
     @Test
-    public void testInit() {
-        gradle = new Gradle(expectedStartParams, settingsFinderMock, gradlePropertiesLoaderMock, settingsProcessorMock,
-                buildLoaderMock,
-                buildConfigurerMock);
-        assertSame(settingsFinderMock, gradle.getSettingsFinder());
-        assertSame(gradlePropertiesLoaderMock, gradle.getGradlePropertiesLoader());
-        assertSame(settingsProcessorMock, gradle.getSettingsProcessor());
-        assertSame(buildLoaderMock, gradle.getBuildLoader());
-        assertSame(buildConfigurerMock, gradle.getBuildConfigurer());
-    }
-
-    @Test
     public void testRun() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();

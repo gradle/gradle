@@ -202,27 +202,39 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
         </para>
     </section>
     <section id="build_lifecycle_events">
-        <title>Reacting to the Lifecycle in the Build File</title>
+        <title>Responding to the Lifecycle in the Build Script</title>
 
-        <para>You can receive notifications as Gradle progresses the build through its lifecyle. These notifications
-            generally take 2 forms: You can either implement a particular listener interface, or you can provide a
-            closure to execute when the notification is fired. The examples below concentrate on using closures.
-            For using the listener interfaces, refer to the API documentation.</para>
+        <para>Your build script can receive notifications as the build progresses through its lifecyle. These
+            notifications generally take 2 forms: You can either implement a particular listener interface, or you can
+            provide a closure to execute when the notification is fired. The examples below use closures. For details on
+            how to use the listener interfaces, refer to the API documentation.
+        </para>
 
         <section>
             <title>Project evaluation</title>
-            <para>You can receive a notification immediately before and after a project is evaluated.  This can be
-                used to perform some additional configuration once all the definitions in a build script have been
-                applied. It can also be used for some custom logging or profiling.
+            <para>You can receive a notification immediately before and after a project is evaluated. This can be used
+                to do things like performing additional configuration once all the definitions in a build script have
+                been applied, or for some custom logging or profiling.
             </para>
             <para>Below is an example which adds a <literal>test</literal> task to each project with the
-                <literal>hasTests</literal> property set to true:
+                <literal>hasTests</literal> property set to true.
             </para>
             <sample id="projectEvaluateEvents" dir="userguide/buildlifecycle/projectEvaluateEvents">
                 <sourcefile file="build.gradle" snippet="after-evaluate"/>
+                <sourcefile file="projectA.gradle"/>
                 <output args="-q test"/>
             </sample>
-            <para>You can also use a <apilink class="org.gradle.api.ProjectEvaluationListener"/> to receive these events.
+            <para>This example uses method <literal>Project.afterEvaluate()</literal> to add a closure which is executed
+                after the project is evaluated.</para>
+            <para>It is also possible to receive notifications when any project is evaluated. Here is a different
+                implementation of the previous example:
+            </para>
+            <sample id="buildProjectEvaluateEvents" dir="userguide/buildlifecycle/buildProjectEvaluateEvents">
+                <sourcefile file="build.gradle" snippet="evaluate-events"/>
+                <output args="-q test"/>
+            </sample>
+            <para>You can also add a <apilink class="org.gradle.api.ProjectEvaluationListener"/> to the
+                <apilink class="org.gradle.api.invocation.Build"/> to receive these events.
             </para>
         </section>
 
@@ -235,7 +247,8 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
                 <sourcefile file="build.gradle"/>
                 <output args="-q a"/>
             </sample>
-            <para>You can also use a <apilink class="org.gradle.api.TaskAction"/> to receive these events.</para>
+            <para>You can also add a <apilink class="org.gradle.api.TaskAction"/> to a
+                <apilink class="org.gradle.api.tasks.TaskContainer"/> to receive these events.</para>
         </section>
 
         <section>
@@ -243,22 +256,23 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
             <para>You can receive a notification immediately after the task execution graph has been populated. We
                 have seen this already in <xref linkend="configure-by-dag"/>.
             </para>
-            <para>You can also use a <apilink class="org.gradle.api.execution.TaskExecutionGraphListener"/> to receive
-                these events.
+            <para>You can also add a <apilink class="org.gradle.api.execution.TaskExecutionGraphListener"/> to the
+                <apilink class="org.gradle.api.execution.TaskExecutionGraph"/> to receive these events.
             </para>
         </section>
 
         <section>
             <title>Task execution</title>
-            <para>You can receive a notification immediately before and after a task is executed.</para>
+            <para>You can receive a notification immediately before and after any task is executed.</para>
             <para>The following example logs the start and end of each task execution. Notice that the
-                <literal>afterTask</literal> notification is received regardless of whether the task executes
+                <literal>afterTask</literal> notification is received regardless of whether the task completes
                 successfully or fails with an exception.</para>
             <sample id="taskExecutionEvents" dir="userguide/buildlifecycle/taskExecutionEvents">
                 <sourcefile file="build.gradle"/>
                 <output args="-q broken"/>
             </sample>
-            <para>You can also use a <apilink class="org.gradle.api.execution.TaskExecutionListener"/> to receive these events.
+            <para>You can also use a <apilink class="org.gradle.api.execution.TaskExecutionListener"/> to the
+                <apilink class="org.gradle.api.execution.TaskExecutionGraph"/> to receive these events.
             </para>
         </section>
     </section>

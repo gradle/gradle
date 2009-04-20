@@ -17,14 +17,15 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.invocation.DefaultBuild;
-import org.gradle.api.Project;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.invocation.DefaultBuild;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -40,14 +41,12 @@ import java.util.Properties;
 public class BuildLoader {
     private static Logger logger = LoggerFactory.getLogger(BuildLoader.class);
 
-    private IProjectFactory projectFactory;
+    private final IProjectFactory projectFactory;
+    private final InternalRepository internalRepository;
 
-    public BuildLoader() {
-
-    }
-
-    public BuildLoader(IProjectFactory projectFactory) {
+    public BuildLoader(IProjectFactory projectFactory, InternalRepository internalRepository) {
         this.projectFactory = projectFactory;
+        this.internalRepository = internalRepository;
     }
 
     /**
@@ -80,7 +79,7 @@ public class BuildLoader {
     private DefaultBuild createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
                                         StartParameter startParameter,
                                         Map<String, String> externalProjectProperties) {
-        DefaultBuild build = new DefaultBuild(startParameter, buildScriptClassLoader);
+        DefaultBuild build = new DefaultBuild(startParameter, buildScriptClassLoader, internalRepository);
         ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, build);
         build.setRootProject(rootProject);
 
@@ -113,13 +112,5 @@ public class BuildLoader {
         for (Object key : projectProperties.keySet()) {
             project.setProperty((String) key, projectProperties.get(key));
         }
-    }
-
-    public IProjectFactory getProjectFactory() {
-        return projectFactory;
-    }
-
-    public void setProjectFactory(IProjectFactory projectFactory) {
-        this.projectFactory = projectFactory;
     }
 }

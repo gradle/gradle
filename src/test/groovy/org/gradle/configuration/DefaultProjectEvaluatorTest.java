@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.GradleScriptException;
@@ -52,6 +53,7 @@ public class DefaultProjectEvaluatorTest {
     private final StandardOutputRedirector standardOutputRedirector = context.mock(StandardOutputRedirector.class);
     private final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class);
     private final DefaultProjectEvaluator evaluator = new DefaultProjectEvaluator(importsReader, scriptProcessor, projectScriptMetaData);
+    private final BuildInternal build = context.mock(BuildInternal.class);
 
     @Before
     public void setUp() {
@@ -77,10 +79,18 @@ public class DefaultProjectEvaluatorTest {
     }
 
     @Test
-    public void createsAndExecutesScript() {
+    public void createsAndExecutesScriptAndNotifiesListener() {
         final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReader, rootDir);
 
+        context.checking(new Expectations(){{
+            allowing(build).getProjectEvaluationBroadcaster();
+            will(returnValue(listener));
+        }});
+        evaluator.projectsLoaded(build);
+
         context.checking(new Expectations() {{
+            one(listener).beforeEvaluate(project);
+
             one(scriptProcessor).createScript(
                     with(Matchers.reflectionEquals(expectedScriptSource)),
                     with(same(classLoader)),
@@ -96,6 +106,8 @@ public class DefaultProjectEvaluatorTest {
             one(buildScript).run();
 
             one(standardOutputRedirector).flush();
+
+            one(listener).afterEvaluate(project);
         }});
 
         evaluator.evaluate(project);
@@ -106,7 +118,15 @@ public class DefaultProjectEvaluatorTest {
         final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReader, rootDir);
         final Throwable failure = new RuntimeException();
 
+        context.checking(new Expectations(){{
+            allowing(build).getProjectEvaluationBroadcaster();
+            will(returnValue(listener));
+        }});
+        evaluator.projectsLoaded(build);
+
         context.checking(new Expectations() {{
+            one(listener).beforeEvaluate(project);
+
             one(scriptProcessor).createScript(
                     with(Matchers.reflectionEquals(expectedScriptSource)),
                     with(same(classLoader)),

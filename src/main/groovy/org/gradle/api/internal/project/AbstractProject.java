@@ -475,10 +475,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return configurationContainer;
     }
 
-    public InternalRepository getInternalRepository() {
-        return internalRepository;
-    }
-
     public void setInternalRepository(InternalRepository internalRepository) {
         this.internalRepository = internalRepository;
     }

@@ -143,7 +143,7 @@ class DefaultProjectTest {
 
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
-        build = new DefaultBuild(new StartParameter(), buildScriptClassLoader)
+        build = new DefaultBuild(new StartParameter(), buildScriptClassLoader, null)
 
         rootDir = new File("/path/root").absoluteFile
         pluginRegistry = new PluginRegistry(new File('somepath'))
@@ -243,7 +243,6 @@ class DefaultProjectTest {
         assert project.configurations.is(configurationContainerMock)
         assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
         assert project.repositories.is(repositoryHandlerMock)
-        assert project.internalRepository.is(internalRepositoryDummy)
         assert pluginRegistry.is(project.pluginRegistry)
         assert projectRegistry.is(project.projectRegistry)
         assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName

@@ -74,6 +74,8 @@ public class DefaultGradleFactory implements GradleFactory {
                 WrapUtil.toSet(new ModuleDependencyFactory(), new ProjectDependencyFactory()),
                 new DefaultClientModuleFactory());
         ResolverFactory resolverFactory = new DefaultResolverFactory();
+        DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(importsReader, scriptProcessor,
+                new DefaultProjectScriptMetaData());
         Gradle gradle = new Gradle(
                 startParameter,
                 settingsFinder,
@@ -106,18 +108,15 @@ public class DefaultGradleFactory implements GradleFactory {
                                 new DefaultRepositoryHandlerFactory(resolverFactory),
                                 new DefaultPublishArtifactFactory(),
                                 internalRepository,
-                                new DefaultProjectEvaluator(
-                                        importsReader,
-                                        scriptProcessor,
-                                        new DefaultProjectScriptMetaData()
-                                ),
+                                projectEvaluator,
                                 new PluginRegistry(
                                         startParameter.getPluginPropertiesFile()),
                                 startParameter.getBuildScriptSource(),
-                                new DefaultAntBuilderFactory(new AntLoggingAdapter()))
-                ),
+                                new DefaultAntBuilderFactory(new AntLoggingAdapter())),
+                        internalRepository),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()));
         gradle.addBuildListener(internalRepository);
+        gradle.addBuildListener(projectEvaluator);
         return gradle;
     }
 }
