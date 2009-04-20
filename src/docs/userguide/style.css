@@ -1,7 +1,11 @@
+html {
+    margin: 0;
+}
 
 body {
     font-family: 'Lucida Grande','Lucida Sans Unicode','Lucida Sans','Geneva','Verdana',sans-serif;
     color: #555555;
+    background-color: white;
     font-size: 11pt;
     line-height: 150%;
     margin-top: 2em;
@@ -14,6 +18,7 @@ a {
     color: #444444;
     text-decoration: none;
     border-bottom: dotted 1px;
+    outline: none;
 }
 
 a:visited {

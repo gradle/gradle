@@ -1,26 +1,41 @@
 
 @page {
     size: A4;
+    padding: 0;
+    margin: 2cm;
+}
+
+@page contentpage {
+    @bottom-right {
+        content: 'Page ' counter(page)
+        font-family: 'Lucida Grande','Lucida Sans Unicode','Lucida Sans','Geneva','Verdana',sans-serif;
+        color: #555555;
+        font-size: 8pt;
+    }
 }
 
 body {
     font-size: 10pt;
+    margin: 0;
+    margin-bottom: 2cm;
+    padding: 0;
+    padding-bottom: 2cm;
 }
 
 /*
  * Override colour -> black and white
  */
-/*body {*/
-    /*color: black;*/
-/*}*/
+body {
+    color: black;
+}
 
-/*h1, h2, h3, h4, h5 {*/
-    /*color: black;*/
-/*}*/
+h1, h2, h3, h4, h5 {
+    color: black;
+}
 
-/*a {*/
-    /*color: black;*/
-/*}*/
+a {
+    color: black;
+}
 
 /*
  * Book title page
@@ -48,10 +63,12 @@ body {
  */
 
 .chapter {
+    page: contentpage;
     page-break-before: always;
 }
 
 .appendix {
+    page: contentpage;
     page-break-before: always;
 }
 
@@ -101,6 +118,15 @@ p {
 }
 
 .example {
+    page-break-inside: avoid;
+}
+
+.figure .title {
+    text-align: left;
+    white-space: nowrap;
+}
+
+.figure {
     page-break-inside: avoid;
 }
 
