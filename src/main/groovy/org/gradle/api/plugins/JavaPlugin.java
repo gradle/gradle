@@ -126,7 +126,7 @@ public class JavaPlugin implements Plugin {
                 compile.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                 compile.setConfiguration(project.getConfigurations().get(COMPILE_CONFIGURATION_NAME));
                 compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
-                addDependsOnProjectDependencies(compile, COMPILE_TASK_NAME);
+                addDependsOnProjectDependencies(compile, COMPILE_CONFIGURATION_NAME);
             }
         });
 
@@ -149,6 +149,7 @@ public class JavaPlugin implements Plugin {
             public void execute(Javadoc javadoc) {
                 javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
                 javadoc.setConfiguration(project.getConfigurations().get(COMPILE_CONFIGURATION_NAME));
+                addDependsOnProjectDependencies(javadoc, COMPILE_CONFIGURATION_NAME);
             }
         });
         project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class).setDescription("Generates the javadoc for the source code.");
