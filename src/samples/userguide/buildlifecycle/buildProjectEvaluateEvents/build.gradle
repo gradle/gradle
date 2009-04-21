@@ -1,13 +1,11 @@
 // START SNIPPET evaluate-events
-build.afterProjectEvaluate {project ->
-    if (project.hasTests) {
-        println "Adding test task to $project"
-        project.createTask('test') {
-            println "Running tests for $project"
-        }
+build.afterProject {project, exception ->
+    if (exception) {
+        println "Evaluation of $project FAILED"
+    } else {
+        println "Evaluation of $project succeeded"
     }
 }
 // END SNIPPET evaluate-events
 
-allprojects*.hasTests = false
-project(':projectA').hasTests = true
+createTask('test')

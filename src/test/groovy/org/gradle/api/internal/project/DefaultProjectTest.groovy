@@ -252,18 +252,38 @@ class DefaultProjectTest {
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
-    @Test public void testNotifiesProjectEvaluationListenerBeforeAndAfterEvaluation() {
-        ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener)
+    @Test public void testExecutesActionBeforeEvaluation() {
+        ProjectAction listener = context.mock(ProjectAction)
         context.checking {
-            one(listener).beforeEvaluate(project)
+            one(listener).execute(project)
             one(projectEvaluator).evaluate(project)
-            one(listener).afterEvaluate(project)
         }
-        project.addProjectEvaluationListener(listener)
+        project.beforeEvaluate(listener)
         project.evaluate()
     }
 
-    @Test public void testNotifiesProjectEvaluationClosureAfterEvaluation() {
+    @Test public void testExecutesActionAfterEvaluation() {
+        ProjectAction listener = context.mock(ProjectAction)
+        context.checking {
+            one(projectEvaluator).evaluate(project)
+            one(listener).execute(project)
+        }
+        project.afterEvaluate(listener)
+        project.evaluate()
+    }
+
+    @Test public void testExecutesClosureBeforeEvaluation() {
+        TestClosure listener = context.mock(TestClosure)
+        context.checking {
+            one(listener).call(project)
+            one(projectEvaluator).evaluate(project)
+        }
+
+        project.beforeEvaluate(HelperUtil.toClosure(listener))
+        project.evaluate()
+    }
+
+    @Test public void testExecutesClosureAfterEvaluation() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
             one(projectEvaluator).evaluate(project)

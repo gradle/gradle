@@ -145,8 +145,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private RepositoryHandler repositoryHandler;
 
-    private ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListeners
-            = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+    private ListenerBroadcast<Action> afterEvaluateActions = new ListenerBroadcast<Action>(Action.class);
+    private ListenerBroadcast<Action> beforeEvaluateActions = new ListenerBroadcast<Action>(Action.class);
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
     private DynamicObjectHelper dynamicObjectHelper;
@@ -602,15 +602,15 @@ public abstract class AbstractProject implements ProjectInternal {
         return new TreeSet<Project>(projectRegistry.getSubProjects(this.path));
     }
 
-    public void subprojects(ProjectAction action) {
+    public void subprojects(Action<? super Project> action) {
         applyActions(getSubprojects(), action);
     }
 
-    public void allprojects(ProjectAction action) {
+    public void allprojects(Action<? super Project> action) {
         applyActions(getAllprojects(), action);
     }
 
-    public void applyActions(Set<Project> projects, ProjectAction action) {
+    public void applyActions(Set<Project> projects, Action<? super Project> action) {
         for (Project project : projects) {
             action.execute(project);
         }
@@ -639,12 +639,12 @@ public abstract class AbstractProject implements ProjectInternal {
             return this;
         }
         Clock clock = new Clock();
-        projectEvaluationListeners.getSource().beforeEvaluate(this);
+        beforeEvaluateActions.getSource().execute(this);
         state = State.INITIALIZING;
         projectEvaluator.evaluate(this);
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = State.INITIALIZED;
-        projectEvaluationListeners.getSource().afterEvaluate(this);
+        afterEvaluateActions.getSource().execute(this);
         logger.info(String.format("Project %s evaluated using %s.", path, getBuildScriptSource().getDisplayName()));
         logger.debug("Timing: Project evaluation took " + clock.getTime());
         return this;
@@ -931,13 +931,20 @@ public abstract class AbstractProject implements ProjectInternal {
         this.publishArtifactFactory = publishArtifactFactory;
     }
 
-    public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener projectEvaluationListener) {
-        projectEvaluationListeners.add(projectEvaluationListener);
-        return projectEvaluationListener;
+    public void beforeEvaluate(Action<? super Project> action) {
+        beforeEvaluateActions.add(action);
     }
 
-    public void afterEvaluate(Closure afterEvaluateListener) {
-        projectEvaluationListeners.add("afterEvaluate", afterEvaluateListener);
+    public void afterEvaluate(Action<? super Project> action) {
+        afterEvaluateActions.add(action);
+    }
+
+    public void beforeEvaluate(Closure closure) {
+        beforeEvaluateActions.add("execute", closure);
+    }
+
+    public void afterEvaluate(Closure closure) {
+        afterEvaluateActions.add("execute", closure);
     }
 
     public Logger getLogger() {

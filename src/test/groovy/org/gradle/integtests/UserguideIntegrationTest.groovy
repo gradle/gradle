@@ -148,6 +148,7 @@ class UserguideIntegrationTest {
         // Some custom values
         samplesById['properties'].envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue'
         samplesById['taskExecutionEvents'].expectFailure = true
+        samplesById['buildProjectEvaluateEvents'].expectFailure = true
 
         return samplesById.values().collect {sample ->
             String id = sample.id

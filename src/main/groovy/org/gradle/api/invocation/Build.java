@@ -103,7 +103,7 @@ public interface Build {
      *
      * @param closure The closure to execute.
      */
-    void beforeProjectEvaluate(Closure closure);
+    void beforeProject(Closure closure);
 
     /**
      * Adds a closure to be called immediately after a project is evaluated. The project is passed to the closure as the
@@ -112,5 +112,5 @@ public interface Build {
      *
      * @param closure The closure to execute.
      */
-    void afterProjectEvaluate(Closure closure);
+    void afterProject(Closure closure);
 }

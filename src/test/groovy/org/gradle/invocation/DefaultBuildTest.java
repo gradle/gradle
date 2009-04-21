@@ -53,15 +53,16 @@ public class DefaultBuildTest {
     public void broadcastsProjectEventsToListeners() {
         final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class);
         final Project project = context.mock(Project.class);
+        final RuntimeException failure = new RuntimeException();
         context.checking(new Expectations() {{
             one(listener).beforeEvaluate(project);
-            one(listener).afterEvaluate(project);
+            one(listener).afterEvaluate(project, failure);
         }});
 
         build.addProjectEvaluationListener(listener);
 
         build.getProjectEvaluationBroadcaster().beforeEvaluate(project);
-        build.getProjectEvaluationBroadcaster().afterEvaluate(project);
+        build.getProjectEvaluationBroadcaster().afterEvaluate(project, failure);
     }
 
     @Test
@@ -72,7 +73,7 @@ public class DefaultBuildTest {
             one(closure).call(project);
         }});
 
-        build.beforeProjectEvaluate(HelperUtil.toClosure(closure));
+        build.beforeProject(HelperUtil.toClosure(closure));
 
         build.getProjectEvaluationBroadcaster().beforeEvaluate(project);
     }
@@ -85,8 +86,8 @@ public class DefaultBuildTest {
             one(closure).call(project);
         }});
 
-        build.afterProjectEvaluate(HelperUtil.toClosure(closure));
+        build.afterProject(HelperUtil.toClosure(closure));
 
-        build.getProjectEvaluationBroadcaster().afterEvaluate(project);
+        build.getProjectEvaluationBroadcaster().afterEvaluate(project, null);
     }
 }

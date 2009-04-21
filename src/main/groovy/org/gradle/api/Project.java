@@ -870,11 +870,11 @@ public interface Project extends Comparable<Project> {
     Set<Class<? extends Plugin>> getAppliedPlugins();
 
     /**
-     * <p>Executes the given {@link ProjectAction} against the subprojects of this project.</p>
+     * <p>Executes the given {@link Action} against the subprojects of this project.</p>
      *
      * @param action The action to execute.
      */
-    void subprojects(ProjectAction action);
+    void subprojects(Action<? super Project> action);
 
     /**
      * <p>Executes the given closure against each of the subprojects of this project.</p>
@@ -886,11 +886,11 @@ public interface Project extends Comparable<Project> {
     void subprojects(Closure configureClosure);
 
     /**
-     * <p>Executes the given {@link ProjectAction} against this project and its subprojects.</p>
+     * <p>Executes the given {@link Action} against this project and its subprojects.</p>
      *
      * @param action The action to execute.
      */
-    void allprojects(ProjectAction action);
+    void allprojects(Action<? super Project> action);
 
     /**
      * <p>Executes the given closure against this project and its subprojects.</p>
@@ -906,27 +906,40 @@ public interface Project extends Comparable<Project> {
      * @param projects
      * @param action
      */
-    void applyActions(Set<Project> projects, ProjectAction action);
+    void applyActions(Set<Project> projects, Action<? super Project> action);
 
     /**
-     * <p>Adds an {@link ProjectEvaluationListener} to this project. Such a listener gets notified when the build file
-     * belonging to this project has been executed. A parent project may for example add such a listener to its child
-     * project. Such a listener can futher configure those child projects based on the state of the child projects after
-     * their build files have been run.</p>
+     * Adds an action to execute immediately before this project is evaluated.
      *
-     * @param projectEvaluationListener The listener (never null) to be added.
-     * @return The added afterEvaluateListener
-     * @see ProjectEvaluationListener
+     * @param action the action to execute.
      */
-    ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener projectEvaluationListener);
+    void beforeEvaluate(Action<? super Project> action);
 
     /**
-     * <p>Adds a closure to be called immediately after this project has been evaluated. See {@link
-     * #addProjectEvaluationListener(ProjectEvaluationListener)} for more details.</p>
+     * Adds an action to execute immediately after this project is evaluated.
      *
-     * @param afterEvaluateListener The closure to be call.
+     * @param action the action to execute.
      */
-    void afterEvaluate(Closure afterEvaluateListener);
+    void afterEvaluate(Action<? super Project> action);
+
+    /**
+     * <p>Adds a closure to be called immediately before this project is evaluated. The project is passed to the closure
+     * as a parameter.</p>
+     *
+     * @param closure The closure to call.
+     */
+    void beforeEvaluate(Closure closure);
+
+    /**
+     * <p>Adds a closure to be called immediately after this project has been evaluated. The project is passed to the
+     * closure as a parameter. Such a listener gets notified when the build file belonging to this project has been
+     * executed. A parent project may for example add such a listener to its child project. Such a listener can futher
+     * configure those child projects based on the state of the child projects after their build files have been
+     * run.</p>
+     *
+     * @param closure The closure to call.
+     */
+    void afterEvaluate(Closure closure);
 
     /**
      * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the

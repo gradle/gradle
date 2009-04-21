@@ -35,6 +35,7 @@ public interface ProjectEvaluationListener {
      * other projects.</p>
      *
      * @param project The project which was evaluated. Never null.
+     * @param failure The evaluation failure, if any.
      */
-    void afterEvaluate(Project project);
+    void afterEvaluate(Project project, Throwable failure);
 }

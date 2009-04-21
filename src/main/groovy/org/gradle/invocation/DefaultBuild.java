@@ -100,11 +100,11 @@ public class DefaultBuild implements BuildInternal {
         projectEvaluationListenerBroadcast.remove(listener);
     }
 
-    public void beforeProjectEvaluate(Closure closure) {
+    public void beforeProject(Closure closure) {
         projectEvaluationListenerBroadcast.add("beforeEvaluate", closure);
     }
 
-    public void afterProjectEvaluate(Closure closure) {
+    public void afterProject(Closure closure) {
         projectEvaluationListenerBroadcast.add("afterEvaluate", closure);
     }
 

@@ -20,6 +20,7 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
 import static org.hamcrest.Matchers.*;
+import org.hamcrest.Matcher;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,7 +108,7 @@ public class DefaultProjectEvaluatorTest {
 
             one(standardOutputRedirector).flush();
 
-            one(listener).afterEvaluate(project);
+            one(listener).afterEvaluate(project, null);
         }});
 
         evaluator.evaluate(project);
@@ -143,6 +144,8 @@ public class DefaultProjectEvaluatorTest {
             will(throwException(failure));
 
             one(standardOutputRedirector).flush();
+
+            one(listener).afterEvaluate(with(sameInstance(project)), with(notNullValue(Throwable.class)));
         }});
 
         try {

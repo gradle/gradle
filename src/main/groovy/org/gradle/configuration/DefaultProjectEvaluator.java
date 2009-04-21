@@ -49,6 +49,7 @@ public class DefaultProjectEvaluator implements ProjectEvaluator, BuildListener 
 
     public void evaluate(ProjectInternal project) {
         listener.beforeEvaluate(project);
+        GradleScriptException failure = null;
         try {
             ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader, project.getRootDir());
             Script buildScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
@@ -62,10 +63,13 @@ public class DefaultProjectEvaluator implements ProjectEvaluator, BuildListener 
                 project.getStandardOutputRedirector().flush();
             }
         } catch (Throwable t) {
-            throw new GradleScriptException(String.format("A problem occurred evaluating %s.", project), t,
+            failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", project), t,
                     project.getBuildScriptSource());
         }
-        listener.afterEvaluate(project);
+        listener.afterEvaluate(project, failure);
+        if (failure != null) {
+            throw failure;
+        }
     }
 
     public void buildStarted(StartParameter startParameter) {
