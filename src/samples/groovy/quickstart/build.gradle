@@ -4,7 +4,7 @@ usePlugin 'groovy'
 
 // START SNIPPET groovy-dependency
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 dependencies {

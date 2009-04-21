@@ -23,21 +23,31 @@
     </note>
 
     <para>To build a Groovy project, you use the <firstterm>Groovy Plugin</firstterm>. This plugin extends the Java
-        plugin, adding Groovy compilation capabilties to your project. See <xref linkend="tutorial_java_projects"/>.
-        To use the Groovy plugin, add the following to your build file:</para>
-    <sample id="groovyQuickstart" dir="groovy/quickstart">
-        <sourcefile file="build.gradle" snippet="use-plugin"/>
-    </sample>
-    <para>This will also apply the Java plugin to the project.</para>
-    <para>The Groovy plugin extends the <literal>compile</literal> task to include <filename>src/main/groovy</filename>
-        and <filename>src/test/groovy</filename> source directories. Joint compilation is used for these directories,
-        so they can contain both java and groovy source files.
+        plugin, adding Groovy compilation capabilties to your project. In most other respects, a Groovy project is
+        identical to a Java project, as described in <xref linkend="tutorial_java_projects"/>.
     </para>
-    <para>You must declare the Groovy version to use, and where to find it. You do this by adding a dependency to the
-        <literal>groovy</literal> configuration. For our sample, we will use Groovy 1.6.0 from the Maven repository:</para>
-    <sample id="groovyQuickstart" dir="groovy/quickstart">
-        <sourcefile file="build.gradle" snippet="groovy-dependency"/>
-    </sample>
+
+    <section>
+        <title>Using the Groovy Plugin</title>
+
+        <para>To use the Groovy plugin, add the following to your build file:</para>
+        <sample id="groovyQuickstart" dir="groovy/quickstart">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>This will also apply the Java plugin to the project. The Groovy plugin extends the
+            <literal>compile</literal> task to include source files in directory <filename>src/main/groovy</filename>,
+            and the <literal>compileTests</literal> task to include test source files in directory
+            <filename>src/test/groovy</filename>. The compile tasks use joint compilation for these directories, so they
+            can contain both java and groovy source files.
+        </para>
+        <para>You must also declare the Groovy version to use, and where to find the libraries for it. You do this by
+            adding a dependency to the <literal>groovy</literal> configuration. The <literal>compile</literal>
+            configuration inherits this dependency, so it is also used for the compilation classpaths. For our sample,
+            we will use Groovy 1.6.0 from the public Maven repository:</para>
+        <sample id="groovyQuickstart" dir="groovy/quickstart">
+            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
+        </sample>
+    </section>
 
     <section>
         <title>Summary</title>

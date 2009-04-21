@@ -1,5 +1,5 @@
 <chapter id='multi_project_builds' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Multi-project builds</title>
+    <title>Multi-project Builds</title>
     <para>The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the
         intellectually most challenging.
     </para>

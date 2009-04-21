@@ -94,38 +94,41 @@
             </para>
             <section>
                 <title>Hierarchical Layouts</title>
-                <programlisting><![CDATA[
-include 'project1', 'project2', 'project2:child1'
-]]></programlisting>
-                <para>The include method takes as an argument a relative virtual path to the root project. This relative
-                    virtual path is assumed to be equals to the relative physical path of the subproject to the root
-                    project. You only need to specify the leafs of the tree. Each parent path of the leaf project is
-                    assumed to be another subproject which obeys to the physical path assumption described above.
+                <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts">
+                    <sourcefile file="settings.gradle" snippet="hierarchical-layout"/>
+                </sample>
+                <para>The <literal>include</literal> method takes as an argument a relative virtual path to the root
+                    project. This relative virtual path is assumed to be equals to the relative physical path of the
+                    subproject to the root project. You only need to specify the leafs of the tree. Each parent path of
+                    the leaf project is assumed to be another subproject which obeys to the physical path assumption
+                    described above.
                 </para>
             </section>
             <section>
                 <title>Flat Layouts</title>
-                <programlisting><![CDATA[
-includeFlat 'project1', 'project2'
-]]></programlisting>
-                <para>The includeFlat method takes directory names as an argument. Those directories need to exist at
-                    the same level as the root project directory. The location of those directories are considered as
-                    child projects of the root project in the virtual multi-project tree.
+                <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts">
+                    <sourcefile file="settings.gradle" snippet="flat-layout"/>
+                </sample>
+                <para>The <literal>includeFlat</literal> method takes directory names as an argument. Those directories
+                    need to exist at the same level as the root project directory. The location of those directories
+                    are considered as child projects of the root project in the virtual multi-project tree.
                 </para>
             </section>
         </section>
         <section id='sub:modifying_element_of_the_project_tree'>
             <title>Modifying Elements of the Project Tree</title>
-            <para>The multi-project tree created in the settings file is made up of so called project descriptor object.
-                You might modify those descriptor objects in the settings file at any time. To access such a descriptor
-                object you can do:
+            <para>The multi-project tree created in the settings file is made up of so called <firstterm>project descriptors</firstterm>.
+                You can modify these descriptors in the settings file at any time. To access a descriptor you can do:
             </para>
-            <programlisting><![CDATA[
-myDescriptor = descriptor('path_in_multi_project_tree')
-myOtherDescriptor = descriptor(new File('path_to_projectDir')) 
-]]></programlisting>
-            <para>Via this descriptor you can change the name and the directory of a project.
+            <sample id="customLayout" dir="userguide/multiproject/customLayout">
+                <sourcefile file="settings.gradle" snippet="lookup-project"/>
+            </sample>
+            <para>Using this descriptor you can change the name, project directory and build file of a project.
             </para>
+            <sample id="customLayout" dir="userguide/multiproject/customLayout">
+                <sourcefile file="settings.gradle" snippet="change-project"/>
+            </sample>
+            <para>Have a look at <apilink class="org.gradle.api.initialization.ProjectDescriptor"/> for more details.</para>
         </section>
     </section>
     <section id='sec:initialization'>
@@ -134,16 +137,16 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
             from the directory where the settings file is, things are easy. But Gradle also allows you to execute the
             build from within any subproject taking part in the build.
             <footnote>
-                <para>Gradle supports partial multiproject builds (see <xref linkend='multi_project_builds'/>)
+                <para>Gradle supports partial multiproject builds (see <xref linkend='multi_project_builds'/>).
                 </para>
             </footnote>
-            . If you execute Gradle from within a project that has no <filename>settings.gradle</filename> file,
+            If you execute Gradle from within a project that has no <filename>settings.gradle</filename> file,
             Gradle does the following:
         </para>
         <itemizedlist>
             <listitem>
-                <para>It searches for a <filename>settings.gradle</filename> in a directory called 'master' which has the same nesting level
-                    as the current dir.
+                <para>It searches for a <filename>settings.gradle</filename> in a directory called <filename>master</filename>
+                    which has the same nesting level as the current dir.
                 </para>
             </listitem>
             <listitem>
@@ -226,8 +229,9 @@ myOtherDescriptor = descriptor(new File('path_to_projectDir'))
             </sample>
             <para>This example uses method <literal>Project.afterEvaluate()</literal> to add a closure which is executed
                 after the project is evaluated.</para>
-            <para>It is also possible to receive notifications when any project is evaluated. Here is a different
-                implementation of the previous example:
+            <para>It is also possible to receive notifications when any project is evaluated. This example performs
+                some custom logging of project evaluation. Notice that the <literal>afterProject</literal> notification
+                is received regardless of whether the project evaluates successfully or fails with an exception.
             </para>
             <sample id="buildProjectEvaluateEvents" dir="userguide/buildlifecycle/buildProjectEvaluateEvents">
                 <sourcefile file="build.gradle" snippet="evaluate-events"/>

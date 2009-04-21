@@ -35,27 +35,37 @@
         <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
             <sourcefile file="build.gradle" snippet="lookup-configuration"/>
         </sample>
-        <para>A configuration can extend other configurations.</para>
-        <para>A configuration can be transitive or non-transitive.</para>
+        <para>TBD - configurating configurations</para>
     </section>
 
     <section>
         <title>Repositories</title>
         <para>Artifacts are stored in <firstterm>repositories</firstterm>.</para>
         <para>To use maven central repository:</para>
-        <sample id="mavenCentralRepository" dir="userguide/artifacts/externalDependencies">
+        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
             <sourcefile file="build.gradle" snippet="maven-central"/>
         </sample>
         <para>To use a local directory:</para>
-        <sample id="mavenCentralRepository" dir="userguide/artifacts/externalDependencies">
+        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
             <sourcefile file="build.gradle" snippet="flat-dir"/>
         </sample>
-        <para>You can have multiple repositories.</para>
+        <para>You can also use any Ivy resolver. You can have multiple repositories.</para>
+        <para>TBD - configurating repositories</para>
     </section>
 
     <section>
         <title>External Dependencies</title>
-        <para>TBD</para>
+        <para>To define an external dependency, you add a dependency to a configuration:</para>
+        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
+            <sourcefile file="build.gradle" snippet="define-dependency"/>
+        </sample>
+        <para><literal>group</literal> and <literal>version</literal> are optional</para>
+        <para>TBD - configuring an external dependency</para>
+        <para>To use the external dependencies of a configuration:</para>
+        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
+            <sourcefile file="build.gradle" snippet="use-configuration"/>
+            <output args="-q listJars"/>
+        </sample>
     </section>
 
     <section>

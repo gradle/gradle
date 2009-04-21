@@ -9,3 +9,19 @@ repositories {
     flatDir(dirs: "lib")
 }
 //END SNIPPET flat-dir
+
+//START SNIPPET define-dependency
+configurations {
+    compile
+}
+
+dependencies {
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+}
+//END SNIPPET define-dependency
+
+//START SNIPPET use-configuration
+createTask('listJars') {
+    configurations.compile.each { File file -> println file.name }
+}
+//END SNIPPET use-configuration
