@@ -113,6 +113,11 @@ public interface Configuration extends FileCollection {
      */
     Configuration setDescription(String description);
 
+    /**
+     * Gets a list including this configuration and all superconfigurations
+     * recursively.
+     * @return the list of all configurations
+     */
     List<Configuration> getHierarchy();
 
     /**
@@ -123,6 +128,12 @@ public interface Configuration extends FileCollection {
      */
     Set<File> resolve();
 
+    /**
+     * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
+     * a ResolveReport that may be used to determine information about the resolve (including errors).
+     *
+     * @return The ResolveReport
+     */
     ResolveReport resolveAsReport();
 
     String getUploadInternalTaskName();
@@ -147,12 +158,36 @@ public interface Configuration extends FileCollection {
 
     void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction);
 
+    /**
+     * Gets the set of dependencies directly contained in this configuration
+     * (ignoring superconfigurations).
+     *
+     * @return the set of dependencies
+     */
     Set<Dependency> getDependencies();
 
+    /**
+     * Gets the complete set of dependencies including those contributed by
+     * superconfigurations.
+     *
+     * @return the set of dependencies
+     */
     Set<Dependency> getAllDependencies();
 
+    /**
+     * Gets the set of Project Dependencies directly contained in this configuration
+     * (ignoring superconfigurations).
+     *
+     * @return the set of Project Dependencies
+     */
     Set<ProjectDependency> getProjectDependencies();
 
+    /**
+     * Gets the complete set of Project Dependencies including those contributed by
+     * superconfigurations.
+     *
+     * @return the set of Project Dependencies
+     */
     Set<ProjectDependency> getAllProjectDependencies();
 
     void addDependency(Dependency dependency);
@@ -169,11 +204,41 @@ public interface Configuration extends FileCollection {
 
     Configuration addArtifact(PublishArtifact artifact);
 
+    /**
+     * Creates a copy of this configuration that only contains the dependencies directly in this configuration
+     * (without contributions from superconfigurations).  The new configuation will be in the
+     * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.
+     * {@link #getHierarchy()} for the copy will not include any superconfigurations.
+     * @return copy of this configuration
+     */
     Configuration copy();
 
+    /**
+     * Creates a copy of this configuration that contains the dependencies directly in this configuration
+     * and those derived from superconfigurations.  The new configuation will be in the
+     * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.
+     * {@link #getHierarchy()} for the copy will not include any superconfigurations.
+     * @return copy of this configuration
+     */
     Configuration copyRecursive();
 
+    /**
+     * Creates a copy of this configuration ignoring superconfigurations (see {@link #copy()} but filtering
+     * the dependencies using the dependencySpec.  The dependencySpec may be obtained from
+     * {@link org.gradle.api.artifacts.specs.DependencySpecs DependencySpecs.type()} like
+     * DependencySpecs.type(Type.EXTERNAL)
+     * @param dependencySpec filtering requirements
+     * @return copy of this configuration
+     */
     Configuration copy(Spec<Dependency> dependencySpec);
 
+    /**
+     * Creates a copy of this configuration with dependencies from superconfigurations (see {@link #copyRecursive()})
+     *  but filtering the dependencies using the dependencySpec.  The dependencySpec may be obtained from
+     * {@link org.gradle.api.artifacts.specs.DependencySpecs DependencySpecs.type()} like
+     * DependencySpecs.type(Type.EXTERNAL)
+     * @param dependencySpec filtering requirements
+     * @return copy of this configuration
+     */
     Configuration copyRecursive(Spec<Dependency> dependencySpec);
 }

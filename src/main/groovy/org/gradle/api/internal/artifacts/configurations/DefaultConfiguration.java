@@ -8,9 +8,9 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
+import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
-import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -343,6 +343,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration("copyOf" + getName(),
                 configurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
+        // state, cachedResolveReport, and extendsFrom intentionally not copied - must re-resolve copy
+        // copying extendsFrom could mess up dependencies when copy was re-resolved
+
+        copiedConfiguration.visibility = visibility;
+        copiedConfiguration.transitive = transitive;
+        copiedConfiguration.description = description;
+       
+        for (PublishArtifact artifact : getAllArtifacts()) {
+           copiedConfiguration.addArtifact(artifact);
+        }
+
+        for (ExcludeRule excludeRule : getExcludeRules()) {
+            copiedConfiguration.getExcludeRules().add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));    
+        }
+
         for (Dependency dependency : dependencies) {
             copiedConfiguration.addDependency(dependency.copy());
         }

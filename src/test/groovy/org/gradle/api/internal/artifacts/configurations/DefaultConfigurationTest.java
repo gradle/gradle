@@ -481,12 +481,25 @@ public class DefaultConfigurationTest {
     }
 
     private void prepareConfigurationForCopyTest() {
+        configuration.setVisible(false);
+        configuration.setTransitive(false);
+        configuration.setDescription("descript");
+        configuration.exclude(WrapUtil.toMap("org", "value"));
+        configuration.exclude(WrapUtil.toMap("org2", "value2"));
+        configuration.addArtifact(HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1"));
+        configuration.addArtifact(HelperUtil.createPublishArtifact("name2", "ext2", "type2", "classifier2"));
         configuration.addDependency(HelperUtil.createDependency("group1", "name1", "version1"));
         configuration.addDependency(HelperUtil.createDependency("group2", "name2", "version2"));
     }
 
     private void assertThatCopiedConfigurationHasElementsAndName(Configuration copiedConfiguration, Set<Dependency> expectedDependencies) {
         assertThat(copiedConfiguration.getName(), equalTo("copyOf" + configuration.getName()));
+        assertThat(copiedConfiguration.isVisible(), equalTo(configuration.isVisible()));
+        assertThat(copiedConfiguration.isTransitive(), equalTo(configuration.isTransitive()));
+        assertThat(copiedConfiguration.getDescription(), equalTo(configuration.getDescription()));
+        assertThat(copiedConfiguration.getAllArtifacts(), equalTo(configuration.getAllArtifacts()));
+        assertThat(copiedConfiguration.getExcludeRules(), equalTo(configuration.getExcludeRules()));
+        assertThat(copiedConfiguration.getExcludeRules().iterator().next(), not(sameInstance(configuration.getExcludeRules().iterator().next())));
         assertThat(copiedConfiguration.getDependencies(), equalTo(expectedDependencies));
         assertNotSameInstances(copiedConfiguration.getDependencies(), expectedDependencies);
     }
