@@ -354,6 +354,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
            copiedConfiguration.addArtifact(artifact);
         }
 
+        // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
+        // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
+        // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule. 
         for (ExcludeRule excludeRule : getExcludeRules()) {
             copiedConfiguration.getExcludeRules().add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));    
         }
