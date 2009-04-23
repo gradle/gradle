@@ -17,24 +17,23 @@
 package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.UnknownResolverException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ConventionAwareHelper;
+import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
-import org.gradle.util.HashUtil;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.*;
@@ -42,14 +41,13 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class DefaultResolverContainer implements ResolverContainer {
+public class DefaultResolverContainer extends DefaultDomainObjectContainer<DependencyResolver>
+        implements ResolverContainer {
     private ConventionAwareHelper conventionAwareHelper;
 
     private ResolverFactory resolverFactory;
 
     private List<String> resolverNames = new ArrayList<String>();
-
-    private Map<String, DependencyResolver> resolvers = new HashMap<String, DependencyResolver>();
 
     private File mavenPomDir = null;
 
@@ -75,18 +73,16 @@ public class DefaultResolverContainer implements ResolverContainer {
         });
     }
 
-    public DependencyResolver addBefore(Object userDescription, final String afterResolverName) {
+    public DependencyResolver addBefore(Object userDescription, String afterResolverName) {
         return addBefore(userDescription, afterResolverName, null);
     }
 
     public DependencyResolver addBefore(Object userDescription, final String afterResolverName, Closure configureClosure) {
         if (!GUtil.isTrue(afterResolverName)) {
-            throw new InvalidUserDataException(
-                    "You must specify userDescription and afterResolverName");
+            throw new InvalidUserDataException("You must specify userDescription and afterResolverName");
         }
-        if (!GUtil.isTrue(resolvers.get(afterResolverName))) {
-            throw new InvalidUserDataException(
-                    "Resolver $afterResolverName does not exists!");
+        if (find(afterResolverName) == null) {
+            throw new InvalidUserDataException("Resolver $afterResolverName does not exists!");
         }
         return addInternal(userDescription, configureClosure, new OrderAction() {
             public void apply(String resolverName) {
@@ -101,12 +97,10 @@ public class DefaultResolverContainer implements ResolverContainer {
 
     public DependencyResolver addAfter(Object userDescription, final String beforeResolverName, Closure configureClosure) {
         if (!GUtil.isTrue(beforeResolverName)) {
-            throw new InvalidUserDataException(
-                    "You must specify userDescription and beforeResolverName");
+            throw new InvalidUserDataException("You must specify userDescription and beforeResolverName");
         }
-        if (!GUtil.isTrue(resolvers.get(beforeResolverName))) {
-            throw new InvalidUserDataException(
-                    "Resolver $beforeResolverName does not exists!");
+        if (find(beforeResolverName) == null) {
+            throw new InvalidUserDataException("Resolver $beforeResolverName does not exists!");
         }
         return addInternal(userDescription, configureClosure, new OrderAction() {
             public void apply(String resolverName) {
@@ -148,20 +142,24 @@ public class DefaultResolverContainer implements ResolverContainer {
         if (!GUtil.isTrue(resolver.getName())) {
             throw new InvalidUserDataException("You must specify a name for the resolver. Resolver=" + userDescription);
         }
-        resolvers.put(resolver.getName(), resolver);
+        if (find(resolver.getName()) != null) {
+            throw new InvalidUserDataException(String.format(
+                    "Cannot add a resolver with name '%s' as a resolver with that name already exists.", resolver.getName()));
+        }
+        addObject(resolver.getName(), resolver);
         orderAction.apply(resolver.getName());
         return resolver;
     }
 
-
-    public DependencyResolver resolver(String name) {
-        return resolvers.get(name);
+    @Override
+    protected UnknownDomainObjectException createNotFoundException(String name) {
+        return new UnknownResolverException(String.format("Resolver with name '%s' not found.", name));
     }
 
-    public List<DependencyResolver> getResolverList() {
+    public List<DependencyResolver> getResolvers() {
         List<DependencyResolver> returnedResolvers = new ArrayList<DependencyResolver>();
         for (String resolverName : resolverNames) {
-            returnedResolvers.add(resolvers.get(resolverName));
+            returnedResolvers.add(getByName(resolverName));
         }
         return returnedResolvers;
     }
@@ -185,14 +183,6 @@ public class DefaultResolverContainer implements ResolverContainer {
 
     public void setResolverNames(List<String> resolverNames) {
         this.resolverNames = resolverNames;
-    }
-
-    public Map<String, DependencyResolver> getResolvers() {
-        return resolvers;
-    }
-
-    public void setResolvers(Map<String, DependencyResolver> resolvers) {
-        this.resolvers = resolvers;
     }
 
     public ConfigurationContainer getConfigurationContainer() {

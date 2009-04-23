@@ -71,7 +71,7 @@ public class UploadTest extends AbstractTaskTest {
     }
 
     @Test public void testRepositories() {
-        final DependencyResolver repository = upload.repositories(HelperUtil.toClosure("{ mavenCentral() }")).getResolverList().get(0);
-        assertThat(upload.getRepositories().getResolverList(), Matchers.equalTo(WrapUtil.toList(repository)));
+        final DependencyResolver repository = upload.repositories(HelperUtil.toClosure("{ mavenCentral() }")).getResolvers().get(0);
+        assertThat(upload.getRepositories().getResolvers(), Matchers.equalTo(WrapUtil.toList(repository)));
     }
 }

@@ -44,7 +44,7 @@ class DefaultConfigurationHandlerTest {
   @Test void newAndExisitingConfiguration() {
     Configuration configuration = configurationHandler.newConf
     assertThat(configuration, is(not(null)))
-    assertThat(configurationHandler.get("newConf"), sameInstance(configuration))
+    assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))
     assertThat(configurationHandler.newConf, sameInstance(configuration))
   }
 

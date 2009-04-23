@@ -37,7 +37,7 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
 
     public Task add(Map<String, ?> options, String name, TaskAction taskAction) {
         Task task = taskFactory.createTask(project, getAsMap(), options, name);
-        add(name, task);
+        addObject(name, task);
         if (taskAction != null) {
             task.doFirst(taskAction);
         }
@@ -60,10 +60,14 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         return type.cast(add(GUtil.map(Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true), name, null));
     }
 
+    public Task get(String name) throws UnknownTaskException {
+        return getByName(name);
+    }
+
     @Override
-    public void add(String name, Task object) {
+    protected void addObject(String name, Task object) {
         addActions.getSource().execute(object);
-        super.add(name, object);
+        super.addObject(name, object);
     }
 
     public Action<? super Task> whenTaskAdded(Action<? super Task> action) {

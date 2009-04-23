@@ -58,7 +58,7 @@ public class Upload extends DefaultTask {
 
     private void upload(Task task) {
         logger.info("Publishing configurations: " + configuration);
-        configuration.publish(repositories.getResolverList(), publishInstruction);
+        configuration.publish(repositories.getResolvers(), publishInstruction);
     }
 
     public PublishInstruction getPublishInstruction() {

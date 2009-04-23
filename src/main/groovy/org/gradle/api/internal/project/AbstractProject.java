@@ -220,7 +220,7 @@ public abstract class AbstractProject implements ProjectInternal {
     private ResolverProvider createResolverProvider() {
         return new ResolverProvider() {
             public List<DependencyResolver> getResolvers() {
-                return repositoryHandler.getResolverList();
+                return repositoryHandler.getResolvers();
             }
         };
     }

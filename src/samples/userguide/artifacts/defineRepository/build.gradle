@@ -1,0 +1,24 @@
+//START SNIPPET maven-central
+repositories {
+    mavenCentral()
+}
+//END SNIPPET maven-central
+
+//START SNIPPET flat-dir
+repositories {
+    flatDir(name: 'localRepository', dirs: 'lib')
+}
+//END SNIPPET flat-dir
+
+//START SNIPPET lookup-resolver
+println repositories.localRepository.name
+println repositories['localRepository'].name
+//END SNIPPET lookup-resolver
+
+//START SNIPPET configure-resolver
+repositories {
+//    localRepository {
+//        addArtifactPattern('lib/[name]/[revision]/[name]-[revision].[ext]')
+//    }
+}
+//END SNIPPET configure-resolver

@@ -130,7 +130,7 @@ public class BaseSettings implements SettingsInternal {
         };
         ResolverProvider resolverProvider = new ResolverProvider() {
             public List<DependencyResolver> getResolvers() {
-                return repositoryHandler.getResolverList();
+                return repositoryHandler.getResolvers();
             }
         };
         return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider).add(BUILD_CONFIGURATION);
@@ -240,7 +240,7 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public List<DependencyResolver> getResolvers() {
-        return repositoryHandler.getResolverList();
+        return repositoryHandler.getResolvers();
     }
 
     // todo We don't have command query separation here. This si a temporary thing. If our new classloader handling works out, which

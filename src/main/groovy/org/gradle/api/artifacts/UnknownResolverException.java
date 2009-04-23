@@ -13,33 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.Rule;
-import org.gradle.api.specs.Spec;
 
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
-
-public interface DomainObjectContainer<T> extends Iterable<T> {
-    Set<T> getAll();
-
-    Set<T> get(Spec<? super T> spec);
-
-    Map<String, T> getAsMap();
-
-    T find(String name);
-
-    T getByName(String name) throws UnknownDomainObjectException;
-
-    T get(String name, Closure configureClosure) throws UnknownDomainObjectException;
-
-    T getAt(String name) throws UnknownDomainObjectException;
-
-    Rule addRule(Rule rule);
-
-    List<Rule> getRules();
+public class UnknownResolverException extends UnknownDomainObjectException {
+    public UnknownResolverException(String message) {
+        super(message);
+    }
 }

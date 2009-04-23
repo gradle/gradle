@@ -35,22 +35,32 @@
         <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
             <sourcefile file="build.gradle" snippet="lookup-configuration"/>
         </sample>
-        <para>TBD - configurating configurations</para>
+        <para>To configure a configuration:</para>
+        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
+            <sourcefile file="build.gradle" snippet="configure-configuration"/>
+        </sample>
     </section>
 
     <section>
         <title>Repositories</title>
         <para>Artifacts are stored in <firstterm>repositories</firstterm>.</para>
         <para>To use maven central repository:</para>
-        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
             <sourcefile file="build.gradle" snippet="maven-central"/>
         </sample>
         <para>To use a local directory:</para>
-        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
             <sourcefile file="build.gradle" snippet="flat-dir"/>
         </sample>
         <para>You can also use any Ivy resolver. You can have multiple repositories.</para>
-        <para>TBD - configurating repositories</para>
+        <para>To access a repository:</para>
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
+            <sourcefile file="build.gradle" snippet="lookup-resolver"/>
+        </sample>
+        <para>To configure a repository:</para>
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
+            <sourcefile file="build.gradle" snippet="configure-resolver"/>
+        </sample>
     </section>
 
     <section>

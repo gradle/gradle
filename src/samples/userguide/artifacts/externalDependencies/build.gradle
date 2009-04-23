@@ -1,14 +1,6 @@
-//START SNIPPET maven-central
 repositories {
     mavenCentral()
 }
-//END SNIPPET maven-central
-
-//START SNIPPET flat-dir
-repositories {
-    flatDir(dirs: "lib")
-}
-//END SNIPPET flat-dir
 
 //START SNIPPET define-dependency
 configurations {

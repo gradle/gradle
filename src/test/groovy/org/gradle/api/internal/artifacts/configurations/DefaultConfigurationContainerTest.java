@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
@@ -72,7 +71,7 @@ public class DefaultConfigurationContainerTest {
     }
 
     private Configuration checkAddGetWithName(Configuration configuration) {
-        assertThat(configuration, equalTo(configurationContainer.get(TEST_NAME)));
+        assertThat(configuration, equalTo(configurationContainer.getByName(TEST_NAME)));
         return configuration;
     }
 
@@ -89,7 +88,7 @@ public class DefaultConfigurationContainerTest {
 
     @Test(expected = UnknownConfigurationException.class)
     public void testGetNonExisitingConfiguration() {
-        configurationContainer.get(TEST_NAME + "delta");
+        configurationContainer.getByName(TEST_NAME + "delta");
     }
 
     @Test

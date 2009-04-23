@@ -28,11 +28,12 @@ import org.gradle.util.ConfigureUtil
  */
 class DefaultConfigurationHandler extends DefaultConfigurationContainer {
 
-  def DefaultConfigurationHandler(IvyService ivyService, ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
+
+    def DefaultConfigurationHandler(IvyService ivyService, ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
     super(ivyService, resolverProvider, dependencyMetaDataProvider)
   }
 
-  Configuration get(String name) {
+  Configuration getByName(String name) {
     Configuration configuration = find(name)
     if (configuration == null) {
       return add(name)
@@ -47,7 +48,7 @@ class DefaultConfigurationHandler extends DefaultConfigurationContainer {
       }
       return getMetaClass().invokeMethod(this, name, args);
     }
-    Configuration configuration = get(name)
+    Configuration configuration = getByName(name)
     ConfigureUtil.configure(args[0], configuration)
   }
 }

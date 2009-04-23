@@ -35,7 +35,7 @@ class DefaultRepositoryHandler extends DefaultResolverContainer implements Repos
     }
 
     def propertyMissing(String name) {
-        DependencyResolver repository = resolver(name)
+        DependencyResolver repository = find(name)
         if (repository == null) {
             throw new MissingPropertyException(name, this.getClass());
         }

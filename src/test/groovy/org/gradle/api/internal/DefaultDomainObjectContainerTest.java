@@ -43,9 +43,9 @@ public class DefaultDomainObjectContainerTest {
         Bean bean2 = new Bean();
         Bean bean3 = new Bean();
 
-        container.add("b", bean2);
-        container.add("a", bean1);
-        container.add("c", bean3);
+        container.addObject("b", bean2);
+        container.addObject("a", bean1);
+        container.addObject("c", bean3);
 
         assertThat(container.getAll(), equalTo(toLinkedSet(bean1, bean2, bean3)));
     }
@@ -62,9 +62,9 @@ public class DefaultDomainObjectContainerTest {
         Bean bean2 = new Bean();
         Bean bean3 = new Bean();
 
-        container.add("b", bean2);
-        container.add("a", bean1);
-        container.add("c", bean3);
+        container.addObject("b", bean2);
+        container.addObject("a", bean1);
+        container.addObject("c", bean3);
 
         Iterator<Bean> iterator = container.iterator();
         assertThat(iterator.next(), sameInstance(bean1));
@@ -84,9 +84,9 @@ public class DefaultDomainObjectContainerTest {
         Bean bean2 = new Bean();
         Bean bean3 = new Bean();
 
-        container.add("b", bean2);
-        container.add("a", bean1);
-        container.add("c", bean3);
+        container.addObject("b", bean2);
+        container.addObject("a", bean1);
+        container.addObject("c", bean3);
 
         assertThat(container.getAsMap(), equalTo(GUtil.map("a", bean1, "b", bean2, "c", bean3)));
     }
@@ -103,9 +103,9 @@ public class DefaultDomainObjectContainerTest {
             }
         };
 
-        container.add("a", bean1);
-        container.add("b", bean2);
-        container.add("c", bean3);
+        container.addObject("a", bean1);
+        container.addObject("b", bean2);
+        container.addObject("c", bean3);
 
         assertThat(container.get(spec), equalTo(toLinkedSet(bean2)));
     }
@@ -118,7 +118,7 @@ public class DefaultDomainObjectContainerTest {
             }
         };
 
-        container.add("a", new Bean());
+        container.addObject("a", new Bean());
 
         assertTrue(container.get(spec).isEmpty());
     }
@@ -126,16 +126,16 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void canGetDomainObjectByName() {
         Bean bean = new Bean();
-        container.add("a", bean);
+        container.addObject("a", bean);
 
-        assertThat(container.get("a"), sameInstance(bean));
+        assertThat(container.getByName("a"), sameInstance(bean));
         assertThat(container.getAt("a"), sameInstance(bean));
     }
 
     @Test
     public void getDomainObjectByNameFailsForUnknownDomainObject() {
         try {
-            container.get("unknown");
+            container.getByName("unknown");
             fail();
         } catch (UnknownDomainObjectException e) {
             assertThat(e.getMessage(), equalTo("Domain object with name 'unknown' not found."));
@@ -147,13 +147,13 @@ public class DefaultDomainObjectContainerTest {
         Bean bean = new Bean();
         addRule(bean);
 
-        assertThat(container.get("bean"), sameInstance(bean));
+        assertThat(container.getByName("bean"), sameInstance(bean));
     }
 
     @Test
     public void canConfigureDomainObjectByName() {
         Bean bean = new Bean();
-        container.add("a", bean);
+        container.addObject("a", bean);
 
         assertThat(container.get("a", HelperUtil.toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
         assertThat(bean.getBeanProperty(), equalTo("hi"));
@@ -171,7 +171,7 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void canFindDomainObjectByName() {
         Bean bean = new Bean();
-        container.add("a", bean);
+        container.addObject("a", bean);
 
         assertThat(container.find("a"), sameInstance(bean));
     }
@@ -192,7 +192,7 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void eachObjectIsAvailableAsDynamicProperty() {
         Bean bean = new Bean();
-        container.add("child", bean);
+        container.addObject("child", bean);
         assertTrue(container.getAsDynamicObject().hasProperty("child"));
         assertThat(container.getAsDynamicObject().getProperty("child"), sameInstance((Object) bean));
         assertThat(container.getAsDynamicObject().getProperties().get("child"), sameInstance((Object) bean));
@@ -222,7 +222,7 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void eachObjectIsAvailableAsConfigureMethod() {
         Bean bean = new Bean();
-        container.add("child", bean);
+        container.addObject("child", bean);
         Closure closure = HelperUtil.toClosure("{ beanProperty = 'value' }");
         assertTrue(container.getAsDynamicObject().hasMethod("child", closure));
         container.getAsDynamicObject().invokeMethod("child", closure);
@@ -231,7 +231,7 @@ public class DefaultDomainObjectContainerTest {
 
     @Test
     public void cannotInvokeUnknownMethod() {
-        container.add("child", new Bean());
+        container.addObject("child", new Bean());
 
         assertFalse(container.getAsDynamicObject().hasMethod("unknown", HelperUtil.toClosure("{ }")));
         assertFalse(container.getAsDynamicObject().hasMethod("child"));
@@ -254,7 +254,7 @@ public class DefaultDomainObjectContainerTest {
             }
 
             public void apply(String taskName) {
-                container.add(taskName, bean);
+                container.addObject(taskName, bean);
             }
         });
     }

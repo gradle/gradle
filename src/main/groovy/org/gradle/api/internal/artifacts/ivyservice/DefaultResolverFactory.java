@@ -50,7 +50,8 @@ public class DefaultResolverFactory implements ResolverFactory {
             result = createMavenRepoResolver((String) userDescription, (String) userDescription);
         } else if (userDescription instanceof Map) {
             Map<String, String> userDescriptionMap = (Map<String, String>) userDescription;
-            result = createMavenRepoResolver(userDescriptionMap.get("name"), userDescriptionMap.get("url"));
+            result = createMavenRepoResolver(userDescriptionMap.get(ResolverContainer.RESOLVER_NAME), userDescriptionMap.get(
+                    ResolverContainer.RESOLVER_URL));
         } else if (userDescription instanceof DependencyResolver) {
             result = (DependencyResolver) userDescription;
         } else {

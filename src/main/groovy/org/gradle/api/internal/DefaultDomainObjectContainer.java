@@ -34,7 +34,7 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
      * @param name The name of the domain object.
      * @param object The object to add
      */
-    protected void add(String name, T object) {
+    protected void addObject(String name, T object) {
         objects.put(name, object);
     }
 
@@ -70,7 +70,7 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
     }
 
     public T getAt(String name) throws UnknownDomainObjectException {
-        return get(name);
+        return getByName(name);
     }
 
     public Iterator<T> iterator() {
@@ -84,7 +84,7 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return objects.get(name);
     }
 
-    public T get(String name) throws UnknownDomainObjectException {
+    public T getByName(String name) throws UnknownDomainObjectException {
         T t = find(name);
         if (t == null) {
             throw createNotFoundException(name);
@@ -93,7 +93,7 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
     }
 
     public T get(String name, Closure configureClosure) throws UnknownDomainObjectException {
-        T t = get(name);
+        T t = getByName(name);
         ConfigureUtil.configure(configureClosure, t);
         return t;
     }
@@ -155,7 +155,7 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
 
         @Override
         public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
-            return ConfigureUtil.configure((Closure) arguments[0], get(name));
+            return ConfigureUtil.configure((Closure) arguments[0], getByName(name));
         }
     }
 }

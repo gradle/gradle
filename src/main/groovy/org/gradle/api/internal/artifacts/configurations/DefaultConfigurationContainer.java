@@ -53,15 +53,19 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
                     name));
         }
         DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService, resolverProvider, dependencyMetaDataProvider);
-        add(name, configuration);
+        addObject(name, configuration);
         ConfigureUtil.configure(configureClosure, configuration);
         return configuration;
     }
 
     public Configuration add(String name) {
-        return add(name, (Closure) null);
+        return add(name, null);
     }
 
+    public Configuration get(String name) throws UnknownConfigurationException {
+        return getByName(name);
+    }
+    
     @Override
     public String getDisplayName() {
         return "configuration container";

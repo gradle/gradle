@@ -50,7 +50,7 @@ public class DefaultTaskContainerTest {
             one(task).doFirst(action);
         }});
         assertThat(container.add(options, "task", action), sameInstance(task));
-        assertThat(container.get("task"), sameInstance(task));
+        assertThat(container.getByName("task"), sameInstance(task));
     }
     
     @Test
@@ -63,7 +63,7 @@ public class DefaultTaskContainerTest {
             will(returnValue(task));
         }});
         assertThat(container.add("task"), sameInstance(task));
-        assertThat(container.get("task"), sameInstance(task));
+        assertThat(container.getByName("task"), sameInstance(task));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class DefaultTaskContainerTest {
             will(returnValue(task));
         }});
         assertThat(container.add("task", Task.class), sameInstance(task));
-        assertThat(container.get("task"), sameInstance(task));
+        assertThat(container.getByName("task"), sameInstance(task));
     }
 
     @Test
@@ -89,7 +89,7 @@ public class DefaultTaskContainerTest {
             will(returnValue(task));
         }});
         assertThat(container.replace("task"), sameInstance(task));
-        assertThat(container.get("task"), sameInstance(task));
+        assertThat(container.getByName("task"), sameInstance(task));
     }
 
     @Test
@@ -102,13 +102,13 @@ public class DefaultTaskContainerTest {
             will(returnValue(task));
         }});
         assertThat(container.replace("task", Task.class), sameInstance(task));
-        assertThat(container.get("task"), sameInstance(task));
+        assertThat(container.getByName("task"), sameInstance(task));
     }
 
     @Test
     public void getByNameFailsForUnknownTask() {
         try {
-            container.get("unknown");
+            container.getByName("unknown");
             fail();
         } catch (UnknownTaskException e) {
             assertThat(e.getMessage(), equalTo("Task with name 'unknown' not found."));
@@ -125,7 +125,7 @@ public class DefaultTaskContainerTest {
         }});
 
         container.whenTaskAdded(action);
-        container.add("task", task);
+        container.addObject("task", task);
     }
 
     @Test
@@ -138,7 +138,7 @@ public class DefaultTaskContainerTest {
         }});
 
         container.whenTaskAdded(TestTask.class, action);
-        container.add("task", task);
+        container.addObject("task", task);
     }
 
     @Test
@@ -147,7 +147,7 @@ public class DefaultTaskContainerTest {
         final Task task = context.mock(Task.class);
 
         container.whenTaskAdded(TestTask.class, action);
-        container.add("task", task);
+        container.addObject("task", task);
     }
 
     @Test
@@ -159,6 +159,6 @@ public class DefaultTaskContainerTest {
         }});
 
         container.whenTaskAdded(HelperUtil.toClosure(closure));
-        container.add("task", task);
+        container.addObject("task", task);
     }
 }

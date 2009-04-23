@@ -21,22 +21,21 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.ConventionTestHelper
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.util.HashUtil
+import org.gradle.api.artifacts.UnknownResolverException
 import org.gradle.util.JUnit4GroovyMockery
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -90,30 +89,42 @@ class DefaultResolverContainerTest {
 
     @Test public void testAddResolver() {
         assert resolverContainer.add(expectedUserDescription).is(expectedResolver)
-        assert resolverContainer.resolver(expectedName).is(expectedResolver)
+        assert resolverContainer.find(expectedName).is(expectedResolver)
         resolverContainer.add(expectedUserDescription2)
-        assertEquals([expectedResolver, expectedResolver2], resolverContainer.resolverList)
+        assertEquals([expectedResolver, expectedResolver2], resolverContainer.resolvers)
+    }
+
+    @Test public void testCannotAddResolverWithDuplicateName() {
+        [expectedResolver, expectedResolver2]*.name = 'resolver'
+        resolverContainer.add(expectedUserDescription)
+
+        try {
+            resolverContainer.add(expectedUserDescription2)
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("Cannot add a resolver with name 'resolver' as a resolver with that name already exists."))
+        }
     }
 
     @Test public void testAddResolverWithClosure() {
-        String expectedConfigureValue = 'testvalue'
+        def expectedConfigureValue = 'testvalue'
         Closure configureClosure = {transactional = expectedConfigureValue}
-        assert resolverContainer.add(expectedUserDescription, configureClosure).is(expectedResolver)
-        assert resolverContainer.resolver(expectedName).is(expectedResolver)
+        assertThat(resolverContainer.add(expectedUserDescription, configureClosure), sameInstance(expectedResolver))
+        assertThat(resolverContainer.find(expectedName), sameInstance(expectedResolver))
         assert expectedResolver.transactional == expectedConfigureValue
     }
 
     @Test public void testAddBefore() {
         resolverContainer.add(expectedUserDescription)
         assert resolverContainer.addBefore(expectedUserDescription2, expectedName).is(expectedResolver2)
-        assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolverList)
+        assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolvers)
     }
 
     @Test public void testAddAfter() {
         resolverContainer.add(expectedUserDescription)
         assert resolverContainer.addAfter(expectedUserDescription2, expectedName).is(expectedResolver2)
         resolverContainer.addAfter(expectedUserDescription3, expectedName)
-        assertEquals([expectedResolver, expectedResolver3, expectedResolver2], resolverContainer.resolverList)
+        assertEquals([expectedResolver, expectedResolver3, expectedResolver2], resolverContainer.resolvers)
     }
 
     @Test (expected = InvalidUserDataException) public void testAddWithNullUserDescription() {
@@ -143,7 +154,7 @@ class DefaultResolverContainerTest {
     @Test public void testAddFirst() {
         assert resolverContainer.addFirst(expectedUserDescription).is(expectedResolver)
         resolverContainer.addFirst(expectedUserDescription2)
-        assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolverList)
+        assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolvers)
     }
 
     @Test(expected =  InvalidUserDataException)
@@ -152,6 +163,16 @@ class DefaultResolverContainerTest {
         resolverContainer.add(expectedUserDescription).is(expectedResolver)
     }
 
+    @Test
+    public void testGetThrowsExceptionForUnknownResolver() {
+        try {
+            resolverContainer.getByName('unknown')
+            fail()
+        } catch (UnknownResolverException e) {
+            assertThat(e.message, equalTo("Resolver with name 'unknown' not found."))
+        }
+    }
+    
     @Test
     public void createMavenUploader() {
         // todo we have to specify the class name, as this class is extended. This is a Groovy bug. As soon as we switch to a new Groovy version, we can refactor this. 
@@ -166,7 +187,7 @@ class DefaultResolverContainerTest {
             will(returnValue(expectedResolver))
         }
         assertSame(expectedResolver, resolverContainer.addMavenDeployer(DefaultResolverContainerTest.TEST_REPO_NAME));
-        assert resolverContainer.resolver(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
+        assert resolverContainer.find(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
     }
 
     @Test
@@ -182,7 +203,7 @@ class DefaultResolverContainerTest {
             will(returnValue(expectedResolver))
         }
         assertSame(expectedResolver, resolverContainer.addMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
-        assert resolverContainer.resolver(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
+        assert resolverContainer.find(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
     }
 
     private GroovyMavenDeployer prepareMavenDeployerTests() {

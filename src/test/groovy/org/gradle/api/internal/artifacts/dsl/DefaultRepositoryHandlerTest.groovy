@@ -41,7 +41,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.flatDir([name: resolverName] + [dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test public void testFlatDirWithNameAndSingleDir() {
@@ -49,7 +49,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareFlatDirResolverCreation(resolverName, ['a' as File] as File[])
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.flatDir([name: resolverName] + [dirs: 'a']).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test public void testFlatDirWithoutNameAndWithDirs() {
@@ -58,7 +58,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareFlatDirResolverCreation(expectedName, expectedDirs)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.flatDir([dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test (expected = InvalidUserDataException)
@@ -71,7 +71,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(repositoryHandler.DEFAULT_MAVEN_CENTRAL_REPO_NAME, repositoryHandler.MAVEN_CENTRAL_URL)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral().is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test
@@ -80,7 +80,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(repositoryHandler.DEFAULT_MAVEN_CENTRAL_REPO_NAME, repositoryHandler.MAVEN_CENTRAL_URL, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral(urls: testUrl2).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test
@@ -91,7 +91,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(name, repositoryHandler.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test(expected = InvalidUserDataException)
@@ -107,7 +107,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test
@@ -117,7 +117,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(repoName, repoRoot)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([name: repoName, urls: repoRoot]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test
@@ -127,7 +127,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareCreateMavenRepo(repoRoot, repoRoot, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([urls: [repoRoot, testUrl2]]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolverList)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     private prepareCreateMavenRepo(String name, String mavenUrl, String[] jarUrls) {

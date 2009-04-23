@@ -118,7 +118,7 @@ public interface TaskContainer extends Iterable<Task> {
      * </pre>
      *
      * @param name The task name
-     * @return The tasl with the given name. Never returns null.
+     * @return The task with the given name. Never returns null.
      * @throws UnknownTaskException when there is no such task in this container.
      */
     Task getAt(String name) throws UnknownTaskException;
