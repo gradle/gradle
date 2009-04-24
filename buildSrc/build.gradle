@@ -1,25 +1,22 @@
-import org.apache.ivy.core.install.InstallOptions
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.DependencyManager
 import org.apache.ivy.plugins.resolver.*
 
 usePlugin('groovy')
 
-dependencies {
-    addMavenRepo()
-    classpathResolvers.add(new URLResolver()) {
-      name = 'sf_gradleRepo'
-      addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
+repositories {
+    mavenCentral()
+    add(new URLResolver()) {
+        name = 'sf_gradleRepo'
+        addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
     }
+}
+
+dependencies {
     compile "com.svnkit:svnkit:1.1.6", "com.svnkit:svnkit-javahl:1.1.6", 'org.hamcrest:hamcrest-core:1.1', 'org.hamcrest:hamcrest-library:1.1'
 }
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
 // todo Actually it should be only groovy, but without junit we get a strange error. We need to understand this.
-compile.groovyClasspath = org.gradle.util.BootstrapUtil.groovyFiles
-testCompile.groovyClasspath = org.gradle.util.BootstrapUtil.groovyFiles
+compile.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
+compileTests.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
 compile.unmanagedClasspath(org.gradle.util.BootstrapUtil.gradleClasspath as File[])
 test {
     include '**/*Test.class'

@@ -16,20 +16,22 @@
 
 package org.gradle.build.release
 
-import org.gradle.api.internal.project.*
-import org.gradle.groovy.scripts.EmptyScript
-import org.gradle.util.GradleUtil
-import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.logging.AntLoggingAdapter
 import org.gradle.StartParameter
-import org.gradle.invocation.DefaultBuild
-import org.gradle.initialization.ISettingsFinder
-import org.gradle.CacheUsage
-import org.gradle.api.internal.artifacts.DefaultDependencyManagerFactory
-import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.initialization.IProjectDescriptorRegistry
+import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
+import org.gradle.build.release.Svn
+import org.gradle.build.release.Version
+import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
+import org.gradle.initialization.IProjectDescriptorRegistry
+import org.gradle.initialization.ISettingsFinder
+import org.gradle.invocation.DefaultBuild
+import org.gradle.logging.AntLoggingAdapter
+import org.gradle.util.GradleUtil
+import org.gradle.api.internal.project.*
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
 
 /**
  * @author Hans Dockter
@@ -57,14 +59,18 @@ class VersionTest extends GroovyTestCase {
         ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
         IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
-                new DefaultDependencyManagerFactory(settingsFinder, CacheUsage.ON),
-                new BuildScriptProcessor(),
+                new DefaultConfigurationContainerFactory(),
+                null,
+                new DefaultRepositoryHandlerFactory(null),
+                null,
+                null,
+                null,
                 new PluginRegistry(),
                 new StringScriptSource("embedded build file", "embedded"),
                 new DefaultAntBuilderFactory(new AntLoggingAdapter()))
         IProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry()
         ProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir, registry)
-        DefaultProject project = projectFactory.createProject(descriptor, null, new DefaultBuild(new StartParameter(), null))
+        DefaultProject project = projectFactory.createProject(descriptor, null, new DefaultBuild(new StartParameter(), null, null))
         project.setBuildScript(new EmptyScript())
         return project;
     }

@@ -1,11 +1,9 @@
-import groovy.text.SimpleTemplateEngine
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Task
 import org.gradle.api.internal.artifacts.publish.ivycomponents.WebdavResolver
-import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.build.release.Svn
@@ -14,7 +12,6 @@ import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.gradle.util.GradleVersion
 import org.apache.ivy.plugins.resolver.*
-import org.gradle.api.tasks.util.FileCollection
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 
@@ -49,25 +46,30 @@ versionModifier = null
 
 webSrcDir = new File("$srcRoot", 'website')
 
-dependencies {
-    addMavenRepo()
-    classpathResolvers.add(new URLResolver()) {
-      name = 'sf_gradleRepo'
-      addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
+repositories {
+    mavenCentral()
+    add(new URLResolver()) {
+        name = 'sf_gradleRepo'
+        addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
     }
+}
+
+configurations {
+    distLib {
+        visible = false
+        extendsFrom get('default')
+    }
+    ftpAntTask
+    retrotranslatorAntTask
+    userGuideStyleSheets
+    userGuideTask
+}
+
+dependencies {
 
     // todo: Improve dependency handling for xUnit jars
-    addConfiguration('distLib') {
-        visible = false
-        extendsFrom 'default'
-    }
-    addConfiguration('ftpAntTask')
-    addConfiguration('retrotranslatorAntTask')
-    addConfiguration('userGuideStyleSheets')
-    addConfiguration('userGuideTask')
-
-    clientModule(['ftpAntTask'], "org.apache.ant:ant-commons-net:1.7.0") {
-        clientModule("commons-net:commons-net:1.4.1") {
+    ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
+        module("commons-net:commons-net:1.4.1") {
             dependencies("oro:oro:2.0.8@jar")
         }
     }
@@ -76,30 +78,30 @@ dependencies {
             'backport-util-concurrent:backport-util-concurrent:3.1@jar'
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
-    clientModule(['userGuideTask'], 'xhtmlrenderer:xhtmlrenderer:R8rc1') {
+    userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
     }
     
     userGuideStyleSheets 'docbook:docbook-xsl:1.74.3@zip'
 
-    clientModule(['groovy'], "org.codehaus.groovy:groovy-all:1.5.6") {
-        clientModule("org.apache.ant:ant:1.7.0") {
-            dependencies(":ant-junit:1.7.0@jar", ":ant-launcher:1.7.0@jar")
+    groovy module("org.codehaus.groovy:groovy-all:1.5.6") {
+        module("org.apache.ant:ant:1.7.0") {
+            dependencies("org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar")
         }
     }
 
-    clientModule(['compile'], "commons-httpclient:commons-httpclient:3.0") {
+    compile module("commons-httpclient:commons-httpclient:3.0") {
         dependencies("commons-codec:commons-codec:1.2@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar")
     }
 
     // Needed by the eclipse plugin
-    clientModule(['compile'], "dom4j:dom4j:1.6.1") {
+    compile module("dom4j:dom4j:1.6.1") {
         dependencies("jaxen:jaxen:1.1@jar")
     }
 
     runtime("org.apache.ant:ant-junit:1.7.0@jar")
 
-    clientModule(['compile'], "org.mortbay.jetty:jetty:6.1.14") {
+    compile module("org.mortbay.jetty:jetty:6.1.14") {
         dependencies("javax.servlet:servlet-api:2.5@jar", "org.mortbay.jetty:jetty-naming:6.1.14@jar", "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
     }
     compile "org.mortbay.jetty:jetty-plus:6.1.14@jar", "org.mortbay.jetty:jetty-util:6.1.14@jar", "javax.servlet:servlet-api:2.5@jar"
@@ -123,8 +125,9 @@ dependencies {
 
     def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
     testCompile "junit:junit:4.5", "xmlunit:xmlunit:1.2", FIRST_LEVEL_JMOCK
-    clientModule(['testCompile'], "org.jmock:jmock:2.4.0") {
-        dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3', FIRST_LEVEL_JMOCK)
+    testCompile module("org.jmock:jmock:2.4.0") {
+        dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
+        dependencies(FIRST_LEVEL_JMOCK as Object[])
     }
     distLib "junit:junit:4.5"
 }
@@ -152,7 +155,7 @@ build.taskGraph.whenReady {graph ->
     ])
 }
 
-resources.doLast {
+processResources.doLast {
     logger.info('Write version properties')
     Properties versionProperties = new Properties()
     versionProperties.putAll([
@@ -162,7 +165,7 @@ resources.doLast {
     versionProperties.store(new FileOutputStream(new File(classesDir, GradleVersion.FILE_NAME)), '')
 }
 
-[compile, testCompile]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+[compile, compileTests]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
@@ -200,7 +203,7 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
 
     ant {
         logger.info('Generate lib dir')
-        dependencies.distLib.resolve().each {File file ->
+        configurations.distLib.each {File file ->
             copy(file: file, todir: explodedDistLibDir)
         }
         // todo: find out why Ivy does not include the jar in the resolve
@@ -389,7 +392,7 @@ userguideSrc {
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     snippetsDir = project.snippetsDir
-    classpath = dependencies.userGuideTask
+    classpath = configurations.userGuideTask
 }
 userguideSrc.doFirst {
     userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
@@ -397,7 +400,7 @@ userguideSrc.doFirst {
 userguideSrc.skipProperties << 'skip.userguide'
 
 createTask('userguideStyleSheets') {
-    ant.unzip(src: dependencies.userGuideStyleSheets.singleFile, dest: docbookDir) {
+    ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
         globmapper(from: 'docbook-xsl-1.74.3/*', to: '*')
     }
     ant.copy(todir: docbookDir) {
@@ -414,7 +417,7 @@ createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets'])
         arg(value: new File(docbookDir, 'userGuideHtml.xsl'))
         arg(line: "-param base.dir ${userguideHtmlDir}/")
         classpath {
-            path(path: dependencies.userGuideTask.asPath)
+            path(path: configurations.userGuideTask.asPath)
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
@@ -433,7 +436,7 @@ createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleShe
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'userGuideSingleHtml.xsl'))
         classpath {
-            path(path: dependencies.userGuideTask.asPath)
+            path(path: configurations.userGuideTask.asPath)
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
@@ -456,14 +459,14 @@ createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) 
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'userGuidePdf.xsl'))
         classpath {
-            path(path: dependencies.userGuideTask.asPath)
+            path(path: configurations.userGuideTask.asPath)
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
     ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: pdfSourceHtml.parentFile)
     ant.copy(file: new File(userguideSrcDir, 'print.css'), todir: pdfSourceHtml.parentFile)
 
-    def uris = dependencies.userGuideTask.files.collect {it.toURI().toURL()}
+    def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
     def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
     def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
     renderer.setDocument(pdfSourceHtml)
@@ -494,7 +497,7 @@ distDocs.configure {
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
     destFile = new File(docbookSrc, 'gettingStarted.xml')
     snippetsDir = project.snippetsDir
-    classpath = dependencies.userGuideTask
+    classpath = configurations.userGuideTask
 }
 distDocs.doLast {
     explodedDistDir.mkdirs()
@@ -507,7 +510,7 @@ distDocs.doLast {
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'standaloneHtml.xsl'))
         classpath {
-            path(path: dependencies.userGuideTask.asPath)
+            path(path: configurations.userGuideTask.asPath)
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
@@ -521,7 +524,7 @@ websiteDocs {
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
     destFile = new File(docbookSrc, 'gettingStarted.xml')
     snippetsDir = project.snippetsDir
-    classpath = dependencies.userGuideTask
+    classpath = configurations.userGuideTask
 }
 websiteDocs.doLast {
     File websiteDocs = new File(buildDir, 'docs')
@@ -535,7 +538,7 @@ websiteDocs.doLast {
         arg(value: '-xsl')
         arg(value: new File(docbookDir, 'docFragment.xsl'))
         classpath {
-            path(path: dependencies.userGuideTask.asPath)
+            path(path: configurations.userGuideTask.asPath)
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
@@ -544,14 +547,8 @@ websiteDocs.doLast {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 integTestDistDir = new File(buildDir, 'integ test')
-createTask('integTest', type: Test, dependsOn: ['testCompile', 'dists', 'userguideSrc'])
+createTask('integTest', type: Test, dependsOn: ['compileTests', 'dists', 'userguideSrc'])
 integTest {
-    testClassesDir = test.testClassesDir
-    testResultsDir = test.testResultsDir
-    testReportDir = test.testReportDir
-    unmanagedClasspath = testCompile.unmanagedClasspath
-    dependencyManager = test.dependencyManager
-    resolveInstruction = test.resolveInstruction
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
@@ -620,7 +617,7 @@ createTask('developerBuild', dependsOn: ['clean', 'integTest'])
 createTask('ide') {
     def libDir = file('lib')
     ant.delete(dir: libDir)
-    [dependencies.runtime, dependencies.testRuntime].each {config ->
+    [configurations.runtime, configurations.testRuntime].each {config ->
         config.files.each {file ->
             ant.copy(file: file, todir: libDir)
         }
@@ -644,7 +641,7 @@ void ftp(Map args, Closure antFileset = {}) {
     ant {
         taskdef(name: 'ftp',
                 classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: dependencies.ftpAntTask.asPath)
+                classpath: configurations.ftpAntTask.asPath)
         Map ftpArgs = args + [
                 server: 'ftp.gradle.org',
                 userid: websiteFtpUserName,
