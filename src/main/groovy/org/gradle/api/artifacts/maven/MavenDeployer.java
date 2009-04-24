@@ -18,7 +18,7 @@ package org.gradle.api.artifacts.maven;
 import org.apache.maven.artifact.ant.RemoteRepository;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * <p>A resolver that can only be used for uploading artifacts to a Maven repository. If you use this resolver for getting
@@ -73,7 +73,7 @@ public interface MavenDeployer extends MavenResolver {
      * 
      * @param jars
      */
-    void addProtocolProviderJars(List<File> jars);
+    void addProtocolProviderJars(Collection<File> jars);
 
     /**
      * Returns whether to assign snapshots a unique version comprised of the timestamp and build number, or to use

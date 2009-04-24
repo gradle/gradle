@@ -21,12 +21,13 @@ import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.artifacts.ConfigurationContainer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -96,7 +97,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         this.deployTaskFactory = deployTaskFactory;
     }
 
-    public void addProtocolProviderJars(List<File> jars) {
+    public void addProtocolProviderJars(Collection<File> jars) {
         protocolProviderJars.addAll(jars);
     }
 
