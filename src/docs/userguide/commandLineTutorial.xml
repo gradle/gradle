@@ -34,8 +34,8 @@
         <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/multipleTasksFromCommandLine">
             <output args="-q libs test"/>
         </sample>
-        Because each task is executed once only, executing <userinput>gradle libs libs</userinput> is exactly the same
-        as executing <userinput>gradle libs</userinput>.
+        <para>Because each task is executed once only, executing <userinput>gradle libs libs</userinput> is exactly the same
+        as executing <userinput>gradle libs</userinput>.</para>
     </section>
     
     <para>You can find out more about the <command>gradle</command> command's usage in <xref linkend="gradle_command_line"/></para>

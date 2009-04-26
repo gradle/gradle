@@ -43,11 +43,25 @@ a {
 
 .titlepage h1.title {
     font-size: 360%;
+    margin: 0;
+}
+
+.titlepage h2.subtitle {
+    font-size: 240%;
+    margin: 0;
+    color: #666666;
+}
+
+.titlepage .releaseinfo {
+    /*color: black;*/
+    margin-top: 10em;
+    text-align: center;
+    font-size: 180%;
 }
 
 .book > .titlepage div.title {
-    padding-top: 12em;
-    padding-bottom: 12em;
+    padding-top: 30%;
+    page-break-after: always;
 }
 
 .toc {

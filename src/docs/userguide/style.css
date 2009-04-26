@@ -14,6 +14,11 @@ body {
     margin-right: 4em;
 }
 
+div {
+    margin: 0;
+    padding: 0;
+}
+
 a {
     color: #444444;
     text-decoration: none;
@@ -59,12 +64,6 @@ h3 {
     font-weight: bold;
 }
 
-div .title .filename {
-    padding-left: 1.2em;
-    font-weight: normal;
-    color: #a2a2a2;
-}
-
 pre {
     background-color: #f5f5f5;
     padding-top: 1em;
@@ -87,9 +86,43 @@ pre {
     overflow-x: auto;
 }
 
+.example, .figure {
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
 .example .title {
     white-space: nowrap;
     overflow-x: hidden;
+    margin-top: 0;
+    margin-bottom: 0.2em;
+}
+
+.figure .title {
+    white-space: nowrap;
+    overflow-x: hidden;
+    margin-top: 0;
+    margin-bottom: 0.2em;
+}
+
+.example .title .filename {
+    padding-left: 1.8em;
+    font-weight: normal;
+    color: #a2a2a2;
+}
+
+.figure .title .filename {
+    padding-left: 1.8em;
+    font-weight: normal;
+    color: #a2a2a2;
+}
+
+.example pre {
+    margin: 0;
+}
+
+.figure pre {
+    margin: 0;
 }
 
 .example-break, .figure-break {

@@ -23,38 +23,45 @@
     </note>
 
     <para>To build a Groovy project, you use the <firstterm>Groovy Plugin</firstterm>. This plugin extends the Java
-        plugin, adding Groovy compilation capabilties to your project. In most other respects, a Groovy project is
-        identical to a Java project, as described in <xref linkend="tutorial_java_projects"/>.
+        plugin to add Groovy compilation capabilties to your project. In most other respects, a Groovy project is
+        identical to a Java project, which we have already seen in <xref linkend="tutorial_java_projects"/>.
     </para>
 
     <section>
         <title>Using the Groovy Plugin</title>
 
-        <para>To use the Groovy plugin, add the following to your build file:</para>
+        <para>To use the Groovy plugin in your project, add the following to your build file:</para>
         <sample id="groovyQuickstart" dir="groovy/quickstart">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>This will also apply the Java plugin to the project. The Groovy plugin extends the
-            <literal>compile</literal> task to include source files in directory <filename>src/main/groovy</filename>,
-            and the <literal>compileTests</literal> task to include test source files in directory
+            <literal>compile</literal> task to look for source files in directory <filename>src/main/groovy</filename>,
+            and the <literal>compileTests</literal> task to look for test source files in directory
             <filename>src/test/groovy</filename>. The compile tasks use joint compilation for these directories, so they
             can contain both java and groovy source files.
         </para>
-        <para>You must also declare the Groovy version to use, and where to find the libraries for it. You do this by
-            adding a dependency to the <literal>groovy</literal> configuration. The <literal>compile</literal>
-            configuration inherits this dependency, so it is also used for the compilation classpaths. For our sample,
-            we will use Groovy 1.6.0 from the public Maven repository:</para>
+        <para>To use the groovy capabilities, you must also declare the Groovy version to use, and where to find the
+            libraries for it. You do this by adding a dependency to the <literal>groovy</literal> configuration.
+            The <literal>compile</literal> configuration will inherit this dependency, so the groovy libraries will
+            be included in the compilation classpaths.  For our sample, we will use Groovy 1.6.0 from the public
+            Maven repository:</para>
         <sample id="groovyQuickstart" dir="groovy/quickstart">
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
-    </section>
-
-    <section>
-        <title>Summary</title>
         <para>Here is our completed build file:</para>
         <sample id="groovyQuickstart" dir="groovy/quickstart">
             <sourcefile file="build.gradle"/>
         </sample>
+        <para>Running <userinput>gradle libs</userinput> will compile, test and JAR your project. You can find out
+            more about the Groovy Plugin in <xref linkend="groovy_plugin"/>.</para>
+    </section>
+
+    <section>
+        <title>Summary</title>
+        <para>This chapter describes a very simple Groovy project. Usually, a real project will require more than this.
+            Because a Groovy project <emphasis>is</emphasis> a Java project, whatever you can do with a Java project,
+            you can also do with a Groovy project.
+        </para>
     </section>
 
 </chapter>
