@@ -17,12 +17,9 @@ package org.gradle.groovy.scripts;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyShell;
 import groovy.lang.Script;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.MultipleCompilationErrorsException;
+import org.codehaus.groovy.control.*;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.util.Clock;
@@ -30,10 +27,7 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.AbstractFileFilter;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URLClassLoader;
 
@@ -49,51 +43,49 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         this.cachePropertiesHandler = cachePropertiesHandler;
     }
 
-    public Script createScriptOnTheFly(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
+    public Script createScriptOnTheFly(ScriptSource source, ClassLoader classLoader,
+                                       Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
-        GroovyShell groovyShell = new GroovyShell(classLoader, new Binding(), configuration);
-        String scriptText = source.getText();
-        String scriptName = source.getClassName();
-        Script script;
-        try {
-            script = groovyShell.parse(scriptText == null ? "" : scriptText, scriptName);
-        } catch (MultipleCompilationErrorsException e) {
-            throw new GradleScriptException(String.format("Could not compile %s.", source.getDisplayName()), e,
-                    source, e.getErrorCollector().getSyntaxError(0).getLine());
-        } catch (CompilationFailedException e) {
-            throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
-        }
-        if (!scriptBaseClass.isInstance(script)) {
+        Class scriptClass = parseScript(source, classLoader, configuration);
+        if (scriptClass == null) {
             // Assume an empty script
             return new EmptyScript();
         }
+        Script script = InvokerHelper.createScript(scriptClass, new Binding());
 
         logger.debug("Timing: Creating script took: {}", clock.getTime());
         return script;
     }
 
-    public void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
+    public void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+                             Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(scriptCacheDir);
         scriptCacheDir.mkdirs();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(scriptCacheDir);
-        CompilationUnit unit = new CompilationUnit(configuration, null, new GroovyClassLoader(classLoader));
-        String scriptName = source.getClassName();
+        parseScript(source, classLoader, configuration);
+
+        cachePropertiesHandler.writeProperties(source.getText(), scriptCacheDir);
+        logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
+                clock.getTime());
+    }
+
+    private Class parseScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration) {
+        GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false);
         String scriptText = source.getText();
-        unit.addSource(scriptName, new ByteArrayInputStream(scriptText.getBytes()));
+        String scriptName = source.getClassName();
+        Class scriptClass;
         try {
-            unit.compile();
+            scriptClass = groovyClassLoader.parseClass(scriptText == null ? "" : scriptText, scriptName);
         } catch (MultipleCompilationErrorsException e) {
-            throw new GradleScriptException(String.format("Could not compile %s.", source.getDisplayName()), e,
-                    source, e.getErrorCollector().getSyntaxError(0).getLine());
+            throw new GradleScriptException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
+                    e.getErrorCollector().getSyntaxError(0).getLine());
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
-        
-        cachePropertiesHandler.writeProperties(scriptText, scriptCacheDir);
-        logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(), clock.getTime());
+        return scriptClass;
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
@@ -102,7 +94,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return configuration;
     }
 
-    public Script loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Class<? extends Script> scriptBaseClass) {
+    public Script loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+                                Class<? extends Script> scriptBaseClass) {
         String scriptText = source.getText();
         String scriptName = source.getClassName();
         CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(scriptText, scriptCacheDir);
@@ -110,7 +103,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             return null;
         }
         if (!hasCompiledClasses(scriptCacheDir)) {
-            return new EmptyScript();   
+            return new EmptyScript();
         }
         Clock clock = new Clock();
         Script script;
