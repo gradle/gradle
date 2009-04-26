@@ -57,7 +57,7 @@ public class WarPlugin implements Plugin {
         project.task(project.getArchivesTaskBaseName() + "_jar").setEnabled(false);
         War war = ((Bundle) project.task("libs")).war();
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
-        project.getConfigurations().get(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
+        project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());
         configureEclipse(project, war);
     }
@@ -68,8 +68,8 @@ public class WarPlugin implements Plugin {
         Configuration provideRuntimeConfiguration = configurationContainer.add(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
                 extendsFrom(provideCompileConfiguration).
                 setDescription("Additional runtime classpath for libraries that should not be part of the war archive.");
-        configurationContainer.get(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
-        configurationContainer.get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
+        configurationContainer.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
     }
 
     private void configureEclipse(Project project, War war) {
@@ -115,7 +115,7 @@ public class WarPlugin implements Plugin {
                         * ourselfes. This is not completely trivial due to configuration inheritance.
                         */
                         return new ArrayList(Specs.filterIterable(
-                                ((Task) conventionAwareObject).getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),
+                                ((Task) conventionAwareObject).getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),
                                 DependencySpecs.type(Type.PROJECT))
                         );
                     }
@@ -133,7 +133,7 @@ public class WarPlugin implements Plugin {
 
     private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {
         Set<Dependency> projectDependencies = Specs.filterIterable(
-                project.getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getDependencies(),
+                project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getDependencies(),
                 DependencySpecs.type(Type.PROJECT)
         );
 

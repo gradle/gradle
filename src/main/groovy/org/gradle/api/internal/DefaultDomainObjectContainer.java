@@ -27,6 +27,7 @@ import java.util.*;
 public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T> {
     private final Map<String, T> objects = new TreeMap<String, T>();
     private final List<Rule> rules = new ArrayList<Rule>();
+    private String applyingRulesFor;
 
     /**
      * Adds a domain object to this container.
@@ -61,7 +62,7 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return new LinkedHashSet<T>(objects.values());
     }
 
-    public Set<T> get(Spec<? super T> spec) {
+    public Set<T> findAll(Spec<? super T> spec) {
         return Specs.filterIterable(objects.values(), spec);
     }
 
@@ -77,7 +78,7 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return objects.values().iterator();
     }
 
-    public T find(String name) {
+    public T findByName(String name) {
         if (!objects.containsKey(name)) {
             applyRules(name);
         }
@@ -85,22 +86,30 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
     }
 
     public T getByName(String name) throws UnknownDomainObjectException {
-        T t = find(name);
+        T t = findByName(name);
         if (t == null) {
             throw createNotFoundException(name);
         }
         return t;
     }
 
-    public T get(String name, Closure configureClosure) throws UnknownDomainObjectException {
+    public T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
         T t = getByName(name);
         ConfigureUtil.configure(configureClosure, t);
         return t;
     }
 
     private void applyRules(String name) {
-        for (Rule rule : rules) {
-            rule.apply(name);
+        if (name.equals(applyingRulesFor)) {
+            return;
+        }
+        applyingRulesFor = name;
+        try {
+            for (Rule rule : rules) {
+                rule.apply(name);
+            }
+        } finally {
+            applyingRulesFor = null;
         }
     }
 
@@ -123,6 +132,14 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return new UnknownDomainObjectException(String.format("Domain object with name '%s' not found.", name));
     }
 
+    protected Object propertyMissing(String name) {
+        return getAsDynamicObject().getProperty(name);
+    }
+
+    protected Object methodMissing(String name, Object args) {
+        return getAsDynamicObject().invokeMethod(name, (Object[]) args);
+    }
+
     private class ContainerDynamicObject extends AbstractDynamicObject {
         @Override
         protected String getDisplayName() {
@@ -131,14 +148,14 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
 
         @Override
         public boolean hasProperty(String name) {
-            return find(name) != null;
+            return findByName(name) != null;
         }
 
         @Override
         public T getProperty(String name) throws MissingPropertyException {
-            T t = find(name);
+            T t = findByName(name);
             if (t == null) {
-                throw new MissingPropertyException(name, this.getClass());
+                return (T) super.getProperty(name);
             }
             return t;
         }
@@ -150,12 +167,20 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
 
         @Override
         public boolean hasMethod(String name, Object... arguments) {
-            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
+            return isConfigureMethod(name, arguments);
         }
 
         @Override
         public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
-            return ConfigureUtil.configure((Closure) arguments[0], getByName(name));
+            if (isConfigureMethod(name, arguments)) {
+                return ConfigureUtil.configure((Closure) arguments[0], getByName(name));
+            } else {
+                return super.invokeMethod(name, arguments);
+            }
+        }
+
+        private boolean isConfigureMethod(String name, Object... arguments) {
+            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
         }
     }
 }

@@ -63,7 +63,7 @@ import org.gradle.configuration.DefaultProjectEvaluator
  */
 class HelperUtil {
 
-  public static final Closure TEST_CLOSURE = {}
+    public static final Closure TEST_CLOSURE = {}
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
     public static final Spec TEST_SEPC  = new AndSpec()
 
@@ -202,6 +202,10 @@ class HelperUtil {
         new GroovyShell().parse(code)
     }
 
+    static Object call(String text, Object params) {
+        toClosure(text).call(params)
+    }
+    
     static Closure toClosure(String text) {
         return new GroovyShell().evaluate("return " + text)
     }

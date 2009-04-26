@@ -61,6 +61,7 @@ import org.gradle.api.*
 import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler
 
 /**
  * @author Hans Dockter
@@ -98,7 +99,7 @@ class DefaultProjectTest {
     AntBuilder testAntBuilder
 
     ConfigurationContainerFactory configurationContainerFactoryMock;
-    ConfigurationContainer configurationContainerMock;
+    ConfigurationHandler configurationContainerMock;
     InternalRepository internalRepositoryDummy = context.mock(InternalRepository)
     ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
     RepositoryHandlerFactory repositoryHandlerFactoryMock = context.mock(RepositoryHandlerFactory.class);
@@ -127,7 +128,7 @@ class DefaultProjectTest {
             allowing(outputRedirectorOtherProjectsMock).on(withParam(any(LogLevel)));
             allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
         }
-        configurationContainerMock = context.mock(ConfigurationContainer)
+        configurationContainerMock = context.mock(ConfigurationHandler)
         configurationContainerFactoryMock = [createConfigurationContainer: {
           resolverProvider, dependencyMetaDataProvider -> configurationContainerMock}] as ConfigurationContainerFactory
         repositoryHandlerMock =  context.mock(RepositoryHandler.class);
@@ -200,13 +201,12 @@ class DefaultProjectTest {
 
 
   @Test void testConfigurations() {
+        Closure cl = { }
         context.checking {
-          one(configurationContainerMock).add("name")
+          one(configurationContainerMock).configure(cl)
         }
         project.configurationContainer = configurationContainerMock
-        project.configurations {
-          add("name")
-        }
+        project.configurations cl
     }
 
     @Test void testProject() {

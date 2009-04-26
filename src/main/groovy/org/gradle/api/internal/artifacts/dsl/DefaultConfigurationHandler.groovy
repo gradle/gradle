@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
@@ -22,33 +22,29 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.Rule
 
 /**
  * @author Hans Dockter
  */
-class DefaultConfigurationHandler extends DefaultConfigurationContainer {
-
+class DefaultConfigurationHandler extends DefaultConfigurationContainer implements ConfigurationHandler {
+    private boolean configuring
 
     def DefaultConfigurationHandler(IvyService ivyService, ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
-    super(ivyService, resolverProvider, dependencyMetaDataProvider)
-  }
-
-  Configuration getByName(String name) {
-    Configuration configuration = find(name)
-    if (configuration == null) {
-      return add(name)
+        super(ivyService, resolverProvider, dependencyMetaDataProvider)
+        addRule([apply: {String name ->
+            if (configuring) {
+                add(name)
+            }
+        }] as Rule)
     }
-    return configuration
-  }
 
-  public def methodMissing(String name, args) {
-    if (!(args.length == 1 && args[0] instanceof Closure)) {
-      if (!getMetaClass().respondsTo(this, name, args.size())) {
-        throw new MissingMethodException(name, this.getClass(), args);
-      }
-      return getMetaClass().invokeMethod(this, name, args);
+    void configure(Closure configureClosure) {
+        configuring = true
+        try {
+            ConfigureUtil.configure(configureClosure, this)
+        } finally {
+            configuring = false
+        }
     }
-    Configuration configuration = getByName(name)
-    ConfigureUtil.configure(args[0], configuration)
-  }
 }

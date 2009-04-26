@@ -60,10 +60,6 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         return type.cast(add(GUtil.map(Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true), name, null));
     }
 
-    public Task get(String name) throws UnknownTaskException {
-        return getByName(name);
-    }
-
     @Override
     protected void addObject(String name, Task object) {
         addActions.getSource().execute(object);

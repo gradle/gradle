@@ -54,7 +54,7 @@ class DependencyHandler {
   }
 
   public def methodMissing(String name, args) {
-    Configuration configuration = configurationContainer.find(name)
+    Configuration configuration = configurationContainer.findByName(name)
     if (configuration == null) {
       if (!getMetaClass().respondsTo(this, name, args.size())) {
         throw new MissingMethodException(name, this.getClass(), args);

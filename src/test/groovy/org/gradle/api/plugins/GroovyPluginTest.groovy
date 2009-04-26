@@ -48,12 +48,12 @@ class GroovyPluginTest {
     @Test public void addsAGroovyConfigurationToTheProject() {
         groovyPlugin.apply(project, new PluginRegistry(), null)
 
-        def configuration = project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)
+        def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyPlugin.GROOVY_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.configurations.get(GroovyPlugin.GROOVY_CONFIGURATION_NAME)
+        configuration = project.configurations.getByName(GroovyPlugin.GROOVY_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)

@@ -17,22 +17,20 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -51,7 +49,7 @@ public class SettingsFactoryTest {
     @Test
     public void createSettings() {
         final ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
-        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
+        final ConfigurationHandler configurationContainer = context.mock(ConfigurationHandler.class);
         final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
         final Configuration configuration = context.mock(Configuration.class);
         final InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);

@@ -48,7 +48,7 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
     }
 
     public Configuration add(String name, Closure configureClosure) {
-        if (find(name) != null) {
+        if (findByName(name) != null) {
             throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
                     name));
         }
@@ -62,10 +62,6 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
         return add(name, null);
     }
 
-    public Configuration get(String name) throws UnknownConfigurationException {
-        return getByName(name);
-    }
-    
     @Override
     public String getDisplayName() {
         return "configuration container";
@@ -117,5 +113,4 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
     }
-
 }

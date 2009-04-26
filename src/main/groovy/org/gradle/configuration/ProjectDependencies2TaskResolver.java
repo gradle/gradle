@@ -35,7 +35,7 @@ public class ProjectDependencies2TaskResolver {
                     logger.debug("Checking task dependencies for project: {} dependsOn: {}", project, dependsOnProject);
                     for (Task task : project.getTasks()) {
                         String taskName = task.getName();
-                        Task dependentTask = dependsOnProject.getTasks().find(taskName);
+                        Task dependentTask = dependsOnProject.getTasks().findByName(taskName);
                         if (dependentTask != null) {
                             logger.debug("Setting task dependencies for task: {}", taskName);
                             task.dependsOn(dependentTask);

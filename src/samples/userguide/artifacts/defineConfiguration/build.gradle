@@ -16,4 +16,7 @@ configurations {
         transitive = true
     }
 }
+configurations.compile {
+    description = 'compile classpath'
+}
 // END SNIPPET configure-configuration

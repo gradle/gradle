@@ -76,7 +76,7 @@ class War extends Jar {
     }
 
     private List filteredDependencies(String configurationName, Project project, boolean includeProjectDependencies) {
-      project.configurations.get(configurationName).copyRecursive(
+      project.configurations.getByName(configurationName).copyRecursive(
               includeProjectDependencies ? Specs.SATISFIES_ALL : new DependencyTypeSpec(Type.EXTERNAL)).resolve() as List
     }
 

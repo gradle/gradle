@@ -36,10 +36,7 @@ import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.artifacts.dsl.*;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
@@ -135,7 +132,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private DependencyHandler dependencyHandler;
 
-    private ConfigurationContainer configurationContainer;
+    private ConfigurationHandler configurationContainer;
 
     private PublishArtifactFactory publishArtifactFactory;
 
@@ -471,7 +468,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.repositoryHandlerFactory = repositoryHandlerFactory;
     }
 
-    public ConfigurationContainer getConfigurations() {
+    public ConfigurationHandler getConfigurations() {
         return configurationContainer;
     }
 
@@ -479,7 +476,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.internalRepository = internalRepository;
     }
 
-    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
+    public void setConfigurationContainer(ConfigurationHandler configurationContainer) {
         this.configurationContainer = configurationContainer;
     }
 
@@ -686,7 +683,7 @@ public abstract class AbstractProject implements ProjectInternal {
             throw new InvalidUserDataException("A path must be specified!");
         }
         if (!path.contains(PATH_SEPARATOR)) {
-            return taskContainer.find(path);
+            return taskContainer.findByName(path);
         }
 
         String projectPath = StringUtils.substringBeforeLast(path, PATH_SEPARATOR);
@@ -884,8 +881,8 @@ public abstract class AbstractProject implements ProjectInternal {
         String name = "";
         for (String pathElement : pathElements) {
             name += name.length() != 0 ? "/" + pathElement : pathElement;
-            if (taskContainer.find(name) != null) {
-                if (!(taskContainer.find(name) instanceof Directory)) {
+            if (taskContainer.findByName(name) != null) {
+                if (!(taskContainer.findByName(name) instanceof Directory)) {
                     throw new InvalidUserDataException("A non directory task with this name already exsists.");
                 }
             } else {

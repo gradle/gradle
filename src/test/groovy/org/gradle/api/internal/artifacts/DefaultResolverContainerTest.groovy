@@ -89,7 +89,7 @@ class DefaultResolverContainerTest {
 
     @Test public void testAddResolver() {
         assert resolverContainer.add(expectedUserDescription).is(expectedResolver)
-        assert resolverContainer.find(expectedName).is(expectedResolver)
+        assert resolverContainer.findByName(expectedName).is(expectedResolver)
         resolverContainer.add(expectedUserDescription2)
         assertEquals([expectedResolver, expectedResolver2], resolverContainer.resolvers)
     }
@@ -110,7 +110,7 @@ class DefaultResolverContainerTest {
         def expectedConfigureValue = 'testvalue'
         Closure configureClosure = {transactional = expectedConfigureValue}
         assertThat(resolverContainer.add(expectedUserDescription, configureClosure), sameInstance(expectedResolver))
-        assertThat(resolverContainer.find(expectedName), sameInstance(expectedResolver))
+        assertThat(resolverContainer.findByName(expectedName), sameInstance(expectedResolver))
         assert expectedResolver.transactional == expectedConfigureValue
     }
 
@@ -187,7 +187,7 @@ class DefaultResolverContainerTest {
             will(returnValue(expectedResolver))
         }
         assertSame(expectedResolver, resolverContainer.addMavenDeployer(DefaultResolverContainerTest.TEST_REPO_NAME));
-        assert resolverContainer.find(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
+        assert resolverContainer.findByName(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
     }
 
     @Test
@@ -203,7 +203,7 @@ class DefaultResolverContainerTest {
             will(returnValue(expectedResolver))
         }
         assertSame(expectedResolver, resolverContainer.addMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
-        assert resolverContainer.find(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
+        assert resolverContainer.findByName(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
     }
 
     private GroovyMavenDeployer prepareMavenDeployerTests() {

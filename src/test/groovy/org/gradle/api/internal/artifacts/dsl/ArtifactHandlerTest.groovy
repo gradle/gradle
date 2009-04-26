@@ -41,7 +41,7 @@ class ArtifactHandlerTest {
     @Before
     void setUp() {
       context.checking {
-        allowing(configurationContainerStub).find(TEST_CONF_NAME); will(returnValue(configurationMock))
+        allowing(configurationContainerStub).findByName(TEST_CONF_NAME); will(returnValue(configurationMock))
       }
     }
 
@@ -76,7 +76,7 @@ class ArtifactHandlerTest {
     void pushToUnknownConfiguration() {
       String unknownConf = TEST_CONF_NAME + "delta"
       context.checking {
-        allowing(configurationContainerStub).find(unknownConf); will(returnValue(null))
+        allowing(configurationContainerStub).findByName(unknownConf); will(returnValue(null))
       }
       artifactHandler."$unknownConf"("someNotation")
     }

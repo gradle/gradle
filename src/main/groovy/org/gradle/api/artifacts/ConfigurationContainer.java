@@ -17,18 +17,34 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.specs.Spec;
 
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A {@code ConfigurationContainer} is responsible for managing a set of {@link Configuration} instances.</p>
  *
- * <p>You can obtain a {@code ConfigurationContainer} instance by calling {@link org.gradle.api.Project#getConfigurations()}.</p>
+ * <p>You can obtain a {@code ConfigurationContainer} instance by calling {@link org.gradle.api.Project#getConfigurations()},
+ * or using the {@code configurations} property in your build script.</p>
+ *
+ * <p>The configurations in a container are accessable as read-only properties of the container, using the name of the
+ * configuration as the property name. For example:</p>
+ *
+ * <pre>
+ * configurations.add('myConfiguration')
+ * configurations.myConfiguration.transitive = false
+ * </pre>
+ *
+ * <p>A dynamic method is added for each configuration which takes a configuration closure. This is equivalent to
+ * calling {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
+ *
+ * <pre>
+ * configurations.add('myConfiguration')
+ * configurations.myConfiguration {
+ *     transitive = false
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */
@@ -54,7 +70,7 @@ public interface ConfigurationContainer extends Iterable<Configuration> {
      * @param spec The criteria to use.
      * @return The matching configurations. Returns an empty set if there are no such configurations in this container.
      */
-    Set<Configuration> get(Spec<? super Configuration> spec);
+    Set<Configuration> findAll(Spec<? super Configuration> spec);
 
     /**
      * Locates a configuration by name, returning null if there is no such configuration.
@@ -62,25 +78,20 @@ public interface ConfigurationContainer extends Iterable<Configuration> {
      * @param name The configuration name
      * @return The configuration with the given name, or null if there is no such configuration in this container.
      */
-    Configuration find(String name);
+    Configuration findByName(String name);
 
     /**
-     * Locates a configuration by name, failing if there is no such configuration. You can call this method in your
-     * build script by using the {@code .} operator:
-     *
-     * <pre>
-     * println configurations.someConfig.asPath
-     * </pre>
+     * Locates a configuration by name, failing if there is no such configuration.
      *
      * @param name The configuration name
      * @return The configuration with the given name. Never returns null.
      * @throws UnknownConfigurationException when there is no such configuration in this container.
      */
-    Configuration get(String name) throws UnknownConfigurationException;
+    Configuration getByName(String name) throws UnknownConfigurationException;
 
     /**
      * Locates a configuration by name, failing if there is no such configuration. This method is identical to {@link
-     * #get(String)}. You can call this method in your build script by using the groovy {@code []} operator:
+     * #getByName(String)}. You can call this method in your build script by using the groovy {@code []} operator:
      *
      * <pre>
      * println configurations['some-config'].asPath
@@ -101,7 +112,7 @@ public interface ConfigurationContainer extends Iterable<Configuration> {
      * @return The configuration with the given name. Never returns null.
      * @throws UnknownConfigurationException when there is no such configuration in this container.
      */
-    Configuration get(String name, Closure configureClosure) throws UnknownConfigurationException;
+    Configuration getByName(String name, Closure configureClosure) throws UnknownConfigurationException;
 
     /**
      * Adds a configuration with the given name.

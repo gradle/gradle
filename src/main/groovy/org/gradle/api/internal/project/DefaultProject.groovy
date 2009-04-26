@@ -110,7 +110,7 @@ class DefaultProject extends AbstractProject {
     }
 
     public void configurations(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getConfigurations())
+        getConfigurations().configure(configureClosure)
     }
 
     public void repositories(Closure configureClosure) {

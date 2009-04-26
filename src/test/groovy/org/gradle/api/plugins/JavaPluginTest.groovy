@@ -45,36 +45,36 @@ class JavaPluginTest {
     @Test public void testApplyCreatesConfigurations() {
         javaPlugin.apply(project, new PluginRegistry())
 
-        def configuration = project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)
+        def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.configurations.get(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
+        configuration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.configurations.get(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
+        configuration = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.configurations.get(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
+        configuration = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME, JavaPlugin.RUNTIME_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.configurations.get(Dependency.DEFAULT_CONFIGURATION)
+        configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(Dependency.MASTER_CONFIGURATION, JavaPlugin.RUNTIME_CONFIGURATION_NAME)))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.configurations.get(Dependency.MASTER_CONFIGURATION)
+        configuration = project.configurations.getByName(Dependency.MASTER_CONFIGURATION)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.configurations.get(JavaPlugin.DISTS_TASK_NAME)
+        configuration = project.configurations.getByName(JavaPlugin.DISTS_TASK_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
@@ -91,7 +91,7 @@ class JavaPluginTest {
         task = project.task(JavaPlugin.COMPILE_TASK_NAME)
         assertThat(task, instanceOf(Compile))
         assertThat(task.dependsOn, hasItem(JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.task(JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME)
@@ -102,13 +102,13 @@ class JavaPluginTest {
         task = project.task(JavaPlugin.COMPILE_TESTS_TASK_NAME)
         assertThat(task, instanceOf(Compile))
         assertThat(task.dependsOn, hasItem(JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.testClassesDir))
 
         task = project.task(JavaPlugin.TEST_TASK_NAME)
         assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
         assertThat(task.dependsOn, hasItem(JavaPlugin.COMPILE_TESTS_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
         assertThat(task.testClassesDir, equalTo(project.testClassesDir))
 
         task = project.task(JavaPlugin.LIBS_TASK_NAME)
@@ -123,7 +123,7 @@ class JavaPluginTest {
 
         task = project.task(JavaPlugin.JAVADOC_TASK_NAME)
         assertThat(task, instanceOf(Javadoc))
-        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
 
         task = project.task("build" + Dependency.MASTER_CONFIGURATION[0].toUpperCase() + Dependency.MASTER_CONFIGURATION[1..-1])
@@ -141,16 +141,16 @@ class JavaPluginTest {
 
         task = project.createTask('customCompile', type: Compile)
         assertThat(task.dependsOn, hasItem(JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
         assertThat(task.dependsOn, hasItem(JavaPlugin.COMPILE_TESTS_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
         assertThat(task.testClassesDir, equalTo(project.testClassesDir))
 
         task = project.createTask('customJavadoc', type: Javadoc)
-        assertThat(task.configuration, equalTo(project.configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
     }
 

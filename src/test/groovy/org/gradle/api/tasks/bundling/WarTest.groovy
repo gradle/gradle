@@ -34,6 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.tasks.bundling.*
 import static org.junit.Assert.assertEquals
+import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler
 
 /**
  * @author Hans Dockter
@@ -46,7 +47,7 @@ class WarTest extends AbstractArchiveTaskTest {
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer)
+    ConfigurationHandler configurationContainer = context.mock(ConfigurationHandler)
   
     War war
 
@@ -78,16 +79,16 @@ class WarTest extends AbstractArchiveTaskTest {
 
     private void prepareConfigurationContainerMock(boolean failForMissingDependency, boolean includeProjectDependencies) {
         context.checking {
-            allowing(configurationContainer).get(TEST_LIB_CONFIGURATIONS[0]); will(returnValue(
+            allowing(configurationContainer).getByName(TEST_LIB_CONFIGURATIONS[0]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[0]])
             ))
-            allowing(configurationContainer).get(TEST_LIB_CONFIGURATIONS[1]); will(returnValue(
+            allowing(configurationContainer).getByName(TEST_LIB_CONFIGURATIONS[1]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_CONFIGURATIONS[1]])
             ))
-            allowing(configurationContainer).get(TEST_LIB_EXCLUDE_CONFIGURATIONS[0]); will(returnValue(
+            allowing(configurationContainer).getByName(TEST_LIB_EXCLUDE_CONFIGURATIONS[0]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[0]])
             ))
-            allowing(configurationContainer).get(TEST_LIB_EXCLUDE_CONFIGURATIONS[1]); will(returnValue(
+            allowing(configurationContainer).getByName(TEST_LIB_EXCLUDE_CONFIGURATIONS[1]); will(returnValue(
                     createConfigurationMock(failForMissingDependency, includeProjectDependencies, filesFromDepencencyManager[TEST_LIB_EXCLUDE_CONFIGURATIONS[1]])
             ))
         }

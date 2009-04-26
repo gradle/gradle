@@ -53,13 +53,13 @@ public class OsgiPlugin implements Plugin {
     private Action<Jar> createOsgiConfigureAction() {
         return new Action<Jar>() {
             public void execute(final Jar jar) {
-                jar.dependsOn(jar.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
+                jar.dependsOn(jar.getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
                 jar.defineProperty("osgi", createDefaultOsgiManifest(jar.getProject()));
                 jar.doFirst(new TaskAction() {
                     public void execute(Task task) {
                         OsgiManifest osgiManifest = (OsgiManifest) jar.getAdditionalProperties().get("osgi");
                         osgiManifest.setClasspath(getDependencies(osgiManifest,
-                                jar.getProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve()));
+                                jar.getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve()));
                         osgiManifest.overwrite(jar.getManifest());
                     }
                 });

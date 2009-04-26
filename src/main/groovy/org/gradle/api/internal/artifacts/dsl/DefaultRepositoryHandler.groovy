@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.dsl
 
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.plugins.Convention
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.InvalidUserDataException
-import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.util.HashUtil
-import org.gradle.util.GUtil
 import org.gradle.util.WrapUtil
 
 /**
@@ -32,14 +31,6 @@ import org.gradle.util.WrapUtil
 class DefaultRepositoryHandler extends DefaultResolverContainer implements RepositoryHandler {
     DefaultRepositoryHandler(ResolverFactory resolverFactory, Convention convention) {
         super(resolverFactory, convention)
-    }
-
-    def propertyMissing(String name) {
-        DependencyResolver repository = find(name)
-        if (repository == null) {
-            throw new MissingPropertyException(name, this.getClass());
-        }
-        repository
     }
 
     FileSystemResolver flatDir(Map args) {

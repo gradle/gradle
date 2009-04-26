@@ -81,7 +81,7 @@ class BuildSourceBuilderTest {
                 "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
         context.checking {
             allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationContainerStub))
-            allowing(configurationContainerStub).get(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
+            allowing(configurationContainerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
         }
     }
 

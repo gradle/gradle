@@ -17,8 +17,11 @@ println repositories['localRepository'].name
 
 //START SNIPPET configure-resolver
 repositories {
-//    localRepository {
-//        addArtifactPattern('lib/[name]/[revision]/[name]-[revision].[ext]')
-//    }
+    localRepository {
+        addArtifactPattern(file('lib').absolutePath + '/[name]/[revision]/[name]-[revision].[ext]')
+    }
+}
+repositories.localRepository {
+    addArtifactPattern(file('lib').absolutePath + '/[name]/[revision]/[name]-[revision].[ext]')
 }
 //END SNIPPET configure-resolver

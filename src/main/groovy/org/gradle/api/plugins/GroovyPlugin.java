@@ -47,8 +47,10 @@ public class GroovyPlugin implements Plugin {
         JavaPlugin javaPlugin = pluginRegistry.apply(JavaPlugin.class, project, customValues);
         GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues);
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
+
         Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
                 setDescription("The groovy libraries to be used for this Groovy project.");
+        project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(groovyConfiguration);
 
         configureCompile(project);
 
@@ -57,14 +59,12 @@ public class GroovyPlugin implements Plugin {
         configureJavadoc(project);
 
         configureGroovydoc(project);
-
-        project.getConfigurations().get(COMPILE_CONFIGURATION_NAME).extendsFrom(groovyConfiguration);
     }
 
     private void configureGroovydoc(final Project project) {
         project.getTasks().whenTaskAdded(Groovydoc.class, new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
-                groovydoc.setGroovyClasspath(project.getConfigurations().get("groovy"));
+                groovydoc.setGroovyClasspath(project.getConfigurations().getByName("groovy"));
                 groovydoc.conventionMapping(GUtil.map("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return groovy(convention).getGroovySrcDirs();
@@ -101,7 +101,7 @@ public class GroovyPlugin implements Plugin {
                 (Compile) project.task(COMPILE_TASK_NAME),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
-        compileTests.setGroovyClasspath(project.getConfigurations().get("groovy"));
+        compileTests.setGroovyClasspath(project.getConfigurations().getByName("groovy"));
         compileTests.setDescription("Compiles the Java and Groovy test source code.");
         compileTests.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {
@@ -114,7 +114,7 @@ public class GroovyPlugin implements Plugin {
     private void configureCompile(final Project project) {
         project.getTasks().whenTaskAdded(GroovyCompile.class, new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
-                compile.setGroovyClasspath(project.getConfigurations().get("groovy"));
+                compile.setGroovyClasspath(project.getConfigurations().getByName("groovy"));
                 compile.conventionMapping(GUtil.map("groovySourceDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return groovy(convention).getGroovySrcDirs();

@@ -92,26 +92,26 @@ public class MavenPlugin implements Plugin {
     }
 
     private void configureJavaScopeMappings(ResolverContainer resolverFactory, ConfigurationContainer configurations) {
-        resolverFactory.getMavenScopeMappings().addMapping(COMPILE_PRIORITY, configurations.get(JavaPlugin.COMPILE_CONFIGURATION_NAME),
+        resolverFactory.getMavenScopeMappings().addMapping(COMPILE_PRIORITY, configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.COMPILE);
-        resolverFactory.getMavenScopeMappings().addMapping(RUNTIME_PRIORITY, configurations.get(JavaPlugin.RUNTIME_CONFIGURATION_NAME),
+        resolverFactory.getMavenScopeMappings().addMapping(RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.RUNTIME);
-        resolverFactory.getMavenScopeMappings().addMapping(TEST_COMPILE_PRIORITY, configurations.get(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME),
+        resolverFactory.getMavenScopeMappings().addMapping(TEST_COMPILE_PRIORITY, configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.TEST);
-        resolverFactory.getMavenScopeMappings().addMapping(TEST_RUNTIME_PRIORITY, configurations.get(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME),
+        resolverFactory.getMavenScopeMappings().addMapping(TEST_RUNTIME_PRIORITY, configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.TEST);
     }
 
     private void configureWarScopeMappings(ResolverContainer resolverContainer, ConfigurationContainer configurations) {
-        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, configurations.get(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
+        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_COMPILE_PRIORITY, configurations.getByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.PROVIDED);
-        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, configurations.get(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME),
+        resolverContainer.getMavenScopeMappings().addMapping(PROVIDED_RUNTIME_PRIORITY, configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME),
                 Conf2ScopeMappingContainer.PROVIDED);
     }
 
     private void configureInstall(Project project) {
         Upload installUpload = project.getTasks().add(INSTALL_TASK_NAME, Upload.class);
-        installUpload.setConfiguration(project.getConfigurations().get(Dependency.MASTER_CONFIGURATION));
+        installUpload.setConfiguration(project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION));
         PublishInstruction publishInstruction = new PublishInstruction();
         publishInstruction.setIvyFileParentDir(new File("nonNullDummy"));
         installUpload.setPublishInstruction(publishInstruction);

@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
+import groovy.lang.*;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
+import static org.gradle.util.HelperUtil.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -107,7 +106,7 @@ public class DefaultDomainObjectContainerTest {
         container.addObject("b", bean2);
         container.addObject("c", bean3);
 
-        assertThat(container.get(spec), equalTo(toLinkedSet(bean2)));
+        assertThat(container.findAll(spec), equalTo(toLinkedSet(bean2)));
     }
 
     @Test
@@ -120,7 +119,7 @@ public class DefaultDomainObjectContainerTest {
 
         container.addObject("a", new Bean());
 
-        assertTrue(container.get(spec).isEmpty());
+        assertTrue(container.findAll(spec).isEmpty());
     }
 
     @Test
@@ -155,7 +154,7 @@ public class DefaultDomainObjectContainerTest {
         Bean bean = new Bean();
         container.addObject("a", bean);
 
-        assertThat(container.get("a", HelperUtil.toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
+        assertThat(container.getByName("a", toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
         assertThat(bean.getBeanProperty(), equalTo("hi"));
     }
 
@@ -164,7 +163,7 @@ public class DefaultDomainObjectContainerTest {
         Bean bean = new Bean();
         addRule(bean);
 
-        assertThat(container.get("bean", HelperUtil.toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
+        assertThat(container.getByName("bean", toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
         assertThat(bean.getBeanProperty(), equalTo("hi"));
     }
 
@@ -173,12 +172,12 @@ public class DefaultDomainObjectContainerTest {
         Bean bean = new Bean();
         container.addObject("a", bean);
 
-        assertThat(container.find("a"), sameInstance(bean));
+        assertThat(container.findByName("a"), sameInstance(bean));
     }
 
     @Test
     public void findDomainObjectByNameReturnsNullForUnknownDomainObject() {
-        assertThat(container.find("a"), nullValue());
+        assertThat(container.findByName("a"), nullValue());
     }
 
     @Test
@@ -186,16 +185,24 @@ public class DefaultDomainObjectContainerTest {
         Bean bean = new Bean();
         addRule(bean);
 
-        assertThat(container.find("bean"), sameInstance(bean));
+        assertThat(container.findByName("bean"), sameInstance(bean));
     }
 
     @Test
-    public void eachObjectIsAvailableAsDynamicProperty() {
+    public void eachObjectIsAvailableAsADynamicProperty() {
         Bean bean = new Bean();
         container.addObject("child", bean);
         assertTrue(container.getAsDynamicObject().hasProperty("child"));
         assertThat(container.getAsDynamicObject().getProperty("child"), sameInstance((Object) bean));
         assertThat(container.getAsDynamicObject().getProperties().get("child"), sameInstance((Object) bean));
+        assertThat(call("{ it.child }", container), sameInstance((Object) bean));
+    }
+
+    @Test
+    public void eachObjectIsAvailableUsingAnIndex() {
+        Bean bean = new Bean();
+        container.addObject("child", bean);
+        assertThat(call("{ it['child'] }", container), sameInstance((Object) bean));
     }
 
     @Test
@@ -223,20 +230,35 @@ public class DefaultDomainObjectContainerTest {
     public void eachObjectIsAvailableAsConfigureMethod() {
         Bean bean = new Bean();
         container.addObject("child", bean);
-        Closure closure = HelperUtil.toClosure("{ beanProperty = 'value' }");
+
+        Closure closure = toClosure("{ beanProperty = 'value' }");
         assertTrue(container.getAsDynamicObject().hasMethod("child", closure));
         container.getAsDynamicObject().invokeMethod("child", closure);
         assertThat(bean.getBeanProperty(), equalTo("value"));
+
+        call("{ it.child { beanProperty = 'new value' } }", container);
+        assertThat(bean.getBeanProperty(), equalTo("new value"));
     }
 
     @Test
     public void cannotInvokeUnknownMethod() {
         container.addObject("child", new Bean());
 
-        assertFalse(container.getAsDynamicObject().hasMethod("unknown", HelperUtil.toClosure("{ }")));
-        assertFalse(container.getAsDynamicObject().hasMethod("child"));
-        assertFalse(container.getAsDynamicObject().hasMethod("child", "not a closure"));
-        assertFalse(container.getAsDynamicObject().hasMethod("child", HelperUtil.toClosure("{ }"), "something else"));
+        assertMethodUnknown("unknown");
+        assertMethodUnknown("unknown", toClosure("{ }"));
+        assertMethodUnknown("child");
+        assertMethodUnknown("child", "not a closure");
+        assertMethodUnknown("child", toClosure("{ }"), "something else");
+    }
+
+    private void assertMethodUnknown(String name, Object... arguments) {
+        assertFalse(container.getAsDynamicObject().hasMethod(name, arguments));
+        try {
+            container.getAsDynamicObject().invokeMethod(name, arguments);
+            fail();
+        } catch (groovy.lang.MissingMethodException e) {
+            // Expected
+        }
     }
 
     @Test
@@ -244,7 +266,7 @@ public class DefaultDomainObjectContainerTest {
         Bean bean = new Bean();
         addRule(bean);
 
-        assertTrue(container.getAsDynamicObject().hasMethod("bean", HelperUtil.toClosure("{ }")));
+        assertTrue(container.getAsDynamicObject().hasMethod("bean", toClosure("{ }")));
     }
 
     private void addRule(final Bean bean) {

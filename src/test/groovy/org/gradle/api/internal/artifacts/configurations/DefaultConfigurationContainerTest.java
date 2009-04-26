@@ -78,12 +78,12 @@ public class DefaultConfigurationContainerTest {
     @Test
     public void testFind() {
         Configuration configuration = configurationContainer.add(TEST_NAME);
-        assertThat(configuration, sameInstance(configurationContainer.find(TEST_NAME)));
+        assertThat(configuration, sameInstance(configurationContainer.findByName(TEST_NAME)));
     }
 
     @Test
     public void testFindNonExisitingConfiguration() {
-        assertThat(configurationContainer.find(TEST_NAME + "delta"), equalTo(null));
+        assertThat(configurationContainer.findByName(TEST_NAME + "delta"), equalTo(null));
     }
 
     @Test(expected = UnknownConfigurationException.class)
@@ -94,7 +94,7 @@ public class DefaultConfigurationContainerTest {
     @Test
     public void testGetWithClosure() {
         configurationContainer.add(TEST_NAME);
-        Configuration configuration = configurationContainer.get(TEST_NAME, TEST_CLOSURE);
+        Configuration configuration = configurationContainer.getByName(TEST_NAME, TEST_CLOSURE);
         assertThat(configuration.getDescription(), equalTo(TEST_DESCRIPTION));
     }
 
@@ -102,7 +102,7 @@ public class DefaultConfigurationContainerTest {
     public void testGetWithFilter() {
         Configuration configuration = configurationContainer.add(TEST_NAME);
         configurationContainer.add(TEST_NAME + "delta");
-        Set<Configuration> result = configurationContainer.get(new Spec<Configuration>() {
+        Set<Configuration> result = configurationContainer.findAll(new Spec<Configuration>() {
             public boolean isSatisfiedBy(Configuration element) {
                 return element.getName().equals(TEST_NAME);
             }

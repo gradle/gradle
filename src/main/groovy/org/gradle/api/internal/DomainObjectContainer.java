@@ -27,15 +27,15 @@ import java.util.List;
 public interface DomainObjectContainer<T> extends Iterable<T> {
     Set<T> getAll();
 
-    Set<T> get(Spec<? super T> spec);
+    Set<T> findAll(Spec<? super T> spec);
 
     Map<String, T> getAsMap();
 
-    T find(String name);
+    T findByName(String name);
 
     T getByName(String name) throws UnknownDomainObjectException;
 
-    T get(String name, Closure configureClosure) throws UnknownDomainObjectException;
+    T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException;
 
     T getAt(String name) throws UnknownDomainObjectException;
 

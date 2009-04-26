@@ -51,6 +51,7 @@ import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler
 
 /**
  * @author Hans Dockter
@@ -67,7 +68,7 @@ class DefaultSettingsTest {
     DefaultProjectDescriptorRegistry projectDescriptorRegistry;
 
     ConfigurationContainerFactory configurationContainerFactoryStub = context.mock(ConfigurationContainerFactory.class);
-    ConfigurationContainer configurationContainerStub = context.mock(ConfigurationContainer.class);
+    ConfigurationHandler configurationContainerStub = context.mock(ConfigurationHandler.class);
     Configuration configurationStub = context.mock(Configuration.class);
     InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)

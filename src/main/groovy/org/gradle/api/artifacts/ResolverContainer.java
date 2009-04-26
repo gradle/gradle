@@ -35,11 +35,29 @@ import java.util.Set;
  * instances. Resolvers are arranged in a sequence.</p>
  *
  * <p>You can obtain a {@code ResolverContainer} instance by calling {@link org.gradle.api.Project#getRepositories()} or
- * {@code project.repositories} in your build script.</p>
+ * using the {@code repositories} property in your build script.</p>
+ *
+ * <p>The resolvers in a container are accessable as read-only properties of the container, using the name of the
+ * resolver as the property name. For example:</p>
+ *
+ * <pre>
+ * resolvers.add('myResolver')
+ * resolvers.myResolver.addArtifactPattern(somePattern)
+ * </pre>
+ *
+ * <p>A dynamic method is added for each resolver which takes a configuration closure. This is equivalent to calling
+ * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
+ *
+ * <pre>
+ * resolvers.add('myResolver')
+ * resolvers.myResolver {
+ *     addArtifactPattern(somePattern)
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */
-public interface ResolverContainer extends IConventionAware {
+public interface ResolverContainer extends IConventionAware, Iterable<DependencyResolver> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
     String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
@@ -163,7 +181,7 @@ public interface ResolverContainer extends IConventionAware {
      * @param spec The criteria to use.
      * @return The matching resolvers. Returns an empty set if there are no such resolvers in this container.
      */
-    Set<DependencyResolver> get(Spec<? super DependencyResolver> spec);
+    Set<DependencyResolver> findAll(Spec<? super DependencyResolver> spec);
 
     /**
      * Locates a resolver by name, failing if there is no such resolver. You can call this method in your build script
@@ -188,7 +206,7 @@ public interface ResolverContainer extends IConventionAware {
      * @return The resolver with the given name. Never returns null.
      * @throws UnknownResolverException when there is no such resolver in this container.
      */
-    DependencyResolver get(String name, Closure configureClosure) throws UnknownResolverException;
+    DependencyResolver getByName(String name, Closure configureClosure) throws UnknownResolverException;
 
     /**
      * Locates a resolver by name, failing if there is no such resolver. This method is identical to {@link
@@ -210,7 +228,7 @@ public interface ResolverContainer extends IConventionAware {
      * @param name The resolver name
      * @return The resolver with the given name, or null if there is no such resolver in this container.
      */
-    DependencyResolver find(String name);
+    DependencyResolver findByName(String name);
 
     /**
      * Returns the resolvers in this container, in sequence.

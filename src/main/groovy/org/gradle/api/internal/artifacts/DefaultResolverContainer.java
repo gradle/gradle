@@ -61,6 +61,11 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         conventionAwareHelper.setConvention(convention);
     }
 
+    @Override
+    public String getDisplayName() {
+        return "resolver container";
+    }
+
     public DependencyResolver add(Object userDescription) {
         return add(userDescription, null);
     }
@@ -81,7 +86,7 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         if (!GUtil.isTrue(afterResolverName)) {
             throw new InvalidUserDataException("You must specify userDescription and afterResolverName");
         }
-        if (find(afterResolverName) == null) {
+        if (findByName(afterResolverName) == null) {
             throw new InvalidUserDataException("Resolver $afterResolverName does not exists!");
         }
         return addInternal(userDescription, configureClosure, new OrderAction() {
@@ -99,7 +104,7 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         if (!GUtil.isTrue(beforeResolverName)) {
             throw new InvalidUserDataException("You must specify userDescription and beforeResolverName");
         }
-        if (find(beforeResolverName) == null) {
+        if (findByName(beforeResolverName) == null) {
             throw new InvalidUserDataException("Resolver $beforeResolverName does not exists!");
         }
         return addInternal(userDescription, configureClosure, new OrderAction() {
@@ -142,7 +147,7 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         if (!GUtil.isTrue(resolver.getName())) {
             throw new InvalidUserDataException("You must specify a name for the resolver. Resolver=" + userDescription);
         }
-        if (find(resolver.getName()) != null) {
+        if (findByName(resolver.getName()) != null) {
             throw new InvalidUserDataException(String.format(
                     "Cannot add a resolver with name '%s' as a resolver with that name already exists.", resolver.getName()));
         }

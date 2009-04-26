@@ -103,7 +103,7 @@ public class BuildSourceBuilder {
                 logger.info("Building buildSrc has not produced any artifact!");
                 return new HashSet<File>();
             }
-            Set<File> buildSourceClasspath = buildListener.getRootProject().getConfigurations().get(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve();
+            Set<File> buildSourceClasspath = buildListener.getRootProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve();
             buildSourceClasspath.add(artifactFile);
             logger.debug("Build source classpath is: {}", buildSourceClasspath);
             logger.info("================================================" + " Finished building buildSrc");

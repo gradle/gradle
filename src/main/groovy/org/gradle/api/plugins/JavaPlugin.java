@@ -124,7 +124,7 @@ public class JavaPlugin implements Plugin {
         project.getTasks().whenTaskAdded(Compile.class, new Action<Compile>() {
             public void execute(Compile compile) {
                 compile.dependsOn(PROCESS_RESOURCES_TASK_NAME);
-                compile.setConfiguration(project.getConfigurations().get(COMPILE_CONFIGURATION_NAME));
+                compile.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
                 compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
                 addDependsOnProjectDependencies(compile, COMPILE_CONFIGURATION_NAME);
             }
@@ -148,7 +148,7 @@ public class JavaPlugin implements Plugin {
         project.getTasks().whenTaskAdded(Javadoc.class, new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
-                javadoc.setConfiguration(project.getConfigurations().get(COMPILE_CONFIGURATION_NAME));
+                javadoc.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
                 addDependsOnProjectDependencies(javadoc, COMPILE_CONFIGURATION_NAME);
             }
         });
@@ -210,12 +210,12 @@ public class JavaPlugin implements Plugin {
                 "classpathLibs", new ConventionValue() {
                     public Object getValue(Convention convention, final IConventionAware conventionAwareObject) {
                         ConfigurationContainer configurationContainer = ((Task) conventionAwareObject).getProject().getConfigurations();
-                        return new ArrayList(configurationContainer.get(TEST_RUNTIME_CONFIGURATION_NAME).copyRecursive(DependencySpecs.type(Type.EXTERNAL)).resolve());
+                        return new ArrayList(configurationContainer.getByName(TEST_RUNTIME_CONFIGURATION_NAME).copyRecursive(DependencySpecs.type(Type.EXTERNAL)).resolve());
                     }
                 },
                 "projectDependencies", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new ArrayList(((Task) conventionAwareObject).getProject().getConfigurations().get(TEST_RUNTIME_CONFIGURATION_NAME).getAllProjectDependencies());
+                        return new ArrayList(((Task) conventionAwareObject).getProject().getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME).getAllProjectDependencies());
                     }
                 }));
         eclipseClasspath.setDescription("Generates an Eclipse .classpath file.");
@@ -240,7 +240,7 @@ public class JavaPlugin implements Plugin {
 
             public void apply(String taskName) {
                 if (taskName.startsWith(prefix)) {
-                    Configuration configuration = project.getConfigurations().find(taskName.substring(prefix.length()).toLowerCase());
+                    Configuration configuration = project.getConfigurations().findByName(taskName.substring(prefix.length()).toLowerCase());
                     if (configuration != null) {
                         project.getTasks().add(taskName).dependsOn(configuration.getBuildArtifacts());
                     }
@@ -308,7 +308,7 @@ public class JavaPlugin implements Plugin {
                     }
                 }));
         jar.setDescription("Generates a jar archive with all the compiled classes.");
-        project.getConfigurations().get(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
+        project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 
     private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
@@ -324,7 +324,7 @@ public class JavaPlugin implements Plugin {
             public void execute(Test test) {
                 test.dependsOn(COMPILE_TESTS_TASK_NAME);
                 test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
-                test.setConfiguration(project.getConfigurations().get(TEST_RUNTIME_CONFIGURATION_NAME));
+                test.setConfiguration(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
                 addDependsOnProjectDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
                 test.doFirst(new TaskAction() {
                     public void execute(Task task) {
@@ -362,7 +362,7 @@ public class JavaPlugin implements Plugin {
         compileTests.setDependsOn(WrapUtil.toSet(PROCESS_TEST_RESOURCES_TASK_NAME));
         compileTests.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         configureCompileInternal(compileTests, propertyMapping);
-        compileTests.setConfiguration(configurations.get(TEST_COMPILE_CONFIGURATION_NAME));
+        compileTests.setConfiguration(configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME));
         addDependsOnProjectDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);
         return (Compile) compileTests.doFirst(new TaskAction() {
             public void execute(Task task) {
@@ -382,7 +382,7 @@ public class JavaPlugin implements Plugin {
 
     private void addDependsOnProjectDependencies(final Task task, String configurationName) {
         Project project = task.getProject();
-        final Configuration configuration = project.getConfigurations().get(configurationName);
+        final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getBuildDependencies());
     }
 

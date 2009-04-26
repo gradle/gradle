@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
@@ -22,53 +22,65 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler
 import org.gradle.util.JUnit4GroovyMockery
-import org.junit.Assert
 import org.junit.Test
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
+import static org.junit.Assert.*
+import org.gradle.api.artifacts.UnknownConfigurationException
 
 /**
  * @author Hans Dockter
  */
 
 class DefaultConfigurationHandlerTest {
-  private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-  private IvyService ivyService = context.mock(IvyService)
-  private ResolverProvider resolverProvider = context.mock(ResolverProvider)
-  private DependencyMetaDataProvider dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider)
+    private IvyService ivyService = context.mock(IvyService)
+    private ResolverProvider resolverProvider = context.mock(ResolverProvider)
+    private DependencyMetaDataProvider dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider)
 
-  private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService,
-          resolverProvider, dependencyMetaDataProvider)
+    private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService,
+            resolverProvider, dependencyMetaDataProvider)
 
-  @Test void newAndExisitingConfiguration() {
-    Configuration configuration = configurationHandler.newConf
-    assertThat(configuration, is(not(null)))
-    assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))
-    assertThat(configurationHandler.newConf, sameInstance(configuration))
-  }
-
-  @Test void newConfigurationWithClosure() {
-    String someDesc = 'desc1'
-    Configuration configuration = configurationHandler.newConf {
-      description = someDesc
+    @Test void addsNewConfigurationWhenConfiguringSelf() {
+        configurationHandler.configure {
+            newConf
+        }
+        assertThat(configurationHandler.findByName('newConf'), notNullValue())
+        assertThat(configurationHandler.newConf, notNullValue())
     }
-    assertThat(configuration.getDescription(), equalTo(someDesc))
-  }
 
-  @Test void existingConfigurationWithClosure() {
-    String someDesc = 'desc1'
-    configurationHandler.newConf
-    Configuration configuration = configurationHandler.newConf {
-      description = someDesc
+    @Test (expected = UnknownConfigurationException) void doesNotAddNewConfigurationWhenNotConfiguringSelf() {
+        configurationHandler.getByName('unknown')
     }
-    assertThat(configuration.getDescription(), equalTo(someDesc))
-  }
 
-  @Test(expected = MissingMethodException)
-  void newConfigurationWithNonClosureParameters_shouldThrowMissingMethodEx() {
-    configurationHandler.newConf('a', 'b')
-  }
+    @Test void exisitingConfiguration() {
+        Configuration configuration = configurationHandler.add('newConf')
+        assertThat(configuration, is(not(null)))
+        assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))
+        assertThat(configurationHandler.newConf, sameInstance(configuration))
+    }
 
+    @Test void newConfigurationWithClosure() {
+        String someDesc = 'desc1'
+        configurationHandler.configure {
+            newConf {
+                description = someDesc
+            }
+        }
+        assertThat(configurationHandler.newConf.getDescription(), equalTo(someDesc))
+    }
 
+    @Test void existingConfigurationWithClosure() {
+        String someDesc = 'desc1'
+        configurationHandler.add('newConf')
+        Configuration configuration = configurationHandler.newConf {
+            description = someDesc
+        }
+        assertThat(configuration.getDescription(), equalTo(someDesc))
+    }
+
+    @Test (expected = MissingMethodException)
+    void newConfigurationWithNonClosureParameters_shouldThrowMissingMethodEx() {
+        configurationHandler.newConf('a', 'b')
+    }
 }

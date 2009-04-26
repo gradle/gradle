@@ -26,7 +26,26 @@ import java.util.List;
 /**
  * <p>A {@code TaskContainer} is responsible for managing a set of {@link Task} instances.</p>
  *
- * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}.</p>
+ * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}, or using the
+ * {@code tasks} property in your build script.</p>
+ *
+ * <p>The tasks in a container are accessable as read-only properties of the container, using the name of the task as
+ * the property name. For example:</p>
+ *
+ * <pre>
+ * tasks.add('myTask')
+ * tasks.myTask.dependsOn someOtherTask
+ * </pre>
+ *
+ * <p>A dynamic method is added for each task which takes a configuration closure. This is equivalent to calling {@link
+ * #getByName(String, groovy.lang.Closure)}. For example:</p>
+ *
+ * <pre>
+ * tasks.add('myTask')
+ * tasks.myTask {
+ *     dependsOn someOtherTask
+ * }
+ * </pre>
  */
 public interface TaskContainer extends Iterable<Task> {
     /**
@@ -49,7 +68,7 @@ public interface TaskContainer extends Iterable<Task> {
      * @param spec The criteria to use.
      * @return The matching tasks. Returns an empty set if there are no such tasks in this container.
      */
-    Set<Task> get(Spec<? super Task> spec);
+    Set<Task> findAll(Spec<? super Task> spec);
 
     /**
      * Locates a task by name, returning null if there is no such task.
@@ -57,32 +76,27 @@ public interface TaskContainer extends Iterable<Task> {
      * @param name The task name
      * @return The task with the given name, or null if there is no such task in this container.
      */
-    Task find(String name);
+    Task findByName(String name);
 
     /**
-     * Locates a task by name, failing if there is no such task. The given task closure is executed against the task
-     * before it is returned from this method.
+     * Locates a task by name, failing if there is no such task. The given configure closure is executed against the
+     * task before it is returned from this method.
      *
      * @param name The task name
      * @param configureClosure The closure to use to configure the task.
      * @return The task with the given name. Never returns null.
      * @throws UnknownTaskException when there is no such task in this container.
      */
-    Task get(String name, Closure configureClosure) throws UnknownTaskException;
+    Task getByName(String name, Closure configureClosure) throws UnknownTaskException;
 
     /**
-     * Locates a task by name, failing if there is no such task. You can call this method in your build script by using
-     * the {@code .} operator:
-     *
-     * <pre>
-     * tasks.someTask.dependsOn 'another-task'
-     * </pre>
+     * Locates a task by name, failing if there is no such task.
      *
      * @param name The task name
      * @return The task with the given name. Never returns null.
      * @throws UnknownTaskException when there is no such task in this container.
      */
-    Task get(String name) throws UnknownTaskException;
+    Task getByName(String name) throws UnknownTaskException;
 
     /**
      * Adds an {@code Action} to be executed when a task is added to this container.
@@ -110,8 +124,8 @@ public interface TaskContainer extends Iterable<Task> {
     void whenTaskAdded(Closure closure);
 
     /**
-     * Locates a task by name, failing if there is no such task. This method is identical to {@link #get(String)}. You
-     * can call this method in your build script by using the groovy {@code []} operator:
+     * Locates a task by name, failing if there is no such task. This method is identical to {@link #getByName(String)}.
+     * You can call this method in your build script by using the groovy {@code []} operator:
      *
      * <pre>
      * tasks['some-task'].dependsOn 'another-task'

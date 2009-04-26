@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.dsl;
 
-package org.gradle.api.internal.artifacts;
-
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler;
+import groovy.lang.Closure;
 import org.gradle.api.artifacts.ConfigurationContainer;
 
-/**
- * @author Hans Dockter
- */
-public interface ConfigurationContainerFactory {
-    ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider);
+public interface ConfigurationHandler extends ConfigurationContainer {
+    void configure(Closure closure);
 }
