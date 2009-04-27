@@ -297,7 +297,6 @@ public class JavaPlugin implements Plugin {
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
         Bundle libsBundle = project.getTasks().add(LIBS_TASK_NAME, Bundle.class);
         libsBundle.dependsOn(TEST_TASK_NAME);
-        libsBundle.setDefaultConfigurations(WrapUtil.toList(Dependency.MASTER_CONFIGURATION));
         libsBundle.setDefaultDestinationDir(project.getBuildDir());
         libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
         Jar jar = libsBundle.jar();
@@ -314,7 +313,6 @@ public class JavaPlugin implements Plugin {
     private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
         Bundle distsBundle = project.getTasks().add(DISTS_TASK_NAME, Bundle.class);
         distsBundle.dependsOn(LIBS_TASK_NAME);
-        distsBundle.setDefaultConfigurations(WrapUtil.toList(DISTS_TASK_NAME));
         distsBundle.setDefaultDestinationDir(javaPluginConvention.getDistsDir());
         distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
     }

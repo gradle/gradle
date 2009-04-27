@@ -101,7 +101,6 @@ class BundleTest extends AbstractConventionTaskTest {
         bundle.childrenDependOn = testChildrenDependsOn
         bundle.dependsOn = testBundleDependsOn
         bundle.defaultArchiveTypes = JavaPluginConvention.DEFAULT_ARCHIVE_TYPES
-        bundle.defaultConfigurations = testDefaultConfigurations
         bundle.defaultDestinationDir = testDefaultDestinationDir
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"

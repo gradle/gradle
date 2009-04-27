@@ -39,8 +39,6 @@ public class Bundle extends ConventionTask {
 
     private List<AbstractArchiveTask> archiveTasks = new ArrayList<AbstractArchiveTask>();
 
-    private List<String> defaultConfigurations = new ArrayList<String>();
-
     private File defaultDestinationDir;
 
     public Bundle(Project project, String name) {
@@ -241,14 +239,6 @@ public class Bundle extends ConventionTask {
 
     protected void setArchiveTasks(List<AbstractArchiveTask> archiveTasks) {
         this.archiveTasks = archiveTasks;
-    }
-
-    public List<String> getDefaultConfigurations() {
-        return defaultConfigurations;
-    }
-
-    public void setDefaultConfigurations(List<String> defaultConfigurations) {
-        this.defaultConfigurations = defaultConfigurations;
     }
 
     public File getDefaultDestinationDir() {
