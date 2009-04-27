@@ -57,7 +57,7 @@ repositories {
 configurations {
     distLib {
         visible = false
-        extendsFrom get('default')
+        extendsFrom getByName('default')
     }
     ftpAntTask
     retrotranslatorAntTask
@@ -329,6 +329,12 @@ dists {
                 include 'buildSrc/', 'wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
             }
         }
+    }
+}
+
+artifacts {
+    dists.archiveTasks.each {
+        dists it
     }
 }
 
@@ -604,7 +610,7 @@ void asternixInstall() {
 uploadDists {
     dependsOn 'integTest'
 }.doFirst {
-    it.uploadResolvers.add(new WebdavResolver()) {
+    it.repositories.add(new WebdavResolver()) {
         name = 'gradleReleases'
         user = codehausUserName
         userPassword = codehausUserPassword
