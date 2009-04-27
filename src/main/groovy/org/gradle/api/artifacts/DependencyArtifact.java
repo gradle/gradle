@@ -23,13 +23,37 @@ package org.gradle.api.artifacts;
 public interface DependencyArtifact {
     String DEFAULT_TYPE = "jar";
 
+    /**
+     * Returns the name of the dependency artifact.
+     */
     String getName();
 
+    /**
+     * Returns the type of the dependency artifact. Often the type is the same as the extension,
+     * but sometimes this is not the case. For example for an ivy xml module decsriptor, the type is
+     * <em>ivy</em> and the extension is <em>xml</em>.
+     *
+     * @see #getExtension() 
+     */
     String getType();
 
+    /**
+     * Returns the extension of this dependency artifact. Often the extendsion is the same as the type,
+     * but sometimes this is not the case. For example for an ivy xml module decsriptor, the type is
+     * <em>ivy</em> and the extension is <em>xml</em>.
+     *
+     * @see #getType() 
+     */
     String getExtension();
 
+    /**
+     * Returns the classifier of this dependency artifact. 
+     */
     String getClassifier();
 
+    /**
+     * Returns an URL under which this dependency artifact can be retrieved. If not
+     * specified the user repositories are used for retrieving. 
+     */
     String getUrl();
 }

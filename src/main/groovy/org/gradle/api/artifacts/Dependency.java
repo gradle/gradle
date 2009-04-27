@@ -20,7 +20,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * <p>A {@code Dependency} represents a dependency on the artifacts from a particular source.</p>
+ * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an
+ * Ivy module, a Maven pom, another Gradle project, etc.. A source can have one or more artifacts.
+ *
+ * A dependency is an entity. Its key consists of the fields {@code group, name, version, configuration}.
  *
  * @author Hans Dockter
  */
@@ -32,35 +35,105 @@ public interface Dependency {
     String CLASSIFIER = "classifier";
 
     /**
-     * Adds an exclude rule to exclude transitive dependencies of this dependency.
+     * Adds an exclude rule to exclude transitive dependencies of this dependency. You can also
+     * add exclude rules per-configuration. See {@link Configuration#getExcludeRules()}.
      *
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
      */
     Dependency exclude(Map<String, String> excludeProperties);
 
+    /**
+     * Returns the exclude rules for this dependency.
+     *
+     * @see #exclude(java.util.Map) 
+     */
     Set<ExcludeRule> getExcludeRules();
 
+    /**
+     * Returns the group of this dependency. The group is often required to find the artifacts of a dependency
+     * in a repository. For example the group name corresponds to a directory name in a Maven like repository.
+     * Might return null.
+     */
     String getGroup();
 
+    /**
+     * Returns the name of this dependency. The name is almost always required to find the artifacts of a dependency
+     * in a repository. Never returns null.
+     */
     String getName();
 
+    /**
+     * Returns the version of this dependency. The version if often required to find the artifacts of a dependency
+     * in a repository. For example the version name corresponds to a directory name in a Maven like repository.
+     * Might return null.
+     */
     String getVersion();
 
+    /**
+     * Returns whether this dependency should be resolved including or excluding its transitive dependencies.
+     *
+     * @see #setTransitive(boolean) 
+     */
     boolean isTransitive();
 
+    /**
+     * Sets whether this dependency should be resolved including or excluding its transitive dependencies.
+     * The artifacts belonging to this dependency might themselve have dependencies on other artifacts. The latter
+     * are called transitive dependencies.
+     * 
+     * @param transitive Whether transitive dependencies should be resolved.
+     * @return this
+     */
     Dependency setTransitive(boolean transitive);
 
+    /**
+     * Returns the artifacts belonging to this dependency.
+     *
+     * @see #addArtifact(DependencyArtifact) 
+     */
     Set<DependencyArtifact> getArtifacts();
 
+    /**
+     * Adds an artifact to this dependency. If no artifact is added to a dependency, an implicit default
+     * artifact is used. This default artifact has the same name as the module and its type and extension is
+     * <em>jar</em>. If at least one artifact is explicitly added, the implicit default artifact won't be used
+     * any longer.
+     *
+     * @param artifact
+     * @return
+     */
     Dependency addArtifact(DependencyArtifact artifact);
 
+    /**
+     * Returns the configuration of this dependency. Never returns null.
+     *
+     * @see #setDependencyConfiguration(String) 
+     */
     String getDependencyConfiguration();
 
+    /**
+     * Sets the configuration of this dependency. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
+     * A dependency source might have multiple configuration (one is usually always default). Every configuration
+     * represents a different set of artifacts and dependencies of thi artifacts.
+     * 
+     * @param dependencyConfiguration
+     * @return this
+     */
     Dependency setDependencyConfiguration(String dependencyConfiguration);
 
+    /**
+     * Returns whether two dependencies have identical values for there properties.
+     * A dependency is an entity with a key. Therefore dependencies might be equal and yet have
+     * different properties.
+     *  
+     * @param dependency The dependency to compare this dependency with
+     */
     boolean contentEquals(Dependency dependency);
 
+    /**
+     * Creates and returns a new dependency with the property values of this one.
+     */
     Dependency copy();
 
 //    State getState();

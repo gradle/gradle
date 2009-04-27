@@ -23,15 +23,25 @@ import org.gradle.api.tasks.TaskDependency;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 /**
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
  */
 public interface Configuration extends FileCollection {
+    /**
+     * The states a configuration can be into. A configuration is only mutable as long as it is
+     * in the unresolved state.
+     */
+    enum State { UNRESOLVED, RESOLVED, RESOLVED_WITH_FAILURES }
+
+    /**
+     * Returns the state of the configuration.
+     *
+     * @see org.gradle.api.artifacts.Configuration.State
+     */
     State getState();
 
-    enum State { UNRESOLVED, RESOLVED, RESOLVED_WITH_FAILURES }
-    
     /**
      * Returns the name of this configuration.
      *
@@ -136,8 +146,18 @@ public interface Configuration extends FileCollection {
      */
     ResolveReport resolveAsReport();
 
+    /**
+     * Returns the name of the task that upload the artifacts of this configuration to the internal
+     * Gradle repository used resolving inter-project dependencies.
+     */
     String getUploadInternalTaskName();
 
+    /**
+     * Returns the name of the task that upload the artifacts of this configuration to repositories
+     * declared by the user.
+     *
+     * @see org.gradle.api.tasks.Upload
+     */
     String getUploadTaskName();
 
     /**
@@ -156,7 +176,18 @@ public interface Configuration extends FileCollection {
      */
     TaskDependency getBuildArtifacts();
 
-    void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction);
+    /**
+     * Publishes the artifacts of this configuration to the specified repositories. This
+     * method is usually used only internally as the users use the associated upload tasks to
+     * upload the artifacts.
+     * 
+     * @param publishRepositories The repositories to publish the artifacts to.
+     * @param publishInstruction Instructions for details of the upload.
+     *
+     * @see org.gradle.api.tasks.Upload
+     * @see #getUploadTaskName() 
+     */
+    void publish(List<DependencyResolver> publishRepositories, PublishInstruction publishInstruction);
 
     /**
      * Gets the set of dependencies directly contained in this configuration
@@ -190,18 +221,56 @@ public interface Configuration extends FileCollection {
      */
     Set<ProjectDependency> getAllProjectDependencies();
 
+    /**
+     * Adds a dependency to this configuration
+     * 
+     * @param dependency The dependency to be added.
+     */
     void addDependency(Dependency dependency);
 
+    /**
+     * Returns the artifacts of this configuration excluding the artifacts of extended configurations.
+     */
     Set<PublishArtifact> getArtifacts();
 
+    /**
+     * Returns the artifacts of this configuration including the artifacts of extended configurations.
+     */
     Set<PublishArtifact> getAllArtifacts();
-    
+
+    /**
+     * Returns the repositories used for resolving the dependencies of the configuration.
+     */
     List<DependencyResolver> getDependencyResolvers();
 
+    /**
+     * Returns the exclude rules applied for resolving any dependency of this configuration.
+     *
+     * @see #exclude(java.util.Map) 
+     */
     Set<ExcludeRule> getExcludeRules();
-    
+
+    /**
+     * Adds an exclude rule to exclude transitive dependencies for all dependencies of this configuration.
+     * You can also add exclude rules per-dependency. See {@link Dependency#exclude(java.util.Map)}. 
+     *
+     * @param excludeProperties the properties to define the exclude rule.
+     * @return this
+     */
+    Configuration exclude(Map<String, String> excludeProperties);
+
+    /**
+     * Returns all the configurations belonging to the same configuration container as this
+     * configuration (including this configuration).
+     */
     Set<Configuration> getAll();
 
+    /**
+     * Adds an artifact to be published to this configuration.
+     * 
+     * @param artifact
+     * @return this
+     */
     Configuration addArtifact(PublishArtifact artifact);
 
     /**
