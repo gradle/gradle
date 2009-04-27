@@ -1,0 +1,27 @@
+import org.junit.Assert
+
+configurations {
+    compile
+}
+dependencies {
+    repositories {
+        add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+            name = 'resolver'
+            addArtifactPattern(projectDir.absolutePath + '/[module]-[revision].jar')
+        }
+    }
+    compile module('test:projectA:1.2') {
+        module('test:projectB:1.5') {
+            dependencies('test:projectC:2.0')
+        }
+    }
+}
+
+defaultTasks 'listJars'
+
+createTask('listJars') {
+    List jars = configurations.compile.collect { it.name }
+    Assert.assertTrue(jars.contains('projectA-1.2.jar'))
+    Assert.assertTrue(jars.contains('projectB-1.5.jar'))
+    Assert.assertTrue(jars.contains('projectC-2.0.jar'))
+}

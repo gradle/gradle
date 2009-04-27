@@ -34,7 +34,9 @@ class ModuleFactoryDelegate {
   void prepareDelegation(Closure configureClosure) {
     Closure delegationClosure = {}
     delegationClosure.delegate = clientModule
+    delegationClosure.resolveStrategy = Closure.DELEGATE_FIRST
     configureClosure.delegate = delegationClosure
+    configureClosure.resolveStrategy = Closure.DELEGATE_FIRST
   }
 
   void dependency(Object dependencyNotation) {

@@ -15,13 +15,12 @@
  */
 package org.gradle.integtests;
 
-import junit.framework.Assert;
 import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.Assert;
 
 import java.io.File;
 
-public class ProjectReportsIntegrationTest extends AbstractIntegrationTest {
+public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void dependencyReportWithConflicts() {
         File buildFile = getTestBuildFile("project-with-conflicts.gradle");
@@ -33,5 +32,15 @@ public class ProjectReportsIntegrationTest extends AbstractIntegrationTest {
         testFile("projectB-2.1.5.jar").touch();
 
         usingBuildFile(buildFile).withDependencyList().run();
+    }
+
+    @Test
+    public void nestedModules() {
+        File buildFile = getTestBuildFile("project-with-nested-modules.gradle");
+        testFile("projectA-1.2.jar").touch();
+        testFile("projectB-1.5.jar").touch();
+        testFile("projectC-2.0.jar").touch();
+
+        usingBuildFile(buildFile).run();
     }
 }
