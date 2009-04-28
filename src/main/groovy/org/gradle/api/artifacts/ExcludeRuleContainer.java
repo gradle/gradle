@@ -35,7 +35,7 @@ public interface ExcludeRuleContainer {
      * passed to this method. The possible keys for the map are:
      *
      * <ul>
-     * <li><code>org</code> - The exact name of the organization or group that should be excluded.
+     * <li><code>group</code> - The exact name of the organization or group that should be excluded.
      * <li><code>module</code> - The exact name of the module that should be excluded
      * </ul>
      * 
