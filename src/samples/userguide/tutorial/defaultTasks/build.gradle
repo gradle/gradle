@@ -1,13 +1,13 @@
 defaultTasks "clean", "run"
 
-createTask("clean") {
+task clean {
     println "Default Cleaning!"
 }
 
-createTask("run") {
+task run {
     println "Default Running!"
 }
 
-createTask("other") {
+task other {
     println "I'm not a default task!"
 }

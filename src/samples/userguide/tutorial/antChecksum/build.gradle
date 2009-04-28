@@ -1,4 +1,4 @@
-createTask('checksum') {
+task checksum {
     File[] files = new File('../antChecksumFiles').listFiles()
     Arrays.sort(files)
     files.each { File file ->

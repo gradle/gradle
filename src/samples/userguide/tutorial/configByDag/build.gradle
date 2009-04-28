@@ -6,9 +6,9 @@ build.taskGraph.whenReady {taskGraph ->
     }
 }
 
-createTask('distribution') {
+task distribution {
     println "We build the zip with version=$version"
 }
-createTask('release', dependsOn: 'distribution') {
+task release(dependsOn: 'distribution') {
     println 'We release now'
 }

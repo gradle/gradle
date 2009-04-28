@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
+import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleDependencyFactory;
@@ -59,9 +60,7 @@ public class DefaultGradleFactory implements GradleFactory {
     public Gradle newInstance(StartParameter startParameter) {
         loggingConfigurer.configure(startParameter.getLogLevel());
         ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
-        IScriptProcessor scriptProcessor = new DefaultScriptProcessor(
-                new DefaultScriptCompilationHandler(new DefaultCachePropertiesHandler()),
-                startParameter.getCacheUsage());
+        CachePropertiesHandler cachePropertiesHandler = new DefaultCachePropertiesHandler();
 
         ISettingsFinder settingsFinder = new EmbeddedScriptSettingsFinder(
                 new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
@@ -74,7 +73,12 @@ public class DefaultGradleFactory implements GradleFactory {
                 WrapUtil.toSet(new ModuleDependencyFactory(), new ProjectDependencyFactory()),
                 new DefaultClientModuleFactory());
         ResolverFactory resolverFactory = new DefaultResolverFactory();
-        DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(importsReader, scriptProcessor,
+        DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(importsReader,
+                new DefaultScriptProcessor(
+                        new DefaultScriptCompilationHandler(
+                                cachePropertiesHandler,
+                                new BuildScriptTransformer()),
+                        startParameter.getCacheUsage()),
                 new DefaultProjectScriptMetaData());
         Gradle gradle = new Gradle(
                 startParameter,
@@ -84,7 +88,9 @@ public class DefaultGradleFactory implements GradleFactory {
                         new PropertiesLoadingSettingsProcessor(
                                 new ScriptEvaluatingSettingsProcessor(
                                         new DefaultSettingsScriptMetaData(),
-                                        scriptProcessor,
+                                        new DefaultScriptProcessor(
+                                                new DefaultScriptCompilationHandler(cachePropertiesHandler),
+                                                startParameter.getCacheUsage()),
                                         importsReader,
                                         new SettingsFactory(
                                                 new DefaultProjectDescriptorRegistry(),

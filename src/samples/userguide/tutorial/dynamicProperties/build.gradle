@@ -1,6 +1,6 @@
-createTask('myTask')
+task myTask
 myTask.myProperty = 'myCustomPropValue'
 
-createTask('showProps') {
+task showProps {
     println myTask.myProperty
 }

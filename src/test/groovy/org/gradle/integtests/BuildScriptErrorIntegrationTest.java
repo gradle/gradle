@@ -16,17 +16,19 @@
 package org.gradle.integtests;
 
 import org.junit.Test;
+import org.junit.Ignore;
 
 import java.io.File;
 
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsProjectEvaulationFailsWithGroovyException() {
-        ExecutionFailure failure = usingBuildScript("createTakk('do-stuff')").runWithFailure();
+        ExecutionFailure failure = usingBuildScript("\ncreateTakk('do-stuff')").runWithFailure();
 
         failure.assertHasFileName("Embedded build file");
-        failure.assertHasLineNumber(1);
+        failure.assertHasLineNumber(2);
         failure.assertHasContext("A problem occurred evaluating root project 'tmpTest'");
+        failure.assertHasDescription("Could not find method createTakk() for arguments [do-stuff] on root project 'tmpTest'.");
     }
 
     @Test
@@ -98,7 +100,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void reportsTaskGraphActionExecutionFailsWithRuntimeException() {
+    public void reportsTaskGraphReadyEventFailsWithRuntimeException() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("build.taskGraph.whenReady {", "throw new RuntimeException('broken closure')", "}", "createTask('a')");
 
@@ -106,6 +108,19 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);
+        failure.assertHasContext("Failed to notify task execution graph listener");
+        failure.assertHasDescription("broken closure");
+    }
+    
+    @Test @Ignore
+    public void reportsTaskDependencyClosureFailsWithRuntimeException() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns("createTask('a')", "a.dependsOn {", "throw new RuntimeException('broken')", "}");
+
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("a").runWithFailure();
+
+        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
+        failure.assertHasLineNumber(3);
         failure.assertHasContext("Failed to notify task execution graph listener");
         failure.assertHasDescription("broken closure");
     }

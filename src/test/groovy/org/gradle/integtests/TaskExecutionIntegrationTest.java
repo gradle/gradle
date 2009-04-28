@@ -14,6 +14,18 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void canDefineTasksUsingTaskKeyword() {
+        testFile("build.gradle").writelns(
+                "task withAction { }",
+                "task nothing",
+                "2.times { task \"dynamic$it\" {} }",
+                "task withMap(dependsOn: [withAction, nothing, dynamic0, dynamic1])",
+                "task withMapAndAction(dependsOn: withMap) { }"
+        );
+        inTestDirectory().withTasks("withMapAndAction").run().assertTasksExecuted(":dynamic0", ":dynamic1", ":nothing", ":withAction", ":withMap", ":withMapAndAction");
+    }
+    
+    @Test
     public void taskCanAccessTaskGraph() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(

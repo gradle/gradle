@@ -1,6 +1,6 @@
-createTask('taskX', dependsOn: 'taskY') {
+task taskX(dependsOn: 'taskY') {
     println 'taskX'
 }
-createTask('taskY') {
+task taskY {
     println 'taskY'
 }

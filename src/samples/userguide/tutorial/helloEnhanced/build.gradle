@@ -1,4 +1,4 @@
-createTask('hello') {
+task hello {
     println 'Hello Earth'
 }
 task('hello').doFirst {

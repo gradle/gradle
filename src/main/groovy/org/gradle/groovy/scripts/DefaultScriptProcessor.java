@@ -36,27 +36,27 @@ public class DefaultScriptProcessor implements IScriptProcessor {
     public <T extends ScriptWithSource> T createScript(ScriptSource source, ClassLoader classLoader,
                                                        Class<T> scriptBaseClass) {
         File sourceFile = source.getSourceFile();
-        ScriptWithSource script;
+        T script;
         if (isCacheable(sourceFile)) {
-            script = (ScriptWithSource) loadViaCache(source, classLoader, scriptBaseClass);
+            script = loadViaCache(source, classLoader, scriptBaseClass);
         }
         else {
-            script = (ScriptWithSource) loadWithoutCache(source, classLoader, scriptBaseClass);
+            script = loadWithoutCache(source, classLoader, scriptBaseClass);
         }
         script.setScriptSource(source);
-        return (T) script;
+        return script;
     }
 
-    private Script loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
+    private <T extends ScriptWithSource> T loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class<T> scriptBaseClass) {
         return scriptCompilationHandler.createScriptOnTheFly(source, classLoader, scriptBaseClass);
     }
 
-    private Script loadViaCache(ScriptSource source, ClassLoader classLoader, Class<? extends Script> scriptBaseClass) {
+    private <T extends ScriptWithSource> T loadViaCache(ScriptSource source, ClassLoader classLoader, Class<T> scriptBaseClass) {
         File sourceFile = source.getSourceFile();
         File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
         File scriptCacheDir = new File(cacheDir, sourceFile.getName());
         if (cacheUsage == CacheUsage.ON) {
-            Script cachedScript = scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
+            T cachedScript = scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
             if (cachedScript != null) {
                 return cachedScript;
             }

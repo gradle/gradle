@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
+import java.security.CodeSource;
 
 /**
  * @author Hans Dockter
@@ -37,22 +38,29 @@ import java.net.URLClassLoader;
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
 
-    private CachePropertiesHandler cachePropertiesHandler;
+    private final CachePropertiesHandler cachePropertiesHandler;
+    private final CompilationUnit.SourceUnitOperation transformer;
 
     public DefaultScriptCompilationHandler(CachePropertiesHandler cachePropertiesHandler) {
-        this.cachePropertiesHandler = cachePropertiesHandler;
+        this(cachePropertiesHandler, new CompilationUnit.SourceUnitOperation() {
+            @Override
+            public void call(SourceUnit source) throws CompilationFailedException {
+            }
+        });
     }
 
-    public Script createScriptOnTheFly(ScriptSource source, ClassLoader classLoader,
-                                       Class<? extends Script> scriptBaseClass) {
+    public DefaultScriptCompilationHandler(CachePropertiesHandler cachePropertiesHandler,
+                                           CompilationUnit.SourceUnitOperation transformer) {
+        this.cachePropertiesHandler = cachePropertiesHandler;
+        this.transformer = transformer;
+    }
+
+    public <T extends Script> T createScriptOnTheFly(ScriptSource source, ClassLoader classLoader,
+                                                     Class<T> scriptBaseClass) {
         Clock clock = new Clock();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         Class scriptClass = parseScript(source, classLoader, configuration);
-        if (scriptClass == null) {
-            // Assume an empty script
-            return new EmptyScript();
-        }
-        Script script = InvokerHelper.createScript(scriptClass, new Binding());
+        T script = scriptBaseClass.cast(InvokerHelper.createScript(scriptClass, new Binding()));
 
         logger.debug("Timing: Creating script took: {}", clock.getTime());
         return script;
@@ -73,7 +81,14 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private Class parseScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration) {
-        GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false);
+        GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
+            @Override
+            protected CompilationUnit createCompilationUnit(CompilerConfiguration config, CodeSource source) {
+                CompilationUnit compilationUnit = super.createCompilationUnit(config, source);
+                compilationUnit.addPhaseOperation(transformer, Phases.CANONICALIZATION);
+                return compilationUnit;
+            }
+        };
         String scriptText = source.getText();
         String scriptName = source.getClassName();
         Class scriptClass;
@@ -85,6 +100,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
+        if (scriptClass == null) {
+            // Assume an empty script
+            String emptySource = String.format("class %s extends %s { public Object run() { return null } }",
+                    source.getClassName(), configuration.getScriptBaseClass().replaceAll("\\$", "."));
+            scriptClass = groovyClassLoader.parseClass(emptySource, scriptName);
+        }
         return scriptClass;
     }
 
@@ -94,16 +115,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return configuration;
     }
 
-    public Script loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                                Class<? extends Script> scriptBaseClass) {
+    public <T extends Script> T loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+                                              Class<T> scriptBaseClass) {
         String scriptText = source.getText();
         String scriptName = source.getClassName();
         CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(scriptText, scriptCacheDir);
         if (cacheState == CachePropertiesHandler.CacheState.INVALID) {
             return null;
-        }
-        if (!hasCompiledClasses(scriptCacheDir)) {
-            return new EmptyScript();
         }
         Clock clock = new Clock();
         Script script;
@@ -121,16 +139,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             return null;
         }
         logger.debug("Timing: Loading script from cache took: {}", clock.getTime());
-        return script;
-    }
-
-    private boolean hasCompiledClasses(File scriptCacheDir) {
-        for (String fileName : scriptCacheDir.list()) {
-            if (fileName.endsWith(".class")) {
-                return true;
-            }
-        }
-        return false;
+        return scriptBaseClass.cast(script);
     }
 
     public CachePropertiesHandler getCachePropertyHandler() {
