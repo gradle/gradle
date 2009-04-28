@@ -35,9 +35,6 @@ import java.util.Set;
 * @author Hans Dockter
 */
 public abstract class AbstractDependency implements Dependency {
-    private State state = State.UNRESOLVED;
-    private List<File> resolvedFiles;
-
     private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
 
     private String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION;
@@ -97,26 +94,4 @@ public abstract class AbstractDependency implements Dependency {
         result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
         return result;
     }
-
-//    public void setResolveData(List<File> resolvedFiles) {
-//        assert state != State.UNRESOLVED;
-//
-//        if (resolvedFiles == null) {
-//            state = State.UNRESOLVABLE;
-//        } else {
-//            state = State.RESOLVED;
-//            this.resolvedFiles = resolvedFiles;
-//        }
-//    }
-//
-//    public State getState() {
-//        return state;
-//    }
-//
-//    public List<File> getFiles() {
-//        if (state == State.UNRESOLVABLE || state == State.RESOLVED) {
-//            throw new InvalidUserDataException("Files can't be accessed from an unresolved or unresolvable dependency. State=" + state);
-//        }
-//        return resolvedFiles;
-//    }
 }

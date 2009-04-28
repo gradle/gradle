@@ -99,43 +99,8 @@ public class DefaultIvyService implements IvyService {
 
     public Set<File> resolve(Configuration configuration, Module module, File cacheParentDir, Map clientModuleRegistry) {
         ResolveReport resolveReport = resolveAsReportInternal(configuration, true, module, cacheParentDir, clientModuleRegistry);
-//        addResolveData(resolveReport, configuration);
         return dependencyResolver.resolveFromReport(configuration, resolveReport);
     }
-
-//    private void addResolveData(ResolveReport resolveReport, Configuration configuration) {
-//        List<IvyNode> ivyDependencies = resolveReport.getDependencies();
-//        Set<Dependency> dependencies = configuration.getAllDependencies();
-//        for (IvyNode ivyDependency : ivyDependencies) {
-//            Dependency dependency = findDependency(ivyDependency, dependencies);
-//            if (dependency  != null) {
-//                addArtifacts(dependency, ivyDependency, resolveReport);
-//            }
-//        }
-//    }
-//
-//    private Dependency findDependency(IvyNode ivyDependency, Set<Dependency> dependencies) {
-//        return ;
-//    }
-//
-//    private void addArtifacts(Dependency dependency, IvyNode ivyDependency, ResolveReport resolveReport) {
-//        List<File> dependencyFiles = new ArrayList<File>();
-//        for (Artifact artifact : ivyDependency.getAllArtifacts()) {
-//            findReport(resolveReport.getArtifactsReports(artifact.getModuleRevisionId()));
-//
-//            dependencyFiles.add()
-//        }
-//    }
-//
-//    private ArtifactDownloadReport findReport(ArtifactDownloadReport[] artifactReports) {
-//        for (ArtifactDownloadReport artifactReport : artifactReports) {
-//            if (artifactReport.isDownloaded()) {
-//                return artifactReport;
-//            }
-//        }
-//        throw new GradleException("Can't find report with downloaded artifact!");
-//    }
-
 
     public Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport) {
         return dependencyResolver.resolveFromReport(configuration, resolveReport);

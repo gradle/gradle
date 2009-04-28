@@ -28,8 +28,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface Dependency {
-    enum State { UNRESOLVED, RESOLVED, UNRESOLVABLE }
-
     String DEFAULT_CONFIGURATION = "default";
     String MASTER_CONFIGURATION = "master";
     String CLASSIFIER = "classifier";
@@ -135,8 +133,4 @@ public interface Dependency {
      * Creates and returns a new dependency with the property values of this one.
      */
     Dependency copy();
-
-//    State getState();
-//
-//    List<File> getFiles();
 }
