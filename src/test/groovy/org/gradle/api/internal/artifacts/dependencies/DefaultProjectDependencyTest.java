@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.api.UnknownDependencyNotation;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
@@ -29,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.awt.*;
 import java.io.File;
 
 /**

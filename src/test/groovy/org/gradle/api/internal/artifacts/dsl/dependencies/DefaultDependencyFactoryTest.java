@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UnknownDependencyNotation;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
@@ -82,9 +82,9 @@ public class DefaultDependencyFactoryTest {
         final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
         context.checking(new Expectations() {{
             allowing(testImplPointFactoryStub).createDependency(with(not(instanceOf(Point.class))));
-            will(throwException(new UnknownDependencyNotation()));
+            will(throwException(new IllegalDependencyNotation()));
             allowing(testImplStringFactoryStub).createDependency(with(not(instanceOf(String.class))));
-            will(throwException(new UnknownDependencyNotation()));
+            will(throwException(new IllegalDependencyNotation()));
         }});
         dependencyFactory.createDependency(createAnonynousInteger());
     }

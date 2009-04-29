@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.util.GUtil;
 
 /**
@@ -36,7 +37,7 @@ class ParsedModuleStringNotation {
     private void assignValuesFromModuleNotation(String moduleNotation) {
         String[] moduleNotationParts = moduleNotation.split(":");
         if (moduleNotationParts.length < 2 || moduleNotationParts.length > 4) {
-            throw new InvalidUserDataException("The description " + moduleNotation + " is invalid");
+            throw new IllegalDependencyNotation("The description " + moduleNotation + " is invalid");
         }
         group = GUtil.elvis(moduleNotationParts[0], null);
         name = moduleNotationParts[1];

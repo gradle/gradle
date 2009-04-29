@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UnknownDependencyNotation;
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.equalTo;
@@ -29,8 +27,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.awt.*;
 
 
 /**

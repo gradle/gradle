@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.api.UnknownDependencyNotation;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.util.HelperUtil;
@@ -42,7 +42,7 @@ public class ProjectDependencyFactoryTest {
         assertThat(projectDependency.getDependencyProject(), Matchers.equalTo(expectedDescription));
     }
 
-    @Test (expected = UnknownDependencyNotation.class)
+    @Test (expected = IllegalDependencyNotation.class)
     public void testWithUnknownType_shouldThrowUnknownDependencyNotationEx() {
         projectDependencyFactory.createDependency(new Point(3, 4));
     }

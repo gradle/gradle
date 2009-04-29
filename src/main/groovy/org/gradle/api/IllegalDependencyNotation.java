@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dependencies;
-
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+package org.gradle.api;
 
 /**
+ * This exceptions is thrown, if a dependency is declared with a ilegal notation.
+ * 
  * @author Hans Dockter
  */
-public abstract class AbstractDescriptorDependencyTest extends AbstractDependencyTest {
-    protected abstract Object getUserDescription();
+public class IllegalDependencyNotation extends GradleException {
+    public IllegalDependencyNotation() {
+    }
 
-    protected abstract AbstractDescriptorDependency getDependency();
+    public IllegalDependencyNotation(String message) {
+        super(message);
+    }
 
-    @Test
-    public void testGenericInit() {
-        super.testGenericInit();
-        assertEquals(getUserDescription(), getDependency().getUserDependencyDescription());
+    public IllegalDependencyNotation(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public IllegalDependencyNotation(Throwable cause) {
+        super(cause);
     }
 }

@@ -15,21 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UnknownDependencyNotation;
-import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.util.HelperUtil;
-
-import java.awt.*;
-
-import groovy.lang.GString;
 
 /**
  * @author Hans Dockter

@@ -16,23 +16,12 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.junit.Test;
-import org.junit.Before;
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import org.gradle.api.UnknownDependencyNotation;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleDependencyFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.util.HelperUtil;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.*;
-
-import java.awt.*;
 
 /**
  * @author Hans Dockter

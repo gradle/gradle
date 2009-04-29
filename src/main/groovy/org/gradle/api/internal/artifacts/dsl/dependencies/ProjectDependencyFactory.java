@@ -18,9 +18,8 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.UnknownDependencyNotation;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Project;
-import groovy.lang.GString;
 
 /**
  * @author Hans Dockter
@@ -31,6 +30,6 @@ public class ProjectDependencyFactory implements IDependencyImplementationFactor
         if (notation instanceof Project) {
             return new DefaultProjectDependency((Project) notation);
         }
-        throw new UnknownDependencyNotation();
+        throw new IllegalDependencyNotation();
     }
 }

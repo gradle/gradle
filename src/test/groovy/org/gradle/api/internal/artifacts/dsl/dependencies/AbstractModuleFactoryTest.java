@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UnknownDependencyNotation;
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.GUtil;
 import org.junit.Test;
@@ -46,12 +44,12 @@ public abstract class AbstractModuleFactoryTest {
 
     protected abstract ExternalDependency createDependency(Object notation);
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test(expected = IllegalDependencyNotation.class)
     public void testStringNotationWithOneElementString_shouldThrowInvalidUserDataEx() {
         createDependency("singlestring");
     }
 
-    @Test(expected = UnknownDependencyNotation.class)
+    @Test(expected = IllegalDependencyNotation.class)
     public void testUnknownType_shouldThrowInvalidUserDataEx() {
         createDependency(new Point(3, 4));
     }

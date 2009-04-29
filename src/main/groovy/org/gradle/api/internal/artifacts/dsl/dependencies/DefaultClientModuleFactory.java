@@ -16,12 +16,9 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.GString;
-import org.gradle.api.UnknownDependencyNotation;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
 
 import java.util.Map;
 
@@ -39,7 +36,7 @@ public class DefaultClientModuleFactory implements ClientModuleFactory {
         } else if (notation instanceof Map) {
             return (ClientModule) mapNotationParser.createDependency(DefaultClientModule.class, (Map) notation);
         }
-        throw new UnknownDependencyNotation();
+        throw new IllegalDependencyNotation();
     }
 
     private static class StringNotationParser {
