@@ -22,6 +22,7 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.artifacts.report.IvyDependencyGraph;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.WrapUtil;
@@ -61,7 +62,7 @@ public class DependencyReportTaskTest {
 
     @Test
     public void passesEachProjectConfigurationToRenderer() throws IOException {
-        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
+        final ConfigurationContainer configurationContainer = context.mock(ConfigurationHandler.class);
         final Configuration configuration1 = context.mock(Configuration.class, "Configuration1");
         final Configuration configuration2 = context.mock(Configuration.class, "Configuration2");
         final ResolveReport report = new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org", "mod"), "rev"), "status", null));

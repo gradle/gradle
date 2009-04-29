@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration
 import org.junit.Before
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.api.artifacts.dsl.ArtifactHandler
 
 /**
  * @author Hans Dockter

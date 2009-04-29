@@ -14,11 +14,12 @@
  * limitations under the License.
  */
  
-package org.gradle.api.internal.artifacts.dsl
+package org.gradle.api.artifacts.dsl
 
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 
 /**
  * @author Hans Dockter

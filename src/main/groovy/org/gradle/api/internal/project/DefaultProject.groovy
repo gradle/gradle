@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.BuildInternal
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.plugins.Convention
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil

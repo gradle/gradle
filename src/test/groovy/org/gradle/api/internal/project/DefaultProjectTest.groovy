@@ -28,10 +28,10 @@ import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
-import org.gradle.api.internal.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.internal.project.AbstractProject.State
@@ -61,7 +61,10 @@ import org.gradle.api.*
 import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.ArtifactHandler
 
 /**
  * @author Hans Dockter

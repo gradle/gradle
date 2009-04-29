@@ -51,7 +51,8 @@ import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
 
 /**
  * @author Hans Dockter

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl.dependencies
+package org.gradle.api.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency

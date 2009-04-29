@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 
 import java.util.HashMap;
 import java.util.Map;

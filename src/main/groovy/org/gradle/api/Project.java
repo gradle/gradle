@@ -18,12 +18,9 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.AntBuilder;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.FileCollection;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
@@ -70,8 +67,16 @@ import java.util.Set;
  * <h3>Dependencies</h3>
  *
  * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
- * produces a number of artifacts, which other projects can use.  You use the {@link DependencyManager} returned by
- * {@link #getDependencies()} method to manage the dependencies and artifacts of the project.</p>
+ * produces a number of artifacts, which other projects can use. Those dependencies are grouped in configurations,
+ * and can be retrieved and uploaded from repositories.
+ * You use the {@link org.gradle.api.artifacts.dsl.ConfigurationHandler} returned by
+ * {@link #getConfigurations()} ()} method to manage the configurations.
+ * The {@link org.gradle.api.artifacts.dsl.DependencyHandler}
+ * returned by {@link #getDependencies()} method to manage the dependencies.
+ * The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} 
+ * returned by {@link #getArtifacts()} ()} method to manage the artifacts.
+ * The {@link org.gradle.api.artifacts.dsl.RepositoryHandler}
+ * returned by {@link #getRepositories()} ()} method to manage the repositories.</p>
  *
  * <h3>Multi-project Builds</h3>
  *
@@ -296,6 +301,16 @@ public interface Project extends Comparable<Project> {
      */
     Object getVersion();
 
+    /**
+     * <p>Returns the status of this project. Gradle always uses the toString() value of a version.</p>
+     *
+     * <p>You can access this property in your build file using <code>status</code></p>
+     *
+     * The status of the project is only relevant, if you upload libraries together with a module descriptor. The
+     * status specified here, will be part of this module descriptor.
+     *
+     * @return The status of this project. Defaults to {@link #DEFAULT_STATUS }
+     */
     Object getStatus();
 
     /**
@@ -819,12 +834,15 @@ public interface Project extends Comparable<Project> {
     AntBuilder ant(Closure configureClosure);
 
     /**
-     * Returns the configuration of this project.
+     * Returns the configurations of this project.
      *
      * @return The configuration of this project.
      */
-    ConfigurationContainer getConfigurations();
+    ConfigurationHandler getConfigurations();
 
+    /**
+     * Returns a handler for assigning artifacts produced by the project to configurations.
+     */
     ArtifactHandler getArtifacts();
 
     /**
@@ -1051,9 +1069,34 @@ public interface Project extends Comparable<Project> {
      */
     Object configure(Object object, Closure configureClosure);
 
-    RepositoryHandler createRepositoryHandler();
-
+    /**
+     * Returns a handler to create repositories which are used for retrieving dependencies and can be
+     * also be used for uploading artifacts produced by the project.
+     */
     RepositoryHandler getRepositories();
 
+    /**
+     * Creates a new repository handler.
+     *
+     * Each repository handler is a factory and container for repositories. For example each instance of an upload
+     * task has its own repository handler.
+     *  
+     * @return a new repository handler
+     */
+    RepositoryHandler createRepositoryHandler();
+
+    /**
+     * Returns the instance of the repository handler factory. The factory can be modified to use customized values
+     * for initializing the create handlers. The maven plugin does this for example.
+     */
     RepositoryHandlerFactory getRepositoryHandlerFactory();
+
+    /**
+     * Returns the dependencies of this project. The returned dependency handler instance
+     * can be used for adding new dependencies. For accessing already declared dependencies,
+     * the configurations can be used.
+     *
+     * @see #getConfigurations() 
+     */
+    DependencyHandler getDependencies();
 }

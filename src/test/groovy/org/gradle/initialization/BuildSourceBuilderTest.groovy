@@ -35,6 +35,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.*
 import static org.junit.Assert.assertEquals
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
 
 /**
  * @author Hans Dockter
@@ -46,7 +47,7 @@ class BuildSourceBuilderTest {
     Gradle gradleMock
     Project rootProjectMock
     Configuration configurationMock
-    ConfigurationContainer configurationContainerStub
+    ConfigurationHandler configurationHandlerStub
     CacheInvalidationStrategy cacheInvalidationStrategyMock
     File rootDir
     File testBuildSrcDir
@@ -65,7 +66,7 @@ class BuildSourceBuilderTest {
         gradleFactoryMock = context.mock(GradleFactory)
         gradleMock = context.mock(Gradle)
         rootProjectMock = context.mock(Project)
-        configurationContainerStub = context.mock(ConfigurationContainer)
+        configurationHandlerStub = context.mock(ConfigurationHandler)
         configurationMock = context.mock(Configuration)
         cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
         buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock)
@@ -80,8 +81,8 @@ class BuildSourceBuilderTest {
         expectedArtifactPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
                 "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
         context.checking {
-            allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationContainerStub))
-            allowing(configurationContainerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
+            allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationHandlerStub))
+            allowing(configurationHandlerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
         }
     }
 

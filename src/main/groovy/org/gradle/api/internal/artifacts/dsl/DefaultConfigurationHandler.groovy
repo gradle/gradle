@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.Rule
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
 
 /**
  * @author Hans Dockter

@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler;
+import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;

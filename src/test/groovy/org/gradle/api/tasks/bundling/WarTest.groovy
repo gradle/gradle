@@ -34,7 +34,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.tasks.bundling.*
 import static org.junit.Assert.assertEquals
-import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
 
 /**
  * @author Hans Dockter

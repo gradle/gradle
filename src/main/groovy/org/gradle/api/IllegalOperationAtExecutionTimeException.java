@@ -16,6 +16,9 @@
 package org.gradle.api;
 
 /**
+ * A <code>IllegalOperationAtExecutionTimeException</code> is thrown if you try to trigger an operation at runtime,
+ * which is only allowed at configuration time.
+ *
  * @author Hans Dockter
  */
 public class IllegalOperationAtExecutionTimeException extends InvalidUserDataException {

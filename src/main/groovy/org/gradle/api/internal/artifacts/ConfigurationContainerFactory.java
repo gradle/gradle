@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.ConfigurationHandler;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 
 /**
  * @author Hans Dockter
