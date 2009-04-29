@@ -2,7 +2,7 @@
     <title>Java Quickstart</title>
 
     <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds some tasks to your
-        project, along with some configuration properties, to allow you to compile and test your Java source code, and
+        project, along with some configuration properties, which will compile and test your Java source code, and
         bundle it into a JAR file. We have in-depth coverage with many examples about the Java plugin, dependency
         management and multi-project builds in later chapters. In this chapter we want to give you an initial idea of
         how to build a Java project.
@@ -172,12 +172,11 @@ D- ultimateApp
 
     <section>
         <title>Summary</title>
-        <para>In this chapter, you have learnt how to do some of the things you commonly need to build a Java based
-            project.
-            This chapter is not exhaustive, and there are many other things you can do. These are dealt with in later
-            chapters. Also, a lot of the behaviour you have seen in this chapter is configurable. For example, you can
-            change where Gradle looks Java source files, or add extra tasks, or you can change what any task actually
-            does.
+        <para>In this chapter, you have seen how to do some of the things you commonly need to build a Java based
+            project. This chapter is not exhaustive, and there are many other things you can do with Java projects in
+            Gradle. These are dealt with in later chapters. Also, a lot of the behaviour you have seen in this chapter
+            is configurable. For example, you can change where Gradle looks Java source files, or add extra tasks, or
+            you can change what any task actually does.
         </para>
     </section>
 </chapter>

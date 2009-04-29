@@ -1,0 +1,10 @@
+project(':projectA') {
+    task hello
+}
+
+task hello
+
+println task('hello').path
+println task(':hello').path
+println task('projectA:hello').path
+println task(':projectA:hello').path

@@ -9,7 +9,7 @@
     @bottom-right {
         content: 'Page ' counter(page)
         font-family: 'Lucida Grande','Lucida Sans Unicode','Lucida Sans','Geneva','Verdana',sans-serif;
-        color: #555555;
+        color: #777777;
         font-size: 8pt;
     }
 }
@@ -49,18 +49,18 @@ a {
 .titlepage h2.subtitle {
     font-size: 240%;
     margin: 0;
-    color: #666666;
+    color: #777777;
 }
 
 .titlepage .releaseinfo {
-    /*color: black;*/
-    margin-top: 10em;
-    text-align: center;
+    margin-top: 50%;
     font-size: 180%;
+    color: black;
 }
 
 .book > .titlepage div.title {
-    padding-top: 30%;
+    padding-top: 10%;
+    text-align: right;
     page-break-after: always;
 }
 
@@ -129,6 +129,7 @@ p {
 .example .title {
     text-align: left;
     white-space: nowrap;
+    color: #666666
 }
 
 .example {
@@ -138,6 +139,7 @@ p {
 .figure .title {
     text-align: left;
     white-space: nowrap;
+    color: #666666
 }
 
 .figure {

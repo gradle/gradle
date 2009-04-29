@@ -1,0 +1,4 @@
+task copy(type: Copy)
+copy.from(file('resources'))
+        .into(file('target'))
+        .includes('**/*.txt', '**/*.xml', '**/*.properties')

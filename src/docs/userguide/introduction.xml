@@ -5,27 +5,27 @@
     </para>
     <itemizedlist>
         <listitem>
-            <para>a very flexible general purpose build tool like Ant.
+            <para>A very flexible general purpose build tool like Ant.
             </para>
         </listitem>
         <listitem>
-            <para>switchable, build-by-convention frameworks a la Maven. But we never lock you in!
+            <para>Switchable, build-by-convention frameworks a la Maven. But we never lock you in!
             </para>
         </listitem>
         <listitem>
-            <para>very powerful support for multi-project builds.
+            <para>Very powerful support for multi-project builds.
             </para>
         </listitem>
         <listitem>
-            <para>very powerful dependency management (based on Apache Ivy).
+            <para>Very powerful dependency management (based on Apache Ivy).
             </para>
         </listitem>
         <listitem>
-            <para>full support for your existing Maven or Ivy repository infrastructure.
+            <para>Full support for your existing Maven or Ivy repository infrastructure.
             </para>
         </listitem>
         <listitem>
-            <para>(optionally) support for transitive dependency management without the need for remote repositories or
+            <para>Support for transitive dependency management without the need for remote repositories or
                 <literal>pom.xml</literal> and <literal>ivy.xml</literal>
                 files.
             </para>
@@ -39,8 +39,12 @@
                 <emphasis>Groovy</emphasis> build scripts.
             </para>
         </listitem>
+        <listitem>
+            <para>A rich domain model for describing your build.
+            </para>
+        </listitem>
     </itemizedlist>
     <para>
-        In <xref linkend='overview'/> you will find a detailed overview of Gradle. Now the <link linkend="getting_started">tutorials</link> are waiting, have fun :)
+        In <xref linkend='overview'/> you will find a detailed overview of Gradle. Otherwise, the <link linkend="getting_started">tutorials</link> are waiting, have fun :)
     </para>
 </chapter>

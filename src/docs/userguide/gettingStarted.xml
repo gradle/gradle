@@ -17,25 +17,30 @@
 <title>Getting Started</title>
 
 <section>
-<title>Prerequisites</title>
+    <title>Prerequisites</title>
 
-<para>Gradle requires a Java JDK and a <envar>JAVA_HOME</envar> environment variable pointing to the JDK. Gradle
-ships with its own Groovy library. Therefore no Groovy needs to be installed. Any existing Groovy installation is
-ignored by Gradle. The standard Gradle distribution require a JDK 1.5 or higher. Beginning with 0.3 we also provide
-a distinct JDK 1.4 compatible distribution.
-</para>
+    <para>Gradle requires a Java JDK to be installed. Gradle ships with its own Groovy library, therefore no Groovy
+        needs to be installed. Any existing Groovy installation is ignored by Gradle. The standard Gradle distribution
+        requires a JDK 1.5 or higher. We also provide a distinct JDK 1.4 compatible distribution.
+    </para>
+
+    <para>Gradle uses whichever JDK it finds in your path (to check, use <userinput>java -version</userinput>).
+        Alternatively, you can set the <envar>JAVA_HOME</envar> environment variable to point to the install directory
+        of the desired JDK.
+    </para>
 </section>
 
 <section>
 <title>Unpacking</title>
 
-<para>The Gradle distribution comes only as zip. Additional to the binaries it is shipped with:</para>
+<para>The Gradle distribution comes only as zip. The distirbution contains:</para>
 
 <itemizedlist>
-    <listitem><para>The userguide (HTML and PDF)</para></listitem>
+    <listitem><para>The Gradle binaries.</para></listitem>
+    <listitem><para>The userguide (HTML and PDF).</para></listitem>
     <listitem><para>The Javadoc HTML pages.</para></listitem>
     <listitem><para>The binary sources (If you want to build Gradle you need to download the source distribution or
-        checkout the sources from the source repository)</para></listitem>
+        checkout the sources from the source repository).</para></listitem>
 </itemizedlist>
 
 <note>
@@ -50,8 +55,9 @@ some zip front ends for Mac OS X don't restore the file permissions properly.
 <section>
 <title>Environment variables</title>
 
-<para>For running Gradle, the <envar>GRADLE_HOME</envar> environment variable needs to point to the root directory
-    of your Gradle installation. Then add <filename><replaceable>GRADLE_HOME</replaceable>/bin</filename> to your path.
+<para>For running Gradle, add <filename><replaceable>GRADLE_HOME</replaceable>/bin</filename> to your <envar>PATH</envar>
+    environment variable. Usually, this is sufficient to run Gradle. Optionally, you may also want to set the
+    <envar>GRADLE_HOME</envar> environment variable to point to the root directory of your Gradle installation.
 </para>
 </section>
 
@@ -84,8 +90,8 @@ OS Name: Mac OS X
 
 <para>JVM options for running Gradle can be set via environment variables. You can use <envar>GRADLE_OPTS</envar>
 or <envar>JAVA_OPTS</envar>. Those variables can be used together. <envar>JAVA_OPTS</envar> is by convention an environment
-variable shared by many Java applications. A typical use case would be to set the http proxy in
-<envar>JAVA_OPTS</envar> and the memory options in <envar>GRADLE_OPTS</envar>. Those variables can also be set at the beginning
+variable shared by many Java applications. A typical use case would be to set the HTTP proxy in <envar>JAVA_OPTS</envar>
+and the memory options in <envar>GRADLE_OPTS</envar>. Those variables can also be set at the beginning
 of the <command>gradle</command> or <command>gradlew</command> script.
 </para>
 

@@ -78,12 +78,12 @@ pre {
 
 .programlisting {
     border-left: solid #d0d0d0 0.5em;
-    overflow-x: auto;
+    /*overflow-x: auto;*/
 }
 
 .screen {
     border-left: solid #d0d0d0 0.5em;
-    overflow-x: auto;
+    /*overflow-x: auto;*/
 }
 
 .example, .figure {
@@ -93,14 +93,14 @@ pre {
 
 .example .title {
     white-space: nowrap;
-    overflow-x: hidden;
+    /*overflow-x: hidden;*/
     margin-top: 0;
     margin-bottom: 0.2em;
 }
 
 .figure .title {
     white-space: nowrap;
-    overflow-x: hidden;
+    /*overflow-x: hidden;*/
     margin-top: 0;
     margin-bottom: 0.2em;
 }
@@ -212,7 +212,7 @@ pre {
     padding-right: .8em;
 }
 
-/*
+/**
  * TITLEPAGE
  */
 

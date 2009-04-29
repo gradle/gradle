@@ -1,8 +1,8 @@
-createTask('taskX') {
+task taskX {
     println 'taskX'
 }
 
-createTask('taskY') {
+task taskY {
     println 'taskY'
 }
 

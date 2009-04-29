@@ -4,7 +4,7 @@
         <title>IntelliJ</title>
         <para>Gradle has been mainly developed with Idea IntelliJ and its very good Groovy plugin. Gradle's build script
             <footnote>
-                <para>Gradle is build with Gradle
+                <para>Gradle is built with Gradle
                 </para>
             </footnote>
             has also been developed with the support of this IDE. IntelliJ allows you to define any filepattern to be

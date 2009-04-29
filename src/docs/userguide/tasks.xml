@@ -7,84 +7,79 @@
         properties and methods. This is really different to what you are used from Ant targets. Such enhanced tasks are
         either provided by you or are provided by Gradle.
     </para>
+    <section>
+        <title>Locating Tasks</title>
+        <para>You often need to locate the tasks you have defined in the build file, for example, to configure them or
+            use them for dependencies. There are a number of ways you can do this. Firstly, each task is available as a
+            property of the project, using the task name as the property name:
+        </para>
+        <sample id="accessAsProperty" dir="userguide/tasks/accessAsProperty">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>Tasks are also available using the <literal>task</literal> collection.</para>
+        <sample id="accessFromTaskContainer" dir="userguide/tasks/accessFromTaskContainer">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>You can access tasks from any project using the task's path and the <literal>task()</literal> method. You
+            can call the <literal>task()</literal> method with a task name, or a relative path, or an absolute path.</para>
+        <sample id="accessUsingPath" dir="userguide/tasks/accessUsingPath">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>Have a look at <apilink class="org.gradle.api.tasks.TaskContainer"/> for more options for locating tasks.</para>
+    </section>
     <section id='sec:configuring_tasks'>
         <title>Configuring Tasks</title>
-        <para>As an example, let's look at the Resources task provided by Gradle. To create such a Resources task for
-            your build, you may declare in your build script
+        <para>As an example, let's look at the <classname>Copy</classname> task provided by Gradle. To create a
+            <classname>Copy</classname> task for your build, you can declare in your build script:
             <footnote>
-                <para>If you use the JavaPlugin, this task is automatically created and added to your project
+                <para>If you use the JavaPlugin, this task is automatically created and added to your project.
                 </para>
             </footnote>
-            :
         </para>
-        <programlisting><![CDATA[
-createTask('copy', type: Copy)
-]]></programlisting>
+        <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure">
+            <sourcefile file="build.gradle" snippet="declare-task"/>
+        </sample>
         <para>The copy task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Copy"/>).
             If you create the copy task like this, it has no default behavior.
             <footnote>
                 <para>This is different when added by the JavaPlugin where it is used for resources processing.
                 </para>
             </footnote>
-            . We want now use the copy task to learn about different ways to configure it (the result is always the
-            same for our examples).
+            We want now use the copy task to learn about different ways to configure tasks. The examples below all
+            show different ways to achieve the same configuration.
         </para>
-        <programlisting><![CDATA[
-Copy processResources = createTask('copy', type: Copy)
-processResources.from(file('resources'))
-processResources.into(file('target'))
-processResources.includes('**/*.txt', '**/*.xml', '**/*.properties')
-]]></programlisting>
+        <sample id="configureUsingVar" dir="userguide/tasks/configureUsingVar">
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
-            (processResources) in the configuration statement every time. This is a redundancy and not very nice to read.
+            (<literal>copyTask</literal>) in the configuration statement every time. This is a redundancy and not very
+            nice to read.
         </para>
         <para>There is a more convenient way of doing this.
         </para>
-        <programlisting><![CDATA[
-Copy processResources = createTask('processResources', type: Copy)
-processResources.from(file('resources')).to(file('target')).
-	includes('**/*.txt', '**/*.xml', '**/*.properties')	
-]]></programlisting>
+        <sample id="configureUsingLiterateStyle" dir="userguide/tasks/configureUsingLiterateStyle">
+            <sourcefile file="build.gradle"/>
+        </sample>
         <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
-            has to support this. The from, to and includes methods all return an instance of the resources object. All
-            of Gradle's build-in tasks usually support this configuration style.
+            has to support this. The <literal>from</literal>, <literal>to</literal> and <literal>includes</literal>
+            methods all return an instance of the <classname>Copy</classname> object. Gradle's build-in tasks usually
+            support this configuration style.
         </para>
-        <para>But there is yet another way of configuring the processResources task. It also preserves the context and it
-            possibly offers the best readability. It is usually our favorite.
+        <para>But there is yet another way of configuring a task. It also preserves the context and it is arguably the
+            most readable. It is usually our favorite.
         </para>
-        <programlisting><![CDATA[
-createTask('processResources', type: Copy)
-processResources {
-   from(file('resources'))
-   to(file('target'))
-   includes('**/*.txt', '**/*.xml', '**/*.properties')
-}
-]]></programlisting>
-        <para>This works for
-            <emphasis>any</emphasis>
-            task. Line 2 of the example is just a shortcut for <literal>task("processResources")</literal>. It is important to
-            note that if you pass a closure to the
-            <literal>task</literal>
-            method, this closure is applied for
-            <emphasis>configuring</emphasis>
-            the task. There is a slightly different ways of doing this.
-        </para>
-        <programlisting><![CDATA[
-Copy processResources = createTask('processResources', type: Copy).configure {
-   from(file('source'))
-   to(file('target'))
-   includes('**/*.txt', '**/*.xml', '**/*.properties')
-}	
-]]></programlisting>
-        <para>If you pass a closure to the
-            <literal>createTask()</literal>
-            method, this closure gets added as an
-            <emphasis>action</emphasis>
-            to the task. Every task has a configure method, which you can pass a closure for configuring the task. The
-            above example works, because the
-            <literal>createTask</literal>
-            method returns the task object. Gradle uses this style for configuring objects in many places, not just for
-            tasks.
+        <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>This works for <emphasis>any</emphasis> task. Line 2 of the example is just a shortcut for the <literal>task()</literal> method.
+            It is important to note that if you pass a closure to the <literal>task()</literal> method, this closure
+            is applied to <emphasis>configure</emphasis> the task.</para>
+        <para>There is a slightly different ways of doing this.</para>
+        <sample id="configureUsingConfigure" dir="userguide/tasks/configureUsingConfigure">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>Every task has a <literal>configure()</literal> method, which you can pass a closure for configuring the task.
+            Gradle uses this style for configuring objects in many places, not just for tasks.
         </para>
     </section>
     <section id='sec:adding_dependencies_to_tasks'>
