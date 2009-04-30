@@ -20,16 +20,17 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "task nothing",
                 "2.times { task \"dynamic$it\" {} }",
                 "task task {}",
-                "if (task) { task conditional }",
+                "if (task) { task inBlock }",
                 "def task() { task inMethod }",
                 "task()",
                 "def cl = { -> task inClosure }",
                 "cl()",
-                "task withMap(dependsOn: [withAction, nothing, dynamic0, dynamic1, task, conditional, inMethod, inClosure])",
+                "Task taskVar =  task(inVar)",
+                "task withMap(dependsOn: [withAction, nothing, dynamic0, dynamic1, task, inBlock, inMethod, inClosure, taskVar])",
                 "task withMapAndAction(dependsOn: withMap) { }"
         );
-        inTestDirectory().withTasks("withMapAndAction").run().assertTasksExecuted(":conditional", ":dynamic0",
-                ":dynamic1", ":inClosure", ":inMethod", ":nothing", ":task", ":withAction", ":withMap",
+        inTestDirectory().withTasks("withMapAndAction").run().assertTasksExecuted(":dynamic0", ":dynamic1", ":inBlock",
+                ":inClosure", ":inMethod", ":inVar", ":nothing", ":task", ":withAction", ":withMap",
                 ":withMapAndAction");
     }
     

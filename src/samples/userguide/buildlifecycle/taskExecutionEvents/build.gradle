@@ -1,6 +1,6 @@
-createTask('ok')
+task ok
 
-createTask('broken', dependsOn: 'ok') {
+task broken(dependsOn: ok) {
     throw new RuntimeException('broken')
 }
 

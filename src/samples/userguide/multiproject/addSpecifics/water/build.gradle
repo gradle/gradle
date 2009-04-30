@@ -1,5 +1,5 @@
 allprojects {
-    createTask('hello') {task -> println "I'm $task.project.name" }
+    task hello {task -> println "I'm $task.project.name" }
 }
 subprojects {
     hello*.doLast {println "- I depend on water"}

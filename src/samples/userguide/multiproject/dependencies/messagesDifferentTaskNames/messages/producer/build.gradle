@@ -1,4 +1,4 @@
-createTask('produce') {
+task produce {
     println "Producing message:"
     System.setProperty('org.gradle.message', 'Watch the order of execution.')
 }

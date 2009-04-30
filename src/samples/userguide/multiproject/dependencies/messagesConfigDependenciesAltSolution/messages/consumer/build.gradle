@@ -1,4 +1,4 @@
-createTask('consume', dependsOn: ':producer:produce') {
+task consume(dependsOn: ':producer:produce') {
     String key = project(':producer').key 
     println "Consuming message from key '$key': " +  System.getProperty(key)
 }

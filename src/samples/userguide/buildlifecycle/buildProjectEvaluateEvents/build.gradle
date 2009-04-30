@@ -8,4 +8,4 @@ build.afterProject {project, exception ->
 }
 // END SNIPPET evaluate-events
 
-createTask('test')
+task test

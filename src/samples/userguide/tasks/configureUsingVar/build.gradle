@@ -1,4 +1,4 @@
-Copy copyTask = task(copy(type: Copy))
-copyTask.from(file('resources'))
-copyTask.into(file('target'))
-copyTask.includes('**/*.txt', '**/*.xml', '**/*.properties')
+task copy(type: Copy)
+copy.from(file('resources'))
+copy.into(file('target'))
+copy.includes('**/*.txt', '**/*.xml', '**/*.properties')

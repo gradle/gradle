@@ -52,10 +52,9 @@ dependencies("commons-math:commons-math:1.1:jar")
             tasks. But you can easily do it in another way.
             <footnote>
                 <para>In fact, we think this is anyway the nicer solution. Only if your buildscript and Ant's optional
-                    task need the
-                    <emphasis>same</emphasis>
-                    library you would have to define it two times. In such a case it would be nice, if Ant's optional
-                    task would automatically pickup the classpath defined in the <literal>gradesettings</literal>.
+                    task need the <emphasis>same</emphasis> library you would have to define it two times. In such a
+                    case it would be nice, if Ant's optional task would automatically pickup the classpath defined
+                    in the <literal>gradesettings</literal>.
                 </para>
             </footnote>
         </para>

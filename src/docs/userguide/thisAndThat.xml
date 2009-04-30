@@ -113,10 +113,8 @@
         <para>A <emphasis>Directory Task</emphasis>
             is a simple task which name is a relative path to the project dir
             <footnote>
-                <para>The notation
-                    <literal>dir('/somepath')</literal>
-                    is a convenience method for
-                    <literal>createTask('somepath', type: Directory)</literal>
+                <para>The notation <literal>dir('/somepath')</literal> is a convenience method for
+                    <literal>tasks.add('somepath', type: Directory)</literal>
                 </para>
             </footnote>
             . During the execution phase the directory corresponding to this path gets created if it does not exist yet.

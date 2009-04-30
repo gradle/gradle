@@ -1,5 +1,5 @@
 dependsOn(':producer')
 
-createTask('consume') {
+task consume {
     println "Consuming message: " +  System.getProperty('org.gradle.message')
 }
