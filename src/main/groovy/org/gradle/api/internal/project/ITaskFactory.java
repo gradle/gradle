@@ -25,5 +25,5 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface ITaskFactory {
-    public Task createTask(Project project, Map tasksMap, Map args, String name);
+    public Task createTask(Project project, Map args);
 }

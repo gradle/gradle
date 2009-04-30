@@ -121,6 +121,8 @@ public interface Task extends Comparable<Task> {
 
     public static final String TASK_OVERWRITE = "overwrite";
 
+    public static final String TASK_ACTION = "action";
+
     public final static String AUTOSKIP_PROPERTY_PREFIX = "skip.";
 
     /**

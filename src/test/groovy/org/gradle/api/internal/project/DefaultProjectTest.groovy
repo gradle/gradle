@@ -488,7 +488,7 @@ class DefaultProjectTest {
 
     @Test public void testCreateTaskWithName() {
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, [name: TEST_TASK_NAME]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME));
     }
@@ -496,7 +496,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndArgs() {
         Map testArgs = [a: 'b']
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, testArgs + [name: TEST_TASK_NAME]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME));
     }
@@ -504,29 +504,26 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndAction() {
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
-        assertSame(testAction, testTask.getActions()[0])
     }
 
     @Test public void testCreateTaskWithNameAndClosureAction() {
         Closure testAction = {}
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
-        assertEquals(1, testTask.getActions().size())
     }
 
     @Test public void testCreateTaskWithNameArgsAndActions() {
         Map testArgs = [a: 'b']
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, testArgs, TEST_TASK_NAME); will(returnValue(testTask))
+            one(taskFactoryMock).createTask(project, testArgs + [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
-        assertSame(testAction, testTask.getActions()[0])
     }
 
     @Test void testTask() {
@@ -704,7 +701,7 @@ class DefaultProjectTest {
     
     private Task addTestTask(Project project, String name) {
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, [:], name); will(returnValue(new DefaultTask(project, name)))
+            one(taskFactoryMock).createTask(project, [name: name]); will(returnValue(new DefaultTask(project, name)))
         }
         project.createTask(name)
     }
@@ -885,39 +882,37 @@ def scriptMethod(Closure closure) {
         Task dirTask1 = new Directory(project, 'dir1')
         Task dirTask12 = new Directory(project, 'dir1/dir2')
         Task dirTask123 = new Directory(project, 'dir1/dir2/dir3')
-        Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
+        Map expectedArgMap = [type: Directory]
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1/dir2'); will(returnValue(dirTask12))
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1/dir2/dir3'); will(returnValue(dirTask123))
+            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1']); will(returnValue(dirTask1))
+            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1/dir2']); will(returnValue(dirTask12))
+            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1/dir2/dir3']); will(returnValue(dirTask123))
         }
         assertSame(dirTask123, project.dir('dir1/dir2/dir3'));
     }
 
     @Test public void testDirWithExistingParentDirTask() {
-        Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
+        Map expectedArgMap = [type: Directory]
 
         Task dirTask1 = new Directory(project, 'dir1')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1'); will(returnValue(dirTask1))
+            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1']); will(returnValue(dirTask1))
         }
         project.dir('dir1')
 
         Task dirTask14 = new Directory(project, 'dir1/dir4')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1/dir4'); will(returnValue(dirTask14))
+            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1/dir4']); will(returnValue(dirTask14))
         }
         project.dir('dir1/dir4');
     }
 
     @Test (expected = InvalidUserDataException) public void testDirWithConflictingNonDirTask() {
-        Map expectedArgMap = WrapUtil.toMap(Task.TASK_TYPE, Directory)
-
         addTestTask(project, 'dir1/dir4')
 
         Task dirTask14 = new Directory(project, 'dir1')
         context.checking {
-            one(taskFactoryMock).createTask(project, project.tasks.asMap, expectedArgMap, 'dir1'); will(returnValue(dirTask14))
+            one(taskFactoryMock).createTask(project, [type: Directory, name: 'dir1']); will(returnValue(dirTask14))
         }
 
         project.dir('dir1/dir4')

@@ -1,0 +1,5 @@
+tasks.add(name: 'hello') {
+    println "hello"
+}
+
+tasks.add(name: 'copy', type: Copy)

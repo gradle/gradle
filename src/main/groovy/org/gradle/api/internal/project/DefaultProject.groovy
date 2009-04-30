@@ -67,14 +67,6 @@ class DefaultProject extends AbstractProject {
         dynamicObjectHelper.setProperty(name, value)
     }
 
-    public Task createTask(String name, Closure action) {
-        return createTask(new HashMap(), name, action);
-    }
-
-    public Task createTask(Map args, String name, Closure action) {
-        return createTask(args, name).doFirst(action);
-    }
-
     public AntBuilder ant(Closure configureClosure) {
         return (AntBuilder) ConfigureUtil.configure(configureClosure, getAnt(), Closure.OWNER_FIRST);
     }

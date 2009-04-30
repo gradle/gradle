@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.TaskFactory;
 import org.gradle.test.util.Check;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.GUtil;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
@@ -66,7 +67,7 @@ public abstract class AbstractTaskTest {
     }
 
     public Task createTask(Class<? extends AbstractTask> type, Project project, String name) {
-        Task task = new TaskFactory().createTask(project, new HashMap(), WrapUtil.toMap(Task.TASK_TYPE, type), name);
+        Task task = new TaskFactory().createTask(project, GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
         assertEquals(task.getClass(), type);
         return task;
     }

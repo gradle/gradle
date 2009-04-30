@@ -31,61 +31,86 @@ import org.junit.runner.RunWith;
 
 import java.util.Map;
 
+import groovy.lang.Closure;
+
 @RunWith(JMock.class)
 public class DefaultTaskContainerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
     private final Project project = context.mock(Project.class);
+    private int taskCount;
     private final DefaultTaskContainer container = new DefaultTaskContainer(project, taskFactory);
 
     @Test
-    public void addsTaskWithMapAndClosure() {
+    public void addsTaskWithMap() {
         final Map<String, ?> options = GUtil.map("option", "value");
-        final TaskAction action = context.mock(TaskAction.class);
-        final Task task = context.mock(Task.class);
+        final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            one(taskFactory).createTask(project, options);
             will(returnValue(task));
-            one(task).doFirst(action);
         }});
-        assertThat(container.add(options, "task", action), sameInstance(task));
+        assertThat(container.add(options), sameInstance(task));
         assertThat(container.getByName("task"), sameInstance(task));
     }
-    
+
     @Test
     public void addsTaskWithName() {
-        final Map<String, ?> options = GUtil.map();
-        final Task task = context.mock(Task.class);
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            one(taskFactory).createTask(project, options);
             will(returnValue(task));
         }});
         assertThat(container.add("task"), sameInstance(task));
-        assertThat(container.getByName("task"), sameInstance(task));
     }
 
     @Test
     public void addsTaskWithNameAndType() {
-        final Map<String, ?> options = GUtil.map(Task.TASK_TYPE, Task.class);
-        final Task task = context.mock(Task.class);
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, Task.class);
+        final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            one(taskFactory).createTask(project, options);
             will(returnValue(task));
         }});
         assertThat(container.add("task", Task.class), sameInstance(task));
-        assertThat(container.getByName("task"), sameInstance(task));
+    }
+
+    @Test
+    public void addsTaskWithNameAndAction() {
+        TaskAction action = context.mock(TaskAction.class);
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_ACTION, action);
+        final Task task = task("task");
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(task));
+        }});
+        assertThat(container.add("task", action), sameInstance(task));
+    }
+
+    @Test
+    public void addsTaskWithNameAndActionClosure() {
+        Closure action = HelperUtil.TEST_CLOSURE;
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_ACTION, action);
+        final Task task = task("task");
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(task));
+        }});
+        assertThat(container.add("task", action), sameInstance(task));
     }
 
     @Test
     public void replacesTaskWithName() {
-        final Map<String, ?> options = GUtil.map(Task.TASK_OVERWRITE, true);
-        final Task task = context.mock(Task.class);
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            one(taskFactory).createTask(project, options);
             will(returnValue(task));
         }});
         assertThat(container.replace("task"), sameInstance(task));
@@ -94,15 +119,61 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void replacesTaskWithNameAndType() {
-        final Map<String, ?> options = GUtil.map(Task.TASK_TYPE, Task.class, Task.TASK_OVERWRITE, true);
-        final Task task = context.mock(Task.class);
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, Task.class);
+        final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, container.getAsMap(), options, "task");
+            one(taskFactory).createTask(project, options);
             will(returnValue(task));
         }});
         assertThat(container.replace("task", Task.class), sameInstance(task));
+    }
+
+    @Test
+    public void cannotAddDuplicateTask() {
+        final Task task = task("task");
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        context.checking(new Expectations() {{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(task));
+        }});
+
+        context.checking(new Expectations() {{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(task("task")));
+        }});
+
+        container.add("task");
+
+        try {
+            container.add("task");
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), equalTo("Cannot add task 'task' as a task with that name already exists."));
+        }
+
         assertThat(container.getByName("task"), sameInstance(task));
+    }
+
+    @Test
+    public void canReplaceDuplicateTask() {
+        final Task task = task("task");
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        context.checking(new Expectations() {{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(task));
+        }});
+
+        container.add("task");
+
+        final Task newTask = task("task");
+        context.checking(new Expectations() {{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(newTask));
+        }});
+        
+        container.replace("task");
+        assertThat(container.getByName("task"), sameInstance(newTask));
     }
 
     @Test
@@ -118,7 +189,7 @@ public class DefaultTaskContainerTest {
     @Test
     public void callsActionWhenTaskAdded() {
         final Action<Task> action = context.mock(Action.class);
-        final Task task = context.mock(Task.class);
+        final Task task = task("task");
 
         context.checking(new Expectations() {{
             one(action).execute(task);
@@ -143,8 +214,8 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void doesNotCallActionWhenTaskOfNonRequestedTypeAdded() {
-        final Action<TestTask> action = context.mock(Action.class);
-        final Task task = context.mock(Task.class);
+        Action<TestTask> action = context.mock(Action.class);
+        Task task = task("task");
 
         container.whenTaskAdded(TestTask.class, action);
         container.addObject("task", task);
@@ -153,12 +224,21 @@ public class DefaultTaskContainerTest {
     @Test
     public void callsClosureWhenTaskAdded() {
         final TestClosure closure = context.mock(TestClosure.class);
-        final Task task = context.mock(Task.class);
+        final Task task = task("task");
         context.checking(new Expectations() {{
             one(closure).call(task);
         }});
 
         container.whenTaskAdded(HelperUtil.toClosure(closure));
         container.addObject("task", task);
+    }
+
+    private Task task(final String name) {
+        final Task task = context.mock(Task.class, "task" + ++taskCount);
+        context.checking(new Expectations(){{
+            allowing(task).getName();
+            will(returnValue(name));
+        }});
+        return task;
     }
 }

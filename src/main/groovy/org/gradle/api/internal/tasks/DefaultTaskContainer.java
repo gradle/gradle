@@ -24,6 +24,7 @@ import org.gradle.util.GUtil;
 import groovy.lang.Closure;
 
 import java.util.Map;
+import java.util.HashMap;
 
 public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> implements TaskContainer {
     private final ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
@@ -35,29 +36,50 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         this.taskFactory = taskFactory;
     }
 
-    public Task add(Map<String, ?> options, String name, TaskAction taskAction) {
-        Task task = taskFactory.createTask(project, getAsMap(), options, name);
-        addObject(name, task);
-        if (taskAction != null) {
-            task.doFirst(taskAction);
+    public Task add(Map<String, ?> options) {
+        Map<String, Object> mutableOptions = new HashMap<String, Object>(options);
+        
+        Object replaceStr = mutableOptions.remove(Task.TASK_OVERWRITE);
+        boolean replace = replaceStr != null && "true".equals(replaceStr.toString());
+
+        Task task = taskFactory.createTask(project, mutableOptions);
+        String name = task.getName();
+
+        if (!replace && findByName(name) != null) {
+            throw new InvalidUserDataException(String.format( "Cannot add task '%s' as a task with that name already exists.", name));
         }
+
+        addObject(name, task);
+
         return task;
     }
 
+    public Task add(Map<String, ?> options, Closure taskAction) throws InvalidUserDataException {
+        return add(GUtil.addMaps(options, GUtil.map(Task.TASK_ACTION, taskAction)));
+    }
+
     public <T extends Task> T add(String name, Class<T> type) {
-        return type.cast(add(GUtil.map(Task.TASK_TYPE, type), name, null));
+        return type.cast(add(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type)));
     }
 
     public Task add(String name) {
-        return add(GUtil.map(), name, null);
+        return add(GUtil.map(Task.TASK_NAME, name));
     }
 
     public Task replace(String name) {
-        return add(GUtil.map(Task.TASK_OVERWRITE, true), name, null);
+        return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_OVERWRITE, true));
+    }
+
+    public Task add(String name, TaskAction taskAction) {
+        return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_ACTION, taskAction));
+    }
+
+    public Task add(String name, Closure taskAction) {
+        return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_ACTION, taskAction));
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
-        return type.cast(add(GUtil.map(Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true), name, null));
+        return type.cast(add(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true)));
     }
 
     @Override

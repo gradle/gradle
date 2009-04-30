@@ -729,8 +729,24 @@ public abstract class AbstractProject implements ProjectInternal {
         return createTask(new HashMap<String, Object>(), name, action);
     }
 
+    public Task createTask(String name, Closure action) {
+        return createTask(new HashMap<String, Object>(), name, action);
+    }
+
+    public Task createTask(Map args, String name, Closure action) {
+        Map<String, Object> allArgs = new HashMap<String, Object>(args);
+        allArgs.put(Task.TASK_NAME, name);
+        allArgs.put(Task.TASK_ACTION, action);
+        return taskContainer.add(allArgs);
+    }
+
     public Task createTask(Map args, String name, TaskAction action) {
-        return taskContainer.add(args, name, action);
+        Map<String, Object> allArgs = new HashMap<String, Object>(args);
+        allArgs.put(Task.TASK_NAME, name);
+        if (action != null) {
+            allArgs.put(Task.TASK_ACTION, action);
+        }
+        return taskContainer.add(allArgs);
     }
 
     public void addChildProject(ProjectInternal childProject) {

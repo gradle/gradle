@@ -4,23 +4,35 @@
         create simple tasks. You have also learned how to add additional behavior to these tasks later on. And you have
         learned how to create dependencies between tasks. This was all about simple tasks. But Gradle takes the concept
         of tasks further. Gradle supports <firstterm>enhanced tasks</firstterm>, that is, tasks which have their own
-        properties and methods. This is really different to what you are used from Ant targets. Such enhanced tasks are
+        properties and methods. This is really different to what you are used to with Ant targets. Such enhanced tasks are
         either provided by you or are provided by Gradle.
     </para>
     <section>
+        <title>Defining Tasks</title>
+        <para>We have already seen how to define tasks using a keyword style in <xref linkend="tutorial_using_tasks"/>.
+            There is an alternate syntax for defining tasks:
+        </para>
+        <sample id="addToTaskContainer" dir="userguide/tasks/addToTaskContainer">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>Here we add tasks to the <literal>tasks</literal> collection. Have a look at
+            <apilink class="org.gradle.api.tasks.TaskContainer"/> for more variations of the <literal>add()</literal>
+            method.</para>
+    </section>
+    <section>
         <title>Locating Tasks</title>
-        <para>You often need to locate the tasks you have defined in the build file, for example, to configure them or
-            use them for dependencies. There are a number of ways you can do this. Firstly, each task is available as a
-            property of the project, using the task name as the property name:
+        <para>You often need to locate the tasks that you have defined in the build file, for example, to configure them
+            or use them for dependencies. There are a number of ways you can do this. Firstly, each task is available as
+            a property of the project, using the task name as the property name:
         </para>
         <sample id="accessAsProperty" dir="userguide/tasks/accessAsProperty">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>Tasks are also available using the <literal>task</literal> collection.</para>
+        <para>Tasks are also available through the <literal>tasks</literal> collection.</para>
         <sample id="accessFromTaskContainer" dir="userguide/tasks/accessFromTaskContainer">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>You can access tasks from any project using the task's path and the <literal>task()</literal> method. You
+        <para>You can access tasks from any project using the task's path with the <literal>task()</literal> method. You
             can call the <literal>task()</literal> method with a task name, or a relative path, or an absolute path.</para>
         <sample id="accessUsingPath" dir="userguide/tasks/accessUsingPath">
             <sourcefile file="build.gradle"/>
@@ -42,7 +54,7 @@
         <para>The copy task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Copy"/>).
             If you create the copy task like this, it has no default behavior.
             <footnote>
-                <para>This is different when added by the JavaPlugin where it is used for resources processing.
+                <para>This is different when added by the JavaPlugin where it is used for resource processing.
                 </para>
             </footnote>
             We want now use the copy task to learn about different ways to configure tasks. The examples below all
@@ -126,19 +138,18 @@
             <sourcefile file="build.gradle"/>
             <output args="-q copy"/>
         </sample>
-        <para>Here we replace a task of type <literal>Resources</literal> with a simple task. When creating the simple
+        <para>Here we replace a task of type <literal>Copy</literal> with a simple task. When creating the simple
             task, you have to set the <literal>overwrite</literal> property to true. Otherwise Gradle throws an
             exception, saying that a task with such a name already exists.
         </para>
     </section>
     <section id='sec:the_idea_behind_gradle_tasks'>
         <title>Summary</title>
-        <para>If you are coming from Ant, such an enhanced Gradle task as
-            <emphasis>Resources</emphasis>
-            looks like a mixture between an Ant target and an Ant task. And this is actually the case. The separation
-            that Ant does between tasks and targets is not done by Gradle. The simple Gradle tasks are like Ant's
-            targets and the enhanced Gradle tasks also include the Ant task aspects. All of Gradle's tasks share a common
-            API and you can create dependencies between them. Such a task might be nicer to configure than an Ant task.
+        <para>If you are coming from Ant, such an enhanced Gradle task as <emphasis>Copy</emphasis> looks like a mixture
+            between an Ant target and an Ant task. And this is actually the case. The separation that Ant does between
+            tasks and targets is not done by Gradle. The simple Gradle tasks are like Ant's targets and the enhanced
+            Gradle tasks also include the Ant task aspects. All of Gradle's tasks share a common API and you can create
+            dependencies between them. Such a task might be nicer to configure than an Ant task.
             It makes full use of the type system, is more expressive and easier to maintain.
         </para>
     </section>
