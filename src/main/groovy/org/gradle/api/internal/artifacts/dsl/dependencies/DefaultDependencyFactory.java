@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.util.ConfigureUtil;

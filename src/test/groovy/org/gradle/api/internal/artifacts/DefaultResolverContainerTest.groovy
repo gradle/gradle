@@ -30,7 +30,7 @@ import org.gradle.api.internal.ConventionTestHelper
 import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.artifacts.UnknownResolverException
+import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Before
 import org.junit.Test
@@ -168,8 +168,8 @@ class DefaultResolverContainerTest {
         try {
             resolverContainer.getByName('unknown')
             fail()
-        } catch (UnknownResolverException e) {
-            assertThat(e.message, equalTo("Resolver with name 'unknown' not found."))
+        } catch (UnknownRepositoryException e) {
+            assertThat(e.message, equalTo("Repository with name 'unknown' not found."))
         }
     }
     

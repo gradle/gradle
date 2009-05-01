@@ -193,9 +193,9 @@ public interface ResolverContainer extends IConventionAware, Iterable<Dependency
      *
      * @param name The resolver name
      * @return The resolver with the given name. Never returns null.
-     * @throws UnknownResolverException when there is no such resolver in this container.
+     * @throws UnknownRepositoryException when there is no such repository in this container.
      */
-    DependencyResolver getByName(String name) throws UnknownResolverException;
+    DependencyResolver getByName(String name) throws UnknownRepositoryException;
 
     /**
      * Locates a resolver by name, failing if there is no such resolver. The given configure closure is executed against
@@ -204,9 +204,9 @@ public interface ResolverContainer extends IConventionAware, Iterable<Dependency
      * @param name The resolver name
      * @param configureClosure The closure to use to configure the resolver.
      * @return The resolver with the given name. Never returns null.
-     * @throws UnknownResolverException when there is no such resolver in this container.
+     * @throws UnknownRepositoryException when there is no such repository in this container.
      */
-    DependencyResolver getByName(String name, Closure configureClosure) throws UnknownResolverException;
+    DependencyResolver getByName(String name, Closure configureClosure) throws UnknownRepositoryException;
 
     /**
      * Locates a resolver by name, failing if there is no such resolver. This method is identical to {@link
@@ -218,9 +218,9 @@ public interface ResolverContainer extends IConventionAware, Iterable<Dependency
      *
      * @param name The resolver name
      * @return The resolver with the given name. Never returns null.
-     * @throws UnknownResolverException when there is no such resolver in this container.
+     * @throws UnknownRepositoryException when there is no such repository in this container.
      */
-    DependencyResolver getAt(String name) throws UnknownResolverException;
+    DependencyResolver getAt(String name) throws UnknownRepositoryException;
 
     /**
      * Locates a resolver by name, returning null if there is no such resolver.

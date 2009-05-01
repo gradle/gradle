@@ -23,7 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.UnknownResolverException;
+import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
@@ -158,7 +158,7 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
 
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
-        return new UnknownResolverException(String.format("Resolver with name '%s' not found.", name));
+        return new UnknownRepositoryException(String.format("Repository with name '%s' not found.", name));
     }
 
     public List<DependencyResolver> getResolvers() {

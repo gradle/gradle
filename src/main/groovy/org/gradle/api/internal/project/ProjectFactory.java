@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.ProjectDescriptor;

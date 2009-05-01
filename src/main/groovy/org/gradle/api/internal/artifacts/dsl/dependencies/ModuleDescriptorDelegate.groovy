@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.artifacts.ClientModule
-import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 
 /**
  * @author Hans Dockter

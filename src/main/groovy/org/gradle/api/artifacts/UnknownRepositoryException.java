@@ -17,8 +17,13 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.UnknownDomainObjectException;
 
-public class UnknownResolverException extends UnknownDomainObjectException {
-    public UnknownResolverException(String message) {
+/**
+ * An {@code UnknownRepositoryException} is thrown when a repository referenced by name cannot be found.
+ *
+ * @author Hans Dockter
+ */
+public class UnknownRepositoryException extends UnknownDomainObjectException {
+    public UnknownRepositoryException(String message) {
         super(message);
     }
 }

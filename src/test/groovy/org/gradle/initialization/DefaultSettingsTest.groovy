@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -53,6 +53,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 
 /**
  * @author Hans Dockter

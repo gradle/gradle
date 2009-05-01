@@ -17,14 +17,15 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertThat
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock)
-class DependencyHandlerTest {
+class DefaultDependencyHandlerTest {
   private static final String TEST_CONF_NAME = "someConf"
 
   private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
@@ -43,7 +44,7 @@ class DependencyHandlerTest {
   private DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
   private Configuration configurationMock = context.mock(Configuration)
 
-  private DependencyHandler dependencyHandler = new DependencyHandler(configurationContainerStub, dependencyFactoryStub)
+  private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainerStub, dependencyFactoryStub)
 
   @Before
   void setUp() {

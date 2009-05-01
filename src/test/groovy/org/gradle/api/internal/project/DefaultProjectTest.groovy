@@ -22,13 +22,12 @@ import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.FileCollection
-import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
-import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -63,8 +62,8 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
 
 /**
  * @author Hans Dockter
@@ -192,7 +191,7 @@ class DefaultProjectTest {
   }
 
   @Test void testDependencies() {
-        DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
+        DefaultDependencyHandler dependencyHandlerMock = context.mock(DefaultDependencyHandler)
         context.checking {
           one(dependencyHandlerMock).module("test")
         }

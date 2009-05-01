@@ -22,12 +22,13 @@ import org.gradle.api.artifacts.Configuration
 import org.junit.Before
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
 
 /**
  * @author Hans Dockter
  */
-class ArtifactHandlerTest {
+class DefaultArtifactHandlerTest {
 
     private static final String TEST_CONF_NAME = "someConf"
 
@@ -37,7 +38,7 @@ class ArtifactHandlerTest {
     private PublishArtifactFactory artifactFactoryStub = context.mock(PublishArtifactFactory)
     private Configuration configurationMock = context.mock(Configuration)
 
-    private ArtifactHandler artifactHandler = new ArtifactHandler(configurationContainerStub, artifactFactoryStub)
+    private DefaultArtifactHandler artifactHandler = new DefaultArtifactHandler(configurationContainerStub, artifactFactoryStub)
 
     @Before
     void setUp() {
