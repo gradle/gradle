@@ -84,11 +84,11 @@ public class MavenPlugin implements Plugin {
     }
 
     private boolean isJavaPluginApplied(Project project) {
-        return true;
+        return project.getAppliedPlugins().contains(JavaPlugin.class);
     }
 
     private boolean isWarPluginApplied(Project project) {
-        return true;
+        return project.getAppliedPlugins().contains(WarPlugin.class);
     }
 
     private void configureJavaScopeMappings(ResolverContainer resolverFactory, ConfigurationContainer configurations) {
