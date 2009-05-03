@@ -22,13 +22,10 @@ package org.gradle.api.tasks.bundling
 class ArchiveType {
     String defaultExtension
 
-    Map conventionMapping
-
     Class<AbstractArchiveTask> taskClass
 
-    ArchiveType(String defaultExtension, Map conventionMapping, Class taskClass) {
+    ArchiveType(String defaultExtension, Class taskClass) {
         this.defaultExtension = defaultExtension
-        this.conventionMapping = conventionMapping
         this.taskClass = taskClass
     }
 }

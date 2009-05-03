@@ -33,6 +33,11 @@ import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.bundling.Bundle
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.internal.DefaultTask
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.War
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.util.FileSet
 
 /**
  * @author Hans Dockter
@@ -152,6 +157,26 @@ class JavaPluginTest {
         task = project.createTask('customJavadoc', type: Javadoc)
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
+    }
+
+    @Test public void appliesMappingsToArchiveTasks() {
+        javaPlugin.apply(project, new PluginRegistry())
+
+        def task = project.createTask('customJar', type: Jar)
+        assertThat(task.destinationDir, equalTo(project.buildDir))
+        assertThat(task.baseDir, equalTo(project.classesDir))
+
+        task = project.createTask('customWar', type: War)
+        assertThat(task.destinationDir, equalTo(project.buildDir))
+        assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
+
+        task = project.createTask('customZip', type: Zip)
+        assertThat(task.destinationDir, equalTo(project.distsDir))
+        assertThat(task.version, equalTo(project.version))
+
+        task = project.createTask('customTar', type: Tar)
+        assertThat(task.destinationDir, equalTo(project.distsDir))
+        assertThat(task.version, equalTo(project.version))
     }
 
     @Test public void appliesBaseReportingPlugin() {

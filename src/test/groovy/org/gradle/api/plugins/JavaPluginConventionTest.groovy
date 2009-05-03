@@ -60,6 +60,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals('classes', convention.classesDirName)
         assertEquals('test-classes', convention.testClassesDirName)
         assertEquals('distributions', convention.distsDirName)
+        assertEquals('', convention.libsDirName)
         assertEquals('docs', convention.docsDirName)
         assertEquals('javadoc', convention.javadocDirName)
         assertEquals('test-results', convention.testResultsDirName)

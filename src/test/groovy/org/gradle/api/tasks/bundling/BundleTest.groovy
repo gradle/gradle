@@ -105,7 +105,7 @@ class BundleTest extends AbstractConventionTaskTest {
         customTaskName = 'customtaskname'
         expectedArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
         expectedDefaultArchiveName = "${testTasksBaseName}_${testDefaultSuffix}"
-        testArchiveType = new ArchiveType('suf', [baseName: {conv, task -> getProject().getArchivesBaseName()} as ConventionValue], TestArchiveTask)
+        testArchiveType = new ArchiveType('suf', TestArchiveTask)
     }
 
     @Test public void testBundle() {
@@ -240,14 +240,12 @@ class BundleTest extends AbstractConventionTaskTest {
         String archiveAppendix = args.appendix
         String classifier = args.classifier ? '_' + args.classifier : ''
         checkCommonStuff(archiveTask, "${taskName}${classifier}_${archiveType.defaultExtension}",
-                archiveType.conventionMapping, archiveBaseName, archiveAppendix, classifier ? classifier.substring(1) : '')
+                archiveBaseName, archiveAppendix, classifier ? classifier.substring(1) : '')
     }
 
     private AbstractArchiveTask checkCommonStuff(AbstractArchiveTask archiveTask, String expectedArchiveTaskName,
-                                                 Map conventionMapping, String expectedArchiveBaseName, String expectedArchiveAppendix, String expectedArchiveClassifier) {
+                                                 String expectedArchiveBaseName, String expectedArchiveAppendix, String expectedArchiveClassifier) {
         assertEquals(false, archiveTask.enabled)
-        assertEquals(conventionMapping, archiveTask.conventionMapping)
-        assertEquals(expectedArchiveBaseName, archiveTask.baseName)
         assertEquals(expectedArchiveAppendix, archiveTask.appendix)
         assertEquals(expectedArchiveClassifier, archiveTask.classifier)
         assertEquals((testBundleDependsOn + [expectedArchiveTaskName]) as Set, bundle.dependsOn)

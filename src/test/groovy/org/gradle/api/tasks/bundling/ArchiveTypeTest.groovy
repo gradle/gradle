@@ -25,12 +25,9 @@ import org.junit.Test;
 class ArchiveTypeTest {
     @Test public void testArchiveType() {
         String expectedDefaultExtension = 'ext'
-        Map expectedConventionMapping = [:]
         Class expectedTaskClass = TestArchiveTask
-        ArchiveType archiveType = new ArchiveType(expectedDefaultExtension, expectedConventionMapping, expectedTaskClass)
+        ArchiveType archiveType = new ArchiveType(expectedDefaultExtension, expectedTaskClass)
         assertEquals(expectedDefaultExtension, archiveType.defaultExtension)
-        assertEquals(expectedConventionMapping, archiveType.conventionMapping)
         assertEquals(expectedTaskClass, archiveType.taskClass)
-
-}
+    }
 }

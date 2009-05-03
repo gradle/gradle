@@ -142,15 +142,25 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map ARCHIVE = GUtil.map(
             "version", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return "" + ((Task) conventionAwareObject).getProject().property("version");
+            return "" + ((Task) conventionAwareObject).getProject().getVersion();
         }
         }, "baseName", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return "" + ((Task) conventionAwareObject).getProject().property("archivesBaseName");
+            return "" + ((Task) conventionAwareObject).getProject().getArchivesBaseName();
         }
     });
 
     public final static Map ZIP = new HashMap(ARCHIVE);
+
+    static {
+        ZIP.putAll(GUtil.map(
+                "destinationDir", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(JavaPluginConvention.class).getDistsDir();
+                    }
+                }
+        ));
+    }
 
     public final static Map TAR = new HashMap(ZIP);
 
@@ -158,11 +168,17 @@ public class DefaultConventionsToPropertiesMapping {
 
     static {
         JAR.putAll(GUtil.map(
+                "destinationDir", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(JavaPluginConvention.class).getLibsDir();
+            }
+        },
                 "baseDir", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
             }
-        }, "manifest", new ConventionValue() {
+        },
+                "manifest", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return new GradleManifest(convention.getPlugin(JavaPluginConvention.class).getManifest().getManifest());
             }

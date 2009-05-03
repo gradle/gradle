@@ -31,8 +31,7 @@ import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.Upload;
-import org.gradle.api.tasks.bundling.Bundle;
-import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.bundling.*;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -107,6 +106,7 @@ public class JavaPlugin implements Plugin {
         configureProcessTestResources(project);
         configureTestCompile(project);
 
+        configureArchives(project);
         configureLibs(project, javaConvention);
         configureDists(project, javaConvention);
 
@@ -292,6 +292,25 @@ public class JavaPlugin implements Plugin {
         upload.setDescription(String.format("Uploads all artifacts belonging to the %s configuration",
                 configuration.getName()));
         return upload;
+    }
+
+    private void configureArchives(Project project) {
+        project.getTasks().whenTaskAdded(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
+            public void execute(AbstractArchiveTask task) {
+                if (task instanceof War) {
+                    task.conventionMapping(DefaultConventionsToPropertiesMapping.WAR);
+                }
+                else if (task instanceof Jar) {
+                    task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
+                }
+                else if (task instanceof Zip) {
+                    task.conventionMapping(DefaultConventionsToPropertiesMapping.ZIP);
+                }
+                else if (task instanceof Tar) {
+                    task.conventionMapping(DefaultConventionsToPropertiesMapping.TAR);
+                }
+            }
+        });
     }
 
     private void configureLibs(Project project, final JavaPluginConvention javaConvention) {

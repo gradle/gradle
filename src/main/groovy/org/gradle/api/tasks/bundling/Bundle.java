@@ -67,7 +67,6 @@ public class Bundle extends ConventionTask {
 
     private AbstractArchiveTask createArchiveTask(ArchiveType type, Map<String, Object> args, String classifier, String taskName) {
         AbstractArchiveTask archiveTask = getProject().getTasks().add(taskName, type.getTaskClass());
-        archiveTask.conventionMapping(type.getConventionMapping());
         if (args.get(BASENAME_KEY) != null) {
             archiveTask.setBaseName(args.get(BASENAME_KEY).toString());
         }

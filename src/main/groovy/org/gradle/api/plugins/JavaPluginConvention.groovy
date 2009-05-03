@@ -29,12 +29,12 @@ import org.gradle.api.JavaVersion
 // todo Refactor to Java
 class JavaPluginConvention {
     public static final Map DEFAULT_ARCHIVE_TYPES = [
-            jar: new ArchiveType("jar", DefaultConventionsToPropertiesMapping.JAR, Jar),
-            zip: new ArchiveType("zip", DefaultConventionsToPropertiesMapping.ZIP, Zip),
-            war: new ArchiveType("war", DefaultConventionsToPropertiesMapping.WAR, War),
-            tar: new ArchiveType("tar", DefaultConventionsToPropertiesMapping.TAR, Tar),
-            'tar.gz': new ArchiveType("tar.gz", DefaultConventionsToPropertiesMapping.TAR, Tar),
-            'tar.bzip2': new ArchiveType("tar.bzip2", DefaultConventionsToPropertiesMapping.TAR, Tar)
+            jar: new ArchiveType("jar", Jar),
+            zip: new ArchiveType("zip", Zip),
+            war: new ArchiveType("war", War),
+            tar: new ArchiveType("tar", Tar),
+            'tar.gz': new ArchiveType("tar.gz", Tar),
+            'tar.bzip2': new ArchiveType("tar.bzip2", Tar)
     ]
 
     Project project
@@ -44,6 +44,7 @@ class JavaPluginConvention {
     String classesDirName
     String testClassesDirName
     String distsDirName
+    String libsDirName
     String docsDirName
     String javadocDirName
     String testResultsDirName
@@ -75,6 +76,7 @@ class JavaPluginConvention {
         classesDirName = 'classes'
         testClassesDirName = 'test-classes'
         distsDirName = 'distributions'
+        libsDirName = ''
         docsDirName = 'docs'
         javadocDirName = 'javadoc'
         reportsDirName = 'reports'
@@ -134,6 +136,10 @@ class JavaPluginConvention {
 
     File getDistsDir() {
         new File(project.buildDir, distsDirName)
+    }
+
+    File getLibsDir() {
+        new File(project.buildDir, libsDirName)
     }
 
     File getDocsDir() {
