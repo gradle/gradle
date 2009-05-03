@@ -146,6 +146,16 @@ p {
     page-break-inside: avoid;
 }
 
+.table .title {
+    text-align: left;
+    white-space: nowrap;
+    color: #666666
+}
+
+.table {
+    page-break-inside: avoid;
+}
+
 .programlisting {
     page-break-inside: avoid;
     font-size: 90%;

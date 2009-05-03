@@ -86,7 +86,7 @@ pre {
     /*overflow-x: auto;*/
 }
 
-.example, .figure {
+.example, .figure, .table {
     margin-top: 0.4em;
     margin-bottom: 0.4em;
 }
@@ -99,6 +99,13 @@ pre {
 }
 
 .figure .title {
+    white-space: nowrap;
+    /*overflow-x: hidden;*/
+    margin-top: 0;
+    margin-bottom: 0.2em;
+}
+
+.table .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
     margin-top: 0;
@@ -165,17 +172,29 @@ pre {
     padding-bottom: 0.4em;
     padding-left: 1.2em;
     padding-right: 1.2em;
+}
+
+.note {
     background: #ebf4f7;
     border: solid #c3d9e6 1px;
-    border-left: solid #c3d9e6 0.5em;
+}
+
+.note .title {
+    color: #5283a1;
 }
 
 .tip {
+    background: #FAF7F5;
+    border: solid #e2d2c9 1px;
     float: right;
     margin-left: 2em;
     margin-top: 1em;
     margin-bottom: 1em;
     max-width: 25%;
+}
+
+.tip .title {
+    color: #80614D;
 }
 
 /*

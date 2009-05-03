@@ -33,14 +33,22 @@
 <section>
 <title>Unpacking</title>
 
-<para>The Gradle distribution comes only as zip. The distirbution contains:</para>
+<para>The Gradle distribution comes packaged as a zip. The distribution contains:</para>
 
 <itemizedlist>
     <listitem><para>The Gradle binaries.</para></listitem>
     <listitem><para>The userguide (HTML and PDF).</para></listitem>
     <listitem><para>The Javadoc HTML pages.</para></listitem>
-    <listitem><para>The binary sources (If you want to build Gradle you need to download the source distribution or
-        checkout the sources from the source repository).</para></listitem>
+    <listitem>
+        <para>Extensive samples, including the examples referenced in the userguide, along with some larger and more
+            complex builds you can use as starting points for your own build.
+        </para>
+    </listitem>
+    <listitem>
+        <para>The binary sources (If you want to build Gradle you need to download the source distribution or checkout
+            the sources from the source repository).
+        </para>
+    </listitem>
 </itemizedlist>
 
 <note>
