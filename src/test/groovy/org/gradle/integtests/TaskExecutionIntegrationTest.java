@@ -18,6 +18,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").writelns(
                 "task withAction { }",
                 "task nothing",
+                "task emptyOptions()",
                 "2.times { task \"dynamic$it\" {} }",
                 "task task {}",
                 "if (task) { task inBlock }",
@@ -25,15 +26,26 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "task()",
                 "def cl = { -> task inClosure }",
                 "cl()",
-                "Task taskVar =  task(inVar)",
-                "task withMap(dependsOn: [withAction, nothing, dynamic0, dynamic1, task, inBlock, inMethod, inClosure, taskVar])",
+                "task withMap(dependsOn: [withAction, nothing, dynamic0, dynamic1, task, inBlock, inMethod, inClosure, emptyOptions])",
                 "task withMapAndAction(dependsOn: withMap) { }"
         );
-        inTestDirectory().withTasks("withMapAndAction").run().assertTasksExecuted(":dynamic0", ":dynamic1", ":inBlock",
-                ":inClosure", ":inMethod", ":inVar", ":nothing", ":task", ":withAction", ":withMap",
-                ":withMapAndAction");
+        inTestDirectory().withTasks("withMapAndAction").run().assertTasksExecuted(":dynamic0", ":dynamic1", ":emptyOptions",
+                ":inBlock", ":inClosure", ":inMethod", ":nothing", ":task", ":withAction", ":withMap", ":withMapAndAction");
     }
-    
+
+    @Test
+    public void doesNotHideLocalMethodsAndVariables() {
+        testFile("build.gradle").writelns(
+                "task a",
+                "task b",
+                "task c",
+                "taskVar = 'a'",
+                "def taskMethod() { 'b' }",
+                "c.dependsOn task(taskVar), task(taskMethod())"
+        );
+        inTestDirectory().withTasks("c").run().assertTasksExecuted(":a", ":b", ":c");
+    }
+
     @Test
     public void taskCanAccessTaskGraph() {
         TestFile buildFile = testFile("build.gradle");

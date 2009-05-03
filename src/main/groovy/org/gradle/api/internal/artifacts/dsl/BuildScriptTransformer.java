@@ -21,6 +21,7 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.GroovyCodeVisitor;
+import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.expr.*;
 
 import java.util.List;
@@ -63,15 +64,20 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
 
     private class TaskDefinitionTransformer extends CodeVisitorSupport {
         @Override
-            public void visitMethodCallExpression(MethodCallExpression call) {
+        public void visitExpressionStatement(ExpressionStatement statement) {
+            if (statement.getExpression() instanceof MethodCallExpression) {
+                doVisitMethodCallExpression((MethodCallExpression) statement.getExpression());
+            }
+            super.visitExpressionStatement(statement);
+        }
+
+        private void doVisitMethodCallExpression(MethodCallExpression call) {
             if (!isInstanceMethod(call, "task")) {
-                super.visitMethodCallExpression(call);
                 return;
             }
 
             ArgumentListExpression args = (ArgumentListExpression) call.getArguments();
             if (args.getExpressions().size() != 1) {
-                super.visitMethodCallExpression(call);
                 return;
             }
 
@@ -84,13 +90,11 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
             }
 
             if (!(args.getExpression(0) instanceof MethodCallExpression)) {
-                super.visitMethodCallExpression(call);
                 return;
             }
 
             MethodCallExpression nestedMethod = (MethodCallExpression) args.getExpressions().get(0);
             if (!isInstanceMethod(nestedMethod)) {
-                super.visitMethodCallExpression(call);
                 return;
             }
 
@@ -100,14 +104,12 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
 
             if (nestedMethod.getArguments() instanceof NamedArgumentListExpression) {
                 mapArg = nestedMethod.getArguments();
-            }
-            else if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
+            } else if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
                 ArgumentListExpression nestedArgs = (ArgumentListExpression) nestedMethod.getArguments();
-                if (nestedArgs.getExpression(0) instanceof MapExpression) {
+                if (nestedArgs.getExpressions().size() > 0 && nestedArgs.getExpression(0) instanceof MapExpression) {
                     mapArg = nestedArgs.getExpression(0);
                     extraArgs = nestedArgs.getExpressions().subList(1, nestedArgs.getExpressions().size());
-                }
-                else {
+                } else {
                     extraArgs = nestedArgs.getExpressions();
                 }
             }
