@@ -54,7 +54,7 @@ public class Tar extends Zip {
     }
 
     public Compression getCompression() {
-        return conv(compression, "compression");
+        return compression;
     }
 
     public void setCompression(Compression compression) {
@@ -62,7 +62,7 @@ public class Tar extends Zip {
     }
 
     public LongFile getLongFile() {
-        return conv(longFile, "longFile");
+        return longFile;
     }
 
     public void setLongFile(LongFile longFile) {

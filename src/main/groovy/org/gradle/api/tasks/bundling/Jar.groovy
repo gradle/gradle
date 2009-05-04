@@ -57,7 +57,7 @@ public class Jar extends Zip {
     }
 
     public GradleManifest getManifest() {
-        return conv(manifest, "manifest");
+        return manifest;
     }
 
     public void setManifest(GradleManifest manifest) {
@@ -65,7 +65,7 @@ public class Jar extends Zip {
     }
 
     public List getMetaInfResourceCollections() {
-        return conv(metaInfResourceCollections, "metaInfResourceCollections");
+        return metaInfResourceCollections;
     }
 
     public void setMetaInfResourceCollections(List metaInfResourceCollections) {
@@ -73,7 +73,7 @@ public class Jar extends Zip {
     }
 
     public String getFileSetManifest() {
-        return conv(fileSetManifest, "fileSetManifest");
+        return fileSetManifest;
     }
 
     public void setFileSetManifest(String fileSetManifest) {

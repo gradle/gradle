@@ -39,8 +39,6 @@ class CopyTest extends AbstractTaskTest {
 
     MockFor copyInstructionFactoryMocker
 
-    ResourcesTestConvention pluginConvention
-
     JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
     @Before
@@ -48,10 +46,7 @@ class CopyTest extends AbstractTaskTest {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
         copy = new Copy(project, AbstractTaskTest.TEST_TASK_NAME)
-        pluginConvention = new ResourcesTestConvention()
-        pluginConvention.classesDir = new File('/classes')
-        project.convention.plugins.test = pluginConvention
-        copy.conventionMapping = [destinationDir: { convention, task -> convention.classesDir } as ConventionValue]
+        copy.destinationDir = new File('/classes')
         copyInstructionFactoryMock = context.mock(CopyInstructionFactory.class)
         copy.copyInstructionFactory = copyInstructionFactoryMock
     }
@@ -59,13 +54,11 @@ class CopyTest extends AbstractTaskTest {
     AbstractTask getTask() {copy}
 
     @Test public void testExecute() {
-        assertEquals(pluginConvention.classesDir, copy.destinationDir)
-
         File sourceDir1 = new File('/source1')
         File sourceDir2 = new File('/source2')
         File sourceDir3 = new File('/source3')
 
-        File targetDir = pluginConvention.classesDir
+        File targetDir = copy.destinationDir
 
         // We test also that the respective methods returns the resource object
         String globalPattern1 = 'gi1'
@@ -162,8 +155,4 @@ class CopyTest extends AbstractTaskTest {
         assertEquals(excludes as HashSet, calledValues[2] as HashSet)
         assertEquals(filter, calledValues[3])
     }
-}
-
-public class ResourcesTestConvention {
-    File classesDir
 }

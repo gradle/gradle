@@ -145,7 +145,7 @@ public class Compile extends ConventionTask {
     }
 
     public List getSrcDirs() {
-        return (List) conv(srcDirs, "srcDirs");
+        return srcDirs;
     }
 
     public void setSrcDirs(List srcDirs) {
@@ -153,7 +153,7 @@ public class Compile extends ConventionTask {
     }
 
     public File getDestinationDir() {
-        return (File) conv(destinationDir, "destinationDir");
+        return destinationDir;
     }
 
     public void setDestinationDir(File destinationDir) {
@@ -161,7 +161,7 @@ public class Compile extends ConventionTask {
     }
 
     public String getSourceCompatibility() {
-        return (String) conv(sourceCompatibility, "sourceCompatibility");
+        return sourceCompatibility;
     }
 
     public void setSourceCompatibility(String sourceCompatibility) {
@@ -169,7 +169,7 @@ public class Compile extends ConventionTask {
     }
 
     public String getTargetCompatibility() {
-        return (String) conv(targetCompatibility, "targetCompatibility");
+        return targetCompatibility;
     }
 
     public void setTargetCompatibility(String targetCompatibility) {
@@ -177,7 +177,7 @@ public class Compile extends ConventionTask {
     }
 
     public List getUnmanagedClasspath() {
-        return (List) conv(unmanagedClasspath, "unmanagedClasspath");
+        return unmanagedClasspath;
     }
 
     public void setUnmanagedClasspath(List unmanagedClasspath) {

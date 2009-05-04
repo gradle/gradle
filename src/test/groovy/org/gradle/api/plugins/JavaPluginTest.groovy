@@ -38,6 +38,7 @@ import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.util.FileSet
+import org.gradle.api.tasks.Clean
 
 /**
  * @author Hans Dockter
@@ -88,7 +89,11 @@ class JavaPluginTest {
     @Test public void createsTasksAndAppliesMappings() {
         javaPlugin.apply(project, new PluginRegistry())
 
-        def task = project.task(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        def task = project.task(JavaPlugin.CLEAN_TASK_NAME)
+        assertThat(task, instanceOf(Clean))
+        assertThat(task.dir, equalTo(project.buildDir))
+
+        task = project.task(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task, instanceOf(Copy))
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.INIT_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))

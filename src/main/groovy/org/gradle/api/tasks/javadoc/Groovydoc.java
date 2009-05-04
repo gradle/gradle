@@ -78,7 +78,7 @@ public class Groovydoc extends ConventionTask {
      * @return The source directories. Never returns null.
      */
     public List getSrcDirs() {
-        return (List) conv(srcDirs, "srcDirs");
+        return srcDirs;
     }
 
     /**
@@ -94,7 +94,7 @@ public class Groovydoc extends ConventionTask {
      * @return The directory.
      */
     public File getDestinationDir() {
-        return (File) conv(destinationDir, "destinationDir");
+        return destinationDir;
     }
 
     /**

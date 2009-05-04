@@ -67,10 +67,10 @@ class War extends Jar {
     public List dependencies(boolean failForMissingDependencies, boolean includeProjectDependencies) {
         List files = []
         getLibConfigurations().each {String configurationName ->
-            files.addAll(filteredDependencies(configurationName, getProject(), includeProjectDependencies))
+            files.addAll(this.filteredDependencies(configurationName, getProject(), includeProjectDependencies))
         }
         getLibExcludeConfigurations().each {String configurationName ->
-            files.removeAll(filteredDependencies(configurationName, getProject(), includeProjectDependencies))
+            files.removeAll(this.filteredDependencies(configurationName, getProject(), includeProjectDependencies))
         }
         files
     }
@@ -127,7 +127,7 @@ class War extends Jar {
     }
 
     public List getClassesFileSets() {
-        return conv(classesFileSets, "classesFileSets");
+        return classesFileSets;
     }
 
     public void setClassesFileSets(List classesFileSets) {
@@ -135,7 +135,7 @@ class War extends Jar {
     }
 
     public List getLibConfigurations() {
-        return conv(libConfigurations, "libConfigurations");
+        return libConfigurations;
     }
 
     public void setLibExcludeConfigurations(List libExcludeConfigurations) {
@@ -143,7 +143,7 @@ class War extends Jar {
     }
 
     public List getLibExcludeConfigurations() {
-        return conv(libExcludeConfigurations, "libExcludeConfigurations");
+        return libExcludeConfigurations;
     }
 
     public void setLibConfigurations(List libConfigurations) {
@@ -151,7 +151,7 @@ class War extends Jar {
     }
 
     public List getAdditionalLibFileSets() {
-        return conv(additionalLibFileSets, "additionalLibFileSets");
+        return additionalLibFileSets;
     }
 
     public void setAdditionalLibFileSets(List additionalLibFileSets) {
@@ -159,7 +159,7 @@ class War extends Jar {
     }
 
     public List getWebInfFileSets() {
-        return conv(webInfFileSets, "webInfFileSets");
+        return webInfFileSets;
     }
 
     public void setWebInfFileSets(List webInfFileSets) {
@@ -167,7 +167,7 @@ class War extends Jar {
     }
 
     public File getWebXml() {
-        return conv(webXml, "webXml");
+        return webXml;
     }
 
     public void setWebXml(File webXml) {

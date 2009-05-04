@@ -130,7 +130,7 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
     }
 
     public File getWebApp() {
-        return (File) conv(webApp, "webApp");
+        return webApp;
     }
 
     public void setWebApp(File webApp) {

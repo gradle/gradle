@@ -78,7 +78,8 @@ public class AbstractIntegrationTest {
 
         testFile("gradle-home/plugin.properties").writelns(
                 "java=org.gradle.api.plugins.JavaPlugin",
-                "groovy=org.gradle.api.plugins.GroovyPlugin"
+                "groovy=org.gradle.api.plugins.GroovyPlugin",
+                "war=org.gradle.api.plugins.WarPlugin"
         );
 
         parameter.setGradleUserHomeDir(testFile("user-home").asFile());

@@ -117,6 +117,6 @@ public class EclipseWtpModule extends ConventionTask {
     }
 
     public List<Object> getSrcDirs() {
-        return (List<Object>) conv(srcDirs, "srcDirs");
+        return srcDirs;
     }
 }

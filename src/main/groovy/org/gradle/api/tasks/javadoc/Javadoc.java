@@ -177,7 +177,7 @@ public class Javadoc extends ConventionTask {
      * @return The source directories. Never returns null.
      */
     public List<File> getSrcDirs() {
-        return (List<File>) conv(srcDirs, "srcDirs");
+        return srcDirs;
     }
 
     /**
@@ -188,7 +188,7 @@ public class Javadoc extends ConventionTask {
     }
 
     public File getClassesDir() {
-        return (File) conv(classesDir, "classesDir");
+        return classesDir;
     }
 
     /**
@@ -197,7 +197,7 @@ public class Javadoc extends ConventionTask {
      * @return The directory.
      */
     public File getDestinationDir() {
-        return (File) conv(destinationDir, "destinationDir");
+        return destinationDir;
     }
 
     /**
@@ -238,7 +238,7 @@ public class Javadoc extends ConventionTask {
      * @return The title, possibly null.
      */
     public String getTitle() {
-        return (String) conv(title, "title");
+        return title;
     }
 
     /**

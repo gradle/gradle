@@ -162,7 +162,7 @@ public class EclipseWtp extends ConventionTask {
      * @see #setOutputDirectory(Object)
      */
     public Object getOutputDirectory() {
-        return (Object) conv(outputDirectory, "outputDirectory");
+        return outputDirectory;
     }
 
     /**
@@ -180,7 +180,7 @@ public class EclipseWtp extends ConventionTask {
      * @see #setProjectDependencies(java.util.List)
      */
     public List<DefaultProjectDependency> getProjectDependencies() {
-        return (List<DefaultProjectDependency>) conv(projectDependencies, "projectDependencies");
+        return projectDependencies;
     }
 
     /**
@@ -198,7 +198,7 @@ public class EclipseWtp extends ConventionTask {
      * @see #setWarLibs(java.util.List)
      */
     public List<Object> getWarLibs() {
-        return (List<Object>) conv(warLibs, "warLibs");
+        return warLibs;
     }
 
     /**
@@ -216,7 +216,7 @@ public class EclipseWtp extends ConventionTask {
      * @see #setWarResourceMappings(java.util.Map)
      */
     public Map<String, List<Object>> getWarResourceMappings() {
-        return (Map<String, List<Object>>) conv(warResourceMappings, "warResourceMappings");
+        return warResourceMappings;
     }
 
     /**
@@ -237,7 +237,7 @@ public class EclipseWtp extends ConventionTask {
      * @see #setDeployName(Object)
      */
     public Object getDeployName() {
-        return conv(deployName, "deployName");
+        return deployName;
     }
 
     /**

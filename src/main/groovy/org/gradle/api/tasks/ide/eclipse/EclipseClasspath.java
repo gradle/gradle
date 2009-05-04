@@ -166,7 +166,7 @@ public class EclipseClasspath extends ConventionTask {
      * @return list of directories which contain the sources.
      */
     public List<Object> getSrcDirs() {
-        return (List<Object>) conv(srcDirs, "srcDirs");
+        return srcDirs;
     }
 
     /**
@@ -188,7 +188,7 @@ public class EclipseClasspath extends ConventionTask {
      * @see #getTestSrcDirs() (java.util.List)
      */
     public List getTestSrcDirs() {
-        return (List) conv(testSrcDirs, "testSrcDirs");
+        return testSrcDirs;
     }
 
     /**
@@ -210,7 +210,7 @@ public class EclipseClasspath extends ConventionTask {
      * @see #setOutputDirectory(Object) 
      */
     public Object getOutputDirectory() {
-        return (Object) conv(outputDirectory, "outputDirectory");
+        return outputDirectory;
     }
 
     /**
@@ -231,7 +231,7 @@ public class EclipseClasspath extends ConventionTask {
      * @see #setTestOutputDirectory(Object) 
      */
     public Object getTestOutputDirectory() {
-        return (Object) conv(testOutputDirectory, "testOutputDirectory");
+        return testOutputDirectory;
     }
 
     /**
@@ -252,7 +252,7 @@ public class EclipseClasspath extends ConventionTask {
      * @see #setProjectDependencies(java.util.List)
      */
     public List<DefaultProjectDependency> getProjectDependencies() {
-        return (List) conv(projectDependencies, "projectDependencies");
+        return projectDependencies;
     }
 
     /**
@@ -270,7 +270,7 @@ public class EclipseClasspath extends ConventionTask {
      * @see #setClasspathLibs(java.util.List)
      */
     public List<Object> getClasspathLibs() {
-        return (List) conv(classpathLibs, "classpathLibs");
+        return classpathLibs;
     }
 
     /**

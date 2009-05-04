@@ -459,7 +459,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     public File getTmpDirectory() {
-        return (File) conv(tmpDirectory, "tmpDirectory");
+        return tmpDirectory;
     }
 
     public void setTmpDirectory(File tmpDirectory) {
@@ -491,7 +491,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     public String getContextPath() {
-        return (String) conv(contextPath, "contextPath");
+        return contextPath;
     }
 
     public void setContextPath(String contextPath) {

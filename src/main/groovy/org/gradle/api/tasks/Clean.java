@@ -35,9 +35,9 @@ import java.io.IOException;
 public class Clean extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Clean.class);
 
-    File dir;
+    private File dir;
 
-    ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
+    private ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
 
     public Clean(Project project, String name) {
         super(project, name);
@@ -63,7 +63,7 @@ public class Clean extends ConventionTask {
     }
 
     public File getDir() {
-        return (File) conv(dir, "dir");
+        return dir;
     }
 
     public void setDir(File dir) {

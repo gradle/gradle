@@ -143,7 +143,7 @@ public class Test extends ConventionTask {
      * Returns the root folder for the compiled test sources.
      */
     public File getTestClassesDir() {
-        return (File) conv(testClassesDir, "testClassesDir");
+        return testClassesDir;
     }
 
     /**
@@ -159,7 +159,7 @@ public class Test extends ConventionTask {
      * Returns the root folder for the test results.
      */
     public File getTestResultsDir() {
-        return (File) conv(testResultsDir, "testResultsDir");
+        return testResultsDir;
     }
 
     /**
@@ -175,7 +175,7 @@ public class Test extends ConventionTask {
      * Returns the root folder for the test reports.
      */
     public File getTestReportDir() {
-        return (File) conv(testReportDir, "testReportDir");
+        return testReportDir;
     }
 
     /**
@@ -193,7 +193,7 @@ public class Test extends ConventionTask {
      * @see #include(String[])
      */
     public List getIncludes() {
-        return (List) conv(includes, "includes");
+        return includes;
     }
 
     /**
@@ -212,7 +212,7 @@ public class Test extends ConventionTask {
      * @see #include(String[])
      */
     public List getExcludes() {
-        return (List) conv(excludes, "excludes");
+        return excludes;
     }
 
     /**
@@ -245,7 +245,7 @@ public class Test extends ConventionTask {
      * @see #unmanagedClasspath(Object[])
      */
     public List getUnmanagedClasspath() {
-        return (List) conv(unmanagedClasspath, "unmanagedClasspath");
+        return unmanagedClasspath;
     }
 
     /**
@@ -377,7 +377,7 @@ public class Test extends ConventionTask {
     }
 
     public List getTestSrcDirs() {
-        return (List) conv(testSrcDirs, "testSrcDirs");
+        return testSrcDirs;
     }
 
     public void setTestSrcDirs(List testSrcDir) {

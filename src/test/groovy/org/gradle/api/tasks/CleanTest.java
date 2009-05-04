@@ -68,20 +68,20 @@ public class CleanTest extends AbstractConventionTaskTest {
 
     @Test
     public void testClean() {
-        assertNull(clean.dir);
+        assertNull(clean.getDir());
     }
 
     @Test
     public void testExecute() throws IOException {
-        clean.dir = HelperUtil.makeNewTestDir();
+        clean.setDir(HelperUtil.makeNewTestDir());
         context.checking(new Expectations() {
             {
                 allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(clean.getDir());
             }
         });
-        (new File(clean.dir, "somefile")).createNewFile();
+        (new File(clean.getDir(), "somefile")).createNewFile();
         clean.execute();
-        assertFalse(clean.dir.exists());
+        assertFalse(clean.getDir().exists());
     }
 
     @Test(expected = GradleScriptException.class)

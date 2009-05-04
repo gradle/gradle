@@ -193,7 +193,7 @@ public class GroovyCompile extends Compile {
     }
 
     public List getGroovySourceDirs() {
-        return (List) conv(groovySourceDirs, "groovySourceDirs");
+        return groovySourceDirs;
     }
 
     public void setGroovySourceDirs(List groovySourceDirs) {
@@ -204,7 +204,7 @@ public class GroovyCompile extends Compile {
      * Return the include patterns for which groovy files should be compiled.
      */
     public List getGroovyIncludes() {
-        return (List) conv(groovyIncludes, "groovyIncludes");
+        return groovyIncludes;
     }
 
     /**
@@ -221,7 +221,7 @@ public class GroovyCompile extends Compile {
      * Returns the exclude patterns for which groovy files should be compiled.
      */
     public List getGroovyExcludes() {
-        return (List) conv(groovyExcludes, "groovyExcludes");
+        return groovyExcludes;
     }
 
     /**
@@ -238,7 +238,7 @@ public class GroovyCompile extends Compile {
      * Returns the exclude patterns for which java files in the joint source folder should be compiled.
      */
     public List getGroovyJavaIncludes() {
-        return (List) conv(groovyJavaIncludes, "groovyJavaIncludes");
+        return groovyJavaIncludes;
     }
 
     /**
@@ -255,7 +255,7 @@ public class GroovyCompile extends Compile {
      * Returns the exclude patterns for which java files in the joint source folder should be compiled.
      */
     public List getGroovyJavaExcludes() {
-        return (List) conv(groovyJavaExcludes, "groovyJavaExcludes");
+        return groovyJavaExcludes;
     }
 
     /**

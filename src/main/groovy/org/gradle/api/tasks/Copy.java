@@ -206,7 +206,7 @@ public class Copy extends ConventionTask {
     }
 
     public List getSrcDirs() {
-        return (List) conv(srcDirs, "srcDirs");
+        return srcDirs;
     }
 
     public void setSrcDirs(List srcDirs) {
@@ -214,7 +214,7 @@ public class Copy extends ConventionTask {
     }
 
     public File getDestinationDir() {
-        return (File) conv(destinationDir, "destinationDir");
+        return destinationDir;
     }
 
     public void setDestinationDir(File destinationDir) {

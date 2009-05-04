@@ -54,6 +54,7 @@ public abstract class AbstractTaskTest {
     private AbstractProject project;
 
     private JUnit4Mockery context = new JUnit4Mockery();
+    private static final TaskFactory taskFactory = new TaskFactory();
 
     @Before
     public void setUp() {
@@ -67,8 +68,8 @@ public abstract class AbstractTaskTest {
     }
 
     public Task createTask(Class<? extends AbstractTask> type, Project project, String name) {
-        Task task = new TaskFactory().createTask(project, GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
-        assertEquals(task.getClass(), type);
+        Task task = taskFactory.createTask(project, GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
+        assertTrue(type.isAssignableFrom(task.getClass()));
         return task;
     }
 

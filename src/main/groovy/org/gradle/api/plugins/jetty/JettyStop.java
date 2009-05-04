@@ -15,19 +15,18 @@
 
 package org.gradle.api.plugins.jetty;
 
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.TaskAction;
+import org.gradle.api.internal.ConventionTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
-
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.TaskAction;
-import org.gradle.api.Task;
-import org.gradle.api.internal.DefaultTask;
-import org.gradle.api.internal.ConventionTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JettyStop extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(JettyStop.class);
@@ -72,7 +71,7 @@ public class JettyStop extends ConventionTask {
      * Returns port to listen to stop jetty on sending stop command
      */
     public Integer getStopPort() {
-        return (Integer) conv(stopPort, "stopPort");
+        return stopPort;
     }
 
     /**
@@ -88,7 +87,7 @@ public class JettyStop extends ConventionTask {
      * @see #setStopKey(String)
      */
     public String getStopKey() {
-        return (String) conv(stopKey, "stopKey");
+        return stopKey;
     }
 
     /**

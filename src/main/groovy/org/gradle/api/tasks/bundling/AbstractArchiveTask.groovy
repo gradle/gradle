@@ -232,7 +232,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public File getBaseDir() {
-        return conv(baseDir, "baseDir");
+        return baseDir;
     }
 
     public void setBaseDir(File baseDir) {
@@ -240,7 +240,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public List getResourceCollections() {
-        return conv(resourceCollections, "resourceCollections");
+        return resourceCollections;
     }
 
     public void setResourceCollections(List resourceCollections) {
@@ -257,7 +257,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public File getDestinationDir() {
-        return conv(destinationDir, "destinationDir");
+        return destinationDir;
     }
 
     public void setDestinationDir(File destinationDir) {
@@ -273,7 +273,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public String getBaseName() {
-        return conv(baseName, "baseName");
+        return baseName;
     }
 
     public void setBaseName(String baseName) {
@@ -289,7 +289,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public String getVersion() {
-        return conv(version, "version");
+        return version;
     }
 
     public void setVersion(String version) {
@@ -297,7 +297,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public String getExtension() {
-        return conv(extension, "extension");
+        return extension;
     }
 
     public void setExtension(String extension) {
@@ -305,7 +305,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public String getClassifier() {
-        return conv(classifier, "classifier");
+        return classifier;
     }
 
     public void setClassifier(String classifier) {

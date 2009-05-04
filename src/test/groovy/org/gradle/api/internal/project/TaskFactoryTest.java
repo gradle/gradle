@@ -16,11 +16,14 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
-import org.gradle.util.TestTask;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -54,6 +57,7 @@ public class TaskFactoryTest {
     @Test
     public void testCreateTask() {
         Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task")));
+        assertThat(task, instanceOf(DefaultTask.class));
         assertTrue(task.getActions().isEmpty());
     }
 
@@ -84,9 +88,45 @@ public class TaskFactoryTest {
     }
 
     @Test
-    public void testCreateTaskWithNonDefaultType() {
-        Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestTask.class)));
-        assertEquals(TestTask.class, task.getClass());
+    public void testCreateTaskWithType() {
+        Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestDefaultTask.class)));
+        assertEquals(TestDefaultTask.class, task.getClass());
+    }
+
+    @Test
+    public void testAppliesConventionMappingToEachGetter() {
+        TestConventionTask task = (TestConventionTask) checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
+
+        assertThat(task.getProperty(), nullValue());
+
+        task.conventionMapping(GUtil.map("property", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return "conventionValue";
+            }
+        }));
+
+        assertThat(task.getProperty(), equalTo("conventionValue"));
+
+        task.setProperty("value");
+        assertThat(task.getProperty(), equalTo("value"));
+    }
+
+    @Test
+    public void testCachesGeneratedSubclass() {
+        Task task1 = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
+        Task task2 = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
+        assertEquals(task1.getClass(), task2.getClass());
+    }
+
+    @Test
+    public void doesNotApplyConventionMappingToGettersDefinedByTaskInterface() {
+        TestConventionTask task = (TestConventionTask) checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
+        task.conventionMapping(GUtil.map("description", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                throw new UnsupportedOperationException();
+            }
+        }));
+        assertThat(task.getDescription(), nullValue());
     }
 
     @Test
@@ -152,6 +192,32 @@ public class TaskFactoryTest {
         assertEquals(TEST_TASK_NAME, task.getName());
         assertSame(testProject, task.getProject());
         return task;
+    }
+
+    public static class TestDefaultTask extends DefaultTask {
+        public TestDefaultTask(Project project, String name) {
+            super(project, name);
+        }
+    }
+
+    public static class TestConventionTask extends ConventionTask {
+        private String property;
+
+        public TestConventionTask(Project project, String name) {
+            super(project, name);
+        }
+
+        public String getProperty() {
+            return property;
+        }
+
+        public void setProperty(String property) {
+            this.property = property;
+        }
+
+        public String[] getArrayProperty() {
+            return null;
+        }
     }
 
     public static class MissingConstructorTask extends DefaultTask {

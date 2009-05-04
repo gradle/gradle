@@ -31,7 +31,6 @@ public class Bundle extends ConventionTask {
     public static final String BASENAME_KEY = "baseName";
     public static final String APPENDIX_KEY = "appendix";
     public static final String CLASSIFIER_KEY = "classifier";
-    public static final String CONFIGURATIONS_KEY = "confs";
 
     private Set childrenDependOn = new HashSet();
 

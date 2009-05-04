@@ -476,7 +476,7 @@ public class JettyRun extends AbstractJettyRunTask {
 
 
     public File getClassesDirectory() {
-        return (File) conv(classesDirectory, "classesDirectory");
+        return classesDirectory;
     }
 
     public void setClassesDirectory(File classesDirectory) {
@@ -492,7 +492,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     public File getWebXml() {
-        return (File) conv(webXml, "webXml");
+        return webXml;
     }
 
     public void setWebXml(File webXml) {
@@ -500,7 +500,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     public File getWebAppSourceDirectory() {
-        return (File) conv(webAppSourceDirectory, "webAppSourceDirectory");
+        return webAppSourceDirectory;
     }
 
     public void setWebAppSourceDirectory(File webAppSourceDirectory) {
@@ -508,7 +508,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     public File getTestClassesDirectory() {
-        return (File) conv(testClassesDirectory, "testClassesDirectory");
+        return testClassesDirectory;
     }
 
     public void setTestClassesDirectory(File testClassesDirectory) {
