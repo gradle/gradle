@@ -21,7 +21,16 @@ package org.gradle.api.artifacts;
  * @author Hans Dockter
  */
 public interface ExternalDependency extends Dependency {
+    /**
+     * Returns whether or not the version of this dependency should be enforced in the case of version conflicts.
+     */
     boolean isForce();
 
+    /**
+     * Sets whether or not the version of this dependency should be enforced in the case of version conflicts.
+     *
+     * @param force Whether to force this version or not.
+     * @return this
+     */
     ExternalDependency setForce(boolean force);
 }

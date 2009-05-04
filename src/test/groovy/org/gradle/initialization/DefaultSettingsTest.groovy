@@ -221,7 +221,7 @@ class DefaultSettingsTest {
             allowing(dependencyFactoryStub).createModule(id, configureClosure); will(returnValue(clientModuleDummy))
             one(configurationStub).addDependency(clientModuleDummy)
         }
-        settings.clientModule(id, configureClosure)
+        settings.module(id, configureClosure)
     }
 
     @Test public void testMavenCentralWithArgs() {

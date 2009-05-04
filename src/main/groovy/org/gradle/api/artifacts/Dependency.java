@@ -99,7 +99,7 @@ public interface Dependency {
      * any longer.
      *
      * @param artifact
-     * @return
+     * @return this
      */
     Dependency addArtifact(DependencyArtifact artifact);
 

@@ -31,7 +31,7 @@ import java.util.Collection;
  * want to deploy more than one artifact, you have to specify filters which select each artifact. Associated with each filter is
  * a separate configurable pom.</p>
  *
- * <p>You can create an instance of this type via the {@link org.gradle.api.tasks.Upload#uploadResolvers} container</p> 
+ * <p>You can create an instance of this type via the {@link org.gradle.api.tasks.Upload#getRepositories()} container</p> 
  *
  * @author Hans Dockter
  */

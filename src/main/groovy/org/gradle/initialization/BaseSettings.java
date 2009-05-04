@@ -219,8 +219,8 @@ public class BaseSettings implements SettingsInternal {
         return dependency;
     }
 
-    public void clientModule(String id, Closure configureClosure) {
-        buildConfiguration.addDependency(dependencyFactory.createModule(id, configureClosure));
+    public void module(Object notation, Closure configureClosure) {
+        buildConfiguration.addDependency(dependencyFactory.createModule(notation, configureClosure));
     }
 
     public FileSystemResolver flatDir(Map args) {

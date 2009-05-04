@@ -115,23 +115,32 @@ public interface Settings {
     void includeFlat(String[] projectNames);
     
     /**
-     * <p>Adds dependencies to the build script classpath. See {@link DependencyManager#dependencies(java.util.List,
-     * Object[])} for more details.</p>
+     * <p>Adds dependencies to the build script classpath. The notation to describe dependencies are the same as described
+     * in {@link org.gradle.api.artifacts.dsl.DependencyHandler}.</p>
      *
      * @param dependencies The dependencies to add.
-     * @throws InvalidUserDataException When one of the given object cannot be converted to a {@code Dependency}.
+     * @throws org.gradle.api.IllegalDependencyNotation if one of the given object cannot be converted to a {@code Dependency}.
      */
     void dependencies(Object[] dependencies) throws InvalidUserDataException;
 
     /**
-     * Adds a dependency to the build script classpath. See{@link DependencyManager#dependency(java.util.List, Object,
-     * groovy.lang.Closure)} for more details.
+     * Adds a dependency to the build script classpath. The notation to describe dependencies are the same as described
+     * in {@link org.gradle.api.artifacts.dsl.DependencyHandler}.</p>
      *
      * @param dependency The dependency to add.
      * @param configureClosure The closure to use to configure the dependency.
-     * @throws InvalidUserDataException When one of the given object cannot be treated as a dependency.
+     * @throws org.gradle.api.IllegalDependencyNotation When one of the given object cannot be treated as a dependency.
      */
     Dependency dependency(Object dependency, Closure configureClosure) throws InvalidUserDataException;
+
+    /**
+     * Adds a module to the build script classpath. The notation to describe modules are the same as described
+     * in {@link org.gradle.api.artifacts.dsl.DependencyHandler}.</p>
+     * 
+     * @param notation
+     * @param configureClosure The closure to use to configure the module.
+     */
+    void module(Object notation, Closure configureClosure);
 
     /**
      * <p>Returns the set of resolvers used to resolve the build script classpath.</p>
@@ -139,8 +148,6 @@ public interface Settings {
      * @return the resolvers. Never returns null.
      */
     List<DependencyResolver> getResolvers();
-
-    FileSystemResolver flatDir(Map args);
 
     /**
      * <p>Returns the settings directory of the build. The settings directory is the directory containing the settings
@@ -158,13 +165,24 @@ public interface Settings {
     File getRootDir();
 
     /**
-     * @param jarRepoUrls A list of urls of repositories to look for artifacts only. This is needed if only the pom is
+     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#mavenCentral(java.util.Map)
      */
     DependencyResolver mavenCentral(Map args);
 
+    /**
+     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#mavenCentral() 
+     */
     DependencyResolver mavenCentral();
 
+    /**
+     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#mavenRepo(java.util.Map)
+     */
     DependencyResolver mavenRepo(Map args);
+
+    /**
+     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#flatDir(java.util.Map) 
+     */
+    FileSystemResolver flatDir(Map args);
 
     /**
      * <p>Returns the root project of the build.</p>
@@ -213,6 +231,4 @@ public interface Settings {
      * @return The parameters. Never returns null.
      */
     StartParameter getStartParameter();
-
-    void clientModule(String id, Closure configureClosure);
 }

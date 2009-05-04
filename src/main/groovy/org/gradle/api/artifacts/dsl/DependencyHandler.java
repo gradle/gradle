@@ -28,10 +28,28 @@ package org.gradle.api.artifacts.dsl;
  * <code>"&lt;group>:&lt;name>:&lt;version>:&lt;classifier>"</code>
  *
  * <p>The other is a map notation:</p>
- * <code>group: &lt;group>, name: &lt;name>, version: &lt;version>, classifier: &lt;classifier></code>
+ * <code>group: &lt;group>, name: &lt;name> version: &lt;version>, classifier: &lt;classifier></code>
  * 
  * <p>In both notations, all properties, except name, are optional.</p>
  *
+ * <p>To add a module (see {@link org.gradle.api.artifacts.ClientModule} to a configuration you can use the notation:</p>
+ *
+ * <code>&lt;DependencyHandler>.&lt;configurationName> module(moduleNotation)</code>
+ *
+ * The module notation is the same as the dependency notations described above, except that the classifier property is
+ * not available.
+ *
+ * <p>To add a project dependency, you use the following notation</p>
+ * <code>&lt;DependencyHandler>.&lt;configurationName> <projectInstance></code>
+ *
+ * <p>To configure dependencies, you can additonally pass a configuration closure.</p>
+ * <pre>&lt;DependencyHandler>.&lt;configurationName> <anyDependencyType> {
+ *    &lt;configStatement1>
+ *    &lt;configStatement2>
+ * }
+ *
+ * </pre>
+ * 
  * @author Hans Dockter
  */
 public interface DependencyHandler {
