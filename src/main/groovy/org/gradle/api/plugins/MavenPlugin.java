@@ -17,10 +17,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
@@ -111,7 +108,9 @@ public class MavenPlugin implements Plugin {
 
     private void configureInstall(Project project) {
         Upload installUpload = project.getTasks().add(INSTALL_TASK_NAME, Upload.class);
-        installUpload.setConfiguration(project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION));
+        Configuration configuration = project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION);
+        installUpload.dependsOn(configuration.getBuildArtifacts());
+        installUpload.setConfiguration(configuration);
         PublishInstruction publishInstruction = new PublishInstruction();
         publishInstruction.setIvyFileParentDir(new File("nonNullDummy"));
         installUpload.setPublishInstruction(publishInstruction);

@@ -20,9 +20,14 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.Task;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
+
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -40,6 +45,11 @@ public class MavenPluginTest {
                 MavenPlugin.PROVIDED_COMPILE_PRIORITY);
         assertHasConfigurationAndMapping(project, WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
                 MavenPlugin.PROVIDED_RUNTIME_PRIORITY);
+
+        Task task = project.getTasks().getByName(MavenPlugin.INSTALL_TASK_NAME);
+        Set dependencies = task.getTaskDependencies().getDependencies(task);
+        assertEquals(dependencies, toSet(project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME),
+                project.getTasks().getByName(WarPlugin.WAR_TASK_NAME)));
     }
 
     private void assertHasConfigurationAndMapping(DefaultProject project, String configurationName, String scope, int priority) {
@@ -62,6 +72,10 @@ public class MavenPluginTest {
                 MavenPlugin.TEST_COMPILE_PRIORITY);
         assertHasConfigurationAndMapping(project, JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.TEST,
                 MavenPlugin.TEST_RUNTIME_PRIORITY);
+
+        Task task = project.getTasks().getByName(MavenPlugin.INSTALL_TASK_NAME);
+        Set dependencies = task.getTaskDependencies().getDependencies(task);
+        assertEquals(dependencies, toSet(project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME)));
     }
 
     @org.junit.Test
