@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
@@ -60,7 +61,8 @@ public class SettingsFactoryTest {
         context.checking(new Expectations() {{
             one(configurationContainerFactory).createConfigurationContainer(
                     with(any(ResolverProvider.class)),
-                    with(any(DependencyMetaDataProvider.class)));
+                    with(any(DependencyMetaDataProvider.class)),
+                    with(any(ProjectDependenciesBuildInstruction.class)));
             will(returnValue(configurationContainer));
             one(configurationContainer).add(with(any(String.class)));
             will(returnValue(configuration));

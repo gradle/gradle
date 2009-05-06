@@ -132,7 +132,9 @@ class DefaultProjectTest {
         }
         configurationContainerMock = context.mock(ConfigurationHandler)
         configurationContainerFactoryMock = [createConfigurationContainer: {
-          resolverProvider, dependencyMetaDataProvider -> configurationContainerMock}] as ConfigurationContainerFactory
+          resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction ->
+            assertSame(build.startParameter.projectDependenciesBuildInstruction, projectDependenciesBuildInstruction)
+            configurationContainerMock}] as ConfigurationContainerFactory
         repositoryHandlerMock =  context.mock(RepositoryHandler.class);
         context.checking {
           allowing(repositoryHandlerFactoryMock).setConvention(withParam(any(Convention)))

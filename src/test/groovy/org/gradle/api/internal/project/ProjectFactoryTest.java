@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.groovy.scripts.FileScriptSource;
@@ -33,6 +34,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
 import org.gradle.configuration.ProjectEvaluator;
+import org.gradle.StartParameter;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -72,6 +74,7 @@ public class ProjectFactoryTest {
     private AntBuilderFactory antBuilderFactory = context.mock(AntBuilderFactory.class);
 
     private ProjectFactory projectFactory;
+    private StartParameter startParameterStub = new StartParameter();
 
     @Before
     public void setUp() throws Exception {
@@ -81,8 +84,11 @@ public class ProjectFactoryTest {
             allowing(repositoryHandlerFactory).setConvention(with(any(Convention.class)));
         }});
         context.checking(new Expectations() {{
+            allowing(build).getStartParameter();
+            will(returnValue(startParameterStub));
             allowing(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),
-                    with(any(DependencyMetaDataProvider.class)));
+                    with(any(DependencyMetaDataProvider.class)),
+                    with(equal(startParameterStub.getProjectDependenciesBuildInstruction())));
             allowing(projectRegistry).addProject(with(any(ProjectInternal.class)));
             allowing(build).getProjectRegistry();
             will(returnValue(projectRegistry));

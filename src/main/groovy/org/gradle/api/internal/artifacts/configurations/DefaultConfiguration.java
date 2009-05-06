@@ -33,6 +33,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private DependencyMetaDataProvider dependencyMetaDataProvider;
 
+    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
+
     private Set<Dependency> dependencies = new HashSet<Dependency>();
 
     private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
@@ -46,12 +48,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolveReport cachedResolveReport = null;
 
     public DefaultConfiguration(String name, ConfigurationsProvider configurationsProvider, IvyService ivyService,
-                                ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
+                                ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider,
+                                ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
         this.resolverProvider = resolverProvider;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
     public String getName() {
@@ -169,36 +173,56 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
+        if (!projectDependenciesBuildInstruction.isRebuild()) {
+            return new DefaultTaskDependency();
+        }
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-                for (Configuration configuration : getExtendsFrom()) {
-                    taskDependency.add(configuration.getBuildDependencies());
-                }
-                for (ProjectDependency projectDependency : getProjectDependencies()) {
-                    Configuration configuration = projectDependency.getDependencyProject().getConfigurations().getByName(
-                            projectDependency.getDependencyConfiguration()
-                    );
-                    taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
-                }
+                addBuildDependenciesFromExtendedConfigurations(taskDependency);
+                addUploadTaskAndAdditionalTasksFromProjectDependencies(taskDependency);
                 return taskDependency.getDependencies(task);
             }
         };
+    }
+
+    private void addUploadTaskAndAdditionalTasksFromProjectDependencies(DefaultTaskDependency taskDependency) {
+        for (ProjectDependency projectDependency : getProjectDependencies()) {
+            Configuration configuration = projectDependency.getConfiguration();
+            for (String taskName : projectDependenciesBuildInstruction.getTaskNames()) {
+                taskDependency.add(projectDependency.getDependencyProject().task(taskName));
+            }
+            taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
+        }
+    }
+
+    private void addBuildDependenciesFromExtendedConfigurations(DefaultTaskDependency taskDependency) {
+        for (Configuration configuration : getExtendsFrom()) {
+            taskDependency.add(configuration.getBuildDependencies());
+        }
     }
 
     public TaskDependency getBuildArtifacts() {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-                for (Configuration configuration : getExtendsFrom()) {
-                    taskDependency.add(configuration.getBuildArtifacts());
-                }
-                for (PublishArtifact publishArtifact : getArtifacts()) {
-                    taskDependency.add(publishArtifact.getTaskDependency());
-                }
+                addBuildArtifactsFromExtendedConfigurations(taskDependency);
+                addTasksForBuildingArtifacts(taskDependency);
                 return taskDependency.getDependencies(task);
             }
         };
+    }
+
+    private void addTasksForBuildingArtifacts(DefaultTaskDependency taskDependency) {
+        for (PublishArtifact publishArtifact : getArtifacts()) {
+            taskDependency.add(publishArtifact.getTaskDependency());
+        }
+    }
+
+    private void addBuildArtifactsFromExtendedConfigurations(DefaultTaskDependency taskDependency) {
+        for (Configuration configuration : getExtendsFrom()) {
+            taskDependency.add(configuration.getBuildArtifacts());
+        }
     }
 
     public Set<Dependency> getDependencies() {
@@ -249,7 +273,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.getArtifacts(this.getHierarchy(), Specs.SATISFIES_ALL);
     }
 
-    public DependencyMetaDataProvider getArtifactsProvider() {
+    public DependencyMetaDataProvider getDependencyMetaDataProvider() {
         return dependencyMetaDataProvider;
     }
 
@@ -280,6 +304,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.uploadTaskName(getName());
     }
 
+    public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
+        return projectDependenciesBuildInstruction;
+    }
+
+    public void setProjectDependenciesBuildInstruction(ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+    }
+
+    public IvyService getIvyService() {
+        return ivyService;
+    }
+
+    public ResolverProvider getResolverProvider() {
+        return resolverProvider;
+    }
+
+    public ConfigurationsProvider getConfigurationsProvider() {
+        return configurationsProvider;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -341,7 +384,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration("copyOf" + getName(),
-                configurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider);
+                configurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolveReport, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

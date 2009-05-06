@@ -18,11 +18,15 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.Project;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -52,6 +56,8 @@ public class DefaultConfigurationTest {
     private ResolverProvider resolverProvider;
     private DependencyMetaDataProvider dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider.class);
     private DefaultConfigurationContainer configurationContainer;
+    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction =
+            new ProjectDependenciesBuildInstruction(null);
 
     private DefaultConfiguration configuration;
 
@@ -60,7 +66,7 @@ public class DefaultConfigurationTest {
         resolverProvider = createResolverProvider();
         dependencyMetaDataProvider = createDependencyMetaDataProvider();
         configurationContainer = new DefaultConfigurationContainer(ivyServiceStub, resolverProvider,
-                dependencyMetaDataProvider);
+                dependencyMetaDataProvider, projectDependenciesBuildInstruction);
         configuration = (DefaultConfiguration) configurationContainer.add(CONF_NAME);
     }
 
@@ -70,6 +76,7 @@ public class DefaultConfigurationTest {
             private File gradleUserHomeDir = new File("somePath");
             private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
             private Module module = new DefaultModule("group", "name", "version");
+
             public Map getClientModuleRegistry() {
                 return clientModuleRegistry;
             }
@@ -91,6 +98,7 @@ public class DefaultConfigurationTest {
     private ResolverProvider createResolverProvider() {
         return new ResolverProvider() {
             private List<DependencyResolver> resolvers = WrapUtil.toList(context.mock(DependencyResolver.class, "resolverProvider"));
+
             public List<DependencyResolver> getResolvers() {
                 return resolvers;
             }
@@ -100,7 +108,7 @@ public class DefaultConfigurationTest {
     @Test
     public void defaultValues() {
         DefaultConfiguration configuration = new DefaultConfiguration(CONF_NAME, configurationContainer, ivyServiceStub,
-                resolverProvider, dependencyMetaDataProvider);
+                resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
         assertThat(configuration.getName(), equalTo(CONF_NAME));
         assertThat(configuration.isVisible(), equalTo(true));
         assertThat(configuration.getExtendsFrom().size(), equalTo(0));
@@ -158,7 +166,7 @@ public class DefaultConfigurationTest {
     @Test
     public void setExtendsFrom() {
         Configuration configuration1 = configurationContainer.add("otherConf1");
-        
+
         configuration.setExtendsFrom(WrapUtil.toSet(configuration1));
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration1)));
 
@@ -166,7 +174,7 @@ public class DefaultConfigurationTest {
         configuration.setExtendsFrom(WrapUtil.toSet(configuration2));
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration2)));
     }
-    
+
     @Test(expected = InvalidUserDataException.class)
     public void extendsFromWithDirectCycle_shouldThrowInvalidUserDataEx() {
         Configuration otherConfiguration = configurationContainer.add("otherConf");
@@ -219,7 +227,7 @@ public class DefaultConfigurationTest {
         configurationContainer.add(testConf2);
         assertThat(Configurations.getNames(configuration.getAll()), equalTo(WrapUtil.toSet(CONF_NAME, testConf1, testConf2)));
     }
-    
+
     @Test(expected = InvalidUserDataException.class)
     public void getAsPathWithFailure_shouldThrowInvalidUserDataEx() {
         prepareForResolveWithErrors();
@@ -300,7 +308,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void getDependencyResolver() {
-        assertThat(configuration.getDependencyResolvers(), equalTo(resolverProvider.getResolvers()));    
+        assertThat(configuration.getDependencyResolvers(), equalTo(resolverProvider.getResolvers()));
     }
 
     @Test
@@ -321,53 +329,121 @@ public class DefaultConfigurationTest {
     public void equality() {
         Configuration differentConf = configurationContainer.add(CONF_NAME + "delta");
         assertThat(configuration.equals(differentConf), equalTo(false));
-        
+
         assertThat(configuration.equals(createNamedConfiguration(CONF_NAME)), equalTo(true));
         assertThat(configuration.hashCode(), equalTo(createNamedConfiguration(CONF_NAME).hashCode()));
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub, resolverProvider, dependencyMetaDataProvider);
+        return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub, resolverProvider,
+                dependencyMetaDataProvider, projectDependenciesBuildInstruction);
     }
 
-//    @Ignore
-////    public void buildArtifacts() {
-////        final TaskDependency taskDependencyMock = context.mock(TaskDependency.class);
-////        final Task taskMock = context.mock(Task.class);
-////        context.checking(new Expectations() {{
-////            allowing(artifactContainerMock).getArtifacts(confs(TEST_CONF_NAME));
-////            will(returnValue(WrapUtil.toSet(publishArtifactMock)));
-////
-////            allowing(publishArtifactMock).getTaskDependency();
-////            will(returnValue(taskDependencyMock));
-////
-////            allowing(taskDependencyMock).getDependencies(with(any(Task.class)));
-////            will(returnValue(WrapUtil.toSet(taskMock)));
-////        }});
-////        assertThat((Set<Task>) configurationResolver.getBuildArtifacts().getDependencies(taskMock),
-////                equalTo(WrapUtil.toSet(taskMock)));
-////    }
-//
-//    @Test
-//    public void buildProjectDependencies() {
-//        Configuration otherConfiguration = context.mock(Configuration.class);
-//        configuration.setExtendsFrom(otherConfiguration.getName());
-//
-//        final TaskDependency taskDependencyMock = context.mock(TaskDependency.class);
-//        final Task taskMock = context.mock(Task.class);
-//        context.checking(new Expectations() {{
-//            allowing().getDependencies(and(confs(TEST_CONF_NAME), type(Type.PROJECT)));
-//            will(returnValue(WrapUtil.toSet(projectDependencyMock)));
-//
-//            allowing(projectDependencyMock).getTaskDependency();
-//            will(returnValue(taskDependencyMock));
-//
-//            allowing(taskDependencyMock).getDependencies(with(any(Task.class)));
-//            will(returnValue(WrapUtil.toSet(taskMock)));
-//        }});
-//        assertThat((Set<Task>) configurationResolver.getBuildArtifacts().getDependencies(taskMock),
-//                equalTo(WrapUtil.toSet(taskMock)));
-//    }
+    @Test
+    public void buildArtifacts() {
+        final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
+        final Task artifactTaskMock = context.mock(Task.class, "artifactTask");
+        final Configuration otherConfiguration = context.mock(Configuration.class);
+        final TaskDependency otherConfTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
+        final TaskDependency artifactTaskDependencyMock = context.mock(TaskDependency.class, "artifactTaskDep");
+        DefaultPublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        artifact.setTaskDependency(artifactTaskDependencyMock);
+        configuration.addArtifact(artifact);
+
+        context.checking(new Expectations() {{
+            allowing(otherConfiguration).getBuildArtifacts();
+            will(returnValue(otherConfTaskDependencyMock));
+
+            allowing(otherConfiguration).getHierarchy();
+            will(returnValue(WrapUtil.toList()));
+
+            allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+            will(returnValue(WrapUtil.toSet(otherConfTaskMock)));
+
+            allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
+            will(returnValue(WrapUtil.toSet(artifactTaskMock)));
+        }});
+        configuration.setExtendsFrom(WrapUtil.toSet(otherConfiguration));
+        assertThat((Set<Task>) configuration.getBuildArtifacts().getDependencies(context.mock(Task.class, "caller")),
+                equalTo(WrapUtil.toSet(artifactTaskMock, otherConfTaskMock)));
+    }
+
+
+    @Test
+    public void buildDependencies() {
+        final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
+        final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
+        prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
+                new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()), new HashMap<String, Task>());
+        assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
+                equalTo(WrapUtil.toSet(otherConfTaskMock, dependencyProjectUploadTaskStub)));
+    }
+
+    @Test
+    public void buildDependenciesWithRebuildDisabled() {
+        final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
+        final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
+        prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
+                new ProjectDependenciesBuildInstruction(null), new HashMap<String, Task>());
+        assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
+                equalTo(WrapUtil.<Task>toSet()));
+    }
+
+    @Test
+    public void buildDependenciesWithAdditonalProjectDependencyTasks() {
+        final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
+        final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
+        final Task projectDependencyTaskMock = context.mock(Task.class, "projectDependencyTask");
+        String projectDependencyTaskName = "projectDepTask";
+        prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
+                new ProjectDependenciesBuildInstruction(WrapUtil.toList(projectDependencyTaskName)),
+                WrapUtil.toMap(projectDependencyTaskName, projectDependencyTaskMock));
+        assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
+                equalTo(WrapUtil.toSet(otherConfTaskMock, dependencyProjectUploadTaskStub, projectDependencyTaskMock)));
+    }
+
+    private void prepareBuildDependenciesTest(final Task dependencyProjectUploadTaskStub, final Task otherConfTaskMock,
+                                              ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction,
+                                              final Map<String, Task> projectDependencyTasks) {
+        configuration.setProjectDependenciesBuildInstruction(projectDependenciesBuildInstruction);
+        final TaskDependency otherConfTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
+        final Configuration otherConfiguration = context.mock(Configuration.class, "otherConf");
+
+        final Project dependencyProjectStub = context.mock(Project.class);
+        final Configuration dependencyProjectConfStub = context.mock(Configuration.class, "dependenctProjectConf");
+        final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
+        context.checking(new Expectations() {{
+            String uploadInternalTaskName = "someName";
+
+            allowing(otherConfiguration).getBuildDependencies();
+            will(returnValue(otherConfTaskDependencyMock));
+
+            allowing(otherConfiguration).getHierarchy();
+            will(returnValue(WrapUtil.toList()));
+
+            allowing(projectDependencyStub).getDependencyProject();
+            will(returnValue(dependencyProjectStub));
+
+            allowing(projectDependencyStub).getConfiguration();
+            will(returnValue(dependencyProjectConfStub));
+
+            allowing(dependencyProjectConfStub).getUploadInternalTaskName();
+            will(returnValue(uploadInternalTaskName));
+
+            allowing(dependencyProjectStub).task(uploadInternalTaskName);
+            will(returnValue(dependencyProjectUploadTaskStub));
+
+            for (String taskName : projectDependencyTasks.keySet()) {
+                allowing(dependencyProjectStub).task(taskName);
+                will(returnValue(projectDependencyTasks.get(taskName)));
+            }
+
+            allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+            will(returnValue(WrapUtil.toSet(otherConfTaskMock)));
+        }});
+        configuration.addDependency(projectDependencyStub);
+        configuration.setExtendsFrom(WrapUtil.toSet(otherConfiguration));
+    }
 
     @Test
     public void getDependencies() {
@@ -551,20 +627,56 @@ public class DefaultConfigurationTest {
             }
         }
     }
-    
+
     @Test
     public void propertyChangeWithNonUnresolvedState_shouldThrowEx() {
         makeResolveReturnFileSet(new HashSet());
         configuration.resolve();
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.setTransitive(true); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.setDescription("someDesc"); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.setExcludeRules(new HashSet<ExcludeRule>()); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.setExtendsFrom(new HashSet<Configuration>()); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.setVisible(true); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.addArtifact(context.mock(PublishArtifact.class)); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.addDependency(context.mock(Dependency.class)); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.exclude(new HashMap<String, String>()); } });
-        assertInvalidUserDataException(new Executer() { public void execute() { configuration.extendsFrom(context.mock(Configuration.class)); } });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.setTransitive(true);
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.setDescription("someDesc");
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.setExcludeRules(new HashSet<ExcludeRule>());
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.setExtendsFrom(new HashSet<Configuration>());
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.setVisible(true);
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.addArtifact(context.mock(PublishArtifact.class));
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.addDependency(context.mock(Dependency.class));
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.exclude(new HashMap<String, String>());
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.extendsFrom(context.mock(Configuration.class));
+            }
+        });
     }
 
     private void assertInvalidUserDataException(Executer executer) {

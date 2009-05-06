@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolverProvider
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.Rule
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 
 /**
  * @author Hans Dockter
@@ -31,8 +32,10 @@ import org.gradle.api.artifacts.dsl.ConfigurationHandler
 class DefaultConfigurationHandler extends DefaultConfigurationContainer implements ConfigurationHandler {
     private boolean configuring
 
-    def DefaultConfigurationHandler(IvyService ivyService, ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
-        super(ivyService, resolverProvider, dependencyMetaDataProvider)
+    def DefaultConfigurationHandler(IvyService ivyService, ResolverProvider resolverProvider,
+                                    DependencyMetaDataProvider dependencyMetaDataProvider,
+                                    ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+        super(ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction)
         addRule([apply: {String name ->
             if (configuring) {
                 add(name)

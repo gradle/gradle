@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
@@ -29,6 +30,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import java.util.Set;
+import java.util.Collections;
 
 /**
  * @author Hans Dockter
@@ -43,35 +45,44 @@ public class DefaultConfigurationContainerTest {
     IvyService ivyServiceDummy = context.mock(IvyService.class);
     ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
     DependencyMetaDataProvider dependencyMetaDataProviderDummy = context.mock(DependencyMetaDataProvider.class);
+    ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy = new ProjectDependenciesBuildInstruction(
+            Collections.<String>emptyList());
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-            ivyServiceDummy, resolverProviderDummy, dependencyMetaDataProviderDummy);
+            ivyServiceDummy, resolverProviderDummy, dependencyMetaDataProviderDummy, projectDependenciesBuildInstructionDummy);
 
     @Test
     public void init() {
         assertThat(configurationContainer.getIvyService(), sameInstance(ivyServiceDummy));
         assertThat(configurationContainer.getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat(configurationContainer.getDependencyMetaDataProvider(), sameInstance(dependencyMetaDataProviderDummy));
+        assertThat(configurationContainer.getProjectDependenciesBuildInstruction(),
+                sameInstance(projectDependenciesBuildInstructionDummy));
     }
 
     @Test
     public void testAdd() {
-        checkAddGetWithName(configurationContainer.add(TEST_NAME));
+        checkAddGetWithName((DefaultConfiguration) configurationContainer.add(TEST_NAME));
     }
 
     @Test
     public void testAddWithNullClosure() {
-        checkAddGetWithName(configurationContainer.add(TEST_NAME, null));
+        checkAddGetWithName((DefaultConfiguration) configurationContainer.add(TEST_NAME, null));
     }
 
     @Test
     public void testAddWithClosure() {
-        Configuration configuration = checkAddGetWithName(configurationContainer.add(TEST_NAME, TEST_CLOSURE));
+        Configuration configuration = checkAddGetWithName((DefaultConfiguration) configurationContainer.add(TEST_NAME, TEST_CLOSURE));
         assertThat(configuration.getDescription(), equalTo(TEST_DESCRIPTION));
     }
 
-    private Configuration checkAddGetWithName(Configuration configuration) {
+    private Configuration checkAddGetWithName(DefaultConfiguration configuration) {
         assertThat(configuration, equalTo(configurationContainer.getByName(TEST_NAME)));
+        assertThat(configuration.getDependencyMetaDataProvider(), sameInstance(dependencyMetaDataProviderDummy));
+        assertThat(configuration.getIvyService(), sameInstance(ivyServiceDummy));
+        assertThat(configuration.getResolverProvider(), sameInstance(resolverProviderDummy));
+        assertThat((DefaultConfigurationContainer) configuration.getConfigurationsProvider(),
+                sameInstance(configurationContainer));
         return configuration;
     }
 

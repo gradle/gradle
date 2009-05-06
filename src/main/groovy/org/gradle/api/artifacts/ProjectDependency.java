@@ -23,5 +23,16 @@ import org.gradle.api.Project;
  * @author Hans Dockter
  */
 public interface ProjectDependency extends Dependency {
+    /**
+     * Returns the project associated with this project dependency
+     */
     Project getDependencyProject();
+
+    /**
+     * Returns the configuration associated with this project dependency. The configuration belongs to the project
+     * associated with this project dependency.
+     *
+     * @see #getDependencyProject() 
+     */
+    Configuration getConfiguration();
 }

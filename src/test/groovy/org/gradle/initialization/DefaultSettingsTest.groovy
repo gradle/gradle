@@ -54,6 +54,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 
 /**
  * @author Hans Dockter
@@ -86,7 +87,10 @@ class DefaultSettingsTest {
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
         context.checking {
-            one(configurationContainerFactoryStub).createConfigurationContainer(withParam(any(ResolverProvider)), withParam(any(DependencyMetaDataProvider)))
+            one(configurationContainerFactoryStub).createConfigurationContainer(
+                    withParam(any(ResolverProvider)),
+                    withParam(any(DependencyMetaDataProvider)),
+                    withParam(any(ProjectDependenciesBuildInstruction)))
             will(returnValue(configurationContainerStub))
             one(configurationContainerStub).add("build")
             will(returnValue(configurationStub))

@@ -20,16 +20,19 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultConfigurationContainerFactory implements ConfigurationContainerFactory {
-    public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
+                                                             DependencyMetaDataProvider dependencyMetaDataProvider,
+                                                             ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         DefaultIvyService ivyService = new DefaultIvyService(
                 dependencyMetaDataProvider.getInternalRepository()
         );
-        return new DefaultConfigurationHandler(ivyService, resolverProvider, dependencyMetaDataProvider);
+        return new DefaultConfigurationHandler(ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
     }
 }

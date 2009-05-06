@@ -26,6 +26,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.artifacts.UnknownConfigurationException
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 
 /**
  * @author Hans Dockter
@@ -37,9 +38,10 @@ class DefaultConfigurationHandlerTest {
     private IvyService ivyService = context.mock(IvyService)
     private ResolverProvider resolverProvider = context.mock(ResolverProvider)
     private DependencyMetaDataProvider dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider)
+    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null)
 
     private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService,
-            resolverProvider, dependencyMetaDataProvider)
+            resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction)
 
     @Test void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {

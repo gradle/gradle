@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.WrapUtil;
 
 /**
@@ -56,6 +57,10 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
 
     public String getVersion() {
         return dependencyProject.getVersion().toString();
+    }
+
+    public Configuration getConfiguration() {
+        return dependencyProject.getConfigurations().getByName(getDependencyConfiguration());
     }
 
     public Dependency copy() {

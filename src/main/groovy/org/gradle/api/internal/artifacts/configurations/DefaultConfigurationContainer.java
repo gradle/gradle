@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 
 /**
  * @author Hans Dockter
@@ -39,12 +40,17 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
 
     private DependencyMetaDataProvider dependencyMetaDataProvider;
 
+    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
+
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public DefaultConfigurationContainer(IvyService ivyService, ResolverProvider resolverProvider,
+                                         DependencyMetaDataProvider dependencyMetaDataProvider,
+                                         ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         this.ivyService = ivyService;
         this.resolverProvider = resolverProvider;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
     public Configuration add(String name, Closure configureClosure) {
@@ -52,7 +58,8 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
             throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
                     name));
         }
-        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService, resolverProvider, dependencyMetaDataProvider);
+        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService, resolverProvider,
+                dependencyMetaDataProvider, projectDependenciesBuildInstruction);
         addObject(name, configuration);
         ConfigureUtil.configure(configureClosure, configuration);
         return configuration;
@@ -103,10 +110,18 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
         this.resolverProvider = resolverProvider;
     }
 
+    public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
+        return projectDependenciesBuildInstruction;
+    }
+
+    public void setProjectDependenciesBuildInstruction(ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+    }
+
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++,
-                detachedConfigurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider);
+                detachedConfigurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
         for (Dependency dependency : dependencies) {
             detachedConfiguration.addDependency(dependency.copy());
         }

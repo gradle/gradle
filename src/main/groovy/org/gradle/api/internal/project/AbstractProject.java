@@ -177,7 +177,9 @@ public abstract class AbstractProject implements ProjectInternal {
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.internalRepository = internalRepository;
         this.configurationContainerFactory = configurationContainerFactory;
-        this.configurationContainer = configurationContainerFactory.createConfigurationContainer(createResolverProvider(), createArtifactsProvider());
+        this.configurationContainer = configurationContainerFactory.createConfigurationContainer(createResolverProvider(),
+                createDependencyMetaDataProvider(),
+                build.getStartParameter().getProjectDependenciesBuildInstruction());
         this.repositoryHandlerFactory = repositoryHandlerFactory;
         this.repositoryHandlerFactory.setConvention(convention);
         this.repositoryHandler = repositoryHandlerFactory.createRepositoryHandler();
@@ -223,7 +225,7 @@ public abstract class AbstractProject implements ProjectInternal {
         };
     }
 
-    private DependencyMetaDataProvider createArtifactsProvider() {
+    private DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProvider() {
             public InternalRepository getInternalRepository() {
                 return internalRepository;

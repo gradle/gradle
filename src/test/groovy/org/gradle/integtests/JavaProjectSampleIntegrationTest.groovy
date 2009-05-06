@@ -23,6 +23,11 @@ import org.custommonkey.xmlunit.XMLAssert
 import static org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.junit.Test
+import org.junit.Before
+import org.junit.After
+import static org.junit.Assert.*
+import org.gradle.util.GFileUtils
+import org.hamcrest.Matchers
 
 /**
  * @author Hans Dockter
@@ -37,19 +42,38 @@ class JavaProjectSampleIntegrationTest {
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
+
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
+    private File javaprojectDir
+    private List projects;
+
+
+
+    @Before
+    void setUp() {
+        javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
+        projects = [SHARED_NAME, API_NAME, WEBAPP_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
+        deleteBuildDir(projects)
+    }
+
+    @After
+    void tearDown() {
+        deleteBuildDir(projects)
+    }
+
+    private def deleteBuildDir(List projects) {
+        return projects.each {GFileUtils.deleteDirectory(new File(dist.samplesDir, "$it/build"))}
+    }
 
     @Test
     public void multiProjectjavaProjectSample() {
-        List projects = [SHARED_NAME, API_NAME, WEBAPP_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
-        File javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
 
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists').run()
+        executer.inDirectory(javaprojectDir).withTasks('dists').run()
 
         // Check classes and resources
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
@@ -77,33 +101,61 @@ class JavaProjectSampleIntegrationTest {
 
         // Check dist zip exists
         assertExists(javaprojectDir, API_NAME, "build/distributions/$API_NAME-1.0.zip".toString())
+    }
 
-        // Javdoc build
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'javadoc').run()
+    @Test
+    public void multiProjectJavaDoc() {
+        executer.inDirectory(javaprojectDir).withTasks('javadoc').run()
         assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
         assertTrue(fileText(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').contains("These are the shared classes."))
         assertExists(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
         assertTrue(fileText(javaprojectDir, API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').contains("These are the API classes"))
         assertExists(javaprojectDir, WEBAPP_PATH, 'build/docs/javadoc/index.html')
+    }
+
+    @Test
+    public void multiProjectPartialBuild() {
+        String packagePrefix = 'build/classes/org/gradle'
+        String testPackagePrefix = 'build/test-classes/org/gradle'
 
         // Partial build using current directory
-        executer.inDirectory(new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME")).withTasks('clean', 'libs').run()
+        executer.inDirectory(new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME")).withTasks('libs').run()
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
 
         // Partial build using task path
         executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:compile".toString()).run()
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         assertDoesNotExist(javaprojectDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
+    }
 
-        // This test is also important for test cleanup
+    @Test
+    public void clean() {
+        executer.inDirectory(javaprojectDir).withTasks('compile').run()
         executer.inDirectory(javaprojectDir).withTasks('clean').run()
         projects.each {assert !(new File(dist.samplesDir, "$it/build").exists())}
     }
 
     @Test
+    public void noRebuildOfProjectDependencies() {
+        File apiDir = new File(javaprojectDir, API_NAME)
+        executer.inDirectory(apiDir).withTasks('compile').run()
+        File sharedJar = new File(javaprojectDir, ".gradle/build-resolver/org.gradle/shared/1.0/jars/shared.jar")
+        long oldTimeStamp = sharedJar.lastModified()
+        executer.inDirectory(apiDir).withTasks('clean', 'compile').withArguments("-a").run()
+        long newTimeStamp = sharedJar.lastModified()
+        assertThat(newTimeStamp, Matchers.equalTo(oldTimeStamp))
+    }
+
+    @Test
+    public void additionalProjectDependenciesTasks() {
+        File apiDir = new File(javaprojectDir, API_NAME)
+        executer.inDirectory(apiDir).withTasks('compile').withArguments("-A javadoc").run()
+        assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
+    }
+
+    @Test
     public void quickstartJavaProject() {
         File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
-
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'dists', 'uploadMaster').run()
 
@@ -120,7 +172,6 @@ class JavaProjectSampleIntegrationTest {
     
     @Test
     public void javaProjectEclipseGeneration() {
-        File javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
         executer.inDirectory(javaprojectDir).withTasks('eclipse').run()
 
         String cachePath = System.properties['user.home'] + '/.gradle/cache'

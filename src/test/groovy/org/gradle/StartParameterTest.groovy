@@ -37,6 +37,7 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.groovy.scripts.StrictScriptSource
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 
 
 /**
@@ -54,6 +55,7 @@ class StartParameterTest {
         testObj.settingsFile = 'settingsfile' as File
         testObj.buildFile = 'buildfile' as File
         testObj.taskNames = ['a']
+        testObj.projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction([])
         testObj.currentDir = new File('a')
         testObj.searchUpwards = false
         testObj.projectProperties = [a: 'a']

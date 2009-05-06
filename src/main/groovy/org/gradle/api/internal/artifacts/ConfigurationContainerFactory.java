@@ -19,10 +19,13 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 
 /**
  * @author Hans Dockter
  */
 public interface ConfigurationContainerFactory {
-    ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider);
+    ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
+                                                      DependencyMetaDataProvider dependencyMetaDataProvider,
+                                                      ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction);
 }

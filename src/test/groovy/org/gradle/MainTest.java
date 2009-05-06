@@ -18,6 +18,7 @@ package org.gradle;
 
 import joptsimple.OptionException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuildExecuter;
@@ -25,6 +26,7 @@ import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
+import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
 import org.gradle.groovy.scripts.StrictScriptSource;
 import static org.hamcrest.Matchers.*;
@@ -55,19 +57,22 @@ public class MainTest {
     private final static String TEST_GRADLE_HOME = "roadToNowhere";
 
     private String previousGradleHome;
-    private File expectedBuildFile;
-    private File expectedGradleUserHome;
+    private File expectedBuildFile = null;
+    private File expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME);
     private File expectedGradleImportsFile;
     private File expectedPluginPropertiesFile;
     private File expectedProjectDir;
-    private List expectedTaskNames;
-    private Map expectedSystemProperties;
-    private Map expectedProjectProperties;
-    private CacheUsage expectedCacheUsage;
-    private boolean expectedSearchUpwards;
-    private String expectedEmbeddedScript;
+    private List expectedTaskNames = toList();
+    private ProjectDependenciesBuildInstruction expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(
+            WrapUtil.<String>toList()
+    );
+    private Map expectedSystemProperties = new HashMap();
+    private Map expectedProjectProperties = new HashMap();
+    private CacheUsage expectedCacheUsage = CacheUsage.ON;
+    private boolean expectedSearchUpwards = true;
+    private String expectedEmbeddedScript = "somescript";
+    private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private StartParameter actualStartParameter;
-    private LogLevel expectedLogLevel;
 
     private Gradle gradleMock;
     private JUnit4Mockery context = new JUnit4Mockery();
@@ -86,18 +91,9 @@ public class MainTest {
             }
         });
 
-        expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME);
         expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME).getCanonicalFile();
         expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES).getCanonicalFile();
-        expectedTaskNames = toList();
         expectedProjectDir = new File("").getCanonicalFile();
-        expectedProjectProperties = new HashMap();
-        expectedSystemProperties = new HashMap();
-        expectedBuildFile = null;
-        expectedCacheUsage = CacheUsage.ON;
-        expectedSearchUpwards = true;
-        expectedEmbeddedScript = "somescript";
-        expectedLogLevel = LogLevel.LIFECYCLE;
     }
 
     @After
@@ -122,6 +118,7 @@ public class MainTest {
     private void checkStartParameter(StartParameter startParameter, boolean emptyTasks) {
         assertEquals(expectedBuildFile, startParameter.getBuildFile());
         assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
+        assertEquals(expectedProjectDependenciesBuildInstruction, startParameter.getProjectDependenciesBuildInstruction());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
@@ -327,6 +324,19 @@ public class MainTest {
     }
 
     @Test
+    public void testMainWithNoProjectDependencyRebuild() throws Throwable {
+        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null);
+        checkMain("-a");
+    }
+
+    @Test
+    public void testMainWithProjectDependencyTaskNames() throws Throwable {
+        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(
+                WrapUtil.toList("task1", "task2"));
+        checkMain("-Atask1", "-A task2");
+    }
+
+    @Test
     public void testMainWithInfoLoggingOptions() throws Throwable {
         expectedLogLevel = LogLevel.INFO;
         checkMain("-i");
@@ -373,9 +383,29 @@ public class MainTest {
     }
 
     @Test
-    public void testMainWithPParameterWithoutArgument() throws Throwable {
+    public void testMainWithLowerPParameterWithoutArgument() throws Throwable {
         try {
             checkMainFails("-p");
+            fail();
+        } catch (OptionException e) {
+            // ignore
+        }
+    }
+
+    @Test
+    public void testMainWithAParameterWithoutArgument() throws Throwable {
+        try {
+            checkMainFails("-A");
+            fail();
+        } catch (OptionException e) {
+            // ignore
+        }
+    }
+
+    @Test
+    public void testMainWithUpperAAndLowerAParameter() throws Throwable {
+        try {
+            checkMainFails("-a -Atask1");
             fail();
         } catch (OptionException e) {
             // ignore

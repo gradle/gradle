@@ -19,7 +19,7 @@ import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -47,6 +49,8 @@ public class Main {
 
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
+    private static final String PROJECT_DEPENDENCY_TASK_NAMES = "A";
+    private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
     private static final String PLUGIN_PROPERTIES_FILE = "l";
     private static final String DEFAULT_IMPORT_FILE = "K";
     private static final String BUILD_FILE = "b";
@@ -114,6 +118,8 @@ public class Main {
                 acceptsAll(WrapUtil.toList(SYSTEM_PROP, "system-prop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(PROJECT_PROP, "project-prop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
                 acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks"), "Specify additional tasks for building project dependencies.").withRequiredArg().ofType(String.class);
+                acceptsAll(WrapUtil.toList(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild"), "Do not rebuild project dependencies.");
                 acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
             }
         };
@@ -208,6 +214,24 @@ public class Main {
             System.err.println(String.format("Error: The -%s and -%s options cannot be used together.", TASKS, PROPERTIES));
             buildCompleter.exit(new InvalidUserDataException());
         }
+
+        if (options.has(PROJECT_DEPENDENCY_TASK_NAMES) && options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
+            System.err.println(String.format("Error: The -%s and -%s options cannot be used together.", PROJECT_DEPENDENCY_TASK_NAMES,
+                    NO_PROJECT_DEPENDENCY_REBUILD));
+            buildCompleter.exit(new InvalidUserDataException());
+        } else if (options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
+            startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(null));
+        } else if (options.has(PROJECT_DEPENDENCY_TASK_NAMES)) {
+            List<String> normalizedTaskNames = new ArrayList<String>();
+            for (Iterator iterator = options.valuesOf(PROJECT_DEPENDENCY_TASK_NAMES).iterator(); iterator.hasNext();) {
+                String taskName = (String) iterator.next();
+                normalizedTaskNames.add(taskName.trim());
+            }
+            startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(
+                normalizedTaskNames        
+            ));
+        }
+        
         if (options.has(TASKS)) {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
         } else if (options.has(PROPERTIES)) {

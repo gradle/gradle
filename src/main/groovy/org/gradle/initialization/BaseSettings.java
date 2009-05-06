@@ -23,6 +23,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
@@ -44,10 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -133,7 +131,8 @@ public class BaseSettings implements SettingsInternal {
                 return repositoryHandler.getResolvers();
             }
         };
-        return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider).add(BUILD_CONFIGURATION);
+        return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider,
+                startParameter.getProjectDependenciesBuildInstruction()).add(BUILD_CONFIGURATION);
     }
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {

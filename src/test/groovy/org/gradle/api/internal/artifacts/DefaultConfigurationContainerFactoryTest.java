@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -41,16 +42,21 @@ public class DefaultConfigurationContainerFactoryTest {
         ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
         final DependencyMetaDataProvider dependencyMetaDataProviderStub = context.mock(DependencyMetaDataProvider.class);
         final InternalRepository internalRepository = context.mock(InternalRepository.class);
+        ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy = new ProjectDependenciesBuildInstruction(null);
         context.checking(new Expectations() {{
             allowing(dependencyMetaDataProviderStub).getInternalRepository(); will(returnValue(internalRepository));
         }});
 
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
-                new DefaultConfigurationContainerFactory().createConfigurationContainer(resolverProviderDummy, dependencyMetaDataProviderStub);
-        
+                new DefaultConfigurationContainerFactory().createConfigurationContainer(
+                        resolverProviderDummy,
+                        dependencyMetaDataProviderStub,
+                        projectDependenciesBuildInstructionDummy);
+
         assertThat(configurationContainer.getIvyService(), IsNull.notNullValue());
         assertThat(configurationContainer.getIvyService().getInternalRepository(), sameInstance(internalRepository));
         assertThat(configurationContainer.getDependencyMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
         assertThat(configurationContainer.getResolverProvider(), sameInstance(resolverProviderDummy));
+        assertThat(configurationContainer.getProjectDependenciesBuildInstruction(), sameInstance(projectDependenciesBuildInstructionDummy));
     }
 }

@@ -23,17 +23,18 @@ import org.gradle.api.tasks.TaskDependency;
  * @author Hans Dockter
  */
 public abstract class AbstractPublishArtifact implements PublishArtifact {
-    private DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+    private TaskDependency taskDependency;
 
     public AbstractPublishArtifact(Object... tasks) {
-        taskDependency.add(tasks);
+        taskDependency = new DefaultTaskDependency();
+        ((DefaultTaskDependency) taskDependency).add(tasks);
     }
 
     public TaskDependency getTaskDependency() {
         return taskDependency;
     }
 
-    public void setTaskDependency(DefaultTaskDependency taskDependency) {
+    public void setTaskDependency(TaskDependency taskDependency) {
         this.taskDependency = taskDependency;
     }
 

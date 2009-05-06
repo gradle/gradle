@@ -19,6 +19,7 @@ package org.gradle;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.execution.TaskNameResolvingBuildExecuter;
 import org.gradle.execution.ProjectDefaultsBuildExecuter;
 import org.gradle.execution.BuildExecuter;
@@ -34,10 +35,7 @@ import org.gradle.initialization.BuildFileProjectSpec;
 import org.gradle.initialization.DefaultProjectSpec;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>{@code StartParameter} defines the configuration used by a {@link Gradle} instance to execute a build. The
@@ -53,6 +51,8 @@ import java.util.Map;
  */
 public class StartParameter {
     private List<String> taskNames = new ArrayList<String>();
+    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction =
+            new ProjectDependenciesBuildInstruction(Collections.<String>emptyList());
     private File currentDir;
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
@@ -86,6 +86,7 @@ public class StartParameter {
         StartParameter startParameter = new StartParameter();
         startParameter.buildFile = buildFile;
         startParameter.taskNames = taskNames;
+        startParameter.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
         startParameter.currentDir = currentDir;
         startParameter.searchUpwards = searchUpwards;
         startParameter.projectProperties = projectProperties;
@@ -331,6 +332,14 @@ public class StartParameter {
 
     public void setPluginPropertiesFile(File pluginPropertiesFile) {
         this.pluginPropertiesFile = pluginPropertiesFile;
+    }
+
+    public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
+        return projectDependenciesBuildInstruction;
+    }
+
+    public void setProjectDependenciesBuildInstruction(ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
     public CacheUsage getCacheUsage() {

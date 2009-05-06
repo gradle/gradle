@@ -18,11 +18,15 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.integration.junit4.JMock;
+import org.jmock.Expectations;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,6 +73,23 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         assertEquals(dependencyProject.getName(), projectDependency.getName());
         assertEquals(dependencyProject.getGroup().toString(), projectDependency.getGroup());
         assertEquals(dependencyProject.getVersion().toString(), projectDependency.getVersion());
+    }
+
+    @Test
+    public void getConfiguration() {
+        final Configuration configurationDummy = context.mock(Configuration.class);
+        final ConfigurationHandler configurationHandlerStub = context.mock(ConfigurationHandler.class);
+        final Project projectStub = context.mock(Project.class);
+        context.checking(new Expectations() {{
+            allowing(projectStub).getConfigurations();
+            will(returnValue(configurationHandlerStub));
+
+            allowing(configurationHandlerStub).getByName("conf1");
+            will(returnValue(configurationDummy));
+        }});
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub);
+        projectDependency.setDependencyConfiguration("conf1");
+        assertThat(projectDependency.getConfiguration(), sameInstance(configurationDummy));
     }
 
     @Test

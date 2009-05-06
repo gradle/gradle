@@ -190,7 +190,7 @@ class HelperUtil {
       new DefaultModuleDependency(group, name, version)
     }
 
-    static PublishArtifact createPublishArtifact(String name, String extension, String type, String classifier) {
+    static DefaultPublishArtifact createPublishArtifact(String name, String extension, String type, String classifier) {
       new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(""))
     }
 
@@ -246,7 +246,7 @@ class HelperUtil {
     }
 
     static org.gradle.api.artifacts.Configuration createConfiguration(String name) {
-        return new DefaultConfiguration(name, null, null, null, null)
+        return new DefaultConfiguration(name, null, null, null, null, null)
     }
 }
 
