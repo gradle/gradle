@@ -33,7 +33,7 @@ import org.hamcrest.Matchers
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class JavaProjectSampleIntegrationTest {
+class SamplesJavaMultiProjectIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'javaproject'
     static final String SHARED_NAME = 'shared'
@@ -42,14 +42,12 @@ class JavaProjectSampleIntegrationTest {
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
+    private File javaprojectDir
+    private List projects;
 
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
-    private File javaprojectDir
-    private List projects;
-
-
 
     @Before
     void setUp() {
@@ -152,34 +150,17 @@ class JavaProjectSampleIntegrationTest {
         executer.inDirectory(apiDir).withTasks('compile').withArguments("-A javadoc").run()
         assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
     }
-
-    @Test
-    public void quickstartJavaProject() {
-        File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists', 'uploadMaster').run()
-
-        // Check tests have run
-        assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
-
-        // Check jar exists
-        assertExists(javaprojectDir, "build/quickstart-1.0.jar")
-
-        // Check jar uploaded
-        assertExists(javaprojectDir, 'repos/quickstart-1.0.jar')
-    }
     
     @Test
-    public void javaProjectEclipseGeneration() {
+    public void eclipseGeneration() {
         executer.inDirectory(javaprojectDir).withTasks('eclipse').run()
 
         String cachePath = System.properties['user.home'] + '/.gradle/cache'
-        compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
                 file(javaprojectDir, API_NAME, ".project").text)
-        compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
                 file(javaprojectDir, WEBAPP_PATH, ".project").text)
-        compareXmlWithIgnoringOrder(JavaProjectSampleIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
                 file(javaprojectDir, WEBAPP_PATH, ".project").text)
         compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedApiClasspathFile.txt", cachePath),
                 file(javaprojectDir, API_NAME, ".classpath").text)
@@ -204,7 +185,7 @@ class JavaProjectSampleIntegrationTest {
 
     private static String replaceWithCachePath(String resourcePath, String cachePath) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(JavaProjectSampleIntegrationTest.getResourceAsStream(resourcePath).text).make(cachePath: new File(cachePath).canonicalPath).toString().replace('\\', '/')
+        templateEngine.createTemplate(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream(resourcePath).text).make(cachePath: new File(cachePath).canonicalPath).toString().replace('\\', '/')
     }
            
     private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {

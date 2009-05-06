@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.GradleDistribution
 import org.gradle.integtests.GradleExecuter
-import org.gradle.integtests.JavaProjectSampleIntegrationTest
+import org.gradle.integtests.TestFile
 import org.junit.Test
 import org.junit.runner.RunWith
 
