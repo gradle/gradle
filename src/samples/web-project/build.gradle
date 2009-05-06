@@ -1,7 +1,5 @@
 import org.apache.commons.httpclient.HttpClient
 import org.apache.commons.httpclient.methods.GetMethod
-import org.mortbay.jetty.nio.SelectChannelConnector
-import org.mortbay.component.LifeCycle
 
 group = 'gradle'
 version = '1.0'
@@ -26,11 +24,11 @@ dependencies {
     moreLibs ":otherConf:1.0"
 }
 
-archive_war {
+war {
     fileSet(dir: file('src/rootContent')) // adds a file-set to the root of the archive
     webInf(dir: file('src/additionalWebInf')) // adds a file-set to the WEB-INF dir.
     additionalLibs(dir: file('additionalLibs')) // adds a file-set to the WEB-INF/lib dir.
-//    libConfigurations('moreLibs') // adds a configuration to the WEB-INF/lib dir.
+    libConfigurations('moreLibs') // adds a configuration to the WEB-INF/lib dir.
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 
@@ -47,8 +45,8 @@ createTask('runWarTest', dependsOn: jettyRunWar) {
 }
 
 File explodedDir = "$buildDir/exploded" as File
-createTask('explodedWar', dependsOn: archive_war) {
-    ant.unzip(src: archive_war.getArchivePath(), dest: explodedDir)
+createTask('explodedWar', dependsOn: war) {
+    ant.unzip(src: war.archivePath, dest: explodedDir)
 }
 
 jettyRunExploded {

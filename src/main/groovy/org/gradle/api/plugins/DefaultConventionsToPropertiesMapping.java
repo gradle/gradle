@@ -187,6 +187,11 @@ public class DefaultConventionsToPropertiesMapping {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(JavaPluginConvention.class).getMetaInf();
             }
+        },
+                "resourceCollections", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return WrapUtil.toList(new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
+            }
         }));
     }
 
@@ -216,20 +221,4 @@ public class DefaultConventionsToPropertiesMapping {
             }
         }));
     }
-
-    public final static Map<String, ConventionValue> LIB = GUtil.map(
-            "defaultArchiveTypes", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getArchiveTypes();
-        }
-    });
-
-    public final static Map<String, ConventionValue> DIST = GUtil.map(
-            "defaultArchiveTypes", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getArchiveTypes();
-        }
-    });
-
-
 }

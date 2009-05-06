@@ -189,6 +189,29 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
+    public void canGetAllDomainObjectsOfTypeOrderedByName() {
+        class OtherBean extends Bean {}
+        Bean bean1 = new Bean();
+        OtherBean bean2 = new OtherBean();
+        Bean bean3 = new Bean();
+
+        container.addObject("c", bean3);
+        container.addObject("a", bean1);
+        container.addObject("b", bean2);
+
+        assertThat(container.findByType(Bean.class), equalTo(toLinkedSet(bean1, bean2, bean3)));
+        assertThat(container.findByType(OtherBean.class), equalTo(toLinkedSet(bean2)));
+    }
+
+    @Test
+    public void getAllDomainObjectsOfTypeReturnsEmptySetWhenNoMatches() {
+        class OtherBean extends Bean {}
+        container.addObject("a", new Bean());
+
+        assertTrue(container.findByType(OtherBean.class).isEmpty());
+    }
+    
+    @Test
     public void eachObjectIsAvailableAsADynamicProperty() {
         Bean bean = new Bean();
         container.addObject("child", bean);

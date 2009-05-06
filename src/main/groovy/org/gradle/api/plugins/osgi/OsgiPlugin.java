@@ -21,8 +21,6 @@ import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.Jar;
 
 import java.io.File;
@@ -40,12 +38,8 @@ public class OsgiPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
         Action<Jar> configureAction = createOsgiConfigureAction();
-        Bundle libsTask = ((Bundle) project.task(JavaPlugin.LIBS_TASK_NAME));
-        for (AbstractArchiveTask abstractArchiveTask : libsTask.getArchiveTasks()) {
-            if (abstractArchiveTask instanceof Jar) {
-                Jar jar = (Jar) abstractArchiveTask;
-                configureAction.execute(jar);
-            }
+        for (Jar jar : project.getTasks().findByType(Jar.class)) {
+            configureAction.execute(jar);
         }
         project.getTasks().whenTaskAdded(Jar.class, configureAction);
     }

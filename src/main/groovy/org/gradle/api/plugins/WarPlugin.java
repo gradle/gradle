@@ -51,11 +51,12 @@ public class WarPlugin implements Plugin {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
+    public static final String WAR_TASK_NAME = "war";
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
-        project.task(project.getArchivesTaskBaseName() + "_jar").setEnabled(false);
-        War war = ((Bundle) project.task("libs")).war();
+        project.task(JavaPlugin.JAR_TASK_NAME).setEnabled(false);
+        War war = project.getTasks().add(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());

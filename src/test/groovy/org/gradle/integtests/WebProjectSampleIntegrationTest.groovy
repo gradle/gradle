@@ -42,7 +42,7 @@ class WebProjectSampleIntegrationTest {
         ['root.txt', 'WEB-INF/classes/org/MyClass.class', 'WEB-INF/lib/compile-1.0.jar', 'WEB-INF/lib/runtime-1.0.jar',
                 'WEB-INF/lib/additional-1.0.jar', 'WEB-INF/lib/otherConf-1.0.jar', 'WEB-INF/additional.xml', 'WEB-INF/webapp.xml', 'WEB-INF/web.xml',
                 'webapp.html'].each {
-//            assert new File("$unjarPath/$it").isFile()
+            assert new File("$unjarPath/$it").isFile()
         }
 
         checkJettyPlugin(gradleHome, webProjectDir)

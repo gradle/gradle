@@ -39,6 +39,8 @@ public interface DomainObjectContainer<T> extends Iterable<T> {
 
     T getAt(String name) throws UnknownDomainObjectException;
 
+    <S extends T> Set<S> findByType(Class<S> type);
+
     Rule addRule(Rule rule);
 
     List<Rule> getRules();

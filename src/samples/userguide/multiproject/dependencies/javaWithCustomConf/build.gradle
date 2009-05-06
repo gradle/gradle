@@ -11,7 +11,9 @@ project(':api') {
     dependencies {
         compile project(':shared')
     }
-    libs.jar(baseName: 'api-spi', confs: ['spi']) {
+    task spiJar(type: Jar) {
+        baseName = 'api-spi'
+        confs = ['spi']
         fileSet() {
             include('org/gradle/sample/api/**')
         }

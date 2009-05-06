@@ -99,6 +99,14 @@ public interface TaskContainer extends Iterable<Task> {
     Task getByName(String name) throws UnknownTaskException;
 
     /**
+     * Returns the tasks in this container of the given type.
+     *
+     * @param type The type of tasks to find.
+     * @return The matching tasks. Returns an empty set if there are no such tasks in this container.
+     */
+    <T extends Task> Set<T> findByType(Class<T> type);
+
+    /**
      * Adds an {@code Action} to be executed when a task is added to this container.
      *
      * @param action The action to be executed
@@ -204,8 +212,8 @@ public interface TaskContainer extends Iterable<Task> {
     Task add(String name, TaskAction taskAction) throws InvalidUserDataException;
 
     /**
-     * <p>Creates a {@link Task} with the given name adds it to this container. The given closure is added to the
-     * task as an action.</p>
+     * <p>Creates a {@link Task} with the given name adds it to this container. The given closure is added to the task
+     * as an action.</p>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>

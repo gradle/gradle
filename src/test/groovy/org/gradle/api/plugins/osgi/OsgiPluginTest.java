@@ -48,10 +48,10 @@ public class OsgiPluginTest {
     public void addsAnOsgiManifestToEachJar() {
         osgiPlugin.apply(project, new PluginRegistry(), null);
 
-        Task task = project.task("archive_jar");
+        Task task = project.task(JavaPlugin.JAR_TASK_NAME);
         assertThat(task.property("osgi"), is(OsgiManifest.class));
 
-        task = project.createTask(WrapUtil.toMap("type", Jar.class), "otherJar");
+        task = project.getTasks().add("otherJar", Jar.class);
         assertThat(task.property("osgi"), is(OsgiManifest.class));
     }
 }

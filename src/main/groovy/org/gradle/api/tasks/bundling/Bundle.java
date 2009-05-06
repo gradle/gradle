@@ -21,8 +21,10 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.GUtil;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -32,13 +34,9 @@ public class Bundle extends ConventionTask {
     public static final String APPENDIX_KEY = "appendix";
     public static final String CLASSIFIER_KEY = "classifier";
 
-    private Set childrenDependOn = new HashSet();
-
     private Map<String, ArchiveType> defaultArchiveTypes;
 
     private List<AbstractArchiveTask> archiveTasks = new ArrayList<AbstractArchiveTask>();
-
-    private File defaultDestinationDir;
 
     public Bundle(Project project, String name) {
         super(project, name);
@@ -57,7 +55,6 @@ public class Bundle extends ConventionTask {
         String classifier = args.get(CLASSIFIER_KEY) != null ? "_" + args.get(CLASSIFIER_KEY) : "";
         String taskName = taskBaseName + classifier + "_" + type.getDefaultExtension();
         AbstractArchiveTask archiveTask = createArchiveTask(type, args, classifier, taskName);
-        setTaskDependsOn(archiveTask, getChildrenDependOn());
         this.dependsOn(taskName);
         archiveTasks.add(archiveTask);
         applyConfigureClosure(configureClosure, archiveTask);
@@ -74,7 +71,6 @@ public class Bundle extends ConventionTask {
         }
         archiveTask.setClassifier(GUtil.isTrue(classifier) ? classifier.substring(1) : "");
         archiveTask.setExtension(type.getDefaultExtension());
-        archiveTask.setDestinationDir(defaultDestinationDir);
         return archiveTask;
     }
 
@@ -82,34 +78,6 @@ public class Bundle extends ConventionTask {
         if (configureClosure != null) {
             archiveTask.configure(configureClosure);
         }
-    }
-
-    private void setTaskDependsOn(AbstractArchiveTask task, Set<Object> childrenDependOn) {
-        if (GUtil.isTrue(childrenDependOn)) {
-            task.dependsOn(childrenDependOn);
-        } else {
-            createDependsOnForNonArchiveParentTasks(task);
-        }
-    }
-
-    private void createDependsOnForNonArchiveParentTasks(AbstractArchiveTask task) {
-        Set taskDependsOn = new HashSet();
-        for (Object dependsOn : getDependsOn()) {
-            if (!isChildArchive(dependsOn)) {
-                taskDependsOn.add(dependsOn);
-            }
-        }
-        task.dependsOn(taskDependsOn);
-    }
-
-    private boolean isChildArchive(Object dependsOn) {
-        String dependsOnPath = dependsOn.toString();
-        for (AbstractArchiveTask archiveTask : archiveTasks) {
-            if (archiveTask.getName().equals(dependsOnPath)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public Jar jar() {
@@ -212,14 +180,6 @@ public class Bundle extends ConventionTask {
         return tar;
     }
 
-    public Set getChildrenDependOn() {
-        return (Set) conv(childrenDependOn, "childrenDependOn");
-    }
-
-    public void setChildrenDependOn(Set<String> childrenDependOn) {
-        this.childrenDependOn = childrenDependOn;
-    }
-
     public Map<String, ArchiveType> getDefaultArchiveTypes() {
         return (Map<String, ArchiveType>) conv(defaultArchiveTypes, "defaultArchiveTypes");
     }
@@ -237,13 +197,5 @@ public class Bundle extends ConventionTask {
 
     protected void setArchiveTasks(List<AbstractArchiveTask> archiveTasks) {
         this.archiveTasks = archiveTasks;
-    }
-
-    public File getDefaultDestinationDir() {
-        return defaultDestinationDir;
-    }
-
-    public void setDefaultDestinationDir(Object defaultDestinationDir) {
-        this.defaultDestinationDir = new File(defaultDestinationDir.toString());
     }
 }

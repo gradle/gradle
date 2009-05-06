@@ -66,6 +66,16 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return Specs.filterIterable(objects.values(), spec);
     }
 
+    public <S extends T> Set<S> findByType(final Class<S> type) {
+        Set<S> matches = new LinkedHashSet<S>();
+        for (T t : objects.values()) {
+            if (type.isInstance(t)) {
+                matches.add(type.cast(t));
+            }
+        }
+        return matches;
+    }
+
     public Map<String, T> getAsMap() {
         return Collections.unmodifiableMap(objects);
     }

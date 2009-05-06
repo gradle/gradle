@@ -23,7 +23,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "usePlugin('war')",
-                "archive_war.customName = 'test.war'"
+                "war.customName = 'test.war'"
         );
         testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
 

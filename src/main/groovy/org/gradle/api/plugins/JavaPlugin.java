@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -27,16 +28,12 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.tasks.Clean;
-import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.Copy;
-import org.gradle.api.tasks.Upload;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.bundling.*;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -55,6 +52,7 @@ public class JavaPlugin implements Plugin {
     public static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
     public static final String COMPILE_TESTS_TASK_NAME = "compileTests";
     public static final String TEST_TASK_NAME = "test";
+    public static final String JAR_TASK_NAME = "jar";
     public static final String LIBS_TASK_NAME = "libs";
     public static final String DISTS_TASK_NAME = "dists";
     public static final String JAVADOC_TASK_NAME = "javadoc";
@@ -107,8 +105,6 @@ public class JavaPlugin implements Plugin {
         configureTestCompile(project);
 
         configureArchives(project);
-        configureLibs(project, javaConvention);
-        configureDists(project, javaConvention);
 
         configureEclipse(project);
         configureEclipseWtpModule(project);
@@ -294,46 +290,56 @@ public class JavaPlugin implements Plugin {
         return upload;
     }
 
-    private void configureArchives(Project project) {
+    private void configureArchives(final Project project) {
         project.getTasks().whenTaskAdded(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
                 if (task instanceof War) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.WAR);
+                    task.dependsOn(TEST_TASK_NAME);
                 }
                 else if (task instanceof Jar) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
-                }
-                else if (task instanceof Zip) {
-                    task.conventionMapping(DefaultConventionsToPropertiesMapping.ZIP);
+                    task.dependsOn(TEST_TASK_NAME);
                 }
                 else if (task instanceof Tar) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.TAR);
+                    task.dependsOn(LIBS_TASK_NAME);
+                }
+                else if (task instanceof Zip) {
+                    task.conventionMapping(DefaultConventionsToPropertiesMapping.ZIP);
+                    task.dependsOn(LIBS_TASK_NAME);
                 }
             }
         });
-    }
 
-    private void configureLibs(Project project, final JavaPluginConvention javaConvention) {
-        Bundle libsBundle = project.getTasks().add(LIBS_TASK_NAME, Bundle.class);
-        libsBundle.dependsOn(TEST_TASK_NAME);
-        libsBundle.setDefaultDestinationDir(project.getBuildDir());
-        libsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.LIB);
-        Jar jar = libsBundle.jar();
-        jar.conventionMapping(WrapUtil.<String, ConventionValue>toMap("resourceCollections",
-                new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return WrapUtil.toList(new FileSet(javaConvention.getClassesDir()));
-                    }
-                }));
+        final Spec<Task> isLib = new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return element instanceof Jar;
+            }
+        };
+        Task libsTask = project.getTasks().add(LIBS_TASK_NAME);
+        libsTask.dependsOn(new TaskDependency(){
+            public Set<? extends Task> getDependencies(Task task) {
+                return project.getTasks().findAll(isLib);
+            }
+        });
+
+        final Spec<Task> isDist = new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return element instanceof Zip && !isLib.isSatisfiedBy(element);
+            }
+        };
+        Task distsTask = project.getTasks().add(DISTS_TASK_NAME);
+        distsTask.dependsOn(LIBS_TASK_NAME);
+        distsTask.dependsOn(new TaskDependency(){
+            public Set<? extends Task> getDependencies(Task task) {
+                return project.getTasks().findAll(isDist);
+            }
+        });
+
+        Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Generates a jar archive with all the compiled classes.");
         project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
-    }
-
-    private void configureDists(Project project, JavaPluginConvention javaPluginConvention) {
-        Bundle distsBundle = project.getTasks().add(DISTS_TASK_NAME, Bundle.class);
-        distsBundle.dependsOn(LIBS_TASK_NAME);
-        distsBundle.setDefaultDestinationDir(javaPluginConvention.getDistsDir());
-        distsBundle.conventionMapping(DefaultConventionsToPropertiesMapping.DIST);
     }
 
     private void configureTest(final Project project) {

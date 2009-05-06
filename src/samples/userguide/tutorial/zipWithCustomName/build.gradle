@@ -1,10 +1,10 @@
-usePlugin('java')
+usePlugin 'java'
 version = 1.0
-dists {
-    // Creates a task archive_zip which generates an archive 'customName-1.0.zip'
-    zip() {
-        fileSet(dir: 'somedir')
-        baseName = 'customName'
-    }
+
+task myZip(type: Zip)
+myZip {
+    fileSet(dir: 'somedir')
+    baseName = 'customName'
 }
-println archive_zip.archiveName	
+
+println myZip.archiveName
