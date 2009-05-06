@@ -67,7 +67,7 @@ public interface ResolverContainer extends IConventionAware, Iterable<Dependency
     String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
     String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
     String DEFAULT_CACHE_NAME = "default-gradle-cache";
-    String BUILD_RESOLVER_NAME = "build-resolver";
+    String INTERNAL_REPOSITORY_NAME = "internal-repository";
     String DEFAULT_CACHE_DIR_NAME = "cache";
     String TMP_CACHE_DIR_NAME = Project.TMP_DIR_NAME + "/tmpIvyCache";
     String RESOLVER_NAME = "name";

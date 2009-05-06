@@ -80,7 +80,7 @@ public class BuildSourceBuilder {
             // the build is executed, the Gradle class should offer distinct methods for gettting an evaluated
             // project tree and running a build against such a tree. In the case of a valid cache, this would also
             // save the time to build the dag.
-            File buildResolverDir = new File(startParameter.getCurrentDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.BUILD_RESOLVER_NAME);
+            File buildResolverDir = new File(startParameter.getCurrentDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.INTERNAL_REPOSITORY_NAME);
 
             StartParameter startParameterArg = startParameter.newInstance();
             startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));

@@ -137,7 +137,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     public void noRebuildOfProjectDependencies() {
         File apiDir = new File(javaprojectDir, API_NAME)
         executer.inDirectory(apiDir).withTasks('compile').run()
-        File sharedJar = new File(javaprojectDir, ".gradle/build-resolver/org.gradle/shared/1.0/jars/shared.jar")
+        File sharedJar = new File(javaprojectDir, ".gradle/internal-repository/org.gradle/shared/1.0/jars/shared.jar")
         long oldTimeStamp = sharedJar.lastModified()
         executer.inDirectory(apiDir).withTasks('clean', 'compile').withArguments("-a").run()
         long newTimeStamp = sharedJar.lastModified()

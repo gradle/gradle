@@ -41,7 +41,7 @@ public class DefaultInternalRepository extends FileSystemResolver implements Int
 
     private void configure(File dir) {
         setRepositoryCacheManager(createCacheManager());
-        setName(ResolverContainer.BUILD_RESOLVER_NAME);
+        setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
         String pattern = String.format(dir.getAbsolutePath() + "/" + ResolverContainer.BUILD_RESOLVER_PATTERN);
         addIvyPattern(pattern);
         addArtifactPattern(pattern);
@@ -68,7 +68,7 @@ public class DefaultInternalRepository extends FileSystemResolver implements Int
     }
 
     public void settingsEvaluated(Settings settings) {
-        dir = new File(settings.getSettingsDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.BUILD_RESOLVER_NAME);
+        dir = new File(settings.getSettingsDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.INTERNAL_REPOSITORY_NAME);
         if (settings.getStartParameter().getCacheUsage() != CacheUsage.ON) {
             GradleUtil.deleteDir(dir);
         }

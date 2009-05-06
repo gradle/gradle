@@ -62,7 +62,7 @@ class BuildSourceBuilderTest {
         File testDir = HelperUtil.makeNewTestDir()
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
-        (testBuildResolverDir = new File(testBuildSrcDir, Project.TMP_DIR_NAME + '/' + ResolverContainer.BUILD_RESOLVER_NAME)).mkdir()
+        (testBuildResolverDir = new File(testBuildSrcDir, Project.TMP_DIR_NAME + '/' + ResolverContainer.INTERNAL_REPOSITORY_NAME)).mkdir()
         gradleFactoryMock = context.mock(GradleFactory)
         gradleMock = context.mock(Gradle)
         rootProjectMock = context.mock(Project)
