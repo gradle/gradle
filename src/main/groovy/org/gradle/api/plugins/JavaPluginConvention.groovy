@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.PluginUtil
-import org.gradle.api.plugins.DefaultConventionsToPropertiesMapping
-import org.gradle.api.tasks.bundling.*
-import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.bundling.GradleManifest
 
 /**
  * @author Hans Dockter
@@ -28,19 +27,9 @@ import org.gradle.api.JavaVersion
 // todo Think about moving the mkdir method to the project.
 // todo Refactor to Java
 class JavaPluginConvention {
-    public static final Map DEFAULT_ARCHIVE_TYPES = [
-            jar: new ArchiveType("jar", Jar),
-            zip: new ArchiveType("zip", Zip),
-            war: new ArchiveType("war", War),
-            tar: new ArchiveType("tar", Tar),
-            'tar.gz': new ArchiveType("tar.gz", Tar),
-            'tar.bzip2': new ArchiveType("tar.bzip2", Tar)
-    ]
-
     Project project
 
     String srcRootName
-    String srcDocsDirName
     String classesDirName
     String testClassesDirName
     String distsDirName
@@ -48,8 +37,6 @@ class JavaPluginConvention {
     String docsDirName
     String javadocDirName
     String testResultsDirName
-    String reportsDirName
-    String webAppDirName
     String testReportDirName
     List srcDirNames = []
     List resourceDirNames = []
@@ -62,7 +49,6 @@ class JavaPluginConvention {
 
     private JavaVersion srcCompat
     private JavaVersion targetCompat
-    Map archiveTypes
     GradleManifest manifest
     List metaInf
 
@@ -71,22 +57,18 @@ class JavaPluginConvention {
         manifest = new GradleManifest()
         metaInf = []
         srcRootName = 'src'
-        srcDocsDirName = 'docs'
-        webAppDirName = 'main/webapp'
         classesDirName = 'classes'
         testClassesDirName = 'test-classes'
         distsDirName = 'distributions'
         libsDirName = ''
         docsDirName = 'docs'
         javadocDirName = 'javadoc'
-        reportsDirName = 'reports'
         testResultsDirName = 'test-results'
         testReportDirName = 'tests'
         srcDirNames << 'main/java'
         resourceDirNames << 'main/resources'
         testSrcDirNames << 'test/java'
         testResourceDirNames << 'test/resources'
-        archiveTypes = DEFAULT_ARCHIVE_TYPES
         PluginUtil.applyCustomValues(project.convention, this, customValues)
     }
 
@@ -116,14 +98,6 @@ class JavaPluginConvention {
 
     List getTestResourceDirs() {
         testResourceDirNames.collect {new File(srcRoot, it)} + floatingTestResourceDirs
-    }
-
-    File getSrcDocsDir() {
-        new File(srcRoot, srcDocsDirName)
-    }
-
-    File getWebAppDir() {
-        new File(srcRoot, webAppDirName)
     }
 
     File getClassesDir() {

@@ -55,6 +55,7 @@ public class WarPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
         project.task(JavaPlugin.JAR_TASK_NAME).setEnabled(false);
+        project.getConvention().getPlugins().put("war", new WarPluginConvention(project));
         War war = project.getTasks().add(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
@@ -84,7 +85,7 @@ public class WarPlugin implements Plugin {
                 "warResourceMappings", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs()));
-                        resourceMappings.put("/", WrapUtil.toList(java(convention).getWebAppDir()));
+                        resourceMappings.put("/", WrapUtil.toList(war(convention).getWebAppDir()));
                         return resourceMappings;
                     }
                 },
@@ -129,6 +130,10 @@ public class WarPlugin implements Plugin {
 
     private JavaPluginConvention java(Convention convention) {
         return convention.getPlugin(JavaPluginConvention.class);
+    }
+
+    private WarPluginConvention war(Convention convention) {
+        return convention.getPlugin(WarPluginConvention.class);
     }
 
     private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {

@@ -47,7 +47,6 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
     }
 
     @Test public void defaultValues() {
-        assert convention.archiveTypes.is(JavaPluginConvention.DEFAULT_ARCHIVE_TYPES)
         assert convention.manifest != null
         assertEquals([], convention.metaInf)
         assertEquals([], convention.floatingSrcDirs)
@@ -55,8 +54,6 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals([], convention.floatingResourceDirs)
         assertEquals([], convention.floatingTestResourceDirs)
         assertEquals('src', convention.srcRootName)
-        assertEquals('docs', convention.srcDocsDirName)
-        assertEquals('main/webapp', convention.webAppDirName)
         assertEquals('classes', convention.classesDirName)
         assertEquals('test-classes', convention.testClassesDirName)
         assertEquals('distributions', convention.distsDirName)
@@ -64,7 +61,6 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals('docs', convention.docsDirName)
         assertEquals('javadoc', convention.javadocDirName)
         assertEquals('test-results', convention.testResultsDirName)
-        assertEquals('reports', convention.reportsDirName)
         assertEquals('tests', convention.testReportDirName)
         assertEquals(['main/java'], convention.srcDirNames)
         assertEquals(['test/java'], convention.testSrcDirNames)
@@ -94,15 +90,12 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])] + convention.floatingTestSrcDirs, convention.testSrcDirs)
         assertEquals([new File(convention.srcRoot, convention.resourceDirNames[0])] + convention.floatingResourceDirs, convention.resourceDirs)
         assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])] + convention.floatingTestResourceDirs, convention.testResourceDirs)
-        assertEquals(new File(convention.srcRoot, convention.srcDocsDirName), convention.srcDocsDir)
-        assertEquals(new File(convention.srcRoot, convention.webAppDirName), convention.webAppDir)
         assertEquals(new File(project.buildDir, convention.classesDirName), convention.classesDir)
         assertEquals(new File(project.buildDir, convention.testClassesDirName), convention.testClassesDir)
         assertEquals(new File(project.buildDir, convention.distsDirName), convention.distsDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
         assertEquals(new File(convention.docsDir, convention.javadocDirName), convention.javadocDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
-        assertEquals(new File(project.buildDir, convention.reportsDirName), convention.reportsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
     }
 

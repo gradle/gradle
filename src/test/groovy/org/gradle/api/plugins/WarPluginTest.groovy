@@ -21,25 +21,30 @@ import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.api.plugins.WarPluginConvention
 import org.gradle.util.HelperUtil
-import org.gradle.util.WrapUtil
-import org.hamcrest.Matchers
 import org.junit.Test
-import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.equalTo
+import static org.gradle.util.WrapUtil.*
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
+// todo Make test stronger
 class WarPluginTest {
-    @Test public void testApply() {
-        // todo Make test stronger
-        Project project = HelperUtil.createRootProject()
-        WarPlugin warPlugin = new WarPlugin()
+    private final Project project = HelperUtil.createRootProject()
+    private final WarPlugin warPlugin = new WarPlugin()
+
+    @Test public void appliesJavaPluginAndAddsConvention() {
         warPlugin.apply(project, new PluginRegistry(), [:])
 
-        assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
+        assertTrue(project.appliedPlugins.contains(JavaPlugin));
+        assertThat(project.convention.plugins.war, instanceOf(WarPluginConvention))
+    }
+    
+    @Test public void createsConfigurations() {
+        warPlugin.apply(project, new PluginRegistry(), [:])
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api.tasks.bundling
+package org.gradle.api.plugins
 
-/**
- * @author Hans Dockter
- */
-class ArchiveType {
-    String defaultExtension
+import org.gradle.api.Project
 
-    Class<AbstractArchiveTask> taskClass
+public class WarPluginConvention {
+    String webAppDirName
+    private final Project project
 
-    ArchiveType(String defaultExtension, Class taskClass) {
-        this.defaultExtension = defaultExtension
-        this.taskClass = taskClass
+
+    def WarPluginConvention(Project project) {
+        this.project = project
+        webAppDirName = 'main/webapp'
+    }
+
+    File getWebAppDir() {
+        new File(srcRoot, webAppDirName)
+    }
+    
+    private File getSrcRoot() {
+        project.convention.plugins.java.srcRoot
     }
 }

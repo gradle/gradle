@@ -19,10 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.*;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.War;
 
@@ -116,7 +113,7 @@ public class JettyPlugin implements Plugin {
         });
         jettyRun.getConventionMapping().put("webAppSourceDirectory", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return getJavaConvention(project).getWebAppDir();
+                return getWarConvention(project).getWebAppDir();
             }
         });
     }
@@ -127,7 +124,7 @@ public class JettyPlugin implements Plugin {
         if (war.getWebXml() != null) {
             webXml = new File(war.getWebXml().toString());
         } else {
-            webXml = new File(getJavaConvention(project).getWebAppDir(), "WEB-INF/web.xml");
+            webXml = new File(getWarConvention(project).getWebAppDir(), "WEB-INF/web.xml");
         }
         return webXml;
     }
@@ -160,5 +157,9 @@ public class JettyPlugin implements Plugin {
 
     public JavaPluginConvention getJavaConvention(Project project) {
         return project.getConvention().getPlugin(JavaPluginConvention.class);
+    }
+
+    public WarPluginConvention getWarConvention(Project project) {
+        return project.getConvention().getPlugin(WarPluginConvention.class);
     }
 }

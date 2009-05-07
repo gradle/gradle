@@ -207,7 +207,7 @@ public class DefaultConventionsToPropertiesMapping {
             }
         },      "resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(new FileSet(convention.getPlugin(JavaPluginConvention.class).getWebAppDir()));
+                return WrapUtil.toList(new FileSet(convention.getPlugin(WarPluginConvention.class).getWebAppDir()));
             }
         },
                 "libExcludeConfigurations", new ConventionValue() {
