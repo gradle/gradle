@@ -6,26 +6,20 @@
     <section id='sec:cross_project_configuration'>
         <title>Cross Project Configuration</title>
         <para>Let's start with a very simple multi-project build. After all Gradle is a general purpose build tool at
-            its core. So the projects don't have to be java projects. Our first examples are about marine life.
+            its core, so the projects don't have to be java projects. Our first examples are about marine life.
         </para>
         <section>
             <title>Defining Common Behavior</title>
-            <para>We have the following project tree
-                <footnote>
-                    <para>F means File and D means Directory
-                    </para>
-                </footnote>
-                . This is a multi-project build with a root project
-                <literal>water</literal>
-                and a subproject <literal>bluewhale</literal>.
+            <para>We have the following project tree. This is a multi-project build with a root project
+                <literal>water</literal> and a subproject <literal>bluewhale</literal>.
             </para>
-            <programlisting><![CDATA[
-D- water
-  F- build.gradle
-  F- settings.gradle
-  D- bluewhale	
-]]></programlisting>
             <sample id="multiprojectFirstExample" dir="userguide/multiproject/firstExample/water">
+                <layout>
+                    build.gradle
+                    settings.gradle
+                    bluewhale
+                </layout>
+                <location/>
                 <sourcefile file="settings.gradle"/>
             </sample>
             <para>And where is the build script for the bluewhale project? In Gradle build scripts are optional.
@@ -38,24 +32,23 @@ D- water
                 <output args="-q hello"/>
             </sample>
             <para>Gradle allows you to access any project of the multi-project build from any build script. The Project
-                API provides a method called project, which takes a path as an argument and returns the project object
-                for this path. The capability to configure a project build from any build script we call <emphasis>Cross
-                    Project Configuration</emphasis>. Gradle implements this via <emphasis>Configuration
-                    Injection</emphasis>.
+                API provides a method called <literal>project()</literal>, which takes a path as an argument and returns
+                the Project object for this path. The capability to configure a project build from any build script we
+                call <firstterm>cross project configuration</firstterm>. Gradle implements this via
+                <firstterm>configuration injection</firstterm>.
             </para>
             <para>We are not that happy with the build script of the water project. It is inconvenient to add the task
                 explicitly for every project. We can do better. Let's first add another project called
-                <emphasis>krill</emphasis>
-                to our multi-project build.
+                <literal>krill</literal> to our multi-project build.
             </para>
-            <programlisting><![CDATA[
-D- water
-  F- build.gradle
-  F- settings.gradle
-  D- bluewhale
-  D- krill	
-]]></programlisting>
             <sample id="multiprojectAddKrill" dir="userguide/multiproject/addKrill/water">
+                <layout>
+                    build.gradle
+                    settings.gradle
+                    bluewhale
+                    krill
+                </layout>
+                <location/>
                 <sourcefile file="settings.gradle"/>
             </sample>
             <para>Now we rewrite the water build script and boil it down to a single line.</para>
@@ -71,12 +64,10 @@ D- water
                     allprojects</literal>. You could also do an iteration via <literal>allprojects.each</literal>, but
                 that would be more verbose.
             </para>
-            <para></para>
             <para>Other build systems use inheritance as the primary means for defining common behavior. We also offer
-                inheritance for projects as you will see later. But Gradle uses
-                <literal>Configuration Injection</literal>
-                as the usual way of defining common behavior. We think it provides a very powerful and flexible way of
-                configuring multiproject builds.
+                inheritance for projects as you will see later. But Gradle uses configuration injection as the usual way
+                of defining common behavior. We think it provides a very powerful and flexible way of configuring
+                multiproject builds.
             </para>
         </section>
     </section>
@@ -103,18 +94,19 @@ D- water
                 <output args="-q hello"/>
             </sample>
             <para>As we have said, we usually prefer to put project specific behavior into the build script of this
-                project. Let's refactor and also add some project specific behavior to the krill project.
+                project. Let's refactor and also add some project specific behavior to the <literal>krill</literal>
+                project.
             </para>
-            <programlisting><![CDATA[
-D- water
-  F- build.gradle
-  F- settings.gradle
-  D- bluewhale
-    F- build.gradle
-  D- krill
-    F- build.gradle
-]]></programlisting>
             <sample id="multiprojectSpreadSpecifics" dir="userguide/multiproject/spreadSpecifics/water">
+                <layout>
+                    build.gradle
+                    settings.gradle
+                    bluewhale
+                    bluewhale/build.gradle
+                    krill
+                    krill/build.gradle
+                </layout>
+                <location/>
                 <sourcefile file="settings.gradle"/>
                 <sourcefile file="bluewhale/build.gradle"/>
                 <sourcefile file="krill/build.gradle"/>
@@ -124,47 +116,47 @@ D- water
         </section>
         <section id='sub:project_filtering'>
             <title>Project Filtering</title>
-            <para>To show more of the power of <emphasis>Configuration Injection</emphasis>, lets' add another project
-                called tropicalFish and add more behavior to the build via the build script of the water project.
+            <para>To show more of the power of configuration injection, let's add another project
+                called <literal>tropicalFish</literal> and add more behavior to the build via the build script of the
+                <literal>water</literal> project.
             </para>
             <section id='ssub:filtering_by_name'>
                 <title>Filtering By Name</title>
-                <programlisting><![CDATA[
-D- water
-  F- build.gradle
-  F- settings.gradle
-  D- bluewhale
-    F- build.gradle
-  D- krill
-    F- build.gradle
-  D- tropicalFish	
-]]></programlisting>
                 <sample id="multiprojectAddTropical" dir="userguide/multiproject/addTropical/water">
+                    <layout>
+                        build.gradle
+                        settings.gradle
+                        bluewhale
+                        bluewhale/build.gradle
+                        krill
+                        krill/build.gradle
+                        tropicalFish
+                    </layout>
+                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="build.gradle"/>
                     <output args="-q hello"/>
                 </sample>
-                <para>The
-                    <literal>configureProjects</literal>
-                    takes a list as an argument and applies the configuration to the projects in this list.
+                <para>The <literal>configure()</literal> method takes a list as an argument and applies the
+                    configuration to the projects in this list.
                 </para>
             </section>
             <section id='ssub:filtering_by_properties'>
                 <title>Filtering By Properties</title>
-                <para>Using the projectname for filtering is one option. Using dynamic project properties is another.
+                <para>Using the project name for filtering is one option. Using dynamic project properties is another.
                 </para>
-                <programlisting><![CDATA[
-D- water
-  F- build.gradle
-  F- settings.gradle
-  D- bluewhale
-    F- build.gradle
-  D- krill
-    F- build.gradle
-  D- tropicalFish
-    F- build.gradle
-]]></programlisting>
                 <sample id="multiprojectTropicalWithProperties" dir="userguide/multiproject/tropicalWithProperties/water">
+                    <layout>
+                        build.gradle
+                        settings.gradle
+                        bluewhale
+                        bluewhale/build.gradle
+                        krill
+                        krill/build.gradle
+                        tropicalFish
+                        tropicalFish/build.gradle
+                    </layout>
+                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="bluewhale/build.gradle"/>
                     <sourcefile file="krill/build.gradle"/>
@@ -172,15 +164,9 @@ D- water
                     <sourcefile file="build.gradle"/>
                     <output args="-q hello"/>
                 </sample>
-                <para>In the
-                    <literal>gradefile</literal>
-                    of the
-                    <literal>water</literal>
-                    project we use an <literal>afterEvaluateListener</literal>. This means that the closure we are
-                    passing gets evaluated
-                    <literal>after</literal>
-                    the build scripts of the subproject are evaluated. As the property
-                    <literal>arctic</literal>
+                <para>In the build file of the <literal>water</literal> project we use an <literal>afterEvaluate</literal>
+                    notification. This means that the closure we are passing gets evaluated <emphasis>after</emphasis>
+                    the build scripts of the subproject are evaluated. As the property <literal>arctic</literal>
                     is set in those build scripts, we have to do it this way. You will find more on this topic in
                     <xref linkend='sec:dependencies_which_dependencies'/>
                 </para>
@@ -189,13 +175,9 @@ D- water
     </section>
     <section id='sec:execution_rules_for_multi_project_builds'>
         <title>Execution rules for multi-project builds</title>
-        <para>When we have executed the
-            <literal>hello</literal>
-            task from the root project dir things behaved in an intuitive way. All the
-            <literal>hello</literal>
-            tasks of the different projects were executed. Let's switch to the
-            <literal>bluewhale</literal>
-            dir and see what happens if we execute Gradle from there.
+        <para>When we have executed the <literal>hello</literal> task from the root project dir things behaved in an
+            intuitive way. All the <literal>hello</literal> tasks of the different projects were executed. Let's switch
+            to the <literal>bluewhale</literal> dir and see what happens if we execute Gradle from there.
         </para>
         <sample id="multiprojectSubBuild" dir="userguide/multiproject/tropicalWithProperties/water/bluewhale">
            <output args='-q hello'/>
@@ -209,14 +191,9 @@ D- water
             <emphasis>every</emphasis>
             project of the multi-project build and creates all existing task objects. Then, according to the task name
             arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradle's
-            <emphasis>Cross Project Configuration</emphasis>
-            <emphasis>every</emphasis>
-            project has to be evaluated before
-            <emphasis>any</emphasis>
+            cross project configuration <emphasis>every</emphasis> project has to be evaluated before <emphasis>any</emphasis>
             task gets executed. We will have a closer look at this in the next section. Let's now have our last marine
-            example. Let's add a task to
-            <literal>bluewhale</literal>
-            and <literal>krill</literal>.
+            example. Let's add a task to <literal>bluewhale</literal> and<literal>krill</literal>.
         </para>
         <sample id="multiprojectPartialTasks" dir="userguide/multiproject/partialTasks/water">
             <sourcefile file="bluewhale/build.gradle"/>
@@ -227,25 +204,17 @@ D- water
         <sample id="multiprojectPartialTasksNotQuiet" dir="userguide/multiproject/partialTasks/water">
             <output args="distanceToIceberg"/>
         </sample>
-        <para>The build is executed from the
-            <literal>water</literal>
-            project. Neither
-            <literal>water</literal>
-            nor
-            <literal>tropicalFish</literal>
-            have a task with the name <literal>distanceToIceberg</literal>. Gradle does not care. The simple rule
-            mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if
-            there is
-            <emphasis>no</emphasis>
-            such task!
+        <para>The build is executed from the <literal>water</literal> project. Neither <literal>water</literal> nor
+            <literal>tropicalFish</literal> have a task with the name <literal>distanceToIceberg</literal>. Gradle does
+            not care. The simple rule mentioned already above is: Execute all tasks down the hierarchy which have this
+            name. Only complain if there is <emphasis>no</emphasis> such task!
         </para>
     </section>
     <section id='sec:running_partial_build_from_the_root'>
         <title>Running Tasks by their Absolute Path</title>
         <para>As we have seen, you can run a multi-project build by entering any subproject dir and execute the build
             from there. All matching task names of the project hierarchy starting with the current dir are executed. But
-            Gradle also offers to execute tasks by their absolute path (see also <xref
-                    linkend='sec:project_and_task_paths'/>):
+            Gradle also offers to execute tasks by their absolute path (see also <xref linkend='sec:project_and_task_paths'/>):
         </para>
         <sample id="multiprojectAbsoluteTaskPaths" dir="userguide/multiproject/tropicalWithProperties/water/tropicalFish">
             <output args="-q :hello :krill:hello hello"/>
@@ -288,15 +257,15 @@ D- water
             <title>Execution Dependencies</title>
             <section id='ssub:dependencies_and_execution_order'>
                 <title>Dependencies and Execution Order</title>
-                <programlisting><![CDATA[
-D- messages
-  F- settings.gradle
-  D- consumer
-    F- build.gradle
-  D- producer
-    F- build.gradle
-]]></programlisting>
                 <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages">
+                    <layout>
+                        settings.gradle
+                        consumer
+                        consumer/build.gradle
+                        producer
+                        producer/build.gradle
+                    </layout>
+                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
@@ -308,15 +277,14 @@ D- messages
                     is executed before <literal>:producer:action</literal>. Let's try to solve this with a hack and
                     rename the producer project to <literal>aProducer</literal>.
                 </para>
-                <programlisting><![CDATA[
-D- messages
-  F- settings.gradle
-  D- aProducer
-    F- build.gradle
-  D- consumer
-    F- build.gradle
-]]></programlisting>
                 <sample id="multiprojectMessagesHack" dir="userguide/multiproject/dependencies/messagesHack/messages">
+                    <layout>
+                        settings.gradle
+                        aProducer
+                        aProducer/build.gradle
+                        consumer
+                        consumer/build.gradle
+                    </layout>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="aProducer/build.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
@@ -341,20 +309,21 @@ D- messages
             </section>
             <section id='ssub:declaring_dependencies'>
                 <title>Declaring Dependencies</title>
-                <programlisting><![CDATA[
-D- messages
-  F- settings.gradle
-  D- consumer
-    F- build.gradle
-  D- producer
-    F- build.gradle
-]]></programlisting>
                 <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages">
+                    <layout>
+                        settings.gradle
+                        consumer
+                        consumer/build.gradle
+                        producer
+                        producer/build.gradle
+                    </layout>
+                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
                     <output args="-q action"/>
                 </sample>
+                <para>Running this from the <literal>consumer</literal> directory gives:</para>
                 <sample id="multiprojectMessagesDependenciesSubBuild" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer">
                     <output args="-q action"/>
                 </sample>
@@ -475,16 +444,16 @@ D- messages
                 </footnote>
                 For the example we use only one build script and do <emphasis>cross project configuration</emphasis>.
             </para>
-            <programlisting><![CDATA[
-D- webDist
-  F- settings.gradle
-  F- build.gradle
-  D- date
-    F- src/main/java/org/gradle/sample/DateServlet.java
-  D- hello
-    F- src/main/java/org/gradle/sample/HelloServlet.java
-]]></programlisting>
             <sample id="webdist" dir="userguide/multiproject/dependencies/webDist">
+                <layout>
+                    settings.gradle
+                    build.gradle
+                    date
+                    date/src/main/java/org/gradle/sample/DateServlet.java
+                    hello
+                    hello/src/main/java/org/gradle/sample/HelloServlet.java
+                </layout>
+                <location/>
                 <sourcefile file="settings.gradle"/>
                 <sourcefile file="build.gradle"/>
             </sample>
@@ -545,20 +514,22 @@ D- webDist
             multi-project builds. As already mentioned in <xref linkend='sub:project_dependencies'/>, Gradle
             offers project dependencies for this.
         </para>
-        <programlisting><![CDATA[
-D- java
-  D- api
-    F- src/main/java/org/gradle/sample/api/Person.java
-    F- src/main/java/org/gradle/sample/api/PersonImpl.java
-  D- services
-    D- personService
-      F- src/main/java/org/gradle/sample/services/PersonService.java
-      F- src/main/test/org/gradle/sample/services/PersonServiceTest.java
-  D- shared 
-    F- src/main/java/org/gradle/sample/shared/Helper.java 
-  F- settings.gradle
-  F- build.gradle
-]]></programlisting>
+        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java">
+            <layout>
+                settings.gradle
+                build.gradle
+                api
+                api/src/main/java/org/gradle/sample/api/Person.java
+                api/src/main/java/org/gradle/sample/apiImpl/PersonImpl.java
+                services
+                services/personService
+                services/personService/src/main/java/org/gradle/sample/services/PersonService.java
+                services/personService/src/test/java/org/gradle/sample/services/PersonServiceTest.java
+                shared
+                shared/src/main/java/org/gradle/sample/shared/Helper.java
+            </layout>
+            <location/>
+        </sample>
         <para>We have the projects <literal>shared</literal>,
             <literal>api</literal>
             and <literal>personService</literal>.

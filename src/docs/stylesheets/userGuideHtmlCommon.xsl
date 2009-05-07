@@ -36,9 +36,15 @@
         <!-- Overridden to remove standard body attributes -->
     </xsl:template>
 
+    <!-- ADMONITIONS -->
+
     <xsl:param name="admon.style">
         <!-- Overridden to remove style from admonitions -->
     </xsl:param>
+
+    <xsl:template match="tip[@role='exampleLocation']" mode="class.value"><xsl:value-of select="@role"/></xsl:template>
+    
+    <xsl:param name="admon.textlabel">0</xsl:param>
     
     <!-- BOOK TITLEPAGE -->
 

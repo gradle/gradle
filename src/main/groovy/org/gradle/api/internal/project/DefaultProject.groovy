@@ -18,17 +18,17 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.BuildInternal
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.plugins.Convention
+import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
-import org.gradle.configuration.ProjectEvaluator
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.project.*
 
 /**
  * @author Hans Dockter
@@ -73,17 +73,11 @@ class DefaultProject extends AbstractProject {
     }
 
     public void subprojects(Closure configureClosure) {
-        configureProjects(getSubprojects(), configureClosure);
+        configure(getSubprojects(), configureClosure);
     }
 
     public void allprojects(Closure configureClosure) {
-        configureProjects(getAllprojects(), configureClosure);
-    }
-
-    public void configureProjects(Iterable<Project> projects, Closure configureClosure) {
-        for (Project project : projects) {
-            ConfigureUtil.configure(configureClosure, project);
-        }
+        configure(getAllprojects(), configureClosure);
     }
 
     public Project project(String path, Closure configureClosure) {
@@ -100,6 +94,13 @@ class DefaultProject extends AbstractProject {
 
     public Object configure(Object object, Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, object)
+    }
+
+    public Iterable configure(Iterable objects, Closure configureClosure) {
+        objects.each {
+            ConfigureUtil.configure(configureClosure, it)
+        }
+        objects
     }
 
     public void configurations(Closure configureClosure) {

@@ -94,34 +94,22 @@ pre {
 .example .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
-    margin-top: 0;
+    margin-top: 1.4em;
     margin-bottom: 0.2em;
 }
 
 .figure .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
-    margin-top: 0;
+    margin-top: 1.4em;
     margin-bottom: 0.2em;
 }
 
 .table .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
-    margin-top: 0;
+    margin-top: 1.4em;
     margin-bottom: 0.2em;
-}
-
-.example .title .filename {
-    padding-left: 1.8em;
-    font-weight: normal;
-    color: #a2a2a2;
-}
-
-.figure .title .filename {
-    padding-left: 1.8em;
-    font-weight: normal;
-    color: #a2a2a2;
 }
 
 .example pre {
@@ -195,6 +183,22 @@ pre {
 
 .tip .title {
     color: #80614D;
+}
+
+.exampleLocation {
+    padding-left: 1.7em;
+    background: #FEFEDD;
+    color: #777744;
+}
+
+.exampleLocation p {
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+}
+
+.exampleLocation .emphasis em {
+    font-style: normal;
+    font-weight: bold;
 }
 
 /*

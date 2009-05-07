@@ -6,6 +6,7 @@ import org.apache.tools.ant.types.FileSet
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
+import org.apache.tools.ant.DirectoryScanner
 
 public class ExtractSnippetsTask extends DefaultTask {
     FileSet sourceFiles
@@ -23,8 +24,15 @@ public class ExtractSnippetsTask extends DefaultTask {
                 throw new GradleException("Property not set: $it")
             }
         }
-        
-        sourceFiles.directoryScanner.includedFiles.each {String name ->
+
+        DirectoryScanner scanner = sourceFiles.directoryScanner
+        scanner.includedDirectories.each {String name ->
+            File destDir = new File(destDir, name)
+            destDir.mkdirs()
+            destDir = new File(snippetsDir, name)
+            destDir.mkdirs()
+        }
+        scanner.includedFiles.each {String name ->
             File srcFile = new File(sourceFiles.dir, name)
             File destFile = new File(destDir, name)
 
@@ -34,7 +42,7 @@ public class ExtractSnippetsTask extends DefaultTask {
                 destFile.withOutputStream { it.write(srcFile.readBytes()) }
                 return
             }
-            
+
             Map writers = [
                     0: new SnippetWriter(destFile).open(),
                     1: new SnippetWriter(new File(snippetsDir, name)).open()

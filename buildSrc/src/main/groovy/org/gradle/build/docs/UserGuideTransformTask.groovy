@@ -157,9 +157,8 @@ public class UserGuideTransformTask extends DefaultTask {
                             Element exampleElement = doc.createElement('example')
 
                             Element titleElement = doc.createElement('title')
-                            titleElement.appendChild(doc.createTextNode("$file "))
                             Element filenameElement = doc.createElement('filename')
-                            filenameElement.appendChild(doc.createTextNode("$srcDir/$file"))
+                            filenameElement.appendChild(doc.createTextNode(file))
                             titleElement.appendChild(filenameElement)
                             exampleElement.appendChild(titleElement)
 
@@ -190,9 +189,6 @@ public class UserGuideTransformTask extends DefaultTask {
                             Element commandElement = doc.createElement('userinput')
                             commandElement.appendChild(doc.createTextNode("gradle $args"))
                             titleElement.appendChild(commandElement)
-                            Element filenameElement = doc.createElement('filename')
-                            filenameElement.appendChild(doc.createTextNode(srcDir))
-                            titleElement.appendChild(filenameElement)
                             exampleElement.appendChild(titleElement)
 
                             Element screenElement = doc.createElement('screen')
@@ -201,6 +197,52 @@ public class UserGuideTransformTask extends DefaultTask {
                             exampleElement.appendChild(screenElement)
 
                             element.parentNode.insertBefore(exampleElement, element)
+                        } else if (child.name() == 'location') {
+                            Element tipElement = doc.createElement('tip')
+                            tipElement.setAttribute('role', 'exampleLocation')
+                            element.parentNode.insertBefore(tipElement, element)
+                            Element textElement = doc.createElement('para')
+                            tipElement.appendChild(textElement)
+                            Element emphasisElement = doc.createElement('emphasis')
+                            textElement.appendChild(emphasisElement)
+                            emphasisElement.appendChild(doc.createTextNode('Note:'))
+                            textElement.appendChild(doc.createTextNode(' The code for this example can be found at '))
+                            Element filenameElement = doc.createElement('filename')
+                            textElement.appendChild(filenameElement)
+                            filenameElement.appendChild(doc.createTextNode("samples/$srcDir"))
+                        } else if (child.name() == 'layout') {
+                            Element figureElement = doc.createElement('figure')
+                            element.parentNode.insertBefore(figureElement, element)
+                            Element titleElement = doc.createElement('title')
+                            figureElement.appendChild(titleElement)
+                            titleElement.appendChild(doc.createTextNode('Project layout'))
+                            Element programListingElement = doc.createElement('programlisting')
+                            figureElement.appendChild(programListingElement)
+                            StringBuilder content = new StringBuilder()
+                            content.append("${srcDir.tokenize('/').last()}/\n")
+                            List stack = []
+                            child.text().eachLine {
+                                def fileName = it.trim()
+                                if (!fileName) {
+                                    return
+                                }
+                                File file = new File(snippetsDir, "$srcDir/$fileName")
+                                if (!file.exists()) {
+                                    throw new RuntimeException("Sample file $file does not exist.")
+                                }
+                                List context = fileName.tokenize('/')
+
+                                int common = 0;
+                                for (;common < stack.size() && common < context.size() && stack[common] == context[common]; common++) { ; }
+                                stack = stack.subList(0, common)
+
+                                (stack.size() + 1).times { content.append("  ") }
+                                content.append("${context.subList(stack.size(), context.size()).join('/')}${file.directory ? '/' : ''}\n")
+                                if (file.directory) {
+                                    stack = context
+                                }
+                            }
+                            programListingElement.appendChild(doc.createTextNode(content.toString()))
                         } else {
                             throw new RuntimeException("Unrecognised sample type ${child.name()} found.")
                         }
