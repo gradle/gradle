@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.bundling.Bundle;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.api.tasks.ide.eclipse.EclipseWtp;
 import org.gradle.util.GUtil;

@@ -249,7 +249,6 @@ class DefaultProjectTest {
         assert project.repositories.is(repositoryHandlerMock)
         assert pluginRegistry.is(project.pluginRegistry)
         assert projectRegistry.is(project.projectRegistry)
-        assertEquals Project.DEFAULT_ARCHIVES_TASK_BASE_NAME, project.archivesTaskBaseName
         assertEquals project.name, project.archivesBaseName
         assertEquals([] as Set, project.appliedPlugins)
         assertEquals AbstractProject.State.CREATED, project.state
@@ -964,7 +963,7 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testConfigureProjects() {
-        checkConfigureProject('configureProjects', [project, child1] as Set)
+        checkConfigureProject('configure', [project, child1] as Set)
     }
 
     @Test void testRelativePath() {
@@ -1004,7 +1003,7 @@ def scriptMethod(Closure closure) {
 
     private void checkConfigureProject(String configureMethod, Set projectsToCheck) {
         String propValue = 'someValue'
-        if (configureMethod == 'configureProjects') {
+        if (configureMethod == 'configure') {
             project."$configureMethod" projectsToCheck as List,
                     {
                         testSubProp = propValue

@@ -4,6 +4,6 @@ allprojects {
 subprojects {
     hello.doLast {println "- I depend on water"}
 }
-configureProjects(subprojects.findAll {it.name != 'tropicalFish'}) {
+configure(subprojects.findAll {it.name != 'tropicalFish'}) {
     hello.doLast {println '- I love to spend time in the arctic waters.'}
 }

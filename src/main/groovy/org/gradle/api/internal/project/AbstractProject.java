@@ -111,8 +111,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private AntBuilder ant = null;
 
-    private String archivesTaskBaseName;
-
     private String archivesBaseName;
 
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
@@ -191,7 +189,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
-        this.archivesTaskBaseName = Project.DEFAULT_ARCHIVES_TASK_BASE_NAME;
         this.archivesBaseName = name;
         this.buildScriptSource = buildScriptSource;
         this.build = build;
@@ -481,14 +478,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setConfigurationContainer(ConfigurationHandler configurationContainer) {
         this.configurationContainer = configurationContainer;
-    }
-
-    public String getArchivesTaskBaseName() {
-        return archivesTaskBaseName;
-    }
-
-    public void setArchivesTaskBaseName(String archivesTaskBaseName) {
-        this.archivesTaskBaseName = archivesTaskBaseName;
     }
 
     public String getBuildDirName() {

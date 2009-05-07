@@ -151,18 +151,18 @@
                 <literal>libs</literal>
             </td>
             <td>
-                <literal>test</literal>
+                All <literal>Jar</literal> and <literal>War</literal> tasks in the project.
             </td>
-            <td><apilink class="org.gradle.api.tasks.bundling.Bundle"/></td>
+            <td>Default task</td>
         </tr>
         <tr>
             <td>
                 <literal>dists</literal>
             </td>
             <td>
-                <literal>libs</literal>
+                <literal>libs</literal> and all <literal>Zip</literal> and <literal>Tar</literal> tasks in the project.
             </td>
-            <td><apilink class="org.gradle.api.tasks.bundling.Bundle"/></td>
+            <td>Default task</td>
         </tr>
         <tr>
             <td>
@@ -171,7 +171,7 @@
             <td>
                 The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>
             </td>
-            <td>default task</td>
+            <td>Default task</td>
         </tr>
     </table>
     <table id='javaconventionDir'>
