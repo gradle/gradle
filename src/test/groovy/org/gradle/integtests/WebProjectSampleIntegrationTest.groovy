@@ -40,7 +40,7 @@ class WebProjectSampleIntegrationTest {
         AntBuilder ant = new AntBuilder()
         ant.unjar(src: "$webProjectDir/build/$WEB_PROJECT_NAME-1.0.war", dest: unjarPath)
         ['root.txt', 'WEB-INF/classes/org/MyClass.class', 'WEB-INF/lib/compile-1.0.jar', 'WEB-INF/lib/runtime-1.0.jar',
-                'WEB-INF/lib/additional-1.0.jar', 'WEB-INF/lib/otherConf-1.0.jar', 'WEB-INF/additional.xml', 'WEB-INF/webapp.xml', 'WEB-INF/web.xml',
+                'WEB-INF/lib/additional-1.0.jar', 'WEB-INF/lib/otherLib-1.0.jar', 'WEB-INF/additional.xml', 'WEB-INF/webapp.xml', 'WEB-INF/web.xml',
                 'webapp.html'].each {
             assert new File("$unjarPath/$it").isFile()
         }
