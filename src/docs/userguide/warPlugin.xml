@@ -1,10 +1,53 @@
 <chapter id='war_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The War Plugin</title>
-    <para>The war plugin extends the JavaPlugin. It disables the default jar archive generation of the Java Plugin and
+    <para>The war plugin extends the Java Plugin. It disables the default jar archive generation of the Java Plugin and
         adds a default war archive task. Have also a look at <apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/>
     </para>
     <section id='sec:default_settings'>
         <title>Default Settings</title>
+
+        <table>
+            <title>Default Directory Layout</title>
+            <thead>
+                <tr>
+                    <td>Directory</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>src/main/webapp</literal>
+                </td>
+                <td>Web application sources</td>
+            </tr>
+        </table>
+
+        <table>
+            <title>War Plugin - Directory Properties</title>
+            <thead>
+                <tr>
+                    <td>Directory Name Property</td>
+                    <td>Directory File Property</td>
+                    <td>Default Name</td>
+                    <td>Default File</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    webAppDirName
+                </td>
+                <td>
+                    webAppDir
+                </td>
+                <td>
+                    <filename>main/webapp</filename>
+                </td>
+                <td>
+                    <filename><replaceable>srcRoot</replaceable>/main/webapp</filename>
+                </td>
+            </tr>
+        </table>
+        
         <para>The default behavior of the War plugin is to copy the content of
             <literal>src/main/webapp</literal>
             to the root of the archive. Your

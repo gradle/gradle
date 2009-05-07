@@ -10,7 +10,7 @@
 
     <section>
         <title>A Basic Java Project</title>
-        <para>To use the Java plugin in your project, add the following to your build file:</para>
+        <para>Let's look at a simple example. To use the Java plugin, add the following to your build file:</para>
         <sample id="javaQuickstart" dir="java/quickstart">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
             <location/>
@@ -179,7 +179,9 @@
             project. This chapter is not exhaustive, and there are many other things you can do with Java projects in
             Gradle. These are dealt with in later chapters. Also, a lot of the behaviour you have seen in this chapter
             is configurable. For example, you can change where Gradle looks Java source files, or add extra tasks, or
-            you can change what any task actually does.
+            you can change what any task actually does. Again, you will see how this works in later chapters.
         </para>
+        <para>Finally, you can find more sample projects in the <filename>samples/java</filename> directory in the
+            Gradle distribution.</para>
     </section>
 </chapter>

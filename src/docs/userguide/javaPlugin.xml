@@ -35,7 +35,7 @@
         <title>Default Directory Layout</title>
         <thead>
             <tr>
-                <td>Folder</td>
+                <td>Directory</td>
                 <td>Meaning</td>
             </tr>
         </thead>
@@ -50,12 +50,6 @@
                 <literal>src/main/resources</literal>
             </td>
             <td>Application/Library resources</td>
-        </tr>
-        <tr>
-            <td>
-                <literal>src/main/webapp</literal>
-            </td>
-            <td>Web application sources</td>
         </tr>
         <tr>
             <td>
@@ -92,7 +86,7 @@
                 <literal>init</literal>
             </td>
             <td>-</td>
-            <td>Default task</td>
+            <td><apilink class="org.gradle.api.Task"/></td>
         </tr>
         <tr>
             <td>
@@ -153,7 +147,7 @@
             <td>
                 All <literal>Jar</literal> and <literal>War</literal> tasks in the project.
             </td>
-            <td>Default task</td>
+            <td><apilink class="org.gradle.api.Task"/></td>
         </tr>
         <tr>
             <td>
@@ -162,26 +156,35 @@
             <td>
                 <literal>libs</literal> and all <literal>Zip</literal> and <literal>Tar</literal> tasks in the project.
             </td>
-            <td>Default task</td>
+            <td><apilink class="org.gradle.api.Task"/></td>
+        </tr>
+        <tr>
+            <td>
+                <literal>build<replaceable>ConfigurationName</replaceable></literal>
+            </td>
+            <td>
+                The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
+            </td>
+            <td><apilink class="org.gradle.api.Task"/></td>
         </tr>
         <tr>
             <td>
                 <literal>upload<replaceable>ConfigurationName</replaceable></literal>
             </td>
             <td>
-                The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>
+                The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
             </td>
-            <td>Default task</td>
+            <td><apilink class="org.gradle.api.tasks.Upload"/></td>
         </tr>
     </table>
     <table id='javaconventionDir'>
-        <title>Java Convention Object - Directory Hierarchy Properties</title>
+        <title>Java Plugin - Directory Properties</title>
         <thead>
             <tr>
-                <td>Dir Name</td>
-                <td>Dir File</td>
-                <td>Default Value Name</td>
-                <td>Default Value File</td>
+                <td>Directory Name Property</td>
+                <td>Directory File Property</td>
+                <td>Default Name</td>
+                <td>Default File</td>
             </tr>
         </thead>
         <tr>
@@ -191,41 +194,37 @@
                 <literal>src</literal>
             </td>
             <td>
-                <replaceable>projectDir</replaceable>
-                <literal>/src</literal>
+                <literal><replaceable>projectDir</replaceable>/src</literal>
             </td>
         </tr>
         <tr>
             <td>srcDirNames</td>
             <td>srcDirs</td>
             <td>
-                <literal>main/java</literal>
+                [<literal>main/java</literal>]
             </td>
-            <td>[
-                <replaceable>srcRoot</replaceable>
-                <literal>/main/java</literal>]
+            <td>
+                [<literal><replaceable>srcRoot</replaceable>/main/java</literal>]
             </td>
         </tr>
         <tr>
             <td>resourceDirNames</td>
             <td>resourceDirs</td>
             <td>
-                <literal>main/resources</literal>
+                [<literal>main/resources</literal>]
             </td>
-            <td>[
-                <replaceable>srcRoot</replaceable>
-                <literal>/main/resources</literal>]
+            <td>
+                [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
             </td>
         </tr>
         <tr>
             <td>testSrcDirNames</td>
             <td>testSrcDirs</td>
             <td>
-                <literal>test/java</literal>
+                [<literal>test/java</literal>]
             </td>
-            <td>[
-                <replaceable>srcRoot</replaceable>
-                <literal>/test/java</literal>]
+            <td>
+                [<literal><replaceable>srcRoot</replaceable>/test/java</literal>]
             </td>
         </tr>
         <tr>
@@ -234,20 +233,8 @@
             <td>
                 <literal>main/resources</literal>
             </td>
-            <td>[
-                <replaceable>srcRoot</replaceable>
-                <literal>/main/resources</literal>]
-            </td>
-        </tr>
-        <tr>
-            <td>srcDocsDirName</td>
-            <td>srcDocsDir</td>
             <td>
-                <literal>docs</literal>
-            </td>
-            <td>
-                <replaceable>srcRoot</replaceable>
-                <literal>/docs</literal>
+                [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
             </td>
         </tr>
         <tr>
@@ -257,8 +244,7 @@
                 <literal>classes</literal>
             </td>
             <td>
-                <replaceable>buildDir</replaceable>
-                <literal>/classes</literal>
+                <literal><replaceable>buildDir</replaceable>/classes</literal>
             </td>
         </tr>
         <tr>
@@ -268,8 +254,7 @@
                 <literal>test-classes</literal>
             </td>
             <td>
-                <replaceable>buildDir</replaceable>
-                <literal>/test-classes</literal>
+                <literal><replaceable>buildDir</replaceable>/test-classes</literal>
             </td>
         </tr>
         <tr>
@@ -279,8 +264,27 @@
                 <literal>test-results</literal>
             </td>
             <td>
-                <replaceable>buildDir</replaceable>
-                <literal>/test-results</literal>
+                <literal><replaceable>buildDir</replaceable>/test-results</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>testReportDir</td>
+            <td>testReportDirName</td>
+            <td>
+                <literal>tests</literal>
+            </td>
+            <td>
+                <literal><replaceable>reportsDir</replaceable>/test</literal>
+            </td>
+        </tr>
+        <tr>
+            <td>libsDirName</td>
+            <td>libsDir</td>
+            <td>
+                empty string
+            </td>
+            <td>
+                <literal><replaceable>buildDir</replaceable></literal>
             </td>
         </tr>
         <tr>
@@ -290,8 +294,7 @@
                 <literal>dists</literal>
             </td>
             <td>
-                <replaceable>buildDir</replaceable>
-                <literal>/dists</literal>
+                <literal><replaceable>buildDir</replaceable>/dists</literal>
             </td>
         </tr>
         <tr>
@@ -301,8 +304,7 @@
                 <literal>docs</literal>
             </td>
             <td>
-                <replaceable>buildDir</replaceable>
-                <literal>/docs</literal>
+                <literal><replaceable>buildDir</replaceable>/docs</literal>
             </td>
         </tr>
         <tr>
@@ -312,11 +314,10 @@
                 <literal>javadoc</literal>
             </td>
             <td>
-                <replaceable>buildDir</replaceable>
-                <literal>/javadoc</literal>
+                <literal><replaceable>buildDir</replaceable>/javadoc</literal>
             </td>
         </tr>
-
+        <xi:include href="reportingBasePluginProperties.xml"/>
     </table>
     <table id='javaconventionFloatingDir'>
         <title>Java Convention Object - Floating Dir Properties</title>
@@ -604,7 +605,7 @@
             is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is
             it part of a dependency descriptor if you choose to upload your library to a repository. See
             <xref linkend='sec:java_plugin_and_dependency_management'/>
-            how the JavaPlugin glues the tasks with the dependency manager and see the whole <xref linkend='dependency_management'/>
+            how the Java Plugin glues the tasks with the dependency manager and see the whole <xref linkend='dependency_management'/>
             how to use the dependency manager.
         </para>
         <para>Have a look at <apilink class="org.gradle.api.tasks.compile.Compile"/>
@@ -995,8 +996,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
         </section>
         <section id='sub:manifest'>
             <title>Manifest</title>
-            <para>The convention object of the JavaPlugin has a
-                <literal>manifest</literal>
+            <para>The convention object of the Java Plugin has a <literal>manifest</literal>
                 property pointing to an instance of <apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/>.
                 With this <classname>GradleManifest</classname> object you can define the content of the
                 <filename>MANIFEST.MF</filename> file of all the jar or a war archives in your project.
@@ -1018,7 +1018,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
         </section>
         <section id='sub:metainf'>
             <title>MetaInf</title>
-            <para>The convention object of the JavaPlugin has a <literal>metaInf</literal> property pointing to a list of
+            <para>The convention object of the Java Plugin has a <literal>metaInf</literal> property pointing to a list of
                 <classname>FileSet</classname> objects. With this file sets you can define which files should be in the
                 <filename>META-INF</filename> directory of a jar or a war archive.
             </para>

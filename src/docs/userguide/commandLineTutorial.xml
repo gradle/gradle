@@ -37,6 +37,20 @@
         <para>Because each task is executed once only, executing <userinput>gradle libs libs</userinput> is exactly the same
         as executing <userinput>gradle libs</userinput>.</para>
     </section>
+
+    <section>
+        <title>Selecting which build to execute</title>
+        <para>When you run the <command>gradle</command> command, it looks for a build file in the current directory.
+            You can use the <option>-b</option> option to select another build file. For example:
+        </para>
+        <screen>
+>gradle -b subproject/build.gradle
+        </screen>
+        <para>Alternatively, you can use the <option>-p</option> option to specify the project directory to use:</para>
+        <screen>
+>gradle -p subproject
+        </screen>
+    </section>
     
     <para>You can find out more about the <command>gradle</command> command's usage in <xref linkend="gradle_command_line"/></para>
 </chapter>

@@ -17,7 +17,7 @@
     <title>Artifact Basics</title>
 
     <note>
-        <para>This chapter is a work in progress</para>
+        <para>This chapter is a work in progress.</para>
     </note>
 
     <para>This chapter introduces some of the basics of artifact handling in Gradle.</para>

@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="project_reports_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Project Reports Plugin</title>
+
+    <note>
+        <para>The Project Reports Plugin is currently a work in progress, and at this stage doesn't do particularly
+            much. We plan to add much more to these reports in the next release of Gradle.
+        </para>
+    </note>
+
+    <para>The Project Reports Plugin adds some tasks to your project which generate reports containing useful
+        information about your build.
+    </para>
+
+    <table>
+        <title>Project Reports Plugin - Directory Properties</title>
+        <thead>
+            <tr>
+                <td>Directory Name Property</td>
+                <td>Directory File Property</td>
+                <td>Default Name</td>
+                <td>Default File</td>
+            </tr>
+        </thead>
+        <xi:include href="reportingBasePluginProperties.xml"/>
+    </table>
+</chapter>

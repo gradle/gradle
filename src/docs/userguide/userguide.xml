@@ -28,6 +28,7 @@
     <xi:include href='artifactDependenciesTutorial.xml'/>
     <xi:include href='javaTutorial.xml'/>
     <xi:include href='groovyTutorial.xml'/>
+    <xi:include href='webTutorial.xml'/>
     <xi:include href='commandLineTutorial.xml'/>
     <xi:include href='thisAndThat.xml'/>
     <xi:include href='projectTaskApi.xml'/>
@@ -38,6 +39,7 @@
     <xi:include href='groovyPlugin.xml'/>
     <xi:include href='warPlugin.xml'/>
     <xi:include href='osgi.xml'/>
+    <xi:include href='projectReports.xml'/>
     <xi:include href='depMngmt.xml'/>
     <xi:include href='maven.xml'/>
     <xi:include href='buildLifecycle.xml'/>

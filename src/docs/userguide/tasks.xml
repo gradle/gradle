@@ -44,7 +44,7 @@
         <para>As an example, let's look at the <classname>Copy</classname> task provided by Gradle. To create a
             <classname>Copy</classname> task for your build, you can declare in your build script:
             <footnote>
-                <para>If you use the JavaPlugin, this task is automatically created and added to your project.
+                <para>If you use the Java Plugin, this task is automatically created and added to your project.
                 </para>
             </footnote>
         </para>
@@ -54,7 +54,7 @@
         <para>The copy task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Copy"/>).
             If you create the copy task like this, it has no default behavior.
             <footnote>
-                <para>This is different when added by the JavaPlugin where it is used for resource processing.
+                <para>This is different when added by the Java Plugin where it is used for resource processing.
                 </para>
             </footnote>
             We want now use the copy task to learn about different ways to configure tasks. The examples below all

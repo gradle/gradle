@@ -42,8 +42,7 @@ usePlugin('java')
             <sourcefile file="build.gradle"/>
             <output args="-q check"/>
         </sample>
-        <para>The JavaPlugin adds a
-            <literal>compile</literal>
+        <para>The Java Plugin adds a <literal>compile</literal>
             task to the project object which can be accessed by a build script.
         </para>
         <para>The usePlugin method either takes a string or a class as an argument. You can write
@@ -73,8 +72,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
     </section>
     <section id='sub:more_about_convention_objects'>
         <title>Configuration</title>
-        <para>If you use the
-            <emphasis>JavaPlugin</emphasis>
+        <para>If you use the <emphasis>Java Plugin</emphasis>
             there is for example a compile and processResources task for your production code (the same is true for your test
             code). The default location for the output of those task is the directory <literal>build/classes</literal>.
             What if you want to change this? Let's try:
@@ -96,10 +94,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
             <sourcefile file="build.gradle"/>
             <output args="-q check"/>
         </sample>
-        <para>The
-            <emphasis>JavaPlugin</emphasis>
-            has added a convention object with a
-            <literal>classesDirName</literal>
+        <para>The <emphasis>Java Plugin</emphasis> has added a convention object with a <literal>classesDirName</literal>
             property. The properties of a convention object can be accessed like project properties. As shown in the
             example, you can also access the convention object explicitly.
         </para>

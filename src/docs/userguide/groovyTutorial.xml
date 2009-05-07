@@ -17,14 +17,15 @@
     <title>Groovy Quickstart</title>
 
     <para>To build a Groovy project, you use the <firstterm>Groovy Plugin</firstterm>. This plugin extends the Java
-        plugin to add Groovy compilation capabilties to your project. In every other respect, a Groovy project is
-        identical to a Java project, which we have already seen in <xref linkend="tutorial_java_projects"/>.
+        plugin to add Groovy compilation capabilties to your project. Your project can contain Groovy source code,
+        Java source code, or a mix of the two. In every other respect, a Groovy project is identical to a Java project,
+        which we have already seen in <xref linkend="tutorial_java_projects"/>.
     </para>
 
     <section>
         <title>Using the Groovy Plugin</title>
 
-        <para>To use the Groovy plugin in your project, add the following to your build file:</para>
+        <para>Let's look at an example. To use the Groovy plugin, add the following to your build file:</para>
         <sample id="groovyQuickstart" dir="groovy/quickstart">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
             <location/>
@@ -57,6 +58,8 @@
             Because a Groovy project <emphasis>is</emphasis> a Java project, whatever you can do with a Java project,
             you can also do with a Groovy project.
         </para>
+        <para>Finally, you can find more sample projects in the <filename>samples/groovy</filename> directory in the
+            Gradle distribution.</para>
     </section>
 
 </chapter>

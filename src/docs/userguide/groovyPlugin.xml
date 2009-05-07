@@ -1,6 +1,6 @@
 <chapter id='groovy_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Groovy Plugin</title>
-    <para>The Groovy Plugin extends the JavaPlugin. It can deal with pure Java projects,
+    <para>The Groovy Plugin extends the Java Plugin. It can deal with pure Java projects,
         <footnote>
             <para>We don't recommend this, as the Groovy plugin uses the <emphasis>Groovyc</emphasis>
                 Ant task to compile the sources. For pure Java projects you might rather stick with pure
@@ -8,12 +8,12 @@
             </para>
         </footnote>
         with mixed Java and Groovy projects, and with pure Groovy projects. The Groovy plugin does not add any tasks.
-        It modifies some of the tasks of the JavaPlugin and adds to the <emphasis>Convention</emphasis> object.
+        It modifies some of the tasks of the Java Plugin and adds to the <emphasis>Convention</emphasis> object.
         See <xref linkend='groovylayout'/>, <xref linkend='groovyconvention'/>
         and <xref linkend='groovyconventionFloatingDir'/>. It also add a new dependency configuration
         <literal>groovy</literal>.
     </para>
-    <para>Gradle is written in Groovy and offers you to write your build scripts in Groovy. But this is an internal
+    <para>Gradle is written in Groovy and allows you to write your build scripts in Groovy. But this is an internal
         aspect of Gradle which is strictly separated from building Groovy projects. You are free to choose the Groovy
         version your project should be build with. This Groovy version is not just used for compiling your code and
         running your tests. The <literal>groovyc</literal> compiler and the the <literal>groovydoc</literal>
@@ -66,11 +66,10 @@
             <td>groovySrcDirNames</td>
             <td>groovySrcDirs</td>
             <td>
-                <literal>main/groovy</literal>
+                [<literal>main/groovy</literal>]
             </td>
-            <td>[
-                <emphasis>srcRoot</emphasis>
-                <literal>/main/groovy</literal>]
+            <td>
+                [<literal><replaceable>srcRoot</replaceable>/main/groovy</literal>]
             </td>
         </tr>
         <tr>
@@ -79,9 +78,18 @@
             <td>
                 <literal>test/groovy</literal>
             </td>
-            <td>[
-                <emphasis>srcRoot</emphasis>
-                <literal>/test/groovy</literal>]
+            <td>
+                [<literal><replaceable>srcRoot</replaceable>/test/groovy</literal>]
+            </td>
+        </tr>
+        <tr>
+            <td>groovydocDirName</td>
+            <td>groovydocDir</td>
+            <td>
+                <literal>groovydoc</literal>
+            </td>
+            <td>
+                <literal><replaceable>docsDir</replaceable>/groovydoc</literal>
             </td>
         </tr>
 
