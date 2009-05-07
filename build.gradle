@@ -207,6 +207,7 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
             copy(file: file, todir: explodedDistLibDir)
         }
         // todo: find out why Ivy does not include the jar in the resolve
+        delete { fileset(dir:explodedDistLibDir, includes:"$archivesBaseName-*.jar") }
         copy(file: archive_jar.archivePath, toDir: explodedDistLibDir)
         copy(file: archive_wrapper_jar.archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
@@ -659,8 +660,3 @@ void ftp(Map args, Closure antFileset = {}) {
         }
     }
 }
-
-
-
-
-
