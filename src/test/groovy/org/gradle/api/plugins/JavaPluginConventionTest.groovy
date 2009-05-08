@@ -20,10 +20,10 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.plugins.AbstractPluginConventionTest
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.ReportingBasePluginConvention
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.assertEquals
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.gradle.api.JavaVersion
 
 /**
@@ -47,7 +47,7 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
     }
 
     @Test public void defaultValues() {
-        assert convention.manifest != null
+        assertThat(convention.manifest, notNullValue())
         assertEquals([], convention.metaInf)
         assertEquals([], convention.floatingSrcDirs)
         assertEquals([], convention.floatingTestSrcDirs)
@@ -56,8 +56,6 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals('src', convention.srcRootName)
         assertEquals('classes', convention.classesDirName)
         assertEquals('test-classes', convention.testClassesDirName)
-        assertEquals('distributions', convention.distsDirName)
-        assertEquals('', convention.libsDirName)
         assertEquals('docs', convention.docsDirName)
         assertEquals('javadoc', convention.javadocDirName)
         assertEquals('test-results', convention.testResultsDirName)
@@ -92,7 +90,6 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])] + convention.floatingTestResourceDirs, convention.testResourceDirs)
         assertEquals(new File(project.buildDir, convention.classesDirName), convention.classesDir)
         assertEquals(new File(project.buildDir, convention.testClassesDirName), convention.testClassesDir)
-        assertEquals(new File(project.buildDir, convention.distsDirName), convention.distsDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
         assertEquals(new File(convention.docsDir, convention.javadocDirName), convention.javadocDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)

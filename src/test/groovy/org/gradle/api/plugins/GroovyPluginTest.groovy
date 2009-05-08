@@ -45,7 +45,7 @@ class GroovyPluginTest {
         assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
     }
 
-    @Test public void addsAGroovyConfigurationToTheProject() {
+    @Test public void addsGroovyConfigurationToTheProject() {
         groovyPlugin.apply(project, new PluginRegistry(), null)
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
@@ -85,7 +85,7 @@ class GroovyPluginTest {
         assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
     }
 
-    @Test public void configuresAdditionalTasksAddedToTheProject() {
+    @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
         groovyPlugin.apply(project, new PluginRegistry(), null)
         
         def task = project.createTask('otherCompile', type: GroovyCompile)

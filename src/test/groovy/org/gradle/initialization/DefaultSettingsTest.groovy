@@ -25,18 +25,19 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
-import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.BuildSourceBuilder
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -49,12 +50,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
+
 
 /**
  * @author Hans Dockter
@@ -107,7 +103,7 @@ class DefaultSettingsTest {
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertNull(settings.buildSrcStartParameter.buildFile)
-        assertEquals([JavaPlugin.CLEAN_TASK_NAME, Configurations.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
+        assertEquals([BasePlugin.CLEAN_TASK_NAME, Configurations.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
                 settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
         assertNull(settings.getRootProject().getParent())

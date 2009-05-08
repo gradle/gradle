@@ -63,12 +63,13 @@ public class DefaultTaskDependency implements TaskDependency {
         add(values);
     }
 
-    public void add(Object... values) {
+    public DefaultTaskDependency add(Object... values) {
         List<Object> flattened = new ArrayList<Object>();
         GUtil.flatten(values, flattened);
         for (Object value : flattened) {
             addValue(value);
         }
+        return this;
     }
 
     private void addValue(Object dependency) {

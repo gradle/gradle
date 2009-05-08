@@ -17,19 +17,23 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.bundling.*;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.bundling.Tar;
+import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -45,7 +49,6 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class JavaPlugin implements Plugin {
-    public static final String CLEAN_TASK_NAME = "clean";
     public static final String INIT_TASK_NAME = "init";
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
     public static final String COMPILE_TASK_NAME = "compile";
@@ -73,6 +76,7 @@ public class JavaPlugin implements Plugin {
     }
 
     public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+        pluginRegistry.apply(BasePlugin.class, project, customValues);
         pluginRegistry.apply(ReportingBasePlugin.class, project, customValues);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, customValues);
@@ -80,23 +84,12 @@ public class JavaPlugin implements Plugin {
         convention.getPlugins().put("java", javaConvention);
 
         configureConfigurations(project);
-        configureUploadRules(project);
-        configureBuildConfigurationRule(project);
 
-        project.getTasks().add(INIT_TASK_NAME).setDescription("The first task of the Java plugin tasks to be excuted. Does nothing if not customized.");
-
-        project.getTasks().add(CLEAN_TASK_NAME, Clean.class).
-                conventionMapping(GUtil.map(
-                        "dir", new ConventionValue() {
-                            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                                return project.getBuildDir();
-                            }
-                        })).setDescription("Deletes the build directory.");
+        configureInit(project);
 
         configureJavaDoc(project);
 
         configureProcessResources(project);
-
         configureCompile(project);
 
         configureTest(project);
@@ -108,6 +101,10 @@ public class JavaPlugin implements Plugin {
 
         configureEclipse(project);
         configureEclipseWtpModule(project);
+    }
+
+    private void configureInit(Project project) {
+        project.getTasks().add(INIT_TASK_NAME).setDescription("The first task of the Java plugin tasks to be excuted. Does nothing if not customized.");
     }
 
     private void configureTestCompile(Project project) {
@@ -180,7 +177,7 @@ public class JavaPlugin implements Plugin {
         eclipseWtpModule.setDescription("Generates the Eclipse Wtp files.");
     }
 
-    private EclipseClasspath configureEclipseClasspath(Project project) {
+    private EclipseClasspath configureEclipseClasspath(final Project project) {
         EclipseClasspath eclipseClasspath = project.getTasks().add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
         eclipseClasspath.conventionMapping(GUtil.map(
                 "srcDirs", new ConventionValue() {
@@ -211,7 +208,7 @@ public class JavaPlugin implements Plugin {
                 },
                 "projectDependencies", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new ArrayList(((Task) conventionAwareObject).getProject().getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME).getAllProjectDependencies());
+                        return new ArrayList(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME).getAllProjectDependencies());
                     }
                 }));
         eclipseClasspath.setDescription("Generates an Eclipse .classpath file.");
@@ -227,77 +224,10 @@ public class JavaPlugin implements Plugin {
                 "Process and copy the test resources into the binary directory of the compiled test sources.");
     }
 
-    private void configureBuildConfigurationRule(final Project project) {
-        final String prefix = "build";
-        project.getTasks().addRule(new Rule() {
-            public String getDescription() {
-                return String.format("Pattern: %s<ConfigurationName>: Builds the artifacts belonging to the configuration.", prefix);
-            }
-
-            public void apply(String taskName) {
-                if (taskName.startsWith(prefix)) {
-                    Configuration configuration = project.getConfigurations().findByName(taskName.substring(prefix.length()).toLowerCase());
-                    if (configuration != null) {
-                        project.getTasks().add(taskName).dependsOn(configuration.getBuildArtifacts());
-                    }
-                }
-            }
-        });
-    }
-
-    private void configureUploadRules(final Project project) {
-        project.getTasks().addRule(new Rule() {
-            public String getDescription() {
-                return "Pattern: upload<ConfigurationName>Internal: Upload the project artifacts of a configuration to the internal Gradle repository.";
-            }
-
-            public void apply(String taskName) {
-                Set<Configuration> configurations = project.getConfigurations().getAll();
-                for (Configuration configuration : configurations) {
-                    if (taskName.equals(configuration.getUploadInternalTaskName())) {
-                        Upload uploadInternal = createUploadTask(configuration.getUploadInternalTaskName(), configuration, project);
-                        uploadInternal.getRepositories().add(project.getBuild().getInternalRepository());
-                    }
-                }
-            }
-        });
-
-        project.getTasks().addRule(new Rule() {
-            public String getDescription() {
-                return "Pattern: upload<ConfigurationName>: Upload the project artifacts of a configuration to a public Gradle repository.";
-            }
-
-            public void apply(String taskName) {
-                Set<Configuration> configurations = project.getConfigurations().getAll();
-                for (Configuration configuration : configurations) {
-                    if (taskName.equals(configuration.getUploadTaskName())) {
-                        createUploadTask(configuration.getUploadTaskName(), configuration, project);
-                    }
-                }
-            }
-        });
-    }
-
-    private Upload createUploadTask(String name, final Configuration configuration, Project project) {
-        Upload upload = project.getTasks().add(name, Upload.class);
-        PublishInstruction publishInstruction = new PublishInstruction();
-        publishInstruction.setIvyFileParentDir(project.getBuildDir());
-        upload.setConfiguration(configuration);
-        upload.setPublishInstruction(publishInstruction);
-        upload.dependsOn(configuration.getBuildArtifacts());
-        upload.setDescription(String.format("Uploads all artifacts belonging to the %s configuration",
-                configuration.getName()));
-        return upload;
-    }
-
     private void configureArchives(final Project project) {
         project.getTasks().whenTaskAdded(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
-                if (task instanceof War) {
-                    task.conventionMapping(DefaultConventionsToPropertiesMapping.WAR);
-                    task.dependsOn(TEST_TASK_NAME);
-                }
-                else if (task instanceof Jar) {
+                if (task instanceof Jar) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
                     task.dependsOn(TEST_TASK_NAME);
                 }

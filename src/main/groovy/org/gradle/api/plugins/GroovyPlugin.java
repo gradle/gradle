@@ -64,7 +64,7 @@ public class GroovyPlugin implements Plugin {
     private void configureGroovydoc(final Project project) {
         project.getTasks().whenTaskAdded(Groovydoc.class, new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
-                groovydoc.setGroovyClasspath(project.getConfigurations().getByName("groovy"));
+                groovydoc.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
                 groovydoc.conventionMapping(GUtil.map("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return groovy(convention).getGroovySrcDirs();
@@ -101,7 +101,7 @@ public class GroovyPlugin implements Plugin {
                 (Compile) project.task(COMPILE_TASK_NAME),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
-        compileTests.setGroovyClasspath(project.getConfigurations().getByName("groovy"));
+        compileTests.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
         compileTests.setDescription("Compiles the Java and Groovy test source code.");
         compileTests.conventionMapping(GUtil.map(
                 "groovySourceDirs", new ConventionValue() {
@@ -114,7 +114,7 @@ public class GroovyPlugin implements Plugin {
     private void configureCompile(final Project project) {
         project.getTasks().whenTaskAdded(GroovyCompile.class, new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
-                compile.setGroovyClasspath(project.getConfigurations().getByName("groovy"));
+                compile.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
                 compile.conventionMapping(GUtil.map("groovySourceDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return groovy(convention).getGroovySrcDirs();

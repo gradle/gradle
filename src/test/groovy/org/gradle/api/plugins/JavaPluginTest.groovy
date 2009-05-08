@@ -22,18 +22,16 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.ReportingBasePlugin
-import org.gradle.api.plugins.WarPlugin
-import org.gradle.api.tasks.Clean
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
-import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
-import org.gradle.api.tasks.testing.Test
 import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.gradle.util.WrapUtil.*
@@ -43,12 +41,20 @@ import static org.junit.Assert.*
 /**
  * @author Hans Dockter
  */
-// todo Make test stronger
 class JavaPluginTest {
     private final Project project = HelperUtil.createRootProject()
     private final JavaPlugin javaPlugin = new JavaPlugin()
 
-    @Test public void testApplyCreatesConfigurations() {
+    @Test public void appliesBasePluginsAndAddsConventionObject() {
+        javaPlugin.apply(project, new PluginRegistry())
+
+        assertTrue(project.appliedPlugins.contains(ReportingBasePlugin))
+        assertTrue(project.appliedPlugins.contains(BasePlugin))
+
+        assertThat(project.convention.plugins.java, instanceOf(JavaPluginConvention))
+    }
+
+    @Test public void createsConfigurations() {
         javaPlugin.apply(project, new PluginRegistry())
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
@@ -89,12 +95,7 @@ class JavaPluginTest {
     @Test public void createsTasksAndAppliesMappings() {
         javaPlugin.apply(project, new PluginRegistry())
 
-        def task = project.task(JavaPlugin.CLEAN_TASK_NAME)
-        assertThat(task, instanceOf(Clean))
-        assertDependsOn(task) 
-        assertThat(task.dir, equalTo(project.buildDir))
-
-        task = project.task(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        def task = project.task(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task, instanceOf(Copy))
         assertDependsOn(task, JavaPlugin.INIT_TASK_NAME)
         assertThat(task.destinationDir, equalTo(project.classesDir))
@@ -125,7 +126,7 @@ class JavaPluginTest {
         task = project.task(JavaPlugin.JAR_TASK_NAME)
         assertThat(task, instanceOf(Jar))
         assertDependsOn(task, JavaPlugin.TEST_TASK_NAME)
-        assertThat(task.destinationDir, equalTo(project.buildDir))
+        assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.classesDir))
 
         task = project.task(JavaPlugin.LIBS_TASK_NAME)
@@ -142,12 +143,12 @@ class JavaPluginTest {
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
 
-        task = project.task("build" + Dependency.MASTER_CONFIGURATION[0].toUpperCase() + Dependency.MASTER_CONFIGURATION[1..-1])
+        task = project.task("buildMaster")
         assertThat(task, instanceOf(DefaultTask))
         assertDependsOn(task, JavaPlugin.JAR_TASK_NAME)
     }
 
-    @Test public void appliesMappingsToTasksCreatedByBuildScript() {
+    @Test public void appliesMappingsToTasksDefinedByBuildScript() {
         javaPlugin.apply(project, new PluginRegistry())
 
         def task = project.createTask('customResources', type: Copy)
@@ -175,17 +176,10 @@ class JavaPluginTest {
 
         def task = project.createTask('customJar', type: Jar)
         assertDependsOn(task, JavaPlugin.TEST_TASK_NAME)
-        assertThat(task.destinationDir, equalTo(project.buildDir))
+        assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.classesDir))
 
         assertDependsOn(project.task(JavaPlugin.LIBS_TASK_NAME), JavaPlugin.JAR_TASK_NAME, 'customJar')
-
-        task = project.createTask('customWar', type: War)
-        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.TEST_TASK_NAME)))
-        assertThat(task.destinationDir, equalTo(project.buildDir))
-        assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
-
-        assertDependsOn(project.task(JavaPlugin.LIBS_TASK_NAME), JavaPlugin.JAR_TASK_NAME, 'customJar', 'customWar')
 
         task = project.createTask('customZip', type: Zip)
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.LIBS_TASK_NAME)))
@@ -204,11 +198,5 @@ class JavaPluginTest {
 
     private void assertDependsOn(Task task, String... names) {
         assertThat(task.taskDependencies.getDependencies(task)*.name as Set, equalTo(toSet(names)))
-    }
-
-    @Test public void appliesBaseReportingPlugin() {
-        javaPlugin.apply(project, new PluginRegistry())
-
-        assertTrue(project.appliedPlugins.contains(ReportingBasePlugin))
     }
 }

@@ -156,7 +156,7 @@ public class DefaultConventionsToPropertiesMapping {
         ZIP.putAll(GUtil.map(
                 "destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getDistsDir();
+                        return convention.getPlugin(BasePluginConvention.class).getDistsDir();
                     }
                 }
         ));
@@ -170,7 +170,7 @@ public class DefaultConventionsToPropertiesMapping {
         JAR.putAll(GUtil.map(
                 "destinationDir", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(JavaPluginConvention.class).getLibsDir();
+                return convention.getPlugin(BasePluginConvention.class).getLibsDir();
             }
         },
                 "baseDir", new ConventionValue() {
@@ -199,8 +199,8 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map WAR = new HashMap(JAR);
 
     static {
-        WAR.remove("baseDir");
         WAR.putAll(GUtil.map(
+                "baseDir", null,
                 "classesFileSets", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return WrapUtil.toList(new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));

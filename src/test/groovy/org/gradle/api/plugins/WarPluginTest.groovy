@@ -27,6 +27,8 @@ import org.junit.Test
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.Task
+import org.gradle.api.tasks.bundling.War
 
 /**
  * @author Hans Dockter
@@ -66,4 +68,33 @@ class WarPluginTest {
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
     }
+
+    @Test public void addsTasks() {
+        warPlugin.apply(project, new PluginRegistry(), [:])
+
+        def task = project.task(WarPlugin.WAR_TASK_NAME)
+        assertThat(task, instanceOf(War))
+        assertDependsOn(task, JavaPlugin.TEST_TASK_NAME)
+        assertThat(task.destinationDir, equalTo(project.libsDir))
+        assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
+
+        task = project.task(JavaPlugin.LIBS_TASK_NAME)
+        assertDependsOn(task, JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME)
+    }
+
+    @Test public void appliesMappingsToArchiveTasks() {
+        warPlugin.apply(project, new PluginRegistry(), [:])
+
+        def task = project.createTask('customWar', type: War)
+        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.TEST_TASK_NAME)))
+        assertThat(task.destinationDir, equalTo(project.libsDir))
+        assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
+
+        assertDependsOn(project.task(JavaPlugin.LIBS_TASK_NAME), JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar')
+    }
+
+    private void assertDependsOn(Task task, String... names) {
+        assertThat(task.taskDependencies.getDependencies(task)*.name as Set, equalTo(toSet(names)))
+    }
+
 }
