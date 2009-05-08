@@ -19,15 +19,42 @@ import org.junit.Test;
 
 public class WebProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void createsAWar() {
+    public void handlesEmptyProject() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "usePlugin('war')",
-                "war.customName = 'test.war'"
+                "usePlugin('war')"
+        );
+
+        usingBuildFile(buildFile).withTasks("libs").run();
+    }
+
+    @Test
+    public void createsAWar() {
+        testFile("settings.gradle").writelns("rootProject.name = 'test'");
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                "usePlugin('war')"
         );
         testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
 
         usingBuildFile(buildFile).withTasks("libs").run();
-        testFile("build/test.war").assertExists();
+        testFile("build/test-unspecified.war").assertExists();
+    }
+
+    @Test
+    public void canCustomiseWarUsingConventionProperties() {
+        testFile("settings.gradle").writelns("rootProject.name = 'test'");
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                "usePlugin('war')",
+                "buildDirName = 'output'",
+                "libsDirName = 'wars'",
+                "archivesBaseName = 'test'",
+                "version = '0.5-RC2'"
+        );
+        testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
+
+        usingBuildFile(buildFile).withTasks("libs").run();
+        testFile("output/wars/test-0.5-RC2.war").assertExists();
     }
 }
