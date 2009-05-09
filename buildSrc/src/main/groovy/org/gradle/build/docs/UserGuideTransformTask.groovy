@@ -5,12 +5,12 @@ import org.w3c.dom.Element
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Document
 import groovy.xml.dom.DOMCategory
-import groovy.xml.FactorySupport
 import groovy.xml.MarkupBuilder
 import org.w3c.dom.Node
 import org.gradle.api.artifacts.FileCollection
 import org.gradle.api.internal.DefaultTask
 import org.gradle.api.Project
+import javax.xml.parsers.DocumentBuilder
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
@@ -91,7 +91,7 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     private def fixProgramListings(Document doc) {
-        doc.documentElement.depthFirst().findAll { it.name() == 'programlisting' }.each {Element element ->
+        doc.documentElement.depthFirst().findAll { it.name() == 'programlisting' || it.name() == 'screen' }.each {Element element ->
             element.setTextContent(normalise(element.getTextContent()))
         }
     }
@@ -266,8 +266,9 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     private Document parseSourceFile() {
-        DocumentBuilderFactory factory = FactorySupport.createDocumentBuilderFactory()
+        DocumentBuilderFactory factory = Class.forName('com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl', true, Thread.currentThread().contextClassLoader).newInstance()
         factory.setNamespaceAware(true)
-        return factory.newDocumentBuilder().parse(sourceFile)
+        DocumentBuilder builder = factory.newDocumentBuilder()
+        return builder.parse(sourceFile)
     }
 }
