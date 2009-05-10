@@ -30,9 +30,18 @@ a:visited {
     color: #444444;
 }
 
+p {
+   /* ensure paragraphs remain close to their parent heading */
+   margin-top: 0;
+   margin-bottom: 1em;
+}
+
 h1, h2, h3, h4, h5 {
     color: #6a915e;
     line-height: 150%;
+    /* ensure paragraphs remain close to their parent heading */
+    margin-bottom: 0;
+   
 }
 
 h1 {
@@ -87,28 +96,28 @@ pre {
 }
 
 .example, .figure, .table {
-    margin-top: 0.4em;
-    margin-bottom: 0.4em;
+    margin-top: 0;
+    margin-bottom: 1.8em;
 }
 
 .example .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
-    margin-top: 1.4em;
+    margin-top: 0;
     margin-bottom: 0.2em;
 }
 
 .figure .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
-    margin-top: 1.4em;
+    margin-top: 0;
     margin-bottom: 0.2em;
 }
 
 .table .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
-    margin-top: 1.4em;
+    margin-top: 0;
     margin-bottom: 0.2em;
 }
 
@@ -156,10 +165,12 @@ pre {
 }
 
 .note, .tip {
-    padding-top: 0.4em;
-    padding-bottom: 0.4em;
+    padding-top: 1em;
+    padding-bottom: 0;
     padding-left: 1.2em;
     padding-right: 1.2em;
+   
+    margin-bottom: 1em;
 }
 
 .note {
@@ -185,7 +196,22 @@ pre {
     color: #80614D;
 }
 
+/* Remove top margins on headings inside notes and tips */
+.tip h1, .note h1
+.tip h2, .note  h2,
+.tip h3, .note  h3,
+.tip h4, .note  h4,
+.tip h5, .note  h5,
+.tip h6 .note  h6 
+{
+   margin-top: 0;
+}
+
 .exampleLocation {
+    /* This -1 margin is a hack to make the example location closer to it's div.example parent.  This
+    could be fixed if the example location was contained withing the example div */
+    margin-top: -1em;
+    
     padding-left: 1.7em;
     background: #FEFEDD;
     color: #777744;
