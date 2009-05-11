@@ -16,12 +16,24 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import org.junit.Test
-import org.gradle.api.internal.plugins.DefaultConvention
-import static org.junit.Assert.*
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.resolver.ResolverSettings
+import org.apache.maven.artifact.ant.RemoteRepository
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
+import org.gradle.api.artifacts.maven.GroovyMavenDeployer
+import org.gradle.api.artifacts.maven.MavenResolver
+import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.plugins.DefaultConvention
+import org.gradle.api.plugins.Convention
 import org.gradle.util.HashUtil
+import org.junit.Test
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 
 /**
  * @author Hans Dockter
@@ -157,4 +169,118 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
       }
     }
 
+    @Test
+    void resolverAccess() {
+        Convention conventionDummy = context.mock(Convention)
+        DependencyResolver dependencyResolverStub = context.mock(DependencyResolver)
+        context.checking {
+            allowing(dependencyResolverStub).getName()
+            will(returnValue("resolverName"))
+
+            allowing(resolverFactoryMock).createResolver(dependencyResolverStub)
+            will(returnValue(dependencyResolverStub))
+        }
+        DefaultRepositoryHandler repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, conventionDummy)
+        repositoryHandler.add(dependencyResolverStub)
+
+        dependencyResolverStub == repositoryHandler.resolverName
+    }
+
+    @Test
+    public void mavenDeployerWithoutName() {
+        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
+        String expectedName = RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME + "-" +
+                System.identityHashCode(expectedResolver)
+        prepareName(expectedResolver, expectedName)
+        assertSame(expectedResolver, repositoryHandler.mavenDeployer());
+    }
+
+    @Test
+    public void mavenDeployerWithName() {
+        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
+        String expectedName = "someName"
+        prepareName(expectedResolver, expectedName)
+        assertSame(expectedResolver, repositoryHandler.mavenDeployer(name: expectedName));
+    }
+
+    @Test
+    public void mavenDeployerWithNameAndClosure() {
+        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
+        String expectedName = RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME + "-" +
+                System.identityHashCode(expectedResolver)
+        prepareName(expectedResolver, expectedName) 
+        RemoteRepository repositoryDummy = new RemoteRepository()
+        context.checking {
+            one(expectedResolver).setRepository(repositoryDummy)
+        }
+        assertSame(expectedResolver, repositoryHandler.mavenDeployer() {
+            setRepository(repositoryDummy)
+        });
+    }
+
+    @Test
+    public void mavenDeployerWithoutArgsAndWithClosure() {
+        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
+        String expectedName = "someName"
+        prepareName(expectedResolver, expectedName) 
+        RemoteRepository repositoryDummy = new RemoteRepository()
+        context.checking {
+            one(expectedResolver).setRepository(repositoryDummy)
+        }
+        assertSame(expectedResolver, repositoryHandler.mavenDeployer(name: expectedName) {
+            setRepository(repositoryDummy)
+        });
+    }
+
+    @Test
+    public void mavenInstallerWithoutName() {
+        MavenResolver expectedResolver = prepareMavenInstallerTests()
+        String expectedName = RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME + "-" +
+                System.identityHashCode(expectedResolver)
+        prepareName(expectedResolver, expectedName)
+        assertSame(expectedResolver, repositoryHandler.mavenInstaller());
+    }
+
+    @Test
+    public void mavenInstallerWithName() {
+        MavenResolver expectedResolver = prepareMavenInstallerTests()
+        String expectedName = "someName"
+        prepareName(expectedResolver, expectedName)
+        assertSame(expectedResolver, repositoryHandler.mavenInstaller(name: expectedName));
+    }
+
+    @Test
+    public void mavenInstallerWithNameAndClosure() {
+        MavenResolver expectedResolver = prepareMavenInstallerTests()
+        String expectedName = RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME + "-" +
+                System.identityHashCode(expectedResolver)
+        prepareName(expectedResolver, expectedName)
+        ResolverSettings resolverSettings = [:] as ResolverSettings
+        context.checking {
+            one(expectedResolver).setSettings(resolverSettings)
+        }
+        assertSame(expectedResolver, repositoryHandler.mavenInstaller() {
+            setSettings(resolverSettings)
+        });
+    }
+
+    @Test
+    public void mavenInstallerWithoutArgsAndWithClosure() {
+        MavenResolver expectedResolver = prepareMavenInstallerTests()
+        String expectedName = "someName"
+        prepareName(expectedResolver, expectedName)
+        ResolverSettings resolverSettings = [:] as ResolverSettings
+        context.checking {
+            one(expectedResolver).setSettings(resolverSettings)
+        }
+        assertSame(expectedResolver, repositoryHandler.mavenInstaller(name: expectedName) {
+            setSettings(resolverSettings)
+        });
+    }
+
+    private void prepareName(mavenResolver, String expectedName) {
+        context.checking {
+            one(mavenResolver).setName(expectedName)
+        }
+    }
 }

@@ -180,41 +180,19 @@ class DefaultResolverContainerTest {
     }
 
     @Test
-    public void addMavenUploader() {
-        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
-        context.checking {
-            one(resolverFactoryMock).createResolver(expectedResolver);
-            will(returnValue(expectedResolver))
-        }
-        assertSame(expectedResolver, resolverContainer.addMavenDeployer(DefaultResolverContainerTest.TEST_REPO_NAME));
-        assert resolverContainer.findByName(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
-    }
-
-    @Test
     public void createMavenInstaller() {
         assertSame(prepareMavenInstallerTests(), resolverContainer.createMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
     }
 
-    @Test
-    public void addMavenInstaller() {
-        DependencyResolver expectedResolver = prepareMavenInstallerTests()
-        context.checking {
-            one(resolverFactoryMock).createResolver(expectedResolver);
-            will(returnValue(expectedResolver))
-        }
-        assertSame(expectedResolver, resolverContainer.addMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
-        assert resolverContainer.findByName(DefaultResolverContainerTest.TEST_REPO_NAME).is(expectedResolver)
-    }
-
-    private GroovyMavenDeployer prepareMavenDeployerTests() {
+    protected GroovyMavenDeployer prepareMavenDeployerTests() {
         prepareMavenResolverTests(GroovyMavenDeployer, "createMavenDeployer")
     }
 
-    private DependencyResolver prepareMavenInstallerTests() {
+    protected DependencyResolver prepareMavenInstallerTests() {
         prepareMavenResolverTests(MavenResolver, "createMavenInstaller")
     }
 
-    private DependencyResolver prepareMavenResolverTests(Class resolverType, String createMethod) {
+    protected DependencyResolver prepareMavenResolverTests(Class resolverType, String createMethod) {
         File testPomDir = new File("pomdir");
         ConfigurationContainer configurationContainer = [:] as ConfigurationContainer
         Conf2ScopeMappingContainer conf2ScopeMappingContainer = [:] as Conf2ScopeMappingContainer
@@ -224,13 +202,19 @@ class DefaultResolverContainerTest {
         DependencyResolver expectedResolver = context.mock(resolverType)
         context.checking {
             allowing(expectedResolver).getName(); will(returnValue(DefaultResolverContainerTest.TEST_REPO_NAME))
-            one(resolverFactoryMock)."$createMethod"(DefaultResolverContainerTest.TEST_REPO_NAME, testPomDir, configurationContainer, conf2ScopeMappingContainer);
+            allowing(resolverFactoryMock)."$createMethod"(
+                    withParam(any(String)),
+                    withParam(equal(testPomDir)),
+                    withParam(same(configurationContainer)),
+                    withParam(same(conf2ScopeMappingContainer)));
+            will(returnValue(expectedResolver))
+            one(resolverFactoryMock).createResolver(expectedResolver);
             will(returnValue(expectedResolver))
         }
         expectedResolver
     }
 
-  @Test
+    @Test
     public void testConventionAwareness() {
         ConventionTestHelper conventionTestHelper = new ConventionTestHelper()
         resolverContainer.setConventionAwareHelper(conventionTestHelper.conventionAwareHelperMock)

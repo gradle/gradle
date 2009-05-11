@@ -16,15 +16,22 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
+import org.gradle.api.artifacts.maven.MavenResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 import java.util.Map;
 
+import groovy.lang.Closure;
+
 /**
  * @author Hans Dockter
  */
 public interface RepositoryHandler extends ResolverContainer {
+    final String DEFAULT_MAVEN_DEPLOYER_NAME = "maven-deployer";
+    final String DEFAULT_MAVEN_INSTALLER_NAME = "maven-installer";
+
     /**
      * Adds a resolver that looks into a number of directories for artifacts. The artifacts are expected to be located in the
      * root of the specified directories. The resolver ignores any group/organization information specified in the
@@ -118,7 +125,7 @@ public interface RepositoryHandler extends ResolverContainer {
     /**
      * Adds a repository which is Maven compatible. The compatibility is in regard to layout, snapshothandling and
      * dealing with the pom.xml. This repository can't be used for publishing in a Maven compatible way. For publishing
-     * to a Maven repository, have a look at {@link #addMavenDeployer(String)} or {@link #addMavenInstaller(String)}.
+     * to a Maven repository, have a look at {@link #mavenDeployer(java.util.Map)} or {@link #mavenInstaller(java.util.Map)}.
      *
      * By default the repository accepts to resolve artifacts without a pom. The repository always looks first for the pom
      * in the root repository. It then looks for the artifact in the root repository. Sometimes the artifact
@@ -162,5 +169,68 @@ public interface RepositoryHandler extends ResolverContainer {
      * @see #mavenCentral(java.util.Map)
      */
     DependencyResolver mavenRepo(Map args);
+
+    /**
+     * Adds a repository for publishing to a Maven repository. This repository can not be used for reading from a Maven
+     * repository.
+     *
+     * The following parameter are accepted as keys for the map:
+     *
+     * <table summary="Shows property keys and associated values">
+     * <tr><th>Key</th>
+     *     <th>Description of Associated Value</th></tr>
+     * <tr><td><code>name</code></td>
+     *     <td><em>(optional)</em> The name of the repository. The default is <em>maven-deployer-{SOME_ID}</em>.
+     * The name is used in the console output,
+     * to point to information related to a particular repository. A name must be unique amongst a repository group.
+     * </td></tr>
+     * </table>
+     * 
+     * @param args The argument to create the repository
+     * @return The added repository
+     * @see #mavenDeployer(java.util.Map, groovy.lang.Closure)
+     */
+    GroovyMavenDeployer mavenDeployer(Map args);
+
+    /**
+     * Behaves the same way as {@link #mavenDeployer(java.util.Map)}. Additionally a closure can be passed to
+     * further configure the added repository.
+     *  
+     * @param args The argument to create the repository
+     * @param configureClosure
+     * @return The added repository
+     */
+    GroovyMavenDeployer mavenDeployer(Map args, Closure configureClosure);
+
+    /**
+     * Adds a repository for installing to a local Maven cache. This repository can not be used for reading.
+     *
+     * The following parameter are accepted as keys for the map:
+     *
+     * <table summary="Shows property keys and associated values">
+     * <tr><th>Key</th>
+     *     <th>Description of Associated Value</th></tr>
+     * <tr><td><code>name</code></td>
+     *     <td><em>(optional)</em> The name of the repository. The default is <em>maven-installer-{SOME_ID}</em>.
+     * The name is used in the console output,
+     * to point to information related to a particular repository. A name must be unique amongst a repository group.
+     * </td></tr>
+     * </table>
+     *
+     * @param args The argument to create the repository
+     * @return The added repository
+     * @see #mavenInstaller(java.util.Map, groovy.lang.Closure) (java.util.Map, groovy.lang.Closure)
+     */
+    MavenResolver mavenInstaller(Map args);
+
+    /**
+     * Behaves the same way as {@link #mavenInstaller(java.util.Map)}. Additionally a closure can be passed to
+     * further configure the added repository.
+     *
+     * @param args The argument to create the repository
+     * @param configureClosure
+     * @return The added repository
+     */
+    MavenResolver mavenInstaller(Map args, Closure configureClosure);
 
 }

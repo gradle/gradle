@@ -213,7 +213,7 @@ public interface ResolverContainer extends IConventionAware, Iterable<Dependency
      * #getByName(String)}. You can call this method in your build script by using the groovy {@code []} operator:
      *
      * <pre>
-     * resplvers['some-resolver'].addArtifactPattern someUrl
+     * resolvers['some-resolver'].addArtifactPattern someUrl
      * </pre>
      *
      * @param name The resolver name
@@ -243,14 +243,6 @@ public interface ResolverContainer extends IConventionAware, Iterable<Dependency
      * @return The resolver. Returns an empty map if this container is empty.
      */
     Map<String, DependencyResolver> getAsMap();
-
-    GroovyMavenDeployer addMavenDeployer(String name);
-
-    GroovyMavenDeployer addMavenDeployer(String name, Closure configureClosure);
-
-    MavenResolver addMavenInstaller(String name);
-
-    MavenResolver addMavenInstaller(String name, Closure configureClosure);
 
     void setMavenPomDir(File mavenPomDir);
 

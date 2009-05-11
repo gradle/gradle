@@ -24,6 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.plugins.Convention
 import org.gradle.util.HashUtil
 import org.gradle.util.WrapUtil
+import org.gradle.api.artifacts.maven.GroovyMavenDeployer
+import org.gradle.api.artifacts.maven.MavenResolver
 
 /**
  * @author Hans Dockter
@@ -90,5 +92,39 @@ class DefaultRepositoryHandler extends DefaultResolverContainer implements Repos
                 getNameFromMap(args, urls[0] as String),
                 urls[0] as String,
                 urls.size() == 1 ? [] as String[] : urls[1..-1] as String[]))
+    }
+
+    public GroovyMavenDeployer mavenDeployer(Map args = [:]) {
+        GroovyMavenDeployer mavenDeployer = createMavenDeployer(args)
+        return (GroovyMavenDeployer) add(mavenDeployer);
+    }
+
+    private GroovyMavenDeployer createMavenDeployer(Map args) {
+        GroovyMavenDeployer mavenDeployer = createMavenDeployer("dummyName")
+        String defaultName = RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME + "-" + System.identityHashCode(mavenDeployer);
+        mavenDeployer.setName(getNameFromMap(args, defaultName))
+        return mavenDeployer
+    }
+
+    public GroovyMavenDeployer mavenDeployer(Map args = [:], Closure configureClosure) {
+        GroovyMavenDeployer mavenDeployer = createMavenDeployer(args)
+        return (GroovyMavenDeployer) add(mavenDeployer, configureClosure);
+    }
+
+    public MavenResolver mavenInstaller(Map args = [:]) {
+        MavenResolver mavenInstaller = createMavenInstaller(args)
+        return (MavenResolver) add(mavenInstaller);
+    }
+
+    public MavenResolver mavenInstaller(Map args = [:], Closure configureClosure) {
+        MavenResolver mavenInstaller = createMavenInstaller(args)
+        return (MavenResolver) add(mavenInstaller, configureClosure);
+    }
+
+    private MavenResolver createMavenInstaller(Map args) {
+        MavenResolver mavenInstaller = createMavenInstaller("dummyName")
+        String defaultName = RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME + "-" + System.identityHashCode(mavenInstaller);
+        mavenInstaller.setName(getNameFromMap(args, defaultName))
+        return mavenInstaller
     }
 }

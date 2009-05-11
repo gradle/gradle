@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
 import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.Map;
@@ -114,7 +115,7 @@ public class MavenPlugin implements Plugin {
         PublishInstruction publishInstruction = new PublishInstruction();
         publishInstruction.setIvyFileParentDir(new File("nonNullDummy"));
         installUpload.setPublishInstruction(publishInstruction);
-        installUpload.getRepositories().addMavenInstaller("maven-installer");
+        installUpload.getRepositories().mavenInstaller(WrapUtil.toMap("name", "maven-installer"));
         installUpload.setDescription("Does a maven install of the master artifacts into the local .m2 cache.");
     }
 }

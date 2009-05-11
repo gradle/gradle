@@ -26,31 +26,28 @@ dependencies {
     testRuntime "group6:testRuntime:1.0"
 }
 
-mavenInstaller = install.repositories["maven-installer"]
+installer = install.repositories["maven-installer"]
 
 install.doLast {install ->
-    Settings settings = mavenInstaller.settings
+    Settings settings = installer.settings
     new File(buildDir, "localRepoPath.txt").write(settings.getLocalRepository())
 
 }
 
 uploadMaster.dependsOn install
 
+def deployer = null
 uploadMaster {
     repositories {
-      addMavenDeployer('maven-deployer') {
+      deployer = mavenDeployer {
         repository(url: "file://localhost/$projectDir/pomRepo/")
       }
     }
 }
 
-mavenDeployer = uploadMaster.repositories["maven-deployer"]
-
-[mavenInstaller, mavenDeployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
+[installer, deployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
 if (hasProperty('customVersion')) {
-    [mavenInstaller, mavenDeployer]*.pom*.version = customVersion
-    mavenInstaller.pom.groupId = 'installGroup'
-    mavenDeployer.pom.groupId = 'deployGroup'
+    [installer, deployer]*.pom*.version = customVersion
+    installer.pom.groupId = 'installGroup'
+    deployer.pom.groupId = 'deployGroup'
 }
-
-

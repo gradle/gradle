@@ -202,24 +202,8 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         return resolverFactory.createMavenDeployer(name, getMavenPomDir(), getConfigurationContainer(), getMavenScopeMappings());
     }
 
-    public GroovyMavenDeployer addMavenDeployer(String name) {
-        return (GroovyMavenDeployer) add(createMavenDeployer(name));
-    }
-
-    public GroovyMavenDeployer addMavenDeployer(String name, Closure configureClosure) {
-        return (GroovyMavenDeployer) add(createMavenDeployer(name), configureClosure);
-    }
-
     public MavenResolver createMavenInstaller(String name) {
         return resolverFactory.createMavenInstaller(name, getMavenPomDir(), getConfigurationContainer(), getMavenScopeMappings());
-    }
-
-    public MavenResolver addMavenInstaller(String name) {
-        return (MavenResolver) add(createMavenInstaller(name));
-    }
-
-    public MavenResolver addMavenInstaller(String name, Closure configureClosure) {
-        return (MavenResolver) add(createMavenInstaller(name), configureClosure);
     }
 
     public Task conventionMapping(Map<String, ConventionValue> mapping) {
