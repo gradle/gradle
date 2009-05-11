@@ -107,13 +107,10 @@ dependencies {
         // todo - these should be runtime dependencies
         dependencies("javax.servlet:servlet-api:2.5@jar",
                 "org.apache.ant:ant:1.7.0@jar",
+                // todo jsp stuff should be a module
                 "org.mortbay.jetty:jsp-api-2.1:6.1.14@jar",
                 "org.mortbay.jetty:jsp-2.1:6.1.14@jar",
-                // todo should use a module
-                "org.apache.tomcat:jasper:6.0.18@jar",
-                "org.apache.tomcat:juli:6.0.18@jar",
-                "org.apache.tomcat:jasper-el:6.0.18@jar",
-                "org.apache.tomcat:jasper-jdt:6.0.18@jar",
+                "org.eclipse.jdt:core:3.1.1@jar",
                 "org.mortbay.jetty:jetty-util:6.1.14@jar",
                 "org.mortbay.jetty:jetty-naming:6.1.14@jar",
                 "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
