@@ -38,6 +38,7 @@
     <xi:include href='javaPlugin.xml'/>
     <xi:include href='groovyPlugin.xml'/>
     <xi:include href='warPlugin.xml'/>
+    <xi:include href='jettyPlugin.xml'/>
     <xi:include href='osgi.xml'/>
     <xi:include href='projectReports.xml'/>
     <xi:include href='depMngmt.xml'/>

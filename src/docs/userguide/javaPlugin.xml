@@ -348,8 +348,8 @@
             <td>List</td>
             <td>empty</td>
         </tr>
-
     </table>
+
     <table id='javaconventionNonDir'>
         <title>Java Convention Object - Non Dir Properties</title>
         <thead>
