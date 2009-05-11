@@ -32,6 +32,9 @@ class ModuleFactoryDelegate {
   }
 
   void prepareDelegation(Closure configureClosure) {
+    if (!configureClosure) {
+        return
+    }
     Closure delegationClosure = {}
     delegationClosure.delegate = clientModule
     delegationClosure.resolveStrategy = Closure.DELEGATE_FIRST
