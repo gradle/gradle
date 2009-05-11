@@ -120,9 +120,9 @@ public class JettyPlugin implements Plugin {
 
     private Object getWebXml(Project project) {
         War war = (War) project.task(WarPlugin.WAR_TASK_NAME);
-        File webXml = null;
+        File webXml;
         if (war.getWebXml() != null) {
-            webXml = new File(war.getWebXml().toString());
+            webXml = war.getWebXml();
         } else {
             webXml = new File(getWarConvention(project).getWebAppDir(), "WEB-INF/web.xml");
         }
@@ -141,6 +141,11 @@ public class JettyPlugin implements Plugin {
         jettyTask.getConventionMapping().put("tmpDirectory", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return new File(project.getBuildDir(), "jetty");
+            }
+        });
+        jettyTask.getConventionMapping().put("httpPort", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return jettyConvention.getHttpPort();
             }
         });
         jettyTask.getConventionMapping().put("stopPort", new ConventionValue() {

@@ -81,7 +81,7 @@ dependencies {
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
     }
-    
+
     userGuideStyleSheets 'docbook:docbook-xsl:1.74.3@zip'
 
     groovy module("org.codehaus.groovy:groovy-all:1.5.6") {
@@ -99,13 +99,26 @@ dependencies {
         dependencies("jaxen:jaxen:1.1@jar")
     }
 
-    runtime("org.apache.ant:ant-junit:1.7.0@jar")
+    compile "org.mortbay.jetty:jetty-plus:6.1.14@jar",
+            "org.mortbay.jetty:jetty-util:6.1.14@jar",
+            "javax.servlet:servlet-api:2.5@jar"
 
     compile module("org.mortbay.jetty:jetty:6.1.14") {
-        dependencies("javax.servlet:servlet-api:2.5@jar", "org.mortbay.jetty:jetty-naming:6.1.14@jar", "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
+        // todo - these should be runtime dependencies
+        dependencies("javax.servlet:servlet-api:2.5@jar",
+                "org.apache.ant:ant:1.7.0@jar",
+                "org.mortbay.jetty:jsp-api-2.1:6.1.14@jar",
+                "org.mortbay.jetty:jsp-2.1:6.1.14@jar",
+                // todo should use a module
+                "org.apache.tomcat:jasper:6.0.18@jar",
+                "org.apache.tomcat:juli:6.0.18@jar",
+                "org.apache.tomcat:jasper-el:6.0.18@jar",
+                "org.apache.tomcat:jasper-jdt:6.0.18@jar",
+                "org.mortbay.jetty:jetty-util:6.1.14@jar",
+                "org.mortbay.jetty:jetty-naming:6.1.14@jar",
+                "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
     }
-    compile "org.mortbay.jetty:jetty-plus:6.1.14@jar", "org.mortbay.jetty:jetty-util:6.1.14@jar", "javax.servlet:servlet-api:2.5@jar"
-
+    
     compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
             "org.apache.ant:ant:1.7.0@jar",
             "ch.qos.logback:logback-classic:0.9.9@jar",
@@ -117,8 +130,9 @@ dependencies {
             "biz.aQute:bndlib:0.0.255@jar",
             "org.apache.ivy:ivy:2.1.0-rc1@jar",
             "org.apache.maven:maven-ant-tasks:2.0.9@jar"
-    
-    runtime "org.apache.ant:ant-launcher:1.7.0@jar",
+
+    runtime "org.apache.ant:ant-junit:1.7.0@jar",
+            "org.apache.ant:ant-launcher:1.7.0@jar",
             "org.apache.ant:ant-nodeps:1.7.0@jar",
             "org.apache.ant:ant-trax:1.7.0@jar",
             "junit:junit:4.5"

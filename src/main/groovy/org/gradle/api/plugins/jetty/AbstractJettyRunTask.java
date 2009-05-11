@@ -65,38 +65,33 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         });
     }
 
-    private List<File> additionalRuntimeJars = new ArrayList<File>();
+    private Iterable<File> additionalRuntimeJars = new ArrayList<File>();
 
     /**
      * The proxy for the Server object
      */
-    protected JettyPluginServer server;
-
+    private JettyPluginServer server;
 
     /**
      * The "virtual" webapp created by the plugin
      */
-    protected JettyPluginWebAppContext webAppConfig;
+    private JettyPluginWebAppContext webAppConfig;
 
     /**
-     * The context path for the webapp. Defaults to the
-     * name of the webapp's artifact.
+     * The context path for the webapp.
      */
-    protected String contextPath;
-
+    private String contextPath;
 
     /**
      * The temporary directory to use for the webapp.
-     * Defaults to target/jetty-tmp
      */
-    protected File tmpDirectory;
-
+    private File tmpDirectory;
 
     /**
      * A webdefault.xml file to use instead
      * of the default for the webapp. Optional.
      */
-    protected File webDefaultXml;
+    private File webDefaultXml;
 
     /**
      * A web.xml file to be applied AFTER
@@ -104,7 +99,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * applying different build profiles, eg
      * test, production etc. Optional.
      */
-    protected File overrideWebXml;
+    private File overrideWebXml;
 
 
     /**
@@ -112,8 +107,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * and restart the context if necessary. Ignored if reload
      * is enabled. Disabled by default.
      */
-    protected int scanIntervalSeconds;
-
+    private int scanIntervalSeconds;
 
     /**
      * reload can be set to either 'automatic' or 'manual'
@@ -129,25 +123,25 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * Note that these properties will NOT override System properties
      * that have been set on the command line or by the JVM. Optional.
      */
-    protected SystemProperties systemProperties;
+    private SystemProperties systemProperties;
 
     /**
      * Location of a jetty xml configuration file whose contents
      * will be applied before any plugin configuration. Optional.
      */
-    protected File jettyConfig;
+    private File jettyConfig;
 
     /**
      * Port to listen to stop jetty on executing -DSTOP.PORT=&lt;stopPort&gt;
      * -DSTOP.KEY=&lt;stopKey&gt; -jar start.jar --stop
      */
-    protected int stopPort;
+    private int stopPort;
 
     /**
      * Key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt;
      * -DSTOP.PORT=&lt;stopPort&gt; -jar start.jar --stop
      */
-    protected String stopKey;
+    private String stopKey;
 
     /**
      * <p>
@@ -161,7 +155,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * daemon to true.
      * </p>
      */
-    protected boolean daemon;
+    private boolean daemon;
+
+    private Integer httpPort;
 
     /**
      * List of connectors to use. If none are configured
@@ -169,12 +165,10 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      */
     private Connector[] connectors;
 
-
     /**
      * List of security realms to set up. Optional.
      */
     private UserRealm[] userRealms;
-
 
     /**
      * A RequestLog implementation to use for the webapp at runtime.
@@ -185,13 +179,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * A scanner to check for changes to the webapp
      */
-    protected Scanner scanner;
-
-    /**
-     * List of files and directories to scan
-     */
-    protected ArrayList scanList;
-
+    private Scanner scanner = new Scanner();
 
     /**
      * List of Listeners for the scanner
@@ -207,7 +195,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     public String PORT_SYSPROPERTY = "jetty.port";
 
 
-    public abstract void checkPomConfiguration();
+    public abstract void validateConfiguration();
 
 
     public abstract void configureScanner();
@@ -234,16 +222,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.server = server;
     }
 
-
-    public void setScanList(ArrayList list) {
-        this.scanList = new ArrayList(list);
-    }
-
-    public ArrayList getScanList() {
-        return this.scanList;
-    }
-
-
     public void setScannerListeners(ArrayList listeners) {
         this.scannerListeners = new ArrayList(listeners);
     }
@@ -258,7 +236,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public void startJetty() {
         logger.info("Configuring Jetty for " + getProject());
-        checkPomConfiguration();
+        validateConfiguration();
         startJettyInternal();
     }
 
@@ -270,23 +248,17 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             printSystemProperties();
             setServer(createServer());
 
-            //apply any config from a jetty.xml file first which is able to
-            //be overwritten by config in the pom.xml
             applyJettyXml();
 
             JettyPluginServer plugin = getServer();
 
-            // if the user hasn't configured their project's pom to use a
-            // different set of connectors,
-            // use the default
             Object[] configuredConnectors = getConnectors();
 
             plugin.setConnectors(configuredConnectors);
             Object[] connectors = plugin.getConnectors();
 
             if (connectors == null || connectors.length == 0) {
-                //if a SystemProperty -Djetty.port=<portnum> has been supplied, use that as the default port
-                configuredConnectors = new Object[]{plugin.createDefaultConnector(System.getProperty(PORT_SYSPROPERTY, null))};
+                configuredConnectors = new Object[]{plugin.createDefaultConnector(getHttpPort())};
                 plugin.setConnectors(configuredConnectors);
             }
 
@@ -333,7 +305,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             }
         }
         catch (Exception e) {
-            throw new GradleException("Failure", e);
+            throw new GradleException("An error occurred starting the Jetty server.", e);
         }
         finally {
             if (!daemon) {
@@ -392,10 +364,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             return;
         }
 
-        scanner = new Scanner();
         scanner.setReportExistingFilesOnStartup(false);
         scanner.setScanInterval(getScanIntervalSeconds());
-        scanner.setScanDirs(getScanList());
         scanner.setRecursive(true);
         List listeners = getScannerListeners();
         Iterator itor = (listeners == null ? null : listeners.iterator());
@@ -554,6 +524,14 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.daemon = daemon;
     }
 
+    public Integer getHttpPort() {
+        return httpPort;
+    }
+
+    public void setHttpPort(Integer httpPort) {
+        this.httpPort = httpPort;
+    }
+
     public Connector[] getConnectors() {
         return connectors;
     }
@@ -578,11 +556,11 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.requestLog = requestLog;
     }
 
-    public List<File> getAdditionalRuntimeJars() {
+    public Iterable<File> getAdditionalRuntimeJars() {
         return additionalRuntimeJars;
     }
 
-    public void setAdditionalRuntimeJars(List<File> additionalRuntimeJars) {
+    public void setAdditionalRuntimeJars(Iterable<File> additionalRuntimeJars) {
         this.additionalRuntimeJars = additionalRuntimeJars;
     }
 }

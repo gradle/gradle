@@ -20,8 +20,16 @@ package org.gradle.api.plugins.jetty;
  */
 public class JettyPluginConvention {
     private Integer stopPort;
-
     private String stopKey;
+    private Integer httpPort = 8080;
+
+    public Integer getHttpPort() {
+        return httpPort;
+    }
+
+    public void setHttpPort(Integer httpPort) {
+        this.httpPort = httpPort;
+    }
 
     public Integer getStopPort() {
         return stopPort;

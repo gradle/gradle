@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.JettyPluginServer {
     private static Logger logger = LoggerFactory.getLogger(JettyPluginServer.class);
 
-    public static int DEFAULT_PORT = 8080;
     public static int DEFAULT_MAX_IDLE_TIME = 30000;
     private Server server;
     private ContextHandlerCollection contexts; //the list of ContextHandlers
@@ -50,9 +49,6 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     private RequestLog requestLog; //the particular request log implementation
 
 
-    /**
-     * @see JettyPluginServer#createDefaultConnector(String)
-     */
     public JettyPluginServer() {
         this.server = new Server();
         this.server.setStopAtShutdown(true);
@@ -160,13 +156,8 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     }
 
 
-    /**
-     * @see JettyPluginServer#createDefaultConnector(String)
-     */
-    public Object createDefaultConnector(String portnum) throws Exception {
+    public Object createDefaultConnector(int port) throws Exception {
         SelectChannelConnector connector = new SelectChannelConnector();
-        connector = new SelectChannelConnector();
-        int port = ((portnum == null || portnum.equals("")) ? DEFAULT_PORT : Integer.parseInt(portnum.trim()));
         connector.setPort(port);
         connector.setMaxIdleTime(DEFAULT_MAX_IDLE_TIME);
 

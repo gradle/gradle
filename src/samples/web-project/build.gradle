@@ -35,17 +35,18 @@ war {
 [jettyRun, jettyRunWar, jettyRunExploded]*.daemon = true
 stopKey = 'foo'
 stopPort = 9451
+httpPort = 8163
 
-createTask('runTest', dependsOn: jettyRun) {
+task runTest(dependsOn: jettyRun) {
     callServlet()
 }
 
-createTask('runWarTest', dependsOn: jettyRunWar) {
+task runWarTest(dependsOn: jettyRunWar) {
     callServlet()
 }
 
 File explodedDir = "$buildDir/exploded" as File
-createTask('explodedWar', dependsOn: war) {
+task explodedWar(dependsOn: war) {
     ant.unzip(src: war.archivePath, dest: explodedDir)
 }
 
@@ -54,21 +55,13 @@ jettyRunExploded {
     webApp = explodedDir
 }
 
-createTask('runExplodedTest', dependsOn: jettyRunExploded) {
+task runExplodedTest(dependsOn: jettyRunExploded) {
     callServlet()
-}
-
-[jettyRun, jettyRunWar, jettyRunExploded].each { jetty ->
-    jetty.dependsOn jettyStop
-    jetty.connectors = configure(new org.mortbay.jetty.nio.SelectChannelConnector()) {
-        port = 8163
-        maxIdleTime = 30000
-    }
 }
 
 private void callServlet() {
     HttpClient client = new HttpClient()
-    GetMethod method = new GetMethod("http://localhost:8163/web-project/hello")
+    GetMethod method = new GetMethod("http://localhost:$httpPort/web-project/hello")
     client.executeMethod(method)
     new File(buildDir, "servlet-out.txt").write(method.getResponseBodyAsString())
     jettyStop.execute()

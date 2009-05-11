@@ -37,26 +37,13 @@ import java.util.*;
 import hidden.org.codehaus.plexus.util.FileUtils;
 
 /**
- * <p>
- * This goal is used in-situ on a Maven project without first requiring that the project
- * is assembled into a war, saving time during the development cycle.
- * The plugin forks a parallel lifecycle to ensure that the "compile" phase has been completed before invoking Jetty. This means
- * that you do not need to explicity execute a "mvn compile" first. It also means that a "mvn clean jetty:run" will ensure that
- * a full fresh compile is done before invoking Jetty.
- * </p>
- * <p>
- * Once invoked, the plugin can be configured to run continuously, scanning for changes in the project and automatically performing a
- * hot redeploy when necessary. This allows the developer to concentrate on coding changes to the project using their IDE of choice and have those changes
- * immediately and transparently reflected in the running web container, eliminating development time that is wasted on rebuilding, reassembling and redeploying.
- * </p>
- * <p>
- * You may also specify the location of a jetty.xml file whose contents will be applied before any plugin configuration.
- * This can be used, for example, to deploy a static webapp that is not part of your maven build.
- * </p>
- * <p>
- * There is a <a href="run-mojo.html">reference guide</a> to the configuration parameters for this plugin, and more detailed information
- * with examples in the <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Plugin">Configuration Guide</a>.
- * </p>
+ * <p>The {@code JettyRun} task deploys an exploded web application to an embedded Jetty web container, without first
+ * requiring that the web application be assembled into a war, saving time during the development cycle.</p>
+ *
+ * <p>Once started, the web container can be configured to run continuously, scanning for changes in the project and
+ * automatically performing a hot redeploy when necessary. This allows the developer to concentrate on coding changes to
+ * the project using their IDE of choice and have those changes immediately and transparently reflected in the running
+ * web container, eliminating development time that is wasted on rebuilding, reassembling and redeploying. </p>
  *
  * @author janb
  */
@@ -121,12 +108,6 @@ public class JettyRun extends AbstractJettyRunTask {
     private ScanTargetPattern[] scanTargetPatterns;
 
     /**
-     * web.xml as a File
-     */
-    private File webXmlFile;
-
-
-    /**
      * jetty-env.xml as a File
      */
     private File jettyEnvXmlFile;
@@ -146,12 +127,7 @@ public class JettyRun extends AbstractJettyRunTask {
 
     private String testConfiguration;
 
-    /**
-     * Verify the configuration given in the pom.
-     *
-     * @see AbstractJettyRunTask#checkPomConfiguration()
-     */
-    public void checkPomConfiguration() {
+    public void validateConfiguration() {
         // check the location of the static content/jsps etc
         try {
             if ((getWebAppSourceDirectory() == null) || !getWebAppSourceDirectory().exists())
@@ -173,25 +149,12 @@ public class JettyRun extends AbstractJettyRunTask {
             logger.info("Reload Mechanic: " + reload);
         }
 
-        // get the web.xml file if one has been provided, otherwise assume it is
-        // in the webapp src directory
+        // get the web.xml file if one has been provided, otherwise assume it is in the webapp src directory
         if (getWebXml() == null) {
-            webXml = new File(new File(getWebAppSourceDirectory(), "WEB-INF"), "web.xml");
+            setWebXml(new File(new File(getWebAppSourceDirectory(), "WEB-INF"), "web.xml"));
         }
-        setWebXmlFile(getWebXml());
-
-        try {
-            if (!getWebXmlFile().exists())
-                throw new InvalidUserDataException("web.xml does not exist at location "
-                        + webXmlFile.getCanonicalPath());
-            else
-                logger.info("web.xml file = "
-                        + webXmlFile.getCanonicalPath());
-        }
-        catch (IOException e) {
-            throw new InvalidUserDataException("web.xml does not exist", e);
-        }
-
+        logger.info("web.xml file = " + getWebXml());
+        
         //check if a jetty-env.xml location has been provided, if so, it must exist
         if (getJettyEnvXml() != null) {
             setJettyEnvXmlFile(jettyEnvXml);
@@ -275,23 +238,23 @@ public class JettyRun extends AbstractJettyRunTask {
     public void configureWebApplication() throws Exception {
         super.configureWebApplication();
         setClassPathFiles(setUpClassPath());
-        if (webAppConfig.getWebXmlFile() == null)
-            webAppConfig.setWebXmlFile(getWebXmlFile());
-        if (webAppConfig.getJettyEnvXmlFile() == null)
-            webAppConfig.setJettyEnvXmlFile(getJettyEnvXmlFile());
-        if (webAppConfig.getClassPathFiles() == null)
-            webAppConfig.setClassPathFiles(getClassPathFiles());
-        if (webAppConfig.getWar() == null)
-            webAppConfig.setWar(getWebAppSourceDirectory().getCanonicalPath());
+        if (getWebAppConfig().getWebXmlFile() == null)
+            getWebAppConfig().setWebXmlFile(getWebXml());
+        if (getWebAppConfig().getJettyEnvXmlFile() == null)
+            getWebAppConfig().setJettyEnvXmlFile(getJettyEnvXmlFile());
+        if (getWebAppConfig().getClassPathFiles() == null)
+            getWebAppConfig().setClassPathFiles(getClassPathFiles());
+        if (getWebAppConfig().getWar() == null)
+            getWebAppConfig().setWar(getWebAppSourceDirectory().getCanonicalPath());
         logger.info("Webapp directory = " + getWebAppSourceDirectory().getCanonicalPath());
 
-        webAppConfig.configure();
+        getWebAppConfig().configure();
     }
 
     public void configureScanner() {
         // start the scanner thread (if necessary) on the main webapp
-        final ArrayList scanList = new ArrayList();
-        scanList.add(getWebXmlFile());
+        List<File> scanList = new ArrayList<File>();
+        scanList.add(getWebXml());
         if (getJettyEnvXmlFile() != null)
             scanList.add(getJettyEnvXmlFile());
         File jettyWebXmlFile = findJettyWebXmlFile(new File(getWebAppSourceDirectory(), "WEB-INF"));
@@ -300,7 +263,7 @@ public class JettyRun extends AbstractJettyRunTask {
         scanList.addAll(getExtraScanTargets());
         scanList.add(getProject().getBuildFile());
         scanList.addAll(getClassPathFiles());
-        setScanList(scanList);
+        getScanner().setScanDirs(scanList);
         ArrayList listeners = new ArrayList();
         listeners.add(new Scanner.BulkListener() {
             public void filesChanged(List changes) {
@@ -319,20 +282,19 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     public void restartWebApp(boolean reconfigureScanner) throws Exception {
-        logger.info("restarting " + webAppConfig);
+        logger.info("restarting " + getWebAppConfig());
         logger.debug("Stopping webapp ...");
-        webAppConfig.stop();
+        getWebAppConfig().stop();
         logger.debug("Reconfiguring webapp ...");
 
-        checkPomConfiguration();
+        validateConfiguration();
         configureWebApplication();
 
-        // check if we need to reconfigure the scanner,
-        // which is if the pom changes
+        // check if we need to reconfigure the scanner
         if (reconfigureScanner) {
-            logger.info("Reconfiguring scanner after change to pom.xml ...");
-            scanList.clear();
-            scanList.add(getWebXmlFile());
+            logger.info("Reconfiguring scanner ...");
+            List<File> scanList = new ArrayList<File>();
+            scanList.add(getWebXml());
             if (getJettyEnvXmlFile() != null)
                 scanList.add(getJettyEnvXmlFile());
             scanList.addAll(getExtraScanTargets());
@@ -342,7 +304,7 @@ public class JettyRun extends AbstractJettyRunTask {
         }
 
         logger.debug("Restarting webapp ...");
-        webAppConfig.start();
+        getWebAppConfig().start();
         logger.info("Restart completed at " + new Date().toString());
     }
 
@@ -371,7 +333,7 @@ public class JettyRun extends AbstractJettyRunTask {
 //            }
         if (!overlays.isEmpty()) {
             try {
-                Resource resource = webAppConfig.getBaseResource();
+                Resource resource = getWebAppConfig().getBaseResource();
                 ResourceCollection rc = new ResourceCollection();
                 if (resource == null) {
                     // nothing configured, so we automagically enable the overlays                    
@@ -411,7 +373,7 @@ public class JettyRun extends AbstractJettyRunTask {
                         rc.setResources(resources);
                     }
                 }
-                webAppConfig.setBaseResource(rc);
+                getWebAppConfig().setBaseResource(rc);
             }
             catch (Exception e) {
                 throw new RuntimeException(e);
@@ -545,14 +507,6 @@ public class JettyRun extends AbstractJettyRunTask {
 
     public void setJettyEnvXmlFile(File jettyEnvXmlFile) {
         this.jettyEnvXmlFile = jettyEnvXmlFile;
-    }
-
-    public File getWebXmlFile() {
-        return webXmlFile;
-    }
-
-    public void setWebXmlFile(File webXmlFile) {
-        this.webXmlFile = webXmlFile;
     }
 
     public List getClassPathFiles() {

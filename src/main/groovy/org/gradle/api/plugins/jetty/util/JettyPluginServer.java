@@ -43,7 +43,7 @@ public interface JettyPluginServer extends Proxy
     
     public  void start() throws Exception;
     
-    public Object createDefaultConnector (String port) throws Exception;
+    public Object createDefaultConnector (int port) throws Exception;
     
     public void join () throws Exception;
 

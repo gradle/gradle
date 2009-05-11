@@ -25,22 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.gradle.api.Project;
 
 /**
- * <p>
- * This goal is used to assemble your webapp into a war and automatically deploy it to Jetty.
- * </p>
- * <p>
- * Once invoked, the plugin can be configured to run continuously, scanning for changes in the project and to the
- * war file and automatically performing a
- * hot redeploy when necessary.
- * </p>
- * <p>
- * You may also specify the location of a jetty.xml file whose contents will be applied before any plugin configuration.
- * This can be used, for example, to deploy a static webapp that is not part of your maven build.
- * </p>
- * <p>
- * There is a <a href="run-war-mojo.html">reference guide</a> to the configuration parameters for this plugin, and more detailed information
- * with examples in the <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Plugin/">Configuration Guide</a>.
- * </p>
+ * <p>The {@code JettyRunWar} deploys a WAR to an embedded Jetty web container.</p>
+ *
+ * <p> Once started, the web container can be configured to run continuously, scanning for changes to the war file and
+ * automatically performing a hot redeploy when necessary. </p>
  */
 public class JettyRunWar extends AbstractJettyRunWarTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRunWar.class);
@@ -57,27 +45,25 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
     public void configureWebApplication() throws Exception {
         super.configureWebApplication();
 
-        webAppConfig.setWar(getWebApp().getCanonicalPath());
-        webAppConfig.configure();
+        getWebAppConfig().setWar(getWebApp().getCanonicalPath());
+        getWebAppConfig().configure();
     }
 
 
     /**
-     * @see AbstractJettyRunTask#checkPomConfiguration()
+     * @see AbstractJettyRunTask#validateConfiguration()
      */
-    public void checkPomConfiguration() {
-        return;
+    public void validateConfiguration() {
     }
-
 
     /* (non-Javadoc)
     * @see org.mortbay.jetty.plugin.util.AbstractJettyTask#configureScanner()
     */
     public void configureScanner() {
-        final ArrayList scanList = new ArrayList();
+        List<File> scanList = new ArrayList<File>();
         scanList.add(getProject().getBuildFile());
         scanList.add(getWebApp());
-        setScanList(scanList);
+        getScanner().setScanDirs(scanList);
 
         ArrayList listeners = new ArrayList();
         listeners.add(new Scanner.BulkListener() {
@@ -92,32 +78,27 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
             }
         });
         setScannerListeners(listeners);
-
     }
-
 
     public void restartWebApp(boolean reconfigureScanner) throws Exception {
         logger.info("Restarting webapp ...");
         logger.debug("Stopping webapp ...");
-        webAppConfig.stop();
+        getWebAppConfig().stop();
         logger.debug("Reconfiguring webapp ...");
 
-        checkPomConfiguration();
+        validateConfiguration();
 
-        // check if we need to reconfigure the scanner,
-        // which is if the pom changes
+        // check if we need to reconfigure the scanner
         if (reconfigureScanner) {
-            logger.info("Reconfiguring scanner after change to pom.xml ...");
-            ArrayList scanList = getScanList();
-            scanList.clear();
+            logger.info("Reconfiguring scanner ...");
+            List<File> scanList = new ArrayList<File>();
             scanList.add(getProject().getBuildFile());
             scanList.add(getWebApp());
-            setScanList(scanList);
             getScanner().setScanDirs(scanList);
         }
 
         logger.debug("Restarting webapp ...");
-        webAppConfig.start();
+        getWebAppConfig().start();
         logger.info("Restart completed.");
     }
 

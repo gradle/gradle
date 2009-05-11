@@ -1,0 +1,33 @@
+usePlugin 'war'
+usePlugin 'jetty'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'commons-lang', name: 'commons-lang', version: '2.4'
+}
+
+build.taskGraph.whenReady {graph ->
+    if (graph.hasTask(runTest) || graph.hasTask(runWarTest)) {
+        [jettyRun, jettyRunWar, jettyRunExploded]*.daemon = true
+    }
+}
+stopKey = 'foo'
+stopPort = 9451
+httpPort = 8163
+
+task runTest(dependsOn: jettyRun) {
+    callServlet()
+}
+
+task runWarTest(dependsOn: jettyRunWar) {
+    callServlet()
+}
+
+private void callServlet() {
+    URL url = new URL("http://localhost:$httpPort/quickstart")
+    println url.text
+    jettyStop.execute()
+}

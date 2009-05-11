@@ -15,21 +15,8 @@
 
 package org.gradle.api.plugins.jetty.util;
 
-/**
- * SystemProperty
- * 
- * Provides the ability to set System properties
- * for the mojo execution. A value will only 
- * be set if it is not set already. That is, if
- * it was set on the command line or by the system,
- * it won't be overridden by settings in the 
- * plugin's configuration.
- *
- */
 public class SystemProperty
 {
-
-
     private String name;
     private String value;
     private boolean isSet;

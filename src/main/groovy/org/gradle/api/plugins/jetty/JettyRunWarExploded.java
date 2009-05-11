@@ -24,23 +24,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * <p>
- * This goal is used to assemble your webapp into an exploded war and automatically deploy it to Jetty.
- * </p>
- * <p>
- * Once invoked, the plugin can be configured to run continuously, scanning for changes in the pom.xml and
- * to WEB-INF/web.xml, WEB-INF/classes or WEB-INF/lib and hot redeploy when a change is detected.
- * </p>
- * <p>
- * You may also specify the location of a jetty.xml file whose contents will be applied before any plugin configuration.
- * This can be used, for example, to deploy a static webapp that is not part of your maven build.
- * </p>
- * <p>
- * There is a <a href="run-exploded-mojo.html">reference guide</a> to the configuration parameters for this plugin, and more detailed information
- * with examples in the <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Plugin">Configuration Guide</a>.
- * </p>
- */
 public class JettyRunWarExploded extends AbstractJettyRunWarTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRunWarExploded.class);
 
@@ -54,17 +37,16 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
     private File webApp;
 
     /**
-     * @see AbstractJettyRunTask#checkPomConfiguration()
+     * @see AbstractJettyRunTask#validateConfiguration()
      */
-    public void checkPomConfiguration() {
-        return;
+    public void validateConfiguration() {
     }
 
     /**
      * @see AbstractJettyRunTask#configureScanner()
      */
     public void configureScanner() {
-        final ArrayList scanList = new ArrayList();
+        List<File> scanList = new ArrayList<File>();
         scanList.add(getProject().getBuildFile());
         File webInfDir = new File(webApp, "WEB-INF");
         scanList.add(new File(webInfDir, "web.xml"));
@@ -76,7 +58,7 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
             scanList.add(jettyEnvXmlFile);
         scanList.add(new File(webInfDir, "classes"));
         scanList.add(new File(webInfDir, "lib"));
-        setScanList(scanList);
+        getScanner().setScanDirs(scanList);
 
         ArrayList listeners = new ArrayList();
         listeners.add(new Scanner.BulkListener() {
@@ -97,17 +79,15 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
     public void restartWebApp(boolean reconfigureScanner) throws Exception {
         logger.info("Restarting webapp");
         logger.debug("Stopping webapp ...");
-        webAppConfig.stop();
+        getWebAppConfig().stop();
         logger.debug("Reconfiguring webapp ...");
 
-        checkPomConfiguration();
+        validateConfiguration();
 
-        // check if we need to reconfigure the scanner,
-        // which is if the pom changes
+        // check if we need to reconfigure the scanner
         if (reconfigureScanner) {
             logger.info("Reconfiguring scanner after change to pom.xml ...");
-            ArrayList scanList = getScanList();
-            scanList.clear();
+            List<File> scanList = new ArrayList<File>();
             scanList.add(getProject().getBuildFile());
             File webInfDir = new File(webApp, "WEB-INF");
             scanList.add(new File(webInfDir, "web.xml"));
@@ -119,12 +99,11 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
                 scanList.add(jettyEnvXmlFile);
             scanList.add(new File(webInfDir, "classes"));
             scanList.add(new File(webInfDir, "lib"));
-            setScanList(scanList);
             getScanner().setScanDirs(scanList);
         }
 
         logger.debug("Restarting webapp ...");
-        webAppConfig.start();
+        getWebAppConfig().start();
         logger.info("Restart completed.");
     }
 
@@ -133,14 +112,13 @@ public class JettyRunWarExploded extends AbstractJettyRunWarTask {
     * @see org.mortbay.jetty.plugin.util.AbstractJettyTask#finishConfigurationBeforeStart()
     */
     public void finishConfigurationBeforeStart() throws Exception {
-        return;
     }
 
 
     public void configureWebApplication() throws Exception {
         super.configureWebApplication();
-        webAppConfig.setWar(webApp.getCanonicalPath());
-        webAppConfig.configure();
+        getWebAppConfig().setWar(webApp.getCanonicalPath());
+        getWebAppConfig().configure();
     }
 
     public File getWebApp() {
