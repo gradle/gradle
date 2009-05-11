@@ -18,18 +18,28 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.Task;
+import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.GUtil;
+import org.gradle.util.TestClosure;
+import org.gradle.util.HelperUtil;
 import static org.gradle.util.HelperUtil.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 
 import java.util.Iterator;
 
+@RunWith(JMock.class)
 public class DefaultDomainObjectContainerTest {
     private final DefaultDomainObjectContainer<Bean> container = new DefaultDomainObjectContainer<Bean>();
+    private final JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
     public void canGetAllDomainObjectsForEmptyContainer() {
@@ -144,7 +154,7 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void getDomainObjectInvokesRuleForUnknownDomainObject() {
         Bean bean = new Bean();
-        addRule(bean);
+        addRuleFor(bean);
 
         assertThat(container.getByName("bean"), sameInstance(bean));
     }
@@ -161,7 +171,7 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void configureDomainObjectInvokesRuleForUnknownDomainObject() {
         Bean bean = new Bean();
-        addRule(bean);
+        addRuleFor(bean);
 
         assertThat(container.getByName("bean", toClosure("{ beanProperty = 'hi' }")), sameInstance(bean));
         assertThat(bean.getBeanProperty(), equalTo("hi"));
@@ -183,7 +193,7 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void findDomainObjectByNameInvokesRulesForUnknownDomainObject() {
         Bean bean = new Bean();
-        addRule(bean);
+        addRuleFor(bean);
 
         assertThat(container.findByName("bean"), sameInstance(bean));
     }
@@ -210,7 +220,99 @@ public class DefaultDomainObjectContainerTest {
 
         assertTrue(container.findByType(OtherBean.class).isEmpty());
     }
+
+    @Test
+    public void callsActionWhenObjectAdded() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean);
+        }});
+
+        container.whenObjectAdded(action);
+        container.addObject("bean", bean);
+    }
+
+    @Test
+    public void callsClosureWhenObjectAdded() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(closure).call(bean);
+        }});
+
+        container.whenObjectAdded(HelperUtil.toClosure(closure));
+        container.addObject("bean", bean);
+    }
     
+    @Test
+    public void callsActionWhenObjectRemoved() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean);
+        }});
+
+        container.whenObjectRemoved(action);
+        container.addObject("bean", bean);
+        container.addObject("bean", new Bean());
+    }
+
+    @Test
+    public void allObjectsCallsActionForEachExistingObject() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean);
+        }});
+
+        container.addObject("bean", bean);
+        container.allObjects(action);
+    }
+
+    @Test
+    public void allObjectsCallsClosureForEachExistingObject() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(closure).call(bean);
+        }});
+
+        container.addObject("bean", bean);
+        container.allObjects(HelperUtil.toClosure(closure));
+    }
+
+    @Test
+    public void allObjectsCallsActionForEachNewObject() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean);
+        }});
+
+        container.allObjects(action);
+        container.addObject("bean", bean);
+    }
+
+    @Test
+    public void allObjectsCallsClosureForEachNewObject() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(closure).call(bean);
+        }});
+
+        container.allObjects(HelperUtil.toClosure(closure));
+        container.addObject("bean", bean);
+    }
+
     @Test
     public void eachObjectIsAvailableAsADynamicProperty() {
         Bean bean = new Bean();
@@ -243,7 +345,7 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void dynamicPropertyAccessInvokesRulesForUnknownDomainObject() {
         Bean bean = new Bean();
-        addRule(bean);
+        addRuleFor(bean);
 
         assertTrue(container.getAsDynamicObject().hasProperty("bean"));
         assertThat(container.getAsDynamicObject().getProperty("bean"), sameInstance((Object) bean));
@@ -287,12 +389,12 @@ public class DefaultDomainObjectContainerTest {
     @Test
     public void configureMethodInvokesRuleForUnknownDomainObject() {
         Bean bean = new Bean();
-        addRule(bean);
+        addRuleFor(bean);
 
         assertTrue(container.getAsDynamicObject().hasMethod("bean", toClosure("{ }")));
     }
 
-    private void addRule(final Bean bean) {
+    private void addRuleFor(final Bean bean) {
         container.addRule(new Rule() {
             public String getDescription() {
                 throw new UnsupportedOperationException();

@@ -15,19 +15,17 @@
  */
 package org.gradle.api.internal.tasks;
 
+import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.internal.project.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.util.ListenerBroadcast;
 import org.gradle.util.GUtil;
-import groovy.lang.Closure;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> implements TaskContainer {
-    private final ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
     private final Project project;
     private final ITaskFactory taskFactory;
 
@@ -84,13 +82,11 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
 
     @Override
     protected void addObject(String name, Task object) {
-        addActions.getSource().execute(object);
         super.addObject(name, object);
     }
 
     public Action<? super Task> whenTaskAdded(Action<? super Task> action) {
-        addActions.add(action);
-        return action;
+        return whenObjectAdded(action);
     }
 
     public <T extends Task> Action<T> whenTaskAdded(final Class<T> type, final Action<T> action) {
@@ -105,7 +101,15 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
     }
 
     public void whenTaskAdded(Closure closure) {
-        addActions.add("execute", closure);
+        whenObjectAdded(closure);
+    }
+
+    public void allTasks(Action<? super Task> action) {
+        allObjects(action);
+    }
+
+    public void allTasks(Closure action) {
+        allObjects(action);
     }
 
     @Override

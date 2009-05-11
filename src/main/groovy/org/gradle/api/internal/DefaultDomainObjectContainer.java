@@ -18,13 +18,17 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.Rule;
+import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.ListenerBroadcast;
 
 import java.util.*;
 
 public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T> {
+    private final ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
+    private final ListenerBroadcast<Action> removeActions = new ListenerBroadcast<Action>(Action.class);
     private final Map<String, T> objects = new TreeMap<String, T>();
     private final List<Rule> rules = new ArrayList<Rule>();
     private String applyingRulesFor;
@@ -36,7 +40,11 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
      * @param object The object to add
      */
     protected void addObject(String name, T object) {
-        objects.put(name, object);
+        T oldValue = objects.put(name, object);
+        if (oldValue != null) {
+            removeActions.getSource().execute(oldValue);
+        }
+        addActions.getSource().execute(object);
     }
 
     /**
@@ -130,6 +138,34 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
 
     public List<Rule> getRules() {
         return Collections.unmodifiableList(rules);
+    }
+
+    public Action<? super T> whenObjectAdded(Action<? super T> action) {
+        addActions.add(action);
+        return action;
+    }
+
+    public Action<? super T> whenObjectRemoved(Action<? super T> action) {
+        removeActions.add(action);
+        return action;
+    }
+
+    public void whenObjectAdded(Closure action) {
+        addActions.add("execute", action);
+    }
+
+    public void allObjects(Action<? super T> action) {
+        for (T t : objects.values()) {
+            action.execute(t);
+        }
+        whenObjectAdded(action);
+    }
+
+    public void allObjects(Closure action) {
+        for (T t : objects.values()) {
+            action.call(t);
+        }
+        whenObjectAdded(action);
     }
 
     /**

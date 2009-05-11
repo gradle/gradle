@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.Rule;
+import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
@@ -44,4 +45,14 @@ public interface DomainObjectContainer<T> extends Iterable<T> {
     Rule addRule(Rule rule);
 
     List<Rule> getRules();
+
+    Action<? super T> whenObjectAdded(Action<? super T> action);
+
+    void whenObjectAdded(Closure action);
+
+    Action<? super T> whenObjectRemoved(Action<? super T> action);
+
+    void allObjects(Action<? super T> action);
+
+    void allObjects(Closure action);
 }

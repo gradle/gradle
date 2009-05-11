@@ -132,6 +132,22 @@ public interface TaskContainer extends Iterable<Task> {
     void whenTaskAdded(Closure closure);
 
     /**
+     * Executes the given action against all tasks in this container, and any tasks subsequently added to this
+     * container.
+     *
+     * @param action The action to be executed
+     */
+    void allTasks(Action<? super Task> action);
+
+    /**
+     * Executes the given closure against all tasks in this container, and any tasks subsequently added to this
+     * container.
+     *
+     * @param closure The closure to be called
+     */
+    void allTasks(Closure closure);
+
+    /**
      * Locates a task by name, failing if there is no such task. This method is identical to {@link #getByName(String)}.
      * You can call this method in your build script by using the groovy {@code []} operator:
      *
