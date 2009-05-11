@@ -151,11 +151,7 @@ class JavaPluginTest {
     @Test public void appliesMappingsToTasksDefinedByBuildScript() {
         javaPlugin.apply(project, new PluginRegistry())
 
-        def task = project.createTask('customResources', type: Copy)
-        assertDependsOn(task, JavaPlugin.INIT_TASK_NAME)
-        assertThat(task.destinationDir, equalTo(project.classesDir))
-
-        task = project.createTask('customCompile', type: Compile)
+        def task = project.createTask('customCompile', type: Compile)
         assertDependsOn(task, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))

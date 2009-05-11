@@ -127,13 +127,10 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureProcessResources(Project project) {
-        project.getTasks().whenTaskAdded(Copy.class, new Action<Copy>() {
-            public void execute(Copy processResources) {
-                processResources.dependsOn(INIT_TASK_NAME);
-                processResources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
-            }
-        });
-        project.getTasks().add(PROCESS_RESOURCES_TASK_NAME, Copy.class).setDescription(
+        Copy processResources = project.getTasks().add(PROCESS_RESOURCES_TASK_NAME, Copy.class);
+        processResources.dependsOn(INIT_TASK_NAME);
+        processResources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
+        processResources.setDescription(
                 "Process and copy the resources into the binary directory of the compiled sources.");
     }
 
