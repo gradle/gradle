@@ -15,14 +15,15 @@
 
 package org.gradle.api.plugins.jetty;
 
+import hidden.org.codehaus.plexus.util.FileUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandler;
-import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
+import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.resource.Resource;
 import org.mortbay.resource.ResourceCollection;
 import org.mortbay.util.Scanner;
@@ -33,8 +34,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import hidden.org.codehaus.plexus.util.FileUtils;
 
 /**
  * <p>The {@code JettyRun} task deploys an exploded web application to an embedded Jetty web container, without first
@@ -116,7 +115,6 @@ public class JettyRun extends AbstractJettyRunTask {
      * List of files on the classpath for the webapp
      */
     private List classPathFiles;
-
 
     /**
      * Extra scan targets as a list
@@ -313,9 +311,9 @@ public class JettyRun extends AbstractJettyRunTask {
 
         Set<File> dependencies;
         if (useTestClasspath) {
-            dependencies = getProject().getConfigurations().getByName(testConfiguration).resolve();
+            dependencies = getProject().getConfigurations().getByName(getTestConfiguration()).resolve();
         } else {
-            dependencies = getProject().getConfigurations().getByName(configuration).resolve();
+            dependencies = getProject().getConfigurations().getByName(getConfiguration()).resolve();
         }
         logger.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
 

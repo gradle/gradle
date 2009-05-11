@@ -47,7 +47,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             public void execute(Task task) {
                 ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
                 List<URL> additionalClasspath = new ArrayList<URL>();
-                for (File additionalRuntimeJar : additionalRuntimeJars) {
+                for (File additionalRuntimeJar : getAdditionalRuntimeJars()) {
                     try {
                         additionalClasspath.add(additionalRuntimeJar.toURI().toURL());
                     } catch (MalformedURLException e) {
@@ -117,7 +117,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      */
     protected String reload;
 
-
     /**
      * System properties to set before execution.
      * Note that these properties will NOT override System properties
@@ -135,7 +134,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * Port to listen to stop jetty on executing -DSTOP.PORT=&lt;stopPort&gt;
      * -DSTOP.KEY=&lt;stopKey&gt; -jar start.jar --stop
      */
-    private int stopPort;
+    private Integer stopPort;
 
     /**
      * Key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt;
@@ -287,8 +286,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
             logger.info("Started Jetty Server");
 
-            if (stopPort > 0 && stopKey != null) {
-                Monitor monitor = new Monitor(stopPort, stopKey, new Server[]{(Server) server.getProxiedObject()}, !daemon);
+            if (getStopPort() > 0 && getStopKey() != null) {
+                Monitor monitor = new Monitor(getStopPort(), getStopKey(), new Server[]{(Server) server.getProxiedObject()}, !daemon);
                 monitor.start();
             }
 
@@ -500,11 +499,11 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.jettyConfig = jettyConfig;
     }
 
-    public int getStopPort() {
+    public Integer getStopPort() {
         return stopPort;
     }
 
-    public void setStopPort(int stopPort) {
+    public void setStopPort(Integer stopPort) {
         this.stopPort = stopPort;
     }
 
