@@ -58,7 +58,7 @@ public class WarPlugin implements Plugin {
         project.task(JavaPlugin.JAR_TASK_NAME).setEnabled(false);
         project.getConvention().getPlugins().put("war", new WarPluginConvention(project));
 
-        project.getTasks().whenTaskAdded(War.class, new Action<War>() {
+        project.getTasks().withType(War.class).allTasks(new Action<War>() {
             public void execute(War task) {
                 task.conventionMapping(DefaultConventionsToPropertiesMapping.WAR);
             }

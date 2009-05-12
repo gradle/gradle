@@ -62,7 +62,7 @@ public class GroovyPlugin implements Plugin {
     }
 
     private void configureGroovydoc(final Project project) {
-        project.getTasks().whenTaskAdded(Groovydoc.class, new Action<Groovydoc>() {
+        project.getTasks().withType(Groovydoc.class).allTasks(new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
                 groovydoc.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
                 groovydoc.conventionMapping(GUtil.map("srcDirs", new ConventionValue() {
@@ -91,7 +91,7 @@ public class GroovyPlugin implements Plugin {
                 }));
             }
         };
-        project.getTasks().whenTaskAdded(Javadoc.class, taskListener);
+        project.getTasks().withType(Javadoc.class).allTasks(taskListener);
         taskListener.execute((Javadoc) project.task(JAVADOC_TASK_NAME));
     }
 
@@ -112,7 +112,7 @@ public class GroovyPlugin implements Plugin {
     }
 
     private void configureCompile(final Project project) {
-        project.getTasks().whenTaskAdded(GroovyCompile.class, new Action<GroovyCompile>() {
+        project.getTasks().withType(GroovyCompile.class).allTasks(new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
                 compile.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
                 compile.conventionMapping(GUtil.map("groovySourceDirs", new ConventionValue() {

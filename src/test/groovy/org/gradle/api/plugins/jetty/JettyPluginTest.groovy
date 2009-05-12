@@ -23,6 +23,8 @@ import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.util.WrapUtil
+import org.gradle.api.plugins.JavaPlugin
 
 public class JettyPluginTest {
     private final Project project = HelperUtil.createRootProject()
@@ -41,12 +43,37 @@ public class JettyPluginTest {
         new JettyPlugin().apply(project, new PluginRegistry(), [:])
 
         def task = project.tasks[JettyPlugin.JETTY_RUN]
+        assertThat(task, instanceOf(JettyRun))
+        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(JavaPlugin.COMPILE_TESTS_TASK_NAME)))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks[JettyPlugin.JETTY_RUN_EXPLODED_WAR]
+        assertThat(task, instanceOf(JettyRunWarExploded))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks[JettyPlugin.JETTY_RUN_WAR]
+        assertThat(task, instanceOf(JettyRunWar))
+        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(WarPlugin.WAR_TASK_NAME)))
+        assertThat(task.httpPort, equalTo(project.httpPort))
+
+        task = project.tasks[JettyPlugin.JETTY_STOP]
+        assertThat(task, instanceOf(JettyStop))
+        assertThat(task.stopPort, equalTo(project.stopPort))
+    }
+
+    @Test
+    public void addsMappingToNewJettyTasks() {
+        new JettyPlugin().apply(project, new PluginRegistry(), [:])
+
+        def task = project.tasks.add('customRun', JettyRun)
+        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(JavaPlugin.COMPILE_TESTS_TASK_NAME)))
+        assertThat(task.httpPort, equalTo(project.httpPort))
+
+        task = project.tasks.add('customRunExploded', JettyRunWarExploded)
+        assertThat(task.httpPort, equalTo(project.httpPort))
+
+        task = project.tasks.add('customWar', JettyRunWar)
+        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(WarPlugin.WAR_TASK_NAME)))
         assertThat(task.httpPort, equalTo(project.httpPort))
     }
 }

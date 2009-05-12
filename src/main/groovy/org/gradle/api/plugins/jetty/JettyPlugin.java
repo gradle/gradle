@@ -17,6 +17,7 @@ package org.gradle.api.plugins.jetty;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Action;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.plugins.*;
@@ -46,29 +47,40 @@ public class JettyPlugin implements Plugin {
         Convention convention = project.getConvention();
         convention.getPlugins().put("jetty", jettyConvention);
 
-        configureJettyRun(project, jettyConvention);
-        configureJettyRunWar(project, jettyConvention);
-        configureJettyRunWarExploded(project, jettyConvention);
+        configureMappingRules(project, jettyConvention);
+        configureJettyRun(project);
+        configureJettyRunWar(project);
+        configureJettyRunWarExploded(project);
         configureJettyStop(project, jettyConvention);
     }
 
-    private void configureJettyRunWarExploded(Project project, JettyPluginConvention jettyConvention) {
-        JettyRunWarExploded jettyRunWarExploded = project.getTasks().add(JETTY_RUN_EXPLODED_WAR, JettyRunWarExploded.class);
-        jettyRunWarExploded.setDescription("Assembles the webapp into an exploded war and deploys it to Jetty.");
-        configureAbstractJettyTask(project, jettyConvention, jettyRunWarExploded);
-    }
-
-    private void configureJettyRunWar(final Project project, JettyPluginConvention jettyConvention) {
-        JettyRunWar jettyRunWar = project.getTasks().add(JETTY_RUN_WAR, JettyRunWar.class);
-        jettyRunWar.setDescription("Assembles the webapp into a war and deploys it to Jetty.");
-        jettyRunWar.dependsOn(WarPlugin.WAR_TASK_NAME);
-
-        configureAbstractJettyTask(project, jettyConvention, jettyRunWar);
-        jettyRunWar.getConventionMapping().put("webApp", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return ((War) project.task(WarPlugin.WAR_TASK_NAME)).getArchivePath();
+    private void configureMappingRules(final Project project, final JettyPluginConvention jettyConvention) {
+        project.getTasks().withType(AbstractJettyRunTask.class).whenTaskAdded(new Action<AbstractJettyRunTask>() {
+            public void execute(AbstractJettyRunTask abstractJettyRunTask) {
+                configureAbstractJettyTask(project, jettyConvention, abstractJettyRunTask);
             }
         });
+    }
+
+    private void configureJettyRunWarExploded(Project project) {
+        JettyRunWarExploded jettyRunWarExploded = project.getTasks().add(JETTY_RUN_EXPLODED_WAR, JettyRunWarExploded.class);
+        jettyRunWarExploded.setDescription("Assembles the webapp into an exploded war and deploys it to Jetty.");
+    }
+
+    private void configureJettyRunWar(final Project project) {
+        project.getTasks().withType(JettyRunWar.class).whenTaskAdded(new Action<JettyRunWar>() {
+            public void execute(JettyRunWar jettyRunWar) {
+                jettyRunWar.dependsOn(WarPlugin.WAR_TASK_NAME);
+                jettyRunWar.getConventionMapping().put("webApp", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return ((War) project.task(WarPlugin.WAR_TASK_NAME)).getArchivePath();
+                    }
+                });
+            }
+        });
+
+        JettyRunWar jettyRunWar = project.getTasks().add(JETTY_RUN_WAR, JettyRunWar.class);
+        jettyRunWar.setDescription("Assembles the webapp into a war and deploys it to Jetty.");
     }
 
     private void configureJettyStop(Project project, final JettyPluginConvention jettyConvention) {
@@ -86,36 +98,38 @@ public class JettyPlugin implements Plugin {
         });
     }
 
-    private void configureJettyRun(final Project project, final JettyPluginConvention jettyConvention) {
+    private void configureJettyRun(final Project project) {
+        project.getTasks().withType(JettyRun.class).whenTaskAdded(new Action<JettyRun>() {
+            public void execute(JettyRun jettyRun) {
+                jettyRun.dependsOn(JavaPlugin.COMPILE_TESTS_TASK_NAME);
+                jettyRun.setConfiguration(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
+                jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
+                jettyRun.setUseTestClasspath(false);
+                jettyRun.getConventionMapping().put("webXml", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return getWebXml(project);
+                    }
+                });
+                jettyRun.getConventionMapping().put("classesDirectory", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return getJavaConvention(project).getClassesDir();
+                    }
+                });
+                jettyRun.getConventionMapping().put("testClassesDirectory", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return getJavaConvention(project).getTestClassesDir();
+                    }
+                });
+                jettyRun.getConventionMapping().put("webAppSourceDirectory", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return getWarConvention(project).getWebAppDir();
+                    }
+                });
+            }
+        });
+
         JettyRun jettyRun = project.getTasks().add(JETTY_RUN, JettyRun.class);
         jettyRun.setDescription("Uses your files as and where they are and deploys them to Jetty.");
-        jettyRun.dependsOn(JavaPlugin.COMPILE_TESTS_TASK_NAME);
-
-        configureAbstractJettyTask(project, jettyConvention, jettyRun);
-
-        jettyRun.setConfiguration(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
-        jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
-        jettyRun.setUseTestClasspath(false);
-        jettyRun.getConventionMapping().put("webXml", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return getWebXml(project);
-            }
-        });
-        jettyRun.getConventionMapping().put("classesDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return getJavaConvention(project).getClassesDir();
-            }
-        });
-        jettyRun.getConventionMapping().put("testClassesDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return getJavaConvention(project).getTestClassesDir();
-            }
-        });
-        jettyRun.getConventionMapping().put("webAppSourceDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return getWarConvention(project).getWebAppDir();
-            }
-        });
     }
 
     private Object getWebXml(Project project) {

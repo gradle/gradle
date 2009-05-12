@@ -114,7 +114,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureCompile(final Project project) {
-        project.getTasks().whenTaskAdded(Compile.class, new Action<Compile>() {
+        project.getTasks().withType(Compile.class).allTasks(new Action<Compile>() {
             public void execute(Compile compile) {
                 compile.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                 compile.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
@@ -135,7 +135,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureJavaDoc(final Project project) {
-        project.getTasks().whenTaskAdded(Javadoc.class, new Action<Javadoc>() {
+        project.getTasks().withType(Javadoc.class).allTasks(new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
                 javadoc.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
@@ -222,7 +222,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureArchives(final Project project) {
-        project.getTasks().whenTaskAdded(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
+        project.getTasks().withType(AbstractArchiveTask.class).allTasks(new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
                 if (task instanceof Jar) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
@@ -270,7 +270,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureTest(final Project project) {
-        project.getTasks().whenTaskAdded(Test.class, new Action<Test>() {
+        project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
             public void execute(Test test) {
                 test.dependsOn(COMPILE_TESTS_TASK_NAME);
                 test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);

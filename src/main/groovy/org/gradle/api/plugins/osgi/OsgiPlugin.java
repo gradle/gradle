@@ -38,10 +38,10 @@ public class OsgiPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
         Action<Jar> configureAction = createOsgiConfigureAction();
-        for (Jar jar : project.getTasks().findByType(Jar.class)) {
+        for (Jar jar : project.getTasks().withType(Jar.class)) {
             configureAction.execute(jar);
         }
-        project.getTasks().whenTaskAdded(Jar.class, configureAction);
+        project.getTasks().withType(Jar.class).allTasks(configureAction);
     }
 
     private Action<Jar> createOsgiConfigureAction() {

@@ -15,23 +15,27 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.*;
-import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.Rule;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Rule;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ListenerBroadcast;
 
 import java.util.*;
 
-public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T> {
+public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollection<T> implements DomainObjectContainer<T> {
     private final ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
     private final ListenerBroadcast<Action> removeActions = new ListenerBroadcast<Action>(Action.class);
     private final Map<String, T> objects = new TreeMap<String, T>();
     private final List<Rule> rules = new ArrayList<Rule>();
+    private final Class<T> type;
     private String applyingRulesFor;
+
+    public DefaultDomainObjectContainer(Class<T> type) {
+        this.type = type;
+    }
 
     /**
      * Adds a domain object to this container.
@@ -47,53 +51,12 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         addActions.getSource().execute(object);
     }
 
-    /**
-     * Returns the display name of this container
-     *
-     * @return The display name
-     */
     public String getDisplayName() {
         return "domain object container";
     }
 
-    /**
-     * Returns a {@link DynamicObject} which can be used to access the domain objects as dynamic properties and
-     * methods.
-     *
-     * @return The dynamic object
-     */
-    public DynamicObject getAsDynamicObject() {
-        return new ContainerDynamicObject();
-    }
-
-    public Set<T> getAll() {
-        return new LinkedHashSet<T>(objects.values());
-    }
-
-    public Set<T> findAll(Spec<? super T> spec) {
-        return Specs.filterIterable(objects.values(), spec);
-    }
-
-    public <S extends T> Set<S> findByType(final Class<S> type) {
-        Set<S> matches = new LinkedHashSet<S>();
-        for (T t : objects.values()) {
-            if (type.isInstance(t)) {
-                matches.add(type.cast(t));
-            }
-        }
-        return matches;
-    }
-
     public Map<String, T> getAsMap() {
         return Collections.unmodifiableMap(objects);
-    }
-
-    public T getAt(String name) throws UnknownDomainObjectException {
-        return getByName(name);
-    }
-
-    public Iterator<T> iterator() {
-        return objects.values().iterator();
     }
 
     public T findByName(String name) {
@@ -103,18 +66,12 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return objects.get(name);
     }
 
-    public T getByName(String name) throws UnknownDomainObjectException {
-        T t = findByName(name);
-        if (t == null) {
-            throw createNotFoundException(name);
-        }
-        return t;
+    public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
+        return new FilteredContainer<T>(this, type, spec);
     }
 
-    public T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
-        T t = getByName(name);
-        ConfigureUtil.configure(configureClosure, t);
-        return t;
+    public <S extends T> DomainObjectCollection<S> withType(final Class<S> type) {
+        return new FilteredContainer<S>(this, type, Specs.satisfyAll());
     }
 
     private void applyRules(String name) {
@@ -154,20 +111,6 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         addActions.add("execute", action);
     }
 
-    public void allObjects(Action<? super T> action) {
-        for (T t : objects.values()) {
-            action.execute(t);
-        }
-        whenObjectAdded(action);
-    }
-
-    public void allObjects(Closure action) {
-        for (T t : objects.values()) {
-            action.call(t);
-        }
-        whenObjectAdded(action);
-    }
-
     /**
      * Called when an unknown domain object is requested.
      *
@@ -178,55 +121,84 @@ public class DefaultDomainObjectContainer<T> implements DomainObjectContainer<T>
         return new UnknownDomainObjectException(String.format("Domain object with name '%s' not found.", name));
     }
 
-    protected Object propertyMissing(String name) {
-        return getAsDynamicObject().getProperty(name);
-    }
+    protected static class FilteredContainer<S> extends AbstractDomainObjectCollection<S> {
+        private final AbstractDomainObjectCollection<? super S> parent;
+        private final Class<S> type;
+        private final Spec<? super S> spec;
 
-    protected Object methodMissing(String name, Object args) {
-        return getAsDynamicObject().invokeMethod(name, (Object[]) args);
-    }
-
-    private class ContainerDynamicObject extends AbstractDynamicObject {
-        @Override
-        protected String getDisplayName() {
-            return DefaultDomainObjectContainer.this.getDisplayName();
+        public FilteredContainer(AbstractDomainObjectCollection<? super S> parent, Class<S> type, Spec<? super S> spec) {
+            this.parent = parent;
+            this.type = type;
+            this.spec = spec;
         }
 
-        @Override
-        public boolean hasProperty(String name) {
-            return findByName(name) != null;
+        public S findByName(String name) {
+            return filter(parent.findByName(name));
         }
 
-        @Override
-        public T getProperty(String name) throws MissingPropertyException {
-            T t = findByName(name);
-            if (t == null) {
-                return (T) super.getProperty(name);
+        public Map<String, S> getAsMap() {
+            Map<String, S> filteredMap = new LinkedHashMap<String, S>();
+            for (Map.Entry<String, ? super S> entry : parent.getAsMap().entrySet()) {
+                S s = filter(entry.getValue());
+                if (s != null) {
+                    filteredMap.put(entry.getKey(), s);
+                }
             }
-            return t;
+            return filteredMap;
         }
 
-        @Override
-        public Map<String, T> getProperties() {
-            return objects;
-        }
-
-        @Override
-        public boolean hasMethod(String name, Object... arguments) {
-            return isConfigureMethod(name, arguments);
-        }
-
-        @Override
-        public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
-            if (isConfigureMethod(name, arguments)) {
-                return ConfigureUtil.configure((Closure) arguments[0], getByName(name));
-            } else {
-                return super.invokeMethod(name, arguments);
+        private S filter(Object object) {
+            if (!type.isInstance(object)) {
+                return null;
             }
+            S s = type.cast(object);
+            if (!spec.isSatisfiedBy(s)) {
+                return null;
+            }
+            return s;
         }
 
-        private boolean isConfigureMethod(String name, Object... arguments) {
-            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
+        public DomainObjectCollection<S> matching(Spec<? super S> spec) {
+            return new FilteredContainer<S>(this, type, spec);
+        }
+
+        public <U extends S> DomainObjectCollection<U> withType(Class<U> type) {
+            return new FilteredContainer<U>(this, type, Specs.SATISFIES_ALL);
+        }
+
+        public Action<? super S> whenObjectAdded(final Action<? super S> action) {
+            parent.whenObjectAdded(new Action<Object>() {
+                public void execute(Object t) {
+                    S s = filter(t);
+                    if (s != null) {
+                        action.execute(s);
+                    }
+                }
+            });
+            return action;
+        }
+
+        public void whenObjectAdded(final Closure action) {
+            parent.whenObjectAdded(new Action<Object>() {
+                public void execute(Object t) {
+                    S s = filter(t);
+                    if (s != null) {
+                        action.call(s);
+                    }
+                }
+            });
+        }
+
+        public Action<? super S> whenObjectRemoved(Action<? super S> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        public String getDisplayName() {
+            return parent.getDisplayName();
+        }
+
+        protected UnknownDomainObjectException createNotFoundException(String name) {
+            return parent.createNotFoundException(name);
         }
     }
 }

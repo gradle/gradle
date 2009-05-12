@@ -17,8 +17,12 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
+import org.gradle.api.internal.AbstractDomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.internal.project.ITaskFactory;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.util.GUtil;
 
@@ -30,13 +34,14 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
     private final ITaskFactory taskFactory;
 
     public DefaultTaskContainer(Project project, ITaskFactory taskFactory) {
+        super(Task.class);
         this.project = project;
         this.taskFactory = taskFactory;
     }
 
     public Task add(Map<String, ?> options) {
         Map<String, Object> mutableOptions = new HashMap<String, Object>(options);
-        
+
         Object replaceStr = mutableOptions.remove(Task.TASK_OVERWRITE);
         boolean replace = replaceStr != null && "true".equals(replaceStr.toString());
 
@@ -44,7 +49,8 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         String name = task.getName();
 
         if (!replace && findByName(name) != null) {
-            throw new InvalidUserDataException(String.format( "Cannot add task '%s' as a task with that name already exists.", name));
+            throw new InvalidUserDataException(String.format(
+                    "Cannot add task '%s' as a task with that name already exists.", name));
         }
 
         addObject(name, task);
@@ -81,23 +87,17 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
     }
 
     @Override
-    protected void addObject(String name, Task object) {
-        super.addObject(name, object);
+    public FilteredTaskCollection<Task> matching(Spec<? super Task> spec) {
+        return new FilteredTaskCollection<Task>(this, Task.class, spec);
+    }
+
+    @Override
+    public <T extends Task> FilteredTaskCollection<T> withType(Class<T> type) {
+        return new FilteredTaskCollection<T>(this, type, Specs.SATISFIES_ALL);
     }
 
     public Action<? super Task> whenTaskAdded(Action<? super Task> action) {
         return whenObjectAdded(action);
-    }
-
-    public <T extends Task> Action<T> whenTaskAdded(final Class<T> type, final Action<T> action) {
-        whenTaskAdded(new Action<Task>() {
-            public void execute(Task task) {
-                if (type.isInstance(task)) {
-                    action.execute(type.cast(task));
-                }
-            }
-        });
-        return action;
     }
 
     public void whenTaskAdded(Closure closure) {
@@ -120,5 +120,37 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownTaskException(String.format("Task with name '%s' not found.", name));
+    }
+
+    private static class FilteredTaskCollection<T extends Task> extends FilteredContainer<T> implements TaskCollection<T> {
+        private FilteredTaskCollection(AbstractDomainObjectCollection<? super T> parent, Class<T> type, Spec<? super T> spec) {
+            super(parent, type, spec);
+        }
+
+        @Override
+        public FilteredTaskCollection<T> matching(Spec<? super T> spec) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <S extends T> FilteredTaskCollection<S> withType(Class<S> type) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void allTasks(Action<? super T> action) {
+            allObjects(action);
+        }
+
+        public void allTasks(Closure closure) {
+            allObjects(closure);
+        }
+
+        public Action<? super T> whenTaskAdded(Action<? super T> action) {
+            return whenObjectAdded(action);
+        }
+
+        public void whenTaskAdded(Closure closure) {
+            whenObjectAdded(closure);
+        }
     }
 }

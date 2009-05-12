@@ -56,6 +56,7 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
     private ConfigurationContainer configurationContainer = null;
 
     public DefaultResolverContainer(ResolverFactory resolverFactory, Convention convention) {
+        super(DependencyResolver.class);
         this.resolverFactory = resolverFactory;
         conventionAwareHelper = new ConventionAwareHelper(this);
         conventionAwareHelper.setConvention(convention);

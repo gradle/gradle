@@ -47,6 +47,7 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
     public DefaultConfigurationContainer(IvyService ivyService, ResolverProvider resolverProvider,
                                          DependencyMetaDataProvider dependencyMetaDataProvider,
                                          ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+        super(Configuration.class);
         this.ivyService = ivyService;
         this.resolverProvider = resolverProvider;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;

@@ -15,30 +15,30 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.*;
+import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
+import org.gradle.api.Action;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.Task;
-import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.GUtil;
-import org.gradle.util.TestClosure;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.HelperUtil.*;
+import org.gradle.util.TestClosure;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Iterator;
 
 @RunWith(JMock.class)
 public class DefaultDomainObjectContainerTest {
-    private final DefaultDomainObjectContainer<Bean> container = new DefaultDomainObjectContainer<Bean>();
+    private final DefaultDomainObjectContainer<Bean> container = new DefaultDomainObjectContainer<Bean>(Bean.class);
     private final JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
@@ -133,6 +133,139 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
+    public void canGetFilteredCollectionContainingAllObjectsWhichMeetSpec() {
+        final Bean bean1 = new Bean();
+        Bean bean2 = new Bean();
+        Bean bean3 = new Bean();
+
+        Spec<Bean> spec = new Spec<Bean>() {
+            public boolean isSatisfiedBy(Bean element) {
+                return element != bean1;
+            }
+        };
+
+        container.addObject("a", bean1);
+        container.addObject("b", bean2);
+        container.addObject("c", bean3);
+
+        assertThat(container.matching(spec).getAll(), equalTo(toLinkedSet(bean2, bean3)));
+        assertThat(container.matching(spec).findByName("a"), nullValue());
+        assertThat(container.matching(spec).findByName("b"), sameInstance(bean2));
+    }
+
+    @Test
+    public void canGetFilteredCollectionContainingAllObjectsWhichHaveType() {
+        class OtherBean extends Bean {}
+        Bean bean1 = new Bean();
+        OtherBean bean2 = new OtherBean();
+        Bean bean3 = new Bean();
+
+        container.addObject("c", bean3);
+        container.addObject("a", bean1);
+        container.addObject("b", bean2);
+
+        assertThat(container.withType(Bean.class).getAll(), equalTo(toLinkedSet(bean1, bean2, bean3)));
+        assertThat(container.withType(OtherBean.class).getAll(), equalTo(toLinkedSet(bean2)));
+        assertThat(container.withType(OtherBean.class).findByName("a"), nullValue());
+        assertThat(container.withType(OtherBean.class).findByName("b"), sameInstance(bean2));
+    }
+
+    @Test
+    public void filteredCollectionIsLive() {
+        final Bean bean1 = new Bean();
+        Bean bean2 = new Bean();
+        Bean bean3 = new Bean();
+        Bean bean4 = new Bean();
+
+        Spec<Bean> spec = new Spec<Bean>() {
+            public boolean isSatisfiedBy(Bean element) {
+                return element != bean1;
+            }
+        };
+
+        container.addObject("a", bean1);
+
+        DomainObjectCollection<Bean> filteredCollection = container.matching(spec);
+        assertTrue(filteredCollection.getAll().isEmpty());
+
+        container.addObject("b", bean2);
+        container.addObject("c", bean3);
+
+        assertThat(filteredCollection.getAll(), equalTo(toLinkedSet(bean2, bean3)));
+
+        container.addObject("c", bean4);
+
+        assertThat(filteredCollection.getAll(), equalTo(toLinkedSet(bean2, bean4)));
+    }
+
+    @Test
+    public void filteredCollectionExecutesActionWhenMatchingObjectAdded() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean);
+        }});
+
+        Spec<Bean> spec = new Spec<Bean>() {
+            public boolean isSatisfiedBy(Bean element) {
+                return element == bean;
+            }
+        };
+
+        container.matching(spec).whenObjectAdded(action);
+
+        container.addObject("bean", bean);
+        container.addObject("bean2", new Bean());
+    }
+
+    @Test
+    public void filteredCollectionExecutesClosureWhenMatchingObjectAdded() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(closure).call(bean);
+        }});
+
+        Spec<Bean> spec = new Spec<Bean>() {
+            public boolean isSatisfiedBy(Bean element) {
+                return element == bean;
+            }
+        };
+
+        container.matching(spec).whenObjectAdded(HelperUtil.toClosure(closure));
+
+        container.addObject("bean", bean);
+        container.addObject("bean2", new Bean());
+    }
+
+    @Test
+    public void canChainFilteredCollections() {
+        final Bean bean = new Bean();
+        final Bean bean2 = new Bean();
+        final Bean bean3 = new Bean();
+
+        Spec<Bean> spec = new Spec<Bean>() {
+            public boolean isSatisfiedBy(Bean element) {
+                return element != bean;
+            }
+        };
+        Spec<Bean> spec2 = new Spec<Bean>() {
+            public boolean isSatisfiedBy(Bean element) {
+                return element != bean2;
+            }
+        };
+
+        container.addObject("a", bean);
+        container.addObject("b", bean2);
+        container.addObject("c", bean3);
+
+        DomainObjectCollection<Bean> collection = container.matching(spec).matching(spec2);
+        assertThat(collection.getAll(), equalTo(toSet(bean3)));
+    }
+
+    @Test
     public void canGetDomainObjectByName() {
         Bean bean = new Bean();
         container.addObject("a", bean);
@@ -196,29 +329,6 @@ public class DefaultDomainObjectContainerTest {
         addRuleFor(bean);
 
         assertThat(container.findByName("bean"), sameInstance(bean));
-    }
-
-    @Test
-    public void canGetAllDomainObjectsOfTypeOrderedByName() {
-        class OtherBean extends Bean {}
-        Bean bean1 = new Bean();
-        OtherBean bean2 = new OtherBean();
-        Bean bean3 = new Bean();
-
-        container.addObject("c", bean3);
-        container.addObject("a", bean1);
-        container.addObject("b", bean2);
-
-        assertThat(container.findByType(Bean.class), equalTo(toLinkedSet(bean1, bean2, bean3)));
-        assertThat(container.findByType(OtherBean.class), equalTo(toLinkedSet(bean2)));
-    }
-
-    @Test
-    public void getAllDomainObjectsOfTypeReturnsEmptySetWhenNoMatches() {
-        class OtherBean extends Bean {}
-        container.addObject("a", new Bean());
-
-        assertTrue(container.findByType(OtherBean.class).isEmpty());
     }
 
     @Test

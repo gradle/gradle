@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.tasks;
 
+import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ITaskFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.TestClosure;
-import org.gradle.util.TestTask;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -30,8 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Map;
-
-import groovy.lang.Closure;
 
 @RunWith(JMock.class)
 public class DefaultTaskContainerTest {
@@ -184,53 +181,6 @@ public class DefaultTaskContainerTest {
         } catch (UnknownTaskException e) {
             assertThat(e.getMessage(), equalTo("Task with name 'unknown' not found."));
         }
-    }
-
-    @Test
-    public void callsActionWhenTaskAdded() {
-        final Action<Task> action = context.mock(Action.class);
-        final Task task = task("task");
-
-        context.checking(new Expectations() {{
-            one(action).execute(task);
-        }});
-
-        container.whenTaskAdded(action);
-        container.addObject("task", task);
-    }
-
-    @Test
-    public void callsActionWhenTaskOfRequestedTypeAdded() {
-        final Action<TestTask> action = context.mock(Action.class);
-        final TestTask task = new TestTask(HelperUtil.createRootProject(), "task");
-
-        context.checking(new Expectations() {{
-            one(action).execute(task);
-        }});
-
-        container.whenTaskAdded(TestTask.class, action);
-        container.addObject("task", task);
-    }
-
-    @Test
-    public void doesNotCallActionWhenTaskOfNonRequestedTypeAdded() {
-        Action<TestTask> action = context.mock(Action.class);
-        Task task = task("task");
-
-        container.whenTaskAdded(TestTask.class, action);
-        container.addObject("task", task);
-    }
-
-    @Test
-    public void callsClosureWhenTaskAdded() {
-        final TestClosure closure = context.mock(TestClosure.class);
-        final Task task = task("task");
-        context.checking(new Expectations() {{
-            one(closure).call(task);
-        }});
-
-        container.whenTaskAdded(HelperUtil.toClosure(closure));
-        container.addObject("task", task);
     }
 
     private Task task(final String name) {
