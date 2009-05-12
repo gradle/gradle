@@ -7,7 +7,7 @@
         Gradle belong to the core distribution of Gradle and they are NEVER updated or changed in any way for a
         particular Gradle distribution. If there is a bug in the compile functionality of Gradle, we gonna release a new
         version of Gradle. There is no change of behavior for the lifetime of a given distribution of Gradle. We mention
-        this as there is another build tools with a plugin system which behaves differently.
+        this as there is another build tool with a plugin system which behaves differently.
     </para>
     <section id='sec:using_plugins'>
         <title>Declaring Plugins</title>

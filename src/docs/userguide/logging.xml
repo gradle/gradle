@@ -2,7 +2,7 @@
     <title>Logging</title>
     <para>The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden
         by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle
-        has added to log-levels to the ones normally used. Those levels are
+        has added two log-levels to the ones normally used. Those levels are
         <emphasis>QUIET</emphasis>
         and <emphasis>LIFECYCLE</emphasis>. The latter is the default and is telling you just what task is getting
         executed or skipped.
@@ -88,8 +88,8 @@
         <title>External Tools and Standard Output</title>
         <para>Gradle uses internally Ant and Ivy a lot. Both have their own logging system. Gradle injects an adapter
             into there logging system to redirect there logging output into the Gradle logging system. There is a 1:1
-            mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy trace level, which is
-            mapped to Gradle debug. This means the default Gradle log level does not show any Ant/Ivy output unless it
+            mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy <emphasis>TRACE</emphasis> level, which is
+            mapped to Gradle <emphasis>DEBUG</emphasis>. This means the default Gradle log level does not show any Ant/Ivy output unless it
             is an error or a warning.
         </para>
         <para>There are many tools out there which still use standard output for logging. Gradle redirects by default
@@ -119,7 +119,7 @@
         <sample id="logging" dir="logging/project1">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>Strictly speaking, QUIET and LIFECYCLE are no log levels, but they are markers. But logically Gradle
+        <para>Strictly speaking, <emphasis>QUIET</emphasis> and <emphasis>LIFECYCLE</emphasis> are no log levels, but they are markers. But logically Gradle
             treats them as log levels. In a future version of Gradle we want to provide a logger which provides
             additional log methods
             <literal>quiet</literal>

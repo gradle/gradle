@@ -165,7 +165,7 @@
                     that syntax' syntax in this article is actually the Groovy syntax.
                 </para>
             </footnote>
-            Languages like Python, Groovy or Ruby do a much better Job here. We have chosen Groovy as it offers by far
+            Languages like Python, Groovy or Ruby do a much better job here. We have chosen Groovy as it offers by far
             the highest transparency for Java people. Its base syntax is the same as Java's as well as its type system,
             its package structure other things. Groovy builds a lot on top of that. But on a common ground with Java.
         </para>

@@ -40,7 +40,7 @@ dependencies("commons-math:commons-math:1.1:jar")
             <xref linkend='sec:how_to_declare_your_dependencies'/>
             (except project dependencies). There is
             <emphasis>no</emphasis>
-            need to provide a <emphasis>dependency configuration</emphasis>(e.g. <literal>compile</literal>). For
+            need to provide a <emphasis>dependency configuration</emphasis> (e.g. <literal>compile</literal>). For
             multi-project builds dependencies declared in the
             <literal>settings.gradle</literal>
             file of the root project, are available to all build scripts of the sub-projects.
