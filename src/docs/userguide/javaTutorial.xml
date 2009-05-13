@@ -11,9 +11,8 @@
     <section>
         <title>A Basic Java Project</title>
         <para>Let's look at a simple example. To use the Java plugin, add the following to your build file:</para>
-        <sample id="javaQuickstart" dir="java/quickstart">
+        <sample id="javaQuickstart" dir="java/quickstart" includeLocation="true">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
-            <location/>
         </sample>
         <para>This is all you need to define a Java project. This will apply the Java plugin to your project, which adds
             a number of tasks to your project.</para>
@@ -103,14 +102,13 @@
         <title>Multi-project Java Build</title>
         <para>Now let's look at a typical multi-project build. Below is the layout for the project:
         </para>
-        <sample id="javaMultiProject" dir="java/multiproject">
+        <sample id="javaMultiProject" dir="java/multiproject" includeLocation="true">
             <layout>
                 api
                 services
                 services/webservice
                 shared
             </layout>
-            <location/>
         </sample>
         <para>Here we have three projects. Project <literal>api</literal> produces a JAR file which is shipped to the
             client to provide them a Java client for your XML webservice. Project <literal>webservice</literal> is a

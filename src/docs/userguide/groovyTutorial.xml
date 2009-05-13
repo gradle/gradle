@@ -26,9 +26,8 @@
         <title>Using the Groovy Plugin</title>
 
         <para>Let's look at an example. To use the Groovy plugin, add the following to your build file:</para>
-        <sample id="groovyQuickstart" dir="groovy/quickstart">
+        <sample id="groovyQuickstart" dir="groovy/quickstart" includeLocation="true">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
-            <location/>
         </sample>
         <para>This will also apply the Java plugin to the project, if it has not already been applied. The Groovy plugin
             extends the <literal>compile</literal> task to look for source files in directory

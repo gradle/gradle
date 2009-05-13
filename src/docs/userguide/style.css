@@ -208,10 +208,7 @@ pre {
 }
 
 .exampleLocation {
-    /* This -1 margin is a hack to make the example location closer to it's div.example parent.  This
-    could be fixed if the example location was contained withing the example div */
-    margin-top: -1em;
-    
+    margin-top: 0.5em;
     padding-left: 1.7em;
     background: #FEFEDD;
     color: #777744;

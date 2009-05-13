@@ -13,13 +13,12 @@
             <para>We have the following project tree. This is a multi-project build with a root project
                 <literal>water</literal> and a subproject <literal>bluewhale</literal>.
             </para>
-            <sample id="multiprojectFirstExample" dir="userguide/multiproject/firstExample/water">
+            <sample id="multiprojectFirstExample" dir="userguide/multiproject/firstExample/water" includeLocation="true">
                 <layout>
                     build.gradle
                     settings.gradle
                     bluewhale
                 </layout>
-                <location/>
                 <sourcefile file="settings.gradle"/>
             </sample>
             <para>And where is the build script for the bluewhale project? In Gradle build scripts are optional.
@@ -41,14 +40,13 @@
                 explicitly for every project. We can do better. Let's first add another project called
                 <literal>krill</literal> to our multi-project build.
             </para>
-            <sample id="multiprojectAddKrill" dir="userguide/multiproject/addKrill/water">
+            <sample id="multiprojectAddKrill" dir="userguide/multiproject/addKrill/water" includeLocation="true">
                 <layout>
                     build.gradle
                     settings.gradle
                     bluewhale
                     krill
                 </layout>
-                <location/>
                 <sourcefile file="settings.gradle"/>
             </sample>
             <para>Now we rewrite the water build script and boil it down to a single line.</para>
@@ -97,7 +95,7 @@
                 project. Let's refactor and also add some project specific behavior to the <literal>krill</literal>
                 project.
             </para>
-            <sample id="multiprojectSpreadSpecifics" dir="userguide/multiproject/spreadSpecifics/water">
+            <sample id="multiprojectSpreadSpecifics" dir="userguide/multiproject/spreadSpecifics/water" includeLocation="true">
                 <layout>
                     build.gradle
                     settings.gradle
@@ -106,7 +104,6 @@
                     krill
                     krill/build.gradle
                 </layout>
-                <location/>
                 <sourcefile file="settings.gradle"/>
                 <sourcefile file="bluewhale/build.gradle"/>
                 <sourcefile file="krill/build.gradle"/>
@@ -122,7 +119,7 @@
             </para>
             <section id='ssub:filtering_by_name'>
                 <title>Filtering By Name</title>
-                <sample id="multiprojectAddTropical" dir="userguide/multiproject/addTropical/water">
+                <sample id="multiprojectAddTropical" dir="userguide/multiproject/addTropical/water" includeLocation="true">
                     <layout>
                         build.gradle
                         settings.gradle
@@ -132,7 +129,6 @@
                         krill/build.gradle
                         tropicalFish
                     </layout>
-                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="build.gradle"/>
                     <output args="-q hello"/>
@@ -145,7 +141,7 @@
                 <title>Filtering By Properties</title>
                 <para>Using the project name for filtering is one option. Using dynamic project properties is another.
                 </para>
-                <sample id="multiprojectTropicalWithProperties" dir="userguide/multiproject/tropicalWithProperties/water">
+                <sample id="multiprojectTropicalWithProperties" dir="userguide/multiproject/tropicalWithProperties/water" includeLocation="true">
                     <layout>
                         build.gradle
                         settings.gradle
@@ -156,7 +152,6 @@
                         tropicalFish
                         tropicalFish/build.gradle
                     </layout>
-                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="bluewhale/build.gradle"/>
                     <sourcefile file="krill/build.gradle"/>
@@ -257,7 +252,7 @@
             <title>Execution Dependencies</title>
             <section id='ssub:dependencies_and_execution_order'>
                 <title>Dependencies and Execution Order</title>
-                <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages">
+                <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages" includeLocation="true">
                     <layout>
                         settings.gradle
                         consumer
@@ -265,7 +260,6 @@
                         producer
                         producer/build.gradle
                     </layout>
-                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
@@ -309,7 +303,7 @@
             </section>
             <section id='ssub:declaring_dependencies'>
                 <title>Declaring Dependencies</title>
-                <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages">
+                <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages" includeLocation="true">
                     <layout>
                         settings.gradle
                         consumer
@@ -317,7 +311,6 @@
                         producer
                         producer/build.gradle
                     </layout>
-                    <location/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
@@ -444,7 +437,7 @@
                 </footnote>
                 For the example we use only one build script and do <emphasis>cross project configuration</emphasis>.
             </para>
-            <sample id="webdist" dir="userguide/multiproject/dependencies/webDist">
+            <sample id="webdist" dir="userguide/multiproject/dependencies/webDist" includeLocation="true">
                 <layout>
                     settings.gradle
                     build.gradle
@@ -453,7 +446,6 @@
                     hello
                     hello/src/main/java/org/gradle/sample/HelloServlet.java
                 </layout>
-                <location/>
                 <sourcefile file="settings.gradle"/>
                 <sourcefile file="build.gradle"/>
             </sample>
@@ -514,7 +506,7 @@
             multi-project builds. As already mentioned in <xref linkend='sub:project_dependencies'/>, Gradle
             offers project dependencies for this.
         </para>
-        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java">
+        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java" includeLocation="true">
             <layout>
                 settings.gradle
                 build.gradle
@@ -528,7 +520,6 @@
                 shared
                 shared/src/main/java/org/gradle/sample/shared/Helper.java
             </layout>
-            <location/>
         </sample>
         <para>We have the projects <literal>shared</literal>,
             <literal>api</literal>

@@ -145,6 +145,10 @@ public class UserGuideTransformTask extends DefaultTask {
                         throw new RuntimeException("No dir attribute specified for sample '$id'.")
                     }
 
+                    // This class handles the responsibility of adding the location tips to the first child of first
+                    // example defined in the sample.
+                    SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, element, srcDir)
+                   
                     xml.sample(id: id, dir: srcDir)
 
                     element.children().each {Element child ->
@@ -173,7 +177,9 @@ public class UserGuideTransformTask extends DefaultTask {
                             programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
                             exampleElement.appendChild(programListingElement)
 
+                            locationHandler.processSampleLocation(exampleElement)
                             element.parentNode.insertBefore(exampleElement, element)
+                           
                         } else if (child.name() == 'output') {
                             String args = child.'@args'
                             if (args == null) {
@@ -196,23 +202,10 @@ public class UserGuideTransformTask extends DefaultTask {
                             screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
                             exampleElement.appendChild(screenElement)
 
+                            locationHandler.processSampleLocation(exampleElement)
                             element.parentNode.insertBefore(exampleElement, element)
-                        } else if (child.name() == 'location') {
-                            Element tipElement = doc.createElement('tip')
-                            tipElement.setAttribute('role', 'exampleLocation')
-                            element.parentNode.insertBefore(tipElement, element)
-                            Element textElement = doc.createElement('para')
-                            tipElement.appendChild(textElement)
-                            Element emphasisElement = doc.createElement('emphasis')
-                            textElement.appendChild(emphasisElement)
-                            emphasisElement.appendChild(doc.createTextNode('Note:'))
-                            textElement.appendChild(doc.createTextNode(' The code for this example can be found at '))
-                            Element filenameElement = doc.createElement('filename')
-                            textElement.appendChild(filenameElement)
-                            filenameElement.appendChild(doc.createTextNode("samples/$srcDir"))
                         } else if (child.name() == 'layout') {
                             Element figureElement = doc.createElement('figure')
-                            element.parentNode.insertBefore(figureElement, element)
                             Element titleElement = doc.createElement('title')
                             figureElement.appendChild(titleElement)
                             titleElement.appendChild(doc.createTextNode('Project layout'))
@@ -243,6 +236,10 @@ public class UserGuideTransformTask extends DefaultTask {
                                 }
                             }
                             programListingElement.appendChild(doc.createTextNode(content.toString()))
+                           
+                            locationHandler.processSampleLocation(figureElement)
+                            element.parentNode.insertBefore(figureElement, element)
+                           
                         } else {
                             throw new RuntimeException("Unrecognised sample type ${child.name()} found.")
                         }
