@@ -37,7 +37,7 @@ class OsgiProjectSampleIntegrationTest {
         File osgiProjectDir = new File(dist.samplesDir, 'osgi')
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'libs').run()
         AntBuilder ant = new AntBuilder()
-        ant.unjar(src: "$osgiProjectDir/build/osgi-1.0.jar", dest: "$osgiProjectDir/build")
+        ant.unjar(src: "$osgiProjectDir/build/libs/osgi-1.0.jar", dest: "$osgiProjectDir/build")
         Manifest manifest = new Manifest(new FileInputStream("$osgiProjectDir/build/META-INF/MANIFEST.MF"))
         checkManifest(manifest, start)
     }

@@ -23,11 +23,13 @@ public class BasePluginConvention {
 
     String distsDirName
     String libsDirName
+    String archivesBaseName
 
     BasePluginConvention(Project project, Map customValues) {
         this.project = project
+        archivesBaseName = project.name
         distsDirName = 'distributions'
-        libsDirName = ''
+        libsDirName = 'libs'
         PluginUtil.applyCustomValues(project.convention, this, customValues)
     }
 

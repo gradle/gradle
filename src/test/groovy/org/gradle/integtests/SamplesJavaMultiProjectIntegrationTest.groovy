@@ -92,10 +92,10 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, WEBAPP_PATH, 'build/reports/tests/index.html')
 
         // Check jar exists
-        assertExists(javaprojectDir, SHARED_NAME, "build/$SHARED_NAME-1.0.jar".toString())
-        assertExists(javaprojectDir, API_NAME, "build/$API_NAME-1.0.jar".toString())
-        assertExists(javaprojectDir, API_NAME, "build/$API_NAME-spi-1.0.jar".toString())
-        assertExists(javaprojectDir, WEBAPP_PATH, "build/$WEBAPP_NAME-2.5.war".toString())
+        assertExists(javaprojectDir, SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar".toString())
+        assertExists(javaprojectDir, API_NAME, "build/libs/$API_NAME-1.0.jar".toString())
+        assertExists(javaprojectDir, API_NAME, "build/libs/$API_NAME-spi-1.0.jar".toString())
+        assertExists(javaprojectDir, WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war".toString())
 
         // Check dist zip exists
         assertExists(javaprojectDir, API_NAME, "build/distributions/$API_NAME-1.0.zip".toString())
@@ -194,8 +194,8 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
         assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
         assertExists(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, packagePrefix, WEBAPP_NAME, 'TestTest.class')
-        assertExists(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'webservice-2.5.war')
-        assertDoesNotExist(javaprojectDir, false, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'webservice-2.5.jar')
+        assertExists(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'libs', 'webservice-2.5.war')
+        assertDoesNotExist(javaprojectDir, false, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'libs', 'webservice-2.5.jar')
     }
 
     private static void assertExists(File baseDir, String[] path) {

@@ -54,7 +54,7 @@ class GroovyProjectSampleIntegrationTest {
 
         String unjarPath = "$testProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()
-        ant.unjar(src: "$testProjectDir/build/$TEST_PROJECT_NAME-1.0.jar", dest: unjarPath)
+        ant.unjar(src: "$testProjectDir/build/libs/$TEST_PROJECT_NAME-1.0.jar", dest: unjarPath)
         assert new File("$unjarPath/META-INF/MANIFEST.MF").text.contains('myprop: myvalue')
         assert new File("$unjarPath/META-INF/myfile").isFile()
 
@@ -78,7 +78,7 @@ class GroovyProjectSampleIntegrationTest {
         new TestFile(groovyProjectDir, 'build/test-results/TESTS-TestSuites.xml').assertExists()
 
         // Check jar exists
-        new TestFile(groovyProjectDir, "build/quickstart-unspecified.jar").assertExists()
+        new TestFile(groovyProjectDir, "build/libs/quickstart-unspecified.jar").assertExists()
     }
 
     @Test
@@ -91,6 +91,6 @@ class GroovyProjectSampleIntegrationTest {
         new TestFile(groovyProjectDir, 'build/test-results/TESTS-TestSuites.xml').assertExists()
 
         // Check jar exists
-        new TestFile(groovyProjectDir, "build/groovy-1.5.6-unspecified.jar").assertExists()
+        new TestFile(groovyProjectDir, "build/libs/groovy-1.5.6-unspecified.jar").assertExists()
     }
 }

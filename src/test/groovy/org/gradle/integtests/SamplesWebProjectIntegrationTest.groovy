@@ -38,7 +38,7 @@ class SamplesWebProjectIntegrationTest {
         executer.inDirectory(webProjectDir).withTasks('clean', 'libs').run()
         String unjarPath = "$webProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()
-        ant.unjar(src: "$webProjectDir/build/$WEB_PROJECT_NAME-1.0.war", dest: unjarPath)
+        ant.unjar(src: "$webProjectDir/build/libs/$WEB_PROJECT_NAME-1.0.war", dest: unjarPath)
         ['root.txt', 'WEB-INF/classes/org/MyClass.class', 'WEB-INF/lib/compile-1.0.jar', 'WEB-INF/lib/runtime-1.0.jar',
                 'WEB-INF/lib/additional-1.0.jar', 'WEB-INF/lib/otherLib-1.0.jar', 'WEB-INF/additional.xml', 'WEB-INF/webapp.xml', 'WEB-INF/web.xml',
                 'webapp.html'].each {
@@ -52,8 +52,6 @@ class SamplesWebProjectIntegrationTest {
         executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
         checkServletOutput(webProjectDir)
         executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()
-        checkServletOutput(webProjectDir)
-        executer.inDirectory(webProjectDir).withTasks('clean', 'runExplodedTest').run()
         checkServletOutput(webProjectDir)
     }
 

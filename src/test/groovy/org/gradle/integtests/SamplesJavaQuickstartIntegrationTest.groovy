@@ -39,7 +39,7 @@ class SamplesJavaQuickstartIntegrationTest {
         assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
 
         // Check jar exists
-        assertExists(javaprojectDir, "build/quickstart-1.0.jar")
+        assertExists(javaprojectDir, "build/libs/quickstart-1.0.jar")
 
         // Check jar uploaded
         assertExists(javaprojectDir, 'repos/quickstart-1.0.jar')

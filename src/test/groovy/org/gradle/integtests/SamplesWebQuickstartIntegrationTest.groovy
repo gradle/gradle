@@ -41,8 +41,6 @@ class SamplesWebQuickstartIntegrationTest {
         checkServletOutput(result)
         result = executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()
         checkServletOutput(result)
-//        result = executer.inDirectory(webProjectDir).withTasks('clean', 'runExplodedTest').run()
-//        checkServletOutput(result)
     }
 
     static void checkServletOutput(ExecutionResult result) {

@@ -281,10 +281,10 @@
             <td>libsDirName</td>
             <td>libsDir</td>
             <td>
-                empty string
+                <literal>libs</literal>
             </td>
             <td>
-                <literal><replaceable>buildDir</replaceable></literal>
+                <literal><replaceable>buildDir</replaceable>/libs</literal>
             </td>
         </tr>
         <tr>
