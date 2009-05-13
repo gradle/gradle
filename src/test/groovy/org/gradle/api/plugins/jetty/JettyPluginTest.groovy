@@ -47,10 +47,6 @@ public class JettyPluginTest {
         assertThat(task.dependsOn, equalTo(WrapUtil.toSet(JavaPlugin.COMPILE_TESTS_TASK_NAME)))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
-        task = project.tasks[JettyPlugin.JETTY_RUN_EXPLODED_WAR]
-        assertThat(task, instanceOf(JettyRunWarExploded))
-        assertThat(task.httpPort, equalTo(project.httpPort))
-
         task = project.tasks[JettyPlugin.JETTY_RUN_WAR]
         assertThat(task, instanceOf(JettyRunWar))
         assertThat(task.dependsOn, equalTo(WrapUtil.toSet(WarPlugin.WAR_TASK_NAME)))
@@ -67,9 +63,6 @@ public class JettyPluginTest {
 
         def task = project.tasks.add('customRun', JettyRun)
         assertThat(task.dependsOn, equalTo(WrapUtil.toSet(JavaPlugin.COMPILE_TESTS_TASK_NAME)))
-        assertThat(task.httpPort, equalTo(project.httpPort))
-
-        task = project.tasks.add('customRunExploded', JettyRunWarExploded)
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks.add('customWar', JettyRunWar)

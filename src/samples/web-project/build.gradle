@@ -32,7 +32,7 @@ war {
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 
-[jettyRun, jettyRunWar, jettyRunExploded]*.daemon = true
+[jettyRun, jettyRunWar]*.daemon = true
 stopKey = 'foo'
 stopPort = 9451
 httpPort = 8163
@@ -42,20 +42,6 @@ task runTest(dependsOn: jettyRun) {
 }
 
 task runWarTest(dependsOn: jettyRunWar) {
-    callServlet()
-}
-
-File explodedDir = "$buildDir/exploded" as File
-task explodedWar(dependsOn: war) {
-    ant.unzip(src: war.archivePath, dest: explodedDir)
-}
-
-jettyRunExploded {
-    dependsOn explodedWar
-    webApp = explodedDir
-}
-
-task runExplodedTest(dependsOn: jettyRunExploded) {
     callServlet()
 }
 

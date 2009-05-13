@@ -11,7 +11,7 @@ dependencies {
 
 build.taskGraph.whenReady {graph ->
     if (graph.hasTask(runTest) || graph.hasTask(runWarTest)) {
-        [jettyRun, jettyRunWar, jettyRunExploded]*.daemon = true
+        [jettyRun, jettyRunWar]*.daemon = true
     }
 }
 stopKey = 'foo'

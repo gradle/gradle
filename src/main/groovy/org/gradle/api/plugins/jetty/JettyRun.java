@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jetty;
 import hidden.org.codehaus.plexus.util.FileUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
@@ -58,15 +59,6 @@ public class JettyRun extends AbstractJettyRunTask {
      */
     private ContextHandler[] contextHandlers;
 
-
-    /**
-     * If true, the &lt;testOutputDirectory&gt;
-     * and the dependencies of &lt;scope&gt;test&lt;scope&gt;
-     * will be put first on the runtime classpath.
-     */
-    private boolean useTestClasspath;
-
-
     /**
      * The location of a jetty-env.xml file. Optional.
      */
@@ -82,11 +74,6 @@ public class JettyRun extends AbstractJettyRunTask {
      * The directory containing generated classes.
      */
     private File classesDirectory;
-
-    /**
-     * The directory containing generated test classes.
-     */
-    private File testClassesDirectory;
 
     /**
      * Root directory for all html/jsp etc files
@@ -114,16 +101,14 @@ public class JettyRun extends AbstractJettyRunTask {
     /**
      * List of files on the classpath for the webapp
      */
-    private List classPathFiles;
+    private List<File> classPathFiles;
 
     /**
      * Extra scan targets as a list
      */
-    private List extraScanTargets;
+    private List<File> extraScanTargets;
 
-    private String configuration;
-
-    private String testConfiguration;
+    private FileCollection configuration;
 
     public void validateConfiguration() {
         // check the location of the static content/jsps etc
@@ -183,15 +168,13 @@ public class JettyRun extends AbstractJettyRunTask {
             throw new InvalidUserDataException("Location of classesDirectory does not exist");
         }
 
-
-        setExtraScanTargets(new ArrayList());
+        setExtraScanTargets(new ArrayList<File>());
         if (scanTargets != null) {
-            for (int i = 0; i < scanTargets.length; i++) {
-                logger.info("Added extra scan target:" + scanTargets[i]);
-                getExtraScanTargets().add(scanTargets[i]);
+            for (File scanTarget : scanTargets) {
+                logger.info("Added extra scan target:" + scanTarget);
+                getExtraScanTargets().add(scanTarget);
             }
         }
-
 
         if (scanTargetPatterns != null) {
             for (int i = 0; i < scanTargetPatterns.length; i++) {
@@ -214,11 +197,11 @@ public class JettyRun extends AbstractJettyRunTask {
                 String excludes = strbuff.toString();
 
                 try {
-                    List files = FileUtils.getFiles(scanTargetPatterns[i].getDirectory(), includes, excludes);
+                    List<File> files = FileUtils.getFiles(scanTargetPatterns[i].getDirectory(), includes, excludes);
                     itor = files.iterator();
                     while (itor.hasNext())
                         logger.info("Adding extra scan target from pattern: " + itor.next());
-                    List currentTargets = getExtraScanTargets();
+                    List<File> currentTargets = getExtraScanTargets();
                     if (currentTargets != null && !currentTargets.isEmpty())
                         currentTargets.addAll(files);
                     else
@@ -306,15 +289,10 @@ public class JettyRun extends AbstractJettyRunTask {
         logger.info("Restart completed at " + new Date().toString());
     }
 
-    private Set getDependencyFiles() {
-        List overlays = new ArrayList();
+    private Set<File> getDependencyFiles() {
+        List<Resource> overlays = new ArrayList<Resource>();
 
-        Set<File> dependencies;
-        if (useTestClasspath) {
-            dependencies = getProject().getConfigurations().getByName(getTestConfiguration()).resolve();
-        } else {
-            dependencies = getProject().getConfigurations().getByName(getConfiguration()).resolve();
-        }
+        Set<File> dependencies = getConfiguration().getFiles();
         logger.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
 
         //todo incorporate overlays when our resolved dependencies provide type information
@@ -337,9 +315,9 @@ public class JettyRun extends AbstractJettyRunTask {
                     // nothing configured, so we automagically enable the overlays                    
                     int size = overlays.size() + 1;
                     Resource[] resources = new Resource[size];
-                    resources[0] = Resource.newResource(getWebAppSourceDirectory().toURL());
+                    resources[0] = Resource.newResource(getWebAppSourceDirectory().toURI().toURL());
                     for (int i = 1; i < size; i++) {
-                        resources[i] = (Resource) overlays.get(i - 1);
+                        resources[i] = overlays.get(i - 1);
                         logger.info("Adding overlay: " + resources[i]);
                     }
                     rc.setResources(resources);
@@ -351,7 +329,7 @@ public class JettyRun extends AbstractJettyRunTask {
                         Resource[] resources = new Resource[size];
                         System.arraycopy(old, 0, resources, 0, old.length);
                         for (int i = old.length, j = 0; i < size; i++, j++) {
-                            resources[i] = (Resource) overlays.get(j);
+                            resources[i] = overlays.get(j);
                             logger.info("Adding overlay: " + resources[i]);
                         }
                         rc.setResources(resources);
@@ -365,7 +343,7 @@ public class JettyRun extends AbstractJettyRunTask {
                         Resource[] resources = new Resource[size];
                         resources[0] = resource;
                         for (int i = 1; i < size; i++) {
-                            resources[i] = (Resource) overlays.get(i - 1);
+                            resources[i] = overlays.get(i - 1);
                             logger.info("Adding overlay: " + resources[i]);
                         }
                         rc.setResources(resources);
@@ -381,23 +359,19 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
 
-    private List setUpClassPath() {
-        List classPathFiles = new ArrayList();
+    private List<File> setUpClassPath() {
+        List<File> classPathFiles = new ArrayList<File>();
 
-        //if using the test classes, make sure they are first
-        //on the list
-        if (useTestClasspath && (getTestClassesDirectory() != null))
-            classPathFiles.add(getTestClassesDirectory());
-
-        if (getClassesDirectory() != null)
+        if (getClassesDirectory() != null) {
             classPathFiles.add(getClassesDirectory());
+        }
 
         //now add all of the dependencies
         classPathFiles.addAll(getDependencyFiles());
 
         if (logger.isDebugEnabled()) {
-            for (int i = 0; i < classPathFiles.size(); i++) {
-                logger.debug("classpath element: " + ((File) classPathFiles.get(i)).getName());
+            for (File classPathFile : classPathFiles) {
+                logger.debug("classpath element: " + classPathFile.getName());
             }
         }
         return classPathFiles;
@@ -423,7 +397,7 @@ public class JettyRun extends AbstractJettyRunTask {
             return;
 
         logger.info("Configuring Jetty from xml configuration file = " + getJettyConfig());
-        XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURL());
+        XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURI().toURL());
         xmlConfiguration.configure(getServer().getProxiedObject());
     }
 
@@ -467,22 +441,6 @@ public class JettyRun extends AbstractJettyRunTask {
         this.webAppSourceDirectory = webAppSourceDirectory;
     }
 
-    public File getTestClassesDirectory() {
-        return testClassesDirectory;
-    }
-
-    public void setTestClassesDirectory(File testClassesDirectory) {
-        this.testClassesDirectory = testClassesDirectory;
-    }
-
-    public boolean isUseTestClasspath() {
-        return useTestClasspath;
-    }
-
-    public void setUseTestClasspath(boolean useTestClasspath) {
-        this.useTestClasspath = useTestClasspath;
-    }
-
     public File[] getScanTargets() {
         return scanTargets;
     }
@@ -491,11 +449,11 @@ public class JettyRun extends AbstractJettyRunTask {
         this.scanTargets = scanTargets;
     }
 
-    public List getExtraScanTargets() {
+    public List<File> getExtraScanTargets() {
         return extraScanTargets;
     }
 
-    public void setExtraScanTargets(List extraScanTargets) {
+    public void setExtraScanTargets(List<File> extraScanTargets) {
         this.extraScanTargets = extraScanTargets;
     }
 
@@ -507,11 +465,11 @@ public class JettyRun extends AbstractJettyRunTask {
         this.jettyEnvXmlFile = jettyEnvXmlFile;
     }
 
-    public List getClassPathFiles() {
+    public List<File> getClassPathFiles() {
         return classPathFiles;
     }
 
-    public void setClassPathFiles(List classPathFiles) {
+    public void setClassPathFiles(List<File> classPathFiles) {
         this.classPathFiles = classPathFiles;
     }
 
@@ -536,35 +494,15 @@ public class JettyRun extends AbstractJettyRunTask {
 
     /**
      * Returns the configuration to resolve the dependencies of the web application from.
-     *
-     * @see #getTestConfiguration()
      */
-    public String getConfiguration() {
+    public FileCollection getConfiguration() {
         return configuration;
     }
 
     /**
      * Set the configuration to resolve the dependencies of the web application from.
-     * 
-     * @see #setTestConfiguration(String)
      */
-    public void setConfiguration(String configuration) {
+    public void setConfiguration(FileCollection configuration) {
         this.configuration = configuration;
-    }
-
-    /**
-     * Returns the configuration to resolve the dependencies of the web application from, if
-     * {@link #isUseTestClasspath()} is true.
-     */
-    public String getTestConfiguration() {
-        return testConfiguration;
-    }
-
-    /**
-     * Sets the configuration to resolve the dependencies of the web application from, if
-     * {@link #isUseTestClasspath()} is true.
-     */
-    public void setTestConfiguration(String testConfiguration) {
-        this.testConfiguration = testConfiguration;
     }
 }

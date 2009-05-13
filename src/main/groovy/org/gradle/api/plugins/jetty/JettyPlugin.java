@@ -28,14 +28,14 @@ import java.io.File;
 import java.util.Map;
 
 /**
- * <p>A {@link Plugin} which extends the {@link WarPlugin} to add tasks which run the web application under Jetty.</p>
- * 
+ * <p>A {@link Plugin} which extends the {@link WarPlugin} to add tasks which run the web application using an embedded
+ * Jetty web container.</p>
+ *
  * @author Hans Dockter
  */
 public class JettyPlugin implements Plugin {
     public static final String JETTY_RUN = "jettyRun";
     public static final String JETTY_RUN_WAR = "jettyRunWar";
-    public static final String JETTY_RUN_EXPLODED_WAR = "jettyRunExploded";
     public static final String JETTY_STOP = "jettyStop";
 
     public static final String RELOAD_AUTOMATIC = "automatic";
@@ -50,7 +50,6 @@ public class JettyPlugin implements Plugin {
         configureMappingRules(project, jettyConvention);
         configureJettyRun(project);
         configureJettyRunWar(project);
-        configureJettyRunWarExploded(project);
         configureJettyStop(project, jettyConvention);
     }
 
@@ -60,11 +59,6 @@ public class JettyPlugin implements Plugin {
                 configureAbstractJettyTask(project, jettyConvention, abstractJettyRunTask);
             }
         });
-    }
-
-    private void configureJettyRunWarExploded(Project project) {
-        JettyRunWarExploded jettyRunWarExploded = project.getTasks().add(JETTY_RUN_EXPLODED_WAR, JettyRunWarExploded.class);
-        jettyRunWarExploded.setDescription("Assembles the webapp into an exploded war and deploys it to Jetty.");
     }
 
     private void configureJettyRunWar(final Project project) {
@@ -102,9 +96,7 @@ public class JettyPlugin implements Plugin {
         project.getTasks().withType(JettyRun.class).whenTaskAdded(new Action<JettyRun>() {
             public void execute(JettyRun jettyRun) {
                 jettyRun.dependsOn(JavaPlugin.COMPILE_TESTS_TASK_NAME);
-                jettyRun.setConfiguration(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
-                jettyRun.setTestConfiguration(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
-                jettyRun.setUseTestClasspath(false);
+                jettyRun.setConfiguration(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME));
                 jettyRun.getConventionMapping().put("webXml", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return getWebXml(project);
@@ -113,11 +105,6 @@ public class JettyPlugin implements Plugin {
                 jettyRun.getConventionMapping().put("classesDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return getJavaConvention(project).getClassesDir();
-                    }
-                });
-                jettyRun.getConventionMapping().put("testClassesDirectory", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return getJavaConvention(project).getTestClassesDir();
                     }
                 });
                 jettyRun.getConventionMapping().put("webAppSourceDirectory", new ConventionValue() {

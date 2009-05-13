@@ -118,13 +118,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     protected String reload;
 
     /**
-     * System properties to set before execution.
-     * Note that these properties will NOT override System properties
-     * that have been set on the command line or by the JVM. Optional.
-     */
-    private SystemProperties systemProperties;
-
-    /**
      * Location of a jetty xml configuration file whose contents
      * will be applied before any plugin configuration. Optional.
      */
@@ -244,7 +237,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         try {
             logger.debug("Starting Jetty Server ...");
 
-            printSystemProperties();
             setServer(createServer());
 
             applyJettyXml();
@@ -386,19 +378,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     }
 
-    private void printSystemProperties() {
-        // print out which system properties were set up
-        if (logger.isDebugEnabled()) {
-            if (systemProperties != null) {
-                Iterator itor = systemProperties.getSystemProperties().iterator();
-                while (itor.hasNext()) {
-                    SystemProperty prop = (SystemProperty) itor.next();
-                    logger.debug("Property " + prop.getName() + "=" + prop.getValue() + " was " + (prop.isSet() ? "set" : "skipped"));
-                }
-            }
-        }
-    }
-
     /**
      * Try and find a jetty-web.xml file, using some
      * historical naming conventions if necessary.
@@ -481,14 +460,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public void setReload(String reload) {
         this.reload = reload;
-    }
-
-    public SystemProperties getSystemProperties() {
-        return systemProperties;
-    }
-
-    public void setSystemProperties(SystemProperties systemProperties) {
-        this.systemProperties = systemProperties;
     }
 
     public File getJettyConfig() {
