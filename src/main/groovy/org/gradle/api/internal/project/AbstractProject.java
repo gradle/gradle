@@ -34,11 +34,11 @@ import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.invocation.Build;
@@ -110,8 +110,6 @@ public abstract class AbstractProject implements ProjectInternal {
     private AntBuilderFactory antBuilderFactory;
 
     private AntBuilder ant = null;
-
-    private String archivesBaseName;
 
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 
@@ -189,7 +187,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
-        this.archivesBaseName = name;
         this.buildScriptSource = buildScriptSource;
         this.build = build;
         taskContainer = new DefaultTaskContainer(this, taskFactory);
@@ -510,14 +507,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public int getDepth() {
         return depth;
-    }
-
-    public String getArchivesBaseName() {
-        return archivesBaseName;
-    }
-
-    public void setArchivesBaseName(String archivesBaseName) {
-        this.archivesBaseName = archivesBaseName;
     }
 
     public IProjectRegistry<ProjectInternal> getProjectRegistry() {

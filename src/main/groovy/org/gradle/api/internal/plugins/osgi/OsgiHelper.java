@@ -16,6 +16,7 @@
 package org.gradle.api.internal.plugins.osgi;
 
 import org.gradle.api.Project;
+import org.gradle.api.plugins.BasePluginConvention;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,18 +60,19 @@ public class OsgiHelper {
         int i = group.lastIndexOf('.');
 
         String lastSection = group.substring(++i);
-        if (project.getArchivesBaseName().equals(lastSection)) {
+        String archiveBaseName = project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName();
+        if (archiveBaseName.equals(lastSection)) {
             return group;
         }
-        if (project.getArchivesBaseName().startsWith(lastSection)) {
-            String artifactId = project.getArchivesBaseName().substring(lastSection.length());
+        if (archiveBaseName.startsWith(lastSection)) {
+            String artifactId = archiveBaseName.substring(lastSection.length());
             if (Character.isLetterOrDigit(artifactId.charAt(0))) {
                 return getBundleSymbolicName(group, artifactId);
             } else {
                 return getBundleSymbolicName(group, artifactId.substring(1));
             }
         }
-        return getBundleSymbolicName(group, project.getArchivesBaseName());
+        return getBundleSymbolicName(group, archiveBaseName);
     }
     
     public String getVersion(String version) {

@@ -46,10 +46,11 @@ class BasePluginConventionTest extends AbstractPluginConventionTest {
     }
 
     @Test public void defaultValues() {
+        assertEquals(project.name, convention.archivesBaseName)
         assertEquals('distributions', convention.distsDirName)
         assertEquals(new File(project.buildDir, 'distributions'), convention.distsDir)
-        assertEquals('', convention.libsDirName)
-        assertEquals(project.buildDir, convention.libsDir)
+        assertEquals('libs', convention.libsDirName)
+        assertEquals(new File(project.buildDir, 'libs'), convention.libsDir)
     }
 
     @Test public void dirsRelativeToBuildDir() {

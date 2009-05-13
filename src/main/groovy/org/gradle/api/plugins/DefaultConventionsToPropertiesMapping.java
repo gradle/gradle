@@ -146,7 +146,7 @@ public class DefaultConventionsToPropertiesMapping {
         }
         }, "baseName", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return "" + ((Task) conventionAwareObject).getProject().getArchivesBaseName();
+            return convention.getPlugin(BasePluginConvention.class).getArchivesBaseName();
         }
     });
 

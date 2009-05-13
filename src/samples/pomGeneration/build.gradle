@@ -1,10 +1,11 @@
 import org.apache.maven.settings.Settings
 
+usePlugin('war')
+usePlugin('maven')
+
 group = 'gradle'
 version = '1.0'
 archivesBaseName = 'mywar'
-usePlugin('war')
-usePlugin('maven')
 
 repositories {
     flatDir(dirs: "$rootDir/lib")

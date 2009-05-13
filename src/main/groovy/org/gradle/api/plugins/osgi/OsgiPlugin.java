@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.tasks.bundling.Jar;
 
 import java.io.File;
@@ -38,9 +39,6 @@ public class OsgiPlugin implements Plugin {
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
         Action<Jar> configureAction = createOsgiConfigureAction();
-        for (Jar jar : project.getTasks().withType(Jar.class)) {
-            configureAction.execute(jar);
-        }
         project.getTasks().withType(Jar.class).allTasks(configureAction);
     }
 
@@ -85,7 +83,7 @@ public class OsgiPlugin implements Plugin {
         OsgiManifest osgiManifest = new DefaultOsgiManifest();
         osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getClassesDir());
         osgiManifest.setVersion(osgiHelper.getVersion((String) project.property("version")));
-        osgiManifest.setName(project.getArchivesBaseName());
+        osgiManifest.setName(project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName());
         osgiManifest.setSymbolicName(osgiHelper.getBundleSymbolicName(project));
         return osgiManifest;
     }

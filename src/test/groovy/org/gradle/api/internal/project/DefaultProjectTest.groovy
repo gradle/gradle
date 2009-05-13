@@ -249,7 +249,6 @@ class DefaultProjectTest {
         assert project.repositories.is(repositoryHandlerMock)
         assert pluginRegistry.is(project.pluginRegistry)
         assert projectRegistry.is(project.projectRegistry)
-        assertEquals project.name, project.archivesBaseName
         assertEquals([] as Set, project.appliedPlugins)
         assertEquals AbstractProject.State.CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
