@@ -61,8 +61,8 @@ import java.util.Set;
  *
  * <p>A project is essentially a collection of {@link Task} objects. Each task performs some basic piece of work, such
  * as compiling classes, or running unit tests, or zipping up a WAR file. You add tasks to a project using one of the
- * {@link #createTask(String)} methods.  You can locate existing tasks using one of the {@link #task(String)}
- * methods.</p>
+ * {@code add()} methods on {@link TaskContainer}, such as {@link TaskContainer#add(String)}.  You can locate existing
+ * tasks using one of the lookup methods on {@link TaskContainer}, such as {@link TaskContainer#getByName(String)}.</p>
  *
  * <h3>Dependencies</h3>
  *
@@ -413,15 +413,6 @@ public interface Project extends Comparable<Project> {
     Project usePlugin(Class<? extends Plugin> pluginClass);
 
     /**
-     * <p>Locates a {@link Task} by path. Relative paths are interpreted relative to this project. Returns null if no
-     * such task exists.</p>
-     *
-     * @param path the path of the task to be returned
-     * @return The task. Returns null if so such task exists.
-     */
-    Task findTask(String path);
-
-    /**
      * <p>Returns the {@link Task} from the project which has the given path. Relative paths are interpreted relative to
      * this project. If no such task exists, an exception is thrown.</p>
      *
@@ -433,20 +424,6 @@ public interface Project extends Comparable<Project> {
      * @throws UnknownTaskException If no task with the given path exists.
      */
     Task task(String path) throws UnknownTaskException;
-
-    /**
-     * <p>Returns the {@link Task} from this project which has the given path. Relative paths are interpreted relative
-     * to this project. Before the task is returned, the given closure is passed to the task's {@link
-     * Task#configure(groovy.lang.Closure)} method. If no such task exists, an exception is thrown.</p>
-     *
-     * <p>You can call this method in your build file using the task name followed by a code block.</p>
-     *
-     * @param path the path of the task to be returned
-     * @param configurationClosure the closure to use to configure the task.
-     * @return The task. Never returns null.
-     * @throws UnknownTaskException If no task with the given path exists.
-     */
-    Task task(String path, Closure configurationClosure) throws UnknownTaskException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to

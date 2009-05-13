@@ -1,5 +1,5 @@
 usePlugin('java')
 
 createTask('check') {
-    println(task('compile').destinationDir.name) // We could also write println(compile)
+    println(compile.destinationDir.name)
 }

@@ -32,8 +32,10 @@
         <sample id="accessFromTaskContainer" dir="userguide/tasks/accessFromTaskContainer">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>You can access tasks from any project using the task's path with the <literal>task()</literal> method. You
-            can call the <literal>task()</literal> method with a task name, or a relative path, or an absolute path.</para>
+        <para>You can access tasks from any project using the task's path with the <literal>tasks.getByName()</literal>
+            or <literal>tasks.getByPath()</literal> methods. You can call the <literal>getByName()</literal> method
+            with a task name. You can call the <literal>getByPath()</literal> method with a task name, or a relative
+            path, or an absolute path.</para>
         <sample id="accessUsingPath" dir="userguide/tasks/accessUsingPath">
             <sourcefile file="build.gradle"/>
         </sample>
@@ -83,9 +85,10 @@
         <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>This works for <emphasis>any</emphasis> task. Line 2 of the example is just a shortcut for the <literal>task()</literal> method.
-            It is important to note that if you pass a closure to the <literal>task()</literal> method, this closure
-            is applied to <emphasis>configure</emphasis> the task.</para>
+        <para>This works for <emphasis>any</emphasis> task. Line 2 of the example is just a shortcut for the
+            <literal>tasks.getByName()</literal> method. It is important to note that if you pass a closure to the
+            <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task.
+        </para>
         <para>There is a slightly different ways of doing this.</para>
         <sample id="configureUsingConfigure" dir="userguide/tasks/configureUsingConfigure">
             <sourcefile file="build.gradle"/>

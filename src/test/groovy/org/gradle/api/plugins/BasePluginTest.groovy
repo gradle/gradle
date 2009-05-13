@@ -57,7 +57,7 @@ class BasePluginTest {
     @Test public void createsTasksAndAppliesMappings() {
         plugin.apply(project, new PluginRegistry(), [:])
 
-        def task = project.task(BasePlugin.CLEAN_TASK_NAME)
+        def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Clean))
         assertDependsOn(task) 
         assertThat(task.dir, equalTo(project.buildDir))
@@ -69,11 +69,11 @@ class BasePluginTest {
         project.tasks.add('producer')
         project.configurations.add('conf').addArtifact([getTaskDependency: {-> new DefaultTaskDependency().add('producer') }] as PublishArtifact)
 
-        def task = project.task('buildConf')
+        def task = project.tasks['buildConf']
         assertThat(task, instanceOf(DefaultTask))
         assertDependsOn(task, 'producer')
 
-        task = project.task('uploadConf')
+        task = project.tasks['uploadConf']
         assertThat(task, instanceOf(Upload))
         assertDependsOn(task, 'producer')
         assertThat(task.configuration, sameInstance(project.configurations.conf))

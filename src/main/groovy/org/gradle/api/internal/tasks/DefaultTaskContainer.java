@@ -25,6 +25,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.util.GUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -112,6 +113,30 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         allObjects(action);
     }
 
+    public Task findByPath(String path) {
+        if (!GUtil.isTrue(path)) {
+            throw new InvalidUserDataException("A path must be specified!");
+        }
+        if (!path.contains(Project.PATH_SEPARATOR)) {
+            return findByName(path);
+        }
+
+        String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
+        Project project = this.project.findProject(!GUtil.isTrue(projectPath) ? Project.PATH_SEPARATOR : projectPath);
+        if (project == null) {
+            return null;
+        }
+        return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
+    }
+
+    public Task getByPath(String path) throws UnknownTaskException {
+        Task task = findByPath(path);
+        if (task == null) {
+            throw new UnknownTaskException(String.format("Task with path '%s' not found in %s.", path, project));
+        }
+        return task;
+    }
+
     @Override
     public String getDisplayName() {
         return "task container";
@@ -119,7 +144,7 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
 
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
-        return new UnknownTaskException(String.format("Task with name '%s' not found.", name));
+        return new UnknownTaskException(String.format("Task with name '%s' not found in %s.", name, project));
     }
 
     private static class FilteredTaskCollection<T extends Task> extends FilteredContainer<T> implements TaskCollection<T> {

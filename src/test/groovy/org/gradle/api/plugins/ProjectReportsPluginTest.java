@@ -34,8 +34,8 @@ public class ProjectReportsPluginTest {
 
         assertTrue(project.getAppliedPlugins().contains(ReportingBasePlugin.class));
 
-        assertThat(project.findTask("taskReport"), instanceOf(TaskReportTask.class));
-        assertThat(project.findTask("propertyReport"), instanceOf(PropertyReportTask.class));
-        assertThat(project.findTask("dependencyReport"), instanceOf(DependencyReportTask.class));
+        assertThat(project.getTasks().getByName("taskReport"), instanceOf(TaskReportTask.class));
+        assertThat(project.getTasks().getByName("propertyReport"), instanceOf(PropertyReportTask.class));
+        assertThat(project.getTasks().getByName("dependencyReport"), instanceOf(DependencyReportTask.class));
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.project.ITaskFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
@@ -34,7 +35,7 @@ import java.util.Map;
 public class DefaultTaskContainerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
-    private final Project project = context.mock(Project.class);
+    private final Project project = context.mock(Project.class, "<project>");
     private int taskCount;
     private final DefaultTaskContainer container = new DefaultTaskContainer(project, taskFactory);
 
@@ -128,19 +129,12 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void cannotAddDuplicateTask() {
-        final Task task = task("task");
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
-        context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, options);
-            will(returnValue(task));
-        }});
+        final Task task = addTask("task");
 
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(project, GUtil.map(Task.TASK_NAME, "task"));
             will(returnValue(task("task")));
         }});
-
-        container.add("task");
 
         try {
             container.add("task");
@@ -154,18 +148,11 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void canReplaceDuplicateTask() {
-        final Task task = task("task");
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
-        context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, options);
-            will(returnValue(task));
-        }});
-
-        container.add("task");
+        addTask("task");
 
         final Task newTask = task("task");
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(project, GUtil.map(Task.TASK_NAME, "task"));
             will(returnValue(newTask));
         }});
         
@@ -179,10 +166,105 @@ public class DefaultTaskContainerTest {
             container.getByName("unknown");
             fail();
         } catch (UnknownTaskException e) {
-            assertThat(e.getMessage(), equalTo("Task with name 'unknown' not found."));
+            assertThat(e.getMessage(), equalTo("Task with name 'unknown' not found in <project>."));
         }
     }
 
+    @Test
+    public void canFindTaskByName() {
+        Task task = addTask("task");
+
+        assertThat(container.findByPath("task"), sameInstance(task));
+    }
+
+    @Test
+    public void canFindTaskByRelativePath() {
+        final Task task = task("task");
+        
+        context.checking(new Expectations(){{
+            Project otherProject = context.mock(Project.class);
+            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
+
+            allowing(project).findProject("sub");
+            will(returnValue(otherProject));
+
+            allowing(otherProject).getTasks();
+            will(returnValue(otherTaskContainer));
+
+            allowing(otherTaskContainer).findByName("task");
+            will(returnValue(task));
+        }});
+
+        assertThat(container.findByPath("sub:task"), sameInstance(task));
+    }
+
+    @Test
+    public void canFindTaskByAbsolutePath() {
+        final Task task = task("task");
+
+        context.checking(new Expectations() {{
+            Project otherProject = context.mock(Project.class);
+            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
+
+            allowing(project).findProject(":");
+            will(returnValue(otherProject));
+
+            allowing(otherProject).getTasks();
+            will(returnValue(otherTaskContainer));
+
+            allowing(otherTaskContainer).findByName("task");
+            will(returnValue(task));
+        }});
+
+        assertThat(container.findByPath(":task"), sameInstance(task));
+    }
+
+    @Test
+    public void findByPathReturnsNullForUnknownProject() {
+        context.checking(new Expectations(){{
+            allowing(project).findProject(":unknown");
+            will(returnValue(null));
+        }});
+
+        assertThat(container.findByPath(":unknown:task"), nullValue());
+    }
+
+    @Test
+    public void findByPathReturnsNullForUnknownTask() {
+        context.checking(new Expectations() {{
+            Project otherProject = context.mock(Project.class);
+            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
+
+            allowing(project).findProject(":other");
+            will(returnValue(otherProject));
+
+            allowing(otherProject).getTasks();
+            will(returnValue(otherTaskContainer));
+
+            allowing(otherTaskContainer).findByName("task");
+            will(returnValue(null));
+        }});
+
+        assertThat(container.findByPath(":other:task"), nullValue());
+    }
+
+    @Test
+    public void canGetTaskByName() {
+        Task task = addTask("task");
+
+        assertThat(container.getByPath("task"), sameInstance(task));
+    }
+
+    @Test
+    public void getByPathFailsForUnknownTask() {
+        try {
+            container.getByPath("unknown");
+            fail();
+        } catch (UnknownTaskException e) {
+            assertThat(e.getMessage(), equalTo("Task with path 'unknown' not found in <project>."));
+        }
+    }
+    
     private Task task(final String name) {
         final Task task = context.mock(Task.class, "task" + ++taskCount);
         context.checking(new Expectations(){{
@@ -191,4 +273,16 @@ public class DefaultTaskContainerTest {
         }});
         return task;
     }
+
+    private Task addTask(String name) {
+        final Task task = task(name);
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, name);
+        context.checking(new Expectations() {{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(task));
+        }});
+        container.add(name);
+        return task;
+    }
+
 }

@@ -109,7 +109,7 @@ public class JavaPlugin implements Plugin {
 
     private void configureTestCompile(Project project) {
         configureCompileTests(project.getTasks().add(COMPILE_TESTS_TASK_NAME, Compile.class),
-                (Compile) project.task(COMPILE_TASK_NAME), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
+                (Compile) project.getTasks().getByName(COMPILE_TASK_NAME), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations()).setDescription("Compiles the Java test source code.");
     }
 
@@ -279,7 +279,7 @@ public class JavaPlugin implements Plugin {
                 test.doFirst(new TaskAction() {
                     public void execute(Task task) {
                         Test test = (Test) task;
-                        List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().task(COMPILE_TESTS_TASK_NAME))
+                        List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().getTasks().getByName(COMPILE_TESTS_TASK_NAME))
                                 .getUnmanagedClasspath();
                         test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(
                                 new Object[unmanagedClasspathFromTestCompile.size()]));

@@ -190,9 +190,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (ProjectDependency projectDependency : getProjectDependencies()) {
             Configuration configuration = projectDependency.getConfiguration();
             for (String taskName : projectDependenciesBuildInstruction.getTaskNames()) {
-                taskDependency.add(projectDependency.getDependencyProject().task(taskName));
+                taskDependency.add(projectDependency.getDependencyProject().getTasks().getByName(taskName));
             }
-            taskDependency.add(projectDependency.getDependencyProject().task(configuration.getUploadInternalTaskName()));
+            taskDependency.add(projectDependency.getDependencyProject().getTasks().getByName(configuration.getUploadInternalTaskName()));
         }
     }
 

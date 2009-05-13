@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -412,6 +413,7 @@ public class DefaultConfigurationTest {
         final Project dependencyProjectStub = context.mock(Project.class);
         final Configuration dependencyProjectConfStub = context.mock(Configuration.class, "dependenctProjectConf");
         final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
+        final TaskContainer taskContainer = context.mock(TaskContainer.class);
         context.checking(new Expectations() {{
             String uploadInternalTaskName = "someName";
 
@@ -430,11 +432,14 @@ public class DefaultConfigurationTest {
             allowing(dependencyProjectConfStub).getUploadInternalTaskName();
             will(returnValue(uploadInternalTaskName));
 
-            allowing(dependencyProjectStub).task(uploadInternalTaskName);
+            allowing(dependencyProjectStub).getTasks();
+            will(returnValue(taskContainer));
+
+            allowing(taskContainer).getByName(uploadInternalTaskName);
             will(returnValue(dependencyProjectUploadTaskStub));
 
             for (String taskName : projectDependencyTasks.keySet()) {
-                allowing(dependencyProjectStub).task(taskName);
+                allowing(taskContainer).getByName(taskName);
                 will(returnValue(projectDependencyTasks.get(taskName)));
             }
 

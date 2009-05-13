@@ -18,12 +18,12 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.tasks.TaskContainer;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +35,14 @@ import java.util.Set;
 public class TaskNameResolvingBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Project project = context.mock(Project.class, "[project]");
+    private final TaskContainer taskContainer = context.mock(TaskContainer.class);
 
     @Before
     public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
+        context.checking(new Expectations(){{
+            allowing(project).getTasks();
+            will(returnValue(taskContainer));
+        }});
     }
     
     @Test
@@ -46,7 +50,7 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task = context.mock(Task.class);
 
         context.checking(new Expectations(){{
-            atLeast(1).of(project).findTask("a:b");
+            atLeast(1).of(taskContainer).findByPath("a:b");
             will(returnValue(task));
         }});
 
@@ -147,7 +151,7 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task = context.mock(Task.class);
 
         context.checking(new Expectations() {{
-            atLeast(1).of(project).findTask("a:b");
+            atLeast(1).of(taskContainer).findByPath("a:b");
             will(returnValue(null));
             atLeast(1).of(project).getTasksByName("name2", true);
             will(returnValue(toSet(task)));

@@ -48,7 +48,7 @@ public class DefaultTaskDependency implements TaskDependency {
                 }
             } else {
                 String path = dependency.toString();
-                result.addAll(Collections.singleton(task.getProject().task(path)));
+                result.add(task.getProject().getTasks().getByPath(path));
             }
         }
         return result;

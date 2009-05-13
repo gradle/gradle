@@ -525,41 +525,6 @@ class DefaultProjectTest {
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
     }
 
-    @Test void testTask() {
-        Task task = addTestTask(project, 'task')
-        Task childTask = addTestTask(child1, 'task')
-        assertThat(project.task('task'), sameInstance(task))
-        assertThat(project.task(':task'), sameInstance(task))
-        assertThat(project.task(':child1:task'), sameInstance(childTask))
-        assertThat(project.task('child1:task'), sameInstance(childTask))
-    }
-
-    @Test void testTaskWithConfigureClosure() {
-        Closure testConfigureClosure = { additional = 'value' }
-        Task mockTask = addTestTask(project, TEST_TASK_NAME)
-
-        assertThat(project.task(TEST_TASK_NAME, testConfigureClosure), sameInstance(mockTask))
-        assertThat(mockTask.additional, equalTo('value'))
-    }
-
-    @Test void testTaskWithNonExistingTask() {
-        try {
-            project.task("unknown")
-            fail()
-        } catch (UnknownTaskException e) {
-            assertThat(e.message, equalTo("Task with path 'unknown' could not be found in root project 'root'."))
-        }
-    }
-
-    @Test void testTaskWithNonExistingProject() {
-        try {
-            project.task("unknown:task")
-            fail()
-        } catch (UnknownTaskException e) {
-            assertThat(e.message, equalTo("Task with path 'unknown:task' could not be found in root project 'root'."))
-        }
-    }
-
     @Test void testCanAccessTaskAsAProjectProperty() {
         Task task = addTestTask(project, TEST_TASK_NAME)
         assertThat(project."$TEST_TASK_NAME", sameInstance(task))

@@ -65,7 +65,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
             return project.getTasksByName(taskName, true);
         }
 
-        Task task = project.findTask(taskName);
+        Task task = project.getTasks().findByPath(taskName);
         if (task != null) {
             return Collections.singleton(task);
         } else {

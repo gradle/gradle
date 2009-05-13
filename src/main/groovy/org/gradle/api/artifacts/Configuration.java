@@ -268,7 +268,7 @@ public interface Configuration extends FileCollection {
     /**
      * Adds an artifact to be published to this configuration.
      * 
-     * @param artifact
+     * @param artifact The artifact.
      * @return this
      */
     Configuration addArtifact(PublishArtifact artifact);

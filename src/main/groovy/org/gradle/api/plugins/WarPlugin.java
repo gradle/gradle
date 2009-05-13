@@ -55,7 +55,7 @@ public class WarPlugin implements Plugin {
 
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(JavaPlugin.class, project, customValues);
-        project.task(JavaPlugin.JAR_TASK_NAME).setEnabled(false);
+        project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME).setEnabled(false);
         project.getConvention().getPlugins().put("war", new WarPluginConvention(project));
 
         project.getTasks().withType(War.class).allTasks(new Action<War>() {
@@ -84,7 +84,7 @@ public class WarPlugin implements Plugin {
 
     private void configureEclipse(Project project, War war) {
         EclipseWtp eclipseWtp = configureEclipseWtp(project, war);
-        project.task(JavaPlugin.ECLIPSE_TASK_NAME).dependsOn(eclipseWtp);
+        project.getTasks().getByName(JavaPlugin.ECLIPSE_TASK_NAME).dependsOn(eclipseWtp);
     }
 
     private EclipseWtp configureEclipseWtp(final Project project, final War war) {

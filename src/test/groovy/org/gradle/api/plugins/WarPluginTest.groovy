@@ -72,13 +72,13 @@ class WarPluginTest {
     @Test public void addsTasks() {
         warPlugin.apply(project, new PluginRegistry(), [:])
 
-        def task = project.task(WarPlugin.WAR_TASK_NAME)
+        def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         assertThat(task, instanceOf(War))
         assertDependsOn(task, JavaPlugin.TEST_TASK_NAME)
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 
-        task = project.task(JavaPlugin.LIBS_TASK_NAME)
+        task = project.tasks[JavaPlugin.LIBS_TASK_NAME]
         assertDependsOn(task, JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME)
     }
 
@@ -90,7 +90,7 @@ class WarPluginTest {
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 
-        assertDependsOn(project.task(JavaPlugin.LIBS_TASK_NAME), JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar')
+        assertDependsOn(project.tasks[JavaPlugin.LIBS_TASK_NAME], JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar')
     }
 
     private void assertDependsOn(Task task, String... names) {

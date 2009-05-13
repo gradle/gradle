@@ -92,13 +92,12 @@ public class GroovyPlugin implements Plugin {
             }
         };
         project.getTasks().withType(Javadoc.class).allTasks(taskListener);
-        taskListener.execute((Javadoc) project.task(JAVADOC_TASK_NAME));
     }
 
     private void configureTestCompile(JavaPlugin javaPlugin, Project project) {
         GroovyCompile compileTests = (GroovyCompile) javaPlugin.configureCompileTests(
                 project.getTasks().replace(COMPILE_TESTS_TASK_NAME, GroovyCompile.class),
-                (Compile) project.task(COMPILE_TASK_NAME),
+                (Compile) project.getTasks().getByName(COMPILE_TASK_NAME),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
         compileTests.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));

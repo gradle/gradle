@@ -26,7 +26,8 @@ import org.jmock.integration.junit4.JMock
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith;
+import org.junit.runner.RunWith
+import org.gradle.api.tasks.TaskContainer;
 
 @RunWith (JMock.class)
 public class DefaultTaskDependencyTest {
@@ -34,16 +35,20 @@ public class DefaultTaskDependencyTest {
     private final DefaultTaskDependency dependency = new DefaultTaskDependency();
     private Task task;
     private Project project;
+    private TaskContainer taskContainer;
     private Task otherTask;
 
     @Before
     public void setUp() throws Exception {
         task = context.mock(Task.class, "task");
         project = context.mock(Project.class);
+        taskContainer = context.mock(TaskContainer.class)
 
         context.checking({
-            allowing(task).getProject();
-            will(returnValue(project));
+            allowing(task).getProject()
+            will(returnValue(project))
+            allowing(project).getTasks()
+            will(returnValue(taskContainer))
         });
         otherTask = context.mock(Task.class, "otherTask");
     }
@@ -95,7 +100,7 @@ public class DefaultTaskDependencyTest {
         dependency.add(new StringBuffer("task"));
 
         context.checking({
-            one(project).task("task");
+            one(taskContainer).getByPath("task");
             will(returnValue(otherTask));
         });
 

@@ -1,9 +1,9 @@
 task hello {
     println 'Hello Earth'
 }
-task('hello').doFirst {
+hello.doFirst {
     println 'Hello Venus'
 }
-task('hello').doLast {
+hello.doLast {
     println 'Hello Mars'
 }

@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
-import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.FileCollection;
@@ -659,32 +658,12 @@ public abstract class AbstractProject implements ProjectInternal {
         return plugin;
     }
 
-    public Task findTask(String path) {
-        if (!GUtil.isTrue(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
-        if (!path.contains(PATH_SEPARATOR)) {
-            return taskContainer.findByName(path);
-        }
-
-        String projectPath = StringUtils.substringBeforeLast(path, PATH_SEPARATOR);
-        Project project = findProject(!GUtil.isTrue(projectPath) ? PATH_SEPARATOR : projectPath);
-        if (project == null) {
-            return null;
-        }
-        return project.task(StringUtils.substringAfterLast(path, PATH_SEPARATOR));
-    }
-
     public TaskContainer getTasks() {
         return taskContainer;
     }
 
     public Task task(String path) {
-        Task task = findTask(path);
-        if (task == null) {
-            throw new UnknownTaskException(String.format("Task with path '%s' could not be found in %s.", path, this));
-        }
-        return task;
+        return taskContainer.getByPath(path);
     }
 
     public void defaultTasks(String... defaultTasks) {
@@ -822,7 +801,7 @@ public abstract class AbstractProject implements ProjectInternal {
         final Set<Task> foundTasks = new HashSet<Task>();
         ProjectAction action = new ProjectAction() {
             public void execute(Project project) {
-                Task task = project.findTask(name);
+                Task task = project.getTasks().findByName(name);
                 if (task != null) {
                     foundTasks.add(task);
                 }
@@ -886,7 +865,7 @@ public abstract class AbstractProject implements ProjectInternal {
                 taskContainer.add(name, Directory.class);
             }
         }
-        return task(path);
+        return taskContainer.getByName(path);
     }
 
     public void setTaskContainer(DefaultTaskContainer taskContainer) {

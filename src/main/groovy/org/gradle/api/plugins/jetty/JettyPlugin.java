@@ -67,7 +67,7 @@ public class JettyPlugin implements Plugin {
                 jettyRunWar.dependsOn(WarPlugin.WAR_TASK_NAME);
                 jettyRunWar.getConventionMapping().put("webApp", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return ((War) project.task(WarPlugin.WAR_TASK_NAME)).getArchivePath();
+                        return ((War) project.getTasks().getByName(WarPlugin.WAR_TASK_NAME)).getArchivePath();
                     }
                 });
             }
@@ -120,7 +120,7 @@ public class JettyPlugin implements Plugin {
     }
 
     private Object getWebXml(Project project) {
-        War war = (War) project.task(WarPlugin.WAR_TASK_NAME);
+        War war = (War) project.getTasks().getByName(WarPlugin.WAR_TASK_NAME);
         File webXml;
         if (war.getWebXml() != null) {
             webXml = war.getWebXml();
@@ -136,7 +136,7 @@ public class JettyPlugin implements Plugin {
         jettyTask.setScanIntervalSeconds(0);
         jettyTask.getConventionMapping().put("contextPath", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return ((War) project.task(WarPlugin.WAR_TASK_NAME)).getBaseName();
+                return ((War) project.getTasks().getByName(WarPlugin.WAR_TASK_NAME)).getBaseName();
             }
         });
         jettyTask.getConventionMapping().put("tmpDirectory", new ConventionValue() {

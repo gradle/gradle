@@ -30,6 +30,26 @@ import java.util.List;
  * {@code tasks} property in your build script.</p>
  */
 public interface TaskContainer extends TaskCollection<Task> {
+    /**
+     * <p>Locates a task by path. You can supply a task name, a relative path, or an absolute path. Relative paths are
+     * interpreted relative to the project for this container. This method returns null if no task with the given path
+     * exists.</p>
+     *
+     * @param path the path of the task to be returned
+     * @return The task. Returns null if so such task exists.
+     */
+    Task findByPath(String path);
+
+    /**
+     * <p>Locates a task by path. You can supply a task name, a relative path, or an absolute path. Relative paths are
+     * interpreted relative to the project for this container. This method throws an exception if no task with the given
+     * path exists.</p>
+     *
+     * @param path the path of the task to be returned
+     * @return The task. Never returns null
+     * @throws UnknownTaskException If no task with the given path exists.
+     */
+    Task getByPath(String path) throws UnknownTaskException;
 
     /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method
