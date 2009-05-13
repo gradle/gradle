@@ -492,12 +492,10 @@ public class DefaultConfigurationTest {
     @Test
     public void getAllArtifacts() {
         PublishArtifact artifactConf = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
-        PublishArtifact artifactOtherConf1 = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
         PublishArtifact artifactOtherConf2 = HelperUtil.createPublishArtifact("name2", "ext2", "type2", "classifier2");
         Configuration otherConf = configurationContainer.add("otherConf");
         configuration.addArtifact(artifactConf);
         configuration.extendsFrom(otherConf);
-        otherConf.addArtifact(artifactOtherConf1);
         otherConf.addArtifact(artifactOtherConf2);
         assertThat(configuration.getAllArtifacts(), equalTo(WrapUtil.toSet(artifactConf, artifactOtherConf2)));
     }
