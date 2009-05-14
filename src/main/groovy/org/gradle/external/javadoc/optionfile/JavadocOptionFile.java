@@ -71,6 +71,10 @@ public class JavadocOptionFile {
         return addOption(new StringsJavadocOptionFileOption(option, new ArrayList<String>(), joinBy));
     }
 
+   public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
+       return addOption(new MultilineStringsJavadocOptionFileOption(option, new ArrayList<String>()));
+   }
+
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
         return addBooleanOption(option, false);
     }

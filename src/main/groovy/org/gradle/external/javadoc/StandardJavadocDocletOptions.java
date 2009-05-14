@@ -29,7 +29,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         docTitle = addStringOption("doctitle");
         footer = addStringOption("footer");
         bottom = addStringOption("bottom");
-        links = addStringsOption("link");
+        links = addMultilineStringsOption("link");
         linksOffline = addOption(new LinksOfflineJavadocOptionFileOption("linkoffline"));
         linkSource = addBooleanOption("linksource");
         groups = addOption(new GroupsJavadocOptionFileOption("group"));

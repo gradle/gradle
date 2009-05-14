@@ -663,6 +663,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         return optionFile.addStringsOption(option, joinBy);
     }
 
+   public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
+       return optionFile.addMultilineStringsOption(option);
+   }
+
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
         return optionFile.addBooleanOption(option);
     }

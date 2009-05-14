@@ -68,6 +68,13 @@ public class JavadocOptionFileWriterContext {
         return this;
     }
 
+    public JavadocOptionFileWriterContext writeMultilineValuesOption(String option, Collection<String> values) throws IOException {
+        for(String value : values) {
+            writeValueOption(option, value);
+        }
+        return this;
+    }
+
     public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
         StringBuilder builder = new StringBuilder();
         Iterator<File> filesIt = files.iterator();
