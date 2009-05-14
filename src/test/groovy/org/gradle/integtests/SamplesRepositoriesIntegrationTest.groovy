@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 package org.gradle.integtests
 
 import org.junit.Test
@@ -25,25 +25,17 @@ import org.junit.runner.RunWith
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class SamplesExcludesAndClassifiersIntegrationTest {
+class SamplesRepositoriesIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
 
     @Test
     public void checkExcludeAndClassifier() {
-        File projectDir = new File(dist.samplesDir, "/userguide/artifacts/excludesAndClassifiers")
-        String outputCompile = executer.inDirectory(projectDir).withTasks('clean', 'resolveCompile').run().getOutput()
-        String outputRuntime = executer.inDirectory(projectDir).withTasks('clean', 'resolveRuntime').run().getOutput()
-        assertThat(outputCompile, not(containsString("commons")))
-        assertThat(outputRuntime, not(containsString("commons")))
-        assertThat(outputCompile, not(containsString("reports")))
-        assertThat(outputRuntime, not(containsString("reports")))
-        assertThat(outputCompile, not(containsString("shared")))
-        assertThat(outputRuntime, containsString("shared"))
-
-        assertThat(outputCompile, containsString("service-1.0-jdk15"))
-        assertThat(outputCompile, containsString("service-1.0-jdk14"))
+        // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
+        // code snippets from this build script in the user's guide.
+        File projectDir = new File(dist.samplesDir, "/userguide/artifacts/defineRepository")
+        String output = executer.inDirectory(projectDir).withTasks('lookup').run().getOutput()
+        assertThat(output, equalTo(String.format("localRepository%nlocalRepository%n")))
     }
-
 }

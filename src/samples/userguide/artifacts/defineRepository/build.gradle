@@ -4,16 +4,43 @@ repositories {
 }
 //END SNIPPET maven-central
 
-//START SNIPPET flat-dir
+//START SNIPPET maven-central-jar-repo
 repositories {
-    flatDir(name: 'localRepository', dirs: 'lib')
+    mavenCentral name: 'single-jar-repo', urls: "http://repo.mycompany.com/jars"
+    mavenCentral name: 'multi-jar-repos', urls: ["http://repo.mycompany.com/jars1", "http://repo.mycompany.com/jars2"]
 }
-//END SNIPPET flat-dir
+//END SNIPPET maven-central-jar-repo
 
-//START SNIPPET lookup-resolver
-println repositories.localRepository.name
-println repositories['localRepository'].name
-//END SNIPPET lookup-resolver
+//START SNIPPET maven-like-repo
+repositories {
+    mavenRepo urls: "http://repo.mycompany.com/maven2"
+}
+//END SNIPPET maven-like-repo
+
+//START SNIPPET maven-like-repo-with-jar-repo
+repositories {
+    mavenRepo urls: ["http://repo2.mycompany.com/maven2", "http://repo.mycompany.com/jars"]
+}
+//END SNIPPET maven-like-repo-with-jar-repo
+
+//START SNIPPET flat-dir
+//START SNIPPET flat-dir-multi
+repositories {
+    flatDir name: 'localRepository', dirs: 'lib'
+//END SNIPPET flat-dir
+    flatDir dirs: ['lib1', 'lib2']
+//START SNIPPET flat-dir
+}
+//START SNIPPET flat-dir
+//END SNIPPET flat-dir-multi
+
+
+task lookup << {
+    //START SNIPPET lookup-resolver
+    println repositories.localRepository.name
+    println repositories['localRepository'].name
+    //END SNIPPET lookup-resolver
+}
 
 //START SNIPPET configure-resolver
 repositories {

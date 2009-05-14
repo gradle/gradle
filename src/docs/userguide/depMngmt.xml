@@ -242,12 +242,20 @@
             </para>
         </section>
         <section>
-            <title>Working with the Dependencies</title>
-            <para>To assign dependencies to configurations, you can pass a closure to the <emphasis>dependencies</emphasis>
-                object. To work with the dependencies assigned to a configuration, you can use the API of the
+            <title>More about dependencies</title>
+            <para>To acess and work with the dependencies assigned to a configuration, you can use the API of the
                 configuration object. See the javadoc:
                 <apilink class='org.gradle.api.artifacts.Configuration'/>.
             </para>
+            <para id="para:dependencies_with_empty_attributes">All attributes for a dependency are optional, except the name. It depends on the repository type,
+                which information is need for actually finding the dependencies in the repopsitory.
+                See <xref linkend='sec:repositories'/>. If you work for example with Maven repositories, you need to define the
+                group, name and version. If you work with filesystem repositories you might only need the name or the name
+                and the version.
+            </para>
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
+            </sample>
         </section>
     </section>
     <section id='sec:java_plugin_and_dependency_management'>
@@ -307,6 +315,166 @@
                 </td>
             </tr>
         </table>
+    </section>
+    <section id='sec:repositories'>
+        <title>Repositories</title>
+        <section id='sub:introduction'>
+            <title>Introduction</title>
+            <para>The Gradle repository management, based on Apache Ivy, gives you have a lot of freedom
+                regarding the repository layout and the retrieval policies. Additionally Gradle provides a couple of convenience
+                method to add preconfigured repositories.
+            </para>
+        </section>
+        <section id='sub:maven_repo'>
+            <title>Maven Repositories</title>
+            <para>To add the central Maven2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply
+                type:
+            </para>
+            <sample id="mavenCentral" dir="userguide/artifacts/defineRepository">
+                <sourcefile file="build.gradle" snippet="maven-central"/>
+            </sample>
+            <para>Now Gradle looks for your dependencies in this repository.
+            </para>
+            <para>Quite often certain jars are not in the official Maven repository for licensing reasons (e.g. JTA),
+                but its poms are.
+            </para>
+            <sample id="mavenCentralJarRepo" dir="userguide/artifacts/defineRepository">
+                <sourcefile file="build.gradle" snippet="maven-central-jar-repo"/>
+            </sample>
+            <para>Gradle looks first in the central Maven repository for the pom and the jar. If the jar can't be
+                found there, its looks for it in the other repositories.
+            </para>
+            <para>For adding a custom Maven repository you can say:
+            </para>
+            <sample id="mavenLikeRepo" dir="userguide/artifacts/defineRepository">
+                <sourcefile file="build.gradle" snippet="maven-like-repo"/>
+            </sample>
+            <para>To declare additional repositories to look for jars (like above in the example
+                for the central Maven repository), you can say:
+            </para>
+            <sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository">
+                <sourcefile file="build.gradle" snippet="maven-like-repo-with-jar-repo"/>
+            </sample>
+            <para>The first URL is used to look for poms and jars. The subsequent URLs are used to look for jars.
+            </para>
+        </section>
+        <section id='sub:flat_dir_resolver'>
+            <title>Flat Directory Resolver</title>
+            <para>If you want to use a (flat) filesytem directory as a repository, simply type:
+            </para>
+            <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository">
+                <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
+            </sample>
+            <para>This adds repositories which look into one ore more directories for finding dependencies. If you only
+                work with flat directory resolvers you don't need to set all attributes of a dependency.
+                See <xref linkend='para:dependencies_with_empty_attributes'/>
+            </para>
+        </section>
+        <section>
+            <title>More about preconfigured repositories</title>
+            <para>The methods above for creating preconfigured repositories share some common behavior. For all of them, defining
+                a name for the repository is optional. If no name is defined a default name is calculated, depending on the
+                type of the repository. You might want to assign a name, if you want to access the declared repository. For example
+                if you want to use it also for uploading your project artifacts. An explicit name might also be helpful when
+                studying the debug output.
+            </para>
+            <para>The values passed as arguments to the repository methods can be of any type, not just String. The value
+                that is actually used, is the <code>toString</code> result of the argument object.
+            </para>
+        </section>
+        <section id='sub:cache'>
+            <title>Cache</title>
+            <para>When Gradle downloads dependencies from remote repositories it stores them in a local cache located at
+                <literal>USER_HOME/.gradle/cache</literal>. When Gradle downloads dependencies from one of its
+                predefined local resolvers (e.g. Flat Directory resolver), the cache is not used as an intermediate
+                storage for dependencies.
+            </para>
+        </section>
+        <section id='sub:resolver_container'>
+            <title>Resolver Container</title>
+            <para>There are three hooks for adding resolvers. Via the resolvers assigned to the
+                <literal>classpathResolvers</literal>
+                property of the dependency manager, the <literal>compile</literal>,
+                <literal>compileTests</literal>
+                and
+                <literal>test</literal>
+                tasks retrieve their dependencies. The
+                <literal>uploadLibs</literal>
+                and
+                <literal>uploadDists</literal>
+                tasks have both an
+                <literal>uploadResolvers</literal>
+                property. You can assign one resolver to multiple hooks.
+            </para>
+            <para>All of those hooks are instances of <apilink class="org.gradle.api.artifacts.ResolverContainer"/>.
+                This class provided methods for adding new resolvers at a particular position in the resolve chain.
+                <footnote>
+                    <para>Ivy power users can set <literal>dependencies.chainConfigurer = { // some statements }</literal>.
+                        This closure is applied to the <literal>ChainResolver</literal> containing the other Ivy resolvers.
+                    </para>
+                </footnote>
+                Ivy offers more complex structures for resolvers than simple chains. The resolver container does not
+                offer particular support for this. But by manipulating its properties directly you could set up such
+                other structures.
+            </para>
+        </section>
+        <section id='sub:more_about_ivy_resolvers'>
+            <title>More about Ivy resolvers</title>
+            <para>Gradle, thanks to Ivy under its hood, is extremely flexible regarding repositories:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>There are many options for the protocol to communicate with the repository (e.g. filesystem,
+                        http, ssh, ...)
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Each repository can have its own layout.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>If you declare a dependency like
+                <literal>junit:junit:3.8.2</literal>
+                how does Gradle find it in the repositories. Somehow the dependency information has to be mapped to a
+                path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern how this path
+                should look like. Here are some examples:
+                <footnote>
+                    <para>At
+                        <ulink url='http://ant.apache.org/ivy/history/latest-milestone/concept.html'/>
+                        you can learn more about ivy patterns.
+                    </para>
+                </footnote>
+            </para>
+            <programlisting><![CDATA[
+// Maven2 layout (if a repository is marked as Maven2 compatible, the organization (group) is split into subfolders according to the dots.)
+someroot/[organisation]/[module]/[revision]/[module]-[revision].[ext]
+
+// Typical layout for an ivy repository (the organization is not split into subfolder)
+someroot/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]
+
+// Simple layout (the organization is not used, no nested folders.)
+someroot/[artifact]-[revision].[ext]
+]]></programlisting>
+            <para>To add any kind of repository (you can pretty easy write your own ones) you can do:
+            </para>
+            <programlisting><![CDATA[
+dependencies {
+	classpathResolvers.add(new WebdavResolver()) {
+	        name = 'gradleReleases'
+	        user = codehausUserName
+	        userPassword = codehausUserPassword
+	        addArtifactPattern(root + "[artifact]-[revision].[ext]")
+}
+]]></programlisting>
+            <para>
+                <literal>WebdavResolver</literal>
+                is a class that implements an Ivy interface and is part of the
+                <emphasis>Gradle</emphasis>
+                distribution. An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found
+                <ulink url='http://ant.apache.org/ivy/latest-milestone/configuration/resolvers.html'>here</ulink>. With
+                Gradle you just don't configure them via xml but directly via their API.
+            </para>
+        </section>
     </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
         <title>Strategies of transitive dependency management</title>
@@ -443,265 +611,6 @@ dependencies {
                 <literal>compile</literal>
                 task uses all dependencies, not just the first level dependencies. All in all, your build is less
                 maintainable and reliable than it could be when using client modules. And you don't gain anything.
-            </para>
-        </section>
-    </section>
-    <section id='sec:repositories'>
-        <title>Repositories and Resolvers</title>
-        <section id='sub:introduction'>
-            <title>Introduction</title>
-            <para>Gradle (Ivy) distinguishes between
-                <emphasis>resolvers</emphasis>
-                and <emphasis>repositories</emphasis>. A repository is the physical source for your dependencies. A
-                resolver is responsible for retrieving a dependency (usually from a repository but not necessarily). As
-                a Gradle or Ivy user,
-                <emphasis>resolvers</emphasis>
-                are the objects your are working with. You can also aggregate multiple resolvers in a certain order (not
-                just linked lists). It is one of the very strengths of Ivy, how versatile you can aggregate resolvers
-                and that you can write easily your <emphasis>own</emphasis>. Gradle for example makes use of this to
-                implement client modules. If you add a resolver, you always have to give it a name. This name is used to
-                internally address a resolver but is also used for the dependency logging. The Java plugin does not add
-                any default resolver to your projects dependency manager. Gradle offers a couple of convenience methods
-                to add resolvers. You can also always add an instance of an Ivy resolver object directly.
-            </para>
-        </section>
-        <section id='sub:maven_repo'>
-            <title>Maven Repository</title>
-            <para>To add a resolver for the Maven2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply
-                type:
-            </para>
-            <programlisting><![CDATA[
-dependencies {
-	addMavenRepo()
-}
-]]></programlisting>
-            <para>The added resolver has the name
-                <literal>MavenRepo</literal>
-                and is added to the
-                <literal>classpathResolvers</literal>
-                (see <xref linkend='sub:resolver_container'/>).
-            </para>
-            <para>If you want to add a custom repository with a Maven layout you can type:
-            </para>
-            <programlisting><![CDATA[
-dependencies {
-	addMavenStyleRepo('myrepo', 'http://repo.gradle.org')
-}
-]]></programlisting>
-            <para>Quite often certain jars are not in the official Maven repository for licensing reasons (e.g. JTA).
-                But the poms are there and you want to use them. Gradle (and Ivy) use the same resolver to look for the
-                pom and the corresponding artifact. It is now possible to define a chain of resolvers, where one
-                resolver is used for retrieving the pom and another resolver is used for retrieving the artifact. For
-                the dependencies of the artifact the chain of resolvers can be used. To solve this problem
-            </para>
-            <programlisting><![CDATA[
-dependencies {
-	addMavenRepo('http://repo.gradle.org', 'http://repo2.gradle.org')
-}
-]]></programlisting>
-            <para>Now Gradle looks only in the official Maven repository for the poms, but looks in both the official
-                Maven repository and the two repositories specified above for the artifacts belonging to the pom. Let's
-                look at an example to understand this better.
-            </para>
-            <programlisting><![CDATA[
-<project>
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>repotest</groupId>
-    <artifactId>repotest</artifactId>
-    <version>1.0</version>
-    <dependencies>
-        <dependency>
-            <artifactId>testdep</artifactId>
-            <groupId>testdep</groupId>
-            <version>1.0</version>
-        </dependency>
-    </dependencies>
-</project>
-]]></programlisting>
-            <para>We have 4 files in different repositories. For this example let's assume that
-                <literal>repotest-1.0.pom</literal>
-                is in the official Maven repository and that the other files are in <literal>http://repo.gradle.org</literal>.
-            </para>
-            <para>Let's define our resolvers like this:
-            </para>
-            <programlisting><![CDATA[
-dependencies {  
-    addMavenRepo() 
-	addMavenStyleRepo('myrepo', 'http://repo.gradle.org')
-	compile "repotest:repotest:1.0"	
-}
-]]></programlisting>
-            <para>Gradle finds
-                <literal>repotest-1.0.pom</literal>
-                in the official Maven repo. After this it tries to find the corresponding artifact <literal>
-                    repotest-1.0.jar</literal>. It looks only in the Maven repo for this file as it expects to find pom
-                and artifact by the same resolver. The build fails.
-            </para>
-            <para>Let's try to improve this:
-            </para>
-            <programlisting><![CDATA[
-dependencies {  
-    addMavenRepo('http://repo.gradle.org') 
-	compile "repotest:repotest:1.0"	
-}
-]]></programlisting>
-            <para>Gradle finds
-                <literal>repotest-1.0.pom</literal>
-                in the Maven repo. After this it tries to find the corresponding artifact
-                <literal>repotest-1.0.jar</literal>
-                and finds it in <literal>http://repo.gradle.org</literal>. But what about <literal>testdep-1.0.pom</literal>?
-                As Gradle looks for poms only in the Maven repo it can't find this pom file.
-                <footnote>
-                    <para>To make things more flexible (or complicated): By default the build would not fail, as Ivy's
-                        default behavior is to create internally a default pom if it can't find a pom. This default pom
-                        has of course no dependencies and defines just the artifact
-                        <literal>testdep-1.0.jar</literal>
-                        and would be found in <literal>http://repo.gradle.org</literal>. If you want the build to fail if
-                        a pom can't be found you must the set the
-                        <literal>allownomd</literal>
-                        property of the resolver to <literal>false</literal>.
-                    </para>
-                </footnote>
-            </para>
-            <para>The final correct version to solve our use case is:
-            </para>
-            <programlisting><![CDATA[
-dependencies {  
-    addMavenRepo('http://repo.gradle.org') 
-    addMavenStyleRepo('myrepo', 'http://repo.gradle.org') 
-	compile "repotest:repotest:1.0"	
-}
-]]></programlisting>
-        </section>
-        <section id='sub:flat_dir_resolver'>
-            <title>Flat Directory Resolver</title>
-            <para>If you want to use a (flat) filesytem directory as a repository, simply type:
-            </para>
-            <programlisting><![CDATA[
-dependencies {
-	addFlatDirResolver('lib', "$rootDir/lib1", new File(rootDir, 'lib2'))
-	dependencies(':junit:4.4', ':commons-io:1.3.1:jar')
-}
-]]></programlisting>
-            <para>In the example we assign multiple directories to a flat directory resolver
-                <footnote>
-                    <para>You can pass any type for describing a path, as long as the type's toString() method returns a
-                        valid path.
-                    </para>
-                </footnote>
-                . The first argument is the name of the resolver. The group attributes in the dependency declaration is
-                empty (but there has to be a colon at the beginning). Specifying the extension (e.g. jar) is optional
-                and defaults to jar. You could add a group attribute if you are in a chain of resolvers. This resolver
-                simply ignores it. The repositories could look like this:
-            </para>
-            <programlisting><![CDATA[
-project-root
-  - lib1
-    - junit-4.4.jar
-  - lib2
-    - commons-io-1.3.1.jar
-]]></programlisting>
-            <para>The
-                <literal>addFlatDirResolver</literal>
-                methods adds a resolver to the
-                <literal>classpathResolvers</literal>
-                (see <xref linkend='sub:resolver_container'/>)
-            </para>
-            <para>You can add easily file system repositories with a different layout (see <xref
-                    linkend='sub:more_about_ivy_resolvers'/>)
-            </para>
-        </section>
-        <section id='sub:cache'>
-            <title>Cache</title>
-            <para>When Gradle downloads dependencies from remote repositories it stores them in a local cache located at
-                <literal>USER_HOME/.gradle/cache</literal>. When Gradle downloads dependencies from one of its
-                predefined local resolvers (e.g. Flat Directory resolver), the cache is not used as an intermediate
-                storage for dependencies.
-            </para>
-        </section>
-        <section id='sub:resolver_container'>
-            <title>Resolver Container</title>
-            <para>There are three hooks for adding resolvers. Via the resolvers assigned to the
-                <literal>classpathResolvers</literal>
-                property of the dependency manager, the <literal>compile</literal>,
-                <literal>compileTests</literal>
-                and
-                <literal>test</literal>
-                tasks retrieve their dependencies. The
-                <literal>uploadLibs</literal>
-                and
-                <literal>uploadDists</literal>
-                tasks have both an
-                <literal>uploadResolvers</literal>
-                property. You can assign one resolver to multiple hooks.
-            </para>
-            <para>All of those hooks are instances of <apilink class="org.gradle.api.artifacts.ResolverContainer"/>.
-                This class provided methods for adding new resolvers at a particular position in the resolve chain.
-                <footnote>
-                    <para>Ivy power users can set <literal>dependencies.chainConfigurer = { // some statements }</literal>.
-                        This closure is applied to the <literal>ChainResolver</literal> containing the other Ivy resolvers.
-                    </para>
-                </footnote>
-                Ivy offers more complex structures for resolvers than simple chains. The resolver container does not
-                offer particular support for this. But by manipulating its properties directly you could set up such
-                other structures.
-            </para>
-        </section>
-        <section id='sub:more_about_ivy_resolvers'>
-            <title>More about Ivy resolvers</title>
-            <para>Gradle, thanks to Ivy under its hood, is extremely flexible regarding repositories:
-            </para>
-            <itemizedlist>
-                <listitem>
-                    <para>There are many options for the protocol to communicate with the repository (e.g. filesystem,
-                        http, ssh, ...)
-                    </para>
-                </listitem>
-                <listitem>
-                    <para>Each repository can have its own layout.
-                    </para>
-                </listitem>
-            </itemizedlist>
-            <para>If you declare a dependency like
-                <literal>junit:junit:3.8.2</literal>
-                how does Gradle find it in the repositories. Somehow the dependency information has to be mapped to a
-                path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern how this path
-                should look like. Here are some examples:
-                <footnote>
-                    <para>At
-                        <ulink url='http://ant.apache.org/ivy/history/latest-milestone/concept.html'/>
-                        you can learn more about ivy patterns.
-                    </para>
-                </footnote>
-            </para>
-            <programlisting><![CDATA[
-// Maven2 layout (if a repository is marked as Maven2 compatible, the organization (group) is split into subfolders according to the dots.)
-someroot/[organisation]/[module]/[revision]/[module]-[revision].[ext]
-
-// Typical layout for an ivy repository (the organization is not split into subfolder)
-someroot/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]
-
-// Simple layout (the organization is not used, no nested folders.)
-someroot/[artifact]-[revision].[ext]
-]]></programlisting>
-            <para>To add any kind of repository (you can pretty easy write your own ones) you can do:
-            </para>
-            <programlisting><![CDATA[
-dependencies {
-	classpathResolvers.add(new WebdavResolver()) {
-	        name = 'gradleReleases'
-	        user = codehausUserName
-	        userPassword = codehausUserPassword
-	        addArtifactPattern(root + "[artifact]-[revision].[ext]")
-}
-]]></programlisting>
-            <para>
-                <literal>WebdavResolver</literal>
-                is a class that implements an Ivy interface and is part of the
-                <emphasis>Gradle</emphasis>
-                distribution. An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found
-                <ulink url='http://ant.apache.org/ivy/latest-milestone/configuration/resolvers.html'>here</ulink>. With
-                Gradle you just don't configure them via xml but directly via their API.
             </para>
         </section>
     </section>

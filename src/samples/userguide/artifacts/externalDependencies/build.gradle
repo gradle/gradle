@@ -40,6 +40,14 @@ dependencies {
 }
 //END SNIPPET module-dependencies
 
+//START SNIPPET dependencies-with-empty-attributes
+dependencies {
+    runtime ":junit:4.4", ":testng"
+    runtime name: 'testng' 
+}
+//END SNIPPET dependencies-with-empty-attributes
+
+
 //START SNIPPET artifact-only
 dependencies {
 	runtime "org.groovy:groovy:1.5.6@jar"

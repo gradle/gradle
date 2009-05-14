@@ -47,17 +47,15 @@ public interface RepositoryHandler extends ResolverContainer {
      *     <td><em>(optional)</em> The name of the repository.
      * The default is a Hash value of the rootdir paths. The name is used in the console output,
      * to point to information related to a particular repository. A name must be unique amongst a repository group.</td></tr>
-     * <tr><td><code>rootDir</code></td>
-     *     <td>Specifies a single rootDir where to look for dependencies.</td></tr>
-     * <tr><td><code>rootDirs</code></td>
+     * <tr><td><code>dirs</code></td>
      *     <td>Specifies a list of rootDirs where to look for dependencies.</td></tr>
      * </table>
      *
      * <p>Examples:
      * <pre>
      * repositories {
-     *     flatDir name: 'libs', rootDir: "$projectDir/libs"
-     *     flatDir(rootDirs: ["$projectDir/libs1", "$projectDir/libs2"])
+     *     flatDir name: 'libs', dirs: "$projectDir/libs"
+     *     flatDir dirs: ["$projectDir/libs1", "$projectDir/libs2"]
      * }
      * </pre>
      * </p>
@@ -83,8 +81,8 @@ public interface RepositoryHandler extends ResolverContainer {
      *     <td><em>(optional)</em> The name of the repository. The default is {@link #DEFAULT_MAVEN_CENTRAL_REPO_NAME}
      * is used as the name. A name must be unique amongst a repository group.
      * </td></tr>
-     * <tr><td><code>jarOnlyRepos</code></td>
-     *     <td>A list of jar repositories. Sometimes the artifact
+     * <tr><td><code>urls</code></td>
+     *     <td>A single jar repository or a collection of jar repositories. Sometimes the artifact
      * lives in a different repository than the pom. In such a case you can specify further locations to look for an artifact.
      * But be aware that the pom is only looked up in the root repository</td></tr>
      * </table>
@@ -92,8 +90,8 @@ public interface RepositoryHandler extends ResolverContainer {
      * <p>Examples:
      * <pre>
      * repositories {
-     *     mavenCentral jarOnlyRepos: ["http://www.mycompany.com/repository1", "http://www.mycompany.com/repository2"]
-     *     mavenCentral(name: "nonDefaultName", jarOnlyRepos: ["http://www.mycompany.com/repository"])
+     *     mavenCentral urls: ["http://www.mycompany.com/repository1", "http://www.mycompany.com/repository2"]
+     *     mavenCentral name: "nonDefaultName", urls: ["http://www.mycompany.com/repository"]
      * }
      * </pre>
      * </p>
@@ -142,21 +140,17 @@ public interface RepositoryHandler extends ResolverContainer {
      * The name is used in the console output,
      * to point to information related to a particular repository. A name must be unique amongst a repository group.
      * </td></tr>
-     * <tr><td><code>rootRepo</code></td>
-     *     <td>The url of the root repo (the toString value of the value is used). Gradle always looks first for the pom
-     * in the root repository. After this it looks for the artifact in the root repository and if it can't be found,
-     * in jarOnlyRepos.</td></tr>
-     * <tr><td><code>jarOnlyRepos</code></td>
-     *     <td>A list of jar repository url's. Sometimes the artifact
-     * lives in a different repository than the pom. In such a case you can specify further locations to look for an artifact.
-     * But be aware that the pom is only looked up in the root repository</td></tr>
+     * <tr><td><code>urls</code></td>
+     *     <td>A single repository url or a list of urls. The first url is the the url of the root repo.
+     * Gradle always looks first for the pom in the root repository. After this it looks for the artifact in the root repository.
+     * If the artifact can't be found there, it looks for it in the other repositories.</td></tr>
      * </table>
      *
      * <p>Examples:
      * <pre>
      * repositories {
-     *     mavenRepo jarOnlyRepos: ["http://www.mycompany.com/repository1", "http://www.mycompany.com/repository2"]
-     *     mavenRepo(name: "nonDefaultName", jarOnlyRepos: ["http://www.mycompany.com/repository"])
+     *     mavenRepo urls: ["http://www.mycompany.com/repository1", "http://www.mycompany.com/repository2"]
+     *     mavenRepo name: "nonDefaultName", urls: ["http://www.mycompany.com/repository"]
      * }
      * </pre>
      * </p>
