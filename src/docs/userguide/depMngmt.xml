@@ -113,71 +113,73 @@
         </para>
         <section id='sub:configurations'>
             <title>Configurations</title>
-            <para>Dependencies are grouped in configurations. Configurations have a name and they can extend each other.
-                If you use the Java or Groovy plugin, Gradle adds a number of related configurations to your build. The
-                plugin also associates configurations with tasks. See
+            <para>Dependencies are grouped in configurations. Configurations have a name, a number of other properties,
+                and they can extend each other. For examples see: <xref linkend='sec:artifact_configurations'/>
+                If you use the Java or Groovy plugin, Gradle adds a number of pre-defined configurations to your build. The
+                plugin also assigns configurations to tasks. See
                 <xref linkend='sec:java_plugin_and_dependency_management'/>
-                for details. Of course you can add your own configurations on top of that. This is very handy for
-                example for adding dependencies not needed for building or running your software (e.g. additional JDBC
-                drivers). You might want to add such dependencies to a distribution of your software.
-            </para>
-            <para>A dependency can belong to more than one configuration although that might be rather the exception.
-                What is a dependency after all and how do you add it to a configuration?
+                for details. Of course you can add your add custom configurations on top of that. There are many use cases
+                for custom configurations.This is very handy for
+                example for adding dependencies not needed for building or testing your software (e.g. additional JDBC
+                drivers to be shipped with your distribution). The configurations are managed by a
+                <emphasis>configurations</emphasis> object. The closure you pass to the configurations object is applied
+                against its api. To learn more about this API have a look at the javadoc:
+                <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>. 
             </para>
         </section>
         <section id='sub:module_dependencies'>
             <title>Module Dependencies</title>
-            <para>Module dependencies are the most common dependencies. They correspond to a dependency in a repository
-                you have declared. Gradle provides different notations for module dependencies. The most common notation
-                for such a dependency follows the pattern: <literal>[group]:[artifact]:[version]</literal>. Here is an
-                example for a module dependency:
+            <para>Module dependencies are the most common dependencies. They correspond to a dependency in an external
+                repository.
             </para>
-            <programlisting><![CDATA[
-dependencies {
-	compile "org.hibernate:hibernate:3.0.5"
-}
-]]></programlisting>
-            <para>If you declare such a dependency, Gradle looks for a corresponding module descriptor file (pom.xml or
+            <sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="module-dependencies"/>
+            </sample>
+            <para>Gradle provides different notations for module dependencies. There is a String notation and
+                a map notation. A module dependency has an API which allows for further configuration. Have a look at
+                <apilink class='org.gradle.api.artifacts.ModuleDependency'/> to learn all about the API.
+                This API provides properties and configuration methods. Via the string notation you can define a subset
+                the properties. With the map notation you can define all properties. To have access to the complete API,
+                either with the map or with the string notation, you can assign a single dependency to a configuration
+                together with a closure.
+            </para>
+            <para>If you declare a module dependency, Gradle looks for a corresponding module descriptor file (pom.xml or
                 ivy.xml) in the repositories. If such a module descriptor file exists, it is parsed and the artifacts of
-                this module (in this case hibernate-3.0.5.jar) as well as its dependencies are downloaded. If no such
-                module descriptor file exists, Gradle looks for a file called hibernate-3.0.5.jar to download.
+                this module (e.g. hibernate-3.0.5.jar) as well as its dependencies (e.g. cglib) are downloaded. If no such
+                module descriptor file exists, Gradle looks for a file called hibernate-3.0.5.jar to retrieve. In Maven
+                a module can only have one and only one artifact. In Gradle and Ivy a module can have multiple artifacts.
+                Each artifact can have a different set of dependencies.
             </para>
-            <para>A module dependency has an API to allow for further configuration. For example if the module
-                descriptor (e.g. pom.xml) declares dependencies you don't want you have, you can exclude them:
-            </para>
-            <programlisting><![CDATA[
-dependencies {
-	compile("org.codehaus.groovy:groovy-all:1.5.4") {
-	        exclude(module: 'jline')
-	        exclude(group: 'junit', module: 'junit')
-	}
-}
-]]></programlisting>
-            <para>Have a look at
-                <apilink class='org.gradle.api.artifacts.ModuleDependency'/> to learn more about the API.
-            </para>
-            <section id='ssub:classifiers'>
-                <title>Classifiers</title>
-                <para>The Maven dependency management has the notion of classifiers. Gradle supports this. To use
-                    Classifiers in Maven you can type: <literal>"org.testng:testng:5.8:jdk15"</literal>.
-                </para>
-            </section>
             <section id='ssub:artifact_dependencies'>
                 <title>Artifact only notation</title>
-                <para>An artifact only notation creates a module dependency which only downloads one artifact file. The
-                    notation for such a dependency follows the pattern:
-                    <literal>[group]:[artifact]:[version]@[extension]</literal>
-                    or <literal>[group]:[artifact]:[version]:[classifier]@[extension]</literal>. For example:
+                <para>As said above, the Gradle default behavior if no module descriptor file can be found is to
+                    download a jar with the name of the module. But sometimes you want to download only the artifact jar, without
+                    the dependencies, despite that the repository contains module descriptors.
+                    <footnote>
+                        <para>Gradle supports partial multiproject builds (see<xref linkend='multi_project_builds'/>).
+                        </para>
+                    </footnote>
+                    And sometimes you want to download a zip from a repository, that does not have module descriptors.
+                    Gradle provides an <emphasis>artifact only</emphasis> notation for those use cases:
+                    <sample id="artifactOnly" dir="userguide/artifacts/externalDependencies">
+                        <sourcefile file="build.gradle" snippet="artifact-only"/>
+                    </sample>
+                    An artifact only notation creates a module dependency which downloads only the artifact file with
+                    the specified extension. Existing module descriptors are ignored.
                 </para>
-                <programlisting><![CDATA[
-dependencies {
-	compile "org.apache.ant:ant-junit:1.7.0@jar"
-}
-]]></programlisting>
-                <para>Gradle needs a repository somewhere where this artifact can be found, but there is
-                    <literal>no</literal>
-                    xml descriptor required in the repository. If there is one, it is ignored. In the simplest case such
-                    a repository is a folder on your local machine.
+            </section>
+            <section id='ssub:classifiers'>
+                <title>Classifiers</title>
+                <para>The Maven dependency management has the notion of classifiers.
+                    <footnote>
+                        <para>
+                            <ulink url='http://www.sonatype.com/books/maven-book/reference/pom-relationships-sect-project-relationships.html'/>
+                        </para>
+                    </footnote>
+                    Gradle supports this. To retrieve classified dependencies from a maven repository you can write:
+                    <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers">
+                        <sourcefile file="build.gradle" snippet="classifier"/>
+                    </sample>
                 </para>
             </section>
         </section>
@@ -185,25 +187,20 @@ dependencies {
             <title>Client Module Dependencies</title>
             <para>Client module dependencies enable you to declare
                 <emphasis>transitive</emphasis>
-                dependencies directly in your build script. Client module dependencies can be nested.
+                dependencies directly in your build script. They are a replacement for a module descriptor xml file in
+                an external repository.
             </para>
-            <programlisting><![CDATA[
-addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") {
-    addDependency("commons-cli:commons-cli:1.0:jar")
-    addClientModule("org.apache.ant:ant:1.7.0") {
-        addDependency("org.apache.ant:ant-launcher:1.7.0:jar")
-        addDependency("org.apache.ant:ant-junit:1.7.0")
-    }
-}
-]]></programlisting>
+            <sample id="client-modules" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="client-modules"/>
+            </sample>
             <para>This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does
                 not look for an xml descriptor to figure them out but gets the information from the build file. The
                 dependencies of a client module can be normal module dependencies or artifact dependencies or another
-                client module. Have also a look at <apilink class='org.gradle.api.artifacts.ClientModule'/>
+                client module. Have also a look at the javadoc: <apilink class='org.gradle.api.artifacts.ClientModule'/>
             </para>
             <para>In the current release
                 <emphasis>Client Modules</emphasis>
-                have one limitation. For example if your project is a library and you want this library to be uploaded
+                have one limitation. Let's say your project is a library and you want this library to be uploaded
                 to your company's Maven or Ivy repository. Gradle uploads the jars of your project to the company
                 repository together with the XML descriptor file of the dependencies. If you use
                 <literal>Client Modules</literal>
@@ -216,75 +213,49 @@ addClientModule(confs: ['compile'], id: "org.codehaus.groovy:groovy-all:1.5.4") 
             <para>Gradle distinguishes between external dependencies and dependencies on projects which are part of the
                 same multi-project build. For the latter you can declare <emphasis>Project Dependencies</emphasis>.
             </para>
-            <programlisting><![CDATA[
-dependencies {
-    compile project(':shared')
-}
-]]></programlisting>
-            <para>Have also a look at <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
+            <sample id="project-dependencies" dir="java/multiproject/api">
+                <sourcefile file="build.gradle" snippet="project-dependencies"/>
+            </sample>
+            <para>Have also a look at the javadoc: <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
             </para>
             <para>Multi-project builds are discussed in <xref linkend='multi_project_builds'/>.
             </para>
         </section>
-        <section id='sub:global_excludes'>
-            <title>Global Excludes</title>
-            <para>You can exclude a transitive dependency for all your dependencies via global excludes.
+        <section id='sub:exclude_transitive_dependencies'>
+            <title>Excluding transitive dependencies</title>
+            <para>You can exclude a <emphasis>transitive</emphasis> dependency either by configuration of by dependency:
             </para>
-            <programlisting><![CDATA[
-dependencies {
-    excludeRules.add(group: 'junit', module: 'junit')
-}
-]]></programlisting>
-            <para>You can either specify only the organization (group) or only the module name.
-                Have also a look at <apilink class="org.gradle.api.artifacts.ExcludeRuleContainer"/>
+            <sample id="exclude-dependencies" dir="userguide/artifacts/excludesAndClassifiers">
+                <sourcefile file="build.gradle" snippet="exclude-dependencies"/>
+            </sample>
+            <para>The <emphasis>junit</emphasis> dependency will only be excluded from
+                <emphasis>groovy</emphasis>. If another dependency has a transitive dependency on
+                <emphasis>junit</emphasis>, the latter will make it into your classpath. If you define
+                an exclude for a particular configuration, the excluded transitive dependency will be filtered for all
+                dependencies when resolving this configuration or any inheriting configuration.
+                If you want to exclude a transitive dependency from all your
+                configurations you can use the Groovy spread-dot operator to express this in a concise way, as shown in the example. 
+                When defining an exclude, you can
+                specify either only the organization or only the module name or both.
+                Have also a look at the javadoc of <apilink class="org.gradle.api.artifacts.Dependency"/> and
+                <apilink class="org.gradle.api.artifacts.Configuration"/>.
             </para>
         </section>
-        <section id='sub:ivy_dependencies'>
-            <title>Ivy dependencies</title>
-            <para>Gradle offers its own notation to describe dependencies. Under the hood we transform them into ivy
-                dependency objects. Our notation provides a large subset of what is possible with Ivy. If you want or
-                need to options that can't be expresses by the Gradle domain, you have two options:
-            </para>
-            <para>You can use our ivy transforms to modify the Ivy objects created by Gradle. Look at
-                <apilink class='org.gradle.api.artifacts.Dependency'/> to learn more.
-            </para>
-            <para>Or you can pass ivy dependency objects directly to Gradle.
-            </para>
-            <programlisting><![CDATA[
-DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
-	        new ModuleRevisionId(new ModuleId('junit', 'junit'), '4.2'), false)
-// do more configuration with the descriptor
-dependencies {
-	addDependencyDescriptors dependencyDescriptor
-}
-]]></programlisting>
-        </section>
-        <section id='sub:configuring_the_dependency_manager'>
-            <title>Configuring the Dependency Manager</title>
-            <para>In the examples above we have already configured the dependency manager. How does this work? The
-                <literal>project</literal>
-                object offers a property called
-                <literal>dependencies</literal>. If you call
-                <literal>dependencies</literal>
-                with a closure, all statements within the closure are delegated first to the dependency manager. This is
-                the same mechanism which is used for configuring tasks.
+        <section>
+            <title>Working with the Dependencies</title>
+            <para>To assign dependencies to configurations, you can pass a closure to the <emphasis>dependencies</emphasis>
+                object. To work with the dependencies assigned to a configuration, you can use the API of the
+                configuration object. See the javadoc:
+                <apilink class='org.gradle.api.artifacts.Configuration'/>.
             </para>
         </section>
     </section>
     <section id='sec:java_plugin_and_dependency_management'>
         <title>Java Plugin and Dependency Management</title>
-        <para>The Java Plugin preconfigures the dependency management. It adds a set of configurations and links the
-            tasks like
-            <literal>compile</literal>
-            and
-            <literal>test</literal>
-            to this configuration.
+        <para>The Java Plugin preconfigures the dependency management. It adds a set of configurations and
+            assign those configurations to tasks like <literal>compile</literal> and <literal>test</literal>.
             <xref linkend='tab:configurations'/>
-            shows the details. The Java plugin defines also where to find the jars and zips to be uploaded. Finally it
-            does a couple of settings for multi-project builds. If you have for example declared a project dependency
-            for the
-            <literal>compile</literal>
-            configuration you don't want this project to be build if you execute a <literal>clean</literal>.
+            shows the details. 
         </para>
         <table id='tab:configurations'>
             <title>Java/Groovy Configurations</title>
@@ -311,7 +282,7 @@ dependencies {
             <tr>
                 <td>testCompile</td>
                 <td>compile</td>
-                <td>testCompile</td>
+                <td>compileTests</td>
                 <td>Additional dependencies for compiling tests.</td>
             </tr>
             <tr>
@@ -321,9 +292,9 @@ dependencies {
                 <td>Additional dependencies for running tests only.</td>
             </tr>
             <tr>
-                <td>libs</td>
+                <td>master</td>
                 <td>-</td>
-                <td>uploadLibs</td>
+                <td>uploadMaster</td>
                 <td>Dependencies (e.g. jars) produced by this project.</td>
             </tr>
             <tr>
@@ -335,16 +306,6 @@ dependencies {
                     required by this project.
                 </td>
             </tr>
-            <tr>
-                <td>dists</td>
-                <td>-</td>
-                <td>uploadDists</td>
-                <td>Archives added to the
-                    <literal>dists</literal>
-                    bundle belong to this configuration.
-                </td>
-            </tr>
-
         </table>
     </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
@@ -354,7 +315,7 @@ dependencies {
         </para>
         <itemizedlist>
             <listitem>
-                <para>The IBibilio repository is often down or has a very long response time.
+                <para>The IBibilio repository is sometimes down or has a very long response time.
                 </para>
             </listitem>
             <listitem>
@@ -363,7 +324,7 @@ dependencies {
                 </para>
             </listitem>
             <listitem>
-                <para>For many projects there is not one right set of dependencies (as more or less impose by he
+                <para>For many projects there is not one right set of dependencies (as more or less imposed by he
                     <literal>pom</literal>
                     format).
                 </para>
@@ -382,8 +343,8 @@ dependencies {
                 </para>
             </listitem>
             <listitem>
-                <para>You don't want to expose people who want to build your project, to the relatively frequent
-                    downtimes or very long response times of IBibilio.
+                <para>You don't want to expose people who want to build your project, to the
+                    downtimes or sometimes very long response times of IBibilio.
                 </para>
             </listitem>
         </itemizedlist>
@@ -394,12 +355,12 @@ dependencies {
                     common. For an open source project it looks like overkill.
                 </para>
             </footnote>
-            But it is tedious, to keep it up to date. For a new version, you have always to create the new XML
+            But it can be tedious, to keep it up to date. For a new version, you have always to create the new XML
             descriptor and the directories. And your custom repository is another infrastructure element which might
             have downtimes and needs to be updated. To enable historical builds, you need to keep all the past
             libraries. It is another layer of indirection, which contains information relevant for your build and you
             have to navigate to the lengthy path with your browser to get the information. All this is not really a big
-            deal but in its sum it has a relevant impact on your agility. Why should you cope with this? You pay
+            deal but in its sum it has an impact on your agility. Why should you cope with this? You pay
             something, so you should also get something, right? So we end up with the question: Does it make sense to
             store the dependency information (and the dependencies) in remote repositories? Our answer is: It depends.
         </para>
@@ -445,7 +406,7 @@ dependencies {
                 has been overcome, your project can upload to such a repository without relying on XML descriptor files
                 themselves.
             </para>
-            <para>You could also have a mixed strategy. If your main concern is bad metadata in the and maintaining
+            <para>You could also have a mixed strategy. If your main concern is bad metadata in the pom.xml and maintaining
                 custom XML descriptors,
                 <emphasis>Client Modules</emphasis>
                 offer an alternative. But you can of course still use Maven2 repo and your custom repository as a
@@ -453,7 +414,8 @@ dependencies {
                 <emphasis>jars only</emphasis>
                 and still enjoy
                 <emphasis>transitive</emphasis>
-                dependency management.
+                dependency management. Or you can only provide client modules for pom's with bad metadata. For the
+                jars and the correct pom's you still use the remote repository.
             </para>
         </section>
         <section id='sub:implicit_transitive_dependencies'>

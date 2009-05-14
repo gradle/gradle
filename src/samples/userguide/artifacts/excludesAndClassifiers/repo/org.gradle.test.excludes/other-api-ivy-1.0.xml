@@ -1,0 +1,6 @@
+<ivy-module version="2.0">
+    <info organisation="org.gradle.test.excludes" module="other-api" revision="1.0"/>
+    <dependencies>
+        <dependency org="org.gradle.test.excludes" name="shared" rev="1.0"/>
+    </dependencies>
+</ivy-module>

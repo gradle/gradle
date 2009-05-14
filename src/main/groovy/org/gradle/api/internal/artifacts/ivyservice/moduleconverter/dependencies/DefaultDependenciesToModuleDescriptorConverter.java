@@ -56,7 +56,9 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private void addExcludeRules(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
-                moduleDescriptor.addExcludeRule(excludeRuleConverter.createExcludeRule(excludeRule));
+                org.apache.ivy.core.module.descriptor.ExcludeRule rule = excludeRuleConverter.createExcludeRule(
+                        configuration.getName(), excludeRule);
+                moduleDescriptor.addExcludeRule(rule);
             }
         }
     }

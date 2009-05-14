@@ -115,8 +115,9 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     private void associateGradleExcludeRuleWithIvyExcludeRule(final ExcludeRule gradleExcludeRule,
                                                               final org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule,
                                                               final Configuration configuration) {
+        final String expectedConfigurationName = configuration.getName();
         context.checking(new Expectations() {{
-            allowing(excludeRuleConverterStub).createExcludeRule(gradleExcludeRule);
+            allowing(excludeRuleConverterStub).createExcludeRule(expectedConfigurationName, gradleExcludeRule);
             will(returnValue(ivyExcludeRule));
 
             allowing(ivyExcludeRule).getConfigurations();

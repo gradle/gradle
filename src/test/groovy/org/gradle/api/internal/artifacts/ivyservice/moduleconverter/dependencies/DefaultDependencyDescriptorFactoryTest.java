@@ -68,7 +68,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
         dependencyDescriptorFactory.setExcludeRuleConverter(excludeRuleConverterStub);
         context.checking(new Expectations() {{
-            allowing(excludeRuleConverterStub).createExcludeRule(TEST_EXCLUDE_RULE);
+            allowing(excludeRuleConverterStub).createExcludeRule(TEST_CONF, TEST_EXCLUDE_RULE);
             will(returnValue(TEST_IVY_EXCLUDE_RULE));
         }});
     }

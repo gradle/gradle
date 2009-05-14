@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleDependencyFactor
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.util.GUtil;
 
 /**
  * @author Hans Dockter
@@ -44,18 +45,29 @@ public class ModuleDependencyFactoryTest extends AbstractModuleFactoryTest {
     @Test
     public void testStringNotationWithArtifact() {
         ExternalDependency moduleDependency = createDependency(TEST_ARTIFACT_DESCRIPTOR);
-        checkCommonModuleProperties(moduleDependency);
-        assertFalse(moduleDependency.isTransitive());
-        assertEquals(1, moduleDependency.getArtifacts().size());
-        DependencyArtifact artifact = moduleDependency.getArtifacts().iterator().next();
-        assertEquals(TEST_NAME, artifact.getName());
-        assertEquals(TEST_TYPE, artifact.getType());
-        assertEquals(null, artifact.getClassifier());
+        assertIsArtifactOnly(moduleDependency);
     }
 
     @Test
     public void testStringNotationWithArtifactAndClassifier() {
         ExternalDependency moduleDependency = createDependency(TEST_ARTIFACT_DESCRIPTOR_WITH_CLASSIFIER);
+        assertIsArtifactOnlyWithClassifier(moduleDependency);
+    }
+
+    @Test
+    public void testMapNotationWithArtifact() {
+        ExternalDependency moduleDependency = createDependency(GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION, "ext", TEST_TYPE));
+        assertIsArtifactOnly(moduleDependency);
+    }
+
+    @Test
+    public void testMapNotationWithArtifactAndClassifier() {
+        ExternalDependency moduleDependency = createDependency(GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version",
+                TEST_VERSION, "ext", TEST_TYPE, "classifier", TEST_CLASSIFIER));
+        assertIsArtifactOnlyWithClassifier(moduleDependency);
+    }
+
+    private void assertIsArtifactOnlyWithClassifier(ExternalDependency moduleDependency) {
         checkCommonModuleProperties(moduleDependency);
         assertFalse(moduleDependency.isTransitive());
         assertEquals(1, moduleDependency.getArtifacts().size());
@@ -64,5 +76,15 @@ public class ModuleDependencyFactoryTest extends AbstractModuleFactoryTest {
         assertEquals(TEST_TYPE, artifact.getType());
         assertEquals(TEST_TYPE, artifact.getExtension());
         assertEquals(TEST_CLASSIFIER, artifact.getClassifier());
+    }
+
+    private void assertIsArtifactOnly(ExternalDependency moduleDependency) {
+        checkCommonModuleProperties(moduleDependency);
+        assertFalse(moduleDependency.isTransitive());
+        assertEquals(1, moduleDependency.getArtifacts().size());
+        DependencyArtifact artifact = moduleDependency.getArtifacts().iterator().next();
+        assertEquals(TEST_NAME, artifact.getName());
+        assertEquals(TEST_TYPE, artifact.getType());
+        assertEquals(null, artifact.getClassifier());
     }
 }

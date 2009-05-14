@@ -5,15 +5,19 @@ configurations {
 }
 
 // START SNIPPET dependencies
+// START SNIPPET project-dependencies
 dependencies {
     compile project(':shared')
+// END SNIPPET project-dependencies
 // END SNIPPET dependencies
     compile module("commons-lang:commons-lang:2.4") {
         dependency("commons-io:commons-io:1.2")
     }
 // START SNIPPET dependencies
+// START SNIPPET project-dependencies
 }
 // END SNIPPET dependencies
+// END SNIPPET project-dependencies
 
 // Just a smoke test that using this option does not lead to any exception
 compile.options.compilerArgs = [[value: '-Xlint:unchecked']]

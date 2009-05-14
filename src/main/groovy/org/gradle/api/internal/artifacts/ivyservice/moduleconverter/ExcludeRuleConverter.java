@@ -16,10 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.gradle.api.artifacts.Configuration;
 
 /**
  * @author Hans Dockter
  */
 public interface ExcludeRuleConverter {
-    ExcludeRule createExcludeRule(org.gradle.api.artifacts.ExcludeRule excludeRule);
+    ExcludeRule createExcludeRule(String configuration, org.gradle.api.artifacts.ExcludeRule excludeRule);
 }

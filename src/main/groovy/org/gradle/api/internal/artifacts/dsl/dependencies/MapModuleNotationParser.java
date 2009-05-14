@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.GradleException;
 import org.gradle.util.ReflectionUtil;
+import org.gradle.util.GradleUtil;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -39,10 +40,8 @@ class MapModuleNotationParser {
         try {
             ExternalDependency dependency = dependencyType.getConstructor(String.class, String.class, String.class).
                     newInstance(group, name, version);
-            ModuleFactoryHelper.addClassifierArtifactIfSet(getAndRemove(args, "classifier"), dependency);
-            for (String property : args.keySet()) {
-                ReflectionUtil.setProperty(dependency, property, args.get(property));
-            }
+            ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args, "classifier"));
+            GradleUtil.setFromMap(dependency, args);
             return dependency;
         } catch (InstantiationException e) {
             throw new GradleException(e);

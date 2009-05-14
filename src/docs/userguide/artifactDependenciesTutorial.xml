@@ -22,7 +22,7 @@
 
     <para>This chapter introduces some of the basics of artifact handling in Gradle.</para>
 
-    <section>
+    <section id="sec:artifact_configurations">
         <title>Artifact Configurations</title>
         <para>Artifacts are grouped into <firstterm>configurations</firstterm>. A configuration is simply a set of files
             with a name. You can use them to declare the external dependencies your project has, or to declare the

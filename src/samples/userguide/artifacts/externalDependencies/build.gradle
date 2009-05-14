@@ -5,7 +5,11 @@ repositories {
 //START SNIPPET define-dependency
 configurations {
     compile
+//END SNIPPET define-dependency
+    runtime
+//START SNIPPET define-dependency
 }
+//END SNIPPET define-dependency
 
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
@@ -17,3 +21,41 @@ task listJars << {
     configurations.compile.each { File file -> println file.name }
 }
 //END SNIPPET use-configuration
+
+//START SNIPPET module-dependencies
+dependencies {
+    runtime group: 'org.springframework', name: 'spring-core', version: '2.5'
+    runtime 'org.springframework:spring-core:2.5', 'org.springframework:spring-aop:2.5'
+    runtime(
+        [group: 'org.springframework', name: 'spring-core', version: '2.5'],
+        [group: 'org.springframework', name: 'spring-aop', version: '2.5']
+    )
+    runtime('org.hibernate:hibernate:3.0.5') {
+        transitive = true
+    }
+    runtime group: 'org.hibernate', name: 'hibernate', version: '3.0.5', transitive: true
+    runtime(group: 'org.hibernate', name: 'hibernate', version: '3.0.5') {
+        transitive = true
+    }
+}
+//END SNIPPET module-dependencies
+
+//START SNIPPET artifact-only
+dependencies {
+	runtime "org.groovy:groovy:1.5.6@jar"
+    runtime group: 'org.groovy', name: 'groovy', version: '1.5.6', ext: 'jar'
+}
+//END SNIPPET artifact-only
+
+//START SNIPPET client-modules
+dependencies {
+    runtime module("org.codehaus.groovy:groovy-all:1.5.6") {
+        dependency("commons-cli:commons-cli:1.0") {
+            transitive = false
+        }
+        module(group: 'org.apache.ant', name: 'ant', version: '1.7.0') {
+            dependencies "org.apache.ant:ant-launcher:1.7.0@jar", "org.apache.ant:ant-junit:1.7.0"
+        }
+    }
+}
+//END SNIPPET client-modules

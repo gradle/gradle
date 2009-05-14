@@ -95,4 +95,10 @@ ant.sequential {
                 scriptText)
         Thread.currentThread().contextClassLoader = oldCtx
     }
+
+    static void setFromMap(Object object, Map args) {
+        args.each { key, value ->
+            object."$key" = value
+        }
+    }
 }

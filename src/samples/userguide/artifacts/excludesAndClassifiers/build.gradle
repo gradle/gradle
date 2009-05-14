@@ -1,0 +1,43 @@
+usePlugin 'java'
+
+repositories {
+    add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+        name = 'repo'
+        addIvyPattern "$projectDir/repo/[organisation]/[module]-ivy-[revision].xml"
+        addArtifactPattern "$projectDir/repo/[organisation]/[module]-[revision](-[classifier]).[ext]"
+        descriptor = 'optional'
+        checkmodified = true
+    }
+}
+
+// START SNIPPET exclude-dependencies
+configurations {
+// END SNIPPET exclude-dependencies
+    otherConf
+// START SNIPPET exclude-dependencies
+    compile.exclude module: 'commons'
+    all*.exclude group: 'org.gradle.test.excludes', module: 'reports'
+}
+
+dependencies {
+	compile("org.gradle.test.excludes:api:1.0") {
+	    exclude module: 'shared'
+	}
+// END SNIPPET exclude-dependencies
+    runtime 'org.gradle.test.excludes:other-api:1.0'
+// START SNIPPET classifier
+	compile "org.gradle.test.classifiers:service:1.0:jdk15"
+    otherConf group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14'
+// END SNIPPET classifier
+// START SNIPPET exclude-dependencies
+}
+// END SNIPPET exclude-dependencies
+
+task resolveCompile << {
+	println configurations.compile.resolve()
+	println configurations.otherConf.resolve()
+}
+
+task resolveRuntime << {
+	println configurations.runtime.resolve()
+}

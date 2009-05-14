@@ -46,7 +46,7 @@ public class DefaultClientModuleFactory implements ClientModuleFactory {
                     parsedNotation.getGroup(),
                     parsedNotation.getName(),
                     parsedNotation.getVersion());
-            ModuleFactoryHelper.addClassifierArtifactIfSet(parsedNotation.getClassifier(), clientModule);
+            ModuleFactoryHelper.addExplicitArtifactsIfDefined(clientModule, null, parsedNotation.getClassifier());
             return clientModule;
         }
     }

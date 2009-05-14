@@ -131,7 +131,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
 
     private void addExcludes(String configuration, Set<ExcludeRule> excludeRules, DefaultDependencyDescriptor dependencyDescriptor) {
         for (ExcludeRule excludeRule : excludeRules) {
-            dependencyDescriptor.addExcludeRule(configuration, excludeRuleConverter.createExcludeRule(excludeRule));
+            dependencyDescriptor.addExcludeRule(configuration, excludeRuleConverter.createExcludeRule(configuration, excludeRule));
         }
     }
 

@@ -18,15 +18,24 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
+import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
 
 /**
  * @author Hans Dockter
  */
 public class ModuleFactoryHelper {
-    public static void addClassifierArtifactIfSet(String classifier, ExternalDependency dependency) {
-        if (classifier != null) {
-            dependency.addArtifact(new DefaultDependencyArtifact(dependency.getName(),
-                    DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, classifier, null));
+    public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, String artifactType, String classifier) {
+        String actualArtifactType = artifactType;
+        if (actualArtifactType == null) {
+            if (classifier != null) {
+                actualArtifactType = DependencyArtifact.DEFAULT_TYPE;
+            }
+        } else {
+            moduleDependency.setTransitive(false);
+        }
+        if (actualArtifactType != null) {
+            moduleDependency.addArtifact(new DefaultDependencyArtifact(moduleDependency.getName(),
+                    actualArtifactType, actualArtifactType, classifier, null));
         }
     }
 }

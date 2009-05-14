@@ -53,18 +53,7 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
                     parsedNotation.getGroup(),
                     parsedNotation.getName(),
                     parsedNotation.getVersion());
-            String actualArtifactType = parsedNotation.getArtifactType();
-            if (parsedNotation.getArtifactType() == null) {
-                if (parsedNotation.getClassifier() != null) {
-                    actualArtifactType = DependencyArtifact.DEFAULT_TYPE;
-                }
-            } else {
-                moduleDependency.setTransitive(false);
-            }
-            if (actualArtifactType != null) {
-                moduleDependency.addArtifact(new DefaultDependencyArtifact(moduleDependency.getName(),
-                        actualArtifactType, actualArtifactType, parsedNotation.getClassifier(), null));
-            }
+            ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
             return moduleDependency;
         }
 
