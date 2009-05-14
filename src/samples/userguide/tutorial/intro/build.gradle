@@ -1,6 +1,6 @@
-task hello {
+task hello << {
     println 'Hello world!'
 }
-task intro(dependsOn: hello) {
+task intro(dependsOn: hello) << {
     println "I'm Gradle"
 }

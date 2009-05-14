@@ -1,3 +1,3 @@
-task hello {
+task hello << {
     println 'Hello world!'
 }

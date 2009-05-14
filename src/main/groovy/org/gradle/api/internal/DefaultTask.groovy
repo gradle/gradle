@@ -51,6 +51,10 @@ class DefaultTask extends AbstractTask {
         return this;
     }
 
+    public Task leftShift(Closure action) {
+        return doLast(action)
+    }
+
     Task configure(Closure closure) {
         return (Task) ConfigureUtil.configure(closure, this);
     }

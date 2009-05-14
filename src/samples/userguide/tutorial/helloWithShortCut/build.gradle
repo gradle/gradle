@@ -1,6 +1,6 @@
-task hello {
+task hello << {
     println 'Hello world!'
 }
 hello.doLast {
-    println 'Hello again!'
+    println "Greetings from the $hello.name task."
 }

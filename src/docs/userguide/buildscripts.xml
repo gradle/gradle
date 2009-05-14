@@ -17,26 +17,27 @@
         </sample>
         <para>In a command-line shell, enter into the containing directory and execute the build script by running
             <userinput>gradle -q hello</userinput>:
-            <footnote>
-                <para>Every code sample in this chapter can be found in the <filename>samples</filename>
-                    dir of your Gradle distribution. The output box always denotes the directory name relative to the
-                    <filename>samples</filename> dir.
-                </para>
-            </footnote>
-            <footnote>
-                <para>The scripts are executed with the <option>-q</option> option which suppresses the Gradle logging.
-                    See <xref linkend="logging"/> for more details.
-                </para>
-            </footnote>
         </para>
+        <tip>
+            <title>Why do you use <option>-q</option>?</title>
+            <para>Most of the examples in this user guide are run with the <option>-q</option> command-line option.
+                This suppresses Gradle's log messages, so that only the output of the tasks is shown. You don't need to
+                use this option if you don't want. See <xref linkend="logging"/> for more details about the command-line options which
+                affect Gradle's output.
+            </para>
+        </tip>
         <sample id="hello" dir="userguide/tutorial/hello">
             <output args="-q hello"/>
         </sample>
-        <para>If you think this looks damn similar to Ant's targets, well, you are right. Gradle tasks are the
-            equivalent to Ant targets. But as you will see, they are much more powerful. We have used a different
-            terminology to Ant as we think the word <emphasis>task</emphasis> is more expressive than the word
-            <emphasis>target</emphasis> . Unfortunately this introduces a terminology clash with Ant, as Ant calls its
-            commands, such as <literal>javac</literal> or <literal>copy</literal>, tasks. So when we talk about tasks,
+        <para>What's going on here? This build file defines a single task, called <literal>hello</literal>, and
+            adds an action to it. When you run <userinput>gradle hello</userinput>, Gradle executes the
+            <literal>hello</literal> task, which in turn executes the action you've provided.
+        </para>
+        <para>If you think this looks similar to Ant's targets, well, you are right. Gradle tasks are the equivalent to
+            Ant targets. But as you will see, they are much more powerful. We have used a different terminology to Ant
+            as we think the word <emphasis>task</emphasis> is more expressive than the word <emphasis>target</emphasis>.
+            Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, such as
+            <literal>javac</literal> or <literal>copy</literal>, tasks. So when we talk about tasks,
             we <emphasis>always</emphasis> mean Gradle tasks, which are the equivalent to Ant's targets. If we talk
             about Ant tasks (Ant commands), we explicitly say <emphasis>ant</emphasis> task.
         </para>
@@ -69,7 +70,7 @@
             <output args="-q taskX"/>
         </sample>
         <para>The dependency of <literal>taskX</literal> to <literal>taskY</literal> is declared before
-            <literal>taskY</literal> is created. This is very important for multi-project builds. Task dependencies are
+            <literal>taskY</literal> is defined. This is very important for multi-project builds. Task dependencies are
             discussed in more detail in <xref linkend='sec:adding_dependencies_to_tasks'/>.
         </para>
     </section>
@@ -99,18 +100,20 @@
         </sample>
         <para>The calls <literal>doFirst</literal> and <literal>doLast</literal> can be executed multiple times.
             They add an action to the beginning or the end of the task's actions list. When the task executes, the
-            actions in the action list are executed in order. 
+            actions in the action list are executed in order. The <literal>&lt;&lt;</literal> operator is simply an
+            alias for <literal>doLast</literal>.
         </para>
     </section>
     <section>
         <title>Shortcut notations</title>
-        <para>There is a convenient notation for accessing <emphasis>existing</emphasis> tasks.
+        <para>As you might have noticed in the previous examples, there is a convenient notation for accessing an
+            <emphasis>existing</emphasis> task. Each task is available as a property of the build script:
         </para>
         <sample id="helloWithShortCut" dir="userguide/tutorial/helloWithShortCut">
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
-        <para>This enables very readable code. Especially when using the out of the box tasks provided by the plugins
+        <para>This enables very readable code, especially when using the out of the box tasks provided by the plugins
             (e.g. <literal>compile</literal>).</para>
     </section>
     <section id='sec:dynamic_properties'>
@@ -137,11 +140,10 @@
             </footnote>
         </para>
         <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
-            <literal>copy</literal>
-            or <literal>jar</literal>. For this layer Gradle provides excellent integration simply by relying on Groovy.
-            Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks from Gradle is as
-            convenient and more powerful than using Ant tasks from a <filename>build.xml</filename> file.
-            Let's look at an example:
+            <literal>copy</literal> or<literal>jar</literal>. For this layer Gradle provides excellent integration
+            simply by relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant
+            tasks from Gradle is as convenient and more powerful than using Ant tasks from a
+            <filename>build.xml</filename> file. Let's look at an example:
         </para>
         <sample id="antChecksum" dir="userguide/tutorial/antChecksum">
             <sourcefile file="build.gradle"/>
@@ -199,12 +201,15 @@
         <title>Configure By DAG</title>
         <para>As we describe in full detail later (See <xref linkend='build_lifecycle'/>) Gradle has a
             configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should
-            be executed. Gradle offers you a hook to make use of this information. A usecase for this would be to check
+            be executed. Gradle offers you a hook to make use of this information. A use-case for this would be to check
             if the release task is part of the tasks to be executed. Depending on this you can assign different values
             to some variables.
         </para>
-        <sample id="configByDag" dir="userguide/tutorial/configByDag">
+        <sample id="configByDagNoRelease" dir="userguide/tutorial/configByDag">
             <sourcefile file="build.gradle"/>
+            <output args="-q distribution"/>
+        </sample>
+        <sample id="configByDag" dir="userguide/tutorial/configByDag">
             <output args="-q release"/>
         </sample>
         <para>The important thing is, that the fact that the release task has been choosen, has an effect

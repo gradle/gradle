@@ -110,4 +110,25 @@ class DefaultProject extends AbstractProject {
     public void artifacts(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getArtifacts())
     }
+
+    /**
+     * This is called by the task creation DSL. Need to find a cleaner way to do this...
+     */
+    public Task task(String task) {
+        tasks.add(task)
+    }
+
+    /**
+     * This is called by the task creation DSL. Need to find a cleaner way to do this...
+     */
+    public Task task(Map<String, ?> options, String task) {
+        tasks.add(options + [name: task])
+    }
+
+    /**
+     * This is called by the task creation DSL. Need to find a cleaner way to do this...
+     */
+    public Task passThrough(Task task) {
+        task
+    }
 }

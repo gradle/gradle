@@ -662,10 +662,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return taskContainer;
     }
 
-    public Task task(String path) {
-        return taskContainer.getByPath(path);
-    }
-
     public void defaultTasks(String... defaultTasks) {
         if (defaultTasks == null) {
             throw new InvalidUserDataException("Default tasks must not be null!");

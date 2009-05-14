@@ -1,6 +1,6 @@
 task myTask
 myTask.myProperty = 'myCustomPropValue'
 
-task showProps {
+task showProps << {
     println myTask.myProperty
 }

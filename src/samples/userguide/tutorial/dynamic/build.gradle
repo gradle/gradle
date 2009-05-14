@@ -1,5 +1,5 @@
 4.times { counter ->
-    task "task_$counter" {
+    task "task_$counter" << {
         println "I'm task number $counter"
     }
 }

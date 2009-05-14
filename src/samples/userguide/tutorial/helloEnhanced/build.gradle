@@ -1,4 +1,4 @@
-task hello {
+task hello << {
     println 'Hello Earth'
 }
 hello.doFirst {
@@ -6,4 +6,7 @@ hello.doFirst {
 }
 hello.doLast {
     println 'Hello Mars'
+}
+hello << {
+    println 'Hello Jupiter'
 }

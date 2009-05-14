@@ -21,7 +21,6 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.GroovyCodeVisitor;
-import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.expr.*;
 
 import java.util.List;
@@ -37,38 +36,11 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
         }
     }
 
-    private boolean isInstanceMethod(MethodCallExpression call, String name) {
-        boolean isTaskMethod = call.getMethod() instanceof ConstantExpression && call.getMethod().getText()
-                .equals(name);
-        if (!isTaskMethod) {
-            return false;
-        }
-
-        if (!(call.getArguments() instanceof ArgumentListExpression)) {
-            return false;
-        }
-
-        return call.getObjectExpression() instanceof VariableExpression && call.getObjectExpression().getText().equals("this");
-    }
-
-    private boolean isInstanceMethod(MethodCallExpression call) {
-        boolean isTaskMethod = call.getMethod() instanceof ConstantExpression || call
-                .getMethod() instanceof GStringExpression;
-        if (!isTaskMethod) {
-            return false;
-        }
-
-        return call.getObjectExpression() instanceof VariableExpression && call.getObjectExpression().getText().equals(
-                "this");
-    }
-
     private class TaskDefinitionTransformer extends CodeVisitorSupport {
         @Override
-        public void visitExpressionStatement(ExpressionStatement statement) {
-            if (statement.getExpression() instanceof MethodCallExpression) {
-                doVisitMethodCallExpression((MethodCallExpression) statement.getExpression());
-            }
-            super.visitExpressionStatement(statement);
+        public void visitMethodCallExpression(MethodCallExpression call) {
+            doVisitMethodCallExpression(call);
+            super.visitMethodCallExpression(call);
         }
 
         private void doVisitMethodCallExpression(MethodCallExpression call) {
@@ -77,26 +49,88 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
             }
 
             ArgumentListExpression args = (ArgumentListExpression) call.getArguments();
-            if (args.getExpressions().size() != 1) {
+            if (args.getExpressions().size() == 0 || args.getExpressions().size() > 2) {
                 return;
             }
 
-            if (args.getExpression(0) instanceof VariableExpression) {
-                String taskName = args.getExpression(0).getText();
-                call.setMethod(new ConstantExpression("createTask"));
-                args.getExpressions().clear();
-                args.addExpression(new ConstantExpression(taskName));
+            // Matches: task <arg> or task <arg> <arg>
+
+            if (args.getExpressions().size() == 2) {
+                if (args.getExpression(0) instanceof MapExpression && args.getExpression(1) instanceof VariableExpression) {
+                    // Matches: task <name-value-pairs>, <identifier>
+                    // Map to: task(<name-value-pairs>, '<identifier>')
+                    args.getExpressions().set(1, new ConstantExpression(args.getExpression(1).getText()));
+                }
                 return;
             }
 
-            if (!(args.getExpression(0) instanceof MethodCallExpression)) {
-                return;
+            // Matches: task <arg> or task(<arg>)
+
+            Expression arg = args.getExpression(0);
+            if (arg instanceof VariableExpression) {
+                // Matches: task <identifier> or task(<identifier>)
+                transformVariableExpression(call, (VariableExpression) arg);
+            }
+            else if (arg instanceof BinaryExpression) {
+                // Matches: task <expression> <operator> <expression>
+                transformBinaryExpression(call, (BinaryExpression) arg);
+            }
+            else if (arg instanceof MethodCallExpression) {
+                // Matches: task <method-call>
+                maybeTransformNestedMethodCall((MethodCallExpression) arg, call);
+            }
+        }
+
+        private void transformVariableExpression(MethodCallExpression call, VariableExpression arg) {
+            // Matches: task <identifier> or task(<identifier>)
+            // Map to: task('<identifier>')
+            String taskName = arg.getText();
+            call.setMethod(new ConstantExpression("task"));
+            ArgumentListExpression args = (ArgumentListExpression) call.getArguments();
+            args.getExpressions().clear();
+            args.addExpression(new ConstantExpression(taskName));
+        }
+
+        private void transformBinaryExpression(MethodCallExpression call, BinaryExpression expression) {
+
+            // Matches: task <expression> <operator> <expression>
+
+            if (expression.getLeftExpression() instanceof VariableExpression
+                    || expression.getLeftExpression() instanceof GStringExpression
+                    || expression.getLeftExpression() instanceof ConstantExpression) {
+                // Matches: task <identifier> <operator> <expression> | task <string> <operator> <expression>
+                // Map to: passThrough(createTask('<identifier>') <operator> <expression>) | passThrough(createTask(<string>) <operator> <expression>)
+                call.setMethod(new ConstantExpression("passThrough"));
+                Expression argument;
+                if (expression.getLeftExpression() instanceof VariableExpression) {
+                    argument = new ConstantExpression(expression.getLeftExpression().getText());
+                } else {
+                    argument = expression.getLeftExpression();
+                }
+                expression.setLeftExpression(new MethodCallExpression(call.getObjectExpression(), "createTask", argument));
+            }
+            else if (expression.getLeftExpression() instanceof MethodCallExpression) {
+                // Matches: task <method-call> <operator> <expression>
+                MethodCallExpression transformedCall = new MethodCallExpression(call.getObjectExpression(),
+                        "createTask", new ArgumentListExpression());
+                boolean transformed = maybeTransformNestedMethodCall(
+                        (MethodCallExpression) expression.getLeftExpression(), transformedCall);
+                if (transformed) {
+                    // Matches: task <identifier> <arg-list> <operator> <expression>
+                    // Map to: passThrough(createTask('<identifier>', <arg-list>) <operator> <expression>)
+                    call.setMethod(new ConstantExpression("passThrough"));
+                    expression.setLeftExpression(transformedCall);
+                }
+            }
+        }
+
+        private boolean maybeTransformNestedMethodCall(MethodCallExpression nestedMethod, MethodCallExpression target) {
+            if (!(isTaskIdentifier(nestedMethod.getMethod()) && targetIsThis(nestedMethod))) {
+                return false;
             }
 
-            MethodCallExpression nestedMethod = (MethodCallExpression) args.getExpressions().get(0);
-            if (!isInstanceMethod(nestedMethod)) {
-                return;
-            }
+            // Matches: task <identifier> <arg-list> | task <string> <arg-list>
+            // Map to: createTask("<identifier>", <arg-list>) | createTask(<string>, <arg-list>)
 
             Expression taskName = nestedMethod.getMethod();
             Expression mapArg = null;
@@ -114,7 +148,8 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
                 }
             }
 
-            call.setMethod(new ConstantExpression("createTask"));
+            target.setMethod(new ConstantExpression("createTask"));
+            ArgumentListExpression args = (ArgumentListExpression) target.getArguments();
             args.getExpressions().clear();
             if (mapArg != null) {
                 args.addExpression(mapArg);
@@ -123,6 +158,30 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
             for (Expression extraArg : extraArgs) {
                 args.addExpression(extraArg);
             }
+            return true;
+        }
+
+        private boolean isInstanceMethod(MethodCallExpression call, String name) {
+            boolean isTaskMethod = call.getMethod() instanceof ConstantExpression && call.getMethod().getText().equals(
+                    name);
+            if (!isTaskMethod) {
+                return false;
+            }
+
+            if (!(call.getArguments() instanceof ArgumentListExpression)) {
+                return false;
+            }
+
+            return targetIsThis(call);
+        }
+
+        private boolean targetIsThis(MethodCallExpression call) {
+            Expression target = call.getObjectExpression();
+            return target instanceof VariableExpression && target.getText().equals("this");
+        }
+
+        private boolean isTaskIdentifier(Expression expression) {
+            return expression instanceof ConstantExpression || expression instanceof GStringExpression;
         }
     }
 }

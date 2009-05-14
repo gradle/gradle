@@ -235,6 +235,15 @@ public interface Task extends Comparable<Task> {
     Task doLast(Closure action);
 
     /**
+     * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter
+     * when executed. You can call this method from your build script using the &lt;&lt; left shift operator.</p>
+     *
+     * @param action The action closure to execute.
+     * @return This task.
+     */
+    Task leftShift(Closure action);
+
+    /**
      * <p>Removes all the actions of this task.</p>
      *
      * @return the task object this method is applied to
