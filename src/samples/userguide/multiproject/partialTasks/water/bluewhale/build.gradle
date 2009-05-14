@@ -1,6 +1,6 @@
 arctic = true
-hello.doLast { println "- I'm the largest animal that has ever lived on this planet." }
+hello << { println "- I'm the largest animal that has ever lived on this planet." }
 
-task distanceToIceberg {
+task distanceToIceberg << {
     println '20 nautical miles'
 }

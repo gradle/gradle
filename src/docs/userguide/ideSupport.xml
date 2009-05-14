@@ -23,7 +23,7 @@
     <section>
         <title>Eclipse</title>
         <para>There is a Groovy plugin for eclipse. We don't know in what state it is and how it would support Gradle.
-            In the next edition of this userguide we can hopefully write more about this.
+            In the next edition of this user guide we can hopefully write more about this.
         </para>
     </section>
     <section id='sec:using_gradle_without_ide_support'>

@@ -16,7 +16,7 @@ subprojects {
     }
 }
 
-task explodedDist(dependsOn: libs) {
+task explodedDist(dependsOn: libs) << {
     File explodedDist = mkdir(buildDir, 'explodedDist')
     subprojects.each {project ->
         project.libs.archiveTasks.each {archiveTask ->

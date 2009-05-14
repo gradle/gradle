@@ -37,11 +37,11 @@
 
 <itemizedlist>
     <listitem><para>The Gradle binaries.</para></listitem>
-    <listitem><para>The userguide (HTML and PDF).</para></listitem>
-    <listitem><para>The Javadoc HTML pages.</para></listitem>
+    <listitem><para>The user guide (HTML and PDF).</para></listitem>
+    <listitem><para>The API documentation (Javadoc and Groovydoc).</para></listitem>
     <listitem>
-        <para>Extensive samples, including the examples referenced in the userguide, along with some larger and more
-            complex builds you can use as starting points for your own build.
+        <para>Extensive samples, including the examples referenced in the user guide, along with some complete and more
+            complex builds you can use the starting point for your own build.
         </para>
     </listitem>
     <listitem>
@@ -109,7 +109,7 @@ of the <command>gradle</command> or <command>gradlew</command> script.
 <section>
 <title>Getting Help</title>
 
-<para>You might check the userguide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
+<para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
 Typing <command>gradle -h</command> prints the command line help. Typing <command>gradle -t</command> shows all the
 tasks of a Gradle build.
 </para>

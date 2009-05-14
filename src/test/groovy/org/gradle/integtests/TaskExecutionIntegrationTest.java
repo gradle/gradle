@@ -72,34 +72,43 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canDefineTasksUsingTaskMethodExpression() {
         testFile("build.gradle").writelns(
-                "a = task(withAction) << { }",
-                "b = task(nothing)",
-                "c = task(emptyOptions())",
+                "a = 'a' == 'b' ? null: task(withAction) << { }",
+                "a = task(nothing)",
+                "a = task(emptyOptions())",
                 "taskName = 'dynamic'",
-                "d = task(\"$taskName\") << { }",
-                "e = task('string') << { }",
-                "f = task(withOptions, description: 'description')",
-                "g = task(withOptionsAndAction, description: 'description') << { }",
-                "h = task(anotherWithAction).doFirst {}",
-                "task all(dependsOn: [a, b, c, d, e, f, g, h])"
+                "a = task(\"$taskName\") << { }",
+                "a = task('string')",
+                "a = task('stringWithAction') << { }",
+                "a = task('stringWithOptions', description: 'description')",
+                "a = task('stringWithOptionsAndAction', description: 'description') << { }",
+                "a = task(withOptions, description: 'description')",
+                "a = task(withOptionsAndAction, description: 'description') << { }",
+                "a = task(anotherWithAction).doFirst {}",
+                "task all(dependsOn: tasks.all)"
         );
         inTestDirectory().withTasks("all").run().assertTasksExecuted(":anotherWithAction", ":dynamic", ":emptyOptions",
-                ":nothing", ":string", ":withAction", ":withOptions", ":withOptionsAndAction", ":all");
+                ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
+                ":withAction", ":withOptions", ":withOptionsAndAction", ":all");
     }
 
-    @Test @Ignore
+    @Test
     public void canConfigureTasksWhenTheyAreDefined() {
         testFile("build.gradle").writelns(
                 "import org.gradle.integtests.TestTask",
+                "task withDescription { description = 'value' }",
                 "task asStatement(type: TestTask) { property = 'value' }",
                 "task \"dynamic\"(type: TestTask) { property = 'value' }",
-                "v = task(expression, type: TestTask) { property = 'value' }",
+                "v = task(asExpression, type: TestTask) { property = 'value' }",
                 "task(postConfigure, type: TestTask).configure { property = 'value' }",
-                "[asStatement, dynamic, expression, postConfigure].each { ",
-                "assertEquals('value', it.property)",
-                "}"
+                "[asStatement, dynamic, asExpression, postConfigure].each { ",
+                "    assertEquals('value', it.property)",
+                "}",
+                "[withDescription].each {",
+                "    assertEquals('value', it.description)",
+                "}",
+                "task all(dependsOn: tasks.all)"
         );
-        inTestDirectory().withTasks("configured").run();
+        inTestDirectory().withTasks("all").run();
     }
 
     @Test @Ignore
@@ -120,7 +129,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "import org.gradle.integtests.TaskExecutionIntegrationTest",
-                "task a(dependsOn: 'b') { task ->",
+                "task a(dependsOn: 'b') << { task ->",
                 "    assertTrue(build.taskGraph.hasTask(task))",
                 "    assertTrue(build.taskGraph.hasTask(':a'))",
                 "    assertTrue(build.taskGraph.hasTask(a))",
@@ -150,8 +159,8 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "build.taskGraph.whenReady { assertFalse(project.hasProperty('graphReady')); graphReady = true }",
-                "task a { task -> project.executedA = task }",
-                "task b { ",
+                "task a << { task -> project.executedA = task }",
+                "task b << { ",
                 "    assertSame(a, project.executedA);",
                 "    assertTrue(build.taskGraph.hasTask(':a'))",
                 "}",

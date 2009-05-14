@@ -495,7 +495,7 @@
                 its child projects (e.g. code generation). In this case the parent project would call the
                 <literal>childrenDependOnMe</literal>
                 method to create an execution dependency for the child projects. We might add an example for this in a
-                future version of the userguide.
+                future version of the user guide.
             </para>
         </section>
     </section>
@@ -579,7 +579,7 @@
         <title>Property and Method Inheritance</title>
         <para>Properties and methods declared in a project are inherited to all its subprojects. This is an alternative
             to configuration injection. But we think that the model of inheritance does not reflect the problem space of
-            multi-project builds very well. In a future edition of this userguide we might write more about this.
+            multi-project builds very well. In a future edition of this user guide we might write more about this.
         </para>
         <para>Method inheritance might be interesting to use as Gradle's
             <emphasis>Configuration Injection</emphasis>

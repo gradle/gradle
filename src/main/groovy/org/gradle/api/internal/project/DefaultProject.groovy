@@ -112,23 +112,37 @@ class DefaultProject extends AbstractProject {
     }
 
     /**
-     * This is called by the task creation DSL. Need to find a cleaner way to do this...
+     * Adds a task with the given name. This is called by the task creation DSL.
      */
     public Task task(String task) {
         tasks.add(task)
     }
 
     /**
-     * This is called by the task creation DSL. Need to find a cleaner way to do this...
+     * Adds a task with the given name and configure closure. This is called by the task creation DSL.
+     */
+    public Task task(String task, Closure configureClosure) {
+        tasks.add(task).configure(configureClosure)
+    }
+
+    /**
+     * Adds a task with the given name and options. This is called by the task creation DSL.
      */
     public Task task(Map<String, ?> options, String task) {
         tasks.add(options + [name: task])
     }
 
     /**
+     * Adds a task with the given name, options and configure closure. This is called by the task creation DSL.
+     */
+    public Task task(Map<String, ?> options, String task, Closure configureClosure) {
+        tasks.add(options + [name: task]).configure(configureClosure)
+    }
+
+    /**
      * This is called by the task creation DSL. Need to find a cleaner way to do this...
      */
-    public Task passThrough(Task task) {
-        task
+    public Object passThrough(Object object) {
+        object
     }
 }

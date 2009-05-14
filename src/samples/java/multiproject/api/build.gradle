@@ -18,8 +18,7 @@ dependencies {
 // Just a smoke test that using this option does not lead to any exception
 compile.options.compilerArgs = [[value: '-Xlint:unchecked']]
 
-task spiJar(type: Jar)
-spiJar {
+task spiJar(type: Jar) {
     appendix = 'spi'
     fileSet() {
         include('org/gradle/api/')
@@ -31,8 +30,7 @@ artifacts {
 }
 
 // START SNIPPET dists
-task dist(type: Zip)
-dist {
+task dist(type: Zip) {
     dependsOn configurations.runtime.buildDependencies
     files configurations.runtime
     fileSet dir: 'src/dist'

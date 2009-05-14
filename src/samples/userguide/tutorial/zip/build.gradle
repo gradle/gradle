@@ -2,8 +2,7 @@ usePlugin 'java'
 archivesBaseName = 'myArchiveName' // defaults to project.name
 version = 1.0
 
-task myZip(type: Zip)
-myZip {
+task myZip(type: Zip) {
     fileSet(dir: 'somedir')
 }
 

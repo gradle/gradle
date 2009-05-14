@@ -1,5 +1,9 @@
 println 'This is executed during the configuration phase.'
 
-task test {
+task configured {
+    println 'This is also executed during the configuration phase.'
+}
+
+task test << {
     println 'This is executed during the execution phase.'
 }

@@ -1,9 +1,9 @@
 allprojects {
-    task hello {task -> println "I'm $task.project.name" }
+    task hello << {task -> println "I'm $task.project.name" }
 }
 subprojects {
-    hello.doLast {println "- I depend on water"}
+    hello << {println "- I depend on water"}
 }
 configure(subprojects.findAll {it.name != 'tropicalFish'}) {
-    hello.doLast {println '- I love to spend time in the arctic waters.'}
+    hello << {println '- I love to spend time in the arctic waters.'}
 }

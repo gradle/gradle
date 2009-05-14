@@ -48,7 +48,7 @@ import java.util.Set;
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
  * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
- * {@link #doLast(groovy.lang.Closure)}.</p>
+ * {@link #doLast(groovy.lang.Closure)}  or using the left-shift &lt;&lt; operator.</p>
  *
  * There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a

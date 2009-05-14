@@ -1,9 +1,9 @@
 allprojects {
-    task hello {task -> println "I'm $task.project.name" }
+    task hello << {task -> println "I'm $task.project.name" }
 }
 subprojects {
-    hello.doLast {println "- I depend on water"}
+    hello << {println "- I depend on water"}
 }
-project(':bluewhale').hello.doLast {
+project(':bluewhale').hello << {
     println "I'm the largest animal that has ever lived on this planet."
 }

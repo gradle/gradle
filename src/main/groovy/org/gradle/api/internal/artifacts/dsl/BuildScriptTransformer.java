@@ -49,16 +49,16 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
             }
 
             ArgumentListExpression args = (ArgumentListExpression) call.getArguments();
-            if (args.getExpressions().size() == 0 || args.getExpressions().size() > 2) {
+            if (args.getExpressions().size() == 0 || args.getExpressions().size() > 3) {
                 return;
             }
 
-            // Matches: task <arg> or task <arg> <arg>
+            // Matches: task <arg>{1, 3}
 
-            if (args.getExpressions().size() == 2) {
+            if (args.getExpressions().size() > 1) {
                 if (args.getExpression(0) instanceof MapExpression && args.getExpression(1) instanceof VariableExpression) {
-                    // Matches: task <name-value-pairs>, <identifier>
-                    // Map to: task(<name-value-pairs>, '<identifier>')
+                    // Matches: task <name-value-pairs>, <identifier>, <arg>?
+                    // Map to: task(<name-value-pairs>, '<identifier>', <arg>?)
                     args.getExpressions().set(1, new ConstantExpression(args.getExpression(1).getText()));
                 }
                 return;
@@ -99,7 +99,7 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
                     || expression.getLeftExpression() instanceof GStringExpression
                     || expression.getLeftExpression() instanceof ConstantExpression) {
                 // Matches: task <identifier> <operator> <expression> | task <string> <operator> <expression>
-                // Map to: passThrough(createTask('<identifier>') <operator> <expression>) | passThrough(createTask(<string>) <operator> <expression>)
+                // Map to: passThrough(task('<identifier>') <operator> <expression>) | passThrough(task(<string>) <operator> <expression>)
                 call.setMethod(new ConstantExpression("passThrough"));
                 Expression argument;
                 if (expression.getLeftExpression() instanceof VariableExpression) {
@@ -107,17 +107,17 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
                 } else {
                     argument = expression.getLeftExpression();
                 }
-                expression.setLeftExpression(new MethodCallExpression(call.getObjectExpression(), "createTask", argument));
+                expression.setLeftExpression(new MethodCallExpression(call.getObjectExpression(), "task", argument));
             }
             else if (expression.getLeftExpression() instanceof MethodCallExpression) {
                 // Matches: task <method-call> <operator> <expression>
                 MethodCallExpression transformedCall = new MethodCallExpression(call.getObjectExpression(),
-                        "createTask", new ArgumentListExpression());
+                        "task", new ArgumentListExpression());
                 boolean transformed = maybeTransformNestedMethodCall(
                         (MethodCallExpression) expression.getLeftExpression(), transformedCall);
                 if (transformed) {
                     // Matches: task <identifier> <arg-list> <operator> <expression>
-                    // Map to: passThrough(createTask('<identifier>', <arg-list>) <operator> <expression>)
+                    // Map to: passThrough(task('<identifier>', <arg-list>) <operator> <expression>)
                     call.setMethod(new ConstantExpression("passThrough"));
                     expression.setLeftExpression(transformedCall);
                 }
@@ -130,7 +130,7 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
             }
 
             // Matches: task <identifier> <arg-list> | task <string> <arg-list>
-            // Map to: createTask("<identifier>", <arg-list>) | createTask(<string>, <arg-list>)
+            // Map to: task("<identifier>", <arg-list>) | task(<string>, <arg-list>)
 
             Expression taskName = nestedMethod.getMethod();
             Expression mapArg = null;
@@ -148,7 +148,7 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
                 }
             }
 
-            target.setMethod(new ConstantExpression("createTask"));
+            target.setMethod(new ConstantExpression("task"));
             ArgumentListExpression args = (ArgumentListExpression) target.getArguments();
             args.getExpressions().clear();
             if (mapArg != null) {

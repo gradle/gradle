@@ -1,8 +1,8 @@
-task taskX {
+task taskX << {
     println 'taskX'
 }
 
-task taskY {
+task taskY << {
     println 'taskY'
 }
 

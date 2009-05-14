@@ -18,11 +18,11 @@ stopKey = 'foo'
 stopPort = 9451
 httpPort = 8163
 
-task runTest(dependsOn: jettyRun) {
+task runTest(dependsOn: jettyRun) << {
     callServlet()
 }
 
-task runWarTest(dependsOn: jettyRunWar) {
+task runWarTest(dependsOn: jettyRunWar) << {
     callServlet()
 }
 

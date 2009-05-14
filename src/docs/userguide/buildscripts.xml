@@ -1,11 +1,11 @@
 <chapter id='tutorial_using_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Build Script Basics</title>
-    <para>You run a build using the <command>gradle</command> command. When run, <command>gradle</command>
-        normally looks for a file called <filename>build.gradle</filename> in the current directory.
+    <para>You run a build using the <command>gradle</command> command. When run, <command>gradle</command> looks for a
+        file called <filename>build.gradle</filename> in the current directory.
         <footnote><para>There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>)</para></footnote>
         We call this <filename>build.gradle</filename> file a <firstterm>build script</firstterm>, although strictly speaking it is
-        a build configuration script, as we will see later. In Gradle the location of the build script file defines a
-        project. The name of the directory containing the build script is used as the name of the project.
+        a build configuration script, as we will see later. In Gradle the build script file defines a project. The name
+        of the directory containing the build script is used as the name of the project.
     </para>
     <section>
         <title>Hello World</title>
@@ -19,11 +19,11 @@
             <userinput>gradle -q hello</userinput>:
         </para>
         <tip>
-            <title>Why do you use <option>-q</option>?</title>
+            <title>What does <option>-q</option> do?</title>
             <para>Most of the examples in this user guide are run with the <option>-q</option> command-line option.
                 This suppresses Gradle's log messages, so that only the output of the tasks is shown. You don't need to
-                use this option if you don't want. See <xref linkend="logging"/> for more details about the command-line options which
-                affect Gradle's output.
+                use this option if you don't want. See <xref linkend="logging"/> for more details about the command-line
+                options which affect Gradle's output.
             </para>
         </tip>
         <sample id="hello" dir="userguide/tutorial/hello">
@@ -31,7 +31,8 @@
         </sample>
         <para>What's going on here? This build file defines a single task, called <literal>hello</literal>, and
             adds an action to it. When you run <userinput>gradle hello</userinput>, Gradle executes the
-            <literal>hello</literal> task, which in turn executes the action you've provided.
+            <literal>hello</literal> task, which in turn executes the action you've provided. The action is simply a
+            closure containing some Groovy code to execute.
         </para>
         <para>If you think this looks similar to Ant's targets, well, you are right. Gradle tasks are the equivalent to
             Ant targets. But as you will see, they are much more powerful. We have used a different terminology to Ant
@@ -209,6 +210,7 @@
             <sourcefile file="build.gradle"/>
             <output args="-q distribution"/>
         </sample>
+        <para>Now let's try running the <literal>release</literal> task:</para>
         <sample id="configByDag" dir="userguide/tutorial/configByDag">
             <output args="-q release"/>
         </sample>

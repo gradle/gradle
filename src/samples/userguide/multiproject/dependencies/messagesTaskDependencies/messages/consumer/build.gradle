@@ -1,3 +1,3 @@
-task consume(dependsOn: ':producer:produce') {
+task consume(dependsOn: ':producer:produce') << {
     println "Consuming message: " +  System.getProperty('org.gradle.message')
 }

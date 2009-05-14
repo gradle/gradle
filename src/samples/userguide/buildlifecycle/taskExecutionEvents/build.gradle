@@ -1,6 +1,6 @@
 task ok
 
-task broken(dependsOn: ok) {
+task broken(dependsOn: ok) << {
     throw new RuntimeException('broken')
 }
 

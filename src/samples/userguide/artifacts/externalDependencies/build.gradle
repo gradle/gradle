@@ -13,7 +13,7 @@ dependencies {
 //END SNIPPET define-dependency
 
 //START SNIPPET use-configuration
-task listJars {
+task listJars << {
     configurations.compile.each { File file -> println file.name }
 }
 //END SNIPPET use-configuration
