@@ -45,6 +45,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.*;
 
+import groovy.lang.Closure;
+
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
     private static final String CONF_NAME = "confName";
@@ -559,6 +561,18 @@ public class DefaultConfigurationTest {
         assertThatCopiedConfigurationHasElementsAndName(copiedConfiguration, expectedDependenciesToCopy);
     }
 
+    @Test
+    public void copyWithClosure() {
+        prepareConfigurationForCopyTest();
+        Set<Dependency> expectedDependenciesToCopy = new HashSet(configuration.getDependencies());
+        configuration.addDependency(HelperUtil.createDependency("group3", "name3", "version3"));
+
+        Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
+        Configuration copiedConfiguration = configuration.copy(specClosure);
+
+        assertThatCopiedConfigurationHasElementsAndName(copiedConfiguration, expectedDependenciesToCopy);
+    }
+
     private void prepareConfigurationForCopyTest() {
         configuration.setVisible(false);
         configuration.setTransitive(false);
@@ -594,6 +608,18 @@ public class DefaultConfigurationTest {
 
     @Test
     public void copyRecursiveWithSpec() {
+        prepareConfigurationForCopyRecursiveTest();
+        Set<Dependency> expectedDependenciesToCopy = new HashSet(configuration.getAllDependencies());
+        configuration.addDependency(HelperUtil.createDependency("group3", "name3", "version3"));
+
+        Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
+        Configuration copiedConfiguration = configuration.copyRecursive(specClosure);
+
+        assertThatCopiedConfigurationHasElementsAndName(copiedConfiguration, expectedDependenciesToCopy);
+    }
+
+    @Test
+    public void copyRecursiveWithClosure() {
         prepareConfigurationForCopyRecursiveTest();
         Set<Dependency> expectedDependenciesToCopy = new HashSet(configuration.getAllDependencies());
         configuration.addDependency(HelperUtil.createDependency("group3", "name3", "version3"));

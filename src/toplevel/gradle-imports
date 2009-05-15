@@ -1,12 +1,16 @@
 import org.gradle.*
 import org.gradle.util.*
 import org.gradle.api.*
+import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.dsl.*
+import org.gradle.api.artifacts.specs.*
 import org.gradle.api.dependencies.*
-import org.gradle.api.logging.*
 import org.gradle.api.execution.*
+import org.gradle.api.logging.*
 import org.gradle.api.initialization.*
 import org.gradle.api.invocation.*
 import org.gradle.api.plugins.*
+import org.gradle.api.specs.*
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.*
 import org.gradle.api.tasks.compile.*

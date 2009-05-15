@@ -77,3 +77,25 @@ dependencies {
 	runtime groovy, hibernate
 }
 //END SNIPPET list-grouping
+
+//START SNIPPET configuration-copy
+copiedConf = configurations.runtime.copy()
+
+copiedConf = configurations.runtime.copyRecursive()
+
+copiedConf = configurations.runtime.copy { dep ->
+    dep.name.startsWith("spring") && dep.version == "2.5"    
+}
+
+copiedConf = configurations.runtime.copyRecursive(DependencySpecs.type(Type.PROJECT))
+//END SNIPPET configuration-copy
+
+//START SNIPPET configuration-get-dependencies
+deps = configurations.runtime.dependencies
+
+deps = configurations.runtime.allDependencies
+
+deps = configurations.runtime.allDependencies.findAll { dep ->
+    dep.name.startsWith('spring')
+}
+//END SNIPPET configuration-get-dependencies

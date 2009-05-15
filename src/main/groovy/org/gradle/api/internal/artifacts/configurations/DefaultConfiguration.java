@@ -16,9 +16,12 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.WrapUtil;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.io.File;
 import java.util.*;
+
+import groovy.lang.Closure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements Configuration {
     private final String name;
@@ -408,6 +411,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             copiedConfiguration.addDependency(dependency.copy());
         }
         return copiedConfiguration;
+    }
+
+    public Configuration copy(Closure dependencySpec) {
+        return copy((Spec<Dependency>) DefaultGroovyMethods.asType(dependencySpec, Spec.class));
+    }
+
+    public Configuration copyRecursive(Closure dependencySpec) {
+        return copyRecursive((Spec<Dependency>) DefaultGroovyMethods.asType(dependencySpec, Spec.class));
     }
 
     private void throwExceptionIfNotInUnresolvedState() {

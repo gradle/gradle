@@ -241,11 +241,7 @@
             </para>
         </section>
         <section>
-            <title>More about dependencies</title>
-            <para>To acess and work with the dependencies assigned to a configuration, you can use the API of the
-                configuration object. See the javadoc:
-                <apilink class='org.gradle.api.artifacts.Configuration'/>.
-            </para>
+            <title>Optional Attributes</title>
             <para id="para:dependencies_with_empty_attributes">All attributes for a dependency are optional, except the name. It depends on the repository type,
                 which information is need for actually finding the dependencies in the repopsitory.
                 See <xref linkend='sec:repositories'/>. If you work for example with Maven repositories, you need to define the
@@ -324,6 +320,42 @@
                     </td>
                 </tr>
             </table>
+        </section>
+        <section>
+            <title>Working with dependencies</title>
+            <para>To get the library files of the dependencies of a configuration you can do:
+            </para>
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
+            </sample>
+            <para>Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
+                Gradle does not provide such a functionality in the current release (expect it to be available in the next release).
+                What you can do is to use a copy of a configuration. 
+            </para>
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="configuration-copy"/>
+            </sample>
+            <para>Now you can resolve this copied configuration. You must be aware that the resolve of the copied configuration is often
+            but not always the same as the resolve of the subset of the source configuration. In case of version conflicts between
+            dependencies of the subset and dependencies not belonging to the subset the resolve result might be different. The
+                <code>copy</code> method copies only the dependencies belonging explicitly to the configuration. The
+                <code>copyRecursive</code> methode copies all the dependencies, including the dependencies from extended
+                configurations.
+            </para>
+            <para>Once a configuration is resolved it is immutable. Changing its state or the state of one of its dependencies
+                will cause an exception.
+            </para>
+            <para>You can use the configuration to access the declared dependencies or a subset of those:
+            </para>
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="configuration-get-dependencies"/>
+            </sample>
+            <para><code>dependencies</code> returns only the dependencies belonging explicitly to the configuration.
+                <code>allDependencies</code> includes the dependencies from extended
+                configurations. As said above, in the next release of Gradle you will be able to resolve configurations
+                with dependency subsets. To learn more about the API of the configuration class see the javadoc:
+                <apilink class='org.gradle.api.artifacts.Configuration'/>.
+            </para>
         </section>
     </section>
     <section id='sec:repositories'>

@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 
+import groovy.lang.Closure;
+
 /**
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
  */
@@ -310,4 +312,20 @@ public interface Configuration extends FileCollection {
      * @return copy of this configuration
      */
     Configuration copyRecursive(Spec<Dependency> dependencySpec);
+
+    /**
+     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}
+     * 
+     * @param dependencySpec filtering requirements
+     * @return copy of this configuration
+     */
+    Configuration copy(Closure dependencySpec);
+
+    /**
+     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)} 
+     *
+     * @param dependencySpec filtering requirements
+     * @return copy of this configuration
+     */
+    Configuration copyRecursive(Closure dependencySpec);
 }
