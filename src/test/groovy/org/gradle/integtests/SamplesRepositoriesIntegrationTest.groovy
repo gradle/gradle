@@ -35,7 +35,7 @@ class SamplesRepositoriesIntegrationTest {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.
         File projectDir = new File(dist.samplesDir, "/userguide/artifacts/defineRepository")
-        String output = executer.inDirectory(projectDir).withTasks('lookup').run().getOutput()
+        String output = executer.inDirectory(projectDir).withQuietLogging().withTasks('lookup').run().getOutput()
         assertThat(output, equalTo(String.format("localRepository%nlocalRepository%n")))
     }
 }
