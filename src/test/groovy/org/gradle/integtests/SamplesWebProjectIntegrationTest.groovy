@@ -25,7 +25,7 @@ import org.junit.Test
  */
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesWebProjectIntegrationTest {
-    static final String WEB_PROJECT_NAME = 'web-project'
+    static final String WEB_PROJECT_NAME = 'customised'
 
     // Injected by test runner
     private GradleDistribution dist;
@@ -34,7 +34,7 @@ class SamplesWebProjectIntegrationTest {
     @Test
     public void webProjectSamples() {
         String gradleHome = dist.gradleHomeDir.absolutePath
-        File webProjectDir = new File(dist.samplesDir, WEB_PROJECT_NAME)
+        File webProjectDir = new File(dist.samplesDir, "webApplication/$WEB_PROJECT_NAME")
         executer.inDirectory(webProjectDir).withTasks('clean', 'libs').run()
         String unjarPath = "$webProjectDir/build/unjar"
         AntBuilder ant = new AntBuilder()

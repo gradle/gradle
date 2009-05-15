@@ -1,5 +1,9 @@
+// START SNIPPET use-war-plugin
 usePlugin 'war'
+// END SNIPPET use-war-plugin
+// START SNIPPET use-jetty-plugin
 usePlugin 'jetty'
+// END SNIPPET use-jetty-plugin
 
 repositories {
     mavenCentral()

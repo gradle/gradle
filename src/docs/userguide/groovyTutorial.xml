@@ -23,7 +23,7 @@
     </para>
 
     <section>
-        <title>Using the Groovy Plugin</title>
+        <title>A basic Groovy project</title>
 
         <para>Let's look at an example. To use the Groovy plugin, add the following to your build file:</para>
         <sample id="groovyQuickstart" dir="groovy/quickstart" includeLocation="true">
@@ -47,18 +47,19 @@
         <sample id="groovyQuickstart" dir="groovy/quickstart">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>Running <userinput>gradle libs</userinput> will compile, test and JAR your project. You can find out
-            more about the Groovy Plugin in <xref linkend="groovy_plugin"/>.</para>
+        <para>Running <userinput>gradle libs</userinput> will compile, test and JAR your project.</para>
     </section>
 
     <section>
         <title>Summary</title>
         <para>This chapter describes a very simple Groovy project. Usually, a real project will require more than this.
             Because a Groovy project <emphasis>is</emphasis> a Java project, whatever you can do with a Java project,
-            you can also do with a Groovy project.
+            you can also do with a Groovy project.  You can find out more about the Groovy Plugin in <xref linkend="groovy_plugin"/>.
         </para>
-        <para>Finally, you can find more sample projects in the <filename>samples/groovy</filename> directory in the
-            Gradle distribution.</para>
+        <para>
+            You can find out more about the Groovy plugin in <xref linkend="groovy_plugin"/>, and you can find more
+            sample Groovy projects in the <filename>samples/groovy</filename> directory in the Gradle distribution.
+        </para>
     </section>
 
 </chapter>

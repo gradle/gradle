@@ -95,7 +95,7 @@
         <title>Customizing</title>
         <para>Here an example with the most important customization options:
         </para>
-        <sample id="webproject" dir="web-project">
+        <sample id="webproject" dir="webApplication/customised">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Of course one can configure the different file-sets with a closure to define excludes and includes.

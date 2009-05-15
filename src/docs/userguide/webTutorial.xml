@@ -20,13 +20,46 @@
         <para>This chapter is a work in progress.</para>
     </note>
 
-    <para>This chapter introduces some of the Gradle's support for web applications.</para>
+    <para>This chapter introduces some of the Gradle's support for web applications. Gradle provides two plugins for web
+        application developement: the War plugin and the Jetty plugin. The War plugin extends the Java plugin to build a
+        WAR file for your project. The Jetty plugin extends the War plugin to allow you to deploy your web application
+        to an embedded Jetty web container.
+    </para>
 
     <section>
-        <title>Building A WAR</title>
+        <title>Building A WAR file</title>
+        <para>To build a WAR file, you apply the War plugin to your project:</para>
+        <sample id="webQuickstart" dir="webApplication/quickstart" includeLocation="true">
+            <sourcefile file="build.gradle" snippet="use-war-plugin"/>
+        </sample>
+        <para>This also applies the Java plugin to your project. Running <userinput>gradle libs</userinput> will compile,
+            test and WAR your project. Gradle will look for the source files to include in the WAR file in
+            <filename>src/main/webapp</filename>. Your compiled classes, and their runtime dependencies are also
+            included in the WAR file.
+        </para>
+        <tip><title>Groovy Web Applications</title><para>You can combine multiple plugins in a single project, so you
+            can use the War and Groovy plugins together to build a Groovy based web application. The appropriate groovy
+            libraries will be added to the WAR file for you.</para></tip>
     </section>
 
     <section>
         <title>Running Your Web Application</title>
+        <para>To run your web application, you apply the Jetty plugin to your project:</para>
+        <sample id="webQuickstart" dir="webApplication/quickstart">
+            <sourcefile file="build.gradle" snippet="use-jetty-plugin"/>
+        </sample>
+        <para>This also applies the War plugin to your project. Running <userinput>gradle jettyRun</userinput> will
+            run your web application in an embedded Jetty web container. Running <userinput>gradle jettyRunWar</userinput>
+            will build and test the WAR file, and then run it in an embedded web container.
+        </para>
+        <para>TODO: which url, configure port, uses source files in place and can edit your files and reload.</para>
+    </section>
+
+    <section>
+        <title>Summary</title>
+        <para>You can find out more about the War plugin in <xref linkend="war_plugin"/> and the Jetty plugin in
+            <xref linkend="jetty_plugin"/>. You can find more sample Java projects in the
+            <filename>samples/webApplication</filename> directory in the Gradle distribution.
+        </para>
     </section>
 </chapter>

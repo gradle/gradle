@@ -5,11 +5,7 @@ repositories {
 //START SNIPPET define-dependency
 configurations {
     compile
-//END SNIPPET define-dependency
-    runtime
-//START SNIPPET define-dependency
 }
-//END SNIPPET define-dependency
 
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
@@ -21,6 +17,10 @@ task listJars << {
     configurations.compile.each { File file -> println file.name }
 }
 //END SNIPPET use-configuration
+
+configurations {
+    runtime
+}
 
 //START SNIPPET module-dependencies
 dependencies {

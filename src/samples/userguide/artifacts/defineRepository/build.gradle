@@ -31,7 +31,7 @@ repositories {
     flatDir dirs: ['lib1', 'lib2']
 //START SNIPPET flat-dir
 }
-//START SNIPPET flat-dir
+//END SNIPPET flat-dir
 //END SNIPPET flat-dir-multi
 
 

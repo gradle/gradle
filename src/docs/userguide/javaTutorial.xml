@@ -27,9 +27,9 @@
             <filename>src/test/java</filename>. In addition, any files under <filename>src/main/resources</filename>
             will be included in the JAR file as resources, and any files under <filename>src/test/resources</filename>
             will be included in the classpath used to run the tests. All output files will end up under the
-            <filename>build</filename> directory.
+            <filename>build</filename> directory, with the JAR file ending up in the <filename>build/libs</filename>
+            directory.
         </para>
-        <para>You can find out more about the Java plugin in <xref linkend="java_plugin"/>.</para>
 
         <section>
             <title>External Dependencies</title>
@@ -179,7 +179,9 @@
             is configurable. For example, you can change where Gradle looks Java source files, or add extra tasks, or
             you can change what any task actually does. Again, you will see how this works in later chapters.
         </para>
-        <para>Finally, you can find more sample projects in the <filename>samples/java</filename> directory in the
-            Gradle distribution.</para>
+        <para>
+            You can find out more about the Java plugin in <xref linkend="java_plugin"/>, and you can find more sample
+            Java projects in the <filename>samples/java</filename> directory in the Gradle distribution.
+        </para>
     </section>
 </chapter>

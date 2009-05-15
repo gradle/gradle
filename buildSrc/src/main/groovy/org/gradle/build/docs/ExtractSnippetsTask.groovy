@@ -44,8 +44,8 @@ public class ExtractSnippetsTask extends DefaultTask {
             }
 
             Map writers = [
-                    0: new SnippetWriter(destFile).open(),
-                    1: new SnippetWriter(new File(snippetsDir, name)).open()
+                    0: new SnippetWriter(name, destFile).start(),
+                    1: new SnippetWriter(name, new File(snippetsDir, name)).start()
             ]
             Pattern startSnippetPattern = Pattern.compile('\\s*//\\s*START\\s+SNIPPET\\s+(\\S+)\\s*')
             Pattern endSnippetPattern = Pattern.compile('\\s*//\\s*END\\s+SNIPPET\\s+(\\S+)\\s*')
@@ -60,15 +60,15 @@ public class ExtractSnippetsTask extends DefaultTask {
                             String snippetName = m.group(1)
                             if (!writers[snippetName]) {
                                 File snippetFile = new File(snippetsDir, "$name-$snippetName")
-                                writers.put(snippetName, new SnippetWriter(snippetFile))
+                                writers.put(snippetName, new SnippetWriter("Snippet $snippetName in $name", snippetFile))
                             }
-                            writers[snippetName].open()
+                            writers[snippetName].start()
                             return
                         }
                         m = endSnippetPattern.matcher(line)
                         if (m.matches()) {
                             String snippetName = m.group(1)
-                            writers[snippetName].close()
+                            writers[snippetName].end()
                             return
                         }
                         writers.values().each {SnippetWriter w ->
@@ -88,14 +88,19 @@ public class ExtractSnippetsTask extends DefaultTask {
 private class SnippetWriter {
 
     private final File dest
+    private final String displayName
     private boolean appendToFile
     private PrintWriter writer
 
-    def SnippetWriter(File dest) {
+    def SnippetWriter(String displayName, File dest) {
         this.dest = dest
+        this.displayName = displayName
     }
 
-    def open() {
+    def start() {
+        if (writer) {
+            throw new RuntimeException("$displayName is already started.")
+        }
         dest.parentFile.mkdirs()
         writer = new PrintWriter(dest.newWriter(appendToFile), false)
         appendToFile = true
@@ -106,6 +111,13 @@ private class SnippetWriter {
         if (writer) {
             writer.println(line)
         }
+    }
+
+    def end() {
+        if (!writer) {
+            throw new RuntimeException("$displayName was not started.")
+        }
+        close()
     }
 
     def close() {

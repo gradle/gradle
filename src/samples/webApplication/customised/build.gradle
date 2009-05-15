@@ -47,7 +47,7 @@ task runWarTest(dependsOn: jettyRunWar) << {
 
 private void callServlet() {
     HttpClient client = new HttpClient()
-    GetMethod method = new GetMethod("http://localhost:$httpPort/web-project/hello")
+    GetMethod method = new GetMethod("http://localhost:$httpPort/customised/hello")
     client.executeMethod(method)
     new File(buildDir, "servlet-out.txt").write(method.getResponseBodyAsString())
     jettyStop.execute()
