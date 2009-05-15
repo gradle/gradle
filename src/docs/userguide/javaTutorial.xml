@@ -88,6 +88,14 @@
             </sample>
             <para>To publish the JAR file, run <userinput>gradle uploadMaster</userinput>.</para>
         </section>
+        
+		<section>
+            <title>Creating Eclipse project</title>
+            <para>
+                To import your project into Eclipse, simply run <userinput>gradle eclipse</userinput>. More on eclipse
+                task can be found in <xref linkend="sec:eclipse"/>.
+            </para>
+        </section>
 
         <section>
             <title>Summary</title>
