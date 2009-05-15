@@ -1,5 +1,6 @@
 usePlugin 'java'
 
+// START SNIPPET file-system-resolver
 repositories {
     add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
         name = 'repo'
@@ -9,6 +10,7 @@ repositories {
         checkmodified = true
     }
 }
+// END SNIPPET file-system-resolver
 
 // START SNIPPET exclude-dependencies
 configurations {

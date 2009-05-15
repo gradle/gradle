@@ -72,7 +72,7 @@
         <sample id="taskListReport" dir="userguide/tutorial/projectReports">
             <output args="-q --tasks"/>
         </sample>
-        <para>Running <userinput>gradle --dependencies</userinput>
+        <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
             gives you a list of the dependencies of the build, broken down by project. This report shows the
             configurations of each project. For each configuration, the direct and transitive dependencies of that
             configuration are shown. Below is an example of this report:

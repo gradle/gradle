@@ -31,7 +31,7 @@ class SamplesRepositoriesIntegrationTest {
     private GradleExecuter executer;
 
     @Test
-    public void checkExcludeAndClassifier() {
+    public void repositoryNotations() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.
         File projectDir = new File(dist.samplesDir, "/userguide/artifacts/defineRepository")

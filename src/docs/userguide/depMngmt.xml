@@ -89,17 +89,16 @@
             <para>Both approaches rely on descriptor xml files, which contains information about the dependencies of a
                 particular jar. Both also use repositories where the actual jars are placed together with there
                 descriptor files. And both offer resolution for conflicting jar versions in one form or the other. Yet
-                we think the differences of both approaches are
-                <emphasis>gigantic</emphasis>
+                we think the differences of both approaches are significant
                 in terms of flexibility and maintainability. Beside this, Ivy fully supports the Maven dependency
                 handling. So with Ivy you have access to both worlds. We like Ivy very much. Gradle uses it under the
                 hood for its dependency management. Ivy is most often used via Ant and XML descriptors. But it also has
-                a very good API. We integrate deeply with Ivy via its API. This enables us to build new concepts on top
+                an API. We integrate deeply with Ivy via its API. This enables us to build new concepts on top
                 of Ivy which Ivy does not offer itself.
             </para>
             <para>Right now there is a lot of movement in the field of dependency handling. There is OSGi and there is
-                JSR-277. OSGi is available already, JSR-277 is supposed to be shipped with Java 7. These technologies
-                deal also with a painful problem which is neither solved by Maven nor by Ivy. This is enabling different
+                JSR-294. OSGi is available already, JSR-294 is supposed to be shipped with Java 7. These technologies
+                deal, amongst many other things, also with a painful problem which is neither solved by Maven nor by Ivy. This is enabling different
                 versions of the same jar to be used at runtime.
             </para>
         </section>
@@ -124,7 +123,7 @@
                 drivers to be shipped with your distribution). The configurations are managed by a
                 <emphasis>configurations</emphasis> object. The closure you pass to the configurations object is applied
                 against its api. To learn more about this API have a look at the javadoc:
-                <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>. 
+                <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>.
             </para>
         </section>
         <section id='sub:module_dependencies'>
@@ -234,7 +233,7 @@
                 an exclude for a particular configuration, the excluded transitive dependency will be filtered for all
                 dependencies when resolving this configuration or any inheriting configuration.
                 If you want to exclude a transitive dependency from all your
-                configurations you can use the Groovy spread-dot operator to express this in a concise way, as shown in the example. 
+                configurations you can use the Groovy spread-dot operator to express this in a concise way, as shown in the example.
                 When defining an exclude, you can
                 specify either only the organization or only the module name or both.
                 Have also a look at the javadoc of <apilink class="org.gradle.api.artifacts.Dependency"/> and
@@ -256,65 +255,76 @@
             <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
                 <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
             </sample>
+            <para id="para:notation_collections">You can also assign collections or arrays of dependency notations to a configuration:
+            </para>
+            <sample id="listGrouping" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="list-grouping"/>
+            </sample>
         </section>
-    </section>
-    <section id='sec:java_plugin_and_dependency_management'>
-        <title>Java Plugin and Dependency Management</title>
-        <para>The Java Plugin preconfigures the dependency management. It adds a set of configurations and
-            assign those configurations to tasks like <literal>compile</literal> and <literal>test</literal>.
-            <xref linkend='tab:configurations'/>
-            shows the details. 
-        </para>
-        <table id='tab:configurations'>
-            <title>Java/Groovy Configurations</title>
-            <thead>
+        <section>
+            <title>Dependency Reports</title>
+            <para>You can generate dependency reports from the command line (see <xref linkend="para:commandline_dependency_report"/>).
+                With the help of the <xref linkend="project_reports_plugin"/> such a report can be created by your build.
+            </para>
+        </section>
+        <section id='sec:java_plugin_and_dependency_management'>
+            <title>Java Plugin and Dependency Management</title>
+            <para>The Java Plugin preconfigures the dependency management. It adds a set of configurations and
+                assign those configurations to tasks like <literal>compile</literal> and <literal>test</literal>.
+                <xref linkend='tab:configurations'/>
+                shows the details.
+            </para>
+            <table id='tab:configurations'>
+                <title>Java/Groovy Configurations</title>
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Extends</td>
+                        <td>Task</td>
+                        <td>Meaning</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Name</td>
-                    <td>Extends</td>
-                    <td>Task</td>
-                    <td>Meaning</td>
+                    <td>compile</td>
+                    <td>-</td>
+                    <td>compile</td>
+                    <td>Compile time dependencies</td>
                 </tr>
-            </thead>
-            <tr>
-                <td>compile</td>
-                <td>-</td>
-                <td>compile</td>
-                <td>Compile time dependencies</td>
-            </tr>
-            <tr>
-                <td>runtime</td>
-                <td>compile</td>
-                <td>-</td>
-                <td>Runtime dependencies</td>
-            </tr>
-            <tr>
-                <td>testCompile</td>
-                <td>compile</td>
-                <td>compileTests</td>
-                <td>Additional dependencies for compiling tests.</td>
-            </tr>
-            <tr>
-                <td>testRuntime</td>
-                <td>runtime, testCompile</td>
-                <td>test</td>
-                <td>Additional dependencies for running tests only.</td>
-            </tr>
-            <tr>
-                <td>master</td>
-                <td>-</td>
-                <td>uploadMaster</td>
-                <td>Dependencies (e.g. jars) produced by this project.</td>
-            </tr>
-            <tr>
-                <td>default</td>
-                <td>runtime, master</td>
-                <td>-</td>
-                <td>Dependencies produced
-                    <literal>and</literal>
-                    required by this project.
-                </td>
-            </tr>
-        </table>
+                <tr>
+                    <td>runtime</td>
+                    <td>compile</td>
+                    <td>-</td>
+                    <td>Runtime dependencies</td>
+                </tr>
+                <tr>
+                    <td>testCompile</td>
+                    <td>compile</td>
+                    <td>compileTests</td>
+                    <td>Additional dependencies for compiling tests.</td>
+                </tr>
+                <tr>
+                    <td>testRuntime</td>
+                    <td>runtime, testCompile</td>
+                    <td>test</td>
+                    <td>Additional dependencies for running tests only.</td>
+                </tr>
+                <tr>
+                    <td>master</td>
+                    <td>-</td>
+                    <td>uploadMaster</td>
+                    <td>Artifacts (e.g. jars) produced by this project.</td>
+                </tr>
+                <tr>
+                    <td>default</td>
+                    <td>runtime, master</td>
+                    <td>-</td>
+                    <td>Artifacts produced and dependencies
+                        <literal>and</literal>
+                        required by this project.
+                    </td>
+                </tr>
+            </table>
+        </section>
     </section>
     <section id='sec:repositories'>
         <title>Repositories</title>
@@ -358,7 +368,7 @@
             <para>The first URL is used to look for poms and jars. The subsequent URLs are used to look for jars.
             </para>
         </section>
-        <section id='sub:flat_dir_resolver'>
+        <section id='sec:flat_dir_resolver'>
             <title>Flat Directory Resolver</title>
             <para>If you want to use a (flat) filesytem directory as a repository, simply type:
             </para>
@@ -387,35 +397,7 @@
             <para>When Gradle downloads dependencies from remote repositories it stores them in a local cache located at
                 <literal>USER_HOME/.gradle/cache</literal>. When Gradle downloads dependencies from one of its
                 predefined local resolvers (e.g. Flat Directory resolver), the cache is not used as an intermediate
-                storage for dependencies.
-            </para>
-        </section>
-        <section id='sub:resolver_container'>
-            <title>Resolver Container</title>
-            <para>There are three hooks for adding resolvers. Via the resolvers assigned to the
-                <literal>classpathResolvers</literal>
-                property of the dependency manager, the <literal>compile</literal>,
-                <literal>compileTests</literal>
-                and
-                <literal>test</literal>
-                tasks retrieve their dependencies. The
-                <literal>uploadLibs</literal>
-                and
-                <literal>uploadDists</literal>
-                tasks have both an
-                <literal>uploadResolvers</literal>
-                property. You can assign one resolver to multiple hooks.
-            </para>
-            <para>All of those hooks are instances of <apilink class="org.gradle.api.artifacts.ResolverContainer"/>.
-                This class provided methods for adding new resolvers at a particular position in the resolve chain.
-                <footnote>
-                    <para>Ivy power users can set <literal>dependencies.chainConfigurer = { // some statements }</literal>.
-                        This closure is applied to the <literal>ChainResolver</literal> containing the other Ivy resolvers.
-                    </para>
-                </footnote>
-                Ivy offers more complex structures for resolvers than simple chains. The resolver container does not
-                offer particular support for this. But by manipulating its properties directly you could set up such
-                other structures.
+                storage for dependency artifacts. The cache is always used for caching module descriptors.
             </para>
         </section>
         <section id='sub:more_about_ivy_resolvers'>
@@ -457,20 +439,10 @@ someroot/[artifact]-[revision].[ext]
 ]]></programlisting>
             <para>To add any kind of repository (you can pretty easy write your own ones) you can do:
             </para>
-            <programlisting><![CDATA[
-dependencies {
-	classpathResolvers.add(new WebdavResolver()) {
-	        name = 'gradleReleases'
-	        user = codehausUserName
-	        userPassword = codehausUserPassword
-	        addArtifactPattern(root + "[artifact]-[revision].[ext]")
-}
-]]></programlisting>
-            <para>
-                <literal>WebdavResolver</literal>
-                is a class that implements an Ivy interface and is part of the
-                <emphasis>Gradle</emphasis>
-                distribution. An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found
+            <sample id="fileSystemResolver" dir="userguide/artifacts/excludesAndClassifiers">
+                <sourcefile file="build.gradle" snippet="file-system-resolver"/>
+            </sample>
+            <para>An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found
                 <ulink url='http://ant.apache.org/ivy/latest-milestone/configuration/resolvers.html'>here</ulink>. With
                 Gradle you just don't configure them via xml but directly via their API.
             </para>
@@ -483,7 +455,7 @@ dependencies {
         </para>
         <itemizedlist>
             <listitem>
-                <para>The IBibilio repository is sometimes down or has a very long response time.
+                <para>The IBibilio repository is can be down or has a very long response time.
                 </para>
             </listitem>
             <listitem>
@@ -526,66 +498,31 @@ dependencies {
             But it can be tedious, to keep it up to date. For a new version, you have always to create the new XML
             descriptor and the directories. And your custom repository is another infrastructure element which might
             have downtimes and needs to be updated. To enable historical builds, you need to keep all the past
-            libraries. It is another layer of indirection, which contains information relevant for your build and you
-            have to navigate to the lengthy path with your browser to get the information. All this is not really a big
-            deal but in its sum it has an impact on your agility. Why should you cope with this? You pay
-            something, so you should also get something, right? So we end up with the question: Does it make sense to
-            store the dependency information (and the dependencies) in remote repositories? Our answer is: It depends.
+            libraries and you need a backup. It is another layer of indirection. Another source of information
+            you have to lookup. All this is not really a big deal but in its sum it has an impact. Repository Manager like
+            Artifactory or Nexus make this easier. But for example open source projects don't usually have a host for those products.
         </para>
-        <section id='sub:enterprise_environments'>
-            <title>Enterprise Environments</title>
-            <para>In a larger enterprise environment you are likely to have a number of independent builds, possibly
-                many different, large multi-project builds. Here a repository infrastructure makes a lot of sense. You
-                have already infrastructure that guarantees a high uptime. Multiple projects can share there information
-                about certain common dependencies they have. There is a central place to look for dependency
-                information. And the repositories are used to integrate the internal projects with each other. One
-                project publishes itself to the company repository, with all its dependency information stored in an
-                ivy.xml or pom.xml file.
-                <footnote>
-                    <para>As discussed in
-                        <xref linkend='sub:other_environments'/>
-                        this will be also possible with client modules in a future release.
-                    </para>
-                </footnote>
-                Together with a continuous integration server this offers a strong integration for projects with separate
-                builds. As you have seen, Gradle fully supports this approach.
-            </para>
-        </section>
-        <section id='sub:other_environments'>
-            <title>Other environments</title>
-            <para>But what about other environments. What about a typical open source projects like Gradle or
-                environments which consists of a single multi-project build . They don't integrate with other projects
-                in the same environment or need to share dependency information in this environment. In such a (very
-                common) case we think dependency management based on remote repositories is an unnecessary indirection
-                which makes things more complicated than necessary. Gradle itself (which is build by Gradle) stores its
-                dependencies in svn. There is a lib folder which contains all jars needed to build Gradle. Yet we have a
-                complete management of our dependencies. For Gradle the lib folder is a local repository containing all
-                the jars (in a flat structure). There are no xml descriptors. We use either client module dependencies
-                to express our dependency relations, or artifact dependencies in case a first level dependency has no
-                transitive dependencies. People can check out Gradle from svn and have everything necessary to build it.
-                The same applies to our source distribution.
-            </para>
-            <para>You might argue that such an approach works only for projects like Gradle, which is not used as a
-                library but is simply a distribution. What about open source library projects (e.g. commons-httpclient)
-                that need to upload themselves to the Maven2 repo together with a
-                <literal>pom.xml</literal>
-                file. As soon as the limitation mentioned in
-                <xref linkend='sub:client_module_dependencies'/>
-                has been overcome, your project can upload to such a repository without relying on XML descriptor files
-                themselves.
-            </para>
-            <para>You could also have a mixed strategy. If your main concern is bad metadata in the pom.xml and maintaining
-                custom XML descriptors,
-                <emphasis>Client Modules</emphasis>
-                offer an alternative. But you can of course still use Maven2 repo and your custom repository as a
-                repository for
-                <emphasis>jars only</emphasis>
-                and still enjoy
-                <emphasis>transitive</emphasis>
-                dependency management. Or you can only provide client modules for pom's with bad metadata. For the
-                jars and the correct pom's you still use the remote repository.
-            </para>
-        </section>
+        <para>This is a reason why some projects prefer to store there libraries in there version control system. This
+            approach is fully supported by Gradle. The libraries can be stored in a flat directory without any xml module
+            descriptor files.  Yet Gradle offers complete transitive dependency management. You can use either client module
+            dependencies to express the dependency relations, or artifact dependencies in case a first level dependency has no
+            transitive dependencies. People can check out such a project from svn and have everything necessary to build it.
+        </para>
+        <para>If you are working with a distributed version control system like Git you probably don't want to
+        use the version control system to store libraries as people check out the whole history. But even here the flexibility
+        of Gradle can make your life easier. For example you can use a shared flat directory without xml descriptors and
+        yet you can have full transitive dependency management as described above.</para>
+        <para>You could also have a mixed strategy. If your main concern is bad metadata in the pom.xml and maintaining
+            custom XML descriptors,
+            <emphasis>Client Modules</emphasis>
+            offer an alternative. But you can of course still use Maven2 repo and your custom repository as a
+            repository for
+            <emphasis>jars only</emphasis>
+            and still enjoy
+            <emphasis>transitive</emphasis>
+            dependency management. Or you can only provide client modules for pom's with bad metadata. For the
+            jars and the correct pom's you still use the remote repository.
+        </para>
         <section id='sub:implicit_transitive_dependencies'>
             <title>Implicit transitive dependencies</title>
             <para>There is another way to deal with transitive dependencies
@@ -593,20 +530,10 @@ dependencies {
                 xml descriptor files. You can do this with Gradle, but we don't recommend it. We mention it for the sake
                 of completeness and comparison with other build tools.
             </para>
-            <programlisting><![CDATA[
-List groovy = ["org.codehaus.groovy:groovy-all:1.5.4:jar",
-               "commons-cli:commons-cli:1.0:jar",
-               "org.apache.ant:ant:1.7.0:jar"]
-List hibernate = [...] // enter the dependencies here
-dependencies {
-	compile groovy
-	runtime hibernate
-}
-]]></programlisting>
             <para>The trick is to use only artifact dependencies and group them in lists. That way you have somehow
-                expressed, what are your first level dependencies and what are transitive dependencies.
-            </para>
-            <para>But for the Gradle dependency management all dependencies are considered first level dependencies. The
+                expressed, what are your first level dependencies and what are transitive dependencies (see
+                <xref linkend="para:notation_collections"/>).
+                But the draw-back is, that for the Gradle dependency management all dependencies are considered first level dependencies. The
                 dependency reports don't show your real dependency graph and the
                 <literal>compile</literal>
                 task uses all dependencies, not just the first level dependencies. All in all, your build is less
